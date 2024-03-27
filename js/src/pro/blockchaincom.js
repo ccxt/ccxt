@@ -37,7 +37,6 @@ export default class blockchaincom extends blockchaincomRest {
                     },
                     'noOriginHeader': false,
                 },
-                'sequenceNumbers': {},
             },
             'streaming': {},
             'exceptions': {},
@@ -57,8 +56,8 @@ export default class blockchaincom extends blockchaincomRest {
          * @name blockchaincom#watchBalance
          * @description watch balance and get the amount of funds available for trading or funds locked in orders
          * @see https://exchange.blockchain.com/api/#balances
-         * @param {object} [params] extra parameters specific to the blockchaincom api endpoint
-         * @returns {object} a [balance structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure}
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.authenticate(params);
         const messageHash = 'balance';
@@ -102,7 +101,7 @@ export default class blockchaincom extends blockchaincomRest {
         //
         const event = this.safeString(message, 'event');
         if (event === 'subscribed') {
-            return message;
+            return;
         }
         const result = { 'info': message };
         const balances = this.safeValue(message, 'balances', []);
@@ -111,12 +110,12 @@ export default class blockchaincom extends blockchaincomRest {
             const currencyId = this.safeString(entry, 'currency');
             const code = this.safeCurrencyCode(currencyId);
             const account = this.account();
-            account['free'] = this.safeNumber(entry, 'available');
-            account['total'] = this.safeNumber(entry, 'balance');
+            account['free'] = this.safeString(entry, 'available');
+            account['total'] = this.safeString(entry, 'balance');
             result[code] = account;
         }
         const messageHash = 'balance';
-        this.balance = result;
+        this.balance = this.safeBalance(result);
         client.resolve(this.balance, messageHash);
     }
     async watchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
@@ -129,7 +128,7 @@ export default class blockchaincom extends blockchaincomRest {
          * @param {string} timeframe the length of time each candle represents. Allows '1m', '5m', '15m', '1h', '6h' '1d'. Can only watch one timeframe per symbol.
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
          * @param {int} [limit] the maximum amount of candles to fetch
-         * @param {object} [params] extra parameters specific to the bitfinex2 api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets();
@@ -172,11 +171,9 @@ export default class blockchaincom extends blockchaincomRest {
         //     }
         //
         const event = this.safeString(message, 'event');
-        if (event === 'subscribed') {
-            return message;
-        }
-        else if (event === 'rejected') {
-            throw new ExchangeError(this.id + ' ' + this.json(message));
+        if (event === 'rejected') {
+            const jsonMessage = this.json(message);
+            throw new ExchangeError(this.id + ' ' + jsonMessage);
         }
         else if (event === 'updated') {
             const marketId = this.safeString(message, 'symbol');
@@ -196,7 +193,7 @@ export default class blockchaincom extends blockchaincomRest {
             stored.append(ohlcv);
             client.resolve(stored, messageHash);
         }
-        else {
+        else if (event !== 'subscribed') {
             throw new NotSupported(this.id + ' ' + this.json(message));
         }
     }
@@ -207,8 +204,8 @@ export default class blockchaincom extends blockchaincomRest {
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @see https://exchange.blockchain.com/api/#ticker
          * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} [params] extra parameters specific to the blockchaincom api endpoint
-         * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -258,7 +255,7 @@ export default class blockchaincom extends blockchaincomRest {
         const symbol = market['symbol'];
         let ticker = undefined;
         if (event === 'subscribed') {
-            return message;
+            return;
         }
         else if (event === 'snapshot') {
             ticker = this.parseTicker(message, market);
@@ -316,8 +313,8 @@ export default class blockchaincom extends blockchaincomRest {
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of    trades to fetch
-         * @param {object} [params] extra parameters specific to the blockchaincom api endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -357,7 +354,7 @@ export default class blockchaincom extends blockchaincomRest {
         //
         const event = this.safeString(message, 'event');
         if (event !== 'updated') {
-            return message;
+            return;
         }
         const marketId = this.safeString(message, 'symbol');
         const symbol = this.safeSymbol(marketId);
@@ -414,9 +411,9 @@ export default class blockchaincom extends blockchaincomRest {
          * @see https://exchange.blockchain.com/api/#mass-order-status-request-ordermassstatusrequest
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
-         * @param {object} [params] extra parameters specific to the blockchaincom api endpoint
-         * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @param {int} [limit] the maximum number of order structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         await this.authenticate();
@@ -519,7 +516,7 @@ export default class blockchaincom extends blockchaincomRest {
             this.orders = new ArrayCacheBySymbolById(limit);
         }
         if (event === 'subscribed') {
-            return message;
+            return;
         }
         else if (event === 'rejected') {
             throw new ExchangeError(this.id + ' ' + this.json(message));
@@ -628,9 +625,9 @@ export default class blockchaincom extends blockchaincomRest {
          * @see https://exchange.blockchain.com/api/#l2-order-book
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
-         * @param {objectConstructor} [params] extra parameters specific to the blockchaincom api endpoint
+         * @param {objectConstructor} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.type] accepts l2 or l3 for level 2 or level 3 order book
-         * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -683,65 +680,38 @@ export default class blockchaincom extends blockchaincomRest {
         //     }
         //
         const event = this.safeString(message, 'event');
+        if (event === 'subscribed') {
+            return;
+        }
         const type = this.safeString(message, 'channel');
         const marketId = this.safeString(message, 'symbol');
         const symbol = this.safeSymbol(marketId);
         const messageHash = 'orderbook:' + symbol + ':' + type;
         const datetime = this.safeString(message, 'timestamp');
         const timestamp = this.parse8601(datetime);
-        let storedOrderBook = this.safeValue(this.orderbooks, symbol);
-        if (storedOrderBook === undefined) {
-            storedOrderBook = this.countedOrderBook({});
-            this.orderbooks[symbol] = storedOrderBook;
+        if (this.safeValue(this.orderbooks, symbol) === undefined) {
+            this.orderbooks[symbol] = this.countedOrderBook();
         }
-        if (event === 'subscribed') {
-            return message;
-        }
-        else if (event === 'snapshot') {
-            const snapshot = this.parseCountedOrderBook(message, symbol, timestamp, 'bids', 'asks', 'px', 'qty', 'num');
-            storedOrderBook.reset(snapshot);
+        const orderbook = this.orderbooks[symbol];
+        if (event === 'snapshot') {
+            const snapshot = this.parseOrderBook(message, symbol, timestamp, 'bids', 'asks', 'px', 'qty', 'num');
+            orderbook.reset(snapshot);
         }
         else if (event === 'updated') {
             const asks = this.safeValue(message, 'asks', []);
             const bids = this.safeValue(message, 'bids', []);
-            this.handleDeltas(storedOrderBook['asks'], asks);
-            this.handleDeltas(storedOrderBook['bids'], bids);
-            storedOrderBook['timestamp'] = timestamp;
-            storedOrderBook['datetime'] = datetime;
+            this.handleDeltas(orderbook['asks'], asks);
+            this.handleDeltas(orderbook['bids'], bids);
+            orderbook['timestamp'] = timestamp;
+            orderbook['datetime'] = datetime;
         }
         else {
             throw new NotSupported(this.id + ' watchOrderBook() does not support ' + event + ' yet');
         }
-        client.resolve(storedOrderBook, messageHash);
-    }
-    parseCountedBidAsk(bidAsk, priceKey = 0, amountKey = 1, countKey = 2) {
-        const price = this.safeNumber(bidAsk, priceKey);
-        const amount = this.safeNumber(bidAsk, amountKey);
-        const count = this.safeNumber(bidAsk, countKey);
-        return [price, amount, count];
-    }
-    parseCountedBidsAsks(bidasks, priceKey = 0, amountKey = 1, countKey = 2) {
-        bidasks = this.toArray(bidasks);
-        const result = [];
-        for (let i = 0; i < bidasks.length; i++) {
-            result.push(this.parseCountedBidAsk(bidasks[i], priceKey, amountKey, countKey));
-        }
-        return result;
-    }
-    parseCountedOrderBook(orderbook, symbol, timestamp = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey = 0, amountKey = 1, countKey = 2) {
-        const bids = this.parseCountedBidsAsks(this.safeValue(orderbook, bidsKey, []), priceKey, amountKey, countKey);
-        const asks = this.parseCountedBidsAsks(this.safeValue(orderbook, asksKey, []), priceKey, amountKey, countKey);
-        return {
-            'symbol': symbol,
-            'bids': this.sortBy(bids, 0, true),
-            'asks': this.sortBy(asks, 0),
-            'timestamp': timestamp,
-            'datetime': this.iso8601(timestamp),
-            'nonce': undefined,
-        };
+        client.resolve(orderbook, messageHash);
     }
     handleDelta(bookside, delta) {
-        const bookArray = this.parseCountedBidAsk(delta, 'px', 'qty', 'num');
+        const bookArray = this.parseBidAsk(delta, 'px', 'qty', 'num');
         bookside.storeArray(bookArray);
     }
     handleDeltas(bookside, deltas) {
@@ -749,23 +719,7 @@ export default class blockchaincom extends blockchaincomRest {
             this.handleDelta(bookside, deltas[i]);
         }
     }
-    checkSequenceNumber(client, message) {
-        const seqnum = this.safeInteger(message, 'seqnum', 0);
-        const channel = this.safeString(message, 'channel', '');
-        const sequenceNumbersByChannel = this.safeValue(this.options, 'sequenceNumbers', {});
-        const lastSeqnum = this.safeInteger(sequenceNumbersByChannel, channel);
-        if (lastSeqnum === undefined) {
-            this.options['sequenceNumbers'][channel] = seqnum;
-        }
-        else {
-            if (seqnum !== lastSeqnum + 1) {
-                throw new ExchangeError(this.id + ' ' + channel + ' seqnum ' + seqnum + ' is not the expected ' + (lastSeqnum + 1));
-            }
-            this.options['sequenceNumbers'][channel] = seqnum;
-        }
-    }
     handleMessage(client, message) {
-        this.checkSequenceNumber(client, message);
         const channel = this.safeString(message, 'channel');
         const handlers = {
             'ticker': this.handleTicker,
@@ -779,7 +733,8 @@ export default class blockchaincom extends blockchaincomRest {
         };
         const handler = this.safeValue(handlers, channel);
         if (handler !== undefined) {
-            return handler.call(this, client, message);
+            handler.call(this, client, message);
+            return;
         }
         throw new NotSupported(this.id + ' received an unsupported message: ' + this.json(message));
     }
@@ -801,7 +756,7 @@ export default class blockchaincom extends blockchaincomRest {
             future.resolve(true);
         }
     }
-    authenticate(params = {}) {
+    async authenticate(params = {}) {
         const url = this.urls['api']['ws'];
         const client = this.client(url);
         const messageHash = 'authenticated';
@@ -816,6 +771,6 @@ export default class blockchaincom extends blockchaincomRest {
             };
             return this.watch(url, messageHash, this.extend(request, params), messageHash);
         }
-        return future;
+        return await future;
     }
 }

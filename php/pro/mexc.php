@@ -6,9 +6,9 @@ namespace ccxt\pro;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use ccxt\ExchangeError;
 use ccxt\AuthenticationError;
 use React\Async;
+use React\Promise\PromiseInterface;
 
 class mexc extends \ccxt\async\mexc {
 
@@ -16,6 +16,15 @@ class mexc extends \ccxt\async\mexc {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
+                'cancelAllOrdersWs' => false,
+                'cancelOrdersWs' => false,
+                'cancelOrderWs' => false,
+                'createOrderWs' => false,
+                'editOrderWs' => false,
+                'fetchBalanceWs' => false,
+                'fetchOpenOrdersWs' => false,
+                'fetchOrderWs' => false,
+                'fetchTradesWs' => false,
                 'watchBalance' => true,
                 'watchMyTrades' => true,
                 'watchOHLCV' => true,
@@ -63,13 +72,13 @@ class mexc extends \ccxt\async\mexc {
         ));
     }
 
-    public function watch_ticker(string $symbol, $params = array ()) {
+    public function watch_ticker(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
-             * @param {array} [$params] extra parameters specific to the mexc3 api endpoint
-             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure ticker structure}
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -209,7 +218,7 @@ class mexc extends \ccxt\async\mexc {
         }) ();
     }
 
-    public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#kline-streams
@@ -218,7 +227,7 @@ class mexc extends \ccxt\async\mexc {
              * @param {string} $timeframe the length of time each candle represents
              * @param {int} [$since] timestamp in ms of the earliest candle to fetch
              * @param {int} [$limit] the maximum amount of candles to fetch
-             * @param {array} [$params] extra parameters specific to the mexc3 api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
@@ -254,7 +263,7 @@ class mexc extends \ccxt\async\mexc {
         //        "d" => {
         //            "e" => "spot@public.kline.v3.api",
         //            "k" => array(
-        //                "t" => 1678642260,
+        //                "t" => 1678642261,
         //                "o" => 20626.94,
         //                "c" => 20599.69,
         //                "h" => 20626.94,
@@ -357,15 +366,15 @@ class mexc extends \ccxt\async\mexc {
         );
     }
 
-    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#diff-depth-stream
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
-             * @param {array} [$params] extra parameters specific to the mexc3 api endpoint
-             * @return {array} A dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure order book structures} indexed by $market symbols
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -464,26 +473,27 @@ class mexc extends \ccxt\async\mexc {
         $symbol = $this->safe_symbol($marketId);
         $messageHash = 'orderbook:' . $symbol;
         $subscription = $this->safe_value($client->subscriptions, $messageHash);
+        $limit = $this->safe_integer($subscription, 'limit');
         if ($subscription === true) {
             // we set $client->subscriptions[$messageHash] to 1
             // once we have received the first delta and initialized the orderbook
             $client->subscriptions[$messageHash] = 1;
             $this->orderbooks[$symbol] = $this->counted_order_book(array());
         }
-        $storedOrderBook = $this->safe_value($this->orderbooks, $symbol);
+        $storedOrderBook = $this->orderbooks[$symbol];
         $nonce = $this->safe_integer($storedOrderBook, 'nonce');
         if ($nonce === null) {
             $cacheLength = count($storedOrderBook->cache);
             $snapshotDelay = $this->handle_option('watchOrderBook', 'snapshotDelay', 25);
             if ($cacheLength === $snapshotDelay) {
-                $this->spawn(array($this, 'load_order_book'), $client, $messageHash, $symbol);
+                $this->spawn(array($this, 'load_order_book'), $client, $messageHash, $symbol, $limit, array());
             }
             $storedOrderBook->cache[] = $data;
             return;
         }
         try {
             $this->handle_delta($storedOrderBook, $data);
-            $timestamp = $this->safe_integer($message, 't');
+            $timestamp = $this->safe_integer_2($message, 't', 'ts');
             $storedOrderBook['timestamp'] = $timestamp;
             $storedOrderBook['datetime'] = $this->iso8601($timestamp);
         } catch (Exception $e) {
@@ -513,10 +523,12 @@ class mexc extends \ccxt\async\mexc {
     }
 
     public function handle_delta($orderbook, $delta) {
-        $nonce = $this->safe_integer($orderbook, 'nonce');
+        $existingNonce = $this->safe_integer($orderbook, 'nonce');
         $deltaNonce = $this->safe_integer_2($delta, 'r', 'version');
-        if ($deltaNonce !== $nonce && $deltaNonce !== $nonce + 1) {
-            throw new ExchangeError($this->id . ' handleOrderBook received an out-of-order nonce');
+        if ($deltaNonce < $existingNonce) {
+            // even when doing < comparison, this happens => https://app.travis-ci.com/github/ccxt/ccxt/builds/269234741#L1809
+            // so, we just skip old updates
+            return;
         }
         $orderbook['nonce'] = $deltaNonce;
         $asks = $this->safe_value($delta, 'asks', array());
@@ -527,7 +539,7 @@ class mexc extends \ccxt\async\mexc {
         $this->handle_bookside_delta($bidsOrderSide, $bids);
     }
 
-    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#trade-streams
@@ -535,8 +547,8 @@ class mexc extends \ccxt\async\mexc {
              * @param {string} $symbol unified $symbol of the $market to fetch $trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
-             * @param {array} [$params] extra parameters specific to the mexc3 api endpoint
-             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#public-$trades trade structures}
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=public-$trades trade structures~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -616,7 +628,7 @@ class mexc extends \ccxt\async\mexc {
         $client->resolve ($stored, $messageHash);
     }
 
-    public function watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#spot-account-deals
@@ -624,8 +636,8 @@ class mexc extends \ccxt\async\mexc {
              * @param {string} $symbol unified $market $symbol of the $market $trades were made in
              * @param {int} [$since] the earliest time in ms to fetch $trades for
              * @param {int} [$limit] the maximum number of trade structures to retrieve
-             * @param {array} [$params] extra parameters specific to the mexc3 api endpoint
-             * @return {array[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
              */
             Async\await($this->load_markets());
             $messageHash = 'myTrades';
@@ -744,7 +756,7 @@ class mexc extends \ccxt\async\mexc {
         ), $market);
     }
 
-    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#spot-account-$orders
@@ -752,10 +764,10 @@ class mexc extends \ccxt\async\mexc {
              * watches information on multiple $orders made by the user
              * @param {string} $symbol unified $market $symbol of the $market $orders were made in
              * @param {int} [$since] the earliest time in ms to fetch $orders for
-             * @param {int} [$limit] the maximum number of  orde structures to retrieve
-             * @param {array} [$params] extra parameters specific to the mexc3 api endpoint
-             * @$params {string|null} $params->type the $type of $orders to retrieve, can be 'spot' or 'margin'
-             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
+             * @param {int} [$limit] the maximum number of order structures to retrieve
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string|null} $params->type the $type of $orders to retrieve, can be 'spot' or 'margin'
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             $params = $this->omit($params, 'type');
@@ -1000,13 +1012,13 @@ class mexc extends \ccxt\async\mexc {
         return $this->safe_string($timeInForceIds, $timeInForce);
     }
 
-    public function watch_balance($params = array ()) {
+    public function watch_balance($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#spot-account-upadte
              * watch balance and get the amount of funds available for trading or funds locked in orders
-             * @param {array} [$params] extra parameters specific to the mexc3 api endpoint
-             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure balance structure}
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
              */
             Async\await($this->load_markets());
             $type = null;
@@ -1133,7 +1145,7 @@ class mexc extends \ccxt\async\mexc {
         //
         $msg = $this->safe_string($message, 'msg');
         if ($msg === 'PONG') {
-            return $this->handle_pong($client, $message);
+            $this->handle_pong($client, $message);
         } elseif (mb_strpos($msg, '@') > -1) {
             $parts = explode('@', $msg);
             $channel = $this->safe_string($parts, 1);
@@ -1156,7 +1168,8 @@ class mexc extends \ccxt\async\mexc {
             return;
         }
         if (is_array($message) && array_key_exists('msg', $message)) {
-            return $this->handle_subscription_status($client, $message);
+            $this->handle_subscription_status($client, $message);
+            return;
         }
         $c = $this->safe_string($message, 'c');
         $channel = null;

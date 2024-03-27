@@ -1,3 +1,4 @@
+#! /usr/bin/env node
 import fs from 'fs'
 import path from 'path'
 import ansi from 'ansicolor'
@@ -35,13 +36,17 @@ let [processPath, , exchangeId, methodName, ... params] = process.argv.filter (x
     , isSwap = process.argv.includes ('--swap')
     , isFuture = process.argv.includes ('--future')
     , isOption = process.argv.includes ('--option')
-    , shouldCreateReport = process.argv.includes ('--report')
+    , shouldCreateRequestReport = process.argv.includes ('--report')
+    , shouldCreateResponseReport = process.argv.includes ('--response')
+    , shouldCreateBoth = process.argv.includes ('--static')
+    , raw = process.argv.includes ('--raw')
 
 //-----------------------------------------------------------------------------
-
-log ((new Date ()).toISOString())
-log ('Node.js:', process.version)
-log ('CCXT v' + ccxt.version)
+if (!raw) {
+    log ((new Date ()).toISOString())
+    log ('Node.js:', process.version)
+    log ('CCXT v' + ccxt.version)
+}
 
 //-----------------------------------------------------------------------------
 
@@ -90,6 +95,10 @@ try {
         exchange = new (ccxt)[exchangeId] ({ timeout, httpsAgent, ... settings })
     }
 
+    if (exchange === undefined) {
+        process.exit ()
+    }
+
     if (isSpot) {
         exchange.options['defaultType'] = 'spot';
     } else if (isSwap) {
@@ -125,7 +134,7 @@ try {
 
 //-----------------------------------------------------------------------------
 
-function createTemplate(exchange, methodName, args, result) {
+function createRequestTemplate(exchange, methodName, args, result) {
     const final = {
         'description': 'Fill this with a description of the method call',
         'method': methodName,
@@ -133,9 +142,25 @@ function createTemplate(exchange, methodName, args, result) {
         'input': args,
         'output': exchange.last_request_body ?? undefined
     }
-    log('Report: (paste inside static/data/' + exchange.id + '.json ->' + methodName + ')')
+    log('Report: (paste inside static/request/' + exchange.id + '.json ->' + methodName + ')')
     log.green('-------------------------------------------')
     log (JSON.stringify (final, null, 2))
+    log.green('-------------------------------------------')
+}
+
+//-----------------------------------------------------------------------------
+
+function createResponseTemplate(exchange, methodName, args, result) {
+    const final = {
+        'description': 'Fill this with a description of the method call',
+        'method': methodName,
+        'input': args,
+        'httpResponse': exchange.last_json_response ?? exchange.last_http_response,
+        'parsedResponse': result
+    }
+    log('Report: (paste inside static/response/' + exchange.id + '.json ->' + methodName + ')')
+    log.green('-------------------------------------------')
+    log (JSON.stringify (final, function(k, v) { return v === undefined ? null : v; }, 2))
     log.green('-------------------------------------------')
 }
 
@@ -176,6 +201,9 @@ function printUsage () {
 //-----------------------------------------------------------------------------
 
 const printHumanReadable = (exchange, result) => {
+    if (raw) {
+        return log (JSON.stringify(result))
+    }
     if (!no_table && Array.isArray (result) || table) {
         result = Object.values (result)
         let arrayOfObjects = (typeof result[0] === 'object')
@@ -242,8 +270,11 @@ async function run () {
     } else {
 
         let args = params
-            .map (s => s.match (/^[0-9]{4}[-]?[0-9]{2}[-]?[0-9]{2}[T\s]?[0-9]{2}[:]?[0-9]{2}[:]?[0-9]{2}/g) ? exchange.parse8601 (s) : s)
-            .map (s => (() => { try { return eval ('(() => (' + s + ')) ()') } catch (e) { return s } }) ())
+            .map (s => s.match (/^[0-9]{4}[-][0-9]{2}[-][0-9]{2}[T\s]?[0-9]{2}[:][0-9]{2}[:][0-9]{2}/g) ? exchange.parse8601 (s) : s)
+            .map (s => (() => { 
+                if (s.match ( /^\d+$/g)) return s < Number.MAX_SAFE_INTEGER ? Number (s) : s
+                try {return eval ('(() => (' + s + ')) ()') } catch (e) { return s }
+            }) ())
 
         const www = Array.isArray (exchange.urls.www) ? exchange.urls.www[0] : exchange.urls.www
 
@@ -290,7 +321,6 @@ async function run () {
                     headers,
                     body,
                 })
-                process.exit ()
             }
         }
 
@@ -298,7 +328,7 @@ async function run () {
 
             if (typeof exchange[methodName] === 'function') {
 
-                log (exchange.id + '.' + methodName, '(' + args.join (', ') + ')')
+                if (!raw) log (exchange.id + '.' + methodName, '(' + args.join (', ') + ')')
 
                 let start = exchange.milliseconds ()
                 let end = exchange.milliseconds ()
@@ -314,15 +344,18 @@ async function run () {
                     try {
                         const result = await exchange[methodName] (... args)
                         end = exchange.milliseconds ()
-                        if (!isWsMethod) {
+                        if (!isWsMethod && !raw) {
                             log (exchange.iso8601 (end), 'iteration', i++, 'passed in', end - start, 'ms\n')
                         }
-                        printHumanReadable (exchange, result)
-                        if (!isWsMethod) {
+                        printHumanReadable (exchange, JSON.parse(JSON.stringify(result)))
+                        if (!isWsMethod && !raw) {
                             log (exchange.iso8601 (end), 'iteration', i, 'passed in', end - start, 'ms\n')
                         }
-                        if (shouldCreateReport) {
-                            createTemplate(exchange, methodName, args, result)
+                        if (shouldCreateRequestReport || shouldCreateBoth) {
+                            createRequestTemplate(exchange, methodName, args, result)
+                        }
+                        if (shouldCreateResponseReport || shouldCreateBoth) {
+                            createResponseTemplate(exchange, methodName, args, result)
                         }
                         start = end
                     } catch (e) {
@@ -342,7 +375,8 @@ async function run () {
                     if (debug) {
                         const keys = Object.keys (httpsAgent.freeSockets)
                         const firstKey = keys[0]
-                        log (firstKey, httpsAgent.freeSockets[firstKey].length)
+                        let httpAgent = httpsAgent.freeSockets[firstKey];
+                        log (firstKey, httpAgent.length)
                     }
 
                     if (!poll && !isWsMethod){

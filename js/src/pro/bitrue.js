@@ -7,7 +7,6 @@
 //  ---------------------------------------------------------------------------
 import bitrueRest from '../bitrue.js';
 import { ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import { ArgumentsRequired } from '../base/errors.js';
 //  ---------------------------------------------------------------------------
 export default class bitrue extends bitrueRest {
     describe() {
@@ -61,8 +60,8 @@ export default class bitrue extends bitrueRest {
          * @name bitrue#watchBalance
          * @description watch balance and get the amount of funds available for trading or funds locked in orders
          * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#balance-update
-         * @param {object} [params] extra parameters specific to the bitrue api endpoint
-         * @returns {object} a [balance structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure}
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         const url = await this.authenticate();
         const messageHash = 'balance';
@@ -176,8 +175,8 @@ export default class bitrue extends bitrueRest {
          * @param {string[]} symbols unified symbols of the market to watch the orders for
          * @param {int} [since] timestamp in ms of the earliest order
          * @param {int} [limit] the maximum amount of orders to return
-         * @param {object} [params] extra parameters specific to the bitrue api endpoint
-         * @returns {object} A dictionary of [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure} indexed by market symbols
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} A dictionary of [order structure]{@link https://docs.ccxt.com/#/?id=order-structure} indexed by market symbols
          */
         await this.loadMarkets();
         if (symbol !== undefined) {
@@ -293,9 +292,6 @@ export default class bitrue extends bitrueRest {
         }, market);
     }
     async watchOrderBook(symbol, limit = undefined, params = {}) {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired(this.id + ' watchOrderBook() requires a symbol argument');
-        }
         await this.loadMarkets();
         const market = this.market(symbol);
         symbol = market['symbol'];
@@ -353,7 +349,12 @@ export default class bitrue extends bitrueRest {
         const symbol = market['symbol'];
         const timestamp = this.safeInteger(message, 'ts');
         const tick = this.safeValue(message, 'tick', {});
-        const orderbook = this.parseOrderBook(tick, symbol, timestamp, 'buys', 'asks');
+        let orderbook = this.safeValue(this.orderbooks, symbol);
+        if (orderbook === undefined) {
+            orderbook = this.orderBook();
+        }
+        const snapshot = this.parseOrderBook(tick, symbol, timestamp, 'buys', 'asks');
+        orderbook.reset(snapshot);
         this.orderbooks[symbol] = orderbook;
         const messageHash = 'orderbook:' + symbol;
         client.resolve(orderbook, messageHash);
@@ -421,7 +422,7 @@ export default class bitrue extends bitrueRest {
             catch (error) {
                 this.options['listenKey'] = undefined;
                 this.options['listenKeyUrl'] = undefined;
-                return;
+                return undefined;
             }
             //
             //     {

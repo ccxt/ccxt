@@ -9,7 +9,7 @@ var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 //  ---------------------------------------------------------------------------
 /**
  * @class latoken
- * @extends Exchange
+ * @augments Exchange
  */
 class latoken extends latoken$1 {
     describe() {
@@ -28,20 +28,26 @@ class latoken extends latoken$1 {
                 'option': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
+                'closeAllPositions': false,
+                'closePosition': false,
                 'createOrder': true,
                 'createPostOnlyOrder': false,
                 'createStopLimitOrder': true,
                 'createStopMarketOrder': false,
                 'createStopOrder': true,
                 'fetchBalance': true,
-                'fetchBorrowRate': false,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
-                'fetchBorrowRates': false,
-                'fetchBorrowRatesPerSymbol': false,
+                'fetchCrossBorrowRate': false,
+                'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
+                'fetchDepositAddress': false,
+                'fetchDepositAddresses': false,
+                'fetchDepositAddressesByNetwork': false,
                 'fetchDepositsWithdrawals': true,
                 'fetchDepositWithdrawFees': false,
+                'fetchIsolatedBorrowRate': false,
+                'fetchIsolatedBorrowRates': false,
                 'fetchMarginMode': false,
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
@@ -226,7 +232,8 @@ class latoken extends latoken$1 {
          * @method
          * @name latoken#fetchTime
          * @description fetches the current integer timestamp in milliseconds from the exchange server
-         * @param {object} [params] extra parameters specific to the latoken api endpoint
+         * @see https://api.latoken.com/doc/v2/#tag/Time/operation/currentTime
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {int} the current integer timestamp in milliseconds from the exchange server
          */
         const response = await this.publicGetTime(params);
@@ -242,7 +249,8 @@ class latoken extends latoken$1 {
          * @method
          * @name latoken#fetchMarkets
          * @description retrieves data on all markets for latoken
-         * @param {object} [params] extra parameters specific to the exchange api endpoint
+         * @see https://api.latoken.com/doc/v2/#tag/Pair/operation/getActivePairs
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} an array of objects representing market data
          */
         const currencies = await this.fetchCurrenciesFromCache(params);
@@ -392,7 +400,7 @@ class latoken extends latoken$1 {
          * @method
          * @name latoken#fetchCurrencies
          * @description fetches all available currencies on an exchange
-         * @param {object} [params] extra parameters specific to the latoken api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an associative dictionary of currencies
          */
         const response = await this.fetchCurrenciesFromCache(params);
@@ -478,8 +486,9 @@ class latoken extends latoken$1 {
          * @method
          * @name latoken#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {object} [params] extra parameters specific to the latoken api endpoint
-         * @returns {object} a [balance structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure}
+         * @see https://api.latoken.com/doc/v2/#tag/Account/operation/getBalancesByUser
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.loadMarkets();
         const response = await this.privateGetAuthAccount(params);
@@ -544,10 +553,11 @@ class latoken extends latoken$1 {
          * @method
          * @name latoken#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://api.latoken.com/doc/v2/#tag/Order-Book/operation/getOrderBook
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
-         * @param {object} [params] extra parameters specific to the latoken api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -629,9 +639,10 @@ class latoken extends latoken$1 {
          * @method
          * @name latoken#fetchTicker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @see https://api.latoken.com/doc/v2/#tag/Ticker/operation/getTicker
          * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} [params] extra parameters specific to the latoken api endpoint
-         * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -666,10 +677,11 @@ class latoken extends latoken$1 {
         /**
          * @method
          * @name latoken#fetchTickers
-         * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+         * @see https://api.latoken.com/doc/v2/#tag/Ticker/operation/getAllTickers
          * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-         * @param {object} [params] extra parameters specific to the latoken api endpoint
-         * @returns {object} a dictionary of [ticker structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets();
         const response = await this.publicGetTicker(params);
@@ -789,11 +801,12 @@ class latoken extends latoken$1 {
          * @method
          * @name latoken#fetchTrades
          * @description get the list of most recent trades for a particular symbol
+         * @see https://api.latoken.com/doc/v2/#tag/Trade/operation/getTradesByPair
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
-         * @param {object} [params] extra parameters specific to the latoken api endpoint
-         * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -821,17 +834,25 @@ class latoken extends latoken$1 {
          * @method
          * @name latoken#fetchTradingFee
          * @description fetch the trading fees for a market
+         * @see https://api.latoken.com/doc/v2/#tag/Trade/operation/getFeeByPair
+         * @see https://api.latoken.com/doc/v2/#tag/Trade/operation/getAuthFeeByPair
          * @param {string} symbol unified market symbol
-         * @param {object} [params] extra parameters specific to the latoken api endpoint
-         * @returns {object} a [fee structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#fee-structure}
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
          */
-        let method = this.safeString(params, 'method');
+        const options = this.safeValue(this.options, 'fetchTradingFee', {});
+        const defaultMethod = this.safeString(options, 'method', 'fetchPrivateTradingFee');
+        const method = this.safeString(params, 'method', defaultMethod);
         params = this.omit(params, 'method');
-        if (method === undefined) {
-            const options = this.safeValue(this.options, 'fetchTradingFee', {});
-            method = this.safeString(options, 'method', 'fetchPrivateTradingFee');
+        if (method === 'fetchPrivateTradingFee') {
+            return await this.fetchPrivateTradingFee(symbol, params);
         }
-        return await this[method](symbol, params);
+        else if (method === 'fetchPublicTradingFee') {
+            return await this.fetchPublicTradingFee(symbol, params);
+        }
+        else {
+            throw new errors.NotSupported(this.id + ' not support this method');
+        }
     }
     async fetchPublicTradingFee(symbol, params = {}) {
         await this.loadMarkets();
@@ -884,11 +905,13 @@ class latoken extends latoken$1 {
          * @method
          * @name latoken#fetchMyTrades
          * @description fetch all trades made by the user
+         * @see https://api.latoken.com/doc/v2/#tag/Trade/operation/getTradesByTrader
+         * @see https://api.latoken.com/doc/v2/#tag/Trade/operation/getTradesByAssetAndTrader
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trades structures to retrieve
-         * @param {object} [params] extra parameters specific to the latoken api endpoint
-         * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets();
         const request = {
@@ -897,18 +920,20 @@ class latoken extends latoken$1 {
         // 'from': this.milliseconds (),
         // 'limit': limit, // default '100'
         };
-        let method = 'privateGetAuthTrade';
         let market = undefined;
+        if (limit !== undefined) {
+            request['limit'] = limit; // default 100
+        }
+        let response = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
             request['currency'] = market['baseId'];
             request['quote'] = market['quoteId'];
-            method = 'privateGetAuthTradePairCurrencyQuote';
+            response = await this.privateGetAuthTradePairCurrencyQuote(this.extend(request, params));
         }
-        if (limit !== undefined) {
-            request['limit'] = limit; // default 100
+        else {
+            response = await this.privateGetAuthTrade(this.extend(request, params));
         }
-        const response = await this[method](this.extend(request, params));
         //
         //     [
         //         {
@@ -1069,18 +1094,19 @@ class latoken extends latoken$1 {
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch open orders for
          * @param {int} [limit] the maximum number of  open orders structures to retrieve
-         * @param {object} [params] extra parameters specific to the latoken api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [params.trigger] true if fetching trigger orders
-         * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
-        */
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        if (symbol === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' fetchOpenOrders() requires a symbol argument');
+        }
         await this.loadMarkets();
         let response = undefined;
-        let market = undefined;
         const isTrigger = this.safeValue2(params, 'trigger', 'stop');
         params = this.omit(params, 'stop');
-        this.checkRequiredSymbol('fetchOpenOrders', symbol);
         // privateGetAuthOrderActive doesn't work even though its listed at https://api.latoken.com/doc/v2/#tag/Order/operation/getMyActiveOrders
-        market = this.market(symbol);
+        const market = this.market(symbol);
         const request = {
             'currency': market['baseId'],
             'quote': market['quoteId'],
@@ -1126,10 +1152,10 @@ class latoken extends latoken$1 {
          * @see https://api.latoken.com/doc/v2/#tag/StopOrder/operation/getMyStopOrdersByPair // stop
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
-         * @param {object} [params] extra parameters specific to the latoken api endpoint
+         * @param {int} [limit] the maximum number of order structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [params.trigger] true if fetching trigger orders
-         * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         const request = {
@@ -1196,9 +1222,9 @@ class latoken extends latoken$1 {
          * @see https://api.latoken.com/doc/v2/#tag/Order/operation/getOrderById
          * @see https://api.latoken.com/doc/v2/#tag/StopOrder/operation/getStopOrderById
          * @param {string} [symbol] not used by latoken fetchOrder
-         * @param {object} [params] extra parameters specific to the latoken api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [params.trigger] true if fetching a trigger order
-         * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         const request = {
@@ -1247,13 +1273,13 @@ class latoken extends latoken$1 {
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-         * @param {object} [params] extra parameters specific to the latoken api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {float} [params.triggerPrice] the price at which a trigger order is triggered at
          *
          * EXCHANGE SPECIFIC PARAMETERS
          * @param {string} [params.condition] "GTC", "IOC", or  "FOK"
          * @param {string} [params.clientOrderId] [ 0 .. 50 ] characters, client's custom order id (free field for your convenience)
-         * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -1306,9 +1332,9 @@ class latoken extends latoken$1 {
          * @see https://api.latoken.com/doc/v2/#tag/StopOrder/operation/cancelStopOrder  // stop
          * @param {string} id order id
          * @param {string} symbol not used by latoken cancelOrder ()
-         * @param {object} [params] extra parameters specific to the latoken api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [params.trigger] true if cancelling a trigger order
-         * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         const request = {
@@ -1342,9 +1368,9 @@ class latoken extends latoken$1 {
          * @see https://api.latoken.com/doc/v2/#tag/Order/operation/cancelAllOrders
          * @see https://api.latoken.com/doc/v2/#tag/Order/operation/cancelAllOrdersByPair
          * @param {string} symbol unified market symbol of the market to cancel orders in
-         * @param {object} [params] extra parameters specific to the latoken api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [params.trigger] true if cancelling trigger orders
-         * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         const request = {
@@ -1388,11 +1414,12 @@ class latoken extends latoken$1 {
          * @name latoken#fetchTransactions
          * @deprecated
          * @description use fetchDepositsWithdrawals instead
+         * @see https://api.latoken.com/doc/v2/#tag/Transaction/operation/getUserTransactions
          * @param {string} code unified currency code for the currency of the transactions, default is undefined
          * @param {int} [since] timestamp in ms of the earliest transaction, default is undefined
          * @param {int} [limit] max number of transactions to return, default is undefined
-         * @param {object} [params] extra parameters specific to the latoken api endpoint
-         * @returns {object} a list of [transaction structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         await this.loadMarkets();
         const request = {
@@ -1430,7 +1457,7 @@ class latoken extends latoken$1 {
         if (code !== undefined) {
             currency = this.currency(code);
         }
-        const content = this.safeValue(response, 'content', []);
+        const content = this.safeList(response, 'content', []);
         return this.parseTransactions(content, currency, since, limit);
     }
     parseTransaction(transaction, currency = undefined) {
@@ -1492,6 +1519,7 @@ class latoken extends latoken$1 {
             'status': status,
             'updated': undefined,
             'comment': undefined,
+            'internal': undefined,
             'fee': fee,
         };
     }
@@ -1515,11 +1543,12 @@ class latoken extends latoken$1 {
          * @method
          * @name latoken#fetchTransfers
          * @description fetch a history of internal transfers made on an account
+         * @see https://api.latoken.com/doc/v2/#tag/Transfer/operation/getUsersTransfers
          * @param {string} code unified currency code of the currency transferred
          * @param {int} [since] the earliest time in ms to fetch transfers for
          * @param {int} [limit] the maximum number of  transfers structures to retrieve
-         * @param {object} [params] extra parameters specific to the latoken api endpoint
-         * @returns {object[]} a list of [transfer structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure}
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
          */
         await this.loadMarkets();
         const currency = this.currency(code);
@@ -1555,7 +1584,7 @@ class latoken extends latoken$1 {
         //         "hasContent": true
         //     }
         //
-        const transfers = this.safeValue(response, 'content', []);
+        const transfers = this.safeList(response, 'content', []);
         return this.parseTransfers(transfers, currency, since, limit);
     }
     async transfer(code, amount, fromAccount, toAccount, params = {}) {
@@ -1563,31 +1592,33 @@ class latoken extends latoken$1 {
          * @method
          * @name latoken#transfer
          * @description transfer currency internally between wallets on the same account
+         * @see https://api.latoken.com/doc/v2/#tag/Transfer/operation/transferByEmail
+         * @see https://api.latoken.com/doc/v2/#tag/Transfer/operation/transferById
+         * @see https://api.latoken.com/doc/v2/#tag/Transfer/operation/transferByPhone
          * @param {string} code unified currency code
          * @param {float} amount amount to transfer
          * @param {string} fromAccount account to transfer from
          * @param {string} toAccount account to transfer to
-         * @param {object} [params] extra parameters specific to the latoken api endpoint
-         * @returns {object} a [transfer structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure}
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
          */
         await this.loadMarkets();
         const currency = this.currency(code);
-        let method = undefined;
-        if (toAccount.indexOf('@') >= 0) {
-            method = 'privatePostAuthTransferEmail';
-        }
-        else if (toAccount.length === 36) {
-            method = 'privatePostAuthTransferId';
-        }
-        else {
-            method = 'privatePostAuthTransferPhone';
-        }
         const request = {
             'currency': currency['id'],
             'recipient': toAccount,
             'value': this.currencyToPrecision(code, amount),
         };
-        const response = await this[method](this.extend(request, params));
+        let response = undefined;
+        if (toAccount.indexOf('@') >= 0) {
+            response = await this.privatePostAuthTransferEmail(this.extend(request, params));
+        }
+        else if (toAccount.length === 36) {
+            response = await this.privatePostAuthTransferId(this.extend(request, params));
+        }
+        else {
+            response = await this.privatePostAuthTransferPhone(this.extend(request, params));
+        }
         //
         //     {
         //         "id": "e6fc4ace-7750-44e4-b7e9-6af038ac7107",

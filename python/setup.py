@@ -39,7 +39,6 @@ setup(
 
     name=package['name'],
     version=package['version'],
-
     description=package['description'],
     long_description=long_description,
     long_description_content_type='text/markdown',
@@ -65,10 +64,11 @@ setup(
         'Programming Language :: Python :: 2',
         'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: 3.9',
+        'Programming Language :: Python :: 3.10',
+        'Programming Language :: Python :: 3.11',
         'Programming Language :: JavaScript',
         'Programming Language :: PHP',
         'Operating System :: OS Independent',
@@ -82,7 +82,8 @@ setup(
         'setuptools>=60.9.0',
         'certifi>=2018.1.18',
         'requests>=2.18.4',
-        'cryptography>=2.6.1'
+        'cryptography>=2.6.1',
+        'typing_extensions>=4.4.0'
     ],
 
     extras_require={
@@ -93,6 +94,7 @@ setup(
         ],
         'qa': [
             'ruff==0.0.292',
+            'tox>=4.8.0',
         ],
         'type': [
             'mypy==1.6.1',

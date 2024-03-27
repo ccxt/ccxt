@@ -1,0 +1,167 @@
+{
+    "exchange": "coinsph",
+    "skipKeys": [],
+    "methods": {
+        "fetchTrades": [
+            {
+                "description": "public spot trades",
+                "method": "fetchTrades",
+                "input": [
+                    "BTC/USDT",
+                    null,
+                    1
+                ],
+                "httpResponse": [
+                    {
+                        "price": "73247.300000000000000000",
+                        "id": "1640734866998845445",
+                        "qty": "0.006691200000000000",
+                        "quoteQty": "0.006691200000000000",
+                        "time": "1710326837836",
+                        "isBuyerMaker": true,
+                        "isBestMatch": true
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "id": "1640734866998845445",
+                        "order": null,
+                        "timestamp": 1710326837836,
+                        "datetime": "2024-03-13T10:47:17.836Z",
+                        "symbol": "BTC/USDT",
+                        "type": null,
+                        "side": "buy",
+                        "takerOrMaker": null,
+                        "price": 73247.3,
+                        "amount": 0.0066912,
+                        "cost": 490.11233376,
+                        "fee": null,
+                        "info": {
+                            "price": "73247.300000000000000000",
+                            "id": "1640734866998845445",
+                            "qty": "0.006691200000000000",
+                            "quoteQty": "0.006691200000000000",
+                            "time": "1710326837836",
+                            "isBuyerMaker": true,
+                            "isBestMatch": true
+                        },
+                        "fees": []
+                    }
+                ]
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "public spot ticker",
+                "method": "fetchTicker",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "httpResponse": {
+                    "symbol": "BTCUSDT",
+                    "priceChange": "1042.15",
+                    "priceChangePercent": "0.0144",
+                    "weightedAvgPrice": "72015.136408987133884542",
+                    "prevClosePrice": "71824.57",
+                    "lastPrice": "73237.61",
+                    "lastQty": "0.0050969",
+                    "bidPrice": "73111.13",
+                    "bidQty": "0.0077373",
+                    "askPrice": "73584.79",
+                    "askQty": "0.1195897",
+                    "openPrice": "72195.46",
+                    "highPrice": "73727.14",
+                    "lowPrice": "68842.78",
+                    "volume": "2.6547329",
+                    "quoteVolume": "191180.95",
+                    "openTime": "1710241740000",
+                    "closeTime": "1710328201236",
+                    "firstId": "1640023000211283969",
+                    "lastId": "1640742746057629696",
+                    "count": "834"
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/USDT",
+                    "timestamp": 1710328201236,
+                    "datetime": "2024-03-13T11:10:01.236Z",
+                    "open": 72195.46,
+                    "high": 73727.14,
+                    "low": 68842.78,
+                    "close": 73237.61,
+                    "bid": 73111.13,
+                    "bidVolume": 0.0077373,
+                    "ask": 73584.79,
+                    "askVolume": 0.1195897,
+                    "vwap": 72015.13640898713,
+                    "previousClose": 71824.57,
+                    "change": 1042.15,
+                    "percentage": 1.44,
+                    "average": 72716.535,
+                    "baseVolume": 2.6547329,
+                    "quoteVolume": 191180.95,
+                    "info": {
+                        "symbol": "BTCUSDT",
+                        "priceChange": "1042.15",
+                        "priceChangePercent": "0.0144",
+                        "weightedAvgPrice": "72015.136408987133884542",
+                        "prevClosePrice": "71824.57",
+                        "lastPrice": "73237.61",
+                        "lastQty": "0.0050969",
+                        "bidPrice": "73111.13",
+                        "bidQty": "0.0077373",
+                        "askPrice": "73584.79",
+                        "askQty": "0.1195897",
+                        "openPrice": "72195.46",
+                        "highPrice": "73727.14",
+                        "lowPrice": "68842.78",
+                        "volume": "2.6547329",
+                        "quoteVolume": "191180.95",
+                        "openTime": "1710241740000",
+                        "closeTime": "1710328201236",
+                        "firstId": "1640023000211283969",
+                        "lastId": "1640742746057629696",
+                        "count": "834"
+                    },
+                    "last": 73237.61
+                }
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "public spot ohlcv",
+                "method": "fetchOHLCV",
+                "input": [
+                    "BTC/USDT",
+                    "1h",
+                    null,
+                    1
+                ],
+                "httpResponse": [
+                    [
+                        1710327600000,
+                        "73461.68",
+                        "73461.68",
+                        "73237.61",
+                        "73237.61",
+                        "0.0051105",
+                        1710331199999,
+                        "374.283853257",
+                        2,
+                        "0.0000136",
+                        "0.999078848"
+                    ]
+                ],
+                "parsedResponse": [
+                    [
+                        1710327600000,
+                        73461.68,
+                        73461.68,
+                        73237.61,
+                        73237.61,
+                        0.0051105
+                    ]
+                ]
+            }
+        ]
+    }
+}

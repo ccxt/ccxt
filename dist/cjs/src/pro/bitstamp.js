@@ -48,8 +48,8 @@ class bitstamp extends bitstamp$1 {
          * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
-         * @param {object} [params] extra parameters specific to the bitstamp api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -106,7 +106,7 @@ class bitstamp extends bitstamp$1 {
             // usually it takes at least 4-5 deltas to resolve
             const snapshotDelay = this.handleOption('watchOrderBook', 'snapshotDelay', 6);
             if (cacheLength === snapshotDelay) {
-                this.spawn(this.loadOrderBook, client, messageHash, symbol);
+                this.spawn(this.loadOrderBook, client, messageHash, symbol, null, {});
             }
             storedOrderBook.cache.push(delta);
             return;
@@ -160,8 +160,8 @@ class bitstamp extends bitstamp$1 {
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
-         * @param {object} [params] extra parameters specific to the bitstamp api endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -266,12 +266,12 @@ class bitstamp extends bitstamp$1 {
          * @description watches information on multiple orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
-         * @param {object} [params] extra parameters specific to the bitstamp api endpoint
-         * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @param {int} [limit] the maximum number of order structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (symbol === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' watchOrders requires a symbol argument');
+            throw new errors.ArgumentsRequired(this.id + ' watchOrders() requires a symbol argument');
         }
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -498,10 +498,10 @@ class bitstamp extends bitstamp$1 {
         //
         const event = this.safeString(message, 'event');
         if (event === 'bts:subscription_succeeded') {
-            return this.handleSubscriptionStatus(client, message);
+            this.handleSubscriptionStatus(client, message);
         }
         else {
-            return this.handleSubject(client, message);
+            this.handleSubject(client, message);
         }
     }
     async authenticate(params = {}) {
@@ -524,7 +524,6 @@ class bitstamp extends bitstamp$1 {
                 this.options['expiresIn'] = this.sum(time, validity);
                 this.options['userId'] = userId;
                 this.options['wsSessionToken'] = sessionToken;
-                return response;
             }
         }
     }

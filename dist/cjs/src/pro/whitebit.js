@@ -65,7 +65,7 @@ class whitebit extends whitebit$1 {
          * @param {string} timeframe the length of time each candle represents
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
          * @param {int} [limit] the maximum amount of candles to fetch
-         * @param {object} [params] extra parameters specific to the whitebit api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets();
@@ -114,15 +114,19 @@ class whitebit extends whitebit$1 {
             const symbol = market['symbol'];
             const messageHash = 'candles' + ':' + symbol;
             const parsed = this.parseOHLCV(data, market);
-            this.ohlcvs[symbol] = this.safeValue(this.ohlcvs, symbol);
-            let stored = this.ohlcvs[symbol];
-            if (stored === undefined) {
-                const limit = this.safeInteger(this.options, 'OHLCVLimit', 1000);
-                stored = new Cache.ArrayCacheByTimestamp(limit);
-                this.ohlcvs[symbol] = stored;
+            // this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol);
+            if (!(symbol in this.ohlcvs)) {
+                this.ohlcvs[symbol] = {};
             }
-            stored.append(parsed);
-            client.resolve(stored, messageHash);
+            // let stored = this.ohlcvs[symbol]['unknown']; // we don't know the timeframe but we need to respect the type
+            if (!('unknown' in this.ohlcvs[symbol])) {
+                const limit = this.safeInteger(this.options, 'OHLCVLimit', 1000);
+                const stored = new Cache.ArrayCacheByTimestamp(limit);
+                this.ohlcvs[symbol]['unknown'] = stored;
+            }
+            const ohlcv = this.ohlcvs[symbol]['unknown'];
+            ohlcv.append(parsed);
+            client.resolve(ohlcv, messageHash);
         }
         return message;
     }
@@ -133,8 +137,8 @@ class whitebit extends whitebit$1 {
          * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
-         * @param {object} [params] extra parameters specific to the whitebit api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -163,6 +167,7 @@ class whitebit extends whitebit$1 {
         //     "params":[
         //        true,
         //        {
+        //           "timestamp": 1708679568.940867,
         //           "asks":[
         //              [ "21252.45","0.01957"],
         //              ["21252.55","0.126205"],
@@ -199,14 +204,14 @@ class whitebit extends whitebit$1 {
         const market = this.safeMarket(marketId);
         const symbol = market['symbol'];
         const data = this.safeValue(params, 1);
-        let orderbook = undefined;
-        if (symbol in this.orderbooks) {
-            orderbook = this.orderbooks[symbol];
+        const timestamp = this.safeTimestamp(data, 'timestamp');
+        if (!(symbol in this.orderbooks)) {
+            const ob = this.orderBook();
+            this.orderbooks[symbol] = ob;
         }
-        else {
-            orderbook = this.orderBook();
-            this.orderbooks[symbol] = orderbook;
-        }
+        const orderbook = this.orderbooks[symbol];
+        orderbook['timestamp'] = timestamp;
+        orderbook['datetime'] = this.iso8601(timestamp);
         if (isSnapshot) {
             const snapshot = this.parseOrderBook(data, symbol);
             orderbook.reset(snapshot);
@@ -236,8 +241,8 @@ class whitebit extends whitebit$1 {
          * @name whitebit#watchTicker
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} [params] extra parameters specific to the whitebit api endpoint
-         * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -304,8 +309,8 @@ class whitebit extends whitebit$1 {
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
-         * @param {object} [params] extra parameters specific to the whitebit api endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -370,11 +375,11 @@ class whitebit extends whitebit$1 {
          * @param {str} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trades structures to retrieve
-         * @param {object} [params] extra parameters specific to the whitebit api endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         if (symbol === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' watchMyTrades requires a symbol argument');
+            throw new errors.ArgumentsRequired(this.id + ' watchMyTrades() requires a symbol argument');
         }
         await this.loadMarkets();
         await this.authenticate();
@@ -468,12 +473,12 @@ class whitebit extends whitebit$1 {
          * @description watches information on multiple orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
-         * @param {object} [params] extra parameters specific to the whitebit api endpoint
-         * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure
+         * @param {int} [limit] the maximum number of order structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
          */
         if (symbol === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' watchOrders requires a symbol argument');
+            throw new errors.ArgumentsRequired(this.id + ' watchOrders() requires a symbol argument');
         }
         await this.loadMarkets();
         await this.authenticate();
@@ -641,9 +646,9 @@ class whitebit extends whitebit$1 {
          * @method
          * @name whitebit#watchBalance
          * @description watch balance and get the amount of funds available for trading or funds locked in orders
-         * @param {object} [params] extra parameters specific to the whitebit api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {str} [params.type] spot or contract if not provided this.options['defaultType'] is used
-         * @returns {object} a [balance structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure}
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.loadMarkets();
         let type = undefined;
@@ -738,7 +743,7 @@ class whitebit extends whitebit$1 {
             let hasSymbolSubscription = true;
             const market = this.market(symbol);
             const marketId = market['id'];
-            const isSubscribed = this.safeValue(subscription, marketId, false);
+            const isSubscribed = this.safeBool(subscription, marketId, false);
             if (!isSubscribed) {
                 subscription[marketId] = true;
                 hasSymbolSubscription = false;
@@ -863,12 +868,10 @@ class whitebit extends whitebit$1 {
         if (!this.handleErrorMessage(client, message)) {
             return;
         }
-        const result = this.safeValue(message, 'result', {});
-        if (result !== undefined) {
-            if (result === 'pong') {
-                this.handlePong(client, message);
-                return;
-            }
+        const result = this.safeString(message, 'result');
+        if (result === 'pong') {
+            this.handlePong(client, message);
+            return;
         }
         const id = this.safeInteger(message, 'id');
         if (id !== undefined) {

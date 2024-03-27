@@ -13,7 +13,7 @@ import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
 // ---------------------------------------------------------------------------
 /**
  * @class yobit
- * @extends Exchange
+ * @augments Exchange
  */
 export default class yobit extends Exchange {
     describe() {
@@ -33,6 +33,8 @@ export default class yobit extends Exchange {
                 'option': false,
                 'addMargin': false,
                 'cancelOrder': true,
+                'closeAllPositions': false,
+                'closePosition': false,
                 'createDepositAddress': true,
                 'createMarketOrder': false,
                 'createOrder': true,
@@ -41,11 +43,10 @@ export default class yobit extends Exchange {
                 'createStopMarketOrder': false,
                 'createStopOrder': false,
                 'fetchBalance': true,
-                'fetchBorrowRate': false,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
-                'fetchBorrowRates': false,
-                'fetchBorrowRatesPerSymbol': false,
+                'fetchCrossBorrowRate': false,
+                'fetchCrossBorrowRates': false,
                 'fetchDepositAddress': true,
                 'fetchDeposits': false,
                 'fetchFundingHistory': false,
@@ -53,6 +54,8 @@ export default class yobit extends Exchange {
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
                 'fetchIndexOHLCV': false,
+                'fetchIsolatedBorrowRate': false,
+                'fetchIsolatedBorrowRates': false,
                 'fetchLeverage': false,
                 'fetchLeverageTiers': false,
                 'fetchMarginMode': false,
@@ -281,15 +284,15 @@ export default class yobit extends Exchange {
         });
     }
     parseBalance(response) {
-        const balances = this.safeValue(response, 'return', {});
+        const balances = this.safeDict(response, 'return', {});
         const timestamp = this.safeInteger(balances, 'server_time');
         const result = {
             'info': response,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
         };
-        const free = this.safeValue(balances, 'funds', {});
-        const total = this.safeValue(balances, 'funds_incl_orders', {});
+        const free = this.safeDict(balances, 'funds', {});
+        const total = this.safeDict(balances, 'funds_incl_orders', {});
         const currencyIds = Object.keys(this.extend(free, total));
         for (let i = 0; i < currencyIds.length; i++) {
             const currencyId = currencyIds[i];
@@ -307,8 +310,8 @@ export default class yobit extends Exchange {
          * @name yobit#fetchBalance
          * @see https://yobit.net/en/api
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {object} [params] extra parameters specific to the yobit api endpoint
-         * @returns {object} a [balance structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure}
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.loadMarkets();
         const response = await this.privatePostGetInfo(params);
@@ -345,7 +348,7 @@ export default class yobit extends Exchange {
          * @name yobit#fetchMarkets
          * @see https://yobit.net/en/api
          * @description retrieves data on all markets for yobit
-         * @param {object} [params] extra parameters specific to the exchange api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} an array of objects representing market data
          */
         const response = await this.publicGetInfo(params);
@@ -367,7 +370,7 @@ export default class yobit extends Exchange {
         //         },
         //     }
         //
-        const markets = this.safeValue(response, 'pairs', {});
+        const markets = this.safeDict(response, 'pairs', {});
         const keys = Object.keys(markets);
         const result = [];
         for (let i = 0; i < keys.length; i++) {
@@ -444,8 +447,8 @@ export default class yobit extends Exchange {
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
-         * @param {object} [params] extra parameters specific to the yobit api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -471,8 +474,8 @@ export default class yobit extends Exchange {
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data for multiple markets
          * @param {string[]|undefined} symbols list of unified market symbols, all symbols fetched if undefined, default is undefined
          * @param {int} [limit] max number of entries per orderbook to return, default is undefined
-         * @param {object} [params] extra parameters specific to the yobit api endpoint
-         * @returns {object} a dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbol
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbol
          */
         await this.loadMarkets();
         let ids = undefined;
@@ -549,10 +552,10 @@ export default class yobit extends Exchange {
          * @method
          * @name yobit#fetchTickers
          * @see https://yobit.net/en/api
-         * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
          * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-         * @param {object} [params] extra parameters specific to the yobit api endpoint
-         * @returns {object} a dictionary of [ticker structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         if (symbols === undefined) {
             throw new ArgumentsRequired(this.id + ' fetchTickers() requires "symbols" argument');
@@ -597,8 +600,8 @@ export default class yobit extends Exchange {
          * @see https://yobit.net/en/api
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} [params] extra parameters specific to the yobit api endpoint
-         * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         const tickers = await this.fetchTickers([symbol], params);
         return tickers[symbol];
@@ -655,7 +658,7 @@ export default class yobit extends Exchange {
                 'currency': feeCurrencyCode,
             };
         }
-        const isYourOrder = this.safeValue(trade, 'is_your_order');
+        const isYourOrder = this.safeString(trade, 'is_your_order');
         if (isYourOrder !== undefined) {
             if (fee === undefined) {
                 const feeInNumbers = this.calculateFee(symbol, type, side, amount, price, 'taker');
@@ -691,8 +694,8 @@ export default class yobit extends Exchange {
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
-         * @param {object} [params] extra parameters specific to the yobit api endpoint
-         * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -722,7 +725,7 @@ export default class yobit extends Exchange {
                 return [];
             }
         }
-        const result = this.safeValue(response, market['id'], []);
+        const result = this.safeList(response, market['id'], []);
         return this.parseTrades(result, market, since, limit);
     }
     async fetchTradingFees(params = {}) {
@@ -731,8 +734,8 @@ export default class yobit extends Exchange {
          * @name yobit#fetchTradingFees
          * @see https://yobit.net/en/api
          * @description fetch the trading fees for multiple markets
-         * @param {object} [params] extra parameters specific to the yobit api endpoint
-         * @returns {object} a dictionary of [fee structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#fee-structure} indexed by market symbols
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
          */
         await this.loadMarkets();
         const response = await this.publicGetInfo(params);
@@ -755,12 +758,12 @@ export default class yobit extends Exchange {
         //         },
         //     }
         //
-        const pairs = this.safeValue(response, 'pairs', {});
+        const pairs = this.safeDict(response, 'pairs', {});
         const marketIds = Object.keys(pairs);
         const result = {};
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
-            const pair = this.safeValue(pairs, marketId, {});
+            const pair = this.safeDict(pairs, marketId, {});
             const symbol = this.safeSymbol(marketId, undefined, '_');
             const takerString = this.safeString(pair, 'fee_buyer');
             const makerString = this.safeString(pair, 'fee_seller');
@@ -788,8 +791,8 @@ export default class yobit extends Exchange {
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-         * @param {object} [params] extra parameters specific to the yobit api endpoint
-         * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (type === 'market') {
             throw new ExchangeError(this.id + ' createOrder() allows limit orders only');
@@ -824,7 +827,7 @@ export default class yobit extends Exchange {
         //           }
         //       }
         //
-        const result = this.safeValue(response, 'return');
+        const result = this.safeDict(response, 'return');
         return this.parseOrder(result, market);
     }
     async cancelOrder(id, symbol = undefined, params = {}) {
@@ -835,8 +838,8 @@ export default class yobit extends Exchange {
          * @description cancels an open order
          * @param {string} id order id
          * @param {string} symbol not used by yobit cancelOrder ()
-         * @param {object} [params] extra parameters specific to the yobit api endpoint
-         * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         const request = {
@@ -862,7 +865,7 @@ export default class yobit extends Exchange {
         //          }
         //      }
         //
-        const result = this.safeValue(response, 'return', {});
+        const result = this.safeDict(response, 'return', {});
         return this.parseOrder(result);
     }
     parseOrderStatus(status) {
@@ -984,8 +987,8 @@ export default class yobit extends Exchange {
          * @see https://yobit.net/en/api
          * @description fetches information on an order made by the user
          * @param {string} symbol not used by yobit fetchOrder
-         * @param {object} [params] extra parameters specific to the yobit api endpoint
-         * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         const request = {
@@ -993,7 +996,7 @@ export default class yobit extends Exchange {
         };
         const response = await this.privatePostOrderInfo(this.extend(request, params));
         id = id.toString();
-        const orders = this.safeValue(response, 'return', {});
+        const orders = this.safeDict(response, 'return', {});
         //
         //      {
         //          "success":1,
@@ -1020,9 +1023,9 @@ export default class yobit extends Exchange {
          * @description fetch all unfilled currently open orders
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch open orders for
-         * @param {int} [limit] the maximum number of  open orders structures to retrieve
-         * @param {object} [params] extra parameters specific to the yobit api endpoint
-         * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @param {int} [limit] the maximum number of open order structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired(this.id + ' fetchOpenOrders() requires a symbol argument');
@@ -1058,7 +1061,7 @@ export default class yobit extends Exchange {
         //          }
         //      }
         //
-        const result = this.safeValue(response, 'return', {});
+        const result = this.safeDict(response, 'return', {});
         return this.parseOrders(result, market, since, limit);
     }
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1070,11 +1073,11 @@ export default class yobit extends Exchange {
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trades structures to retrieve
-         * @param {object} [params] extra parameters specific to the yobit api endpoint
-         * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         if (symbol === undefined) {
-            throw new ArgumentsRequired(this.id + ' fetchMyTrades() requires a `symbol` argument');
+            throw new ArgumentsRequired(this.id + ' fetchMyTrades() requires a symbol argument');
         }
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -1112,7 +1115,7 @@ export default class yobit extends Exchange {
         //          }
         //      }
         //
-        const trades = this.safeValue(response, 'return', {});
+        const trades = this.safeDict(response, 'return', {});
         const ids = Object.keys(trades);
         const result = [];
         for (let i = 0; i < ids.length; i++) {
@@ -1131,8 +1134,8 @@ export default class yobit extends Exchange {
          * @see https://yobit.net/en/api
          * @description create a currency deposit address
          * @param {string} code unified currency code of the currency for the deposit address
-         * @param {object} [params] extra parameters specific to the yobit api endpoint
-         * @returns {object} an [address structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#address-structure}
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
          */
         const request = {
             'need_new': 1,
@@ -1154,13 +1157,13 @@ export default class yobit extends Exchange {
          * @see https://yobit.net/en/api
          * @description fetch the deposit address for a currency associated with this account
          * @param {string} code unified currency code
-         * @param {object} [params] extra parameters specific to the yobit api endpoint
-         * @returns {object} an [address structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#address-structure}
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
          */
         await this.loadMarkets();
         const currency = this.currency(code);
         let currencyId = currency['id'];
-        const networks = this.safeValue(this.options, 'networks', {});
+        const networks = this.safeDict(this.options, 'networks', {});
         let network = this.safeStringUpper(params, 'network'); // this line allows the user to specify either ERC20 or ETH
         network = this.safeString(networks, network, network); // handle ERC20>ETH alias
         if (network !== undefined) {
@@ -1177,11 +1180,29 @@ export default class yobit extends Exchange {
         const address = this.safeString(response['return'], 'address');
         this.checkAddress(address);
         return {
+            'id': undefined,
             'currency': code,
             'address': address,
             'tag': undefined,
             'network': undefined,
             'info': response,
+            'txid': undefined,
+            'type': undefined,
+            'amount': undefined,
+            'status': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'addressFrom': undefined,
+            'addressTo': undefined,
+            'tagFrom': undefined,
+            'tagTo': undefined,
+            'updated': undefined,
+            'comment': undefined,
+            'fee': {
+                'currency': undefined,
+                'cost': undefined,
+                'rate': undefined,
+            },
         };
     }
     async withdraw(code, amount, address, tag = undefined, params = {}) {
@@ -1194,8 +1215,8 @@ export default class yobit extends Exchange {
          * @param {float} amount the amount to withdraw
          * @param {string} address the address to withdraw to
          * @param {string} tag
-         * @param {object} [params] extra parameters specific to the yobit api endpoint
-         * @returns {object} a [transaction structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         [tag, params] = this.handleWithdrawTagAndParams(tag, params);
         this.checkAddress(address);
@@ -1214,6 +1235,27 @@ export default class yobit extends Exchange {
         return {
             'info': response,
             'id': undefined,
+            'txid': undefined,
+            'type': undefined,
+            'currency': undefined,
+            'network': undefined,
+            'amount': undefined,
+            'status': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'address': undefined,
+            'addressFrom': undefined,
+            'addressTo': undefined,
+            'tag': undefined,
+            'tagFrom': undefined,
+            'tagTo': undefined,
+            'updated': undefined,
+            'comment': undefined,
+            'fee': {
+                'currency': undefined,
+                'cost': undefined,
+                'rate': undefined,
+            },
         };
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
@@ -1288,7 +1330,7 @@ export default class yobit extends Exchange {
             //
             // To cover points 1, 2, 3 and 4 combined this handler should work like this:
             //
-            let success = this.safeValue(response, 'success', false);
+            let success = this.safeValue(response, 'success'); // don't replace with safeBool here
             if (typeof success === 'string') {
                 if ((success === 'true') || (success === '1')) {
                     success = true;

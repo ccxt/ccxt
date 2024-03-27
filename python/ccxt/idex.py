@@ -6,8 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.idex import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Order, OrderSide, OrderType, Ticker, Trade, Transaction
-from typing import Optional
+from ccxt.base.types import Balances, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import BadRequest
@@ -49,6 +48,8 @@ class idex(Exchange, ImplicitAPI):
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'cancelOrders': False,
+                'closeAllPositions': False,
+                'closePosition': False,
                 'createDepositAddress': False,
                 'createOrder': True,
                 'createReduceOnlyOrder': False,
@@ -56,20 +57,24 @@ class idex(Exchange, ImplicitAPI):
                 'createStopMarketOrder': True,
                 'createStopOrder': True,
                 'fetchBalance': True,
-                'fetchBorrowRate': False,
                 'fetchBorrowRateHistories': False,
                 'fetchBorrowRateHistory': False,
-                'fetchBorrowRates': False,
-                'fetchBorrowRatesPerSymbol': False,
                 'fetchClosedOrders': True,
+                'fetchCrossBorrowRate': False,
+                'fetchCrossBorrowRates': False,
                 'fetchCurrencies': True,
                 'fetchDeposit': True,
+                'fetchDepositAddress': True,
+                'fetchDepositAddresses': False,
+                'fetchDepositAddressesByNetwork': False,
                 'fetchDeposits': True,
                 'fetchFundingHistory': False,
                 'fetchFundingRate': False,
                 'fetchFundingRateHistory': False,
                 'fetchFundingRates': False,
                 'fetchIndexOHLCV': False,
+                'fetchIsolatedBorrowRate': False,
+                'fetchIsolatedBorrowRates': False,
                 'fetchLeverage': False,
                 'fetchLeverageTiers': False,
                 'fetchMarginMode': False,
@@ -87,8 +92,10 @@ class idex(Exchange, ImplicitAPI):
                 'fetchPositions': False,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
+                'fetchStatus': True,
                 'fetchTicker': True,
                 'fetchTickers': True,
+                'fetchTime': True,
                 'fetchTrades': True,
                 'fetchTradingFee': False,
                 'fetchTradingFees': True,
@@ -121,7 +128,7 @@ class idex(Exchange, ImplicitAPI):
                 },
                 'www': 'https://idex.io',
                 'doc': [
-                    'https://docs.idex.io/',
+                    'https://api-docs-v3.idex.io/',
                 ],
             },
             'api': {
@@ -197,10 +204,11 @@ class idex(Exchange, ImplicitAPI):
         price = self.decimal_to_precision(price, ROUND, market['precision']['price'], self.precisionMode)
         return self.decimal_to_precision(price, TRUNCATE, quoteAssetPrecision, DECIMAL_PLACES, PAD_WITH_ZERO)
 
-    def fetch_markets(self, params={}):
+    def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for idex
-        :param dict [params]: extra parameters specific to the exchange api endpoint
+        :see: https://api-docs-v3.idex.io/#get-markets
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
         response = self.publicGetMarkets(params)
@@ -323,12 +331,13 @@ class idex(Exchange, ImplicitAPI):
             })
         return result
 
-    def fetch_ticker(self, symbol: str, params={}):
+    def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        :see: https://api-docs-v3.idex.io/#get-tickers
         :param str symbol: unified symbol of the market to fetch the ticker for
-        :param dict [params]: extra parameters specific to the idex api endpoint
-        :returns dict: a `ticker structure <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -354,15 +363,16 @@ class idex(Exchange, ImplicitAPI):
         #   }
         # ]
         response = self.publicGetTickers(self.extend(request, params))
-        ticker = self.safe_value(response, 0)
+        ticker = self.safe_dict(response, 0)
         return self.parse_ticker(ticker, market)
 
-    def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
+    def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
-        fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+        fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+        :see: https://api-docs-v3.idex.io/#get-tickers
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-        :param dict [params]: extra parameters specific to the idex api endpoint
-        :returns dict: a dictionary of `ticker structures <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         self.load_markets()
         # [
@@ -386,7 +396,7 @@ class idex(Exchange, ImplicitAPI):
         response = self.publicGetTickers(params)
         return self.parse_tickers(response, symbols)
 
-    def parse_ticker(self, ticker, market=None) -> Ticker:
+    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
         # {
         #   "market": "DIL-ETH",
         #   "time": 1598367493008,
@@ -431,14 +441,15 @@ class idex(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        :see: https://api-docs-v3.idex.io/#get-candles
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
-        :param dict [params]: extra parameters specific to the idex api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         self.load_markets()
@@ -469,7 +480,7 @@ class idex(Exchange, ImplicitAPI):
             #  {"nextTime":1595536440000}
             return []
 
-    def parse_ohlcv(self, ohlcv, market=None) -> list:
+    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
         # {
         #   "start": 1598345580000,
         #   "open": "0.09771286",
@@ -487,14 +498,15 @@ class idex(Exchange, ImplicitAPI):
         volume = self.safe_number(ohlcv, 'volume')
         return [timestamp, open, high, low, close, volume]
 
-    def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
+        :see: https://api-docs-v3.idex.io/#get-trades
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
-        :param dict [params]: extra parameters specific to the idex api endpoint
-        :returns Trade[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#public-trades>`
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -519,7 +531,7 @@ class idex(Exchange, ImplicitAPI):
         response = self.publicGetTrades(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
-    def parse_trade(self, trade, market=None) -> Trade:
+    def parse_trade(self, trade, market: Market = None) -> Trade:
         #
         # public trades
         #  {
@@ -598,8 +610,9 @@ class idex(Exchange, ImplicitAPI):
     def fetch_trading_fees(self, params={}):
         """
         fetch the trading fees for multiple markets
-        :param dict [params]: extra parameters specific to the idex api endpoint
-        :returns dict: a dictionary of `fee structures <https://github.com/ccxt/ccxt/wiki/Manual#fee-structure>` indexed by market symbols
+        :see: https://api-docs-v3.idex.io/#get-api-account
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>` indexed by market symbols
         """
         self.check_required_credentials()
         self.load_markets()
@@ -637,13 +650,14 @@ class idex(Exchange, ImplicitAPI):
             }
         return result
 
-    def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        :see: https://api-docs-v3.idex.io/#get-order-books
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
-        :param dict [params]: extra parameters specific to the idex api endpoint
-        :returns dict: A dictionary of `order book structures <https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure>` indexed by market symbols
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         self.load_markets()
         market = self.market(symbol)
@@ -699,7 +713,8 @@ class idex(Exchange, ImplicitAPI):
     def fetch_currencies(self, params={}):
         """
         fetches all available currencies on an exchange
-        :param dict [params]: extra parameters specific to the idex api endpoint
+        :see: https://api-docs-v3.idex.io/#get-assets
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an associative dictionary of currencies
         """
         response = self.publicGetAssets(params)
@@ -757,11 +772,12 @@ class idex(Exchange, ImplicitAPI):
             result[code] = account
         return self.safe_balance(result)
 
-    def fetch_balance(self, params={}):
+    def fetch_balance(self, params={}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
-        :param dict [params]: extra parameters specific to the idex api endpoint
-        :returns dict: a `balance structure <https://github.com/ccxt/ccxt/wiki/Manual#balance-structure>`
+        :see: https://api-docs-v3.idex.io/#get-balances
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
         self.check_required_credentials()
         self.load_markets()
@@ -794,14 +810,15 @@ class idex(Exchange, ImplicitAPI):
                 raise e
         return self.parse_balance(response)
 
-    def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all trades made by the user
+        :see: https://api-docs-v3.idex.io/#get-fills
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trades structures to retrieve
-        :param dict [params]: extra parameters specific to the idex api endpoint
-        :returns Trade[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#trade-structure>`
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         self.check_required_credentials()
         self.load_markets()
@@ -852,47 +869,50 @@ class idex(Exchange, ImplicitAPI):
                 raise e
         return self.parse_trades(response, market, since, limit)
 
-    def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
+    def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
         fetches information on an order made by the user
+        :see: https://api-docs-v3.idex.io/#get-orders
         :param str symbol: unified symbol of the market the order was made in
-        :param dict [params]: extra parameters specific to the idex api endpoint
-        :returns dict: An `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         request = {
             'orderId': id,
         }
         return self.fetch_orders_helper(symbol, None, None, self.extend(request, params))
 
-    def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
+        :see: https://api-docs-v3.idex.io/#get-orders
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch open orders for
         :param int [limit]: the maximum number of  open orders structures to retrieve
-        :param dict [params]: extra parameters specific to the idex api endpoint
-        :returns Order[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         request = {
             'closed': False,
         }
         return self.fetch_orders_helper(symbol, since, limit, self.extend(request, params))
 
-    def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetches information on multiple closed orders made by the user
+        :see: https://api-docs-v3.idex.io/#get-orders
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
-        :param int [limit]: the maximum number of  orde structures to retrieve
-        :param dict [params]: extra parameters specific to the idex api endpoint
-        :returns Order[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
+        :param int [limit]: the maximum number of order structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         request = {
             'closed': True,
         }
         return self.fetch_orders_helper(symbol, since, limit, self.extend(request, params))
 
-    def fetch_orders_helper(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_orders_helper(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         self.load_markets()
         request = {
             'nonce': self.uuidv1(),
@@ -983,7 +1003,7 @@ class idex(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order(self, order, market=None) -> Order:
+    def parse_order(self, order, market: Market = None) -> Order:
         #
         #     {
         #         "market": "DIL-ETH",
@@ -1082,19 +1102,23 @@ class idex(Exchange, ImplicitAPI):
         result = self.privatePostWallets(request)
         return result
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create a trade order, https://docs.idex.io/#create-order
+        :see: https://api-docs-v3.idex.io/#create-order
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
         :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-        :param dict [params]: extra parameters specific to the idex api endpoint
-        :returns dict: an `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param bool [params.test]: set to True to test an order, no order will be created but the request will be validated
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.check_required_credentials()
         self.load_markets()
+        testOrder = self.safe_bool(params, 'test', False)
+        params = self.omit(params, 'test')
         market = self.market(symbol)
         nonce = self.uuidv1()
         typeEnum = None
@@ -1254,18 +1278,23 @@ class idex(Exchange, ImplicitAPI):
         #   "avgExecutionPrice": "0.09905990"
         # }
         # we don't use self.extend here because it is a signed endpoint
-        response = self.privatePostOrders(request)
+        response = None
+        if testOrder:
+            response = self.privatePostOrdersTest(request)
+        else:
+            response = self.privatePostOrders(request)
         return self.parse_order(response, market)
 
-    def withdraw(self, code: str, amount, address, tag=None, params={}):
+    def withdraw(self, code: str, amount: float, address, tag=None, params={}):
         """
         make a withdrawal
+        :see: https://api-docs-v3.idex.io/#withdraw-funds
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
         :param str tag:
-        :param dict [params]: extra parameters specific to the idex api endpoint
-        :returns dict: a `transaction structure <https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure>`
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.check_required_credentials()
@@ -1308,12 +1337,13 @@ class idex(Exchange, ImplicitAPI):
         #
         return self.parse_transaction(response, currency)
 
-    def cancel_all_orders(self, symbol: Optional[str] = None, params={}):
+    def cancel_all_orders(self, symbol: Str = None, params={}):
         """
         cancel all open orders
+        :see: https://api-docs-v3.idex.io/#cancel-order
         :param str symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
-        :param dict [params]: extra parameters specific to the idex api endpoint
-        :returns dict[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.check_required_credentials()
         self.load_markets()
@@ -1343,13 +1373,14 @@ class idex(Exchange, ImplicitAPI):
         response = self.privateDeleteOrders(self.extend(request, params))
         return self.parse_orders(response, market)
 
-    def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
+    def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
         cancels an open order
+        :see: https://api-docs-v3.idex.io/#cancel-order
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
-        :param dict [params]: extra parameters specific to the idex api endpoint
-        :returns dict: An `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.check_required_credentials()
         self.load_markets()
@@ -1376,7 +1407,7 @@ class idex(Exchange, ImplicitAPI):
         }
         # [{orderId: "688336f0-ec50-11ea-9842-b332f8a34d0e"}]
         response = self.privateDeleteOrders(self.extend(request, params))
-        canceledOrder = self.safe_value(response, 0)
+        canceledOrder = self.safe_dict(response, 0)
         return self.parse_order(canceledOrder, market)
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
@@ -1389,13 +1420,14 @@ class idex(Exchange, ImplicitAPI):
             raise ExchangeError(self.id + ' ' + message)
         return None
 
-    def fetch_deposit(self, id: str, code: Optional[str] = None, params={}):
+    def fetch_deposit(self, id: str, code: Str = None, params={}):
         """
         fetch information on a deposit
+        :see: https://api-docs-v3.idex.io/#get-deposits
         :param str id: deposit id
         :param str code: not used by idex fetchDeposit()
-        :param dict [params]: extra parameters specific to the idex api endpoint
-        :returns dict: a `transaction structure <https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure>`
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         self.load_markets()
         nonce = self.uuidv1()
@@ -1405,26 +1437,44 @@ class idex(Exchange, ImplicitAPI):
             'depositId': id,
         }
         response = self.privateGetDeposits(self.extend(request, params))
-        return self.parse_transaction(response, code)
+        return self.parse_transaction(response)
 
-    def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch all deposits made to an account
+        :see: https://api-docs-v3.idex.io/#get-deposits
         :param str code: unified currency code
         :param int [since]: the earliest time in ms to fetch deposits for
         :param int [limit]: the maximum number of deposits structures to retrieve
-        :param dict [params]: extra parameters specific to the idex api endpoint
-        :returns dict[]: a list of `transaction structures <https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure>`
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         params = self.extend({
             'method': 'privateGetDeposits',
         }, params)
         return self.fetch_transactions_helper(code, since, limit, params)
 
+    def fetch_status(self, params={}):
+        """
+        the latest known information on the availability of the exchange API
+        :see: https://api-docs-v3.idex.io/#get-ping
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `status structure <https://docs.ccxt.com/#/?id=exchange-status-structure>`
+        """
+        response = self.publicGetPing(params)
+        return {
+            'status': 'ok',  # if there's no Errors, status = 'ok'
+            'updated': None,
+            'eta': None,
+            'url': None,
+            'info': response,
+        }
+
     def fetch_time(self, params={}):
         """
         fetches the current integer timestamp in milliseconds from the exchange server
-        :param dict [params]: extra parameters specific to the idex api endpoint
+        :see: https://api-docs-v3.idex.io/#get-time
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int: the current integer timestamp in milliseconds from the exchange server
         """
         response = self.publicGetTime(params)
@@ -1433,13 +1483,14 @@ class idex(Exchange, ImplicitAPI):
         #
         return self.safe_integer(response, 'serverTime')
 
-    def fetch_withdrawal(self, id: str, code: Optional[str] = None, params={}):
+    def fetch_withdrawal(self, id: str, code: Str = None, params={}):
         """
         fetch data on a currency withdrawal via the withdrawal id
+        :see: https://api-docs-v3.idex.io/#get-withdrawals
         :param str id: withdrawal id
         :param str code: not used by idex.fetchWithdrawal
-        :param dict [params]: extra parameters specific to the idex api endpoint
-        :returns dict: a `transaction structure <https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure>`
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         self.load_markets()
         nonce = self.uuidv1()
@@ -1449,23 +1500,24 @@ class idex(Exchange, ImplicitAPI):
             'withdrawalId': id,
         }
         response = self.privateGetWithdrawals(self.extend(request, params))
-        return self.parse_transaction(response, code)
+        return self.parse_transaction(response)
 
-    def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch all withdrawals made from an account
+        :see: https://api-docs-v3.idex.io/#get-withdrawals
         :param str code: unified currency code
         :param int [since]: the earliest time in ms to fetch withdrawals for
         :param int [limit]: the maximum number of withdrawals structures to retrieve
-        :param dict [params]: extra parameters specific to the idex api endpoint
-        :returns dict[]: a list of `transaction structures <https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure>`
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         params = self.extend({
             'method': 'privateGetWithdrawals',
         }, params)
         return self.fetch_transactions_helper(code, since, limit, params)
 
-    def fetch_transactions_helper(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_transactions_helper(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
         self.load_markets()
         nonce = self.uuidv1()
         request = {
@@ -1492,7 +1544,13 @@ class idex(Exchange, ImplicitAPI):
         # ]
         method = params['method']
         params = self.omit(params, 'method')
-        response = getattr(self, method)(self.extend(request, params))
+        response = None
+        if method == 'privateGetDeposits':
+            response = self.privateGetDeposits(self.extend(request, params))
+        elif method == 'privateGetWithdrawals':
+            response = self.privateGetWithdrawals(self.extend(request, params))
+        else:
+            raise NotSupported(self.id + ' fetchTransactionsHelper() not support self method')
         return self.parse_transactions(response, currency, since, limit)
 
     def parse_transaction_status(self, status):
@@ -1501,7 +1559,7 @@ class idex(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_transaction(self, transaction, currency=None) -> Transaction:
+    def parse_transaction(self, transaction, currency: Currency = None) -> Transaction:
         #
         # fetchDeposits
         #
@@ -1578,6 +1636,8 @@ class idex(Exchange, ImplicitAPI):
             'currency': code,
             'status': status,
             'updated': updated,
+            'comment': None,
+            'internal': None,
             'fee': fee,
         }
 
@@ -1589,6 +1649,60 @@ class idex(Exchange, ImplicitAPI):
         defaultCost = self.safe_value(config, 'cost', 1)
         authenticated = hasApiKey and hasSecret and hasWalletAddress and hasPrivateKey
         return(defaultCost / 2) if authenticated else defaultCost
+
+    def fetch_deposit_address(self, code: Str = None, params={}):
+        """
+        fetch the Polygon address of the wallet
+        :see: https://api-docs-v3.idex.io/#get-wallets
+        :param str code: not used by idex
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
+        """
+        request = {}
+        request['nonce'] = self.uuidv1()
+        response = self.privateGetWallets(self.extend(request, params))
+        #
+        #    [
+        #        {
+        #            address: "0x37A1827CA64C94A26028bDCb43FBDCB0bf6DAf5B",
+        #            totalPortfolioValueUsd: "0.00",
+        #            time: "1678342148086"
+        #        },
+        #        {
+        #            address: "0x0Ef3456E616552238B0c562d409507Ed6051A7b3",
+        #            totalPortfolioValueUsd: "15.90",
+        #            time: "1691697811659"
+        #        }
+        #    ]
+        #
+        return self.parse_deposit_address(response)
+
+    def parse_deposit_address(self, depositAddress, currency: Currency = None):
+        #
+        #    [
+        #        {
+        #            address: "0x37A1827CA64C94A26028bDCb43FBDCB0bf6DAf5B",
+        #            totalPortfolioValueUsd: "0.00",
+        #            time: "1678342148086"
+        #        },
+        #        {
+        #            address: "0x0Ef3456E616552238B0c562d409507Ed6051A7b3",
+        #            totalPortfolioValueUsd: "15.90",
+        #            time: "1691697811659"
+        #        }
+        #    ]
+        #
+        length = len(depositAddress)
+        entry = self.safe_dict(depositAddress, length - 1)
+        address = self.safe_string(entry, 'address')
+        self.check_address(address)
+        return {
+            'info': depositAddress,
+            'currency': None,
+            'address': address,
+            'tag': None,
+            'network': 'MATIC',
+        }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         network = self.safe_string(self.options, 'network', 'ETH')

@@ -13,6 +13,7 @@ async function testFetchOHLCV (exchange, skippedProperties, symbol) {
     if (!exchange.inArray (timeframe, timeframeKeys)) {
         timeframe = timeframeKeys[0];
     }
+<<<<<<< HEAD
     const durationMs = exchange.parseTimeframe (timeframe) * 1000;
     //
     // check for all four possible "since" & "limit" combinations, where one of them could be undefined and the other not
@@ -34,6 +35,13 @@ function testFetchOHLCVChecker (exchange, skippedProperties, symbol, ohlcvs, tim
     let logText = testSharedMethods.logTemplate (exchange, method, {});
     assert (Array.isArray (ohlcvs), exchange.id + ' ' + method + ' must return an array, returned ' + logText);
     logText = logText + '' + exchange.json (ohlcvs); // trick transpiler
+=======
+    const limit = 10;
+    const duration = exchange.parseTimeframe (chosenTimeframeKey);
+    const since = exchange.milliseconds () - duration * limit * 1000 - 1000;
+    const ohlcvs = await exchange.fetchOHLCV (symbol, chosenTimeframeKey, since, limit);
+    testSharedMethods.assertNonEmtpyArray (exchange, skippedProperties, method, ohlcvs, symbol);
+>>>>>>> 12eafcfb1a0df69923268d7681f288fe2a3c17a2
     const now = exchange.milliseconds ();
     for (let i = 0; i < ohlcvs.length; i++) {
         testOHLCV (exchange, skippedProperties, method, ohlcvs[i], symbol, now);

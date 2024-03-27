@@ -90,7 +90,7 @@ class currencycom extends currencycom$1 {
         //                     "accountId": 5470310874305732,
         //                     "collateralCurrency": true,
         //                     "asset": "USD",
-        //                     "free": 47.82576735,
+        //                     "free": 47.82576736,
         //                     "locked": 1.187925,
         //                     "default": true
         //                 },
@@ -191,7 +191,7 @@ class currencycom extends currencycom$1 {
             'fee': undefined,
         };
     }
-    handleTrades(client, message, subscription) {
+    handleTrades(client, message) {
         //
         //     {
         //         "status": "OK",
@@ -328,8 +328,8 @@ class currencycom extends currencycom$1 {
          * @method
          * @name currencycom#watchBalance
          * @description watch balance and get the amount of funds available for trading or funds locked in orders
-         * @param {object} [params] extra parameters specific to the currencycom api endpoint
-         * @returns {object} a [balance structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure}
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.loadMarkets();
         return await this.watchPrivate('/api/v1/account', params);
@@ -340,8 +340,8 @@ class currencycom extends currencycom$1 {
          * @name currencycom#watchTicker
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} [params] extra parameters specific to the currencycom api endpoint
-         * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -371,8 +371,8 @@ class currencycom extends currencycom$1 {
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
-         * @param {object} [params] extra parameters specific to the currencycom api endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
         await this.loadMarkets();
         symbol = this.symbol(symbol);
@@ -389,8 +389,8 @@ class currencycom extends currencycom$1 {
          * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
-         * @param {object} [params] extra parameters specific to the currencycom api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.loadMarkets();
         symbol = this.symbol(symbol);
@@ -406,7 +406,7 @@ class currencycom extends currencycom$1 {
          * @param {string} timeframe the length of time each candle represents
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
          * @param {int} [limit] the maximum amount of candles to fetch
-         * @param {object} [params] extra parameters specific to the currencycom api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets();
@@ -460,6 +460,7 @@ class currencycom extends currencycom$1 {
             orderbook = this.orderBook();
         }
         orderbook.reset({
+            'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
         });
@@ -532,10 +533,11 @@ class currencycom extends currencycom$1 {
                         };
                         const method = this.safeValue(methods, subscriptionDestination);
                         if (method === undefined) {
-                            return message;
+                            return;
                         }
                         else {
-                            return method.call(this, client, message, subscription);
+                            method.call(this, client, message, subscription);
+                            return;
                         }
                     }
                 }
@@ -550,11 +552,8 @@ class currencycom extends currencycom$1 {
                 'ping': this.handlePong,
             };
             const method = this.safeValue(methods, destination);
-            if (method === undefined) {
-                return message;
-            }
-            else {
-                return method.call(this, client, message);
+            if (method !== undefined) {
+                method.call(this, client, message);
             }
         }
     }

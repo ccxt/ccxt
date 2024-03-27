@@ -1,11 +1,11 @@
 // @ts-nocheck
 
-export interface Future extends Promise<unknown> {
+export interface FutureInterface extends Promise<any> {
     resolve(value: unknown): void;
     reject(reason?: any): void;
 }
 
-export function createFuture (): Future {
+export function Future (): FutureInterface {
 
     let resolve = undefined
         , reject = undefined
@@ -30,4 +30,13 @@ export function createFuture (): Future {
     }
 
     return p
-};
+}
+
+function wrapFuture (aggregatePromise): FutureInterface {
+    const p = Future ()
+    // wrap the promises as a future
+    aggregatePromise.then (p.resolve, p.reject)
+    return p
+}
+
+Future.race = (futures) : FutureInterface => wrapFuture (Promise.race (futures))

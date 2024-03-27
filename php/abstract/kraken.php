@@ -65,7 +65,7 @@ abstract class kraken extends \ccxt\Exchange {
         return $this->request('CancelOrderBatch', 'private', 'POST', $params, null, null, array("cost" => 0));
     }
     public function private_post_closedorders($params = array()) {
-        return $this->request('ClosedOrders', 'private', 'POST', $params, null, null, array("cost" => 6));
+        return $this->request('ClosedOrders', 'private', 'POST', $params, null, null, array("cost" => 3));
     }
     public function private_post_depositaddresses($params = array()) {
         return $this->request('DepositAddresses', 'private', 'POST', $params, null, null, array("cost" => 3));
@@ -130,26 +130,17 @@ abstract class kraken extends \ccxt\Exchange {
     public function private_post_withdrawinfo($params = array()) {
         return $this->request('WithdrawInfo', 'private', 'POST', $params, null, null, array("cost" => 3));
     }
+    public function private_post_withdrawmethods($params = array()) {
+        return $this->request('WithdrawMethods', 'private', 'POST', $params, null, null, array("cost" => 3));
+    }
+    public function private_post_withdrawaddresses($params = array()) {
+        return $this->request('WithdrawAddresses', 'private', 'POST', $params, null, null, array("cost" => 3));
+    }
     public function private_post_withdrawstatus($params = array()) {
         return $this->request('WithdrawStatus', 'private', 'POST', $params, null, null, array("cost" => 3));
     }
     public function private_post_wallettransfer($params = array()) {
         return $this->request('WalletTransfer', 'private', 'POST', $params, null, null, array("cost" => 3));
-    }
-    public function private_post_stake($params = array()) {
-        return $this->request('Stake', 'private', 'POST', $params, null, null, array("cost" => 3));
-    }
-    public function private_post_unstake($params = array()) {
-        return $this->request('Unstake', 'private', 'POST', $params, null, null, array("cost" => 3));
-    }
-    public function private_post_staking_assets($params = array()) {
-        return $this->request('Staking/Assets', 'private', 'POST', $params, null, null, array("cost" => 3));
-    }
-    public function private_post_staking_pending($params = array()) {
-        return $this->request('Staking/Pending', 'private', 'POST', $params, null, null, array("cost" => 3));
-    }
-    public function private_post_staking_transactions($params = array()) {
-        return $this->request('Staking/Transactions', 'private', 'POST', $params, null, null, array("cost" => 3));
     }
     public function private_post_createsubaccount($params = array()) {
         return $this->request('CreateSubaccount', 'private', 'POST', $params, null, null, array("cost" => 3));
@@ -233,7 +224,7 @@ abstract class kraken extends \ccxt\Exchange {
         return $this->request('CancelOrderBatch', 'private', 'POST', $params, null, null, array("cost" => 0));
     }
     public function privatePostClosedOrders($params = array()) {
-        return $this->request('ClosedOrders', 'private', 'POST', $params, null, null, array("cost" => 6));
+        return $this->request('ClosedOrders', 'private', 'POST', $params, null, null, array("cost" => 3));
     }
     public function privatePostDepositAddresses($params = array()) {
         return $this->request('DepositAddresses', 'private', 'POST', $params, null, null, array("cost" => 3));
@@ -298,26 +289,17 @@ abstract class kraken extends \ccxt\Exchange {
     public function privatePostWithdrawInfo($params = array()) {
         return $this->request('WithdrawInfo', 'private', 'POST', $params, null, null, array("cost" => 3));
     }
+    public function privatePostWithdrawMethods($params = array()) {
+        return $this->request('WithdrawMethods', 'private', 'POST', $params, null, null, array("cost" => 3));
+    }
+    public function privatePostWithdrawAddresses($params = array()) {
+        return $this->request('WithdrawAddresses', 'private', 'POST', $params, null, null, array("cost" => 3));
+    }
     public function privatePostWithdrawStatus($params = array()) {
         return $this->request('WithdrawStatus', 'private', 'POST', $params, null, null, array("cost" => 3));
     }
     public function privatePostWalletTransfer($params = array()) {
         return $this->request('WalletTransfer', 'private', 'POST', $params, null, null, array("cost" => 3));
-    }
-    public function privatePostStake($params = array()) {
-        return $this->request('Stake', 'private', 'POST', $params, null, null, array("cost" => 3));
-    }
-    public function privatePostUnstake($params = array()) {
-        return $this->request('Unstake', 'private', 'POST', $params, null, null, array("cost" => 3));
-    }
-    public function privatePostStakingAssets($params = array()) {
-        return $this->request('Staking/Assets', 'private', 'POST', $params, null, null, array("cost" => 3));
-    }
-    public function privatePostStakingPending($params = array()) {
-        return $this->request('Staking/Pending', 'private', 'POST', $params, null, null, array("cost" => 3));
-    }
-    public function privatePostStakingTransactions($params = array()) {
-        return $this->request('Staking/Transactions', 'private', 'POST', $params, null, null, array("cost" => 3));
     }
     public function privatePostCreateSubaccount($params = array()) {
         return $this->request('CreateSubaccount', 'private', 'POST', $params, null, null, array("cost" => 3));

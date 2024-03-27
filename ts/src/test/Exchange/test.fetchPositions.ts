@@ -8,7 +8,7 @@ async function testFetchPositions (exchange, skippedProperties, symbol) {
     const now = exchange.milliseconds ();
     // without symbol
     const positions = await exchange.fetchPositions ();
-    assert (Array.isArray (positions), exchange.id + ' ' + method + ' must return an array, returned ' + exchange.json (positions));
+    testSharedMethods.assertNonEmtpyArray (exchange, skippedProperties, method, positions, symbol);
     for (let i = 0; i < positions.length; i++) {
         testPosition (exchange, skippedProperties, method, positions[i], undefined, now);
     }

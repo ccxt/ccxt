@@ -1,6 +1,5 @@
 <?php
 namespace ccxt;
-use \ccxt\Precise;
 
 // ----------------------------------------------------------------------------
 
@@ -8,7 +7,8 @@ use \ccxt\Precise;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 // -----------------------------------------------------------------------------
-include_once __DIR__ . '/test_shared_methods.php';
+use \ccxt\Precise;
+include_once PATH_TO_CCXT . '/test/base/test_shared_methods.php';
 
 function test_balance($exchange, $skipped_properties, $method, $entry) {
     $format = array(
@@ -23,6 +23,9 @@ function test_balance($exchange, $skipped_properties, $method, $entry) {
     $codes_total = is_array($entry['total']) ? array_keys($entry['total']) : array();
     $codes_free = is_array($entry['free']) ? array_keys($entry['free']) : array();
     $codes_used = is_array($entry['used']) ? array_keys($entry['used']) : array();
+    assert_non_emtpy_array($exchange, $skipped_properties, $method, $codes_total, 'total');
+    assert_non_emtpy_array($exchange, $skipped_properties, $method, $codes_free, 'free');
+    assert_non_emtpy_array($exchange, $skipped_properties, $method, $codes_used, 'used');
     $all_codes = $exchange->array_concat($codes_total, $codes_free);
     $all_codes = $exchange->array_concat($all_codes, $codes_used);
     $codes_length = count($codes_total);

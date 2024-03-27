@@ -10,7 +10,7 @@ var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 //  ---------------------------------------------------------------------------
 /**
  * @class exmo
- * @extends Exchange
+ * @augments Exchange
  */
 class exmo extends exmo$1 {
     describe() {
@@ -237,20 +237,19 @@ class exmo extends exmo$1 {
             'position_id': market['id'],
             'quantity': amount,
         };
-        let method = undefined;
+        let response = undefined;
         if (type === 'add') {
-            method = 'privatePostMarginUserPositionMarginAdd';
+            response = await this.privatePostMarginUserPositionMarginAdd(this.extend(request, params));
         }
         else if (type === 'reduce') {
-            method = 'privatePostMarginUserPositionMarginReduce';
+            response = await this.privatePostMarginUserPositionMarginRemove(this.extend(request, params));
         }
-        const response = await this[method](this.extend(request, params));
         //
         //      {}
         //
         const margin = this.parseMarginModification(response, market);
         const options = this.safeValue(this.options, 'margin', {});
-        const fillResponseFromRequest = this.safeValue(options, 'fillResponseFromRequest', true);
+        const fillResponseFromRequest = this.safeBool(options, 'fillResponseFromRequest', true);
         if (fillResponseFromRequest) {
             margin['type'] = type;
             margin['amount'] = amount;
@@ -276,10 +275,11 @@ class exmo extends exmo$1 {
          * @method
          * @name exmo#reduceMargin
          * @description remove margin from a position
+         * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#eebf9f25-0289-4946-9482-89872c738449
          * @param {string} symbol unified market symbol
          * @param {float} amount the amount of margin to remove
-         * @param {object} [params] extra parameters specific to the exmo api endpoint
-         * @returns {object} a [margin structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#reduce-margin-structure}
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=reduce-margin-structure}
          */
         return await this.modifyMarginHelper(symbol, amount, 'reduce', params);
     }
@@ -288,10 +288,11 @@ class exmo extends exmo$1 {
          * @method
          * @name exmo#addMargin
          * @description add margin
+         * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#143ef808-79ca-4e49-9e79-a60ea4d8c0e3
          * @param {string} symbol unified market symbol
          * @param {float} amount amount of margin to add
-         * @param {object} [params] extra parameters specific to the exmo api endpoint
-         * @returns {object} a [margin structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#add-margin-structure}
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=add-margin-structure}
          */
         return await this.modifyMarginHelper(symbol, amount, 'add', params);
     }
@@ -300,16 +301,21 @@ class exmo extends exmo$1 {
          * @method
          * @name exmo#fetchTradingFees
          * @description fetch the trading fees for multiple markets
-         * @param {object} [params] extra parameters specific to the exmo api endpoint
-         * @returns {object} a dictionary of [fee structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#fee-structure} indexed by market symbols
+         * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#90927062-256c-4b03-900f-2b99131f9a54
+         * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#7de7e75c-5833-45a8-b937-c2276d235aaa
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
          */
-        let method = this.safeString(params, 'method');
+        const options = this.safeValue(this.options, 'fetchTradingFees', {});
+        const defaultMethod = this.safeString(options, 'method', 'fetchPrivateTradingFees');
+        const method = this.safeString(params, 'method', defaultMethod);
         params = this.omit(params, 'method');
-        if (method === undefined) {
-            const options = this.safeValue(this.options, 'fetchTradingFees', {});
-            method = this.safeString(options, 'method', 'fetchPrivateTradingFees');
+        if (method === 'fetchPrivateTradingFees') {
+            return await this.fetchPrivateTradingFees(params);
         }
-        return await this[method](params);
+        else {
+            return await this.fetchPublicTradingFees(params);
+        }
     }
     async fetchPrivateTradingFees(params = {}) {
         await this.loadMarkets();
@@ -426,8 +432,8 @@ class exmo extends exmo$1 {
          * @description please use fetchDepositWithdrawFees instead
          * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#4190035d-24b1-453d-833b-37e0a52f88e2
          * @param {string[]|undefined} codes list of unified currency codes
-         * @param {object} [params] extra parameters specific to the exmo api endpoint
-         * @returns {object} a list of [transaction fees structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#fees-structure}
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a list of [transaction fees structures]{@link https://docs.ccxt.com/#/?id=fees-structure}
          */
         await this.loadMarkets();
         const cryptoList = await this.publicGetPaymentsProvidersCryptoList(params);
@@ -499,8 +505,8 @@ class exmo extends exmo$1 {
          * @description fetch deposit and withdraw fees
          * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#4190035d-24b1-453d-833b-37e0a52f88e2
          * @param {string[]|undefined} codes list of unified currency codes
-         * @param {object} [params] extra parameters specific to the exmo api endpoint
-         * @returns {object} a list of [transaction fees structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#fees-structure}
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a list of [transaction fees structures]{@link https://docs.ccxt.com/#/?id=fees-structure}
          */
         await this.loadMarkets();
         const response = await this.publicGetPaymentsProvidersCryptoList(params);
@@ -584,7 +590,9 @@ class exmo extends exmo$1 {
          * @method
          * @name exmo#fetchCurrencies
          * @description fetches all available currencies on an exchange
-         * @param {object} [params] extra parameters specific to the exmo api endpoint
+         * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#7cdf0ca8-9ff6-4cf3-aa33-bcec83155c49
+         * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#4190035d-24b1-453d-833b-37e0a52f88e2
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an associative dictionary of currencies
          */
         //
@@ -710,7 +718,8 @@ class exmo extends exmo$1 {
          * @method
          * @name exmo#fetchMarkets
          * @description retrieves data on all markets for exmo
-         * @param {object} [params] extra parameters specific to the exchange api endpoint
+         * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#7de7e75c-5833-45a8-b937-c2276d235aaa
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} an array of objects representing market data
          */
         const response = await this.publicGetPairSettings(params);
@@ -837,11 +846,12 @@ class exmo extends exmo$1 {
          * @method
          * @name exmo#fetchOHLCV
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#65eeb949-74e5-4631-9184-c38387fe53e8
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
          * @param {int} [limit] the maximum amount of candles to fetch
-         * @param {object} [params] extra parameters specific to the exmo api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets();
@@ -887,7 +897,7 @@ class exmo extends exmo$1 {
         //         ]
         //     }
         //
-        const candles = this.safeValue(response, 'candles', []);
+        const candles = this.safeList(response, 'candles', []);
         return this.parseOHLCVs(candles, market, timeframe, since, limit);
     }
     parseOHLCV(ohlcv, market = undefined) {
@@ -950,9 +960,11 @@ class exmo extends exmo$1 {
          * @method
          * @name exmo#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {object} [params] extra parameters specific to the exmo api endpoint
+         * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#59c5160f-27a1-4d9a-8cfb-7979c7ffaac6
+         * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#c8388df7-1f9f-4d41-81c4-5a387d171dc6
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.marginMode] *isolated* fetches the isolated margin balance
-         * @returns {object} a [balance structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure}
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.loadMarkets();
         let marginMode = undefined;
@@ -997,10 +1009,11 @@ class exmo extends exmo$1 {
          * @method
          * @name exmo#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#c60c51a8-e683-4f45-a000-820723d37871
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
-         * @param {object} [params] extra parameters specific to the exmo api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -1011,7 +1024,7 @@ class exmo extends exmo$1 {
             request['limit'] = limit;
         }
         const response = await this.publicGetOrderBook(this.extend(request, params));
-        const result = this.safeValue(response, market['id']);
+        const result = this.safeDict(response, market['id']);
         return this.parseOrderBook(result, market['symbol'], undefined, 'bid', 'ask');
     }
     async fetchOrderBooks(symbols = undefined, limit = undefined, params = {}) {
@@ -1019,10 +1032,11 @@ class exmo extends exmo$1 {
          * @method
          * @name exmo#fetchOrderBooks
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data for multiple markets
+         * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#c60c51a8-e683-4f45-a000-820723d37871
          * @param {string[]|undefined} symbols list of unified market symbols, all symbols fetched if undefined, default is undefined
          * @param {int} [limit] max number of entries per orderbook to return, default is undefined
-         * @param {object} [params] extra parameters specific to the exmo api endpoint
-         * @returns {object} a dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbol
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbol
          */
         await this.loadMarkets();
         let ids = undefined;
@@ -1098,10 +1112,11 @@ class exmo extends exmo$1 {
         /**
          * @method
          * @name exmo#fetchTickers
-         * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+         * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#4c8e6459-3503-4361-b012-c34bb9f7e385
          * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-         * @param {object} [params] extra parameters specific to the exmo api endpoint
-         * @returns {object} a dictionary of [ticker structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
@@ -1137,9 +1152,10 @@ class exmo extends exmo$1 {
          * @method
          * @name exmo#fetchTicker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#4c8e6459-3503-4361-b012-c34bb9f7e385
          * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} [params] extra parameters specific to the exmo api endpoint
-         * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets();
         const response = await this.publicGetTicker(params);
@@ -1241,11 +1257,12 @@ class exmo extends exmo$1 {
          * @method
          * @name exmo#fetchTrades
          * @description get the list of most recent trades for a particular symbol
+         * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#5a5a9c0d-cf17-47f6-9d62-6d4404ebd5ac
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
-         * @param {object} [params] extra parameters specific to the exmo api endpoint
-         * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -1275,7 +1292,7 @@ class exmo extends exmo$1 {
         //         ]
         //     }
         //
-        const data = this.safeValue(response, market['id'], []);
+        const data = this.safeList(response, market['id'], []);
         return this.parseTrades(data, market, since, limit);
     }
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1288,13 +1305,15 @@ class exmo extends exmo$1 {
          * @param {string} symbol a symbol is required but it can be a single string, or a non-empty array
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] *required for margin orders* the maximum number of trades structures to retrieve
-         * @param {object} [params] extra parameters specific to the exmo api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          *
          * EXCHANGE SPECIFIC PARAMETERS
          * @param {int} [params.offset] last deal offset, default = 0
-         * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
-        this.checkRequiredSymbol('fetchMyTrades', symbol);
+        if (symbol === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' fetchMyTrades() requires a symbol argument');
+        }
         let marginMode = undefined;
         [marginMode, params] = this.handleMarginModeAndParams('fetchMyTrades', params);
         if (marginMode === 'cross') {
@@ -1392,11 +1411,11 @@ class exmo extends exmo$1 {
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-         * @param {object} [params] extra parameters specific to the exmo api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {float} [params.stopPrice] the price at which a trigger order is triggered at
          * @param {string} [params.timeInForce] *spot only* 'fok', 'ioc' or 'post_only'
          * @param {boolean} [params.postOnly] *spot only* true for post only orders
-         * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -1420,7 +1439,6 @@ class exmo extends exmo$1 {
             // 'client_id': 123, // optional, must be a positive integer
             // 'comment': '', // up to 50 latin symbols, whitespaces, underscores
         };
-        let method = isSpot ? 'privatePostOrderCreate' : 'privatePostMarginUserOrderCreate';
         let clientOrderId = this.safeValue2(params, 'client_id', 'clientOrderId');
         if (clientOrderId !== undefined) {
             clientOrderId = this.safeInteger2(params, 'client_id', 'clientOrderId');
@@ -1436,32 +1454,22 @@ class exmo extends exmo$1 {
             throw new errors.ArgumentsRequired(this.id + ' createOrder requires an extra param params["leverage"] for margin orders');
         }
         params = this.omit(params, ['stopPrice', 'stop_price', 'triggerPrice', 'timeInForce', 'client_id', 'clientOrderId']);
-        if (triggerPrice !== undefined) {
-            if (isSpot) {
+        if (price !== undefined) {
+            request['price'] = this.priceToPrecision(market['symbol'], price);
+        }
+        let response = undefined;
+        if (isSpot) {
+            if (triggerPrice !== undefined) {
                 if (type === 'limit') {
                     throw new errors.BadRequest(this.id + ' createOrder () cannot create stop limit orders for spot, only stop market');
                 }
                 else {
-                    method = 'privatePostStopMarketOrderCreate';
                     request['type'] = side;
                     request['trigger_price'] = this.priceToPrecision(symbol, triggerPrice);
                 }
+                response = await this.privatePostStopMarketOrderCreate(this.extend(request, params));
             }
             else {
-                request['stop_price'] = this.priceToPrecision(symbol, triggerPrice);
-                if (type === 'limit') {
-                    request['type'] = 'stop_limit_' + side;
-                }
-                else if (type === 'market') {
-                    request['type'] = 'stop_' + side;
-                }
-                else {
-                    request['type'] = type;
-                }
-            }
-        }
-        else {
-            if (isSpot) {
                 const execType = this.safeString(params, 'exec_type');
                 let isPostOnly = undefined;
                 [isPostOnly, params] = this.handlePostOnly(type === 'market', execType === 'post_only', params);
@@ -1479,6 +1487,21 @@ class exmo extends exmo$1 {
                 else if (timeInForce !== undefined) {
                     request['exec_type'] = timeInForce;
                 }
+                response = await this.privatePostOrderCreate(this.extend(request, params));
+            }
+        }
+        else {
+            if (triggerPrice !== undefined) {
+                request['stop_price'] = this.priceToPrecision(symbol, triggerPrice);
+                if (type === 'limit') {
+                    request['type'] = 'stop_limit_' + side;
+                }
+                else if (type === 'market') {
+                    request['type'] = 'stop_' + side;
+                }
+                else {
+                    request['type'] = type;
+                }
             }
             else {
                 if (type === 'limit' || type === 'market') {
@@ -1488,11 +1511,8 @@ class exmo extends exmo$1 {
                     request['type'] = type;
                 }
             }
+            response = await this.privatePostMarginUserOrderCreate(this.extend(request, params));
         }
-        if (price !== undefined) {
-            request['price'] = this.priceToPrecision(market['symbol'], price);
-        }
-        const response = await this[method](this.extend(request, params));
         return this.parseOrder(response, market);
     }
     async cancelOrder(id, symbol = undefined, params = {}) {
@@ -1505,10 +1525,10 @@ class exmo extends exmo$1 {
          * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#705dfec5-2b35-4667-862b-faf54eca6209  // margin
          * @param {string} id order id
          * @param {string} symbol not used by exmo cancelOrder ()
-         * @param {object} [params] extra parameters specific to the exmo api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [params.trigger] true to cancel a trigger order
          * @param {string} [params.marginMode] set to 'cross' or 'isolated' to cancel a margin order
-         * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         const request = {};
@@ -1555,8 +1575,8 @@ class exmo extends exmo$1 {
          * @description *spot only* fetches information on an order made by the user
          * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#cf27781e-28e5-4b39-a52d-3110f5d22459  // spot
          * @param {string} symbol not used by exmo fetchOrder
-         * @param {object} [params] extra parameters specific to the exmo api endpoint
-         * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         const request = {
@@ -1599,9 +1619,9 @@ class exmo extends exmo$1 {
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trades to retrieve
-         * @param {object} [params] extra parameters specific to the exmo api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.marginMode] set to "isolated" to fetch trades for a margin order
-         * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         let marginMode = undefined;
         [marginMode, params] = this.handleMarginModeAndParams('fetchOrderTrades', params);
@@ -1663,7 +1683,7 @@ class exmo extends exmo$1 {
             //     }
             //
         }
-        const trades = this.safeValue(response, 'trades');
+        const trades = this.safeList(response, 'trades');
         return this.parseTrades(trades, market, since, limit);
     }
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1676,9 +1696,9 @@ class exmo extends exmo$1 {
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch open orders for
          * @param {int} [limit] the maximum number of  open orders structures to retrieve
-         * @param {object} [params] extra parameters specific to the exmo api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.marginMode] set to "isolated" for margin orders
-         * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         let market = undefined;
@@ -1940,9 +1960,9 @@ class exmo extends exmo$1 {
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] timestamp in ms of the earliest order, default is undefined
          * @param {int} [limit] max number of orders to return, default is undefined
-         * @param {object} [params] extra parameters specific to the exmo api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.marginMode] set to "isolated" for margin orders
-         * @returns {object} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         let marginMode = undefined;
@@ -2039,7 +2059,7 @@ class exmo extends exmo$1 {
          * @param {string} side not used by exmo editOrder
          * @param {float} [amount] how much of the currency you want to trade in units of the base currency
          * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-         * @param {object} [params] extra parameters specific to the exmo api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {float} [params.triggerPrice] stop price for stop-market and stop-limit orders
          * @param {string} params.marginMode must be set to isolated
          *
@@ -2047,7 +2067,7 @@ class exmo extends exmo$1 {
          * @param {int} [params.distance] distance for trailing stop orders
          * @param {int} [params.expire] expiration timestamp in UTC timezone for the order. order will not be expired if expire is 0
          * @param {string} [params.comment] optional comment for order. up to 50 latin symbols, whitespaces, underscores
-         * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -2078,9 +2098,10 @@ class exmo extends exmo$1 {
          * @method
          * @name exmo#fetchDepositAddress
          * @description fetch the deposit address for a currency associated with this account
+         * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#c8f9ced9-7ab6-4383-a6a4-bc54469ba60e
          * @param {string} code unified currency code
-         * @param {object} [params] extra parameters specific to the exmo api endpoint
-         * @returns {object} an [address structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#address-structure}
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
          */
         await this.loadMarkets();
         const response = await this.privatePostDepositAddress(params);
@@ -2124,12 +2145,13 @@ class exmo extends exmo$1 {
          * @method
          * @name exmo#withdraw
          * @description make a withdrawal
+         * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#3ab9c34d-ad58-4f87-9c57-2e2ea88a8325
          * @param {string} code unified currency code
          * @param {float} amount the amount to withdraw
          * @param {string} address the address to withdraw to
          * @param {string} tag
-         * @param {object} [params] extra parameters specific to the exmo api endpoint
-         * @returns {object} a [transaction structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         [tag, params] = this.handleWithdrawTagAndParams(tag, params);
         await this.loadMarkets();
@@ -2294,6 +2316,7 @@ class exmo extends exmo$1 {
             'tagTo': undefined,
             'updated': this.safeTimestamp(transaction, 'updated'),
             'comment': comment,
+            'internal': undefined,
             'fee': fee,
         };
     }
@@ -2302,11 +2325,12 @@ class exmo extends exmo$1 {
          * @method
          * @name exmo#fetchDepositsWithdrawals
          * @description fetch history of deposits and withdrawals
+         * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#31e69a33-4849-4e6a-b4b4-6d574238f6a7
          * @param {string} [code] unified currency code for the currency of the deposit/withdrawals, default is undefined
          * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
          * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
-         * @param {object} [params] extra parameters specific to the exmo api endpoint
-         * @returns {object} a list of [transaction structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         await this.loadMarkets();
         const request = {};
@@ -2355,11 +2379,12 @@ class exmo extends exmo$1 {
          * @method
          * @name exmo#fetchWithdrawals
          * @description fetch all withdrawals made from an account
+         * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#97f1becd-7aad-4e0e-babe-7bbe09e33706
          * @param {string} code unified currency code
          * @param {int} [since] the earliest time in ms to fetch withdrawals for
          * @param {int} [limit] the maximum number of withdrawals structures to retrieve
-         * @param {object} [params] extra parameters specific to the exmo api endpoint
-         * @returns {object[]} a list of [transaction structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         await this.loadMarkets();
         let currency = undefined;
@@ -2400,7 +2425,7 @@ class exmo extends exmo$1 {
         //         "count": 23
         //     }
         //
-        const items = this.safeValue(response, 'items', []);
+        const items = this.safeList(response, 'items', []);
         return this.parseTransactions(items, currency, since, limit);
     }
     async fetchWithdrawal(id, code = undefined, params = {}) {
@@ -2408,10 +2433,11 @@ class exmo extends exmo$1 {
          * @method
          * @name exmo#fetchWithdrawal
          * @description fetch data on a currency withdrawal via the withdrawal id
+         * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#97f1becd-7aad-4e0e-babe-7bbe09e33706
          * @param {string} id withdrawal id
          * @param {string} code unified currency code of the currency withdrawn, default is undefined
-         * @param {object} [params] extra parameters specific to the exmo api endpoint
-         * @returns {object} a [transaction structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         await this.loadMarkets();
         let currency = undefined;
@@ -2451,7 +2477,7 @@ class exmo extends exmo$1 {
         //     }
         //
         const items = this.safeValue(response, 'items', []);
-        const first = this.safeValue(items, 0, {});
+        const first = this.safeDict(items, 0, {});
         return this.parseTransaction(first, currency);
     }
     async fetchDeposit(id = undefined, code = undefined, params = {}) {
@@ -2459,10 +2485,11 @@ class exmo extends exmo$1 {
          * @method
          * @name exmo#fetchDeposit
          * @description fetch information on a deposit
+         * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#97f1becd-7aad-4e0e-babe-7bbe09e33706
          * @param {string} id deposit id
          * @param {string} code unified currency code, default is undefined
-         * @param {object} [params] extra parameters specific to the exmo api endpoint
-         * @returns {object} a [transaction structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         await this.loadMarkets();
         let currency = undefined;
@@ -2502,7 +2529,7 @@ class exmo extends exmo$1 {
         //     }
         //
         const items = this.safeValue(response, 'items', []);
-        const first = this.safeValue(items, 0, {});
+        const first = this.safeDict(items, 0, {});
         return this.parseTransaction(first, currency);
     }
     async fetchDeposits(code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -2510,11 +2537,12 @@ class exmo extends exmo$1 {
          * @method
          * @name exmo#fetchDeposits
          * @description fetch all deposits made to an account
+         * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#97f1becd-7aad-4e0e-babe-7bbe09e33706
          * @param {string} code unified currency code
          * @param {int} [since] the earliest time in ms to fetch deposits for
          * @param {int} [limit] the maximum number of deposits structures to retrieve
-         * @param {object} [params] extra parameters specific to the exmo api endpoint
-         * @returns {object[]} a list of [transaction structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         await this.loadMarkets();
         let currency = undefined;
@@ -2555,7 +2583,7 @@ class exmo extends exmo$1 {
         //         "count": 23
         //     }
         //
-        const items = this.safeValue(response, 'items', []);
+        const items = this.safeList(response, 'items', []);
         return this.parseTransactions(items, currency, since, limit);
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
@@ -2607,7 +2635,7 @@ class exmo extends exmo$1 {
             //     {"result":false,"error":"Error 50052: Insufficient funds"}
             //     {"s":"error","errmsg":"strconv.ParseInt: parsing \"\": invalid syntax"}
             //
-            let success = this.safeValue(response, 'result', false);
+            let success = this.safeBool(response, 'result', false);
             if (typeof success === 'string') {
                 if ((success === 'true') || (success === '1')) {
                     success = true;

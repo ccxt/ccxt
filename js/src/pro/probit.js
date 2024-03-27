@@ -4,7 +4,6 @@
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
-'use strict';
 //  ---------------------------------------------------------------------------
 import probitRest from '../probit.js';
 import { NotSupported, ExchangeError } from '../base/errors.js';
@@ -57,8 +56,8 @@ export default class probit extends probitRest {
          * @name probit#watchBalance
          * @description watch balance and get the amount of funds available for trading or funds locked in orders
          * @see https://docs-en.probit.com/reference/balance-1
-         * @param {object} [params] extra parameters specific to the probit api endpoint
-         * @returns {object} a [balance structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure}
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.authenticate(params);
         const messageHash = 'balance';
@@ -100,7 +99,7 @@ export default class probit extends probitRest {
         //         }
         //     }
         //
-        const reset = this.safeValue(message, 'reset', false);
+        const reset = this.safeBool(message, 'reset', false);
         const data = this.safeValue(message, 'data', {});
         const currencyIds = Object.keys(data);
         if (reset) {
@@ -124,9 +123,9 @@ export default class probit extends probitRest {
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @see https://docs-en.probit.com/reference/marketdata
          * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} [params] extra parameters specific to the probit api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {int} [params.interval] Unit time to synchronize market information (ms). Available units: 100, 500
-         * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         let filter = undefined;
         [filter, params] = this.handleOptionAndParams(params, 'watchTicker', 'filter', 'ticker');
@@ -169,9 +168,9 @@ export default class probit extends probitRest {
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
-         * @param {object} [params] extra parameters specific to the probit api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {int} [params.interval] Unit time to synchronize market information (ms). Available units: 100, 500
-         * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
         let filter = undefined;
         [filter, params] = this.handleOptionAndParams(params, 'watchTrades', 'filter', 'recent_trades');
@@ -206,7 +205,7 @@ export default class probit extends probitRest {
         const symbol = this.safeSymbol(marketId);
         const market = this.safeMarket(marketId);
         const trades = this.safeValue(message, 'recent_trades', []);
-        const reset = this.safeValue(message, 'reset', false);
+        const reset = this.safeBool(message, 'reset', false);
         const messageHash = 'trades:' + symbol;
         let stored = this.safeValue(this.trades, symbol);
         if (stored === undefined || reset) {
@@ -230,8 +229,8 @@ export default class probit extends probitRest {
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
-         * @param {object} [params] extra parameters specific to the probit api endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
         await this.loadMarkets();
         await this.authenticate(params);
@@ -279,7 +278,7 @@ export default class probit extends probitRest {
         if (length === 0) {
             return;
         }
-        const reset = this.safeValue(message, 'reset', false);
+        const reset = this.safeBool(message, 'reset', false);
         const messageHash = 'myTrades';
         let stored = this.myTrades;
         if ((stored === undefined) || reset) {
@@ -311,9 +310,9 @@ export default class probit extends probitRest {
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {int} [since] timestamp in ms of the earliest order to watch
          * @param {int} [limit] the maximum amount of orders to watch
-         * @param {object} [params] extra parameters specific to the aax api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.channel] choose what channel to use. Can open_order or order_history.
-         * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.authenticate(params);
         const url = this.urls['api']['ws'];
@@ -367,7 +366,7 @@ export default class probit extends probitRest {
             return;
         }
         const messageHash = 'orders';
-        const reset = this.safeValue(message, 'reset', false);
+        const reset = this.safeBool(message, 'reset', false);
         let stored = this.orders;
         if (stored === undefined || reset) {
             const limit = this.safeInteger(this.options, 'ordersLimit', 1000);
@@ -397,8 +396,8 @@ export default class probit extends probitRest {
          * @see https://docs-en.probit.com/reference/marketdata
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
-         * @param {object} [params] extra parameters specific to the probit api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         let filter = undefined;
         [filter, params] = this.handleOptionAndParams(params, 'watchOrderBook', 'filter', 'order_books');
@@ -454,20 +453,20 @@ export default class probit extends probitRest {
         const symbol = this.safeSymbol(marketId);
         const dataBySide = this.groupBy(orderBook, 'side');
         const messageHash = 'orderbook:' + symbol;
-        let storedOrderBook = this.safeValue(this.orderbooks, symbol);
-        if (storedOrderBook === undefined) {
-            storedOrderBook = this.orderBook({});
-            this.orderbooks[symbol] = storedOrderBook;
+        let orderbook = this.safeValue(this.orderbooks, symbol);
+        if (orderbook === undefined) {
+            orderbook = this.orderBook({});
+            this.orderbooks[symbol] = orderbook;
         }
-        const reset = this.safeValue(message, 'reset', false);
+        const reset = this.safeBool(message, 'reset', false);
         if (reset) {
             const snapshot = this.parseOrderBook(dataBySide, symbol, undefined, 'buy', 'sell', 'price', 'quantity');
-            storedOrderBook.reset(snapshot);
+            orderbook.reset(snapshot);
         }
         else {
-            this.handleDelta(storedOrderBook, dataBySide);
+            this.handleDelta(orderbook, dataBySide);
         }
-        client.resolve(storedOrderBook, messageHash);
+        client.resolve(orderbook, messageHash);
     }
     handleBidAsks(bookSide, bidAsks) {
         for (let i = 0; i < bidAsks.length; i++) {
@@ -540,11 +539,13 @@ export default class probit extends probitRest {
         //
         const errorCode = this.safeString(message, 'errorCode');
         if (errorCode !== undefined) {
-            return this.handleErrorMessage(client, message);
+            this.handleErrorMessage(client, message);
+            return;
         }
         const type = this.safeString(message, 'type');
         if (type === 'authorization') {
-            return this.handleAuthenticate(client, message);
+            this.handleAuthenticate(client, message);
+            return;
         }
         const handlers = {
             'marketdata': this.handleMarketData,
@@ -556,7 +557,8 @@ export default class probit extends probitRest {
         const channel = this.safeString(message, 'channel');
         const handler = this.safeValue(handlers, channel);
         if (handler !== undefined) {
-            return handler.call(this, client, message);
+            handler.call(this, client, message);
+            return;
         }
         const error = new NotSupported(this.id + ' handleMessage: unknown message: ' + this.json(message));
         client.reject(error);
@@ -581,9 +583,9 @@ export default class probit extends probitRest {
                 'type': 'authorization',
                 'token': accessToken,
             };
-            future = this.watch(url, messageHash, this.extend(request, params));
+            future = await this.watch(url, messageHash, this.extend(request, params), messageHash);
             client.subscriptions[messageHash] = future;
         }
-        return await future;
+        return future;
     }
 }
