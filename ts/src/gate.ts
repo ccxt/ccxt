@@ -120,6 +120,7 @@ export default class gate extends Exchange {
                 'fetchLeverages': true,
                 'fetchLeverageTiers': true,
                 'fetchLiquidations': true,
+                'fetchMarginAdjustmentHistory': false,
                 'fetchMarginMode': false,
                 'fetchMarketLeverageTiers': true,
                 'fetchMarkets': true,

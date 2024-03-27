@@ -69,6 +69,7 @@ export default class kucoinfutures extends kucoin {
                 'fetchL3OrderBook': true,
                 'fetchLedger': true,
                 'fetchLeverageTiers': false,
+                'fetchMarginAdjustmentHistory': false,
                 'fetchMarginMode': false,
                 'fetchMarketLeverageTiers': true,
                 'fetchMarkets': true,
