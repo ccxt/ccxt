@@ -248,7 +248,20 @@ public partial class Exchange
         }
 
 
-        private static readonly object _sendAsyncLock = new object();
+        private static readonly SemaphoreSlim _sendSemaphore = new SemaphoreSlim(1, 1);
+        
+        protected static async Task sendAsyncWrapper (ClientWebSocket webSocket, ArraySegment<byte> ArraySegment, WebSocketMessageType WebSocketMessageType, bool endOnMessage, CancellationToken CancellationToken)
+        {
+            await _sendSemaphore.WaitAsync();
+            try
+            {
+                await webSocket.SendAsync(ArraySegment, WebSocketMessageType, endOnMessage, CancellationToken);
+            }
+            finally
+            {
+                _sendSemaphore.Release();
+            }
+        }
 
         public async Task send(object message)
         {
@@ -259,13 +272,10 @@ public partial class Exchange
             }
             var bytes = Encoding.UTF8.GetBytes(jsonMessage);
             var arraySegment = new ArraySegment<byte>(bytes, 0, bytes.Length);
-            lock (_sendAsyncLock)
-            {
-                await this.webSocket.SendAsync(arraySegment,
+            await sendAsyncWrapper(this.webSocket, arraySegment,
                                 WebSocketMessageType.Text,
                                 true,
                                 CancellationToken.None);
-            }
         }
 
         private static async Task Sending(ClientWebSocket webSocket)
@@ -279,10 +289,7 @@ public partial class Exchange
                     if (!string.IsNullOrEmpty(message))
                     {
                         var bytes = Encoding.UTF8.GetBytes(message);
-                        lock (_sendAsyncLock)
-                        {
-                            await webSocket.SendAsync(new ArraySegment<byte>(bytes), WebSocketMessageType.Text, true, CancellationToken.None);
-                        }
+                        await sendAsyncWrapper(webSocket, new ArraySegment<byte>(bytes), WebSocketMessageType.Text, true, CancellationToken.None);
                     }
                 }
             }
