@@ -244,8 +244,10 @@ public partial class Exchange
                 }
                 catch (Exception ex)
                 {
-                    _connectSemaphore.Release();
                     tcs.SetException(ex); // Set the exception if something goes wrong
+                }
+                finally {
+                    _connectSemaphore.Release();
                 }
             });
 
