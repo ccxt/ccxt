@@ -47,7 +47,7 @@ function testOrder (exchange, skippedProperties, method, entry, symbol, now) {
     if (!('trades' in skippedProperties)) {
         if (entry['trades'] !== undefined) {
             for (let i = 0; i < entry['trades'].length; i++) {
-                testTrade (exchange, skippedProperties, method, entry['trades'][i], symbol, now);
+                testTrade (exchange, skippedProperties, method, entry['trades'][i], symbol, now, false);
             }
         }
     }
