@@ -163,4 +163,22 @@ public partial class BaseTest
 
     }
 
+    public static object callDynamically(object obj, object methodName, object[] args = null)
+    {
+        args ??= new object[] { };
+        if (args.Length == 0)
+        {
+            args = new object[] { null };
+        }
+        return obj.GetType().GetMethod((string)methodName, BindingFlags.Static | BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic).Invoke(obj, args);
+    }
+
+    public static async Task<object> callDynamicallyAsync(object obj, object methodName, object[] args = null)
+    {
+        args ??= new object[] { };
+        var res = obj.GetType().GetMethod((string)methodName, BindingFlags.Static | BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic).Invoke(obj, args);
+        return await ((Task<object>)res);
+    }
+
+
 }
