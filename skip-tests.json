@@ -189,15 +189,6 @@
                 "withdraw": "not provided",
                 "deposit": "not provided"
             },
-<<<<<<< HEAD
-            "fetchOrderBook": {
-                "compareToNextItem": "sometimes bid equals to next bid"
-            },
-            "fetchL2OrderBook": {
-                "compareToNextItem": "same"
-            },
-            "fetchTickers": "negative values"
-=======
             "ticker": {
                 "spread": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269273148#L3651",
                 "ask": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269484317#L3783",
@@ -207,10 +198,9 @@
                 "askVolume": "sometimes negative"
             },
             "orderBook": {
-                "bid": "multiple bids might have same value"
+                "compareToNextItem": "multiple bids might have same value"
             },
             "watchOrderBook": "complete skip because of frequent checksum mismatches: https://app.travis-ci.com/github/ccxt/ccxt/builds/269273148#L3553 and also for this https://app.travis-ci.com/github/ccxt/ccxt/builds/269129438#L3999"
->>>>>>> 5ed457857daad2db49c43aa918a75f94dc9edd54
         }
     },
     "bitflyer": {
@@ -363,21 +353,12 @@
         "until": "2024-03-28",
         "skipWs": true,
         "skipMethods": {
-<<<<<<< HEAD
-            "fetchOrderBook": {
-                "compareToNextItem": "some bid might be lower than next bid"
-            },
-            "fetchL2OrderBook": {
-                "compareToNextItem": "same"
-            },
-=======
->>>>>>> 5ed457857daad2db49c43aa918a75f94dc9edd54
             "fetchCurrencies": {
                 "withdraw": "not provided",
                 "deposit": "not provided"
             },
             "orderBook":{
-                "bid": "messed bids sequence"
+                "compareToNextItem": "messed bids sequence"
             },
             "fetchTrades": {
                 "emptyResponse": "sometimes response is empty"
@@ -418,57 +399,17 @@
     },
     "bitstamp": {
         "skipMethods": {
-<<<<<<< HEAD
-            "fetchOrderBook": {
-                "compareToZero": "bid/ask might be 0"
-            },
-            "fetchL2OrderBook": {
-                "compareToZero": "bid/ask might be 0"
-            },
-=======
->>>>>>> 5ed457857daad2db49c43aa918a75f94dc9edd54
             "fetchCurrencies": {
                 "withdraw": "not provided",
                 "deposit": "not provided"
             },
             "orderBook": {
-                "bid": "bid/ask might be 0"
+                "compareToZero": "bid/ask might be 0"
             },
             "ticker": {
                 "bid": "greater than ask https://app.travis-ci.com/github/ccxt/ccxt/builds/264241638#L3027",
                 "baseVolume": "baseVolume * low = 8.43e-6 * 3692.59081464 = 0.03112854056 < 0.0311285405674152"
-            },
-<<<<<<< HEAD
-            "fetchTickers": {
-                "bid": "same",
-                "baseVolume": "same",
-                "quoteVolume": "same"
             }
-        }
-    },
-    "bitstamp1": {
-        "skipWs": true,
-        "skipMethods": {
-            "loadMarkets": {
-                "info": "null",
-                "precision":"not provided",
-                "active": "not provided"
-            },
-            "fetchOrderBook": {
-                "compareToZero": "bid/ask might be 0"
-            },
-            "fetchL2OrderBook": {
-                "compareToZero": "same"
-	    },
-            "fetchTicker": {
-                "bid": "greater than ask https://app.travis-ci.com/github/ccxt/ccxt/builds/264241638#L3027"
-            },
-            "fetchTickers": {
-                "bid": "same"
-            }
-=======
-            "watchOrderBook": "something broken https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L4473 and https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L4504"
->>>>>>> 5ed457857daad2db49c43aa918a75f94dc9edd54
         }
     },
     "bl3p": {
@@ -506,28 +447,8 @@
                 "taker":"not provided",
                 "maker":"not provided"
             },
-<<<<<<< HEAD
-            "fetchOrderBook": {
-                "compareToNextItem": "sometimes bid equals to next bid"
-            },
-            "fetchL2OrderBook": {
-                "compareToNextItem": "same"
-            }
-        }
-    },
-    "bkex": {
-        "skipMethods": {
-            "fetchOrderBook": "system busy",
-            "loadMarkets": {
-                "currencyIdAndCode": "broken currencies",
-                "contractSize": "broken for some markets"
-=======
             "orderBook": {
-                "bid": "messed bid-ask sequence"
->>>>>>> 5ed457857daad2db49c43aa918a75f94dc9edd54
-            },
-            "watchOrderBook": {
-                "nonce": "missing https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L4517 and https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L4562"
+                "compareToNextItem": "sometimes bid equals to next bid"
             }
         }
     },
@@ -538,20 +459,8 @@
                 "active":"is undefined",
                 "info": "null"
             },
-<<<<<<< HEAD
-            "fetchOrderBook": {
-                "compareBidAsk": "sometimes bid equals to ask"
-            },
-            "fetchL2OrderBook": {
-                "compareBidAsk": "same"
-            },
-            "fetchTickers": {
-                "bid":"broken bid-ask",
-                "ask":"broken bid-ask"
-=======
             "orderBook": {
-                "bid":"bids[0][0] (3787971.0) should be < than asks[0][0] (3787971.0) <<< btcbox "
->>>>>>> 5ed457857daad2db49c43aa918a75f94dc9edd54
+                "spread":"bids[0][0] (3787971.0) should be < than asks[0][0] (3787971.0)"
             },
             "ticker": {
                 "bid":"broken bid-ask"
@@ -561,20 +470,10 @@
     "btcalpha": {
 	    "skip": true,
         "skipMethods": {
-<<<<<<< HEAD
-            "fetchOrderBook": {
-                "compareBidAsk": "sometimes bid equals to ask"
-            },
-            "fetchL2OrderBook": {
-                "compareBidAsk": "same"
-            },
-            "fetchTickers": {
-=======
             "orderBook": {
-                "bid":"bids[0][0] is not < asks[0][0]"
+                "spread":"bids[0][0] is not < asks[0][0]"
             },
             "ticker": {
->>>>>>> 5ed457857daad2db49c43aa918a75f94dc9edd54
                 "symbol": "https://app.travis-ci.com/github/ccxt/ccxt/builds/265171549#L2518",
                 "percentage": "broken",
                 "bid": "messed bid-ask"
@@ -586,43 +485,23 @@
             "loadMarkets":{
                 "active":"is undefined"
             },
-<<<<<<< HEAD
-            "fetchOrderBook": {
-                "compareToNextItem": "sometimes bid equals to next bid"
-            },
-            "fetchL2OrderBook": {
-                "compareToNextItem": "same"
-=======
             "orderBook": {
-                "bid": "messed bid-ask sequence"
->>>>>>> 5ed457857daad2db49c43aa918a75f94dc9edd54
+                "bid": "messed bid-ask sequence",
+                "compareToNextItem": "sometimes bid equals to next bid"
             }
         }
     },
     "btcturk": {
         "skipMethods": {
-<<<<<<< HEAD
             "loadMarkets": {
                 "precision":"is undefined",
                 "active":"is undefined",
                 "info":"null"
             },
-            "fetchOrderBook": {
+            "orderBook": {
+                "compareToZero": "https://app.travis-ci.com/github/ccxt/ccxt/builds/263287870#L2201",
                 "compareToNextItem": "sometimes bid equals to next bid"
-            },
-            "fetchL2OrderBook": {
-                "compareToNextItem": "same"
             }
-        }
-    },
-    "btcturk": {
-        "skipMethods": {
-            "fetchOrderBook": {
-                "compareToZero": "https://app.travis-ci.com/github/ccxt/ccxt/builds/263287870#L2201"
-            }
-=======
-            "fetchOrderBook": "https://app.travis-ci.com/github/ccxt/ccxt/builds/263287870#L2201"
->>>>>>> 5ed457857daad2db49c43aa918a75f94dc9edd54
         }
     },
     "bybit": {
@@ -796,16 +675,8 @@
             "loadMarkets": {
                 "active":"is undefined"
             },
-<<<<<<< HEAD
-            "fetchOrderBook": {
-                "compareToNextItem": "sometimes ask equals to next ask"
-            },
-            "fetchL2OrderBook": {
-                "compareToNextItem": "same"
-=======
             "orderBook": {
-                "bid":"ask should be less than next ask"
->>>>>>> 5ed457857daad2db49c43aa918a75f94dc9edd54
+                "compareToNextItem":"ask should be less than next ask"
             }
         }
     },
@@ -1122,8 +993,8 @@
             "fetchTrades": {
                 "side":"side is undefined"
             },
-<<<<<<< HEAD
-            "fetchOrderBook": {
+            "fetchTickers": "negative values",
+            "orderBook": {
                 "compareToNextItem": "sometimes bid equals to next bid",
                 "compareToZero": "https://app.travis-ci.com/github/ccxt/ccxt/builds/263629640#L2165"
             },
@@ -1131,16 +1002,6 @@
                 "compareToNextItem": "same",
                 "compareToZero": "same"
             }
-        }
-    },
-    "coinfalcon": {
-        "skipMethods": {
-            "fetchTickers": "negative values"
-=======
-            "orderBook": {
-                "bid": "messed sequence"
-            }
->>>>>>> 5ed457857daad2db49c43aa918a75f94dc9edd54
         }
     },
     "kuna": {
@@ -1216,16 +1077,8 @@
     "luno": {
         "skipWs": "temp",
         "skipMethods": {
-<<<<<<< HEAD
-            "fetchOrderBook": {
-                "compareToNextItem": "sometimes bid equals to next bid"
-            },
-            "fetchL2OrderBook": {
-                "compareToNextItem": "same"
-=======
             "orderBook": {
-                "bid": "messed"
->>>>>>> 5ed457857daad2db49c43aa918a75f94dc9edd54
+                "compareToNextItem": "messed"
             }
         }
     },
@@ -1252,20 +1105,8 @@
             "fetchCurrencies": {
                 "fee":"not provided"
             },
-<<<<<<< HEAD
-            "fetchOrderBook": {
-                "compareToNextItem": "sometimes bid equals to next bid"
-            },
-            "fetchL2OrderBook": {
-                "compareToNextItem": "same"
-            },
-            "fetchTickers": "negative values",
-            "fetchTicker": {
-                "quoteVolume": "quoteVolume >= baseVolume * low is failing",
-                "baseVolume": "quoteVolume >= baseVolume * low is failing"
-=======
             "orderBook": {
-                "bid": "bid should be greater than next bid"
+                "compareToNextItem": "sometimes bid equals to next bid"
             },
             "ticker": {
                 "baseVolume": "quoteVolume >= baseVolume * low is failing",
@@ -1274,38 +1115,21 @@
                 "low": "same",
                 "high": "same",
                 "average": "same"
->>>>>>> 5ed457857daad2db49c43aa918a75f94dc9edd54
             }
         }
     },
     "mercado": {
         "skipMethods": {
             "loadMarkets": "needs migration to v4, as raw info is not being used. granular can be used for skipping 'info'",
-<<<<<<< HEAD
-            "fetchOrderBook": {
-                "compareBidAsk": "sometimes bid is not lower than ask"
+            "ticker": {
+                "spread": "sometimes bid is not lower than ask"
             },
-            "fetchL2OrderBook": {
-                "compareBidAsk": "same"
-            },
-            "fetchTickers": {
-                "compareBidAsk": "sometimes bid is not lower than ask"
-            },
-            "fetchTicker": {
-                "compareBidAsk": "sometimes bid is not lower than ask"
-            },
-            "fetchCurrencies": "info key is missing"
-=======
             "orderBook": {
                 "spread": "bid-ask crossing"
-            },
-            "ticker": {
-                "bid": "bid-ask crossing"
             },
             "fetchCurrencies": {
                 "info":"key is missing"
             }
->>>>>>> 5ed457857daad2db49c43aa918a75f94dc9edd54
         }
     },
     "novadax": {
