@@ -1011,7 +1011,7 @@ export default class kraken extends Exchange {
         //         }
         //     }
         const result = this.safeValue (response, 'result', {});
-        const ohlcvs = this.safeValue (result, market['id'], []);
+        const ohlcvs = this.safeList (result, market['id'], []);
         return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
     }
 
@@ -1406,7 +1406,7 @@ export default class kraken extends Exchange {
         //         }
         //     }
         //
-        const result = this.safeValue (response, 'result');
+        const result = this.safeDict (response, 'result');
         return this.parseOrder (result);
     }
 
@@ -1832,7 +1832,7 @@ export default class kraken extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue (response, 'result', {});
+        const data = this.safeDict (response, 'result', {});
         return this.parseOrder (data, market);
     }
 
@@ -2174,8 +2174,8 @@ export default class kraken extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const result = this.safeValue (response, 'result', {});
-        const orders = this.safeValue (result, 'open', []);
+        const result = this.safeDict (response, 'result', {});
+        const orders = this.safeDict (result, 'open', {});
         return this.parseOrders (orders, market, since, limit);
     }
 
@@ -2248,8 +2248,8 @@ export default class kraken extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const result = this.safeValue (response, 'result', {});
-        const orders = this.safeValue (result, 'closed', []);
+        const result = this.safeDict (response, 'result', {});
+        const orders = this.safeDict (result, 'closed', {});
         return this.parseOrders (orders, market, since, limit);
     }
 
@@ -2721,7 +2721,7 @@ export default class kraken extends Exchange {
             //         }
             //     }
             //
-            const result = this.safeValue (response, 'result', {});
+            const result = this.safeDict (response, 'result', {});
             return this.parseTransaction (result, currency);
         }
         throw new ExchangeError (this.id + " withdraw() requires a 'key' parameter (withdrawal key name, as set up on your account)");

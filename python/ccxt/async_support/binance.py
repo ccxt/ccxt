@@ -2790,7 +2790,7 @@ class binance(Exchange, ImplicitAPI):
             }
         return result
 
-    async def fetch_markets(self, params={}):
+    async def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for binance
         :see: https://binance-docs.github.io/apidocs/spot/en/#exchange-information         # spot

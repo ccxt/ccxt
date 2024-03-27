@@ -354,7 +354,7 @@ class btcmarkets extends Exchange {
         );
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): array {
         /**
          * retrieves data on all markets for btcmarkets
          * @see https://docs.btcmarkets.net/v3/#tag/Market-Data-APIs/paths/{1v3}1markets/get

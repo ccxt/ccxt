@@ -138,7 +138,7 @@ class zaif extends Exchange {
         ));
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): array {
         /**
          * @see https://zaif-api-document.readthedocs.io/ja/latest/PublicAPI.html#id12
          * retrieves data on all $markets for zaif

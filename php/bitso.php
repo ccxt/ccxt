@@ -334,7 +334,7 @@ class bitso extends Exchange {
         ), $currency);
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): array {
         /**
          * retrieves data on all $markets for bitso
          * @see https://docs.bitso.com/bitso-api/docs/list-available-books

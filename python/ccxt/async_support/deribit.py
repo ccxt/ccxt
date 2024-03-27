@@ -752,7 +752,7 @@ class deribit(Exchange, ImplicitAPI):
             'code': self.safe_currency_code(None, currency),
         }
 
-    async def fetch_markets(self, params={}):
+    async def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for deribit
         :see: https://docs.deribit.com/#public-get_currencies
@@ -1297,9 +1297,15 @@ class deribit(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param boolean [params.paginate]: whether to paginate the results, set to False by default
+        :param int [params.until]: the latest time in ms to fetch ohlcv for
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         await self.load_markets()
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchOHLCV', 'paginate')
+        if paginate:
+            return await self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, params, 5000)
         market = self.market(symbol)
         request = {
             'instrument_name': market['id'],
@@ -1319,6 +1325,10 @@ class deribit(Exchange, ImplicitAPI):
                 request['end_timestamp'] = now
             else:
                 request['end_timestamp'] = self.sum(since, limit * duration * 1000)
+        until = self.safe_integer(params, 'until')
+        if until is not None:
+            params = self.omit(params, 'until')
+            request['end_timestamp'] = until
         response = await self.publicGetGetTradingviewChartData(self.extend(request, params))
         #
         #     {
@@ -1438,6 +1448,7 @@ class deribit(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.until]: the latest time in ms to fetch trades for
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
         """
         await self.load_markets()
@@ -1450,8 +1461,12 @@ class deribit(Exchange, ImplicitAPI):
             request['start_timestamp'] = since
         if limit is not None:
             request['count'] = min(limit, 1000)  # default 10
+        until = self.safe_integer_2(params, 'until', 'end_timestamp')
+        if until is not None:
+            params = self.omit(params, ['until'])
+            request['end_timestamp'] = until
         response = None
-        if since is None:
+        if (since is None) and not ('end_timestamp' in request):
             response = await self.publicGetGetLastTradesByInstrument(self.extend(request, params))
         else:
             response = await self.publicGetGetLastTradesByInstrumentAndTime(self.extend(request, params))

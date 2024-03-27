@@ -229,7 +229,7 @@ class indodax(Exchange, ImplicitAPI):
         #
         return self.safe_integer(response, 'server_time')
 
-    def fetch_markets(self, params={}):
+    def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for indodax
         :see: https://github.com/btcid/indodax-official-api-docs/blob/master/Public-RestAPI.md#pairs

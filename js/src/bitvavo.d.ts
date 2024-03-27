@@ -10,7 +10,7 @@ export default class bitvavo extends Exchange {
     amountToPrecision(symbol: any, amount: any): any;
     priceToPrecision(symbol: any, price: any): any;
     fetchTime(params?: {}): Promise<number>;
-    fetchMarkets(params?: {}): Promise<any[]>;
+    fetchMarkets(params?: {}): Promise<Market[]>;
     parseMarkets(markets: any): any[];
     fetchCurrencies(params?: {}): Promise<{}>;
     parseCurrencies(currencies: any): {};

@@ -7,7 +7,7 @@ import type { FundingRateHistory, Int, OHLCV, Order, OrderSide, OrderType, Order
 export default class digifinex extends Exchange {
     describe(): any;
     fetchCurrencies(params?: {}): Promise<{}>;
-    fetchMarkets(params?: {}): Promise<any[]>;
+    fetchMarkets(params?: {}): Promise<Market[]>;
     fetchMarketsV2(params?: {}): Promise<any[]>;
     fetchMarketsV1(params?: {}): Promise<any[]>;
     parseBalance(response: any): Balances;

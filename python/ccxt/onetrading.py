@@ -363,7 +363,7 @@ class onetrading(Exchange, ImplicitAPI):
             }
         return result
 
-    def fetch_markets(self, params={}):
+    def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for onetrading
         :param dict [params]: extra parameters specific to the exchange API endpoint

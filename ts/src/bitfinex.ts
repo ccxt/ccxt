@@ -454,7 +454,7 @@ export default class bitfinex extends Exchange {
         //        }
         //    }
         //
-        const withdraw = this.safeValue (response, 'withdraw');
+        const withdraw = this.safeList (response, 'withdraw');
         return this.parseDepositWithdrawFees (withdraw, codes);
     }
 

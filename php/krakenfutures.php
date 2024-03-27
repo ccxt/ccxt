@@ -262,7 +262,7 @@ class krakenfutures extends Exchange {
         ));
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): array {
         /**
          * Fetches the available trading markets from the exchange, Multi-collateral markets are returned markets, but can be settled in multiple $currencies
          * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-instrument-details-get-$instruments

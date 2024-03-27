@@ -470,7 +470,7 @@ class poloniex extends Exchange {
         return $markets;
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): array {
         /**
          * retrieves data on all $markets for poloniex
          * @see https://docs.poloniex.com/#public-endpoints-reference-data-symbol-information

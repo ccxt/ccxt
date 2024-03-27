@@ -1938,7 +1938,7 @@ public partial class hyperliquid : Exchange
             throw new ArgumentsRequired ((string)add(this.id, " setMarginMode() requires a leverage parameter")) ;
         }
         object asset = this.parseToInt(getValue(market, "baseId"));
-        object isCross = (isEqual(marginMode, "isolated"));
+        object isCross = (isEqual(marginMode, "cross"));
         object nonce = this.milliseconds();
         parameters = this.omit(parameters, new List<object>() {"leverage"});
         object updateAction = new Dictionary<string, object>() {
@@ -1956,9 +1956,10 @@ public partial class hyperliquid : Exchange
                 vaultAddress = ((string)vaultAddress).Replace((string)"0x", (string)"");
             }
         }
-        object signature = this.signL1Action(updateAction, nonce, vaultAddress);
+        object extendedAction = this.extend(updateAction, parameters);
+        object signature = this.signL1Action(extendedAction, nonce, vaultAddress);
         object request = new Dictionary<string, object>() {
-            { "action", updateAction },
+            { "action", extendedAction },
             { "nonce", nonce },
             { "signature", signature },
         };
@@ -1966,7 +1967,7 @@ public partial class hyperliquid : Exchange
         {
             ((IDictionary<string,object>)request)["vaultAddress"] = vaultAddress;
         }
-        object response = await this.privatePostExchange(this.extend(request, parameters));
+        object response = await this.privatePostExchange(request);
         //
         //     {
         //         'response': {

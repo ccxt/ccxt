@@ -894,7 +894,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
             },
         })
 
-    def fetch_markets(self, params={}):
+    def fetch_markets(self, params={}) -> List[Market]:
         """
         :see: https://docs.cloud.coinbase.com/intx/reference/getinstruments
         retrieves data on all markets for coinbaseinternational

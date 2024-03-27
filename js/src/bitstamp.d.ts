@@ -6,7 +6,7 @@ import type { Balances, Currency, Int, Market, Num, OHLCV, Order, OrderBook, Ord
  */
 export default class bitstamp extends Exchange {
     describe(): any;
-    fetchMarkets(params?: {}): Promise<any[]>;
+    fetchMarkets(params?: {}): Promise<Market[]>;
     constructCurrencyObject(id: any, code: any, name: any, precision: any, minCost: any, originalPayload: any): {
         id: any;
         code: any;

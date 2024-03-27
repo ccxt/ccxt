@@ -2797,7 +2797,7 @@ class binance extends Exchange {
         return $result;
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): array {
         /**
          * retrieves data on all $markets for binance
          * @see https://binance-docs.github.io/apidocs/spot/en/#exchange-information         // spot

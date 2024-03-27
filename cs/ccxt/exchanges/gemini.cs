@@ -225,6 +225,7 @@ public partial class gemini : Exchange
                 { "broad", new Dictionary<string, object>() {
                     { "The Gemini Exchange is currently undergoing maintenance.", typeof(OnMaintenance) },
                     { "We are investigating technical issues with the Gemini Exchange.", typeof(ExchangeNotAvailable) },
+                    { "Internal Server Error", typeof(ExchangeNotAvailable) },
                 } },
             } },
             { "options", new Dictionary<string, object>() {

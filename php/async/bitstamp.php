@@ -167,7 +167,7 @@ class bitstamp extends Exchange {
                         'transfer-from-main/' => 1,
                         'my_trading_pairs/' => 1,
                         'fees/trading/' => 1,
-                        'fees/trading/{pair}' => 1,
+                        'fees/trading/{market_symbol}' => 1,
                         'fees/withdrawal/' => 1,
                         'fees/withdrawal/{currency}/' => 1,
                         'withdrawal-requests/' => 1,
@@ -460,7 +460,7 @@ class bitstamp extends Exchange {
         ));
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * retrieves data on all markets for bitstamp
@@ -1178,7 +1178,7 @@ class bitstamp extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch the trading fees for a $market
-             * @see https://www.bitstamp.net/api/#tag/Fees/operation/GetAllTradingFees
+             * @see https://www.bitstamp.net/api/#tag/Fees/operation/GetTradingFeesForCurrency
              * @param {string} $symbol unified $market $symbol
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=fee-structure fee structure~
@@ -1186,23 +1186,37 @@ class bitstamp extends Exchange {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $request = array(
-                'pair' => $market['id'],
+                'market_symbol' => $market['id'],
             );
-            $response = Async\await($this->privatePostBalancePair (array_merge($request, $params)));
-            return $this->parse_trading_fee($response, $market);
+            $response = Async\await($this->privatePostFeesTrading (array_merge($request, $params)));
+            //
+            //     array(
+            //         {
+            //             "currency_pair" => "btcusd",
+            //             "fees":
+            //                 array(
+            //                     "maker" => "0.15000",
+            //                     "taker" => "0.16000"
+            //                 ),
+            //             "market" => "btcusd"
+            //         }
+            //         ...
+            //     )
+            //
+            $tradingFeesByMarketId = $this->index_by($response, 'currency_pair');
+            $tradingFee = $this->safe_dict($tradingFeesByMarketId, $market['id']);
+            return $this->parse_trading_fee($tradingFee, $market);
         }) ();
     }
 
     public function parse_trading_fee($fee, ?array $market = null) {
-        $market = $this->safe_market(null, $market);
-        $feeString = $this->safe_string($fee, $market['id'] . '_fee');
-        $dividedFeeString = Precise::string_div($feeString, '100');
-        $tradeFee = $this->parse_number($dividedFeeString);
+        $marketId = $this->safe_string($fee, 'market');
+        $fees = $this->safe_dict($fee, 'fees', array());
         return array(
             'info' => $fee,
-            'symbol' => $market['symbol'],
-            'maker' => $tradeFee,
-            'taker' => $tradeFee,
+            'symbol' => $this->safe_symbol($marketId, $market),
+            'maker' => $this->safe_number($fees, 'maker'),
+            'taker' => $this->safe_number($fees, 'taker'),
         );
     }
 
@@ -1211,8 +1225,7 @@ class bitstamp extends Exchange {
         $symbols = $this->symbols;
         for ($i = 0; $i < count($symbols); $i++) {
             $symbol = $symbols[$i];
-            $market = $this->market($symbol);
-            $fee = $this->parse_trading_fee($fees, $market);
+            $fee = $this->parse_trading_fee($fees[$i]);
             $result[$symbol] = $fee;
         }
         return $result;
@@ -1227,7 +1240,21 @@ class bitstamp extends Exchange {
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=fee-structure fee structures~ indexed by market symbols
              */
             Async\await($this->load_markets());
-            $response = Async\await($this->privatePostBalance ($params));
+            $response = Async\await($this->privatePostFeesTrading ($params));
+            //
+            //     array(
+            //         {
+            //             "currency_pair" => "btcusd",
+            //             "fees":
+            //                 array(
+            //                     "maker" => "0.15000",
+            //                     "taker" => "0.16000"
+            //                 ),
+            //             "market" => "btcusd"
+            //         }
+            //         ...
+            //     )
+            //
             return $this->parse_trading_fees($response);
         }) ();
     }

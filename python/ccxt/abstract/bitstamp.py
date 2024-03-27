@@ -41,7 +41,7 @@ class ImplicitAPI:
     private_post_transfer_from_main = privatePostTransferFromMain = Entry('transfer-from-main/', 'private', 'POST', {'cost': 1})
     private_post_my_trading_pairs = privatePostMyTradingPairs = Entry('my_trading_pairs/', 'private', 'POST', {'cost': 1})
     private_post_fees_trading = privatePostFeesTrading = Entry('fees/trading/', 'private', 'POST', {'cost': 1})
-    private_post_fees_trading_pair = privatePostFeesTradingPair = Entry('fees/trading/{pair}', 'private', 'POST', {'cost': 1})
+    private_post_fees_trading_market_symbol = privatePostFeesTradingMarketSymbol = Entry('fees/trading/{market_symbol}', 'private', 'POST', {'cost': 1})
     private_post_fees_withdrawal = privatePostFeesWithdrawal = Entry('fees/withdrawal/', 'private', 'POST', {'cost': 1})
     private_post_fees_withdrawal_currency = privatePostFeesWithdrawalCurrency = Entry('fees/withdrawal/{currency}/', 'private', 'POST', {'cost': 1})
     private_post_withdrawal_requests = privatePostWithdrawalRequests = Entry('withdrawal-requests/', 'private', 'POST', {'cost': 1})

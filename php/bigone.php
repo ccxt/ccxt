@@ -510,7 +510,7 @@ class bigone extends Exchange {
         return $result;
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): array {
         /**
          * retrieves data on all $markets for bigone
          * @see https://open.big.one/docs/spot_asset_pair.html

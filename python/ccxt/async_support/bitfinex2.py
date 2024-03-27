@@ -508,7 +508,7 @@ class bitfinex2(Exchange, ImplicitAPI):
             'info': response,
         }
 
-    async def fetch_markets(self, params={}):
+    async def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for bitfinex2
         :see: https://docs.bitfinex.com/reference/rest-public-conf

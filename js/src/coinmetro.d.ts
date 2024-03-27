@@ -7,7 +7,7 @@ import { Balances, Currency, IndexType, Int, Market, Num, OHLCV, Order, OrderBoo
 export default class coinmetro extends Exchange {
     describe(): any;
     fetchCurrencies(params?: {}): Promise<{}>;
-    fetchMarkets(params?: {}): Promise<import("./base/types.js").MarketInterface[]>;
+    fetchMarkets(params?: {}): Promise<Market[]>;
     parseMarket(market: any): Market;
     parseMarketId(marketId: any): {
         baseId: any;

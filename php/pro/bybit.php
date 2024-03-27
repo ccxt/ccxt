@@ -207,7 +207,7 @@ class bybit extends \ccxt\async\bybit {
     public function watch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
-             * n watches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+             * watches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
              * @see https://bybit-exchange.github.io/docs/v5/websocket/public/ticker
              * @see https://bybit-exchange.github.io/docs/v5/websocket/public/etp-$ticker
              * @param {string[]} $symbols unified symbol of the market to fetch the $ticker for

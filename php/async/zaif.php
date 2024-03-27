@@ -142,7 +142,7 @@ class zaif extends Exchange {
         ));
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * @see https://zaif-api-document.readthedocs.io/ja/latest/PublicAPI.html#id12

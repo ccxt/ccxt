@@ -1346,7 +1346,7 @@ export default class woo extends Exchange {
         //     ]
         // }
         //
-        const orders = this.safeValue (response, 'data', response);
+        const orders = this.safeDict (response, 'data', response);
         return this.parseOrder (orders, market);
     }
 

@@ -91,6 +91,9 @@ def test_market(exchange, skipped_properties, method, market):
         # otherwise, it must be false or undefined
         test_shared_methods.assert_in_array(exchange, skipped_properties, method, market, 'margin', [False, None])
     if not ('contractSize' in skipped_properties):
+        if not market['spot']:
+            # if not spot, then contractSize should be defined
+            assert market['contractSize'] is not None, '\"contractSize\" must be defined when \"spot\" is false' + log_text
         test_shared_methods.assert_greater(exchange, skipped_properties, method, market, 'contractSize', '0')
     # typical values
     test_shared_methods.assert_greater(exchange, skipped_properties, method, market, 'expiry', '0')

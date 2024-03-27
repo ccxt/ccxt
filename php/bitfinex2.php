@@ -494,7 +494,7 @@ class bitfinex2 extends Exchange {
         );
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): array {
         /**
          * retrieves data on all $markets for bitfinex2
          * @see https://docs.bitfinex.com/reference/rest-public-conf

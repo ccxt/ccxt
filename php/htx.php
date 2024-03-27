@@ -1597,7 +1597,7 @@ class htx extends Exchange {
         return $this->decimal_to_precision($cost, TRUNCATE, $this->markets[$symbol]['precision']['cost'], $this->precisionMode);
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): array {
         /**
          * retrieves data on all markets for huobi
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -2173,7 +2173,7 @@ class htx extends Exchange {
         //         "ts":1639547261293
         //     }
         //
-        // $inverse swaps, $linear swaps, $inverse futures
+        // $linear $swap, $linear $future, $inverse $swap, $inverse $future
         //
         //     {
         //         "status":"ok",
@@ -2190,35 +2190,13 @@ class htx extends Exchange {
         //                 "high":"0.10725",
         //                 "amount":"2340267.415144052378486261756692535687481566",
         //                 "count":882,
-        //                 "vol":"24706"
+        //                 "vol":"24706",
+        //                 "trade_turnover":"840726.5048", // only in $linear futures
+        //                 "business_type":"futures", // only in $linear futures
+        //                 "contract_code":"BTC-USDT-CW", // only in $linear futures, instead of 'symbol'
         //             }
         //         ],
         //         "ts":1637504679376
-        //     }
-        //
-        // $linear futures
-        //
-        //     {
-        //         "status":"ok",
-        //         "ticks":[
-        //             {
-        //                 "id":1640745627,
-        //                 "ts":1640745627957,
-        //                 "ask":[48079.1,20],
-        //                 "bid":[47713.8,125],
-        //                 "business_type":"futures",
-        //                 "contract_code":"BTC-USDT-CW",
-        //                 "open":"49011.8",
-        //                 "close":"47934",
-        //                 "low":"47292.3",
-        //                 "high":"49011.8",
-        //                 "amount":"17.398",
-        //                 "count":1515,
-        //                 "vol":"17398",
-        //                 "trade_turnover":"840726.5048"
-        //             }
-        //         ],
-        //         "ts":1640745627988
         //     }
         //
         $tickers = $this->safe_value_2($response, 'data', 'ticks', array());

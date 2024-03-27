@@ -266,7 +266,7 @@ class whitebit extends Exchange {
         ));
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): array {
         /**
          * retrieves data on all $markets for whitebit
          * @see https://docs.whitebit.com/public/http-v4/#market-info

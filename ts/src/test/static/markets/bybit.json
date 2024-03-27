@@ -11,6 +11,8 @@
         "spot": true,
         "swap": false,
         "future": false,
+        "linear": false,
+        "inverse": false,
         "option": false,
         "contract": false,
         "precision": {
@@ -68,6 +70,8 @@
         "spot": true,
         "swap": false,
         "future": false,
+        "linear": false,
+        "inverse": false,
         "option": false,
         "contract": false,
         "precision": {
@@ -125,6 +129,8 @@
         "spot": true,
         "swap": false,
         "future": false,
+        "linear": false,
+        "inverse": false,
         "option": false,
         "contract": false,
         "precision": {
@@ -182,6 +188,8 @@
         "spot": true,
         "swap": false,
         "future": false,
+        "linear": false,
+        "inverse": false,
         "option": false,
         "contract": false,
         "precision": {
@@ -239,6 +247,8 @@
         "spot": true,
         "swap": false,
         "future": false,
+        "linear": false,
+        "inverse": false,
         "option": false,
         "contract": false,
         "precision": {
@@ -296,6 +306,8 @@
         "spot": true,
         "swap": false,
         "future": false,
+        "linear": false,
+        "inverse": false,
         "option": false,
         "contract": false,
         "precision": {
@@ -353,6 +365,8 @@
         "spot": true,
         "swap": false,
         "future": false,
+        "linear": false,
+        "inverse": false,
         "option": false,
         "contract": false,
         "precision": {

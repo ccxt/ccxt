@@ -221,7 +221,7 @@ class indodax extends Exchange {
         return $this->safe_integer($response, 'server_time');
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): array {
         /**
          * retrieves data on all markets for indodax
          * @see https://github.com/btcid/indodax-official-api-docs/blob/master/Public-RestAPI.md#pairs

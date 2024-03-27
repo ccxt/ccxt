@@ -322,7 +322,7 @@ class bitvavo(Exchange, ImplicitAPI):
         #
         return self.safe_integer(response, 'time')
 
-    def fetch_markets(self, params={}):
+    def fetch_markets(self, params={}) -> List[Market]:
         """
         :see: https://docs.bitvavo.com/#tag/General/paths/~1markets/get
         retrieves data on all markets for bitvavo

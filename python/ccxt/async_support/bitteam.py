@@ -247,7 +247,7 @@ class bitteam(Exchange, ImplicitAPI):
             },
         })
 
-    async def fetch_markets(self, params={}):
+    async def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for bitteam
         :see: https://bit.team/trade/api/documentation#/CCXT/getTradeApiCcxtPairs

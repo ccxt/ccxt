@@ -19,6 +19,7 @@ class bithumb extends bithumb$1 {
             'name': 'Bithumb',
             'countries': ['KR'],
             'rateLimit': 500,
+            'pro': true,
             'has': {
                 'CORS': true,
                 'spot': true,

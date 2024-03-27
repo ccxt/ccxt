@@ -755,7 +755,44 @@
                         "BTCUSDT"
                     ]
                 ]
-            }
+            },
+            {
+                "description": "exchange default",
+                "method": "fetchTickers",
+                "url": "https://api.bybit.com/v5/market/tickers?category=linear",
+                "input": []
+            },
+            {
+                "description": "spot with option.defaultType",
+                "options": {
+                    "defaultType": "spot"
+                },
+                "method": "fetchTickers",
+                "url": "https://api.bybit.com/v5/market/tickers?category=spot",
+                "input": []
+            },
+            {
+                "description": "subtype:linear",
+                "method": "fetchTickers",
+                "url": "https://api.bybit.com/v5/market/tickers?category=linear",
+                "input": [
+                  null,
+                  {
+                    "subType": "linear"
+                  }
+                ]
+            },
+            {
+                "description": "subtype:inverse",
+                "method": "fetchTickers",
+                "url": "https://api.bybit.com/v5/market/tickers?category=inverse",
+                "input": [
+                  null,
+                  {
+                    "subType": "inverse"
+                  }
+                ]
+             }
         ],
         "fetchOHLCV": [
             {

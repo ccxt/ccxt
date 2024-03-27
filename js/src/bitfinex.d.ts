@@ -21,7 +21,7 @@ export default class bitfinex extends Exchange {
         info: any;
     };
     fetchTradingFees(params?: {}): Promise<{}>;
-    fetchMarkets(params?: {}): Promise<any[]>;
+    fetchMarkets(params?: {}): Promise<Market[]>;
     amountToPrecision(symbol: any, amount: any): any;
     priceToPrecision(symbol: any, price: any): any;
     fetchBalance(params?: {}): Promise<Balances>;

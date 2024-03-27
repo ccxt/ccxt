@@ -337,7 +337,7 @@ class yobit extends Exchange {
         return $this->parse_balance($response);
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): array {
         /**
          * @see https://yobit.net/en/api
          * retrieves data on all $markets for yobit

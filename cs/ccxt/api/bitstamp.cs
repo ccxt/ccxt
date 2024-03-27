@@ -206,9 +206,9 @@ public partial class bitstamp : Exchange
         return await this.callAsync ("privatePostFeesTrading",parameters);
     }
 
-    public async Task<object> privatePostFeesTradingPair (object parameters = null)
+    public async Task<object> privatePostFeesTradingMarketSymbol (object parameters = null)
     {
-        return await this.callAsync ("privatePostFeesTradingPair",parameters);
+        return await this.callAsync ("privatePostFeesTradingMarketSymbol",parameters);
     }
 
     public async Task<object> privatePostFeesWithdrawal (object parameters = null)

@@ -1324,7 +1324,8 @@ export default class okx extends okxRest {
             this.handleErrors(undefined, undefined, client.url, method, undefined, stringMsg, stringMsg, undefined, undefined);
         }
         const orders = this.parseOrders(args, undefined, undefined, undefined);
-        client.resolve(orders, messageHash);
+        const first = this.safeDict(orders, 0, {});
+        client.resolve(first, messageHash);
     }
     async editOrderWs(id, symbol, type, side, amount, price = undefined, params = {}) {
         /**

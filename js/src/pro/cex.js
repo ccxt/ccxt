@@ -129,6 +129,7 @@ export default class cex extends cexRest {
         const url = this.urls['api']['ws'];
         const messageHash = 'trades';
         const subscriptionHash = 'old:' + symbol;
+        this.options['currentWatchTradeSymbol'] = symbol; // exchange supports only 1 symbol for this watchTrades channel
         const client = this.safeValue(this.clients, url);
         if (client !== undefined) {
             const subscriptionKeys = Object.keys(client.subscriptions);
@@ -170,11 +171,16 @@ export default class cex extends cexRest {
         const data = this.safeList(message, 'data', []);
         const limit = this.safeInteger(this.options, 'tradesLimit', 1000);
         const stored = new ArrayCache(limit);
+        const symbol = this.safeString(this.options, 'currentWatchTradeSymbol');
+        if (symbol === undefined) {
+            return;
+        }
+        const market = this.market(symbol);
         const dataLength = data.length;
         for (let i = 0; i < dataLength; i++) {
             const index = dataLength - 1 - i;
             const rawTrade = data[index];
-            const parsed = this.parseWsOldTrade(rawTrade);
+            const parsed = this.parseWsOldTrade(rawTrade, market);
             stored.append(parsed);
         }
         const messageHash = 'trades';
@@ -201,7 +207,7 @@ export default class cex extends cexRest {
             'id': id,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'symbol': undefined,
+            'symbol': this.safeString(market, 'symbol'),
             'type': undefined,
             'side': side,
             'order': undefined,
@@ -223,8 +229,10 @@ export default class cex extends cexRest {
         //
         const data = this.safeValue(message, 'data', []);
         const stored = this.trades; // to do fix this, this.trades is not meant to be used like this
-        for (let i = 0; i < data.length; i++) {
-            const rawTrade = data[i];
+        const dataLength = data.length;
+        for (let i = 0; i < dataLength; i++) {
+            const index = dataLength - 1 - i;
+            const rawTrade = data[index];
             const parsed = this.parseWsOldTrade(rawTrade);
             stored.append(parsed);
         }
@@ -340,12 +348,17 @@ export default class cex extends cexRest {
         const data = this.safeValue(message, 'data', {});
         const ticker = this.parseWsTicker(data);
         const symbol = ticker['symbol'];
+        if (symbol === undefined) {
+            return;
+        }
         this.tickers[symbol] = ticker;
         let messageHash = 'ticker:' + symbol;
         client.resolve(ticker, messageHash);
         client.resolve(ticker, 'tickers');
         messageHash = this.safeString(message, 'oid');
-        client.resolve(ticker, messageHash);
+        if (messageHash !== undefined) {
+            client.resolve(ticker, messageHash);
+        }
     }
     parseWsTicker(ticker, market = undefined) {
         //

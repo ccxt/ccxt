@@ -964,7 +964,7 @@ class bitmart extends Exchange {
         return $result;
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): array {
         /**
          * retrieves data on all markets for bitmart
          * @param {array} [$params] extra parameters specific to the exchange API endpoint

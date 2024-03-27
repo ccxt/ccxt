@@ -124,8 +124,8 @@ abstract class bitstamp extends \ccxt\Exchange {
     public function private_post_fees_trading($params = array()) {
         return $this->request('fees/trading/', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
-    public function private_post_fees_trading_pair($params = array()) {
-        return $this->request('fees/trading/{pair}', 'private', 'POST', $params, null, null, array("cost" => 1));
+    public function private_post_fees_trading_market_symbol($params = array()) {
+        return $this->request('fees/trading/{market_symbol}', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     public function private_post_fees_withdrawal($params = array()) {
         return $this->request('fees/withdrawal/', 'private', 'POST', $params, null, null, array("cost" => 1));
@@ -820,8 +820,8 @@ abstract class bitstamp extends \ccxt\Exchange {
     public function privatePostFeesTrading($params = array()) {
         return $this->request('fees/trading/', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
-    public function privatePostFeesTradingPair($params = array()) {
-        return $this->request('fees/trading/{pair}', 'private', 'POST', $params, null, null, array("cost" => 1));
+    public function privatePostFeesTradingMarketSymbol($params = array()) {
+        return $this->request('fees/trading/{market_symbol}', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     public function privatePostFeesWithdrawal($params = array()) {
         return $this->request('fees/withdrawal/', 'private', 'POST', $params, null, null, array("cost" => 1));

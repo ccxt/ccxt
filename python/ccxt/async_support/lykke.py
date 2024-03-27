@@ -263,7 +263,7 @@ class lykke(Exchange, ImplicitAPI):
             }
         return result
 
-    async def fetch_markets(self, params={}):
+    async def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for lykke
         :see: https://lykkecity.github.io/Trading-API/#get-asset-by-id

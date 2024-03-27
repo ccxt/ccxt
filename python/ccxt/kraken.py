@@ -465,7 +465,7 @@ class kraken(Exchange, ImplicitAPI):
     def fee_to_precision(self, symbol, fee):
         return self.decimal_to_precision(fee, TRUNCATE, self.markets[symbol]['precision']['amount'], self.precisionMode)
 
-    def fetch_markets(self, params={}):
+    def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for kraken
         :see: https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getTradableAssetPairs

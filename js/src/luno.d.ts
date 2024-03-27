@@ -6,7 +6,7 @@ import type { Balances, Currency, Int, Market, Order, OrderBook, OrderSide, Orde
  */
 export default class luno extends Exchange {
     describe(): any;
-    fetchMarkets(params?: {}): Promise<any[]>;
+    fetchMarkets(params?: {}): Promise<Market[]>;
     fetchAccounts(params?: {}): Promise<Account[]>;
     parseBalance(response: any): Balances;
     fetchBalance(params?: {}): Promise<Balances>;

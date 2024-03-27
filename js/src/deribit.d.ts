@@ -28,7 +28,7 @@ export default class deribit extends Exchange {
         type: string;
         code: string;
     };
-    fetchMarkets(params?: {}): Promise<any[]>;
+    fetchMarkets(params?: {}): Promise<Market[]>;
     parseBalance(balance: any): Balances;
     fetchBalance(params?: {}): Promise<Balances>;
     createDepositAddress(code: string, params?: {}): Promise<{

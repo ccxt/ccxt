@@ -6,7 +6,7 @@ import type { Balances, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, Or
  */
 export default class btcturk extends Exchange {
     describe(): any;
-    fetchMarkets(params?: {}): Promise<import("./base/types.js").MarketInterface[]>;
+    fetchMarkets(params?: {}): Promise<Market[]>;
     parseMarket(entry: any): Market;
     parseBalance(response: any): Balances;
     fetchBalance(params?: {}): Promise<Balances>;

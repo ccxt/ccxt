@@ -818,7 +818,7 @@ export default class bigone extends Exchange {
             //         }
             //     }
             //
-            const ticker = this.safeValue (response, 'data', {});
+            const ticker = this.safeDict (response, 'data', {});
             return this.parseTicker (ticker, market);
         } else {
             const tickers = await this.fetchTickers ([ symbol ], params);
@@ -1005,7 +1005,7 @@ export default class bigone extends Exchange {
             //         }
             //     }
             //
-            const orderbook = this.safeValue (response, 'data', {});
+            const orderbook = this.safeDict (response, 'data', {});
             return this.parseOrderBook (orderbook, market['symbol'], undefined, 'bids', 'asks', 'price', 'quantity');
         }
     }
@@ -1213,7 +1213,7 @@ export default class bigone extends Exchange {
         //         ]
         //     }
         //
-        const trades = this.safeValue (response, 'data', []);
+        const trades = this.safeList (response, 'data', []);
         return this.parseTrades (trades, market, since, limit);
     }
 
@@ -1294,7 +1294,7 @@ export default class bigone extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
@@ -1561,7 +1561,7 @@ export default class bigone extends Exchange {
         //        "updated_at":"2019-01-29T06:05:56Z"
         //    }
         //
-        const order = this.safeValue (response, 'data');
+        const order = this.safeDict (response, 'data');
         return this.parseOrder (order, market);
     }
 
@@ -1591,7 +1591,7 @@ export default class bigone extends Exchange {
         //        "created_at":"2019-01-29T06:05:56Z",
         //        "updated_at":"2019-01-29T06:05:56Z"
         //    }
-        const order = this.safeValue (response, 'data');
+        const order = this.safeDict (response, 'data');
         return this.parseOrder (order);
     }
 
@@ -1639,7 +1639,7 @@ export default class bigone extends Exchange {
         await this.loadMarkets ();
         const request = { 'id': id };
         const response = await this.privateGetOrdersId (this.extend (request, params));
-        const order = this.safeValue (response, 'data', {});
+        const order = this.safeDict (response, 'data', {});
         return this.parseOrder (order);
     }
 
@@ -1691,7 +1691,7 @@ export default class bigone extends Exchange {
         //        "page_token":"dxzef",
         //    }
         //
-        const orders = this.safeValue (response, 'data', []);
+        const orders = this.safeList (response, 'data', []);
         return this.parseOrders (orders, market, since, limit);
     }
 
@@ -1754,7 +1754,7 @@ export default class bigone extends Exchange {
         //         "page_token":"dxfv"
         //     }
         //
-        const trades = this.safeValue (response, 'data', []);
+        const trades = this.safeList (response, 'data', []);
         return this.parseTrades (trades, market, since, limit);
     }
 
@@ -2044,7 +2044,7 @@ export default class bigone extends Exchange {
         //         ]
         //     }
         //
-        const deposits = this.safeValue (response, 'data', []);
+        const deposits = this.safeList (response, 'data', []);
         return this.parseTransactions (deposits, currency, since, limit);
     }
 
@@ -2097,7 +2097,7 @@ export default class bigone extends Exchange {
         //         "page_token":"dxvf"
         //     }
         //
-        const withdrawals = this.safeValue (response, 'data', []);
+        const withdrawals = this.safeList (response, 'data', []);
         return this.parseTransactions (withdrawals, currency, since, limit);
     }
 
@@ -2228,7 +2228,7 @@ export default class bigone extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         return this.parseTransaction (data, currency);
     }
 

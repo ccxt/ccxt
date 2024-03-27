@@ -1455,7 +1455,8 @@ public partial class okx : ccxt.okx
             this.handleErrors(null, null, client.url, method, null, stringMsg, stringMsg, null, null);
         }
         object orders = this.parseOrders(args, null, null, null);
-        callDynamically(client as WebSocketClient, "resolve", new object[] {orders, messageHash});
+        object first = this.safeDict(orders, 0, new Dictionary<string, object>() {});
+        callDynamically(client as WebSocketClient, "resolve", new object[] {first, messageHash});
     }
 
     public async override Task<object> editOrderWs(object id, object symbol, object type, object side, object amount, object price = null, object parameters = null)

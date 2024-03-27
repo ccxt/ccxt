@@ -7,7 +7,7 @@ import type { Balances, Currency, FundingHistory, FundingRateHistory, Int, Marke
 export default class coinex extends Exchange {
     describe(): any;
     fetchCurrencies(params?: {}): Promise<{}>;
-    fetchMarkets(params?: {}): Promise<any>;
+    fetchMarkets(params?: {}): Promise<Market[]>;
     fetchSpotMarkets(params: any): Promise<any[]>;
     fetchContractMarkets(params: any): Promise<any[]>;
     parseTicker(ticker: any, market?: Market): Ticker;

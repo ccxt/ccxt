@@ -554,9 +554,26 @@ public partial class Exchange
         // stub to implement later
     }
 
+    private async Task closeClient(string key, WebSocketClient client)
+    {
+        await client.Close();
+        this.clients.TryRemove(key, out _);
+    }
+
     public async Task Close()
     {
-        // stub
+        var tasks = new List<Task>();
+        if (this.clients.Keys.Count > 0)
+        {
+            foreach (var key in this.clients.Keys)
+            {
+
+                var client = this.clients[key];
+                tasks.Add(closeClient(key, client));
+
+            }
+            await Task.WhenAll(tasks);
+        }
     }
 
     public async Task close()

@@ -261,7 +261,7 @@ class coinone extends Exchange {
         return $result;
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): array {
         /**
          * retrieves data on all markets for coinone
          * @see https://docs.coinone.co.kr/v1.0/reference/tickers

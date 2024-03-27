@@ -665,7 +665,7 @@ class hitbtc(Exchange, ImplicitAPI):
     def nonce(self):
         return self.milliseconds()
 
-    def fetch_markets(self, params={}):
+    def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for hitbtc
         :see: https://api.hitbtc.com/#symbols

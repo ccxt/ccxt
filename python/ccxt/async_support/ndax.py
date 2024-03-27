@@ -395,7 +395,7 @@ class ndax(Exchange, ImplicitAPI):
             }
         return result
 
-    async def fetch_markets(self, params={}):
+    async def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for ndax
         :see: https://apidoc.ndax.io/#getinstruments

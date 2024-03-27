@@ -386,7 +386,7 @@ class coinlist extends Exchange {
         return $result;
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): array {
         /**
          * retrieves data on all $markets for coinlist
          * @see https://trade-docs.coinlist.co/?javascript--nodejs#list-symbols

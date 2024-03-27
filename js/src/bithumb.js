@@ -22,6 +22,7 @@ export default class bithumb extends Exchange {
             'name': 'Bithumb',
             'countries': ['KR'],
             'rateLimit': 500,
+            'pro': true,
             'has': {
                 'CORS': true,
                 'spot': true,

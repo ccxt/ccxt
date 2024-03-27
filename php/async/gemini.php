@@ -254,6 +254,7 @@ class gemini extends Exchange {
                 'broad' => array(
                     'The Gemini Exchange is currently undergoing maintenance.' => '\\ccxt\\OnMaintenance', // The Gemini Exchange is currently undergoing maintenance. Please check https://status.gemini.com/ for more information.
                     'We are investigating technical issues with the Gemini Exchange.' => '\\ccxt\\ExchangeNotAvailable', // We are investigating technical issues with the Gemini Exchange. Please check https://status.gemini.com/ for more information.
+                    'Internal Server Error' => '\\ccxt\\ExchangeNotAvailable',
                 ),
             ),
             'options' => array(
@@ -401,7 +402,7 @@ class gemini extends Exchange {
         }) ();
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * retrieves data on all markets for gemini

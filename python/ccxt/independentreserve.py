@@ -143,7 +143,7 @@ class independentreserve(Exchange, ImplicitAPI):
             'precisionMode': TICK_SIZE,
         })
 
-    def fetch_markets(self, params={}):
+    def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for independentreserve
         :param dict [params]: extra parameters specific to the exchange API endpoint

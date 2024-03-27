@@ -222,7 +222,7 @@ class novadax extends Exchange {
         return $this->safe_integer($response, 'data');
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): array {
         /**
          * retrieves $data on all markets for novadax
          * @see https://doc.novadax.com/en-US/#get-all-supported-trading-symbol

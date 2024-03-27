@@ -280,7 +280,7 @@ class timex extends Exchange {
         return $this->parse_to_int($response) * 1000;
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): array {
         /**
          * retrieves data on all markets for timex
          * @see https://plasma-relay-backend.timex.io/swagger-ui/index.html?urls.primaryName=Relay#/Public/listMarkets

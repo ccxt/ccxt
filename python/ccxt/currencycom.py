@@ -395,7 +395,7 @@ class currencycom(Exchange, ImplicitAPI):
             }
         return result
 
-    def fetch_markets(self, params={}):
+    def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for currencycom
         :see: https://apitradedoc.currency.com/swagger-ui.html#/rest-api/exchangeInfoUsingGET

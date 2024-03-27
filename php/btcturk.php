@@ -141,7 +141,7 @@ class btcturk extends Exchange {
         ));
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): array {
         /**
          * retrieves $data on all $markets for btcturk
          * @see https://docs.btcturk.com/public-endpoints/exchange-info

@@ -928,7 +928,7 @@ class coinbaseinternational extends Exchange {
         ));
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): array {
         /**
          * @see https://docs.cloud.coinbase.com/intx/reference/getinstruments
          * retrieves data on all markets for coinbaseinternational

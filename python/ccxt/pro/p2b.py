@@ -57,6 +57,7 @@ class p2b(ccxt.async_support.p2b):
                 'watchTickers': {
                     'name': 'state',  # or 'price'
                 },
+                'tickerSubs': self.create_safe_dictionary(),
             },
             'streaming': {
                 'ping': self.ping,
@@ -120,13 +121,14 @@ class p2b(ccxt.async_support.p2b):
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
-        watchTickerOptions = self.safe_value(self.options, 'watchTicker')
+        watchTickerOptions = self.safe_dict(self.options, 'watchTicker')
         name = self.safe_string(watchTickerOptions, 'name', 'state')  # or price
         name, params = self.handle_option_and_params(params, 'method', 'name', name)
         market = self.market(symbol)
-        request = [
-            market['id'],
-        ]
+        symbol = market['symbol']
+        self.options['tickerSubs'][market['id']] = True  # we need to re-subscribe to all tickers upon watching a new ticker
+        tickerSubs = self.options['tickerSubs']
+        request = list(tickerSubs.keys())
         messageHash = name + '::' + market['symbol']
         return await self.subscribe(name + '.subscribe', messageHash, request, params)
 
@@ -407,3 +409,11 @@ class p2b(ccxt.async_support.p2b):
         #
         client.lastPong = self.safe_integer(message, 'id')
         return message
+
+    def on_error(self, client: Client, error):
+        self.options['tickerSubs'] = self.create_safe_dictionary()
+        self.on_error(client, error)
+
+    def on_close(self, client: Client, error):
+        self.options['tickerSubs'] = self.create_safe_dictionary()
+        self.on_close(client, error)

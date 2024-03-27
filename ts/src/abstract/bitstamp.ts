@@ -48,7 +48,7 @@ interface Exchange {
     privatePostTransferFromMain (params?: {}): Promise<implicitReturnType>;
     privatePostMyTradingPairs (params?: {}): Promise<implicitReturnType>;
     privatePostFeesTrading (params?: {}): Promise<implicitReturnType>;
-    privatePostFeesTradingPair (params?: {}): Promise<implicitReturnType>;
+    privatePostFeesTradingMarketSymbol (params?: {}): Promise<implicitReturnType>;
     privatePostFeesWithdrawal (params?: {}): Promise<implicitReturnType>;
     privatePostFeesWithdrawalCurrency (params?: {}): Promise<implicitReturnType>;
     privatePostWithdrawalRequests (params?: {}): Promise<implicitReturnType>;

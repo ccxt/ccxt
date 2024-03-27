@@ -1329,7 +1329,7 @@ class okx(Exchange, ImplicitAPI):
             })
         return result
 
-    def fetch_markets(self, params={}):
+    def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for okx
         :see: https://www.okx.com/docs-v5/en/#rest-api-public-data-get-instruments

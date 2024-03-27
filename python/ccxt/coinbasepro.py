@@ -307,7 +307,7 @@ class coinbasepro(Exchange, ImplicitAPI):
             }
         return result
 
-    def fetch_markets(self, params={}):
+    def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for coinbasepro
         :see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getproducts

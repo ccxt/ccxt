@@ -248,7 +248,8 @@ class gemini extends gemini$1 {
                 },
                 'broad': {
                     'The Gemini Exchange is currently undergoing maintenance.': errors.OnMaintenance,
-                    'We are investigating technical issues with the Gemini Exchange.': errors.ExchangeNotAvailable, // We are investigating technical issues with the Gemini Exchange. Please check https://status.gemini.com/ for more information.
+                    'We are investigating technical issues with the Gemini Exchange.': errors.ExchangeNotAvailable,
+                    'Internal Server Error': errors.ExchangeNotAvailable,
                 },
             },
             'options': {

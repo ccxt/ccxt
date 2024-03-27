@@ -158,7 +158,7 @@ class btcalpha(Exchange, ImplicitAPI):
             },
         })
 
-    def fetch_markets(self, params={}):
+    def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for btcalpha
         :see: https://btc-alpha.github.io/api-docs/#list-all-currencies

@@ -339,7 +339,7 @@ class coinmetro(Exchange, ImplicitAPI):
             self.options['currencyIdsListForParseMarket'] = list(currenciesById.keys())
         return result
 
-    def fetch_markets(self, params={}):
+    def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for coinmetro
         :see: https://documenter.getpostman.com/view/3653795/SVfWN6KS#9fd18008-338e-4863-b07d-722878a46832

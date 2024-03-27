@@ -230,7 +230,7 @@ class coinmate(Exchange, ImplicitAPI):
             'precisionMode': TICK_SIZE,
         })
 
-    async def fetch_markets(self, params={}):
+    async def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for coinmate
         :see: https://coinmate.docs.apiary.io/#reference/trading-pairs/get-trading-pairs/get

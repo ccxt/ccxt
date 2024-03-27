@@ -149,7 +149,7 @@ class btcturk(Exchange, ImplicitAPI):
             'precisionMode': TICK_SIZE,
         })
 
-    def fetch_markets(self, params={}):
+    def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for btcturk
         :see: https://docs.btcturk.com/public-endpoints/exchange-info

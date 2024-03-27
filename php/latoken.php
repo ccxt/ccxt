@@ -243,7 +243,7 @@ class latoken extends Exchange {
         return $this->safe_integer($response, 'serverTime');
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): array {
         /**
          * retrieves data on all markets for latoken
          * @see https://api.latoken.com/doc/v2/#tag/Pair/operation/getActivePairs

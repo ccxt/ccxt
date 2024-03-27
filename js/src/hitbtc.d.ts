@@ -7,7 +7,7 @@ import type { TransferEntry, Int, OrderSide, OrderType, FundingRateHistory, OHLC
 export default class hitbtc extends Exchange {
     describe(): any;
     nonce(): number;
-    fetchMarkets(params?: {}): Promise<any[]>;
+    fetchMarkets(params?: {}): Promise<Market[]>;
     fetchCurrencies(params?: {}): Promise<{}>;
     safeNetwork(networkId: any): any;
     createDepositAddress(code: string, params?: {}): Promise<{

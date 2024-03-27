@@ -467,7 +467,7 @@ class coinsph extends Exchange {
         return $this->safe_integer($response, 'serverTime');
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): array {
         /**
          * retrieves data on all $markets for coinsph
          * @see https://coins-docs.github.io/rest-api/#exchange-information

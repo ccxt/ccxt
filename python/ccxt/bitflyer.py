@@ -147,7 +147,7 @@ class bitflyer(Exchange, ImplicitAPI):
         # Since they're the same we just need to return one
         return super(bitflyer, self).safe_market(marketId, market, delimiter, 'spot')
 
-    def fetch_markets(self, params={}):
+    def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for bitflyer
         :see: https://lightning.bitflyer.com/docs?lang=en#market-list

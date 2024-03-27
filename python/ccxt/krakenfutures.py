@@ -280,7 +280,7 @@ class krakenfutures(Exchange, ImplicitAPI):
             },
         })
 
-    def fetch_markets(self, params={}):
+    def fetch_markets(self, params={}) -> List[Market]:
         """
         Fetches the available trading markets from the exchange, Multi-collateral markets are returned markets, but can be settled in multiple currencies
         :see: https://docs.futures.kraken.com/#http-api-trading-v3-api-instrument-details-get-instruments
