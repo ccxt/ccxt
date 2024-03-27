@@ -1760,7 +1760,7 @@ public partial class bitopro : Exchange
         //         ]
         //     }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseDepositWithdrawFees(data, codes, "currency");
     }
 

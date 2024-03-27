@@ -1415,7 +1415,7 @@ public partial class coinex : Exchange
         //         "message": "OK"
         //     }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseOHLCVs(data, market, timeframe, since, limit);
     }
 
@@ -2433,7 +2433,7 @@ public partial class coinex : Exchange
         //
         //     {"code":0,"data":{"status":"success"},"message":"OK"}
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return this.parseOrder(data, market);
     }
 
@@ -2759,7 +2759,7 @@ public partial class coinex : Exchange
         //         "message": "Success"
         //     }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return this.parseOrder(data, market);
     }
 
@@ -2964,7 +2964,7 @@ public partial class coinex : Exchange
         //
         //     {"code":0,"data":{},"message":"Success"}
         //
-        object data = this.safeValue(response, "data");
+        object data = this.safeDict(response, "data");
         return this.parseOrder(data, market);
     }
 
@@ -3170,7 +3170,7 @@ public partial class coinex : Exchange
         //         "message":"OK"
         //     }
         //
-        object data = this.safeValue(response, "data");
+        object data = this.safeDict(response, "data");
         return this.parseOrder(data, market);
     }
 
@@ -3411,7 +3411,7 @@ public partial class coinex : Exchange
         //
         object tradeRequest = ((bool) isTrue((isEqual(marketType, "swap")))) ? "records" : "data";
         object data = this.safeValue(response, "data");
-        object orders = this.safeValue(data, tradeRequest, new List<object>() {});
+        object orders = this.safeList(data, tradeRequest, new List<object>() {});
         return this.parseOrders(orders, market, since, limit);
     }
 
@@ -3487,7 +3487,7 @@ public partial class coinex : Exchange
         //         },
         //         "message": "Success"
         //     }
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return this.parseDepositAddress(data, currency);
     }
 
@@ -3743,7 +3743,7 @@ public partial class coinex : Exchange
         //
         object tradeRequest = ((bool) isTrue(swap)) ? "records" : "data";
         object data = this.safeValue(response, "data");
-        object trades = this.safeValue(data, tradeRequest, new List<object>() {});
+        object trades = this.safeList(data, tradeRequest, new List<object>() {});
         return this.parseTrades(trades, market, since, limit);
     }
 
@@ -3953,7 +3953,7 @@ public partial class coinex : Exchange
         //         "message": "OK"
         //     }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parsePosition(getValue(data, 0), market);
     }
 
@@ -4013,8 +4013,7 @@ public partial class coinex : Exchange
         //     }
         //
         object marketId = this.safeString(position, "market");
-        object defaultType = this.safeString(this.options, "defaultType");
-        market = this.safeMarket(marketId, market, null, defaultType);
+        market = this.safeMarket(marketId, market, null, "swap");
         object symbol = getValue(market, "symbol");
         object positionId = this.safeInteger(position, "position_id");
         object marginModeInteger = this.safeInteger(position, "type");
@@ -4714,7 +4713,7 @@ public partial class coinex : Exchange
         //         "message": "Ok"
         //     }
         //
-        object transaction = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        object transaction = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return this.parseTransaction(transaction, currency);
     }
 
@@ -5165,7 +5164,7 @@ public partial class coinex : Exchange
         //     }
         //
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object transfers = this.safeValue(data, "records", new List<object>() {});
+        object transfers = this.safeList(data, "records", new List<object>() {});
         return this.parseTransfers(transfers, currency, since, limit);
     }
 

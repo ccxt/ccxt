@@ -1384,9 +1384,13 @@ class bingx extends bingx$1 {
         else {
             response = await this.swapV2PublicGetQuoteTicker(this.extend(request, params));
         }
-        const data = this.safeValue(response, 'data');
-        const ticker = this.safeValue(data, 0, data);
-        return this.parseTicker(ticker, market);
+        const data = this.safeList(response, 'data');
+        if (data !== undefined) {
+            const first = this.safeDict(data, 0, {});
+            return this.parseTicker(first, market);
+        }
+        const dataDict = this.safeDict(response, 'data', {});
+        return this.parseTicker(dataDict, market);
     }
     async fetchTickers(symbols = undefined, params = {}) {
         /**
@@ -1416,7 +1420,7 @@ class bingx extends bingx$1 {
         else {
             response = await this.swapV2PublicGetQuoteTicker(params);
         }
-        const tickers = this.safeValue(response, 'data');
+        const tickers = this.safeList(response, 'data');
         return this.parseTickers(tickers, symbols);
     }
     parseTicker(ticker, market = undefined) {
@@ -2062,7 +2066,7 @@ class bingx extends bingx$1 {
             response = this.parseJson(response);
         }
         const data = this.safeValue(response, 'data', {});
-        const order = this.safeValue(data, 'order', data);
+        const order = this.safeDict(data, 'order', data);
         return this.parseOrder(order, market);
     }
     async createOrders(orders, params = {}) {
@@ -2559,7 +2563,7 @@ class bingx extends bingx$1 {
         //    }
         //
         const data = this.safeValue(response, 'data');
-        const first = this.safeValue(data, 'order', data);
+        const first = this.safeDict(data, 'order', data);
         return this.parseOrder(first, market);
     }
     async cancelAllOrders(symbol = undefined, params = {}) {
@@ -2804,7 +2808,7 @@ class bingx extends bingx$1 {
         //      }
         //
         const data = this.safeValue(response, 'data');
-        const first = this.safeValue(data, 'order', data);
+        const first = this.safeDict(data, 'order', data);
         return this.parseOrder(first, market);
     }
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -2987,7 +2991,7 @@ class bingx extends bingx$1 {
         //    }
         //
         const data = this.safeValue(response, 'data', []);
-        const orders = this.safeValue(data, 'orders', []);
+        const orders = this.safeList(data, 'orders', []);
         return this.parseOrders(orders, market, since, limit);
     }
     async transfer(code, amount, fromAccount, toAccount, params = {}) {
@@ -3731,7 +3735,7 @@ class bingx extends bingx$1 {
          */
         await this.loadMarkets();
         const response = await this.walletsV1PrivateGetCapitalConfigGetall(params);
-        const coins = this.safeValue(response, 'data');
+        const coins = this.safeList(response, 'data');
         return this.parseDepositWithdrawFees(coins, codes, 'coin');
     }
     async withdraw(code, amount, address, tag = undefined, params = {}) {

@@ -407,82 +407,6 @@ export default class deribit extends Exchange {
             },
         });
     }
-    convertExpireDate(date) {
-        // parse YYMMDD to timestamp
-        const year = date.slice(0, 2);
-        const month = date.slice(2, 4);
-        const day = date.slice(4, 6);
-        const reconstructedDate = '20' + year + '-' + month + '-' + day + 'T00:00:00Z';
-        return reconstructedDate;
-    }
-    convertMarketIdExpireDate(date) {
-        // parse 19JAN24 to 240119
-        const monthMappping = {
-            'JAN': '01',
-            'FEB': '02',
-            'MAR': '03',
-            'APR': '04',
-            'MAY': '05',
-            'JUN': '06',
-            'JUL': '07',
-            'AUG': '08',
-            'SEP': '09',
-            'OCT': '10',
-            'NOV': '11',
-            'DEC': '12',
-        };
-        const year = date.slice(0, 2);
-        const monthName = date.slice(2, 5);
-        const month = this.safeString(monthMappping, monthName);
-        const day = date.slice(5, 7);
-        const reconstructedDate = day + month + year;
-        return reconstructedDate;
-    }
-    convertExpireDateToMarketIdDate(date) {
-        // parse 240119 to 19JAN24
-        const year = date.slice(0, 2);
-        const monthRaw = date.slice(2, 4);
-        let month = undefined;
-        const day = date.slice(4, 6);
-        if (monthRaw === '01') {
-            month = 'JAN';
-        }
-        else if (monthRaw === '02') {
-            month = 'FEB';
-        }
-        else if (monthRaw === '03') {
-            month = 'MAR';
-        }
-        else if (monthRaw === '04') {
-            month = 'APR';
-        }
-        else if (monthRaw === '05') {
-            month = 'MAY';
-        }
-        else if (monthRaw === '06') {
-            month = 'JUN';
-        }
-        else if (monthRaw === '07') {
-            month = 'JUL';
-        }
-        else if (monthRaw === '08') {
-            month = 'AUG';
-        }
-        else if (monthRaw === '09') {
-            month = 'SEP';
-        }
-        else if (monthRaw === '10') {
-            month = 'OCT';
-        }
-        else if (monthRaw === '11') {
-            month = 'NOV';
-        }
-        else if (monthRaw === '12') {
-            month = 'DEC';
-        }
-        const reconstructedDate = day + month + year;
-        return reconstructedDate;
-    }
     createExpiredOptionMarket(symbol) {
         // support expired option contracts
         let quote = 'USD';
@@ -1269,7 +1193,7 @@ export default class deribit extends Exchange {
         //         "testnet": false
         //     }
         //
-        const result = this.safeValue(response, 'result');
+        const result = this.safeDict(response, 'result');
         return this.parseTicker(result, market);
     }
     async fetchTickers(symbols = undefined, params = {}) {
@@ -1556,7 +1480,7 @@ export default class deribit extends Exchange {
         //      }
         //
         const result = this.safeValue(response, 'result', {});
-        const trades = this.safeValue(result, 'trades', []);
+        const trades = this.safeList(result, 'trades', []);
         return this.parseTrades(trades, market, since, limit);
     }
     async fetchTradingFees(params = {}) {
@@ -1918,7 +1842,7 @@ export default class deribit extends Exchange {
         //         }
         //     }
         //
-        const result = this.safeValue(response, 'result');
+        const result = this.safeDict(response, 'result');
         return this.parseOrder(result, market);
     }
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
@@ -2160,7 +2084,7 @@ export default class deribit extends Exchange {
             'order_id': id,
         };
         const response = await this.privateGetCancel(this.extend(request, params));
-        const result = this.safeValue(response, 'result', {});
+        const result = this.safeDict(response, 'result', {});
         return this.parseOrder(result);
     }
     async cancelAllOrders(symbol = undefined, params = {}) {
@@ -2215,7 +2139,7 @@ export default class deribit extends Exchange {
             request['instrument_name'] = market['id'];
             response = await this.privateGetGetOpenOrdersByInstrument(this.extend(request, params));
         }
-        const result = this.safeValue(response, 'result', []);
+        const result = this.safeList(response, 'result', []);
         return this.parseOrders(result, market, since, limit);
     }
     async fetchClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -2246,7 +2170,7 @@ export default class deribit extends Exchange {
             request['instrument_name'] = market['id'];
             response = await this.privateGetGetOrderHistoryByInstrument(this.extend(request, params));
         }
-        const result = this.safeValue(response, 'result', []);
+        const result = this.safeList(response, 'result', []);
         return this.parseOrders(result, market, since, limit);
     }
     async fetchOrderTrades(id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -2300,7 +2224,7 @@ export default class deribit extends Exchange {
         //         }
         //     }
         //
-        const result = this.safeValue(response, 'result', {});
+        const result = this.safeList(response, 'result', []);
         return this.parseTrades(result, undefined, since, limit);
     }
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -2384,7 +2308,7 @@ export default class deribit extends Exchange {
         //     }
         //
         const result = this.safeValue(response, 'result', {});
-        const trades = this.safeValue(result, 'trades', []);
+        const trades = this.safeList(result, 'trades', []);
         return this.parseTrades(trades, market, since, limit);
     }
     async fetchDeposits(code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -2432,7 +2356,7 @@ export default class deribit extends Exchange {
         //     }
         //
         const result = this.safeValue(response, 'result', {});
-        const data = this.safeValue(result, 'data', []);
+        const data = this.safeList(result, 'data', []);
         return this.parseTransactions(data, currency, since, limit, params);
     }
     async fetchWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -2484,7 +2408,7 @@ export default class deribit extends Exchange {
         //     }
         //
         const result = this.safeValue(response, 'result', {});
-        const data = this.safeValue(result, 'data', []);
+        const data = this.safeList(result, 'data', []);
         return this.parseTransactions(data, currency, since, limit, params);
     }
     parseTransactionStatus(status) {
@@ -2671,7 +2595,7 @@ export default class deribit extends Exchange {
         //         }
         //     }
         //
-        const result = this.safeValue(response, 'result');
+        const result = this.safeDict(response, 'result');
         return this.parsePosition(result);
     }
     async fetchPositions(symbols = undefined, params = {}) {
@@ -2744,7 +2668,7 @@ export default class deribit extends Exchange {
         //         ]
         //     }
         //
-        const result = this.safeValue(response, 'result');
+        const result = this.safeList(response, 'result');
         return this.parsePositions(result, symbols);
     }
     async fetchVolatilityHistory(code, params = {}) {
@@ -2866,7 +2790,7 @@ export default class deribit extends Exchange {
         //     }
         //
         const result = this.safeValue(response, 'result', {});
-        const transfers = this.safeValue(result, 'data', []);
+        const transfers = this.safeList(result, 'data', []);
         return this.parseTransfers(transfers, currency, since, limit, params);
     }
     async transfer(code, amount, fromAccount, toAccount, params = {}) {
@@ -2920,7 +2844,7 @@ export default class deribit extends Exchange {
         //         }
         //     }
         //
-        const result = this.safeValue(response, 'result', {});
+        const result = this.safeDict(response, 'result', {});
         return this.parseTransfer(result, currency);
     }
     parseTransfer(transfer, currency = undefined) {
@@ -3053,7 +2977,7 @@ export default class deribit extends Exchange {
         //      "testnet": true
         //    }
         //
-        const data = this.safeValue(response, 'result', {});
+        const data = this.safeList(response, 'result', []);
         return this.parseDepositWithdrawFees(data, codes, 'currency');
     }
     async fetchFundingRate(symbol, params = {}) {
@@ -3319,7 +3243,7 @@ export default class deribit extends Exchange {
         //     }
         //
         const result = this.safeValue(response, 'result', {});
-        const settlements = this.safeValue(result, 'settlements', []);
+        const settlements = this.safeList(result, 'settlements', []);
         return this.parseLiquidations(settlements, market, since, limit);
     }
     parseLiquidation(liquidation, market = undefined) {

@@ -1333,9 +1333,12 @@ class bingx(Exchange, ImplicitAPI):
             response = self.spotV1PublicGetTicker24hr(self.extend(request, params))
         else:
             response = self.swapV2PublicGetQuoteTicker(self.extend(request, params))
-        data = self.safe_value(response, 'data')
-        ticker = self.safe_value(data, 0, data)
-        return self.parse_ticker(ticker, market)
+        data = self.safe_list(response, 'data')
+        if data is not None:
+            first = self.safe_dict(data, 0, {})
+            return self.parse_ticker(first, market)
+        dataDict = self.safe_dict(response, 'data', {})
+        return self.parse_ticker(dataDict, market)
 
     def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
@@ -1359,7 +1362,7 @@ class bingx(Exchange, ImplicitAPI):
             response = self.spotV1PublicGetTicker24hr(params)
         else:
             response = self.swapV2PublicGetQuoteTicker(params)
-        tickers = self.safe_value(response, 'data')
+        tickers = self.safe_list(response, 'data')
         return self.parse_tickers(tickers, symbols)
 
     def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
@@ -1938,7 +1941,7 @@ class bingx(Exchange, ImplicitAPI):
             response = self.fix_stringified_json_members(response)
             response = self.parse_json(response)
         data = self.safe_value(response, 'data', {})
-        order = self.safe_value(data, 'order', data)
+        order = self.safe_dict(data, 'order', data)
         return self.parse_order(order, market)
 
     def create_orders(self, orders: List[OrderRequest], params={}):
@@ -2407,7 +2410,7 @@ class bingx(Exchange, ImplicitAPI):
         #    }
         #
         data = self.safe_value(response, 'data')
-        first = self.safe_value(data, 'order', data)
+        first = self.safe_dict(data, 'order', data)
         return self.parse_order(first, market)
 
     def cancel_all_orders(self, symbol: Str = None, params={}):
@@ -2632,7 +2635,7 @@ class bingx(Exchange, ImplicitAPI):
         #      }
         #
         data = self.safe_value(response, 'data')
-        first = self.safe_value(data, 'order', data)
+        first = self.safe_dict(data, 'order', data)
         return self.parse_order(first, market)
 
     def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
@@ -2804,7 +2807,7 @@ class bingx(Exchange, ImplicitAPI):
         #    }
         #
         data = self.safe_value(response, 'data', [])
-        orders = self.safe_value(data, 'orders', [])
+        orders = self.safe_list(data, 'orders', [])
         return self.parse_orders(orders, market, since, limit)
 
     def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
@@ -3492,7 +3495,7 @@ class bingx(Exchange, ImplicitAPI):
         """
         self.load_markets()
         response = self.walletsV1PrivateGetCapitalConfigGetall(params)
-        coins = self.safe_value(response, 'data')
+        coins = self.safe_list(response, 'data')
         return self.parse_deposit_withdraw_fees(coins, codes, 'coin')
 
     def withdraw(self, code: str, amount: float, address, tag=None, params={}):

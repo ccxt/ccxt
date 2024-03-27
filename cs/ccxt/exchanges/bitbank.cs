@@ -275,7 +275,7 @@ public partial class bitbank : Exchange
             { "pair", getValue(market, "id") },
         };
         object response = await this.publicGetPairTicker(this.extend(request, parameters));
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return this.parseTicker(data, market);
     }
 
@@ -372,7 +372,7 @@ public partial class bitbank : Exchange
         };
         object response = await this.publicGetPairTransactions(this.extend(request, parameters));
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object trades = this.safeValue(data, "transactions", new List<object>() {});
+        object trades = this.safeList(data, "transactions", new List<object>() {});
         return this.parseTrades(trades, market, since, limit);
     }
 
@@ -507,7 +507,7 @@ public partial class bitbank : Exchange
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
         object candlestick = this.safeValue(data, "candlestick", new List<object>() {});
         object first = this.safeValue(candlestick, 0, new Dictionary<string, object>() {});
-        object ohlcv = this.safeValue(first, "ohlcv", new List<object>() {});
+        object ohlcv = this.safeList(first, "ohlcv", new List<object>() {});
         return this.parseOHLCVs(ohlcv, market, timeframe, since, limit);
     }
 
@@ -664,7 +664,7 @@ public partial class bitbank : Exchange
             ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
         }
         object response = await this.privatePostUserSpotOrder(this.extend(request, parameters));
-        object data = this.safeValue(response, "data");
+        object data = this.safeDict(response, "data");
         return this.parseOrder(data, market);
     }
 
@@ -711,7 +711,7 @@ public partial class bitbank : Exchange
             { "pair", getValue(market, "id") },
         };
         object response = await this.privateGetUserSpotOrder(this.extend(request, parameters));
-        object data = this.safeValue(response, "data");
+        object data = this.safeDict(response, "data");
         return this.parseOrder(data, market);
     }
 
@@ -744,7 +744,7 @@ public partial class bitbank : Exchange
         }
         object response = await this.privateGetUserSpotActiveOrders(this.extend(request, parameters));
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object orders = this.safeValue(data, "orders", new List<object>() {});
+        object orders = this.safeList(data, "orders", new List<object>() {});
         return this.parseOrders(orders, market, since, limit);
     }
 
@@ -780,7 +780,7 @@ public partial class bitbank : Exchange
         }
         object response = await this.privateGetUserSpotTradeHistory(this.extend(request, parameters));
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object trades = this.safeValue(data, "trades", new List<object>() {});
+        object trades = this.safeList(data, "trades", new List<object>() {});
         return this.parseTrades(trades, market, since, limit);
     }
 
@@ -862,7 +862,7 @@ public partial class bitbank : Exchange
         //         }
         //     }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return this.parseTransaction(data, currency);
     }
 

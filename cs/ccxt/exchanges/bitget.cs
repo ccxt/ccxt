@@ -2223,7 +2223,7 @@ public partial class bitget : Exchange
         //         ]
         //     }
         //
-        object rawTransactions = this.safeValue(response, "data", new List<object>() {});
+        object rawTransactions = this.safeList(response, "data", new List<object>() {});
         return this.parseTransactions(rawTransactions, currency, since, limit);
     }
 
@@ -2388,7 +2388,7 @@ public partial class bitget : Exchange
         //         ]
         //     }
         //
-        object rawTransactions = this.safeValue(response, "data", new List<object>() {});
+        object rawTransactions = this.safeList(response, "data", new List<object>() {});
         return this.parseTransactions(rawTransactions, currency, since, limit);
     }
 
@@ -2529,7 +2529,7 @@ public partial class bitget : Exchange
         //         }
         //     }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return this.parseDepositAddress(data, currency);
     }
 
@@ -2839,7 +2839,7 @@ public partial class bitget : Exchange
         //         ]
         //     }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseTicker(getValue(data, 0), market);
     }
 
@@ -2853,6 +2853,7 @@ public partial class bitget : Exchange
         * @see https://www.bitget.com/api-doc/contract/market/Get-All-Symbol-Ticker
         * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string} [params.subType] *contract only* 'linear', 'inverse'
         * @param {string} [params.productType] *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
         */
@@ -2872,21 +2873,26 @@ public partial class bitget : Exchange
                 market = this.market(symbol);
             }
         }
+        object response = null;
         object request = new Dictionary<string, object>() {};
         object type = null;
         var typeparametersVariable = this.handleMarketTypeAndParams("fetchTickers", market, parameters);
         type = ((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
-        object response = null;
-        if (isTrue(isEqual(type, "spot")))
+        // Calls like `.fetchTickers (undefined, {subType:'inverse'})` should be supported for this exchange, so
+        // as "options.defaultSubType" is also set in exchange options, we should consider `params.subType`
+        // with higher priority and only default to spot, if `subType` is not set in params
+        object passedSubType = this.safeString(parameters, "subType");
+        object productType = null;
+        var productTypeparametersVariable = this.handleProductTypeAndParams(market, parameters);
+        productType = ((IList<object>)productTypeparametersVariable)[0];
+        parameters = ((IList<object>)productTypeparametersVariable)[1];
+        // only if passedSubType && productType is undefined, then use spot
+        if (isTrue(isTrue(isEqual(type, "spot")) && isTrue(isEqual(passedSubType, null))))
         {
             response = await this.publicSpotGetV2SpotMarketTickers(this.extend(request, parameters));
         } else
         {
-            object productType = null;
-            var productTypeparametersVariable = this.handleProductTypeAndParams(market, parameters);
-            productType = ((IList<object>)productTypeparametersVariable)[0];
-            parameters = ((IList<object>)productTypeparametersVariable)[1];
             ((IDictionary<string,object>)request)["productType"] = productType;
             response = await this.publicMixGetV2MixMarketTickers(this.extend(request, parameters));
         }
@@ -2947,7 +2953,7 @@ public partial class bitget : Exchange
         //         ]
         //     }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseTickers(data, symbols);
     }
 
@@ -3211,7 +3217,7 @@ public partial class bitget : Exchange
         //         ]
         //     }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseTrades(data, market, since, limit);
     }
 
@@ -4379,7 +4385,7 @@ public partial class bitget : Exchange
         //         }
         //     }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return this.parseOrder(data, market);
     }
 
@@ -4971,7 +4977,7 @@ public partial class bitget : Exchange
         //         }
         //     }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return this.parseOrder(data, market);
     }
 
@@ -5243,7 +5249,7 @@ public partial class bitget : Exchange
         //     }
         //
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object orders = this.safeValue(data, "successList", new List<object>() {});
+        object orders = this.safeList(data, "successList", new List<object>() {});
         return this.parseOrders(orders, market);
     }
 
@@ -5497,8 +5503,13 @@ public partial class bitget : Exchange
         {
             response = parseJson(response);
         }
-        object data = this.safeValue(response, "data");
-        object first = this.safeValue(data, 0, data);
+        object data = this.safeDict(response, "data");
+        if (isTrue(isTrue((!isEqual(data, null))) && !isTrue(((data is IList<object>) || (data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))))
+        {
+            return this.parseOrder(data, market);
+        }
+        object dataList = this.safeList(response, "data", new List<object>() {});
+        object first = this.safeDict(dataList, 0, new Dictionary<string, object>() {});
         return this.parseOrder(first, market);
     }
 
@@ -5830,12 +5841,12 @@ public partial class bitget : Exchange
         {
             if (isTrue(isTrue((!isEqual(marginMode, null))) || isTrue(stop)))
             {
-                object resultList = this.safeValue(data, "orderList", new List<object>() {});
+                object resultList = this.safeList(data, "orderList", new List<object>() {});
                 return this.parseOrders(resultList, market, since, limit);
             }
         } else
         {
-            object result = this.safeValue(data, "entrustedList", new List<object>() {});
+            object result = this.safeList(data, "entrustedList", new List<object>() {});
             return this.parseOrders(result, market, since, limit);
         }
         return this.parseOrders(data, market, since, limit);
@@ -6243,7 +6254,7 @@ public partial class bitget : Exchange
         {
             response = parseJson(response);
         }
-        object orders = this.safeValue(response, "data", new List<object>() {});
+        object orders = this.safeList(response, "data", new List<object>() {});
         return this.parseOrders(orders, market, since, limit);
     }
 
@@ -6696,11 +6707,11 @@ public partial class bitget : Exchange
         object data = this.safeValue(response, "data");
         if (isTrue(isTrue((getValue(market, "swap"))) || isTrue((getValue(market, "future")))))
         {
-            object fillList = this.safeValue(data, "fillList", new List<object>() {});
+            object fillList = this.safeList(data, "fillList", new List<object>() {});
             return this.parseTrades(fillList, market, since, limit);
         } else if (isTrue(!isEqual(marginMode, null)))
         {
-            object fills = this.safeValue(data, "fills", new List<object>() {});
+            object fills = this.safeList(data, "fills", new List<object>() {});
             return this.parseTrades(fills, market, since, limit);
         }
         return this.parseTrades(data, market, since, limit);
@@ -6769,8 +6780,8 @@ public partial class bitget : Exchange
         //         ]
         //     }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
-        object first = this.safeValue(data, 0, new Dictionary<string, object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
+        object first = this.safeDict(data, 0, new Dictionary<string, object>() {});
         return this.parsePosition(first, market);
     }
 
@@ -7843,7 +7854,7 @@ public partial class bitget : Exchange
         //         }
         //     }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return this.parseOpenInterest(data, market);
     }
 
@@ -7939,7 +7950,7 @@ public partial class bitget : Exchange
         //         ]
         //     }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseTransfers(data, currency, since, limit);
     }
 
@@ -8157,7 +8168,7 @@ public partial class bitget : Exchange
         //         "requestTime": "1700120731773"
         //     }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseDepositWithdrawFees(data, codes, "coin");
     }
 
@@ -8497,7 +8508,7 @@ public partial class bitget : Exchange
         //     }
         //
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object liquidations = this.safeValue(data, "resultList", new List<object>() {});
+        object liquidations = this.safeList(data, "resultList", new List<object>() {});
         return this.parseLiquidations(liquidations, market, since, limit);
     }
 
@@ -8980,7 +8991,7 @@ public partial class bitget : Exchange
         //     }
         //
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object order = this.safeValue(data, "successList", new List<object>() {});
+        object order = this.safeList(data, "successList", new List<object>() {});
         return this.parseOrder(getValue(order, 0), market);
     }
 
@@ -9023,7 +9034,7 @@ public partial class bitget : Exchange
         //     }
         //
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object orderInfo = this.safeValue(data, "successList", new List<object>() {});
+        object orderInfo = this.safeList(data, "successList", new List<object>() {});
         return this.parsePositions(orderInfo, null, parameters);
     }
 

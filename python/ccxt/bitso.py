@@ -670,7 +670,7 @@ class bitso(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        payload = self.safe_value(response, 'payload', [])
+        payload = self.safe_list(response, 'payload', [])
         return self.parse_ohlcvs(payload, market, timeframe, since, limit)
 
     def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
@@ -1183,7 +1183,7 @@ class bitso(Exchange, ImplicitAPI):
         #     }
         #
         transactions = self.safe_value(response, 'payload', [])
-        first = self.safe_value(transactions, 0, {})
+        first = self.safe_dict(transactions, 0, {})
         return self.parse_transaction(first)
 
     def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
@@ -1224,7 +1224,7 @@ class bitso(Exchange, ImplicitAPI):
         #         }]
         #     }
         #
-        transactions = self.safe_value(response, 'payload', [])
+        transactions = self.safe_list(response, 'payload', [])
         return self.parse_transactions(transactions, currency, since, limit, params)
 
     def fetch_deposit_address(self, code: str, params={}):
@@ -1396,7 +1396,7 @@ class bitso(Exchange, ImplicitAPI):
         #        }
         #    }
         #
-        payload = self.safe_value(response, 'payload', {})
+        payload = self.safe_list(response, 'payload', [])
         return self.parse_deposit_withdraw_fees(payload, codes)
 
     def parse_deposit_withdraw_fees(self, response, codes=None, currencyIdKey=None):
@@ -1524,7 +1524,7 @@ class bitso(Exchange, ImplicitAPI):
         #     }
         #
         payload = self.safe_value(response, 'payload', [])
-        first = self.safe_value(payload, 0)
+        first = self.safe_dict(payload, 0)
         return self.parse_transaction(first, currency)
 
     def safe_network(self, networkId):

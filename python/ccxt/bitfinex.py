@@ -460,7 +460,7 @@ class bitfinex(Exchange, ImplicitAPI):
         #        }
         #    }
         #
-        withdraw = self.safe_value(response, 'withdraw')
+        withdraw = self.safe_list(response, 'withdraw')
         return self.parse_deposit_withdraw_fees(withdraw, codes)
 
     def parse_deposit_withdraw_fee(self, fee, currency: Currency = None):

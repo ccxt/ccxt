@@ -1399,9 +1399,13 @@ export default class bingx extends Exchange {
         } else {
             response = await this.swapV2PublicGetQuoteTicker (this.extend (request, params));
         }
-        const data = this.safeValue (response, 'data');
-        const ticker = this.safeValue (data, 0, data);
-        return this.parseTicker (ticker, market);
+        const data = this.safeList (response, 'data');
+        if (data !== undefined) {
+            const first = this.safeDict (data, 0, {});
+            return this.parseTicker (first, market);
+        }
+        const dataDict = this.safeDict (response, 'data', {});
+        return this.parseTicker (dataDict, market);
     }
 
     async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
@@ -1431,7 +1435,7 @@ export default class bingx extends Exchange {
         } else {
             response = await this.swapV2PublicGetQuoteTicker (params);
         }
-        const tickers = this.safeValue (response, 'data');
+        const tickers = this.safeList (response, 'data');
         return this.parseTickers (tickers, symbols);
     }
 
@@ -2067,7 +2071,7 @@ export default class bingx extends Exchange {
             response = this.parseJson (response);
         }
         const data = this.safeValue (response, 'data', {});
-        const order = this.safeValue (data, 'order', data);
+        const order = this.safeDict (data, 'order', data);
         return this.parseOrder (order, market);
     }
 
@@ -2564,7 +2568,7 @@ export default class bingx extends Exchange {
         //    }
         //
         const data = this.safeValue (response, 'data');
-        const first = this.safeValue (data, 'order', data);
+        const first = this.safeDict (data, 'order', data);
         return this.parseOrder (first, market);
     }
 
@@ -2807,7 +2811,7 @@ export default class bingx extends Exchange {
         //      }
         //
         const data = this.safeValue (response, 'data');
-        const first = this.safeValue (data, 'order', data);
+        const first = this.safeDict (data, 'order', data);
         return this.parseOrder (first, market);
     }
 
@@ -2989,7 +2993,7 @@ export default class bingx extends Exchange {
         //    }
         //
         const data = this.safeValue (response, 'data', []);
-        const orders = this.safeValue (data, 'orders', []);
+        const orders = this.safeList (data, 'orders', []);
         return this.parseOrders (orders, market, since, limit);
     }
 
@@ -3748,7 +3752,7 @@ export default class bingx extends Exchange {
          */
         await this.loadMarkets ();
         const response = await this.walletsV1PrivateGetCapitalConfigGetall (params);
-        const coins = this.safeValue (response, 'data');
+        const coins = this.safeList (response, 'data');
         return this.parseDepositWithdrawFees (coins, codes, 'coin');
     }
 

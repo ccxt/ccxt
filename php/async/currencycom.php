@@ -1973,7 +1973,7 @@ class currencycom extends Exchange {
             //        )
             //    }
             //
-            $data = $this->safe_value($response, 'positions', array());
+            $data = $this->safe_list($response, 'positions', array());
             return $this->parse_positions($data, $symbols);
         }) ();
     }

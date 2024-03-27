@@ -625,7 +625,7 @@ class zaif extends zaif$1 {
         //         }
         //     }
         //
-        const returnData = this.safeValue(result, 'return');
+        const returnData = this.safeDict(result, 'return');
         return this.parseTransaction(returnData, currency);
     }
     parseTransaction(transaction, currency = undefined) {

@@ -1266,7 +1266,7 @@ class phemex(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_value(response, 'data', {})
-        rows = self.safe_value(data, 'rows', [])
+        rows = self.safe_list(data, 'rows', [])
         return self.parse_ohlcvs(rows, market, timeframe, since, userLimit)
 
     def parse_ticker(self, ticker, market: Market = None) -> Ticker:
@@ -1422,7 +1422,7 @@ class phemex(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        result = self.safe_value(response, 'result', {})
+        result = self.safe_dict(response, 'result', {})
         return self.parse_ticker(result, market)
 
     def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
@@ -1452,7 +1452,7 @@ class phemex(Exchange, ImplicitAPI):
             response = self.v1GetMdTicker24hrAll(query)
         else:
             response = self.v2GetMdV2Ticker24hrAll(query)
-        result = self.safe_value(response, 'result', [])
+        result = self.safe_list(response, 'result', [])
         return self.parse_tickers(result, symbols)
 
     def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
@@ -2587,7 +2587,7 @@ class phemex(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        data = self.safe_value(response, 'data', {})
+        data = self.safe_dict(response, 'data', {})
         return self.parse_order(data, market)
 
     def edit_order(self, id: str, symbol: str, type: OrderType = None, side: OrderSide = None, amount: Num = None, price: Num = None, params={}):
@@ -2648,7 +2648,7 @@ class phemex(Exchange, ImplicitAPI):
             response = self.privatePutOrdersReplace(self.extend(request, params))
         else:
             response = self.privatePutSpotOrders(self.extend(request, params))
-        data = self.safe_value(response, 'data', {})
+        data = self.safe_dict(response, 'data', {})
         return self.parse_order(data, market)
 
     def cancel_order(self, id: str, symbol: Str = None, params={}):
@@ -2684,7 +2684,7 @@ class phemex(Exchange, ImplicitAPI):
             response = self.privateDeleteOrdersCancel(self.extend(request, params))
         else:
             response = self.privateDeleteSpotOrders(self.extend(request, params))
-        data = self.safe_value(response, 'data', {})
+        data = self.safe_dict(response, 'data', {})
         return self.parse_order(data, market)
 
     def cancel_all_orders(self, symbol: Str = None, params={}):
@@ -2782,7 +2782,7 @@ class phemex(Exchange, ImplicitAPI):
         else:
             response = self.privateGetSpotOrders(self.extend(request, params))
         data = self.safe_value(response, 'data', {})
-        rows = self.safe_value(data, 'rows', data)
+        rows = self.safe_list(data, 'rows', data)
         return self.parse_orders(rows, market, since, limit)
 
     def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
@@ -2821,7 +2821,7 @@ class phemex(Exchange, ImplicitAPI):
         if isinstance(data, list):
             return self.parse_orders(data, market, since, limit)
         else:
-            rows = self.safe_value(data, 'rows', [])
+            rows = self.safe_list(data, 'rows', [])
             return self.parse_orders(rows, market, since, limit)
 
     def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
@@ -2898,7 +2898,7 @@ class phemex(Exchange, ImplicitAPI):
         if isinstance(data, list):
             return self.parse_orders(data, market, since, limit)
         else:
-            rows = self.safe_value(data, 'rows', [])
+            rows = self.safe_list(data, 'rows', [])
             return self.parse_orders(rows, market, since, limit)
 
     def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
@@ -3942,7 +3942,7 @@ class phemex(Exchange, ImplicitAPI):
         #
         #
         data = self.safe_value(response, 'data', {})
-        riskLimits = self.safe_value(data, 'riskLimits')
+        riskLimits = self.safe_list(data, 'riskLimits')
         return self.parse_leverage_tiers(riskLimits, symbols, 'symbol')
 
     def parse_market_leverage_tiers(self, info, market: Market = None):
@@ -4173,7 +4173,7 @@ class phemex(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_value(response, 'data', {})
-        transfers = self.safe_value(data, 'rows', [])
+        transfers = self.safe_list(data, 'rows', [])
         return self.parse_transfers(transfers, currency, since, limit)
 
     def parse_transfer(self, transfer, currency: Currency = None):
@@ -4375,7 +4375,7 @@ class phemex(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        data = self.safe_value(response, 'data', {})
+        data = self.safe_dict(response, 'data', {})
         return self.parse_transaction(data, currency)
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):

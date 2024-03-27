@@ -2201,7 +2201,7 @@ class htx extends Exchange {
             //         "ts":1639547261293
             //     }
             //
-            // $inverse swaps, $linear swaps, $inverse futures
+            // $linear $swap, $linear $future, $inverse $swap, $inverse $future
             //
             //     {
             //         "status":"ok",
@@ -2218,35 +2218,13 @@ class htx extends Exchange {
             //                 "high":"0.10725",
             //                 "amount":"2340267.415144052378486261756692535687481566",
             //                 "count":882,
-            //                 "vol":"24706"
+            //                 "vol":"24706",
+            //                 "trade_turnover":"840726.5048", // only in $linear futures
+            //                 "business_type":"futures", // only in $linear futures
+            //                 "contract_code":"BTC-USDT-CW", // only in $linear futures, instead of 'symbol'
             //             }
             //         ],
             //         "ts":1637504679376
-            //     }
-            //
-            // $linear futures
-            //
-            //     {
-            //         "status":"ok",
-            //         "ticks":[
-            //             {
-            //                 "id":1640745627,
-            //                 "ts":1640745627957,
-            //                 "ask":[48079.1,20],
-            //                 "bid":[47713.8,125],
-            //                 "business_type":"futures",
-            //                 "contract_code":"BTC-USDT-CW",
-            //                 "open":"49011.8",
-            //                 "close":"47934",
-            //                 "low":"47292.3",
-            //                 "high":"49011.8",
-            //                 "amount":"17.398",
-            //                 "count":1515,
-            //                 "vol":"17398",
-            //                 "trade_turnover":"840726.5048"
-            //             }
-            //         ],
-            //         "ts":1640745627988
             //     }
             //
             $tickers = $this->safe_value_2($response, 'data', 'ticks', array());
@@ -2383,7 +2361,7 @@ class htx extends Exchange {
                 throw new NotSupported($this->id . ' fetchLastPrices() does not support ' . $type . ' markets yet');
             }
             $tick = $this->safe_value($response, 'tick', array());
-            $data = $this->safe_value($tick, 'data', array());
+            $data = $this->safe_list($tick, 'data', array());
             return $this->parse_last_prices($data, $symbols);
         }) ();
     }
@@ -3945,7 +3923,7 @@ class htx extends Exchange {
             //         )
             //     }
             //
-            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_list($response, 'data', array());
             return $this->parse_orders($data, $market, $since, $limit);
         }) ();
     }
@@ -7232,7 +7210,7 @@ class htx extends Exchange {
                 $request['symbol'] = $market['id'];
                 $response = Async\await($this->contractPrivatePostApiV3ContractFinancialRecordExact (array_merge($request, $query)));
             }
-            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_list($response, 'data', array());
             return $this->parse_incomes($data, $market, $since, $limit);
         }) ();
     }
@@ -8005,7 +7983,7 @@ class htx extends Exchange {
             //        )
             //    }
             //
-            $data = $this->safe_value($response, 'data');
+            $data = $this->safe_list($response, 'data');
             return $this->parse_leverage_tiers($data, $symbols, 'contract_code');
         }) ();
     }
@@ -8210,7 +8188,7 @@ class htx extends Exchange {
             //    }
             //
             $data = $this->safe_value($response, 'data');
-            $tick = $this->safe_value($data, 'tick');
+            $tick = $this->safe_list($data, 'tick');
             return $this->parse_open_interests($tick, $market, $since, $limit);
         }) ();
     }
@@ -8722,7 +8700,7 @@ class htx extends Exchange {
             //        )
             //    }
             //
-            $data = $this->safe_value($response, 'data');
+            $data = $this->safe_list($response, 'data');
             return $this->parse_deposit_withdraw_fees($data, $codes, 'currency');
         }) ();
     }
@@ -8949,7 +8927,7 @@ class htx extends Exchange {
             //         "ts" => 1604312615051
             //     }
             //
-            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_list($response, 'data', array());
             return $this->parse_liquidations($data, $market, $since, $limit);
         }) ();
     }

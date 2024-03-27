@@ -18,7 +18,7 @@ class bybit extends Exchange {
             'version' => 'v5',
             'userAgent' => null,
             'rateLimit' => 20,
-            'hostname' => 'bybit.com', // bybit.com, bytick.com
+            'hostname' => 'bybit.com', // bybit.com, bytick.com, bybit.nl, bybit.com.hk
             'pro' => true,
             'certified' => true,
             'has' => array(
@@ -464,7 +464,7 @@ class bybit extends Exchange {
                         'v5/account/mmp-modify' => 5,
                         'v5/account/mmp-reset' => 5,
                         // asset
-                        'v5/asset/transfer/inter-transfer' => 150, // 1/3/s => cost = 50 / 1/3 = 150
+                        'v5/asset/transfer/inter-transfer' => 50, // 1/s => cost = 50 / 1 = 50
                         'v5/asset/transfer/save-transfer-sub-member' => 150, // 1/3/s => cost = 50 / 1/3 = 150
                         'v5/asset/transfer/universal-transfer' => 10, // 5/s => cost = 50 / 5 = 10
                         'v5/asset/deposit/deposit-to-account' => 5,
@@ -1119,74 +1119,6 @@ class bybit extends Exchange {
 
     public function upgrade_unified_trade_account($params = array ()) {
         return $this->privatePostV5AccountUpgradeToUta ($params);
-    }
-
-    public function convert_expire_date($date) {
-        // parse YYMMDD to timestamp
-        $year = mb_substr($date, 0, 2 - 0);
-        $month = mb_substr($date, 2, 4 - 2);
-        $day = mb_substr($date, 4, 6 - 4);
-        $reconstructedDate = '20' . $year . '-' . $month . '-' . $day . 'T00:00:00Z';
-        return $reconstructedDate;
-    }
-
-    public function convert_expire_date_to_market_id_date($date) {
-        // parse 231229 to 29DEC23
-        $year = mb_substr($date, 0, 2 - 0);
-        $monthRaw = mb_substr($date, 2, 4 - 2);
-        $month = null;
-        $day = mb_substr($date, 4, 6 - 4);
-        if ($monthRaw === '01') {
-            $month = 'JAN';
-        } elseif ($monthRaw === '02') {
-            $month = 'FEB';
-        } elseif ($monthRaw === '03') {
-            $month = 'MAR';
-        } elseif ($monthRaw === '04') {
-            $month = 'APR';
-        } elseif ($monthRaw === '05') {
-            $month = 'MAY';
-        } elseif ($monthRaw === '06') {
-            $month = 'JUN';
-        } elseif ($monthRaw === '07') {
-            $month = 'JUL';
-        } elseif ($monthRaw === '08') {
-            $month = 'AUG';
-        } elseif ($monthRaw === '09') {
-            $month = 'SEP';
-        } elseif ($monthRaw === '10') {
-            $month = 'OCT';
-        } elseif ($monthRaw === '11') {
-            $month = 'NOV';
-        } elseif ($monthRaw === '12') {
-            $month = 'DEC';
-        }
-        $reconstructedDate = $day . $month . $year;
-        return $reconstructedDate;
-    }
-
-    public function convert_market_id_expire_date($date) {
-        // parse 22JAN23 to 230122
-        $monthMappping = array(
-            'JAN' => '01',
-            'FEB' => '02',
-            'MAR' => '03',
-            'APR' => '04',
-            'MAY' => '05',
-            'JUN' => '06',
-            'JUL' => '07',
-            'AUG' => '08',
-            'SEP' => '09',
-            'OCT' => '10',
-            'NOV' => '11',
-            'DEC' => '12',
-        );
-        $year = mb_substr($date, 0, 2 - 0);
-        $monthName = mb_substr($date, 2, 5 - 2);
-        $month = $this->safe_string($monthMappping, $monthName);
-        $day = mb_substr($date, 5, 7 - 5);
-        $reconstructedDate = $day . $month . $year;
-        return $reconstructedDate;
     }
 
     public function create_expired_option_market(string $symbol) {
@@ -2075,7 +2007,7 @@ class bybit extends Exchange {
         //
         $result = $this->safe_value($response, 'result', array());
         $tickers = $this->safe_value($result, 'list', array());
-        $rawTicker = $this->safe_value($tickers, 0);
+        $rawTicker = $this->safe_dict($tickers, 0);
         return $this->parse_ticker($rawTicker, $market);
     }
 
@@ -2085,6 +2017,7 @@ class bybit extends Exchange {
          * @see https://bybit-exchange.github.io/docs/v5/market/tickers
          * @param {string[]} $symbols unified $symbols of the markets to fetch the ticker for, all $market tickers are returned if not assigned
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->subType] *contract only* 'linear', 'inverse'
          * @return {array} an array of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
          */
         $this->load_markets();
@@ -2121,11 +2054,16 @@ class bybit extends Exchange {
         );
         $type = null;
         list($type, $params) = $this->handle_market_type_and_params('fetchTickers', $market, $params);
-        if ($type === 'spot') {
+        // Calls like `.fetch_tickers(null, array($subType:'inverse'))` should be supported for this exchange, so
+        // as "options.defaultSubType" is also set in exchange options, we should consider `$params->subType`
+        // with higher priority and only default to spot, if `$subType` is not set in $params
+        $passedSubType = $this->safe_string($params, 'subType');
+        $subType = null;
+        list($subType, $params) = $this->handle_sub_type_and_params('fetchTickers', $market, $params, 'linear');
+        // only if $passedSubType is null, then use spot
+        if ($type === 'spot' && $passedSubType === null) {
             $request['category'] = 'spot';
-        } elseif ($type === 'swap' || $type === 'future') {
-            $subType = null;
-            list($subType, $params) = $this->handle_sub_type_and_params('fetchTickers', $market, $params, 'linear');
+        } elseif ($type === 'swap' || $type === 'future' || $subType !== null) {
             $request['category'] = $subType;
         } elseif ($type === 'option') {
             $request['category'] = 'option';
@@ -2170,7 +2108,7 @@ class bybit extends Exchange {
         //     }
         //
         $result = $this->safe_value($response, 'result', array());
-        $tickerList = $this->safe_value($result, 'list', array());
+        $tickerList = $this->safe_list($result, 'list', array());
         return $this->parse_tickers($tickerList, $parsedSymbols);
     }
 
@@ -2303,7 +2241,7 @@ class bybit extends Exchange {
         //     }
         //
         $result = $this->safe_value($response, 'result', array());
-        $ohlcvs = $this->safe_value($result, 'list', array());
+        $ohlcvs = $this->safe_list($result, 'list', array());
         return $this->parse_ohlcvs($ohlcvs, $market, $timeframe, $since, $limit);
     }
 
@@ -2771,7 +2709,7 @@ class bybit extends Exchange {
         //     }
         //
         $result = $this->safe_value($response, 'result', array());
-        $trades = $this->safe_value($result, 'list', array());
+        $trades = $this->safe_list($result, 'list', array());
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
@@ -2802,10 +2740,10 @@ class bybit extends Exchange {
                 // $limit => [1, 25]. Default => 1
                 $request['category'] = 'option';
             } elseif ($market['linear']) {
-                // $limit => [1, 200]. Default => 25
+                // $limit => [1, 500]. Default => 25
                 $request['category'] = 'linear';
             } elseif ($market['inverse']) {
-                // $limit => [1, 200]. Default => 25
+                // $limit => [1, 500]. Default => 25
                 $request['category'] = 'inverse';
             }
         }
@@ -3508,7 +3446,7 @@ class bybit extends Exchange {
         //         "time" => 1672211918471
         //     }
         //
-        $order = $this->safe_value($response, 'result', array());
+        $order = $this->safe_dict($response, 'result', array());
         return $this->parse_order($order, $market);
     }
 
@@ -3936,7 +3874,7 @@ class bybit extends Exchange {
         //            "tpTriggerBy":"UNKNOWN"
         //     }
         //
-        $order = $this->safe_value($response, 'result', array());
+        $order = $this->safe_dict($response, 'result', array());
         return $this->parse_order($order, $market);
     }
 
@@ -3992,7 +3930,7 @@ class bybit extends Exchange {
         //        "retExtMap" => array()
         //   }
         //
-        $result = $this->safe_value($response, 'result', array());
+        $result = $this->safe_dict($response, 'result', array());
         return $this->parse_order($result, $market);
     }
 
@@ -4158,7 +4096,7 @@ class bybit extends Exchange {
         //         "retExtMap" => array()
         //     }
         //
-        $result = $this->safe_value($response, 'result', array());
+        $result = $this->safe_dict($response, 'result', array());
         return $this->parse_order($result, $market);
     }
 
@@ -4222,7 +4160,7 @@ class bybit extends Exchange {
         //         "time" => 1672217377164
         //     }
         //
-        $result = $this->safe_value($response, 'result', array());
+        $result = $this->safe_dict($response, 'result', array());
         return $this->parse_order($result, $market);
     }
 
@@ -4516,7 +4454,7 @@ class bybit extends Exchange {
         //     }
         //
         $result = $this->safe_value($response, 'result', array());
-        $data = $this->safe_value($result, 'dataList', array());
+        $data = $this->safe_list($result, 'dataList', array());
         return $this->parse_orders($data, $market, $since, $limit);
     }
 
@@ -5133,7 +5071,7 @@ class bybit extends Exchange {
         //     }
         //
         $result = $this->safe_value($response, 'result', array());
-        $dataList = $this->safe_value($result, 'dataList', array());
+        $dataList = $this->safe_list($result, 'dataList', array());
         return $this->parse_trades($dataList, $market, $since, $limit);
     }
 
@@ -5334,7 +5272,7 @@ class bybit extends Exchange {
         $chains = $this->safe_value($result, 'chains', array());
         $chainsIndexedById = $this->index_by($chains, 'chain');
         $selectedNetworkId = $this->select_network_id_from_raw_networks($code, $networkCode, $chainsIndexedById);
-        $addressObject = $this->safe_value($chainsIndexedById, $selectedNetworkId, array());
+        $addressObject = $this->safe_dict($chainsIndexedById, $selectedNetworkId, array());
         return $this->parse_deposit_address($addressObject, $currency);
     }
 
@@ -5891,7 +5829,7 @@ class bybit extends Exchange {
         //         "time" => "1666892894902"
         //     }
         //
-        $result = $this->safe_value($response, 'result', array());
+        $result = $this->safe_dict($response, 'result', array());
         return $this->parse_transaction($result, $currency);
     }
 
@@ -6293,6 +6231,12 @@ class bybit extends Exchange {
         if ($timestamp === null) {
             $timestamp = $this->safe_integer_n($position, array( 'updatedTime', 'updatedAt' ));
         }
+        $tradeMode = $this->safe_integer($position, 'tradeMode', 0);
+        $marginMode = null;
+        if ((!$this->options['enableUnifiedAccount']) || ($this->options['enableUnifiedAccount'] && $market['inverse'])) {
+            // $tradeMode would work for classic and UTA(inverse)
+            $marginMode = ($tradeMode === 1) ? 'isolated' : 'cross';
+        }
         $collateralString = $this->safe_string($position, 'positionBalance');
         $entryPrice = $this->omit_zero($this->safe_string_2($position, 'entryPrice', 'avgPrice'));
         $liquidationPrice = $this->omit_zero($this->safe_string($position, 'liqPrice'));
@@ -6354,7 +6298,7 @@ class bybit extends Exchange {
             'markPrice' => $this->safe_number($position, 'markPrice'),
             'lastPrice' => null,
             'collateral' => $this->parse_number($collateralString),
-            'marginMode' => null,
+            'marginMode' => $marginMode,
             'side' => $side,
             'percentage' => null,
             'stopLossPrice' => $this->safe_number_2($position, 'stop_loss', 'stopLoss'),
@@ -7391,7 +7335,7 @@ class bybit extends Exchange {
         //     }
         //
         $data = $this->safe_value($response, 'result', array());
-        $rows = $this->safe_value($data, 'rows', array());
+        $rows = $this->safe_list($data, 'rows', array());
         return $this->parse_deposit_withdraw_fees($rows, $codes, 'coin');
     }
 

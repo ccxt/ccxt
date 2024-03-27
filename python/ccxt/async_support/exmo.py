@@ -854,7 +854,7 @@ class exmo(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        candles = self.safe_value(response, 'candles', [])
+        candles = self.safe_list(response, 'candles', [])
         return self.parse_ohlcvs(candles, market, timeframe, since, limit)
 
     def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
@@ -967,7 +967,7 @@ class exmo(Exchange, ImplicitAPI):
         if limit is not None:
             request['limit'] = limit
         response = await self.publicGetOrderBook(self.extend(request, params))
-        result = self.safe_value(response, market['id'])
+        result = self.safe_dict(response, market['id'])
         return self.parse_order_book(result, market['symbol'], None, 'bid', 'ask')
 
     async def fetch_order_books(self, symbols: Strings = None, limit: Int = None, params={}):
@@ -1218,7 +1218,7 @@ class exmo(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        data = self.safe_value(response, market['id'], [])
+        data = self.safe_list(response, market['id'], [])
         return self.parse_trades(data, market, since, limit)
 
     async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
@@ -1558,7 +1558,7 @@ class exmo(Exchange, ImplicitAPI):
             #         ]
             #     }
             #
-        trades = self.safe_value(response, 'trades')
+        trades = self.safe_list(response, 'trades')
         return self.parse_trades(trades, market, since, limit)
 
     async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
@@ -2240,7 +2240,7 @@ class exmo(Exchange, ImplicitAPI):
         #         "count": 23
         #     }
         #
-        items = self.safe_value(response, 'items', [])
+        items = self.safe_list(response, 'items', [])
         return self.parse_transactions(items, currency, since, limit)
 
     async def fetch_withdrawal(self, id: str, code: Str = None, params={}):
@@ -2289,7 +2289,7 @@ class exmo(Exchange, ImplicitAPI):
         #     }
         #
         items = self.safe_value(response, 'items', [])
-        first = self.safe_value(items, 0, {})
+        first = self.safe_dict(items, 0, {})
         return self.parse_transaction(first, currency)
 
     async def fetch_deposit(self, id=None, code: Str = None, params={}):
@@ -2338,7 +2338,7 @@ class exmo(Exchange, ImplicitAPI):
         #     }
         #
         items = self.safe_value(response, 'items', [])
-        first = self.safe_value(items, 0, {})
+        first = self.safe_dict(items, 0, {})
         return self.parse_transaction(first, currency)
 
     async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
@@ -2388,7 +2388,7 @@ class exmo(Exchange, ImplicitAPI):
         #         "count": 23
         #     }
         #
-        items = self.safe_value(response, 'items', [])
+        items = self.safe_list(response, 'items', [])
         return self.parse_transactions(items, currency, since, limit)
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):

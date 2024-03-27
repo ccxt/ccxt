@@ -983,7 +983,7 @@ class okcoin extends Exchange {
                 'instType' => 'SPOT',
             );
             $response = Async\await($this->publicGetMarketTickers (array_merge($request, $params)));
-            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_list($response, 'data', array());
             return $this->parse_tickers($data, $symbols, $params);
         }) ();
     }
@@ -1092,7 +1092,7 @@ class okcoin extends Exchange {
             } else {
                 $response = Async\await($this->publicGetMarketHistoryTrades (array_merge($request, $params)));
             }
-            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_list($response, 'data', array());
             return $this->parse_trades($data, $market, $since, $limit);
         }) ();
     }
@@ -1156,7 +1156,7 @@ class okcoin extends Exchange {
             } else {
                 $response = Async\await($this->publicGetMarketHistoryCandles (array_merge($request, $params)));
             }
-            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_list($response, 'data', array());
             return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
         }) ();
     }
@@ -1655,7 +1655,7 @@ class okcoin extends Exchange {
             $response = Async\await($this->privatePostTradeCancelOrder (array_merge($request, $query)));
             // array("code":"0","data":[array("clOrdId":"","ordId":"317251910906576896","sCode":"0","sMsg":"")],"msg":"")
             $data = $this->safe_value($response, 'data', array());
-            $order = $this->safe_value($data, 0);
+            $order = $this->safe_dict($data, 0);
             return $this->parse_order($order, $market);
         }) ();
     }
@@ -1751,7 +1751,7 @@ class okcoin extends Exchange {
             //     }
             //
             //
-            $ordersData = $this->safe_value($response, 'data', array());
+            $ordersData = $this->safe_list($response, 'data', array());
             return $this->parse_orders($ordersData, $market, null, null, $params);
         }) ();
     }
@@ -2007,7 +2007,7 @@ class okcoin extends Exchange {
                 $response = Async\await($this->privateGetTradeOrder (array_merge($request, $query)));
             }
             $data = $this->safe_value($response, 'data', array());
-            $order = $this->safe_value($data, 0);
+            $order = $this->safe_dict($data, 0);
             return $this->parse_order($order);
         }) ();
     }
@@ -2055,7 +2055,7 @@ class okcoin extends Exchange {
             } else {
                 $response = Async\await($this->privateGetTradeOrdersPending (array_merge($request, $params)));
             }
-            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_list($response, 'data', array());
             return $this->parse_orders($data, $market, $since, $limit);
         }) ();
     }
@@ -2143,7 +2143,7 @@ class okcoin extends Exchange {
             //         "msg":""
             //     }
             //
-            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_list($response, 'data', array());
             return $this->parse_orders($data, $market, $since, $limit);
         }) ();
     }
@@ -2362,7 +2362,7 @@ class okcoin extends Exchange {
             //     }
             //
             $data = $this->safe_value($response, 'data', array());
-            $rawTransfer = $this->safe_value($data, 0, array());
+            $rawTransfer = $this->safe_dict($data, 0, array());
             return $this->parse_transfer($rawTransfer, $currency);
         }) ();
     }
@@ -2508,7 +2508,7 @@ class okcoin extends Exchange {
             //     }
             //
             $data = $this->safe_value($response, 'data', array());
-            $transaction = $this->safe_value($data, 0);
+            $transaction = $this->safe_dict($data, 0);
             return $this->parse_transaction($transaction, $currency);
         }) ();
     }
@@ -2583,7 +2583,7 @@ class okcoin extends Exchange {
             //         )
             //     }
             //
-            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_list($response, 'data', array());
             return $this->parse_transactions($data, $currency, $since, $limit, $params);
         }) ();
     }
@@ -2650,7 +2650,7 @@ class okcoin extends Exchange {
             //         )
             //     }
             //
-            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_list($response, 'data', array());
             return $this->parse_transactions($data, $currency, $since, $limit, $params);
         }) ();
     }
@@ -2821,7 +2821,7 @@ class okcoin extends Exchange {
             } else {
                 $response = Async\await($this->privateGetTradeFills (array_merge($request, $params)));
             }
-            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_list($response, 'data', array());
             return $this->parse_trades($data, $market, $since, $limit);
         }) ();
     }

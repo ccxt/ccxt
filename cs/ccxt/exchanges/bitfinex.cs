@@ -404,7 +404,7 @@ public partial class bitfinex : Exchange
         //        }
         //    }
         //
-        object withdraw = this.safeValue(response, "withdraw");
+        object withdraw = this.safeList(response, "withdraw");
         return this.parseDepositWithdrawFees(withdraw, codes);
     }
 

@@ -273,7 +273,7 @@ export default class oceanex extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         return this.parseTicker (data, market);
     }
 
@@ -506,7 +506,7 @@ export default class oceanex extends Exchange {
         //          ]
         //      }
         //
-        const data = this.safeValue (response, 'data');
+        const data = this.safeList (response, 'data');
         return this.parseTrades (data, market, since, limit);
     }
 
@@ -662,7 +662,7 @@ export default class oceanex extends Exchange {
             request['price'] = this.priceToPrecision (symbol, price);
         }
         const response = await this.privatePostOrders (this.extend (request, params));
-        const data = this.safeValue (response, 'data');
+        const data = this.safeDict (response, 'data');
         return this.parseOrder (data, market);
     }
 
@@ -819,7 +819,7 @@ export default class oceanex extends Exchange {
             request['limit'] = limit;
         }
         const response = await this.publicPostK (this.extend (request, params));
-        const ohlcvs = this.safeValue (response, 'data', []);
+        const ohlcvs = this.safeList (response, 'data', []);
         return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
     }
 
@@ -901,7 +901,7 @@ export default class oceanex extends Exchange {
          */
         await this.loadMarkets ();
         const response = await this.privatePostOrderDelete (this.extend ({ 'id': id }, params));
-        const data = this.safeValue (response, 'data');
+        const data = this.safeDict (response, 'data');
         return this.parseOrder (data);
     }
 
@@ -918,7 +918,7 @@ export default class oceanex extends Exchange {
          */
         await this.loadMarkets ();
         const response = await this.privatePostOrderDeleteMulti (this.extend ({ 'ids': ids }, params));
-        const data = this.safeValue (response, 'data');
+        const data = this.safeList (response, 'data');
         return this.parseOrders (data);
     }
 
@@ -934,7 +934,7 @@ export default class oceanex extends Exchange {
          */
         await this.loadMarkets ();
         const response = await this.privatePostOrdersClear (params);
-        const data = this.safeValue (response, 'data');
+        const data = this.safeList (response, 'data');
         return this.parseOrders (data);
     }
 

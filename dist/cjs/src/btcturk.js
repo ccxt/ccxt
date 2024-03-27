@@ -415,7 +415,7 @@ class btcturk extends btcturk$1 {
          */
         await this.loadMarkets();
         const response = await this.publicGetTicker(params);
-        const tickers = this.safeValue(response, 'data');
+        const tickers = this.safeList(response, 'data');
         return this.parseTickers(tickers, symbols);
     }
     async fetchTicker(symbol, params = {}) {
@@ -533,7 +533,7 @@ class btcturk extends btcturk$1 {
         //       ]
         //     }
         //
-        const data = this.safeValue(response, 'data');
+        const data = this.safeList(response, 'data');
         return this.parseTrades(data, market, since, limit);
     }
     parseOHLCV(ohlcv, market = undefined) {
@@ -690,7 +690,7 @@ class btcturk extends btcturk$1 {
             request['newClientOrderId'] = this.uuid();
         }
         const response = await this.privatePostOrder(this.extend(request, params));
-        const data = this.safeValue(response, 'data');
+        const data = this.safeDict(response, 'data');
         return this.parseOrder(data, market);
     }
     async cancelOrder(id, symbol = undefined, params = {}) {
@@ -731,7 +731,7 @@ class btcturk extends btcturk$1 {
         const response = await this.privateGetOpenOrders(this.extend(request, params));
         const data = this.safeValue(response, 'data');
         const bids = this.safeValue(data, 'bids', []);
-        const asks = this.safeValue(data, 'asks', []);
+        const asks = this.safeList(data, 'asks', []);
         return this.parseOrders(this.arrayConcat(bids, asks), market, since, limit);
     }
     async fetchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -779,7 +779,7 @@ class btcturk extends btcturk$1 {
         //     }
         //   ]
         // }
-        const data = this.safeValue(response, 'data');
+        const data = this.safeList(response, 'data');
         return this.parseOrders(data, market, since, limit);
     }
     parseOrderStatus(status) {
@@ -896,7 +896,7 @@ class btcturk extends btcturk$1 {
         //       "code": "0"
         //     }
         //
-        const data = this.safeValue(response, 'data');
+        const data = this.safeList(response, 'data');
         return this.parseTrades(data, market, since, limit);
     }
     nonce() {

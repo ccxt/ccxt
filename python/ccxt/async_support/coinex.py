@@ -1332,7 +1332,7 @@ class coinex(Exchange, ImplicitAPI):
         #         "message": "OK"
         #     }
         #
-        data = self.safe_value(response, 'data', [])
+        data = self.safe_list(response, 'data', [])
         return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
     async def fetch_margin_balance(self, params={}):
@@ -2169,7 +2169,7 @@ class coinex(Exchange, ImplicitAPI):
         #
         #     {"code":0,"data":{"status":"success"},"message":"OK"}
         #
-        data = self.safe_value(response, 'data', {})
+        data = self.safe_dict(response, 'data', {})
         return self.parse_order(data, market)
 
     async def create_orders(self, orders: List[OrderRequest], params={}) -> List[Order]:
@@ -2447,7 +2447,7 @@ class coinex(Exchange, ImplicitAPI):
         #         "message": "Success"
         #     }
         #
-        data = self.safe_value(response, 'data', {})
+        data = self.safe_dict(response, 'data', {})
         return self.parse_order(data, market)
 
     async def cancel_order(self, id: str, symbol: Str = None, params={}):
@@ -2618,7 +2618,7 @@ class coinex(Exchange, ImplicitAPI):
         #
         #     {"code":0,"data":{},"message":"Success"}
         #
-        data = self.safe_value(response, 'data')
+        data = self.safe_dict(response, 'data')
         return self.parse_order(data, market)
 
     async def cancel_all_orders(self, symbol: Str = None, params={}):
@@ -2799,7 +2799,7 @@ class coinex(Exchange, ImplicitAPI):
         #         "message":"OK"
         #     }
         #
-        data = self.safe_value(response, 'data')
+        data = self.safe_dict(response, 'data')
         return self.parse_order(data, market)
 
     async def fetch_orders_by_status(self, status, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
@@ -3007,7 +3007,7 @@ class coinex(Exchange, ImplicitAPI):
         #
         tradeRequest = 'records' if (marketType == 'swap') else 'data'
         data = self.safe_value(response, 'data')
-        orders = self.safe_value(data, tradeRequest, [])
+        orders = self.safe_list(data, tradeRequest, [])
         return self.parse_orders(orders, market, since, limit)
 
     async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
@@ -3066,7 +3066,7 @@ class coinex(Exchange, ImplicitAPI):
         #         },
         #         "message": "Success"
         #     }
-        data = self.safe_value(response, 'data', {})
+        data = self.safe_dict(response, 'data', {})
         return self.parse_deposit_address(data, currency)
 
     async def fetch_deposit_address(self, code: str, params={}):
@@ -3276,7 +3276,7 @@ class coinex(Exchange, ImplicitAPI):
         #
         tradeRequest = 'records' if swap else 'data'
         data = self.safe_value(response, 'data')
-        trades = self.safe_value(data, tradeRequest, [])
+        trades = self.safe_list(data, tradeRequest, [])
         return self.parse_trades(trades, market, since, limit)
 
     async def fetch_positions(self, symbols: Strings = None, params={}):
@@ -3457,7 +3457,7 @@ class coinex(Exchange, ImplicitAPI):
         #         "message": "OK"
         #     }
         #
-        data = self.safe_value(response, 'data', [])
+        data = self.safe_list(response, 'data', [])
         return self.parse_position(data[0], market)
 
     def parse_position(self, position, market: Market = None):
@@ -3515,8 +3515,7 @@ class coinex(Exchange, ImplicitAPI):
         #     }
         #
         marketId = self.safe_string(position, 'market')
-        defaultType = self.safe_string(self.options, 'defaultType')
-        market = self.safe_market(marketId, market, None, defaultType)
+        market = self.safe_market(marketId, market, None, 'swap')
         symbol = market['symbol']
         positionId = self.safe_integer(position, 'position_id')
         marginModeInteger = self.safe_integer(position, 'type')
@@ -4108,7 +4107,7 @@ class coinex(Exchange, ImplicitAPI):
         #         "message": "Ok"
         #     }
         #
-        transaction = self.safe_value(response, 'data', {})
+        transaction = self.safe_dict(response, 'data', {})
         return self.parse_transaction(transaction, currency)
 
     def parse_transaction_status(self, status):
@@ -4494,7 +4493,7 @@ class coinex(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_value(response, 'data', {})
-        transfers = self.safe_value(data, 'records', [])
+        transfers = self.safe_list(data, 'records', [])
         return self.parse_transfers(transfers, currency, since, limit)
 
     async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:

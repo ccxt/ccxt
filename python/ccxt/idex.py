@@ -363,7 +363,7 @@ class idex(Exchange, ImplicitAPI):
         #   }
         # ]
         response = self.publicGetTickers(self.extend(request, params))
-        ticker = self.safe_value(response, 0)
+        ticker = self.safe_dict(response, 0)
         return self.parse_ticker(ticker, market)
 
     def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
@@ -1407,7 +1407,7 @@ class idex(Exchange, ImplicitAPI):
         }
         # [{orderId: "688336f0-ec50-11ea-9842-b332f8a34d0e"}]
         response = self.privateDeleteOrders(self.extend(request, params))
-        canceledOrder = self.safe_value(response, 0)
+        canceledOrder = self.safe_dict(response, 0)
         return self.parse_order(canceledOrder, market)
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):

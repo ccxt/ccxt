@@ -6,7 +6,6 @@ import type { Balances, Currency, Greeks, Int, Market, MarketInterface, OHLCV, O
  */
 export default class delta extends Exchange {
     describe(): any;
-    convertExpireDate(date: any): string;
     createExpiredOptionMarket(symbol: string): MarketInterface;
     safeMarket(marketId?: Str, market?: Market, delimiter?: Str, marketType?: Str): MarketInterface;
     fetchTime(params?: {}): Promise<number>;

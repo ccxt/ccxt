@@ -1122,7 +1122,7 @@ class bitstamp extends Exchange {
             //     }
             //
             $data = $this->safe_value($response, 'data', array());
-            $ohlc = $this->safe_value($data, 'ohlc', array());
+            $ohlc = $this->safe_list($data, 'ohlc', array());
             return $this->parse_ohlcvs($ohlc, $market, $timeframe, $since, $limit);
         }) ();
     }

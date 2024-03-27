@@ -1390,7 +1390,7 @@ class coinex extends Exchange {
             //         "message" => "OK"
             //     }
             //
-            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_list($response, 'data', array());
             return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
         }) ();
     }
@@ -2300,7 +2300,7 @@ class coinex extends Exchange {
             //
             //     array("code":0,"data":array("status":"success"),"message":"OK")
             //
-            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_dict($response, 'data', array());
             return $this->parse_order($data, $market);
         }) ();
     }
@@ -2602,7 +2602,7 @@ class coinex extends Exchange {
             //         "message" => "Success"
             //     }
             //
-            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_dict($response, 'data', array());
             return $this->parse_order($data, $market);
         }) ();
     }
@@ -2786,7 +2786,7 @@ class coinex extends Exchange {
             //
             //     array("code":0,"data":array(),"message":"Success")
             //
-            $data = $this->safe_value($response, 'data');
+            $data = $this->safe_dict($response, 'data');
             return $this->parse_order($data, $market);
         }) ();
     }
@@ -2980,7 +2980,7 @@ class coinex extends Exchange {
             //         "message":"OK"
             //     }
             //
-            $data = $this->safe_value($response, 'data');
+            $data = $this->safe_dict($response, 'data');
             return $this->parse_order($data, $market);
         }) ();
     }
@@ -3202,7 +3202,7 @@ class coinex extends Exchange {
             //
             $tradeRequest = ($marketType === 'swap') ? 'records' : 'data';
             $data = $this->safe_value($response, 'data');
-            $orders = $this->safe_value($data, $tradeRequest, array());
+            $orders = $this->safe_list($data, $tradeRequest, array());
             return $this->parse_orders($orders, $market, $since, $limit);
         }) ();
     }
@@ -3271,7 +3271,7 @@ class coinex extends Exchange {
             //         ),
             //         "message" => "Success"
             //     }
-            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_dict($response, 'data', array());
             return $this->parse_deposit_address($data, $currency);
         }) ();
     }
@@ -3504,7 +3504,7 @@ class coinex extends Exchange {
             //
             $tradeRequest = $swap ? 'records' : 'data';
             $data = $this->safe_value($response, 'data');
-            $trades = $this->safe_value($data, $tradeRequest, array());
+            $trades = $this->safe_list($data, $tradeRequest, array());
             return $this->parse_trades($trades, $market, $since, $limit);
         }) ();
     }
@@ -3698,7 +3698,7 @@ class coinex extends Exchange {
             //         "message" => "OK"
             //     }
             //
-            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_list($response, 'data', array());
             return $this->parse_position($data[0], $market);
         }) ();
     }
@@ -3758,8 +3758,7 @@ class coinex extends Exchange {
         //     }
         //
         $marketId = $this->safe_string($position, 'market');
-        $defaultType = $this->safe_string($this->options, 'defaultType');
-        $market = $this->safe_market($marketId, $market, null, $defaultType);
+        $market = $this->safe_market($marketId, $market, null, 'swap');
         $symbol = $market['symbol'];
         $positionId = $this->safe_integer($position, 'position_id');
         $marginModeInteger = $this->safe_integer($position, 'type');
@@ -4409,7 +4408,7 @@ class coinex extends Exchange {
             //         "message" => "Ok"
             //     }
             //
-            $transaction = $this->safe_value($response, 'data', array());
+            $transaction = $this->safe_dict($response, 'data', array());
             return $this->parse_transaction($transaction, $currency);
         }) ();
     }
@@ -4825,7 +4824,7 @@ class coinex extends Exchange {
             //     }
             //
             $data = $this->safe_value($response, 'data', array());
-            $transfers = $this->safe_value($data, 'records', array());
+            $transfers = $this->safe_list($data, 'records', array());
             return $this->parse_transfers($transfers, $currency, $since, $limit);
         }) ();
     }

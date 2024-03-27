@@ -319,7 +319,7 @@ public partial class zonda : Exchange
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {};
         object response = await this.v1_01PrivateGetTradingOffer(this.extend(request, parameters));
-        object items = this.safeValue(response, "items", new List<object>() {});
+        object items = this.safeList(response, "items", new List<object>() {});
         return this.parseOrders(items, null, since, limit, new Dictionary<string, object>() {
             { "status", "open" },
         });
@@ -653,7 +653,7 @@ public partial class zonda : Exchange
         {
             throw new BadRequest ((string)add(this.id, " fetchTickers params[\"method\"] must be \"v1_01PublicGetTradingTicker\" or \"v1_01PublicGetTradingStats\"")) ;
         }
-        object items = this.safeValue(response, "items");
+        object items = this.safeDict(response, "items");
         return this.parseTickers(items, symbols);
     }
 
@@ -1088,7 +1088,7 @@ public partial class zonda : Exchange
         //         ]
         //     }
         //
-        object items = this.safeValue(response, "items", new List<object>() {});
+        object items = this.safeList(response, "items", new List<object>() {});
         return this.parseOHLCVs(items, market, timeframe, since, limit);
     }
 
@@ -1203,7 +1203,7 @@ public partial class zonda : Exchange
             ((IDictionary<string,object>)request)["limit"] = limit; // default - 10, max - 300
         }
         object response = await this.v1_01PublicGetTradingTransactionsSymbol(this.extend(request, parameters));
-        object items = this.safeValue(response, "items");
+        object items = this.safeList(response, "items");
         return this.parseTrades(items, market, since, limit);
     }
 
@@ -1446,7 +1446,7 @@ public partial class zonda : Exchange
         //     }
         //
         object data = this.safeValue(response, "data");
-        object first = this.safeValue(data, 0);
+        object first = this.safeDict(data, 0);
         return this.parseDepositAddress(first, currency);
     }
 
@@ -1477,7 +1477,7 @@ public partial class zonda : Exchange
         //         ]
         //     }
         //
-        object data = this.safeValue(response, "data");
+        object data = this.safeList(response, "data");
         return this.parseDepositAddresses(data, codes);
     }
 
@@ -1648,7 +1648,7 @@ public partial class zonda : Exchange
         //         }
         //     }
         //
-        object data = this.safeValue(response, "data");
+        object data = this.safeDict(response, "data");
         return this.parseTransaction(data, currency);
     }
 

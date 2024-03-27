@@ -166,16 +166,6 @@ public partial class delta : Exchange
         });
     }
 
-    public virtual object convertExpireDate(object date)
-    {
-        // parse YYMMDD to timestamp
-        object year = slice(date, 0, 2);
-        object month = slice(date, 2, 4);
-        object day = slice(date, 4, 6);
-        object reconstructedDate = add(add(add(add(add(add("20", year), "-"), month), "-"), day), "T00:00:00Z");
-        return reconstructedDate;
-    }
-
     public override object createExpiredOptionMarket(object symbol)
     {
         // support expired option contracts
