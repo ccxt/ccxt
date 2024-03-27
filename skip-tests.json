@@ -404,7 +404,8 @@
                 "deposit": "not provided"
             },
             "orderBook": {
-                "compareToZero": "bid/ask might be 0"
+                "compareToZero": "bid/ask might be 0",
+                "spread": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269693760#L3648"
             },
             "ticker": {
                 "bid": "greater than ask https://app.travis-ci.com/github/ccxt/ccxt/builds/264241638#L3027",
