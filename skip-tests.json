@@ -597,6 +597,9 @@
         "skipMethods": {
             "fetchTrades": {
                 "side":"side is undefined"
+            },
+            "ticker": {
+                "spread": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269687705#L3745"
             }
         }
     },
