@@ -208,6 +208,9 @@ public partial class Exchange
             }
         }
 
+
+        private static readonly SemaphoreSlim _connectSemaphore = new SemaphoreSlim(1, 1);
+
         public void Connect()
         {
             var tcs = this.connected;
@@ -222,6 +225,7 @@ public partial class Exchange
             {
                 try
                 {
+                    await _connectSemaphore.WaitAsync();
                     if (this.webSocket.State == WebSocketState.Open)
                     {
                         return; // already connected, return. Might happen when we call connect multiple times in a row
@@ -242,9 +246,28 @@ public partial class Exchange
                 {
                     tcs.SetException(ex); // Set the exception if something goes wrong
                 }
+                finally {
+                    _connectSemaphore.Release();
+                }
             });
 
             // return tcs.Task;
+        }
+
+
+        private static readonly SemaphoreSlim _sendSemaphore = new SemaphoreSlim(1, 1);
+        
+        protected static async Task sendAsyncWrapper (ClientWebSocket webSocket, ArraySegment<byte> ArraySegment, WebSocketMessageType WebSocketMessageType, bool endOnMessage, CancellationToken CancellationToken)
+        {
+            await _sendSemaphore.WaitAsync();
+            try
+            {
+                await webSocket.SendAsync(ArraySegment, WebSocketMessageType, endOnMessage, CancellationToken);
+            }
+            finally
+            {
+                _sendSemaphore.Release();
+            }
         }
 
         public async Task send(object message)
@@ -256,7 +279,7 @@ public partial class Exchange
             }
             var bytes = Encoding.UTF8.GetBytes(jsonMessage);
             var arraySegment = new ArraySegment<byte>(bytes, 0, bytes.Length);
-            await this.webSocket.SendAsync(arraySegment,
+            await sendAsyncWrapper(this.webSocket, arraySegment,
                                 WebSocketMessageType.Text,
                                 true,
                                 CancellationToken.None);
@@ -273,7 +296,7 @@ public partial class Exchange
                     if (!string.IsNullOrEmpty(message))
                     {
                         var bytes = Encoding.UTF8.GetBytes(message);
-                        await webSocket.SendAsync(new ArraySegment<byte>(bytes), WebSocketMessageType.Text, true, CancellationToken.None);
+                        await sendAsyncWrapper(webSocket, new ArraySegment<byte>(bytes), WebSocketMessageType.Text, true, CancellationToken.None);
                     }
                 }
             }

@@ -239,7 +239,7 @@ export default class Exchange {
     login:string;
     password: string;
     privateKey: string;// a "0x"-prefixed hexstring private key for a wallet
-    walletAddress: string; // a wallet address "0x"-prefixed hexstring.
+    walletAddress: string; // a wallet address "0x"-prefixed hexstring
     token: string; // reserved for HTTP auth in some cases
 
     balance      = {}
