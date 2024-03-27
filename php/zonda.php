@@ -295,7 +295,7 @@ class zonda extends Exchange {
         ));
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): array {
         /**
          * @see https://docs.zondacrypto.exchange/reference/ticker-1
          * retrieves data on all $markets for zonda

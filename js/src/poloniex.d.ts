@@ -9,7 +9,7 @@ export default class poloniex extends Exchange {
     parseOHLCV(ohlcv: any, market?: Market): OHLCV;
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     loadMarkets(reload?: boolean, params?: {}): Promise<import("./base/types.js").Dictionary<import("./base/types.js").MarketInterface>>;
-    fetchMarkets(params?: {}): Promise<import("./base/types.js").MarketInterface[]>;
+    fetchMarkets(params?: {}): Promise<Market[]>;
     parseMarket(market: any): Market;
     fetchTime(params?: {}): Promise<number>;
     parseTicker(ticker: any, market?: Market): Ticker;

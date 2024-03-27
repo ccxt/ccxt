@@ -60,6 +60,8 @@ public partial class deribit : Exchange
                 { "fetchMyTrades", true },
                 { "fetchOHLCV", true },
                 { "fetchOpenOrders", true },
+                { "fetchOption", true },
+                { "fetchOptionChain", true },
                 { "fetchOrder", true },
                 { "fetchOrderBook", true },
                 { "fetchOrders", false },
@@ -1374,11 +1376,21 @@ public partial class deribit : Exchange
         * @param {int} [since] timestamp in ms of the earliest candle to fetch
         * @param {int} [limit] the maximum amount of candles to fetch
         * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {boolean} [params.paginate] whether to paginate the results, set to false by default
+        * @param {int} [params.until] the latest time in ms to fetch ohlcv for
         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
         */
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
+        object paginate = false;
+        var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate");
+        paginate = ((IList<object>)paginateparametersVariable)[0];
+        parameters = ((IList<object>)paginateparametersVariable)[1];
+        if (isTrue(paginate))
+        {
+            return await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, parameters, 5000);
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "instrument_name", getValue(market, "id") },
@@ -1405,6 +1417,12 @@ public partial class deribit : Exchange
             {
                 ((IDictionary<string,object>)request)["end_timestamp"] = this.sum(since, multiply(multiply(limit, duration), 1000));
             }
+        }
+        object until = this.safeInteger(parameters, "until");
+        if (isTrue(!isEqual(until, null)))
+        {
+            parameters = this.omit(parameters, "until");
+            ((IDictionary<string,object>)request)["end_timestamp"] = until;
         }
         object response = await this.publicGetGetTradingviewChartData(this.extend(request, parameters));
         //
@@ -1537,6 +1555,7 @@ public partial class deribit : Exchange
         * @param {int} [since] timestamp in ms of the earliest trade to fetch
         * @param {int} [limit] the maximum amount of trades to fetch
         * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {int} [params.until] the latest time in ms to fetch trades for
         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
         */
         parameters ??= new Dictionary<string, object>();
@@ -1554,8 +1573,14 @@ public partial class deribit : Exchange
         {
             ((IDictionary<string,object>)request)["count"] = mathMin(limit, 1000); // default 10
         }
+        object until = this.safeInteger2(parameters, "until", "end_timestamp");
+        if (isTrue(!isEqual(until, null)))
+        {
+            parameters = this.omit(parameters, new List<object>() {"until"});
+            ((IDictionary<string,object>)request)["end_timestamp"] = until;
+        }
         object response = null;
-        if (isTrue(isEqual(since, null)))
+        if (isTrue(isTrue((isEqual(since, null))) && !isTrue((inOp(request, "end_timestamp")))))
         {
             response = await this.publicGetGetLastTradesByInstrument(this.extend(request, parameters));
         } else
@@ -3666,6 +3691,167 @@ public partial class deribit : Exchange
             { "lastPrice", this.safeNumber(greeks, "last_price") },
             { "underlyingPrice", this.safeNumber(greeks, "underlying_price") },
             { "info", greeks },
+        };
+    }
+
+    public async override Task<object> fetchOption(object symbol, object parameters = null)
+    {
+        /**
+        * @method
+        * @name deribit#fetchOption
+        * @description fetches option data that is commonly found in an option chain
+        * @see https://docs.deribit.com/#public-get_book_summary_by_instrument
+        * @param {string} symbol unified market symbol
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} an [option chain structure]{@link https://docs.ccxt.com/#/?id=option-chain-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        object request = new Dictionary<string, object>() {
+            { "instrument_name", getValue(market, "id") },
+        };
+        object response = await this.publicGetGetBookSummaryByInstrument(this.extend(request, parameters));
+        //
+        //     {
+        //         "jsonrpc": "2.0",
+        //         "result": [
+        //             {
+        //                 "mid_price": 0.04025,
+        //                 "volume_usd": 11045.12,
+        //                 "quote_currency": "BTC",
+        //                 "estimated_delivery_price": 65444.72,
+        //                 "creation_timestamp": 1711100949273,
+        //                 "base_currency": "BTC",
+        //                 "underlying_index": "BTC-27DEC24",
+        //                 "underlying_price": 73742.14,
+        //                 "volume": 4.0,
+        //                 "interest_rate": 0.0,
+        //                 "price_change": -6.9767,
+        //                 "open_interest": 274.2,
+        //                 "ask_price": 0.042,
+        //                 "bid_price": 0.0385,
+        //                 "instrument_name": "BTC-27DEC24-240000-C",
+        //                 "mark_price": 0.04007735,
+        //                 "last": 0.04,
+        //                 "low": 0.04,
+        //                 "high": 0.043
+        //             }
+        //         ],
+        //         "usIn": 1711100949273223,
+        //         "usOut": 1711100949273580,
+        //         "usDiff": 357,
+        //         "testnet": false
+        //     }
+        //
+        object result = this.safeList(response, "result", new List<object>() {});
+        object chain = this.safeDict(result, 0, new Dictionary<string, object>() {});
+        return this.parseOption(chain, null, market);
+    }
+
+    public async override Task<object> fetchOptionChain(object code, object parameters = null)
+    {
+        /**
+        * @method
+        * @name deribit#fetchOptionChain
+        * @description fetches data for an underlying asset that is commonly found in an option chain
+        * @see https://docs.deribit.com/#public-get_book_summary_by_currency
+        * @param {string} currency base currency to fetch an option chain for
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a list of [option chain structures]{@link https://docs.ccxt.com/#/?id=option-chain-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object currency = this.currency(code);
+        object request = new Dictionary<string, object>() {
+            { "currency", getValue(currency, "id") },
+            { "kind", "option" },
+        };
+        object response = await this.publicGetGetBookSummaryByCurrency(this.extend(request, parameters));
+        //
+        //     {
+        //         "jsonrpc": "2.0",
+        //         "result": [
+        //             {
+        //                 "mid_price": 0.4075,
+        //                 "volume_usd": 2836.83,
+        //                 "quote_currency": "BTC",
+        //                 "estimated_delivery_price": 65479.26,
+        //                 "creation_timestamp": 1711101594477,
+        //                 "base_currency": "BTC",
+        //                 "underlying_index": "BTC-28JUN24",
+        //                 "underlying_price": 68827.27,
+        //                 "volume": 0.1,
+        //                 "interest_rate": 0.0,
+        //                 "price_change": 0.0,
+        //                 "open_interest": 364.1,
+        //                 "ask_price": 0.411,
+        //                 "bid_price": 0.404,
+        //                 "instrument_name": "BTC-28JUN24-42000-C",
+        //                 "mark_price": 0.40752052,
+        //                 "last": 0.423,
+        //                 "low": 0.423,
+        //                 "high": 0.423
+        //             }
+        //         ],
+        //         "usIn": 1711101594456388,
+        //         "usOut": 1711101594484065,
+        //         "usDiff": 27677,
+        //         "testnet": false
+        //     }
+        //
+        object result = this.safeList(response, "result", new List<object>() {});
+        return this.parseOptionChain(result, "base_currency", "instrument_name");
+    }
+
+    public override object parseOption(object chain, object currency = null, object market = null)
+    {
+        //
+        //     {
+        //         "mid_price": 0.04025,
+        //         "volume_usd": 11045.12,
+        //         "quote_currency": "BTC",
+        //         "estimated_delivery_price": 65444.72,
+        //         "creation_timestamp": 1711100949273,
+        //         "base_currency": "BTC",
+        //         "underlying_index": "BTC-27DEC24",
+        //         "underlying_price": 73742.14,
+        //         "volume": 4.0,
+        //         "interest_rate": 0.0,
+        //         "price_change": -6.9767,
+        //         "open_interest": 274.2,
+        //         "ask_price": 0.042,
+        //         "bid_price": 0.0385,
+        //         "instrument_name": "BTC-27DEC24-240000-C",
+        //         "mark_price": 0.04007735,
+        //         "last": 0.04,
+        //         "low": 0.04,
+        //         "high": 0.043
+        //     }
+        //
+        object marketId = this.safeString(chain, "instrument_name");
+        market = this.safeMarket(marketId, market);
+        object currencyId = this.safeString(chain, "base_currency");
+        object code = this.safeCurrencyCode(currencyId, currency);
+        object timestamp = this.safeInteger(chain, "timestamp");
+        return new Dictionary<string, object>() {
+            { "info", chain },
+            { "currency", code },
+            { "symbol", getValue(market, "symbol") },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
+            { "impliedVolatility", null },
+            { "openInterest", this.safeNumber(chain, "open_interest") },
+            { "bidPrice", this.safeNumber(chain, "bid_price") },
+            { "askPrice", this.safeNumber(chain, "ask_price") },
+            { "midPrice", this.safeNumber(chain, "mid_price") },
+            { "markPrice", this.safeNumber(chain, "mark_price") },
+            { "lastPrice", this.safeNumber(chain, "last") },
+            { "underlyingPrice", this.safeNumber(chain, "underlying_price") },
+            { "change", null },
+            { "percentage", this.safeNumber(chain, "price_change") },
+            { "baseVolume", this.safeNumber(chain, "volume") },
+            { "quoteVolume", this.safeNumber(chain, "volume_usd") },
         };
     }
 

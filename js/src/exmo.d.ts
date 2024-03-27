@@ -50,7 +50,7 @@ export default class exmo extends Exchange {
     fetchDepositWithdrawFees(codes?: Strings, params?: {}): Promise<any>;
     parseDepositWithdrawFee(fee: any, currency?: Currency): any;
     fetchCurrencies(params?: {}): Promise<{}>;
-    fetchMarkets(params?: {}): Promise<any[]>;
+    fetchMarkets(params?: {}): Promise<Market[]>;
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     parseOHLCV(ohlcv: any, market?: Market): OHLCV;
     parseBalance(response: any): Balances;

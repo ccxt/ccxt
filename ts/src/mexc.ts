@@ -887,8 +887,8 @@ export default class mexc extends Exchange {
                     '30032': InvalidOrder, // Cannot exceed the maximum position
                     '30041': InvalidOrder, // current order type can not place order
                     '60005': ExchangeError, // your account is abnormal
-                    '700001': AuthenticationError, // API-key format invalid
-                    '700002': AuthenticationError, // Signature for this request is not valid
+                    '700001': AuthenticationError, // {"code":700002,"msg":"Signature for this request is not valid."} // same message for expired API keys
+                    '700002': AuthenticationError, // Signature for this request is not valid // or the API secret is incorrect
                     '700004': BadRequest, // Param 'origClientOrderId' or 'orderId' must be sent, but both were empty/null
                     '700005': InvalidNonce, // recvWindow must less than 60000
                     '700006': BadRequest, // IP non white list
@@ -1141,7 +1141,7 @@ export default class mexc extends Exchange {
         return result;
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name mexc#fetchMarkets
@@ -2823,7 +2823,7 @@ export default class mexc extends Exchange {
             //         ]
             //     }
             //
-            const data = this.safeValue (response, 'data');
+            const data = this.safeList (response, 'data');
             return this.parseOrders (data, market);
         }
     }
@@ -3105,7 +3105,7 @@ export default class mexc extends Exchange {
             //         ]
             //     }
             //
-            const data = this.safeValue (response, 'data');
+            const data = this.safeList (response, 'data');
             return this.parseOrders (data, market);
         }
     }
@@ -3197,7 +3197,7 @@ export default class mexc extends Exchange {
             //         "code": "0"
             //     }
             //
-            const data = this.safeValue (response, 'data', []);
+            const data = this.safeList (response, 'data', []);
             return this.parseOrders (data, market);
         }
     }
@@ -4348,7 +4348,7 @@ export default class mexc extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data');
+        const data = this.safeList (response, 'data');
         return this.parseLeverageTiers (data, symbols, 'symbol');
     }
 
@@ -4815,7 +4815,7 @@ export default class mexc extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         return this.parsePositions (data, symbols);
     }
 
@@ -4908,7 +4908,7 @@ export default class mexc extends Exchange {
             //         }
             //     }
             //
-            const data = this.safeValue (response, 'data', {});
+            const data = this.safeDict (response, 'data', {});
             return this.parseTransfer (data);
         } else if (marketType === 'swap') {
             throw new BadRequest (this.id + ' fetchTransfer() is not supported for ' + marketType);

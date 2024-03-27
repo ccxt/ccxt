@@ -30,10 +30,10 @@ public partial class gate
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> an array of objects representing market data.</returns>
-    public async Task<Dictionary<string, object>> FetchMarkets(Dictionary<string, object> parameters = null)
+    public async Task<List<MarketInterface>> FetchMarkets(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchMarkets(parameters);
-        return ((Dictionary<string, object>)res);
+        return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
     }
     public async Task<List<Dictionary<string, object>>> FetchSpotMarkets(Dictionary<string, object> parameters = null)
     {
@@ -1533,5 +1533,57 @@ public partial class gate
     {
         var res = await this.fetchLeverages(symbols, parameters);
         return new Leverages(res);
+    }
+    /// <summary>
+    /// fetches option data that is commonly found in an option chain
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#query-specified-contract-detail"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> an [option chain structure]{@link https://docs.ccxt.com/#/?id=option-chain-structure}.</returns>
+    public async Task<Option> FetchOption(string symbol, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchOption(symbol, parameters);
+        return new Option(res);
+    }
+    /// <summary>
+    /// fetches data for an underlying asset that is commonly found in an option chain
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#list-all-the-contracts-with-specified-underlying-and-expiration-time"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.underlying</term>
+    /// <description>
+    /// string : the underlying asset, can be obtained from fetchUnderlyingAssets ()
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.expiration</term>
+    /// <description>
+    /// int : unix timestamp of the expiration time
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a list of [option chain structures]{@link https://docs.ccxt.com/#/?id=option-chain-structure}.</returns>
+    public async Task<OptionChain> FetchOptionChain(string code, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchOptionChain(code, parameters);
+        return new OptionChain(res);
     }
 }

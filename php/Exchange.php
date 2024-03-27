@@ -38,7 +38,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '4.2.79';
+$version = '4.2.84';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -57,7 +57,7 @@ const PAD_WITH_ZERO = 6;
 
 class Exchange {
 
-    const VERSION = '4.2.79';
+    const VERSION = '4.2.84';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -275,8 +275,6 @@ class Exchange {
         'fetchDepositAddresses' => null,
         'fetchDepositAddressesByNetwork' => null,
         'fetchDeposits' => null,
-        'fetchFundingFee' => null,
-        'fetchFundingFees' => null,
         'fetchFundingHistory' => null,
         'fetchFundingRate' => null,
         'fetchFundingRateHistory' => null,
@@ -2162,6 +2160,14 @@ class Exchange {
         return $modifiedContent;
     }
 
+    public function extend_exchange_options($newOptions) {
+        $this->options = array_merge($this->options, $newOptions);
+    }
+
+    public function create_safe_dictionary() {
+        return array();
+    }
+
     // ########################################################################
     // ########################################################################
     // ########################################################################
@@ -3929,7 +3935,7 @@ class Exchange {
         }
     }
 
-    public function market_ids($symbols) {
+    public function market_ids(?array $symbols = null) {
         if ($symbols === null) {
             return $symbols;
         }
@@ -3940,7 +3946,7 @@ class Exchange {
         return $result;
     }
 
-    public function market_symbols($symbols, ?string $type = null, $allowEmpty = true, $sameTypeOnly = false, $sameSubTypeOnly = false) {
+    public function market_symbols(?array $symbols = null, ?string $type = null, $allowEmpty = true, $sameTypeOnly = false, $sameSubTypeOnly = false) {
         if ($symbols === null) {
             if (!$allowEmpty) {
                 throw new ArgumentsRequired($this->id . ' empty list of $symbols is not supported');
@@ -3982,7 +3988,7 @@ class Exchange {
         return $result;
     }
 
-    public function market_codes($codes) {
+    public function market_codes(?array $codes = null) {
         if ($codes === null) {
             return $codes;
         }
@@ -4733,22 +4739,6 @@ class Exchange {
         throw new NotSupported($this->id . ' fetchStatus() is not supported yet');
     }
 
-    public function fetch_funding_fee(string $code, $params = array ()) {
-        $warnOnFetchFundingFee = $this->safe_bool($this->options, 'warnOnFetchFundingFee', true);
-        if ($warnOnFetchFundingFee) {
-            throw new NotSupported($this->id . ' fetchFundingFee() method is deprecated, it will be removed in July 2022, please, use fetchTransactionFee() or set exchange.options["warnOnFetchFundingFee"] = false to suppress this warning');
-        }
-        return $this->fetch_transaction_fee($code, $params);
-    }
-
-    public function fetch_funding_fees(?array $codes = null, $params = array ()) {
-        $warnOnFetchFundingFees = $this->safe_bool($this->options, 'warnOnFetchFundingFees', true);
-        if ($warnOnFetchFundingFees) {
-            throw new NotSupported($this->id . ' fetchFundingFees() method is deprecated, it will be removed in July 2022. Please, use fetchTransactionFees() or set exchange.options["warnOnFetchFundingFees"] = false to suppress this warning');
-        }
-        return $this->fetch_transaction_fees($codes, $params);
-    }
-
     public function fetch_transaction_fee(string $code, $params = array ()) {
         if (!$this->has['fetchTransactionFees']) {
             throw new NotSupported($this->id . ' fetchTransactionFee() is not supported yet');
@@ -4981,6 +4971,10 @@ class Exchange {
 
     public function fetch_order_books(?array $symbols = null, ?int $limit = null, $params = array ()) {
         throw new NotSupported($this->id . ' fetchOrderBooks() is not supported yet');
+    }
+
+    public function watch_bids_asks(?array $symbols = null, $params = array ()) {
+        throw new NotSupported($this->id . ' watchBidsAsks() is not supported yet');
     }
 
     public function watch_tickers(?array $symbols = null, $params = array ()) {
@@ -5353,6 +5347,14 @@ class Exchange {
 
     public function fetch_greeks(string $symbol, $params = array ()) {
         throw new NotSupported($this->id . ' fetchGreeks() is not supported yet');
+    }
+
+    public function fetch_option_chain(string $code, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchOptionChain() is not supported yet');
+    }
+
+    public function fetch_option(string $symbol, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchOption() is not supported yet');
     }
 
     public function fetch_deposits_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
@@ -6573,6 +6575,23 @@ class Exchange {
 
     public function parse_greeks($greeks, ?array $market = null) {
         throw new NotSupported($this->id . ' parseGreeks () is not supported yet');
+    }
+
+    public function parse_option($chain, ?array $currency = null, ?array $market = null) {
+        throw new NotSupported($this->id . ' parseOption () is not supported yet');
+    }
+
+    public function parse_option_chain(mixed $response, ?string $currencyKey = null, ?string $symbolKey = null) {
+        $optionStructures = array();
+        for ($i = 0; $i < count($response); $i++) {
+            $info = $response[$i];
+            $currencyId = $this->safe_string($info, $currencyKey);
+            $currency = $this->safe_currency($currencyId);
+            $marketId = $this->safe_string($info, $symbolKey);
+            $market = $this->safe_market($marketId, null, null, 'option');
+            $optionStructures[$market['symbol']] = $this->parseOption ($info, $currency, $market);
+        }
+        return $optionStructures;
     }
 
     public function parse_margin_modes(mixed $response, ?array $symbols = null, ?string $symbolKey = null, ?string $marketType = null) {

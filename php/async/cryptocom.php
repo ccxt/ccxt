@@ -383,7 +383,7 @@ class cryptocom extends Exchange {
         ));
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-instruments

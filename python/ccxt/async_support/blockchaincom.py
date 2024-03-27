@@ -227,7 +227,7 @@ class blockchaincom(Exchange, ImplicitAPI):
             },
         })
 
-    async def fetch_markets(self, params={}):
+    async def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for blockchaincom
         :see: https://api.blockchain.com/v3/#/unauthenticated/getSymbols

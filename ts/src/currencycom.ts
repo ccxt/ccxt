@@ -394,7 +394,7 @@ export default class currencycom extends Exchange {
         return result;
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name currencycom#fetchMarkets
@@ -1969,7 +1969,7 @@ export default class currencycom extends Exchange {
         //        ]
         //    }
         //
-        const data = this.safeValue (response, 'positions', []);
+        const data = this.safeList (response, 'positions', []);
         return this.parsePositions (data, symbols);
     }
 

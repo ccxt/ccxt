@@ -2897,6 +2897,16 @@
                     "BTC/USDT"
                 ]
             }
+        ],
+        "fetchOption": [
+            {
+                "description": "Fetch an option contract",
+                "method": "fetchOption",
+                "url": "https://eapi.binance.com/eapi/v1/ticker?symbol=BTC-241227-80000-C",
+                "input": [
+                  "BTC/USDT:USDT-241227-80000-C"
+                ]
+            }
         ]
     }
 }

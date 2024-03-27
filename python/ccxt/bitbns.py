@@ -186,7 +186,7 @@ class bitbns(Exchange, ImplicitAPI):
             'info': response,
         }
 
-    def fetch_markets(self, params={}):
+    def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for bitbns
         :param dict [params]: extra parameters specific to the exchange API endpoint

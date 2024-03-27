@@ -256,7 +256,7 @@ class latoken(Exchange, ImplicitAPI):
         #
         return self.safe_integer(response, 'serverTime')
 
-    async def fetch_markets(self, params={}):
+    async def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for latoken
         :see: https://api.latoken.com/doc/v2/#tag/Pair/operation/getActivePairs

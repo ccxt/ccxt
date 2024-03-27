@@ -269,7 +269,7 @@ class krakenfutures extends Exchange {
         ));
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * Fetches the available trading markets from the exchange, Multi-collateral markets are returned markets, but can be settled in multiple $currencies

@@ -23,7 +23,11 @@ export default class phemex extends phemexRest {
                 'watchOrders': true,
                 'watchOrderBook': true,
                 'watchOHLCV': true,
-                'watchPositions': undefined, // TODO
+                'watchPositions': undefined,
+                // mutli-endpoints are not supported: https://github.com/ccxt/ccxt/pull/21490
+                'watchOrderBookForSymbols': false,
+                'watchTradesForSymbols': false,
+                'watchOHLCVForSymbols': false,
             },
             'urls': {
                 'test': {
@@ -563,9 +567,10 @@ export default class phemex extends phemexRest {
         /**
          * @method
          * @name phemex#watchOrderBook
+         * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Spot-API-en.md#subscribe-orderbook
          * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#subscribe-orderbook-for-new-model
          * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md#subscribe-30-levels-orderbook
-         * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Spot-API-en.md#subscribe-orderbook
+         * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md#subscribe-full-orderbook
          * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return

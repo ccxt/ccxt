@@ -388,7 +388,7 @@ export default class woo extends Exchange {
         return this.safeInteger (response, 'timestamp');
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name woo#fetchMarkets
@@ -1345,7 +1345,7 @@ export default class woo extends Exchange {
         //     ]
         // }
         //
-        const orders = this.safeValue (response, 'data', response);
+        const orders = this.safeDict (response, 'data', response);
         return this.parseOrder (orders, market);
     }
 

@@ -4,7 +4,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '4.2.79'
+__version__ = '4.2.84'
 
 # ----------------------------------------------------------------------------
 
@@ -24,6 +24,7 @@ from ccxt.pro.bitcoincom import bitcoincom                                # noqa
 from ccxt.pro.bitfinex import bitfinex                                    # noqa: F401
 from ccxt.pro.bitfinex2 import bitfinex2                                  # noqa: F401
 from ccxt.pro.bitget import bitget                                        # noqa: F401
+from ccxt.pro.bithumb import bithumb                                      # noqa: F401
 from ccxt.pro.bitmart import bitmart                                      # noqa: F401
 from ccxt.pro.bitmex import bitmex                                        # noqa: F401
 from ccxt.pro.bitopro import bitopro                                      # noqa: F401
@@ -89,6 +90,7 @@ exchanges = [
     'bitfinex',
     'bitfinex2',
     'bitget',
+    'bithumb',
     'bitmart',
     'bitmex',
     'bitopro',

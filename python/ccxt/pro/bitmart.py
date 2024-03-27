@@ -663,9 +663,9 @@ class bitmart(ccxt.async_support.bitmart):
         #    }
         #
         data = self.safe_value(message, 'data', [])
-        cache = self.positions
         if self.positions is None:
             self.positions = ArrayCacheBySymbolBySide()
+        cache = self.positions
         newPositions = []
         for i in range(0, len(data)):
             rawPosition = data[i]

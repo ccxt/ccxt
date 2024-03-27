@@ -35,27 +35,35 @@ function testOrderBook (exchange, skippedProperties, method, orderbook, symbol =
     const bidsLength = bids.length;
     for (let i = 0; i < bidsLength; i++) {
         const currentBidString = exchange.safeString (bids[i], 0);
-        const nextI = i + 1;
-        if (bidsLength > nextI) {
-            const nextBidString = exchange.safeString (bids[nextI], 0);
-            const hasCorrectOrder = Precise.stringGt (currentBidString, nextBidString);
-            assert (hasCorrectOrder, 'current bid should be > than the next one: ' + currentBidString + '>' + nextBidString + logText);
+        if (!('compareToNextItem' in skippedProperties)) {
+            const nextI = i + 1;
+            if (bidsLength > nextI) {
+                const nextBidString = exchange.safeString (bids[nextI], 0);
+                assert (Precise.stringGt (currentBidString, nextBidString), 'current bid should be > than the next one: ' + currentBidString + '>' + nextBidString + logText);
+            }
         }
-        testSharedMethods.assertGreater (exchange, skippedProperties, method, bids[i], 0, '0');
-        testSharedMethods.assertGreater (exchange, skippedProperties, method, bids[i], 1, '0');
+        if (!('compareToZero' in skippedProperties)) {
+            // compare price & volume to zero
+            testSharedMethods.assertGreater (exchange, skippedProperties, method, bids[i], 0, '0');
+            testSharedMethods.assertGreater (exchange, skippedProperties, method, bids[i], 1, '0');
+        }
     }
     const asks = orderbook['asks'];
     const asksLength = asks.length;
     for (let i = 0; i < asksLength; i++) {
         const currentAskString = exchange.safeString (asks[i], 0);
-        const nextI = i + 1;
-        if (asksLength > nextI) {
-            const nextAskString = exchange.safeString (asks[nextI], 0);
-            const hasCorrectOrder = Precise.stringLt (currentAskString, nextAskString);
-            assert (hasCorrectOrder, 'current ask should be < than the next one: ' + currentAskString + '<' + nextAskString + logText);
+        if (!('compareToNextItem' in skippedProperties)) {
+            const nextI = i + 1;
+            if (asksLength > nextI) {
+                const nextAskString = exchange.safeString (asks[nextI], 0);
+                assert (Precise.stringLt (currentAskString, nextAskString), 'current ask should be < than the next one: ' + currentAskString + '<' + nextAskString + logText);
+            }
         }
-        testSharedMethods.assertGreater (exchange, skippedProperties, method, asks[i], 0, '0');
-        testSharedMethods.assertGreater (exchange, skippedProperties, method, asks[i], 1, '0');
+        if (!('compareToZero' in skippedProperties)) {
+            // compare price & volume to zero
+            testSharedMethods.assertGreater (exchange, skippedProperties, method, asks[i], 0, '0');
+            testSharedMethods.assertGreater (exchange, skippedProperties, method, asks[i], 1, '0');
+        }
     }
     if (!('spread' in skippedProperties)) {
         if (bidsLength && asksLength) {

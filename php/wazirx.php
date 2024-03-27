@@ -185,7 +185,7 @@ class wazirx extends Exchange {
         ));
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): array {
         /**
          * @see https://docs.wazirx.com/#exchange-info
          * retrieves data on all $markets for wazirx

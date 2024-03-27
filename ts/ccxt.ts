@@ -33,14 +33,14 @@ import { Exchange }  from './src/base/Exchange.js'
 import { Precise }   from './src/base/Precise.js'
 import * as functions from './src/base/functions.js'
 import * as errors   from './src/base/errors.js'
-import type { Market, Trade , Fee, Ticker, OrderBook, Order, Transaction, Tickers, Currency, Balance, DepositAddress, WithdrawalResponse, DepositAddressResponse, OHLCV, Balances, PartialBalances, Dictionary, MinMax, Position, FundingRateHistory, Liquidation, FundingHistory, MarginMode, Greeks, Leverage, Leverages } from './src/base/types.js'
+import type { Market, Trade , Fee, Ticker, OrderBook, Order, Transaction, Tickers, Currency, Balance, DepositAddress, WithdrawalResponse, DepositAddressResponse, OHLCV, Balances, PartialBalances, Dictionary, MinMax, Position, FundingRateHistory, Liquidation, FundingHistory, MarginMode, Greeks, Leverage, Leverages, Option, OptionChain } from './src/base/types.js'
 import { BaseError, ExchangeError, PermissionDenied, AccountNotEnabled, AccountSuspended, ArgumentsRequired, BadRequest, BadSymbol, MarginModeAlreadySet, BadResponse, NullResponse, InsufficientFunds, InvalidAddress, InvalidOrder, OrderNotFound, OrderNotCached, CancelPending, OrderImmediatelyFillable, OrderNotFillable, DuplicateOrderId, NotSupported, NetworkError, DDoSProtection, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, InvalidNonce, RequestTimeout, AuthenticationError, AddressPending, NoChange }  from './src/base/errors.js'
 
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '4.2.79';
+const version = '4.2.84';
 
 (Exchange as any).ccxtVersion = version
 
@@ -164,6 +164,7 @@ import bitcoincomPro from  './src/pro/bitcoincom.js'
 import bitfinexPro from  './src/pro/bitfinex.js'
 import bitfinex2Pro from  './src/pro/bitfinex2.js'
 import bitgetPro from  './src/pro/bitget.js'
+import bithumbPro from  './src/pro/bithumb.js'
 import bitmartPro from  './src/pro/bitmart.js'
 import bitmexPro from  './src/pro/bitmex.js'
 import bitoproPro from  './src/pro/bitopro.js'
@@ -335,6 +336,7 @@ const pro = {
     'bitfinex':               bitfinexPro,
     'bitfinex2':              bitfinex2Pro,
     'bitget':                 bitgetPro,
+    'bithumb':                bithumbPro,
     'bitmart':                bitmartPro,
     'bitmex':                 bitmexPro,
     'bitopro':                bitoproPro,
@@ -468,6 +470,8 @@ export {
     Greeks,
     Leverage,
     Leverages,
+    Option,
+    OptionChain,
     ace,
     alpaca,
     ascendex,

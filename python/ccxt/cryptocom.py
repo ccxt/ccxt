@@ -390,7 +390,7 @@ class cryptocom(Exchange, ImplicitAPI):
             },
         })
 
-    def fetch_markets(self, params={}):
+    def fetch_markets(self, params={}) -> List[Market]:
         """
         :see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-instruments
         retrieves data on all markets for cryptocom

@@ -256,7 +256,7 @@ class probit(Exchange, ImplicitAPI):
             },
         })
 
-    async def fetch_markets(self, params={}):
+    async def fetch_markets(self, params={}) -> List[Market]:
         """
         :see: https://docs-en.probit.com/reference/market
         retrieves data on all markets for probit

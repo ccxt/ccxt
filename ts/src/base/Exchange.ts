@@ -146,10 +146,10 @@ import { OrderBook as WsOrderBook, IndexedOrderBook, CountedOrderBook } from './
 //
 import { axolotl } from './functions/crypto.js';
 // import types
-import type { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRate, DepositWithdrawFeeNetwork, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, BorrowRate, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks,  Str, Num, MarketInterface, CurrencyInterface, BalanceAccount, MarginModes, MarketType, Leverage, Leverages, LastPrice, LastPrices, Account, Strings } from './types.js';
+import type { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRate, DepositWithdrawFeeNetwork, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, BorrowRate, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks, Option, OptionChain, Str, Num, MarketInterface, CurrencyInterface, BalanceAccount, MarginModes, MarketType, Leverage, Leverages, LastPrice, LastPrices, Account, Strings } from './types.js';
 // export {Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRateHistory, Liquidation, FundingHistory} from './types.js'
 // import { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRateHistory, OpenInterest, Liquidation, OrderRequest, FundingHistory, MarginMode, Tickers, Greeks, Str, Num, MarketInterface, CurrencyInterface, Account } from './types.js';
-export type { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, BorrowRate, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks,  Str, Num, MarketInterface, CurrencyInterface, BalanceAccount, MarginModes, MarketType, Leverage, Leverages, LastPrice, LastPrices, Account, Strings } from './types.js'
+export type { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, BorrowRate, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks, Option, OptionChain, Str, Num, MarketInterface, CurrencyInterface, BalanceAccount, MarginModes, MarketType, Leverage, Leverages, LastPrice, LastPrices, Account, Strings } from './types.js'
 
 // ----------------------------------------------------------------------------
 // move this elsewhere.
@@ -578,6 +578,8 @@ export default class Exchange {
                 'fetchOpenOrder': undefined,
                 'fetchOpenOrders': undefined,
                 'fetchOpenOrdersWs': undefined,
+                'fetchOption': undefined,
+                'fetchOptionChain': undefined,
                 'fetchOrder': undefined,
                 'fetchOrderBook': true,
                 'fetchOrderBooks': undefined,
@@ -1716,6 +1718,15 @@ export default class Exchange {
 
     intToBase16(elem): string {
         return elem.toString(16);
+
+    }
+
+    extendExchangeOptions (newOptions) {
+        this.options = this.extend (this.options, newOptions);
+    }
+
+    createSafeDictionary () {
+        return {};
     }
 
     /* eslint-enable */
@@ -4310,22 +4321,6 @@ export default class Exchange {
         throw new NotSupported (this.id + ' fetchStatus() is not supported yet');
     }
 
-    async fetchFundingFee (code: string, params = {}) {
-        const warnOnFetchFundingFee = this.safeBool (this.options, 'warnOnFetchFundingFee', true);
-        if (warnOnFetchFundingFee) {
-            throw new NotSupported (this.id + ' fetchFundingFee() method is deprecated, it will be removed in July 2022, please, use fetchTransactionFee() or set exchange.options["warnOnFetchFundingFee"] = false to suppress this warning');
-        }
-        return await this.fetchTransactionFee (code, params);
-    }
-
-    async fetchFundingFees (codes: string[] = undefined, params = {}) {
-        const warnOnFetchFundingFees = this.safeBool (this.options, 'warnOnFetchFundingFees', true);
-        if (warnOnFetchFundingFees) {
-            throw new NotSupported (this.id + ' fetchFundingFees() method is deprecated, it will be removed in July 2022. Please, use fetchTransactionFees() or set exchange.options["warnOnFetchFundingFees"] = false to suppress this warning');
-        }
-        return await this.fetchTransactionFees (codes, params);
-    }
-
     async fetchTransactionFee (code: string, params = {}) {
         if (!this.has['fetchTransactionFees']) {
             throw new NotSupported (this.id + ' fetchTransactionFee() is not supported yet');
@@ -4561,7 +4556,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' fetchOrderBooks() is not supported yet');
     }
 
-    async watchBidsAsks (symbols: string[] = undefined, params = {}): Promise<Tickers> {
+    async watchBidsAsks (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         throw new NotSupported (this.id + ' watchBidsAsks() is not supported yet');
     }
 
@@ -4953,6 +4948,14 @@ export default class Exchange {
 
     async fetchGreeks (symbol: string, params = {}): Promise<Greeks> {
         throw new NotSupported (this.id + ' fetchGreeks() is not supported yet');
+    }
+
+    async fetchOptionChain (code: string, params = {}): Promise<OptionChain> {
+        throw new NotSupported (this.id + ' fetchOptionChain() is not supported yet');
+    }
+
+    async fetchOption (symbol: string, params = {}): Promise<Option> {
+        throw new NotSupported (this.id + ' fetchOption() is not supported yet');
     }
 
     async fetchDepositsWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
@@ -6198,6 +6201,23 @@ export default class Exchange {
         throw new NotSupported (this.id + ' parseGreeks () is not supported yet');
     }
 
+    parseOption (chain, currency: Currency = undefined, market: Market = undefined): Option {
+        throw new NotSupported (this.id + ' parseOption () is not supported yet');
+    }
+
+    parseOptionChain (response: object[], currencyKey: Str = undefined, symbolKey: Str = undefined): OptionChain {
+        const optionStructures = {};
+        for (let i = 0; i < response.length; i++) {
+            const info = response[i];
+            const currencyId = this.safeString (info, currencyKey);
+            const currency = this.safeCurrency (currencyId);
+            const marketId = this.safeString (info, symbolKey);
+            const market = this.safeMarket (marketId, undefined, undefined, 'option');
+            optionStructures[market['symbol']] = this.parseOption (info, currency, market);
+        }
+        return optionStructures;
+    }
+
     parseMarginModes (response: object[], symbols: string[] = undefined, symbolKey: Str = undefined, marketType: MarketType = undefined): MarginModes {
         const marginModeStructures = {};
         for (let i = 0; i < response.length; i++) {
@@ -6230,6 +6250,74 @@ export default class Exchange {
 
     parseLeverage (leverage, market: Market = undefined): Leverage {
         throw new NotSupported (this.id + ' parseLeverage() is not supported yet');
+    }
+
+    convertExpireDate (date: string): string {
+        // parse YYMMDD to datetime string
+        const year = date.slice (0, 2);
+        const month = date.slice (2, 4);
+        const day = date.slice (4, 6);
+        const reconstructedDate = '20' + year + '-' + month + '-' + day + 'T00:00:00Z';
+        return reconstructedDate;
+    }
+
+    convertExpireDateToMarketIdDate (date: string): string {
+        // parse 240119 to 19JAN24
+        const year = date.slice (0, 2);
+        const monthRaw = date.slice (2, 4);
+        let month = undefined;
+        const day = date.slice (4, 6);
+        if (monthRaw === '01') {
+            month = 'JAN';
+        } else if (monthRaw === '02') {
+            month = 'FEB';
+        } else if (monthRaw === '03') {
+            month = 'MAR';
+        } else if (monthRaw === '04') {
+            month = 'APR';
+        } else if (monthRaw === '05') {
+            month = 'MAY';
+        } else if (monthRaw === '06') {
+            month = 'JUN';
+        } else if (monthRaw === '07') {
+            month = 'JUL';
+        } else if (monthRaw === '08') {
+            month = 'AUG';
+        } else if (monthRaw === '09') {
+            month = 'SEP';
+        } else if (monthRaw === '10') {
+            month = 'OCT';
+        } else if (monthRaw === '11') {
+            month = 'NOV';
+        } else if (monthRaw === '12') {
+            month = 'DEC';
+        }
+        const reconstructedDate = day + month + year;
+        return reconstructedDate;
+    }
+
+    convertMarketIdExpireDate (date: string): string {
+        // parse 19JAN24 to 240119
+        const monthMappping = {
+            'JAN': '01',
+            'FEB': '02',
+            'MAR': '03',
+            'APR': '04',
+            'MAY': '05',
+            'JUN': '06',
+            'JUL': '07',
+            'AUG': '08',
+            'SEP': '09',
+            'OCT': '10',
+            'NOV': '11',
+            'DEC': '12',
+        };
+        const year = date.slice (0, 2);
+        const monthName = date.slice (2, 5);
+        const month = this.safeString (monthMappping, monthName);
+        const day = date.slice (5, 7);
+        const reconstructedDate = day + month + year;
+        return reconstructedDate;
     }
 }
 

@@ -607,7 +607,7 @@ class okcoin extends Exchange {
         return $this->parse8601($this->safe_string($response, 'iso'));
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): array {
         /**
          * @see https://www.okcoin.com/docs-v5/en/#rest-api-public-data-get-instruments
          * retrieves data on all $markets for okcoin

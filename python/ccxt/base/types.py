@@ -302,6 +302,28 @@ class Greeks(TypedDict):
     info: Dict[str, Any]
 
 
+class Option(TypedDict):
+    info: Dict[str, Any]
+    currency: Str
+    symbol: Str
+    timestamp: Int
+    datetime: Str
+    impliedVolatility: Num
+    openInterest: Num
+    bidPrice: Num
+    askPrice: Num
+    midPrice: Num
+    markPrice: Num
+    lastPrice: Num
+    underlyingPrice: Num
+    change: Num
+    percentage: Num
+    baseVolume: Num
+    quoteVolume: Num
+
+
+OptionChain = Dict[str, Option]
+
 class MarketInterface(TypedDict):
     info: Dict[str, Any]
     id: Str

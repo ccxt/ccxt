@@ -345,7 +345,7 @@ class lbank(Exchange, ImplicitAPI):
         #
         return self.safe_integer(response, 'data')
 
-    async def fetch_markets(self, params={}):
+    async def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for lbank
         :see: https://www.lbank.com/en-US/docs/index.html#trading-pairs

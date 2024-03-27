@@ -111,6 +111,8 @@ class binance extends binance$1 {
                 'fetchOpenInterestHistory': true,
                 'fetchOpenOrder': true,
                 'fetchOpenOrders': true,
+                'fetchOption': true,
+                'fetchOptionChain': false,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrderBooks': false,
@@ -2402,7 +2404,7 @@ class binance extends binance$1 {
     }
     isInverse(type, subType = undefined) {
         if (subType === undefined) {
-            return type === 'delivery';
+            return (type === 'delivery');
         }
         else {
             return subType === 'inverse';
@@ -12406,6 +12408,94 @@ class binance extends binance$1 {
             'info': marginMode,
             'symbol': market['symbol'],
             'marginMode': isIsolated ? 'isolated' : 'cross',
+        };
+    }
+    async fetchOption(symbol, params = {}) {
+        /**
+         * @method
+         * @name binance#fetchOption
+         * @description fetches option data that is commonly found in an option chain
+         * @see https://binance-docs.github.io/apidocs/voptions/en/#24hr-ticker-price-change-statistics
+         * @param {string} symbol unified market symbol
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [option chain structure]{@link https://docs.ccxt.com/#/?id=option-chain-structure}
+         */
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this.eapiPublicGetTicker(this.extend(request, params));
+        //
+        //     [
+        //         {
+        //             "symbol": "BTC-241227-80000-C",
+        //             "priceChange": "0",
+        //             "priceChangePercent": "0",
+        //             "lastPrice": "2750",
+        //             "lastQty": "0",
+        //             "open": "2750",
+        //             "high": "2750",
+        //             "low": "2750",
+        //             "volume": "0",
+        //             "amount": "0",
+        //             "bidPrice": "4880",
+        //             "askPrice": "0",
+        //             "openTime": 0,
+        //             "closeTime": 0,
+        //             "firstTradeId": 0,
+        //             "tradeCount": 0,
+        //             "strikePrice": "80000",
+        //             "exercisePrice": "63944.09893617"
+        //         }
+        //     ]
+        //
+        const chain = this.safeDict(response, 0, {});
+        return this.parseOption(chain, undefined, market);
+    }
+    parseOption(chain, currency = undefined, market = undefined) {
+        //
+        //     {
+        //         "symbol": "BTC-241227-80000-C",
+        //         "priceChange": "0",
+        //         "priceChangePercent": "0",
+        //         "lastPrice": "2750",
+        //         "lastQty": "0",
+        //         "open": "2750",
+        //         "high": "2750",
+        //         "low": "2750",
+        //         "volume": "0",
+        //         "amount": "0",
+        //         "bidPrice": "4880",
+        //         "askPrice": "0",
+        //         "openTime": 0,
+        //         "closeTime": 0,
+        //         "firstTradeId": 0,
+        //         "tradeCount": 0,
+        //         "strikePrice": "80000",
+        //         "exercisePrice": "63944.09893617"
+        //     }
+        //
+        const marketId = this.safeString(chain, 'symbol');
+        market = this.safeMarket(marketId, market);
+        return {
+            'info': chain,
+            'currency': undefined,
+            'symbol': market['symbol'],
+            'timestamp': undefined,
+            'datetime': undefined,
+            'impliedVolatility': undefined,
+            'openInterest': undefined,
+            'bidPrice': this.safeNumber(chain, 'bidPrice'),
+            'askPrice': this.safeNumber(chain, 'askPrice'),
+            'midPrice': undefined,
+            'markPrice': undefined,
+            'lastPrice': this.safeNumber(chain, 'lastPrice'),
+            'underlyingPrice': this.safeNumber(chain, 'exercisePrice'),
+            'change': this.safeNumber(chain, 'priceChange'),
+            'percentage': this.safeNumber(chain, 'priceChangePercent'),
+            'baseVolume': this.safeNumber(chain, 'volume'),
+            'quoteVolume': undefined,
         };
     }
 }

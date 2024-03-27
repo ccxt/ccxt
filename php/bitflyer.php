@@ -143,7 +143,7 @@ class bitflyer extends Exchange {
         return parent::safe_market($marketId, $market, $delimiter, 'spot');
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): array {
         /**
          * retrieves data on all $markets for bitflyer
          * @see https://lightning.bitflyer.com/docs?lang=en#$market-list

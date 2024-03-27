@@ -38,7 +38,7 @@ export default class upbit extends Exchange {
     }>;
     fetchMarket(symbol: string, params?: {}): Promise<import("./base/types.js").MarketInterface>;
     fetchMarketById(id: string, params?: {}): Promise<import("./base/types.js").MarketInterface>;
-    fetchMarkets(params?: {}): Promise<import("./base/types.js").MarketInterface[]>;
+    fetchMarkets(params?: {}): Promise<Market[]>;
     parseMarket(market: any): Market;
     parseBalance(response: any): Balances;
     fetchBalance(params?: {}): Promise<Balances>;

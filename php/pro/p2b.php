@@ -56,6 +56,7 @@ class p2b extends \ccxt\async\p2b {
                 'watchTickers' => array(
                     'name' => 'state',  // or 'price'
                 ),
+                'tickerSubs' => $this->create_safe_dictionary(),
             ),
             'streaming' => array(
                 'ping' => array($this, 'ping'),
@@ -129,13 +130,14 @@ class p2b extends \ccxt\async\p2b {
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
              */
             Async\await($this->load_markets());
-            $watchTickerOptions = $this->safe_value($this->options, 'watchTicker');
+            $watchTickerOptions = $this->safe_dict($this->options, 'watchTicker');
             $name = $this->safe_string($watchTickerOptions, 'name', 'state');  // or price
             list($name, $params) = $this->handle_option_and_params($params, 'method', 'name', $name);
             $market = $this->market($symbol);
-            $request = [
-                $market['id'],
-            ];
+            $symbol = $market['symbol'];
+            $this->options['tickerSubs'][$market['id']] = true; // we need to re-subscribe to all tickers upon watching a new ticker
+            $tickerSubs = $this->options['tickerSubs'];
+            $request = is_array($tickerSubs) ? array_keys($tickerSubs) : array();
             $messageHash = $name . '::' . $market['symbol'];
             return Async\await($this->subscribe($name . '.subscribe', $messageHash, $request, $params));
         }) ();
@@ -447,5 +449,15 @@ class p2b extends \ccxt\async\p2b {
         //
         $client->lastPong = $this->safe_integer($message, 'id');
         return $message;
+    }
+
+    public function on_error(Client $client, $error) {
+        $this->options['tickerSubs'] = $this->create_safe_dictionary();
+        $this->on_error($client, $error);
+    }
+
+    public function on_close(Client $client, $error) {
+        $this->options['tickerSubs'] = $this->create_safe_dictionary();
+        $this->on_close($client, $error);
     }
 }

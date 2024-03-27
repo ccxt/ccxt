@@ -377,7 +377,7 @@ export default class cryptocom extends Exchange {
         });
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name cryptocom#fetchMarkets
@@ -622,7 +622,7 @@ export default class cryptocom extends Exchange {
         //     }
         //
         const result = this.safeValue (response, 'result', {});
-        const data = this.safeValue (result, 'data', []);
+        const data = this.safeList (result, 'data', []);
         return this.parseTickers (data, symbols);
     }
 
@@ -720,7 +720,7 @@ export default class cryptocom extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'result', {});
-        const orders = this.safeValue (data, 'data', []);
+        const orders = this.safeList (data, 'data', []);
         return this.parseOrders (orders, market, since, limit);
     }
 
@@ -781,7 +781,7 @@ export default class cryptocom extends Exchange {
         //     }
         //
         const result = this.safeValue (response, 'result', {});
-        const trades = this.safeValue (result, 'data', []);
+        const trades = this.safeList (result, 'data', []);
         return this.parseTrades (trades, market, since, limit);
     }
 
@@ -845,7 +845,7 @@ export default class cryptocom extends Exchange {
         //     }
         //
         const result = this.safeValue (response, 'result', {});
-        const data = this.safeValue (result, 'data', []);
+        const data = this.safeList (result, 'data', []);
         return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
@@ -1020,7 +1020,7 @@ export default class cryptocom extends Exchange {
         //         }
         //     }
         //
-        const order = this.safeValue (response, 'result', {});
+        const order = this.safeDict (response, 'result', {});
         return this.parseOrder (order, market);
     }
 
@@ -1156,7 +1156,7 @@ export default class cryptocom extends Exchange {
         //         }
         //     }
         //
-        const result = this.safeValue (response, 'result', {});
+        const result = this.safeDict (response, 'result', {});
         return this.parseOrder (result, market);
     }
 
@@ -1405,7 +1405,7 @@ export default class cryptocom extends Exchange {
         //         }
         //     }
         //
-        const result = this.safeValue (response, 'result', {});
+        const result = this.safeDict (response, 'result', {});
         return this.parseOrder (result, market);
     }
 
@@ -1439,7 +1439,7 @@ export default class cryptocom extends Exchange {
             'order_list': orderRequests,
         };
         const response = await this.v1PrivatePostPrivateCancelOrderList (this.extend (request, params));
-        const result = this.safeValue (response, 'result', []);
+        const result = this.safeList (response, 'result', []);
         return this.parseOrders (result, market, undefined, undefined, params);
     }
 
@@ -1501,7 +1501,7 @@ export default class cryptocom extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'result', {});
-        const orders = this.safeValue (data, 'data', []);
+        const orders = this.safeList (data, 'data', []);
         return this.parseOrders (orders, market, since, limit);
     }
 
@@ -1573,7 +1573,7 @@ export default class cryptocom extends Exchange {
         //     }
         //
         const result = this.safeValue (response, 'result', {});
-        const trades = this.safeValue (result, 'data', []);
+        const trades = this.safeList (result, 'data', []);
         return this.parseTrades (trades, market, since, limit);
     }
 
@@ -1638,7 +1638,7 @@ export default class cryptocom extends Exchange {
         //        }
         //     }
         //
-        const result = this.safeValue (response, 'result');
+        const result = this.safeDict (response, 'result');
         return this.parseTransaction (result, currency);
     }
 
@@ -1793,7 +1793,7 @@ export default class cryptocom extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'result', {});
-        const depositList = this.safeValue (data, 'deposit_list', []);
+        const depositList = this.safeList (data, 'deposit_list', []);
         return this.parseTransactions (depositList, currency, since, limit);
     }
 
@@ -1855,7 +1855,7 @@ export default class cryptocom extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'result', {});
-        const withdrawalList = this.safeValue (data, 'withdrawal_list', []);
+        const withdrawalList = this.safeList (data, 'withdrawal_list', []);
         return this.parseTransactions (withdrawalList, currency, since, limit);
     }
 
@@ -2320,7 +2320,7 @@ export default class cryptocom extends Exchange {
         await this.loadMarkets ();
         const response = await this.v1PrivatePostPrivateGetCurrencyNetworks (params);
         const data = this.safeValue (response, 'result');
-        const currencyMap = this.safeValue (data, 'currency_map');
+        const currencyMap = this.safeList (data, 'currency_map');
         return this.parseDepositWithdrawFees (currencyMap, codes, 'full_name');
     }
 
@@ -2758,8 +2758,8 @@ export default class cryptocom extends Exchange {
         //         }
         //     }
         //
-        const result = this.safeValue (response, 'result', {});
-        const data = this.safeValue (result, 'data', []);
+        const result = this.safeDict (response, 'result', {});
+        const data = this.safeList (result, 'data', []);
         return this.parsePosition (data[0], market);
     }
 
@@ -2953,7 +2953,7 @@ export default class cryptocom extends Exchange {
         //        }
         //    }
         //
-        const result = this.safeValue (response, 'result');
+        const result = this.safeDict (response, 'result');
         return this.parseOrder (result, market);
     }
 
