@@ -668,7 +668,7 @@ class poloniexfutures extends Exchange {
         //        ),
         //    }
         //
-        $trades = $this->safe_value($response, 'data', array());
+        $trades = $this->safe_list($response, 'data', array());
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
@@ -737,7 +737,7 @@ class poloniexfutures extends Exchange {
         //        ]
         //    }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_list($response, 'data', array());
         return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
     }
 
@@ -993,7 +993,7 @@ class poloniexfutures extends Exchange {
         //        )
         //    }
         //
-        $data = $this->safe_value($response, 'data');
+        $data = $this->safe_list($response, 'data');
         return $this->parse_positions($data, $symbols);
     }
 
@@ -1436,7 +1436,7 @@ class poloniexfutures extends Exchange {
         //    }
         //
         $market = ($symbol !== null) ? $this->market($symbol) : null;
-        $responseData = $this->safe_value($response, 'data');
+        $responseData = $this->safe_dict($response, 'data');
         return $this->parse_order($responseData, $market);
     }
 
@@ -1671,7 +1671,7 @@ class poloniexfutures extends Exchange {
         //    }
         //
         $data = $this->safe_value($response, 'data', array());
-        $trades = $this->safe_value($data, 'items', array());
+        $trades = $this->safe_list($data, 'items', array());
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 

@@ -510,7 +510,7 @@ class okx extends \ccxt\async\okx {
             /**
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
              * @param {string[]} $symbols unified array of $symbols
-             * @param {int} [$limit] the maximum amount of order book entries to return
+             * @param {int} [$limit] 1,5, 400, 50 (l2-tbt, vip4+) or 40000 (vip5+) the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by market $symbols
              */
@@ -518,6 +518,19 @@ class okx extends \ccxt\async\okx {
             $symbols = $this->market_symbols($symbols);
             $options = $this->safe_value($this->options, 'watchOrderBook', array());
             $depth = $this->safe_string($options, 'depth', 'books');
+            if ($limit !== null) {
+                if ($limit === 1) {
+                    $depth = 'bbo-tbt';
+                } elseif ($limit > 1 && $limit <= 5) {
+                    $depth = 'books5';
+                } elseif ($limit === 400) {
+                    $depth = 'books';
+                } elseif ($limit === 50) {
+                    $depth = 'books50-l2-tbt'; // Make sure you have VIP4 and above
+                } elseif ($limit === 4000) {
+                    $depth = 'books-l2-tbt'; // Make sure you have VIP5 and above
+                }
+            }
             if (($depth === 'books-l2-tbt') || ($depth === 'books50-l2-tbt')) {
                 Async\await($this->authenticate(array( 'access' => 'public' )));
             }

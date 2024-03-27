@@ -498,7 +498,7 @@ class independentreserve extends Exchange {
         $request['pageIndex'] = 1;
         $request['pageSize'] = $limit;
         $response = $this->privatePostGetOpenOrders (array_merge($request, $params));
-        $data = $this->safe_value($response, 'Data', array());
+        $data = $this->safe_list($response, 'Data', array());
         return $this->parse_orders($data, $market, $since, $limit);
     }
 
@@ -525,7 +525,7 @@ class independentreserve extends Exchange {
         $request['pageIndex'] = 1;
         $request['pageSize'] = $limit;
         $response = $this->privatePostGetClosedOrders (array_merge($request, $params));
-        $data = $this->safe_value($response, 'Data', array());
+        $data = $this->safe_list($response, 'Data', array());
         return $this->parse_orders($data, $market, $since, $limit);
     }
 

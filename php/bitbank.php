@@ -296,7 +296,7 @@ class bitbank extends Exchange {
             'pair' => $market['id'],
         );
         $response = $this->publicGetPairTicker (array_merge($request, $params));
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_dict($response, 'data', array());
         return $this->parse_ticker($data, $market);
     }
 
@@ -383,7 +383,7 @@ class bitbank extends Exchange {
         );
         $response = $this->publicGetPairTransactions (array_merge($request, $params));
         $data = $this->safe_value($response, 'data', array());
-        $trades = $this->safe_value($data, 'transactions', array());
+        $trades = $this->safe_list($data, 'transactions', array());
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
@@ -512,7 +512,7 @@ class bitbank extends Exchange {
         $data = $this->safe_value($response, 'data', array());
         $candlestick = $this->safe_value($data, 'candlestick', array());
         $first = $this->safe_value($candlestick, 0, array());
-        $ohlcv = $this->safe_value($first, 'ohlcv', array());
+        $ohlcv = $this->safe_list($first, 'ohlcv', array());
         return $this->parse_ohlcvs($ohlcv, $market, $timeframe, $since, $limit);
     }
 
@@ -656,7 +656,7 @@ class bitbank extends Exchange {
             $request['price'] = $this->price_to_precision($symbol, $price);
         }
         $response = $this->privatePostUserSpotOrder (array_merge($request, $params));
-        $data = $this->safe_value($response, 'data');
+        $data = $this->safe_dict($response, 'data');
         return $this->parse_order($data, $market);
     }
 
@@ -695,7 +695,7 @@ class bitbank extends Exchange {
             'pair' => $market['id'],
         );
         $response = $this->privateGetUserSpotOrder (array_merge($request, $params));
-        $data = $this->safe_value($response, 'data');
+        $data = $this->safe_dict($response, 'data');
         return $this->parse_order($data, $market);
     }
 
@@ -722,7 +722,7 @@ class bitbank extends Exchange {
         }
         $response = $this->privateGetUserSpotActiveOrders (array_merge($request, $params));
         $data = $this->safe_value($response, 'data', array());
-        $orders = $this->safe_value($data, 'orders', array());
+        $orders = $this->safe_list($data, 'orders', array());
         return $this->parse_orders($orders, $market, $since, $limit);
     }
 
@@ -751,7 +751,7 @@ class bitbank extends Exchange {
         }
         $response = $this->privateGetUserSpotTradeHistory (array_merge($request, $params));
         $data = $this->safe_value($response, 'data', array());
-        $trades = $this->safe_value($data, 'trades', array());
+        $trades = $this->safe_list($data, 'trades', array());
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
@@ -822,7 +822,7 @@ class bitbank extends Exchange {
         //         }
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_dict($response, 'data', array());
         return $this->parse_transaction($data, $currency);
     }
 

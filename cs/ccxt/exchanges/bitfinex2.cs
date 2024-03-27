@@ -1849,7 +1849,7 @@ public partial class bitfinex2 : Exchange
             { "all", 1 },
         };
         object response = await this.privatePostAuthWOrderCancelMulti(this.extend(request, parameters));
-        object orders = this.safeValue(response, 4, new List<object>() {});
+        object orders = this.safeList(response, 4, new List<object>() {});
         return this.parseOrders(orders);
     }
 

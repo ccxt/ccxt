@@ -2523,8 +2523,13 @@ public partial class kucoin : Exchange
         //             ]
         //         }
         //    }
+        object listData = this.safeList(response, "data");
+        if (isTrue(!isEqual(listData, null)))
+        {
+            return this.parseOrders(listData, market, since, limit);
+        }
         object responseData = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        object orders = this.safeValue(responseData, "items", responseData);
+        object orders = this.safeList(responseData, "items", new List<object>() {});
         return this.parseOrders(orders, market, since, limit);
     }
 

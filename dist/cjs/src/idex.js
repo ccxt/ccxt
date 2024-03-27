@@ -358,7 +358,7 @@ class idex extends idex$1 {
         //   }
         // ]
         const response = await this.publicGetTickers(this.extend(request, params));
-        const ticker = this.safeValue(response, 0);
+        const ticker = this.safeDict(response, 0);
         return this.parseTicker(ticker, market);
     }
     async fetchTickers(symbols = undefined, params = {}) {
@@ -1488,7 +1488,7 @@ class idex extends idex$1 {
         };
         // [ { orderId: "688336f0-ec50-11ea-9842-b332f8a34d0e" } ]
         const response = await this.privateDeleteOrders(this.extend(request, params));
-        const canceledOrder = this.safeValue(response, 0);
+        const canceledOrder = this.safeDict(response, 0);
         return this.parseOrder(canceledOrder, market);
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {

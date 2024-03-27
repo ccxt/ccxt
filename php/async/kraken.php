@@ -1018,7 +1018,7 @@ class kraken extends Exchange {
             //         }
             //     }
             $result = $this->safe_value($response, 'result', array());
-            $ohlcvs = $this->safe_value($result, $market['id'], array());
+            $ohlcvs = $this->safe_list($result, $market['id'], array());
             return $this->parse_ohlcvs($ohlcvs, $market, $timeframe, $since, $limit);
         }) ();
     }
@@ -1417,7 +1417,7 @@ class kraken extends Exchange {
             //         }
             //     }
             //
-            $result = $this->safe_value($response, 'result');
+            $result = $this->safe_dict($response, 'result');
             return $this->parse_order($result);
         }) ();
     }
@@ -1843,7 +1843,7 @@ class kraken extends Exchange {
             //         }
             //     }
             //
-            $data = $this->safe_value($response, 'result', array());
+            $data = $this->safe_dict($response, 'result', array());
             return $this->parse_order($data, $market);
         }) ();
     }
@@ -2185,8 +2185,8 @@ class kraken extends Exchange {
             if ($symbol !== null) {
                 $market = $this->market($symbol);
             }
-            $result = $this->safe_value($response, 'result', array());
-            $orders = $this->safe_value($result, 'open', array());
+            $result = $this->safe_dict($response, 'result', array());
+            $orders = $this->safe_dict($result, 'open', array());
             return $this->parse_orders($orders, $market, $since, $limit);
         }) ();
     }
@@ -2259,8 +2259,8 @@ class kraken extends Exchange {
             if ($symbol !== null) {
                 $market = $this->market($symbol);
             }
-            $result = $this->safe_value($response, 'result', array());
-            $orders = $this->safe_value($result, 'closed', array());
+            $result = $this->safe_dict($response, 'result', array());
+            $orders = $this->safe_dict($result, 'closed', array());
             return $this->parse_orders($orders, $market, $since, $limit);
         }) ();
     }
@@ -2732,7 +2732,7 @@ class kraken extends Exchange {
                 //         }
                 //     }
                 //
-                $result = $this->safe_value($response, 'result', array());
+                $result = $this->safe_dict($response, 'result', array());
                 return $this->parse_transaction($result, $currency);
             }
             throw new ExchangeError($this->id . " withdraw() requires a 'key' parameter (withdrawal key name, up on your account)");

@@ -1540,7 +1540,7 @@ public partial class latoken : Exchange
         {
             currency = this.currency(code);
         }
-        object content = this.safeValue(response, "content", new List<object>() {});
+        object content = this.safeList(response, "content", new List<object>() {});
         return this.parseTransactions(content, currency, since, limit);
     }
 
@@ -1677,7 +1677,7 @@ public partial class latoken : Exchange
         //         "hasContent": true
         //     }
         //
-        object transfers = this.safeValue(response, "content", new List<object>() {});
+        object transfers = this.safeList(response, "content", new List<object>() {});
         return this.parseTransfers(transfers, currency, since, limit);
     }
 

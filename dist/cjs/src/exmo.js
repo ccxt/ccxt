@@ -897,7 +897,7 @@ class exmo extends exmo$1 {
         //         ]
         //     }
         //
-        const candles = this.safeValue(response, 'candles', []);
+        const candles = this.safeList(response, 'candles', []);
         return this.parseOHLCVs(candles, market, timeframe, since, limit);
     }
     parseOHLCV(ohlcv, market = undefined) {
@@ -1024,7 +1024,7 @@ class exmo extends exmo$1 {
             request['limit'] = limit;
         }
         const response = await this.publicGetOrderBook(this.extend(request, params));
-        const result = this.safeValue(response, market['id']);
+        const result = this.safeDict(response, market['id']);
         return this.parseOrderBook(result, market['symbol'], undefined, 'bid', 'ask');
     }
     async fetchOrderBooks(symbols = undefined, limit = undefined, params = {}) {
@@ -1292,7 +1292,7 @@ class exmo extends exmo$1 {
         //         ]
         //     }
         //
-        const data = this.safeValue(response, market['id'], []);
+        const data = this.safeList(response, market['id'], []);
         return this.parseTrades(data, market, since, limit);
     }
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1683,7 +1683,7 @@ class exmo extends exmo$1 {
             //     }
             //
         }
-        const trades = this.safeValue(response, 'trades');
+        const trades = this.safeList(response, 'trades');
         return this.parseTrades(trades, market, since, limit);
     }
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -2425,7 +2425,7 @@ class exmo extends exmo$1 {
         //         "count": 23
         //     }
         //
-        const items = this.safeValue(response, 'items', []);
+        const items = this.safeList(response, 'items', []);
         return this.parseTransactions(items, currency, since, limit);
     }
     async fetchWithdrawal(id, code = undefined, params = {}) {
@@ -2477,7 +2477,7 @@ class exmo extends exmo$1 {
         //     }
         //
         const items = this.safeValue(response, 'items', []);
-        const first = this.safeValue(items, 0, {});
+        const first = this.safeDict(items, 0, {});
         return this.parseTransaction(first, currency);
     }
     async fetchDeposit(id = undefined, code = undefined, params = {}) {
@@ -2529,7 +2529,7 @@ class exmo extends exmo$1 {
         //     }
         //
         const items = this.safeValue(response, 'items', []);
-        const first = this.safeValue(items, 0, {});
+        const first = this.safeDict(items, 0, {});
         return this.parseTransaction(first, currency);
     }
     async fetchDeposits(code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -2583,7 +2583,7 @@ class exmo extends exmo$1 {
         //         "count": 23
         //     }
         //
-        const items = this.safeValue(response, 'items', []);
+        const items = this.safeList(response, 'items', []);
         return this.parseTransactions(items, currency, since, limit);
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

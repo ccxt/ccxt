@@ -302,7 +302,7 @@ class bitbank(Exchange, ImplicitAPI):
             'pair': market['id'],
         }
         response = self.publicGetPairTicker(self.extend(request, params))
-        data = self.safe_value(response, 'data', {})
+        data = self.safe_dict(response, 'data', {})
         return self.parse_ticker(data, market)
 
     def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
@@ -385,7 +385,7 @@ class bitbank(Exchange, ImplicitAPI):
         }
         response = self.publicGetPairTransactions(self.extend(request, params))
         data = self.safe_value(response, 'data', {})
-        trades = self.safe_value(data, 'transactions', [])
+        trades = self.safe_list(data, 'transactions', [])
         return self.parse_trades(trades, market, since, limit)
 
     def fetch_trading_fees(self, params={}):
@@ -508,7 +508,7 @@ class bitbank(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', {})
         candlestick = self.safe_value(data, 'candlestick', [])
         first = self.safe_value(candlestick, 0, {})
-        ohlcv = self.safe_value(first, 'ohlcv', [])
+        ohlcv = self.safe_list(first, 'ohlcv', [])
         return self.parse_ohlcvs(ohlcv, market, timeframe, since, limit)
 
     def parse_balance(self, response) -> Balances:
@@ -645,7 +645,7 @@ class bitbank(Exchange, ImplicitAPI):
         if type == 'limit':
             request['price'] = self.price_to_precision(symbol, price)
         response = self.privatePostUserSpotOrder(self.extend(request, params))
-        data = self.safe_value(response, 'data')
+        data = self.safe_dict(response, 'data')
         return self.parse_order(data, market)
 
     def cancel_order(self, id: str, symbol: Str = None, params={}):
@@ -682,7 +682,7 @@ class bitbank(Exchange, ImplicitAPI):
             'pair': market['id'],
         }
         response = self.privateGetUserSpotOrder(self.extend(request, params))
-        data = self.safe_value(response, 'data')
+        data = self.safe_dict(response, 'data')
         return self.parse_order(data, market)
 
     def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
@@ -706,7 +706,7 @@ class bitbank(Exchange, ImplicitAPI):
             request['since'] = self.parse_to_int(since / 1000)
         response = self.privateGetUserSpotActiveOrders(self.extend(request, params))
         data = self.safe_value(response, 'data', {})
-        orders = self.safe_value(data, 'orders', [])
+        orders = self.safe_list(data, 'orders', [])
         return self.parse_orders(orders, market, since, limit)
 
     def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
@@ -731,7 +731,7 @@ class bitbank(Exchange, ImplicitAPI):
             request['since'] = self.parse_to_int(since / 1000)
         response = self.privateGetUserSpotTradeHistory(self.extend(request, params))
         data = self.safe_value(response, 'data', {})
-        trades = self.safe_value(data, 'trades', [])
+        trades = self.safe_list(data, 'trades', [])
         return self.parse_trades(trades, market, since, limit)
 
     def fetch_deposit_address(self, code: str, params={}):
@@ -799,7 +799,7 @@ class bitbank(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        data = self.safe_value(response, 'data', {})
+        data = self.safe_dict(response, 'data', {})
         return self.parse_transaction(data, currency)
 
     def parse_transaction(self, transaction, currency: Currency = None) -> Transaction:
