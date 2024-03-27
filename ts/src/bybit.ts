@@ -6315,6 +6315,12 @@ export default class bybit extends Exchange {
         if (timestamp === undefined) {
             timestamp = this.safeIntegerN (position, [ 'updatedTime', 'updatedAt' ]);
         }
+        const tradeMode = this.safeInteger (position, 'tradeMode', 0);
+        let marginMode = undefined;
+        if ((!this.options['enableUnifiedAccount']) || (this.options['enableUnifiedAccount'] && market['inverse'])) {
+            // tradeMode would work for classic and UTA(inverse)
+            marginMode = (tradeMode === 1) ? 'isolated' : 'cross';
+        }
         let collateralString = this.safeString (position, 'positionBalance');
         const entryPrice = this.omitZero (this.safeString2 (position, 'entryPrice', 'avgPrice'));
         const liquidationPrice = this.omitZero (this.safeString (position, 'liqPrice'));
@@ -6376,7 +6382,7 @@ export default class bybit extends Exchange {
             'markPrice': this.safeNumber (position, 'markPrice'),
             'lastPrice': undefined,
             'collateral': this.parseNumber (collateralString),
-            'marginMode': undefined,
+            'marginMode': marginMode,
             'side': side,
             'percentage': undefined,
             'stopLossPrice': this.safeNumber2 (position, 'stop_loss', 'stopLoss'),
