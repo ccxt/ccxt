@@ -1595,8 +1595,8 @@ class bybit(Exchange):
                         'max': None,
                     },
                     'cost': {
-                        'min': self.safe_number(lotSizeFilter, 'minOrderAmt'),
-                        'max': self.safe_number(lotSizeFilter, 'maxOrderAmt'),
+                        'min': self.safe_number_2(lotSizeFilter, 'minOrderAmt', 'minNotionalValue'),
+                        'max': self.safe_number_2(lotSizeFilter, 'maxOrderAmt', 'maxNotionalValue'),
                     },
                     'orders': {
                         'max': 500
