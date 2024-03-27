@@ -467,22 +467,6 @@ class okx(ccxt.async_support.okx):
         symbols = self.market_symbols(symbols)
         options = self.safe_value(self.options, 'watchOrderBook', {})
         depth = self.safe_string(options, 'depth', 'books')
-        if limit == 1:
-            depth = "bbo-tbt"
-        elif limit > 1 and limit<=5:
-            depth = "books5"
-        elif limit == 400:
-            depth = "books"
-        elif limit == 50:
-            # Make sure you have VIP4 and above
-            depth = "books50-12-tbt"
-        elif limit == 4000:
-            # Make sure you have VIP5 and above
-            # 400 depth levels will be pushed in the initial full snapshot. Incremental data will be pushed every 10 ms
-            depth = "books-l2-tbt"
-        else:
-            depth = "books"
-            
         if (depth == 'books-l2-tbt') or (depth == 'books50-l2-tbt'):
             await self.authenticate({'access': 'public'})
         topics = []
