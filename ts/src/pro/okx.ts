@@ -511,16 +511,18 @@ export default class okx extends okxRest {
         symbols = this.marketSymbols (symbols);
         const options = this.safeValue (this.options, 'watchOrderBook', {});
         let depth = this.safeString (options, 'depth', 'books');
-        if (limit === 1) {
-            depth = 'bbo-tbt';
-        } else if (limit > 1 && limit <= 5) {
-            depth = 'books5';
-        } else if (limit === 400) {
-            depth = 'books';
-        } else if (limit === 50) {
-            depth = 'books50-l2-tbt'; // Make sure you have VIP4 and above
-        } else if (limit === 4000) {
-            depth = 'books-l2-tbt'; // Make sure you have VIP5 and above
+        if (limit !== undefined) {
+            if (limit === 1) {
+                depth = 'bbo-tbt';
+            } else if (limit > 1 && limit <= 5) {
+                depth = 'books5';
+            } else if (limit === 400) {
+                depth = 'books';
+            } else if (limit === 50) {
+                depth = 'books50-l2-tbt'; // Make sure you have VIP4 and above
+            } else if (limit === 4000) {
+                depth = 'books-l2-tbt'; // Make sure you have VIP5 and above
+            }
         }
         if ((depth === 'books-l2-tbt') || (depth === 'books50-l2-tbt')) {
             await this.authenticate ({ 'access': 'public' });
