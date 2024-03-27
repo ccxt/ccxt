@@ -313,7 +313,6 @@ async function run () {
                     headers,
                     body,
                 })
-                process.exit ()
             }
         }
 
