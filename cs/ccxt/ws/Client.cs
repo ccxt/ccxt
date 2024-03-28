@@ -345,7 +345,16 @@ public partial class Exchange
                     {
                         // var message = Encoding.UTF8.GetString(buffer, 0, result.Count);
                         var message = Encoding.UTF8.GetString(memory.ToArray(), 0, (int)memory.Length);
-                        var deserializedMessages = JsonHelper.Deserialize(message);
+                        object deserializedMessages = message;
+
+                        try
+                        {
+                            deserializedMessages = JsonHelper.Deserialize(message);
+                        }
+                        catch (Exception e)
+                        {
+                            // Console.WriteLine(e);
+                        }
 
                         if (this.verbose)
                         {
