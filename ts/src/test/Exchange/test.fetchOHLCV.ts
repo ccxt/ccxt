@@ -24,7 +24,8 @@ async function testFetchOHLCV (exchange, skippedProperties, symbol) {
         for (let j = 0; j < limitsArray.length; j++) {
             const limit = limitsArray[j];
             const ohlcvs = await exchange.fetchOHLCV (symbol, chosenTimeframeKey, sinceCurrent, limit);
-            testSharedMethods.assertNonEmtpyArray (exchange, skippedProperties, method, ohlcvs, symbol);
+            // we can't expect array to have values, because requested period might have zero bars for valid reason
+            // testSharedMethods.assertNonEmtpyArray (exchange, skippedProperties, method, ohlcvs, symbol);
             testFetchOHLCVChecker (exchange, skippedProperties, symbol, ohlcvs, chosenTimeframeKey, sinceCurrent, limit);
         }
     }
