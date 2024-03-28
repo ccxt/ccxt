@@ -315,7 +315,7 @@
         "subType": "linear",
         "taker": 0.0005,
         "maker": 0.0002,
-        "contractSize": 0,
+        "contractSize": 1,
         "precision": {
             "amount": 1,
             "price": 2
@@ -324,9 +324,13 @@
             "leverage": {
                 "max": 100
             },
-            "amount": {},
+            "amount": {
+                "min": 0.1
+            },
             "price": {},
-            "cost": {}
+            "cost": {
+                "min": 2
+            }
         },
         "info": {
             "contractId": "100006",
@@ -374,7 +378,7 @@
         "subType": "linear",
         "taker": 0.0005,
         "maker": 0.0002,
-        "contractSize": 0,
+        "contractSize": 1,
         "precision": {
             "amount": 4,
             "price": 1
@@ -383,9 +387,13 @@
             "leverage": {
                 "max": 125
             },
-            "amount": {},
+            "amount": {
+                "min": 0.0001
+            },
             "price": {},
-            "cost": {}
+            "cost": {
+                "min": 2
+            }
         },
         "info": {
             "contractId": "100",
@@ -433,7 +441,7 @@
         "subType": "linear",
         "taker": 0.0005,
         "maker": 0.0002,
-        "contractSize": 0,
+        "contractSize": 1,
         "precision": {
             "amount": 0,
             "price": 5
@@ -442,9 +450,13 @@
             "leverage": {
                 "max": 5
             },
-            "amount": {},
+            "amount": {
+                "min": 1
+            },
             "price": {},
-            "cost": {}
+            "cost": {
+                "min": 2
+            }
         },
         "info": {
             "contractId": "100004",
@@ -492,7 +504,7 @@
         "subType": "linear",
         "taker": 0.0005,
         "maker": 0.0002,
-        "contractSize": 0,
+        "contractSize": 1,
         "precision": {
             "amount": 2,
             "price": 2
@@ -501,9 +513,13 @@
             "leverage": {
                 "max": 125
             },
-            "amount": {},
+            "amount": {
+                "min": 0.01
+            },
             "price": {},
-            "cost": {}
+            "cost": {
+                "min": 2
+            }
         },
         "info": {
             "contractId": "101",
@@ -600,7 +616,7 @@
         "subType": "linear",
         "taker": 0.0005,
         "maker": 0.0002,
-        "contractSize": 0,
+        "contractSize": 1,
         "precision": {
             "amount": 0,
             "price": 3
@@ -609,9 +625,13 @@
             "leverage": {
                 "max": 5
             },
-            "amount": {},
+            "amount": {
+                "min": 1
+            },
             "price": {},
-            "cost": {}
+            "cost": {
+                "min": 2
+            }
         },
         "info": {
             "contractId": "100028",
@@ -659,7 +679,7 @@
         "subType": "linear",
         "taker": 0.0005,
         "maker": 0.0002,
-        "contractSize": 0,
+        "contractSize": 1,
         "precision": {
             "amount": 0,
             "price": 5
@@ -668,9 +688,13 @@
             "leverage": {
                 "max": 5
             },
-            "amount": {},
+            "amount": {
+                "min": 1
+            },
             "price": {},
-            "cost": {}
+            "cost": {
+                "min": 2
+            }
         },
         "info": {
             "contractId": "100035",
