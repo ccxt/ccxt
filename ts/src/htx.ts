@@ -948,6 +948,7 @@ export default class htx extends Exchange {
                         },
                     },
                 },
+                'marketIdsForTickers': {}, // to be filled in fetchMarkets
                 'fetchOHLCV': {
                     'useHistoricalEndpointForSpot': true,
                 },
@@ -1658,6 +1659,12 @@ export default class htx extends Exchange {
         let inverse = undefined;
         const request = {};
         let response = undefined;
+        const futuresCharsMaps = {
+            'this_week': '-CW',
+            'next_week': '-NW',
+            'quarter': '-CQ',
+            'next_quarter': '-NQ',
+        };
         if (contract) {
             linear = (subType === 'linear');
             inverse = (subType === 'inverse');
@@ -1791,6 +1798,9 @@ export default class htx extends Exchange {
                         quoteId = this.safeStringLower (parts, 1);
                         settleId = quoteId;
                     }
+                    const contractType = this.safeString (market, 'contract_type');
+                    const marketIdForTickers = baseId + quoteId + futuresCharsMaps[contractType];
+                    this.options['marketIdsForTickers'][marketIdForTickers] = id;
                 }
             } else {
                 baseId = this.safeString (market, 'base-currency');
@@ -1973,29 +1983,6 @@ export default class htx extends Exchange {
         //
         const marketId = this.safeString2 (ticker, 'symbol', 'contract_code');
         const symbol = this.safeSymbol (marketId, market);
-        // only for linear futures, the market-ids are not standard and not same as provided from "fetchMarkets"
-        // so, we need to match them by other means
-        // if (future && linear) {
-        //     for (let j = 0; j < this.symbols.length; j++) {
-        //         const symbolInner = this.symbols[j];
-        //         const marketInner = this.market (symbolInner);
-        //         const contractType = this.safeString (marketInner['info'], 'contract_type');
-        //         if ((contractType === 'this_week') && (ticker['symbol'] === (marketInner['baseId'] + '-' + marketInner['quoteId'] + '-CW'))) {
-        //             ticker['symbol'] = marketInner['symbol'];
-        //             break;
-        //         } else if ((contractType === 'next_week') && (ticker['symbol'] === (marketInner['baseId'] + '-' + marketInner['quoteId'] + '-NW'))) {
-        //             ticker['symbol'] = marketInner['symbol'];
-        //             break;
-        //         } else if ((contractType === 'this_quarter') && (ticker['symbol'] === (marketInner['baseId'] + '-' + marketInner['quoteId'] + '-CQ'))) {
-        //             ticker['symbol'] = marketInner['symbol'];
-        //             break;
-        //         } else if ((contractType === 'next_quarter') && (ticker['symbol'] === (marketInner['baseId'] + '-' + marketInner['quoteId'] + '-NQ'))) {
-        //             ticker['symbol'] = marketInner['symbol'];
-        //             break;
-        //         }
-        //     }
-        // }
-        // const symbol = ticker['symbol'];
         const timestamp = this.safeInteger2 (ticker, 'ts', 'quoteTime');
         let bid = undefined;
         let bidVolume = undefined;
@@ -2062,6 +2049,7 @@ export default class htx extends Exchange {
         let response = undefined;
         if (market['linear']) {
             request['contract_code'] = market['id'];
+            await this.defineFutureMarketIdSymbols ();
             response = await this.contractPublicGetLinearSwapExMarketDetailMerged (this.extend (request, params));
         } else if (market['inverse']) {
             if (market['future']) {
@@ -2167,6 +2155,7 @@ export default class htx extends Exchange {
                 } else {
                     request['business_type'] = 'all';
                 }
+                await this.defineFutureMarketIdSymbols ();
                 response = await this.contractPublicGetLinearSwapExMarketDetailBatchMerged (this.extend (request, params));
             } else if (inverse) {
                 if (future) {
@@ -2235,6 +2224,18 @@ export default class htx extends Exchange {
         const rawTickers = this.safeValue2 (response, 'data', 'ticks', []);
         const tickers = this.parseTickers (rawTickers, symbols, params);
         return this.filterByArrayTickers (tickers, 'symbol', symbols);
+    }
+
+    async defineFutureMarketIdSymbols () {
+        // only in linear-futures market-ids format provided from fetch-tickers endpoint (BTC-USDT-CW)
+        // is not standard and differs from market-id provided from "fetchMarkets"
+        // so we need to redefine them periodically (i.e. once per hour)
+        const lastCheck = this.safeInteger (this.options, 'futuresMarkeIdsRedefineTime', 0);
+        const now = this.milliseconds ();
+        if (now - lastCheck > 1000 * 60 * 60) {
+            const futureMarkets = await this.fetchMarketsByTypeAndSubType ('future', 'linear', { 'business_type': 'futures' });
+            this.options['futuresMarkeIdsRedefineTime'] = now;
+        }
     }
 
     async fetchLastPrices (symbols: Strings = undefined, params = {}) {
