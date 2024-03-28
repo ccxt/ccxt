@@ -1832,7 +1832,7 @@ export default class htx extends Exchange {
                     };
                     const contractType = this.safeString (market, 'contract_type');
                     const marketIdForTickers = base + '-' + quote + '-' + futuresCharsMaps[contractType];
-                    this.options['futureMarketIdsForSymbols'][marketIdForTickers] = id;
+                    this.options['futureMarketIdsForSymbols'][marketIdForTickers] = symbol;
                 }
             }
             const contractSize = this.safeNumber (market, 'contract_size');
@@ -2246,7 +2246,7 @@ export default class htx extends Exchange {
         //         "ts":1637504679376
         //     }
         //
-        const rawTickers = this.safeValue2 (response, 'data', 'ticks', []);
+        const rawTickers = this.safeList2 (response, 'data', 'ticks', []);
         const tickers = this.parseTickers (rawTickers, symbols, params);
         return this.filterByArrayTickers (tickers, 'symbol', symbols);
     }
