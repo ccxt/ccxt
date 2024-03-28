@@ -1888,6 +1888,14 @@ export default class htx extends Exchange {
                 createdDate = createdArray[0] + createdArray[1] + createdArray[2] + createdArray[3] + '-' + createdArray[4] + createdArray[5] + '-' + createdArray[6] + createdArray[7] + ' 00:00:00';
                 created = this.parse8601 (createdDate);
             }
+            let marketType = undefined;
+            if (spot) {
+                marketType = 'spot';
+            } else if (swap) {
+                marketType = 'swap';
+            } else if (future) {
+                marketType = 'future';
+            }
             result.push ({
                 'id': id,
                 'lowercaseId': lowercaseId,
@@ -1898,7 +1906,7 @@ export default class htx extends Exchange {
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'settleId': settleId,
-                'type': type,
+                'type': marketType,
                 'spot': spot,
                 'margin': (spot && hasLeverage),
                 'swap': swap,
