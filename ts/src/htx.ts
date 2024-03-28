@@ -1651,7 +1651,7 @@ export default class htx extends Exchange {
     async fetchMarketsByTypeAndSubType (type, subType, params = {}) {
         const query = this.omit (params, [ 'type', 'subType' ]);
         const spot = (type === 'spot');
-        const contract = (type !== 'spot');
+        const contract = !spot;
         const future = (type === 'future');
         const swap = (type === 'swap');
         let linear = undefined;
@@ -1662,9 +1662,7 @@ export default class htx extends Exchange {
             linear = (subType === 'linear');
             inverse = (subType === 'inverse');
             if (linear) {
-                if (future) {
-                    request['business_type'] = 'futures';
-                }
+                request['business_type'] = 'all';
                 response = await this.contractPublicGetLinearSwapApiV1SwapContractInfo (this.extend (request, query));
             } else if (inverse) {
                 if (future) {
@@ -1995,29 +1993,27 @@ export default class htx extends Exchange {
         const symbol = this.safeSymbol (marketId, market);
         // only for linear futures, the market-ids are not standard and not same as provided from "fetchMarkets"
         // so, we need to match them by other means
-            if (future && linear) {
-                for (let j = 0; j < this.symbols.length; j++) {
-                    const symbolInner = this.symbols[j];
-                    const marketInner = this.market (symbolInner);
-                    const contractType = this.safeString (marketInner['info'], 'contract_type');
-                    if ((contractType === 'this_week') && (ticker['symbol'] === (marketInner['baseId'] + '-' + marketInner['quoteId'] + '-CW'))) {
-                        ticker['symbol'] = marketInner['symbol'];
-                        break;
-                    } else if ((contractType === 'next_week') && (ticker['symbol'] === (marketInner['baseId'] + '-' + marketInner['quoteId'] + '-NW'))) {
-                        ticker['symbol'] = marketInner['symbol'];
-                        break;
-                    } else if ((contractType === 'this_quarter') && (ticker['symbol'] === (marketInner['baseId'] + '-' + marketInner['quoteId'] + '-CQ'))) {
-                        ticker['symbol'] = marketInner['symbol'];
-                        break;
-                    } else if ((contractType === 'next_quarter') && (ticker['symbol'] === (marketInner['baseId'] + '-' + marketInner['quoteId'] + '-NQ'))) {
-                        ticker['symbol'] = marketInner['symbol'];
-                        break;
-                    }
-                }
-            }
-            const symbol = ticker['symbol'];
-
-
+        // if (future && linear) {
+        //     for (let j = 0; j < this.symbols.length; j++) {
+        //         const symbolInner = this.symbols[j];
+        //         const marketInner = this.market (symbolInner);
+        //         const contractType = this.safeString (marketInner['info'], 'contract_type');
+        //         if ((contractType === 'this_week') && (ticker['symbol'] === (marketInner['baseId'] + '-' + marketInner['quoteId'] + '-CW'))) {
+        //             ticker['symbol'] = marketInner['symbol'];
+        //             break;
+        //         } else if ((contractType === 'next_week') && (ticker['symbol'] === (marketInner['baseId'] + '-' + marketInner['quoteId'] + '-NW'))) {
+        //             ticker['symbol'] = marketInner['symbol'];
+        //             break;
+        //         } else if ((contractType === 'this_quarter') && (ticker['symbol'] === (marketInner['baseId'] + '-' + marketInner['quoteId'] + '-CQ'))) {
+        //             ticker['symbol'] = marketInner['symbol'];
+        //             break;
+        //         } else if ((contractType === 'next_quarter') && (ticker['symbol'] === (marketInner['baseId'] + '-' + marketInner['quoteId'] + '-NQ'))) {
+        //             ticker['symbol'] = marketInner['symbol'];
+        //             break;
+        //         }
+        //     }
+        // }
+        // const symbol = ticker['symbol'];
         const timestamp = this.safeInteger2 (ticker, 'ts', 'quoteTime');
         let bid = undefined;
         let bidVolume = undefined;
