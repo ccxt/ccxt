@@ -47,7 +47,7 @@ public partial class Exchange
                     {
                         future.reject(task.Exception);
                     }
-                    else if (task.IsCompletedSuccessfully)
+                    else if (task.IsCompleted)
                     {
                         future.resolve(task.Result);
                     }
