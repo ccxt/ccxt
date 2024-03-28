@@ -132,9 +132,11 @@ public partial class Exchange
         var proxy = this.getWsProxy(result);
         if (!this.clients.ContainsKey(url))
         {
-            this.clients[url] = new WebSocketClient(url, proxy, handleMessage, ping, onClose, onError, this.verbose);
             object ws = this.safeValue(this.options, "ws", new Dictionary<string, object>() { });
-            object wsOptions = this.safeValue(ws, "options", new Dictionary<string, object>() { });
+            var wsOptions = this.safeValue(ws, "options", new Dictionary<string, object>() { });
+            var keepAlive = ((Int64)this.safeInteger(wsOptions, "keepAlive", 30000));
+            this.clients[url] = new WebSocketClient(url, proxy, handleMessage, ping, onClose, onError, this.verbose, keepAlive);
+
             var wsHeaders = this.safeValue(wsOptions, "headers", new Dictionary<string, object>() { });
             // iterate through headers
             if (wsHeaders != null)
