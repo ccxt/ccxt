@@ -945,7 +945,7 @@
                 "input": [
                     null,
                     {
-                        "type": "swap",
+                        "type": "future",
                         "subType": "inverse"
                     }
                 ]

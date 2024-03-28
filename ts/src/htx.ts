@@ -2056,8 +2056,8 @@ export default class htx extends Exchange {
         let response = undefined;
         if (market['linear']) {
             request['contract_code'] = market['id'];
-            await this.defineFutureMarketIdSymbols ();
             response = await this.contractPublicGetLinearSwapExMarketDetailMerged (this.extend (request, params));
+            await this.defineFutureMarketIdSymbols ();
         } else if (market['inverse']) {
             if (market['future']) {
                 request['symbol'] = market['id'];
@@ -2141,16 +2141,18 @@ export default class htx extends Exchange {
         if (first !== undefined) {
             market = this.market (first);
         }
+        const isSubTypeRequested = ('subType' in params) || ('business_type' in params);
         let type = undefined;
         let subType = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
         [ subType, params ] = this.handleSubTypeAndParams ('fetchTickers', market, params);
         const request = {};
+        const isSpot = (type === 'spot');
         const future = (type === 'future');
         const swap = (type === 'swap');
         const linear = (subType === 'linear');
         const inverse = (subType === 'inverse');
-        const isContract = future || swap || linear || inverse;
+        const isContract = !isSpot || isSubTypeRequested;
         let response = undefined;
         if (isContract) {
             if (linear) {
@@ -2162,8 +2164,8 @@ export default class htx extends Exchange {
                 } else {
                     request['business_type'] = 'all';
                 }
-                await this.defineFutureMarketIdSymbols ();
                 response = await this.contractPublicGetLinearSwapExMarketDetailBatchMerged (this.extend (request, params));
+                await this.defineFutureMarketIdSymbols ();
             } else if (inverse) {
                 if (future) {
                     response = await this.contractPublicGetMarketDetailBatchMerged (this.extend (request, params));
