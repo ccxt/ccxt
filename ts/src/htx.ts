@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/htx.js';
-import { AccountNotEnabled, ArgumentsRequired, AuthenticationError, ExchangeError, PermissionDenied, ExchangeNotAvailable, OnMaintenance, InvalidOrder, OrderNotFound, InsufficientFunds, BadSymbol, BadRequest, RateLimitExceeded, RequestTimeout, NetworkError, NotSupported } from './base/errors.js';
+import { AccountNotEnabled, ArgumentsRequired, AuthenticationError, ExchangeError, PermissionDenied, ExchangeNotAvailable, OnMaintenance, InvalidOrder, OrderNotFound, InsufficientFunds, BadSymbol, BadRequest, RateLimitExceeded, RequestTimeout, OperationFailed, NotSupported } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE, TRUNCATE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
@@ -1651,24 +1651,17 @@ export default class htx extends Exchange {
 
     async fetchMarketsByTypeAndSubType (type, subType, params = {}) {
         const query = this.omit (params, [ 'type', 'subType' ]);
-        const spot = (type === 'spot');
-        const contract = !spot;
-        const future = (type === 'future');
-        const swap = (type === 'swap');
-        let linear = undefined;
-        let inverse = undefined;
+        const isSpot = (type === 'spot');
         const request = {};
         let response = undefined;
-        if (contract) {
-            linear = (subType === 'linear');
-            inverse = (subType === 'inverse');
-            if (linear) {
+        if (!isSpot) {
+            if (subType === 'linear') {
                 request['business_type'] = 'all';
                 response = await this.contractPublicGetLinearSwapApiV1SwapContractInfo (this.extend (request, query));
-            } else if (inverse) {
-                if (future) {
+            } else if (subType === 'inverse') {
+                if (type === 'future') {
                     response = await this.contractPublicGetApiV1ContractContractInfo (this.extend (request, query));
-                } else if (swap) {
+                } else if (type === 'swap') {
                     response = await this.contractPublicGetSwapApiV1SwapContractInfo (this.extend (request, query));
                 }
             }
@@ -1764,7 +1757,7 @@ export default class htx extends Exchange {
         const markets = this.safeList (response, 'data', []);
         const numMarkets = markets.length;
         if (numMarkets < 1) {
-            throw new NetworkError (this.id + ' fetchMarkets() returned an empty response: ' + this.json (markets));
+            throw new OperationFailed (this.id + ' fetchMarkets() returned an empty response: ' + this.json (response));
         }
         const result = [];
         for (let i = 0; i < markets.length; i++) {
@@ -1774,7 +1767,13 @@ export default class htx extends Exchange {
             let settleId = undefined;
             let lowercaseId = undefined;
             let id = undefined;
+            let spot = undefined;
+            let swap = undefined;
+            let future = undefined;
+            let linear = undefined;
+            let inverse = undefined;
             const contractId = this.safeString (market, 'contract_code');
+            // check if parsed market is contract
             if (contractId !== undefined) {
                 id = contractId;
                 lowercaseId = id.toLowerCase ();
