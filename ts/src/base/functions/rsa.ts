@@ -34,7 +34,6 @@ function jwt (request: {}, secret: Uint8Array, hash: CHash, isRSA = false, opts 
     } else if (algoType === 'RS') {
         signature = urlencodeBase64 (rsa (token, utf8.encode (secret), hash));
     } else if (algoType === 'ES') {
-        // TODO: decode key
         const msgHash = hash (token);
         const signedHash = ecdsa (msgHash.slice (-64), utf8.encode (secret), P256, undefined);
         const r = (signedHash.r.length === 64) ? signedHash.r : '0' + signedHash.r;

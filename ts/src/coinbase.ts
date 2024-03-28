@@ -3834,9 +3834,11 @@ export default class coinbase extends Exchange {
                 const isCloudAPiKey = (this.apiKey.indexOf ('organizations/') >= 0);
                 if (isCloudAPiKey) {
                     // it may not work for v2
-                    let uri = method + ' ';
-                    uri += (url.indexOf ('?') >= 0) ? (url.slice (0, url.indexOf ('?'))) : url;
-                    uri = uri.replace('https://', '');
+                    let uri = method + ' ' + url.replace('https://', '');
+                    const quesPos = uri.indexOf ('?');
+                    if (quesPos >= 0) {
+                        uri = uri.slice (0, quesPos);
+                    }
                     const nonce = this.randomBytes (16);
                     const request = {
                         'aud': [ 'retail_rest_api_proxy' ],
