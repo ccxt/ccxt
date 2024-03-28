@@ -948,7 +948,7 @@ export default class htx extends Exchange {
                         },
                     },
                 },
-                'marketIdsForTickers': {}, // to be filled in fetchMarkets
+                'futureMarketIdsForSymbols': {}, // to be filled in fetchMarkets
                 'fetchOHLCV': {
                     'useHistoricalEndpointForSpot': true,
                 },
@@ -1659,6 +1659,9 @@ export default class htx extends Exchange {
         let inverse = undefined;
         const request = {};
         let response = undefined;
+        // only in linear-futures market-ids format provided from fetch-tickers endpoint (BTC-USDT-CW)
+        // is not standard and differs from market-id provided from "fetchMarkets"
+        // so, down below we have to map the futures market-ids to symbols
         const futuresCharsMaps = {
             'this_week': '-CW',
             'next_week': '-NW',
@@ -1798,9 +1801,6 @@ export default class htx extends Exchange {
                         quoteId = this.safeStringLower (parts, 1);
                         settleId = quoteId;
                     }
-                    const contractType = this.safeString (market, 'contract_type');
-                    const marketIdForTickers = baseId + quoteId + futuresCharsMaps[contractType];
-                    this.options['marketIdsForTickers'][marketIdForTickers] = id;
                 }
             } else {
                 baseId = this.safeString (market, 'base-currency');
@@ -1822,6 +1822,9 @@ export default class htx extends Exchange {
                 if (future) {
                     expiry = this.safeInteger (market, 'delivery_time');
                     symbol += '-' + this.yymmdd (expiry);
+                    const contractType = this.safeString (market, 'contract_type');
+                    const marketIdForTickers = base + '-' + quote + '-' + futuresCharsMaps[contractType];
+                    this.options['futureMarketIdsForSymbols'][marketIdForTickers] = id;
                 }
             }
             const contractSize = this.safeNumber (market, 'contract_size');
@@ -1982,7 +1985,8 @@ export default class htx extends Exchange {
         //     }
         //
         const marketId = this.safeString2 (ticker, 'symbol', 'contract_code');
-        const symbol = this.safeSymbol (marketId, market);
+        let symbol = this.safeSymbol (marketId, market);
+        // this.options['futureMarketIdsForSymbols
         const timestamp = this.safeInteger2 (ticker, 'ts', 'quoteTime');
         let bid = undefined;
         let bidVolume = undefined;
@@ -2227,14 +2231,10 @@ export default class htx extends Exchange {
     }
 
     async defineFutureMarketIdSymbols () {
-        // only in linear-futures market-ids format provided from fetch-tickers endpoint (BTC-USDT-CW)
-        // is not standard and differs from market-id provided from "fetchMarkets"
-        // so we need to redefine them periodically (i.e. once per hour)
-        const lastCheck = this.safeInteger (this.options, 'futuresMarkeIdsRedefineTime', 0);
-        const now = this.milliseconds ();
-        if (now - lastCheck > 1000 * 60 * 60) {
-            const futureMarkets = await this.fetchMarketsByTypeAndSubType ('future', 'linear', { 'business_type': 'futures' });
-            this.options['futuresMarkeIdsRedefineTime'] = now;
+        // to find out more about this function, see comment aside line where "futureMarketIdsForSymbols" is defined.
+        if (!this.safeBool (this.options, 'futureMarketIdsForSymbolsDefined', false)) {
+            await this.fetchMarketsByTypeAndSubType ('future', 'linear', { 'business_type': 'futures' });
+            this.options['futureMarketIdsForSymbolsDefined'] = true;
         }
     }
 
