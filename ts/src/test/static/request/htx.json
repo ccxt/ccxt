@@ -870,7 +870,19 @@
             {
                 "description": "swap linear",
                 "method": "fetchTickers",
-                "url": "https://api.huobi.pro/linear-swap-ex/market/detail/batch_merged",
+                "url": "https://api.huobi.pro/linear-swap-ex/market/detail/batch_merged?business_type=swap",
+                "input": [
+                    null,
+                    {
+                        "defaultType": "swap",
+                        "subType": "linear"
+                    }
+                ]
+            },
+            {
+                "description": "swap linear by symbols",
+                "method": "fetchTickers",
+                "url": "https://api.huobi.pro/linear-swap-ex/market/detail/batch_merged?business_type=swap",
                 "input": [
                     ["LTC/USDT:USDT"]
                 ]
@@ -880,11 +892,23 @@
                 "method": "fetchTickers",
                 "url": "https://api.huobi.pro/linear-swap-ex/market/detail/batch_merged?business_type=futures",
                 "input": [
+                    null,
+                    {
+                        "defaultType": "future",
+                        "subType": "linear"
+                    }
+                ]
+            },
+            {
+                "description": "future linear by symbols",
+                "method": "fetchTickers",
+                "url": "https://api.huobi.pro/linear-swap-ex/market/detail/batch_merged?business_type=futures",
+                "input": [
                     ["BTC/USDT:USDT-240329"]
                 ]
             },
             {
-                "description": "all linear",
+                "description": "all linear with only subType",
                 "method": "fetchTickers",
                 "url": "https://api.huobi.pro/linear-swap-ex/market/detail/batch_merged?business_type=all",
                 "input": [
@@ -899,11 +923,35 @@
                 "method": "fetchTickers",
                 "url": "https://api.huobi.pro/swap-ex/market/detail/batch_merged",
                 "input": [
+                    null,
+                    {
+                        "type": "swap",
+                        "subType": "inverse"
+                    }
+                ]
+            },
+            {
+                "description": "swap inverse by symbols",
+                "method": "fetchTickers",
+                "url": "https://api.huobi.pro/swap-ex/market/detail/batch_merged",
+                "input": [
                     ["BTC/USD:BTC"]
                 ]
             },
             {
                 "description": "future inverse",
+                "method": "fetchTickers",
+                "url": "https://api.huobi.pro/market/detail/batch_merged",
+                "input": [
+                    null,
+                    {
+                        "type": "swap",
+                        "subType": "inverse"
+                    }
+                ]
+            },
+            {
+                "description": "future inverse by symbols",
                 "method": "fetchTickers",
                 "url": "https://api.huobi.pro/market/detail/batch_merged",
                 "input": [
