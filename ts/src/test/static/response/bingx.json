@@ -654,7 +654,7 @@
                         "stopLossPrice": null,
                         "takeProfitPrice": null,
                         "average": 70.17,
-                        "cost": 0.7017,
+                        "cost": 7.017,
                         "amount": 0.1,
                         "filled": 0.1,
                         "remaining": 0,
@@ -893,7 +893,7 @@
                         "side": null,
                         "takerOrMaker": null,
                         "price": 65.2965,
-                        "amount": 10,
+                        "amount": 1,
                         "cost": 65.2965,
                         "fee": {
                             "cost": 0.0326,
@@ -1408,9 +1408,8 @@
         ],
         "fetchOrder": [
             {
-                "description": "fetch spot order",
+                "description": "fetch swap order",
                 "method": "fetchOrder",
-                "disabled": true,
                 "input": [
                   "1770683446830788608",
                   "LTC/USDT:USDT"
@@ -1527,7 +1526,7 @@
                   "stopLossPrice": 0,
                   "takeProfitPrice": 0,
                   "average": 83.71,
-                  "cost": 0,
+                  "cost": 8.371,
                   "amount": 0.1,
                   "filled": 0.1,
                   "remaining": 0,
@@ -1545,6 +1544,96 @@
                     }
                   ]
                 }
+              }
+        ],
+        "fetchPositions": [
+            {
+                "description": "fetch position",
+                "method": "fetchPositions",
+                "input": [
+                  [
+                    "LTC/USDT:USDT"
+                  ]
+                ],
+                "httpResponse": {
+                  "code": "0",
+                  "msg": "",
+                  "data": [
+                    {
+                      "positionId": "1773289330136281088",
+                      "symbol": "LTC-USDT",
+                      "currency": "USDT",
+                      "positionAmt": "0.1",
+                      "availableAmt": "0.1",
+                      "positionSide": "LONG",
+                      "isolated": false,
+                      "avgPrice": "95.61",
+                      "initialMargin": "1.9128",
+                      "leverage": "5",
+                      "unrealizedProfit": "0.0005",
+                      "realisedProfit": "-0.0048",
+                      "liquidationPrice": "0",
+                      "pnlRatio": "0.0002",
+                      "maxMarginReduction": "0.0000",
+                      "riskRate": "0.0068",
+                      "markPrice": "95.62",
+                      "positionValue": "9.5616",
+                      "onlyOnePosition": false
+                    }
+                  ]
+                },
+                "parsedResponse": [
+                  {
+                    "info": {
+                      "positionId": "1773289330136281088",
+                      "symbol": "LTC-USDT",
+                      "currency": "USDT",
+                      "positionAmt": "0.1",
+                      "availableAmt": "0.1",
+                      "positionSide": "LONG",
+                      "isolated": false,
+                      "avgPrice": "95.61",
+                      "initialMargin": "1.9128",
+                      "leverage": "5",
+                      "unrealizedProfit": "0.0005",
+                      "realisedProfit": "-0.0048",
+                      "liquidationPrice": "0",
+                      "pnlRatio": "0.0002",
+                      "maxMarginReduction": "0.0000",
+                      "riskRate": "0.0068",
+                      "markPrice": "95.62",
+                      "positionValue": "9.5616",
+                      "onlyOnePosition": false
+                    },
+                    "id": "1773289330136281088",
+                    "symbol": "LTC/USDT:USDT",
+                    "notional": 9.5616,
+                    "marginMode": "cross",
+                    "liquidationPrice": null,
+                    "entryPrice": 95.61,
+                    "unrealizedPnl": 0.0005,
+                    "realizedPnl": -0.0048,
+                    "percentage": null,
+                    "contracts": 0.1,
+                    "contractSize": 1,
+                    "markPrice": null,
+                    "lastPrice": null,
+                    "side": "long",
+                    "hedged": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastUpdateTimestamp": null,
+                    "maintenanceMargin": null,
+                    "maintenanceMarginPercentage": null,
+                    "collateral": null,
+                    "initialMargin": 1.9128,
+                    "initialMarginPercentage": null,
+                    "leverage": 5,
+                    "marginRatio": null,
+                    "stopLossPrice": null,
+                    "takeProfitPrice": null
+                  }
+                ]
             }
         ]
     }

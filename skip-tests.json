@@ -597,6 +597,9 @@
         "skipMethods": {
             "fetchTrades": {
                 "side":"side is undefined"
+            },
+            "ticker": {
+                "spread": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269687705#L3745"
             }
         }
     },
@@ -961,6 +964,7 @@
     },
     "idex": {
         "skipWs": "timeouts",
+        "skipCSharp": "for some reasons, frequent rate limits only in C#",
         "skipMethods": {
             "fetchCurrencies": {
                 "withdraw":"not provided",

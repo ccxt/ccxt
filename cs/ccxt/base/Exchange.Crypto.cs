@@ -20,19 +20,20 @@ public partial class Exchange
 
     public static string Hmac(object request2, object secret2, Delegate algorithm2 = null, string digest = "hex")
     {
-        string request;
+        Byte[] request;
         if (request2 is String)
         {
-            request = (string)request2;
+            request = Encoding.UTF8.GetBytes((string)request2);
         }
         else
         {
-            request = Encoding.ASCII.GetString(request2 as byte[]);
+            request = request2 as Byte[];
         }
+
         Byte[] secretBytes;
         if (secret2 is String)
         {
-            secretBytes = Encoding.ASCII.GetBytes((string)secret2);
+            secretBytes = Encoding.UTF8.GetBytes((string)secret2);
         }
         else
         {
@@ -220,29 +221,48 @@ public partial class Exchange
 
     public static byte[] SignHMACSHA256(string data, byte[] secret)
     {
+        return SignHMACSHA256(Encoding.UTF8.GetBytes(data), secret);
+    }
+    public static byte[] SignHMACSHA256(byte[] data, byte[] secret)
+    {
         using var encryptor = new HMACSHA256(secret);
-        var resultBytes = encryptor.ComputeHash(Encoding.UTF8.GetBytes(data));
+        var resultBytes = encryptor.ComputeHash(data);
         return resultBytes;
     }
 
     public static byte[] SignHMACSHA384(string data, byte[] secret)
     {
+        return SignHMACSHA384(Encoding.UTF8.GetBytes(data), secret);
+    }
+
+    public static byte[] SignHMACSHA384(byte[] data, byte[] secret)
+    {
         using var encryptor = new HMACSHA384(secret);
-        var resultBytes = encryptor.ComputeHash(Encoding.UTF8.GetBytes(data));
+        var resultBytes = encryptor.ComputeHash(data);
         return resultBytes;
     }
 
     public static byte[] SignHMACSHA512(string data, byte[] secret)
     {
+        return SignHMACSHA512(Encoding.UTF8.GetBytes(data), secret);
+    }
+
+    public static byte[] SignHMACSHA512(byte[] data, byte[] secret)
+    {
         using var encryptor = new HMACSHA512(secret);
-        var resultBytes = encryptor.ComputeHash(Encoding.UTF8.GetBytes(data));
+        var resultBytes = encryptor.ComputeHash(data);
         return resultBytes;
     }
 
     public static byte[] SignHMACMD5(string data, byte[] secret)
     {
+        return SignHMACMD5(Encoding.UTF8.GetBytes(data), secret);
+    }
+
+    public static byte[] SignHMACMD5(byte[] data, byte[] secret)
+    {
         using var encryptor = new HMACMD5(secret);
-        var resultBytes = encryptor.ComputeHash(Encoding.UTF8.GetBytes(data));
+        var resultBytes = encryptor.ComputeHash(data);
         return resultBytes;
     }
 

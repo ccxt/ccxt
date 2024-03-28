@@ -309,28 +309,28 @@ export default class Exchange {
     agent = undefined; // maintained for backwards compatibility
     httpAgent = undefined;
     httpsAgent = undefined;
-    nodeHttpModuleLoaded = false;
+    nodeHttpModuleLoaded: boolean = false;
 
-    handleContentTypeApplicationZip = false;
-    minFundingAddressLength = 1; // used in checkAddress
+    handleContentTypeApplicationZip: boolean = false;
+    minFundingAddressLength: Int = 1; // used in checkAddress
     number: (numberString: string) => number = Number; // or String (a pointer to a function)
-    quoteJsonNumbers = true; // treat numbers in json as quoted precise strings
-    substituteCommonCurrencyCodes = true;  // reserved
+    quoteJsonNumbers: boolean = true; // treat numbers in json as quoted precise strings
+    substituteCommonCurrencyCodes: boolean = true;  // reserved
 
     // whether fees should be summed by currency code
-    reduceFees = true;
+    reduceFees: boolean = true;
 
     // do not delete this line, it is needed for users to be able to define their own fetchImplementation
     AbortError: any;
     FetchError: any;
     fetchImplementation: any;
 
-    validateClientSsl = false;
-    validateServerSsl = true;
+    validateClientSsl: boolean = false
+    validateServerSsl: boolean = true
 
-    timeout = 10000; // milliseconds
+    timeout: Int = 10000; // milliseconds
+    verbose: boolean = false;
     twofa = undefined; // two-factor authentication (2FA)
-    verbose = false;
 
     apiKey: string;
     login: string;
@@ -347,14 +347,14 @@ export default class Exchange {
     baseCurrencies = undefined;
     bidsasks: Dictionary<Ticker> = {};
     codes = undefined;
-    commonCurrencies = undefined;
+    commonCurrencies: Dictionary<string> = undefined;
     currencies: Dictionary<Currency> = undefined;
     currencies_by_id = undefined;
-    enableLastHttpResponse = true;
-    enableLastJsonResponse = true;
-    enableLastResponseHeaders = true;
+    enableLastHttpResponse: boolean = true;
+    enableLastJsonResponse: boolean = true;
+    enableLastResponseHeaders: boolean = true;
     enableRateLimit: boolean = undefined;
-    exceptions = {};
+    exceptions: Dictionary<string> = {};
     fees: object;
     has: Dictionary<boolean | 'emulated'>;
     hostname: Str = undefined;
@@ -377,14 +377,14 @@ export default class Exchange {
     };
     markets: Dictionary<any> = undefined;
     markets_by_id: Dictionary<any> = undefined;
-    marketsByAltname = undefined;
-    marketsLoading = undefined;
+    marketsByAltname: Dictionary<any> = undefined;
+    marketsLoading: Promise<Dictionary<any>> = undefined;
     myTrades: ArrayCache;
     name: Str = undefined;
     ohlcvs: Dictionary<Dictionary<ArrayCacheByTimestamp>>;
     orderbooks: Dictionary<Ob> = {};
     orders: ArrayCache = undefined;
-    paddingMode = undefined;
+    paddingMode: Num = undefined;
     positions: any;
     precision: {
         amount: number | undefined,
@@ -393,7 +393,7 @@ export default class Exchange {
     precisionMode: Num = undefined;
     quoteCurrencies = undefined;
     rateLimit: Num = undefined; // milliseconds
-    reloadingMarkets = undefined;
+    reloadingMarkets: boolean = undefined;
     requiredCredentials: {
         apiKey: boolean;
         login: boolean;
@@ -405,8 +405,8 @@ export default class Exchange {
         uid: boolean;
         walletAddress: boolean;
     };
-    requiresEddsa = false;
-    requiresWeb3 = false;
+    requiresEddsa: boolean = false;
+    requiresWeb3: boolean = false;
     stablePairs = {};
     status = undefined;
     symbols: string[] = undefined;
@@ -432,7 +432,7 @@ export default class Exchange {
 
     // WS/PRO options
     aggregate = aggregate;
-    alias = false;
+    alias: boolean = false;
     arrayConcat = arrayConcat;
     base16ToBinary = base16ToBinary;
     base58ToBinary = base58ToBinary;
@@ -444,7 +444,7 @@ export default class Exchange {
     binaryToBase58 = binaryToBase58;
     binaryToBase64 = binaryToBase64;
     capitalize = capitalize;
-    clients = {};
+    clients: Dictionary<WsClient> = {};
     clone = clone;
     crc32 = crc32;
     decimalToPrecision = decimalToPrecision;
@@ -471,7 +471,7 @@ export default class Exchange {
     merge = merge;
     microseconds = microseconds;
     milliseconds = milliseconds;
-    newUpdates = true;
+    newUpdates: boolean = true;
     now = now;
     numberToBE = numberToBE;
     numberToLE = numberToLE;
