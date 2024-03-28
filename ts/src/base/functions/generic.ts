@@ -23,7 +23,7 @@ const arrayConcat = (a, b) => a.concat (b);
 
 const inArray = (needle, haystack) => haystack.includes (needle);
 
-const toArray = (object) => Object.values (object);
+const toArray = (object: object|any[]) => Object.values (object);
 
 const isEmpty = (object) => {
     if (!object) {

@@ -330,7 +330,7 @@ export default class zonda extends Exchange {
         //     }
         //
         const items = this.safeValue (response, 'items', {});
-        const markets = Object.values (items);
+        const markets = Object.values (items) as object[];
         return this.parseMarkets (markets);
     }
 
