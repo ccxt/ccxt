@@ -636,7 +636,8 @@ export default class bingx extends Exchange {
             symbol += ':' + settle;
         }
         const fees = this.safeDict (this.fees, type, {});
-        const contractSize = this.safeNumber (market, 'size');
+        const minQuantity = this.safeNumber (market, 'tradeMinQuantity');
+        const contractSize = (swap) ? minQuantity : undefined;
         const isActive = this.safeString (market, 'status') === '1';
         const isInverse = (spot) ? undefined : false;
         const isLinear = (spot) ? undefined : swap;
@@ -677,7 +678,7 @@ export default class bingx extends Exchange {
                     'max': this.safeInteger (market, 'maxLongLeverage'),
                 },
                 'amount': {
-                    'min': this.safeNumber (market, 'minQty'),
+                    'min': this.safeNumber2 (market, 'minQty', 'tradeMinQuantity'),
                     'max': this.safeNumber (market, 'maxQty'),
                 },
                 'price': {
@@ -685,7 +686,7 @@ export default class bingx extends Exchange {
                     'max': undefined,
                 },
                 'cost': {
-                    'min': this.safeNumber (market, 'minNotional'),
+                    'min': this.safeNumber2 (market, 'minNotional', 'tradeMinUSDT'),
                     'max': this.safeNumber (market, 'maxNotional'),
                 },
             },
