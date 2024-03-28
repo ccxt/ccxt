@@ -159,6 +159,7 @@ import {OrderBook as Ob} from './ws/OrderBook.js';
 import totp from './functions/totp.js';
 import ethers from '../static_dependencies/ethers/index.js';
 import { TypedDataEncoder } from '../static_dependencies/ethers/hash/index.js';
+import {SecureRandom} from "../static_dependencies/jsencrypt/lib/jsbn/rng.js";
 // ----------------------------------------------------------------------------
 /**
  * @class Exchange
@@ -1716,6 +1717,14 @@ export default class Exchange {
 
     intToBase16(elem): string {
         return elem.toString(16);
+    }
+
+    randomBytes (length) {
+        const rng = new SecureRandom();
+        const x:number[] = [];
+        x.length = length;
+        rng.nextBytes(x);
+        return Buffer.from (x).toString ('hex');
     }
 
     /* eslint-enable */

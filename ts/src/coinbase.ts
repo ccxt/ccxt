@@ -3813,7 +3813,7 @@ export default class coinbase extends Exchange {
                 authorizationString = 'Bearer ' + this.token;
             } else {
                 this.checkRequiredCredentials ();
-                let seconds = this.seconds ();
+                const seconds = this.seconds ();
                 let payload = '';
                 if (method !== 'GET') {
                     if (Object.keys (query).length) {
@@ -3834,8 +3834,7 @@ export default class coinbase extends Exchange {
                 const isCloudAPiKey = (this.apiKey.indexOf ('organizations/') >= 0);
                 if (isCloudAPiKey) {
                     const uri = method + ' ' + url.replace ('https://', '');
-                    seconds = 1700000000;
-                    const nonce = '420fcec8015e447a0a785006c2fc8206';
+                    const nonce = this.randomBytes (16);
                     const request = {
                         'aud': [ 'retail_rest_api_proxy' ],
                         'iss': 'coinbase-cloud',
@@ -3846,7 +3845,6 @@ export default class coinbase extends Exchange {
                         'iat': seconds,
                     };
                     const token = jwt (request, this.encode (this.secret), sha256, true, { 'kid': this.apiKey, 'nonce': nonce, 'alg': 'ES256' });
-                    console.log (token);
                     authorizationString = 'Bearer ' + token;
                 } else {
                     const timestampString = this.seconds ().toString ();
