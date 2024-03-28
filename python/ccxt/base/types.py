@@ -324,6 +324,7 @@ class Option(TypedDict):
 
 OptionChain = Dict[str, Option]
 
+
 class MarketInterface(TypedDict):
     info: Dict[str, Any]
     id: Str
@@ -373,6 +374,17 @@ class LastPrice(TypedDict):
     price: Num
     side: OrderSide
     info: Dict[str, Any]
+
+
+class MarginModification(TypedDict):
+    info: Dict[str, any]
+    symbol: str
+    type: Optional[Literal['add', 'reduce', 'set']]
+    amount: Optional[float]
+    code: Str
+    status: Str
+    timestamp: Int
+    datetime: Str
 
 
 LastPrices = Dict[Str, LastPrice]

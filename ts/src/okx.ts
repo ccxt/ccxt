@@ -6,7 +6,7 @@ import { ExchangeError, ExchangeNotAvailable, OnMaintenance, ArgumentsRequired, 
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { TransferEntry, Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Str, Transaction, Ticker, OrderBook, Balances, Tickers, Market, Greeks, Strings, MarketInterface, Currency, Leverage, Num, Account, OptionChain, Option } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Str, Transaction, Ticker, OrderBook, Balances, Tickers, Market, Greeks, Strings, MarketInterface, Currency, Leverage, Num, Account, OptionChain, Option, MarginModification } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -6432,7 +6432,7 @@ export default class okx extends Exchange {
         return this.parseBorrowRateHistory (data, code, since, limit);
     }
 
-    async modifyMarginHelper (symbol: string, amount, type, params = {}) {
+    async modifyMarginHelper (symbol: string, amount, type, params = {}): Promise<MarginModification> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const posSide = this.safeString (params, 'posSide', 'net');
@@ -6458,31 +6458,45 @@ export default class okx extends Exchange {
         //       "msg": ""
         //     }
         //
-        return this.parseMarginModification (response, market);
+        const data = this.safeList (response, 'data', []);
+        const errorCode = this.safeString (response, 'code');
+        const item = this.safeDict (data, 0, {});
+        return this.extend (this.parseMarginModification (item, market), {
+            'status': (errorCode === '0') ? 'ok' : 'failed',
+        });
     }
 
-    parseMarginModification (data, market: Market = undefined) {
-        const innerData = this.safeValue (data, 'data', []);
-        const entry = this.safeValue (innerData, 0, {});
-        const errorCode = this.safeString (data, 'code');
-        const status = (errorCode === '0') ? 'ok' : 'failed';
-        const amountRaw = this.safeNumber (entry, 'amt');
-        const typeRaw = this.safeString (entry, 'type');
+    parseMarginModification (data, market: Market = undefined): MarginModification {
+        //
+        // addMargin/reduceMargin
+        //
+        //    {
+        //        "amt": "0.01",
+        //        "instId": "ETH-USD-SWAP",
+        //        "posSide": "net",
+        //        "type": "reduce"
+        //    }
+        //
+        const amountRaw = this.safeNumber (data, 'amt');
+        const typeRaw = this.safeString (data, 'type');
         const type = (typeRaw === 'reduce') ? 'reduce' : 'add';
-        const marketId = this.safeString (entry, 'instId');
+        const marketId = this.safeString (data, 'instId');
         const responseMarket = this.safeMarket (marketId, market);
         const code = responseMarket['inverse'] ? responseMarket['base'] : responseMarket['quote'];
         return {
             'info': data,
+            'symbol': responseMarket['symbol'],
             'type': type,
             'amount': amountRaw,
+            'total': undefined,
             'code': code,
-            'symbol': responseMarket['symbol'],
-            'status': status,
+            'status': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
         };
     }
 
-    async reduceMargin (symbol: string, amount, params = {}) {
+    async reduceMargin (symbol: string, amount, params = {}): Promise<MarginModification> {
         /**
          * @method
          * @name okx#reduceMargin
@@ -6496,7 +6510,7 @@ export default class okx extends Exchange {
         return await this.modifyMarginHelper (symbol, amount, 'reduce', params);
     }
 
-    async addMargin (symbol: string, amount, params = {}) {
+    async addMargin (symbol: string, amount, params = {}): Promise<MarginModification> {
         /**
          * @method
          * @name okx#addMargin

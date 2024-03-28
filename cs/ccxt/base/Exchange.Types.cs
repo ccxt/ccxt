@@ -363,6 +363,33 @@ public struct LastPrice
     }
 }
 
+public struct MarginModification
+{
+    public string symbol; 
+    public string? type;
+    public double? amount;
+    public double? total;
+    public string? code;
+    public string? status;
+    public Int64? timestamp;
+    public string? datetime;
+    public Dictionary<string, object> info;
+
+    public MarginModification(object marginModification2)
+    {
+        var marginModification = (Dictionary<string, object>)marginModification2;
+        symbol = Exchange.SafeString(marginModification, "symbol");
+        type = Exchange.SafeString(marginModification, "type");
+        amount = Exchange.SafeFloat(marginModification, "amount");
+        total = Exchange.SafeFloat(marginModification, "total");
+        code = Exchange.SafeString(marginModification, "code");
+        status = Exchange.SafeString(marginModification, "status");
+        timestamp = Exchange.SafeInteger(marginModification, "timestamp");
+        datetime = Exchange.SafeString(marginModification, "datetime");
+        info = marginModification.ContainsKey("info") ? (Dictionary<string, object>)marginModification["info"] : null;
+    }
+}
+
 public struct LastPrices
 {
     public Dictionary<string, object> info;

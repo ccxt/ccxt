@@ -8,7 +8,7 @@ import { TICK_SIZE, ROUND, SIGNIFICANT_DIGITS, DECIMAL_PLACES } from './base/fun
 import { keccak_256 as keccak } from './static_dependencies/noble-hashes/sha3.js';
 import { secp256k1 } from './static_dependencies/noble-curves/secp256k1.js';
 import { ecdsa } from './base/functions/crypto.js';
-import type { Market, TransferEntry, Balances, Int, OrderBook, OHLCV, Str, FundingRateHistory, Order, OrderType, OrderSide, Trade, Strings, Position, OrderRequest, Dict, Num } from './base/types.js';
+import type { Market, TransferEntry, Balances, Int, OrderBook, OHLCV, Str, FundingRateHistory, Order, OrderType, OrderSide, Trade, Strings, Position, OrderRequest, Dict, Num, MarginModification } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1905,7 +1905,7 @@ export default class hyperliquid extends Exchange {
         return response;
     }
 
-    async addMargin (symbol: string, amount, params = {}) {
+    async addMargin (symbol: string, amount, params = {}): Promise<MarginModification> {
         /**
          * @method
          * @name hyperliquid#addMargin
@@ -1919,7 +1919,7 @@ export default class hyperliquid extends Exchange {
         return await this.modifyMarginHelper (symbol, amount, 'add', params);
     }
 
-    async reduceMargin (symbol: string, amount, params = {}) {
+    async reduceMargin (symbol: string, amount, params = {}): Promise<MarginModification> {
         /**
          * @method
          * @name hyperliquid#reduceMargin
@@ -1933,7 +1933,7 @@ export default class hyperliquid extends Exchange {
         return await this.modifyMarginHelper (symbol, amount, 'reduce', params);
     }
 
-    async modifyMarginHelper (symbol: string, amount, type, params = {}) {
+    async modifyMarginHelper (symbol: string, amount, type, params = {}): Promise<MarginModification> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const asset = this.parseToInt (market['baseId']);
@@ -1969,10 +1969,28 @@ export default class hyperliquid extends Exchange {
         //         'status': 'ok'
         //     }
         //
-        return response;
-        // return this.extend (this.parseMarginModification (response, market), {
-        //     'code': code,
-        // });
+        return this.extend (this.parseMarginModification (response, market), {
+            'code': this.safeString (response, 'status'),
+        });
+    }
+
+    parseMarginModification (data, market: Market = undefined): MarginModification {
+        //
+        //    {
+        //        'type': 'default'
+        //    }
+        //
+        return {
+            'info': data,
+            'symbol': this.safeSymbol (undefined, market),
+            'type': undefined,
+            'amount': undefined,
+            'total': undefined,
+            'code': this.safeString (market, 'settle'),
+            'status': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+        };
     }
 
     async transfer (code: string, amount: number, fromAccount: string, toAccount: string, params = {}): Promise<TransferEntry> {
