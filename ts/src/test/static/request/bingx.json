@@ -1102,10 +1102,10 @@
             {
                 "description": "Add Margin",
                 "method": "addMargin",
-                "url": "https://open-api.bingx.com/openApi/swap/v2/trade/positionMargin?amount=3&symbol=XRP-USDT&timestamp=1711582750592&type=1&signature=ad468807abb48b5205ad30ce5525cce643f72db82172c3b8157f156bffa0f828",
+                "url": "https://open-api.bingx.com/openApi/swap/v2/trade/positionMargin?amount=1&symbol=BTC-USDT&timestamp=1711660769522&type=1&signature=00b43a627d45679f409ae85edb17d8c457c3dd3c91d8ab1058de7ad004aea448",
                 "input": [
-                  "XRP/USDT:USDT",
-                  3
+                  "BTC/USDT:USDT",
+                  1
                 ]
             }
         ],
@@ -1113,10 +1113,10 @@
             {
                 "description": "Fill this with a description of the method call",
                 "method": "reduceMargin",
-                "url": "https://open-api.bingx.com/openApi/swap/v2/trade/positionMargin?amount=3&symbol=XRP-USDT&timestamp=1711582818555&type=2&signature=273ff66b0b6cf2c4edfb375d3c81ca8ab870a8b25e8aa04b2f72d8c5b24f410b",
+                "url": "https://open-api.bingx.com/openApi/swap/v2/trade/positionMargin?amount=1&symbol=BTC-USDT&timestamp=1711660858980&type=2&signature=bde504579e677b43e8450197833dd7992680de74fa1926c4814578dd2b1a5ed9",
                 "input": [
-                  "XRP/USDT:USDT",
-                  3
+                  "BTC/USDT:USDT",
+                  1
                 ]
             }
         ]
