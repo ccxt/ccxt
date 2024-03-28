@@ -1717,7 +1717,7 @@ export default class htx extends Exchange {
         //               "pair": "BTC-USDT",
         //               "contract_size": 0.001,
         //               "price_tick": 0.1,
-        //               "delivery_date": "",
+        //               "delivery_date": "", // has value if "futures"
         //               "delivery_time": "",
         //               "create_date": "20201021",
         //               "contract_status": 1,
@@ -1767,16 +1767,23 @@ export default class htx extends Exchange {
             let settleId = undefined;
             let lowercaseId = undefined;
             let id = undefined;
-            let spot = undefined;
-            let swap = undefined;
-            let future = undefined;
-            let linear = undefined;
-            let inverse = undefined;
             const contractId = this.safeString (market, 'contract_code');
+            const contract = contractId !== undefined;
+            const spot = !contract;
+            let swap = false;
+            let future = false;
+            let linear = false;
+            let inverse = false;
             // check if parsed market is contract
-            if (contractId !== undefined) {
+            if (contract) {
                 id = contractId;
                 lowercaseId = id.toLowerCase ();
+                const delivery_date = this.safeString (market, 'delivery_date');
+                const business_type = this.safeString (market, 'business_type');
+                future = delivery_date !== undefined;
+                swap = !future;
+                linear = business_type !== undefined;
+                inverse = !linear;
                 if (swap) {
                     const parts = id.split ('-');
                     baseId = this.safeStringLower (market, 'symbol');
