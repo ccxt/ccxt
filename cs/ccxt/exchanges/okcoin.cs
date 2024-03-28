@@ -1146,8 +1146,11 @@ public partial class okcoin : Exchange
         object request = new Dictionary<string, object>() {
             { "instId", getValue(market, "id") },
             { "bar", bar },
-            { "limit", limit },
         };
+        if (isTrue(!isEqual(limit, null)))
+        {
+            ((IDictionary<string,object>)request)["limit"] = limit; // default 100, max 100
+        }
         object method = null;
         var methodparametersVariable = this.handleOptionAndParams(parameters, "fetchOHLCV", "method", "publicGetMarketCandles");
         method = ((IList<object>)methodparametersVariable)[0];

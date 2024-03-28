@@ -90,6 +90,7 @@ class bitget(ccxt.async_support.bitget):
                         '30015': AuthenticationError,  # {event: 'error', code: 30015, msg: 'Invalid sign'}
                         '30016': BadRequest,  # {event: 'error', code: 30016, msg: 'Param error'}
                     },
+                    'broad': {},
                 },
             },
         })

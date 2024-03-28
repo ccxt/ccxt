@@ -138,21 +138,23 @@ class bitbank extends bitbank$1 {
             },
             'precisionMode': number.TICK_SIZE,
             'exceptions': {
-                '20001': errors.AuthenticationError,
-                '20002': errors.AuthenticationError,
-                '20003': errors.AuthenticationError,
-                '20005': errors.AuthenticationError,
-                '20004': errors.InvalidNonce,
-                '40020': errors.InvalidOrder,
-                '40021': errors.InvalidOrder,
-                '40025': errors.ExchangeError,
-                '40013': errors.OrderNotFound,
-                '40014': errors.OrderNotFound,
-                '50008': errors.PermissionDenied,
-                '50009': errors.OrderNotFound,
-                '50010': errors.OrderNotFound,
-                '60001': errors.InsufficientFunds,
-                '60005': errors.InvalidOrder,
+                'exact': {
+                    '20001': errors.AuthenticationError,
+                    '20002': errors.AuthenticationError,
+                    '20003': errors.AuthenticationError,
+                    '20005': errors.AuthenticationError,
+                    '20004': errors.InvalidNonce,
+                    '40020': errors.InvalidOrder,
+                    '40021': errors.InvalidOrder,
+                    '40025': errors.ExchangeError,
+                    '40013': errors.OrderNotFound,
+                    '40014': errors.OrderNotFound,
+                    '50008': errors.PermissionDenied,
+                    '50009': errors.OrderNotFound,
+                    '50010': errors.OrderNotFound,
+                    '60001': errors.InsufficientFunds,
+                    '60005': errors.InvalidOrder,
+                },
             },
         });
     }
@@ -983,16 +985,10 @@ class bitbank extends bitbank$1 {
                 '70009': 'We are currently temporarily restricting orders to be carried out. Please use the limit order.',
                 '70010': 'We are temporarily raising the minimum order quantity as the system load is now rising.',
             };
-            const errorClasses = this.exceptions;
             const code = this.safeString(data, 'code');
             const message = this.safeString(errorMessages, code, 'Error');
-            const ErrorClass = this.safeValue(errorClasses, code);
-            if (ErrorClass !== undefined) {
-                throw new errorClasses[code](message);
-            }
-            else {
-                throw new errors.ExchangeError(this.id + ' ' + this.json(response));
-            }
+            this.throwExactlyMatchedException(this.exceptions['exact'], code, message);
+            throw new errors.ExchangeError(this.id + ' ' + this.json(response));
         }
         return undefined;
     }

@@ -141,21 +141,23 @@ export default class bitbank extends Exchange {
             },
             'precisionMode': TICK_SIZE,
             'exceptions': {
-                '20001': AuthenticationError,
-                '20002': AuthenticationError,
-                '20003': AuthenticationError,
-                '20005': AuthenticationError,
-                '20004': InvalidNonce,
-                '40020': InvalidOrder,
-                '40021': InvalidOrder,
-                '40025': ExchangeError,
-                '40013': OrderNotFound,
-                '40014': OrderNotFound,
-                '50008': PermissionDenied,
-                '50009': OrderNotFound,
-                '50010': OrderNotFound,
-                '60001': InsufficientFunds,
-                '60005': InvalidOrder,
+                'exact': {
+                    '20001': AuthenticationError,
+                    '20002': AuthenticationError,
+                    '20003': AuthenticationError,
+                    '20005': AuthenticationError,
+                    '20004': InvalidNonce,
+                    '40020': InvalidOrder,
+                    '40021': InvalidOrder,
+                    '40025': ExchangeError,
+                    '40013': OrderNotFound,
+                    '40014': OrderNotFound,
+                    '50008': PermissionDenied,
+                    '50009': OrderNotFound,
+                    '50010': OrderNotFound,
+                    '60001': InsufficientFunds,
+                    '60005': InvalidOrder,
+                },
             },
         });
     }
@@ -986,16 +988,10 @@ export default class bitbank extends Exchange {
                 '70009': 'We are currently temporarily restricting orders to be carried out. Please use the limit order.',
                 '70010': 'We are temporarily raising the minimum order quantity as the system load is now rising.',
             };
-            const errorClasses = this.exceptions;
             const code = this.safeString(data, 'code');
             const message = this.safeString(errorMessages, code, 'Error');
-            const ErrorClass = this.safeValue(errorClasses, code);
-            if (ErrorClass !== undefined) {
-                throw new errorClasses[code](message);
-            }
-            else {
-                throw new ExchangeError(this.id + ' ' + this.json(response));
-            }
+            this.throwExactlyMatchedException(this.exceptions['exact'], code, message);
+            throw new ExchangeError(this.id + ' ' + this.json(response));
         }
         return undefined;
     }

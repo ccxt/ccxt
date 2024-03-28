@@ -632,7 +632,7 @@ export default class bingx extends Exchange {
             symbol += ':' + settle;
         }
         const fees = this.safeDict(this.fees, type, {});
-        const contractSize = this.safeNumber(market, 'size');
+        const contractSize = (swap) ? this.parseNumber('1') : undefined;
         const isActive = this.safeString(market, 'status') === '1';
         const isInverse = (spot) ? undefined : false;
         const isLinear = (spot) ? undefined : swap;
@@ -673,7 +673,7 @@ export default class bingx extends Exchange {
                     'max': this.safeInteger(market, 'maxLongLeverage'),
                 },
                 'amount': {
-                    'min': this.safeNumber(market, 'minQty'),
+                    'min': this.safeNumber2(market, 'minQty', 'tradeMinQuantity'),
                     'max': this.safeNumber(market, 'maxQty'),
                 },
                 'price': {
@@ -681,7 +681,7 @@ export default class bingx extends Exchange {
                     'max': undefined,
                 },
                 'cost': {
-                    'min': this.safeNumber(market, 'minNotional'),
+                    'min': this.safeNumber2(market, 'minNotional', 'tradeMinUSDT'),
                     'max': this.safeNumber(market, 'maxNotional'),
                 },
             },
@@ -1038,6 +1038,13 @@ export default class bingx extends Exchange {
         if (isMaker !== undefined) {
             takeOrMaker = isMaker ? 'maker' : 'taker';
         }
+        let amount = this.safeStringN(trade, ['qty', 'amount', 'q']);
+        if ((market !== undefined) && market['swap'] && ('volume' in trade)) {
+            // private trade returns num of contracts instead of base currency (as the order-related methods do)
+            const contractSize = this.safeString(market['info'], 'tradeMinQuantity');
+            const volume = this.safeString(trade, 'volume');
+            amount = Precise.stringMul(volume, contractSize);
+        }
         return this.safeTrade({
             'id': this.safeStringN(trade, ['id', 't']),
             'info': trade,
@@ -1049,7 +1056,7 @@ export default class bingx extends Exchange {
             'side': this.parseOrderSide(side),
             'takerOrMaker': takeOrMaker,
             'price': this.safeString2(trade, 'price', 'p'),
-            'amount': this.safeStringN(trade, ['qty', 'volume', 'amount', 'q']),
+            'amount': amount,
             'cost': cost,
             'fee': {
                 'cost': this.parseNumber(Precise.stringAbs(this.safeString2(trade, 'commission', 'n'))),
@@ -1681,19 +1688,27 @@ export default class bingx extends Exchange {
     }
     parsePosition(position, market = undefined) {
         //
-        //     {
-        //         "symbol": "BTC-USDT",
-        //         "positionId": "12345678",
-        //         "positionSide": "LONG",
-        //         "isolated": true,
-        //         "positionAmt": "123.33",
-        //         "availableAmt": "128.99",
-        //         "unrealizedProfit": "1.22",
-        //         "realisedProfit": "8.1",
-        //         "initialMargin": "123.33",
-        //         "avgPrice": "2.2",
-        //         "leverage": 10,
-        //     }
+        //    {
+        //        "positionId":"1773122376147623936",
+        //        "symbol":"XRP-USDT",
+        //        "currency":"USDT",
+        //        "positionAmt":"3",
+        //        "availableAmt":"3",
+        //        "positionSide":"LONG",
+        //        "isolated":false,
+        //        "avgPrice":"0.6139",
+        //        "initialMargin":"0.0897",
+        //        "leverage":20,
+        //        "unrealizedProfit":"-0.0023",
+        //        "realisedProfit":"-0.0009",
+        //        "liquidationPrice":0,
+        //        "pnlRatio":"-0.0260",
+        //        "maxMarginReduction":"",
+        //        "riskRate":"",
+        //        "markPrice":"",
+        //        "positionValue":"",
+        //        "onlyOnePosition":false
+        //    }
         //
         // standard position
         //
@@ -1720,7 +1735,7 @@ export default class bingx extends Exchange {
             'info': position,
             'id': this.safeString(position, 'positionId'),
             'symbol': this.safeSymbol(marketId, market, '-', 'swap'),
-            'notional': this.safeNumber(position, 'positionAmt'),
+            'notional': this.safeNumber(position, 'positionValue'),
             'marginMode': marginMode,
             'liquidationPrice': undefined,
             'entryPrice': this.safeNumber2(position, 'avgPrice', 'entryPrice'),
@@ -1738,7 +1753,7 @@ export default class bingx extends Exchange {
             'lastUpdateTimestamp': undefined,
             'maintenanceMargin': undefined,
             'maintenanceMarginPercentage': undefined,
-            'collateral': this.safeNumber(position, 'positionAmt'),
+            'collateral': undefined,
             'initialMargin': this.safeNumber(position, 'initialMargin'),
             'initialMarginPercentage': undefined,
             'leverage': this.safeNumber(position, 'leverage'),

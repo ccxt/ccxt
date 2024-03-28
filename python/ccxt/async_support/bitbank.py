@@ -146,21 +146,23 @@ class bitbank(Exchange, ImplicitAPI):
             },
             'precisionMode': TICK_SIZE,
             'exceptions': {
-                '20001': AuthenticationError,
-                '20002': AuthenticationError,
-                '20003': AuthenticationError,
-                '20005': AuthenticationError,
-                '20004': InvalidNonce,
-                '40020': InvalidOrder,
-                '40021': InvalidOrder,
-                '40025': ExchangeError,
-                '40013': OrderNotFound,
-                '40014': OrderNotFound,
-                '50008': PermissionDenied,
-                '50009': OrderNotFound,
-                '50010': OrderNotFound,
-                '60001': InsufficientFunds,
-                '60005': InvalidOrder,
+                'exact': {
+                    '20001': AuthenticationError,
+                    '20002': AuthenticationError,
+                    '20003': AuthenticationError,
+                    '20005': AuthenticationError,
+                    '20004': InvalidNonce,
+                    '40020': InvalidOrder,
+                    '40021': InvalidOrder,
+                    '40025': ExchangeError,
+                    '40013': OrderNotFound,
+                    '40014': OrderNotFound,
+                    '50008': PermissionDenied,
+                    '50009': OrderNotFound,
+                    '50010': OrderNotFound,
+                    '60001': InsufficientFunds,
+                    '60005': InvalidOrder,
+                },
             },
         })
 
@@ -944,12 +946,8 @@ class bitbank(Exchange, ImplicitAPI):
                 '70009': 'We are currently temporarily restricting orders to be carried out. Please use the limit order.',
                 '70010': 'We are temporarily raising the minimum order quantity system load is now rising.',
             }
-            errorClasses = self.exceptions
             code = self.safe_string(data, 'code')
             message = self.safe_string(errorMessages, code, 'Error')
-            ErrorClass = self.safe_value(errorClasses, code)
-            if ErrorClass is not None:
-                raise errorClasses[code](message)
-            else:
-                raise ExchangeError(self.id + ' ' + self.json(response))
+            self.throw_exactly_matched_exception(self.exceptions['exact'], code, message)
+            raise ExchangeError(self.id + ' ' + self.json(response))
         return None
