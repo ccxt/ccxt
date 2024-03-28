@@ -482,6 +482,118 @@
         },
         "feeSide": "quote"
     },
+    "ETH/USDT:USDT": {
+        "id": "ETH-USDT",
+        "symbol": "ETH/USDT:USDT",
+        "base": "ETH",
+        "quote": "USDT",
+        "settle": "USDT",
+        "baseId": "ETH",
+        "quoteId": "USDT",
+        "settleId": "USDT",
+        "type": "swap",
+        "spot": false,
+        "margin": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0.0005,
+        "maker": 0.0002,
+        "contractSize": 1,
+        "precision": {
+            "amount": 2,
+            "price": 2
+        },
+        "limits": {
+            "leverage": {
+                "max": 125
+            },
+            "amount": {
+                "min": 0.01
+            },
+            "price": {},
+            "cost": {
+                "min": 2
+            }
+        },
+        "info": {
+            "contractId": "101",
+            "symbol": "ETH-USDT",
+            "size": "0",
+            "quantityPrecision": "2",
+            "pricePrecision": "2",
+            "feeRate": "0.0005",
+            "makerFeeRate": "0.0002",
+            "takerFeeRate": "0.0005",
+            "tradeMinLimit": "0",
+            "tradeMinQuantity": "0.01",
+            "tradeMinUSDT": "2",
+            "maxLongLeverage": "125",
+            "maxShortLeverage": "125",
+            "currency": "USDT",
+            "asset": "ETH",
+            "status": "1",
+            "apiStateOpen": "true",
+            "apiStateClose": "true",
+            "ensureTrigger": true,
+            "triggerFeeRate": "0.00010000"
+        },
+        "feeSide": "quote"
+    },
+    "ETH/USDT": {
+        "id": "ETH-USDT",
+        "symbol": "ETH/USDT",
+        "base": "ETH",
+        "quote": "USDT",
+        "baseId": "ETH",
+        "quoteId": "USDT",
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "index": false,
+        "active": true,
+        "contract": false,
+        "taker": 0.001,
+        "maker": 0.001,
+        "precision": {
+            "amount": 6,
+            "price": 2
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 0.002736,
+                "max": 273.684672
+            },
+            "price": {},
+            "cost": {
+                "min": 5,
+                "max": 4794604.95075703
+            }
+        },
+        "info": {
+            "symbol": "ETH-USDT",
+            "minQty": "0.002736",
+            "maxQty": "273.684672",
+            "minNotional": "5",
+            "maxNotional": "4794604.95075703",
+            "status": "1",
+            "tickSize": "0.01",
+            "stepSize": "0.000001",
+            "apiStateSell": true,
+            "apiStateBuy": true,
+            "timeOnline": "0"
+        },
+        "feeSide": "get"
+    },
     "SOL/USDT:USDT": {
         "id": "SOL-USDT",
         "symbol": "SOL/USDT:USDT",
@@ -542,6 +654,69 @@
             "apiStateClose": "true",
             "ensureTrigger": true,
             "triggerFeeRate": "0.00050000"
+        },
+        "feeSide": "quote"
+    },
+    "DOGE/USDT:USDT": {
+        "id": "DOGE-USDT",
+        "symbol": "DOGE/USDT:USDT",
+        "base": "DOGE",
+        "quote": "USDT",
+        "settle": "USDT",
+        "baseId": "DOGE",
+        "quoteId": "USDT",
+        "settleId": "USDT",
+        "type": "swap",
+        "spot": false,
+        "margin": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0.0005,
+        "maker": 0.0002,
+        "contractSize": 1,
+        "precision": {
+            "amount": 0,
+            "price": 5
+        },
+        "limits": {
+            "leverage": {
+                "max": 5
+            },
+            "amount": {
+                "min": 1
+            },
+            "price": {},
+            "cost": {
+                "min": 2
+            }
+        },
+        "info": {
+            "contractId": "100035",
+            "symbol": "DOGE-USDT",
+            "size": "0",
+            "quantityPrecision": "0",
+            "pricePrecision": "5",
+            "feeRate": "0.0005",
+            "makerFeeRate": "0.0002",
+            "takerFeeRate": "0.0005",
+            "tradeMinLimit": "0",
+            "tradeMinQuantity": "1",
+            "tradeMinUSDT": "2",
+            "maxLongLeverage": "5",
+            "maxShortLeverage": "5",
+            "currency": "USDT",
+            "asset": "DOGE",
+            "status": "1",
+            "apiStateOpen": "true",
+            "apiStateClose": "true",
+            "ensureTrigger": true,
+            "triggerFeeRate": "0.00030000"
         },
         "feeSide": "quote"
     }
