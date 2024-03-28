@@ -860,7 +860,7 @@
         ],
         "fetchTickers": [
             {
-                "description": "fetch Tickers - spot",
+                "description": "spot",
                 "method": "fetchTickers",
                 "url": "https://api.huobi.pro/market/tickers",
                 "input": [
@@ -868,7 +868,7 @@
                 ]
             },
             {
-                "description": "fetch Tickers - swap linear",
+                "description": "swap linear",
                 "method": "fetchTickers",
                 "url": "https://api.huobi.pro/linear-swap-ex/market/detail/batch_merged",
                 "input": [
@@ -876,7 +876,26 @@
                 ]
             },
             {
-                "description": "fetch Tickers - swap inverse",
+                "description": "future linear",
+                "method": "fetchTickers",
+                "url": "https://api.huobi.pro/linear-swap-ex/market/detail/batch_merged?business_type=futures",
+                "input": [
+                    ["BTC/USDT:USDT-240329"]
+                ]
+            },
+            {
+                "description": "all linear",
+                "method": "fetchTickers",
+                "url": "https://api.huobi.pro/linear-swap-ex/market/detail/batch_merged?business_type=all",
+                "input": [
+                    null,
+                    {
+                        "subType": "linear"
+                    }
+                ]
+            },
+            {
+                "description": "swap inverse",
                 "method": "fetchTickers",
                 "url": "https://api.huobi.pro/swap-ex/market/detail/batch_merged",
                 "input": [
@@ -884,7 +903,7 @@
                 ]
             },
             {
-                "description": "fetch Tickers - future",
+                "description": "future inverse",
                 "method": "fetchTickers",
                 "url": "https://api.huobi.pro/market/detail/batch_merged",
                 "input": [
