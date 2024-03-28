@@ -101,6 +101,9 @@ export default class binance extends binanceRest {
                 'watchTrades': {
                     'name': 'trade', // 'trade' or 'aggTrade'
                 },
+                'watchTradesForSymbols': {
+                    'name': 'trade', // 'trade' or 'aggTrade'
+                },
                 'watchTicker': {
                     'name': 'ticker', // ticker or miniTicker or ticker_<window_size>
                 },
@@ -503,6 +506,7 @@ export default class binance extends binanceRest {
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.name] stream to use can be trade or aggTrade
          * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
         await this.loadMarkets ();
@@ -515,8 +519,11 @@ export default class binance extends binanceRest {
             }
             streamHash += '::' + symbols.join (',');
         }
-        const options = this.safeValue (this.options, 'watchTradesForSymbols', {});
-        const name = this.safeString (options, 'name', 'trade');
+        let name = this.safeString (params, 'name', undefined);
+        if (name === undefined) {
+            const options = this.safeValue (this.options, 'watchTradesForSymbols', {});
+            name = this.safeString (options, 'name', 'trade');
+        }
         const firstMarket = this.market (symbols[0]);
         let type = firstMarket['type'];
         if (firstMarket['contract']) {
@@ -529,7 +536,7 @@ export default class binance extends binanceRest {
             const currentMessageHash = market['lowercaseId'] + '@' + name;
             subParams.push (currentMessageHash);
         }
-        const query = this.omit (params, 'type');
+        const query = this.omit (params, 'type', 'name');
         const subParamsLength = subParams.length;
         const url = this.urls['api']['ws'][type] + '/' + this.stream (type, streamHash, subParamsLength);
         const requestId = this.requestId (url);
@@ -559,8 +566,17 @@ export default class binance extends binanceRest {
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.name] stream to use can be trade or aggTrade
          * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
+        let name = this.safeString (params, 'name', undefined);
+        if (name === undefined) {
+            const options = this.safeValue (this.options, 'watchTrades', {});
+            name = this.safeString (options, 'name', undefined);
+            if (name !== undefined) {
+                params['name'] = name;
+            }
+        }
         return await this.watchTradesForSymbols ([ symbol ], since, limit, params);
     }
 
