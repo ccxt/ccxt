@@ -636,8 +636,7 @@ export default class bingx extends Exchange {
             symbol += ':' + settle;
         }
         const fees = this.safeDict (this.fees, type, {});
-        const minQuantity = this.safeNumber (market, 'tradeMinQuantity');
-        const contractSize = (swap) ? minQuantity : undefined;
+        const contractSize = (swap) ? this.parseNumber ('1') : undefined;
         const isActive = this.safeString (market, 'status') === '1';
         const isInverse = (spot) ? undefined : false;
         const isLinear = (spot) ? undefined : swap;
@@ -1045,6 +1044,13 @@ export default class bingx extends Exchange {
         if (isMaker !== undefined) {
             takeOrMaker = isMaker ? 'maker' : 'taker';
         }
+        let amount = this.safeStringN (trade, [ 'qty', 'amount', 'q' ]);
+        if ((market !== undefined) && market['swap'] && ('volume' in trade)) {
+            // private trade returns num of contracts instead of base currency (as the order-related methods do)
+            const contractSize = this.safeString (market['info'], 'tradeMinQuantity');
+            const volume = this.safeString (trade, 'volume');
+            amount = Precise.stringMul (volume, contractSize);
+        }
         return this.safeTrade ({
             'id': this.safeStringN (trade, [ 'id', 't' ]),
             'info': trade,
@@ -1056,7 +1062,7 @@ export default class bingx extends Exchange {
             'side': this.parseOrderSide (side),
             'takerOrMaker': takeOrMaker,
             'price': this.safeString2 (trade, 'price', 'p'),
-            'amount': this.safeStringN (trade, [ 'qty', 'volume', 'amount', 'q' ]),
+            'amount': amount,
             'cost': cost,
             'fee': {
                 'cost': this.parseNumber (Precise.stringAbs (this.safeString2 (trade, 'commission', 'n'))),
