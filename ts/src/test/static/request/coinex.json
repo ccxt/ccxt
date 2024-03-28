@@ -208,7 +208,7 @@
                         "LTC/USDT:USDT"
                     ],
                     {
-                        "method": "perpetualPrivateGetPositionFinished"
+                        "method": "v1PerpetualPrivateGetPositionFinished"
                     }
                 ]
             }
