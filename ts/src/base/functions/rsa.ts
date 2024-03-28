@@ -1,9 +1,10 @@
 import { JSEncrypt } from "../../static_dependencies/jsencrypt/JSEncrypt.js";
 import { CHash } from '../../static_dependencies/noble-hashes/utils.js';
 import { base16, utf8 } from '../../static_dependencies/scure-base/index.js';
-import { urlencodeBase64, stringToBase64 } from './encode.js';
+import { urlencodeBase64, stringToBase64, base16ToBinary, binaryToBase64 } from './encode.js';
 import { hmac } from './crypto.js';
-
+import { P256 } from '../../static_dependencies/noble-curves/p256.js';
+import { ecdsa } from '../../base/functions/crypto.js';
 
 function rsa (request: string, secret: string, hash: CHash) {
     const RSA = new JSEncrypt ()
@@ -13,9 +14,17 @@ function rsa (request: string, secret: string, hash: CHash) {
     return RSA.sign (request, digester, name)
 }
 
-function jwt (request: {}, secret: Uint8Array, hash: CHash, isRSA = false) {
-    const alg = (isRSA ? 'RS' : 'HS') + (hash.outputLen * 8)
-    const encodedHeader = urlencodeBase64 (stringToBase64 (JSON.stringify ({ 'alg': alg, 'typ': 'JWT' })));
+function jwt (request: {}, secret: Uint8Array, hash: CHash, isRSA = false, opts = {}) {
+    let alg = (isRSA ? 'RS' : 'HS') + (hash.outputLen * 8);
+    if (opts['alg']) {
+        alg = opts['alg'].toUpperCase ();
+    }
+    const header = Object.assign({ 'alg': alg, 'typ': 'JWT' }, opts);
+    if (header['iat'] !== undefined) {
+        request['iat'] = header['iat'];
+        delete header['iat'];
+    }
+    const encodedHeader = urlencodeBase64(stringToBase64 (JSON.stringify(header)));
     const encodedData = urlencodeBase64 (stringToBase64 (JSON.stringify (request)));
     const token = [ encodedHeader, encodedData ].join ('.');
     const algoType = alg.slice (0, 2);
@@ -24,6 +33,12 @@ function jwt (request: {}, secret: Uint8Array, hash: CHash, isRSA = false) {
         signature = urlencodeBase64 (hmac (token, secret, hash, 'base64'));
     } else if (algoType === 'RS') {
         signature = urlencodeBase64 (rsa (token, utf8.encode (secret), hash));
+    } else if (algoType === 'ES') {
+        const msgHash = hash (token);
+        const signedHash = ecdsa (msgHash.slice (-64), utf8.encode (secret), P256, undefined);
+        const r = (signedHash.r.length === 64) ? signedHash.r : '0' + signedHash.r;
+        const s = (signedHash.s.length === 64) ? signedHash.s : '0' + signedHash.s;
+        signature = urlencodeBase64(binaryToBase64(base16ToBinary(r + s)));
     }
     return [ token, signature ].join ('.');
 }

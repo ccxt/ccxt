@@ -7,7 +7,7 @@ import { CurveFn } from '../../static_dependencies/noble-curves/abstract/weierst
 import { CurveFn as CurveFnEDDSA } from '../../static_dependencies/noble-curves/abstract/edwards.js';
 import { Hex } from '../../static_dependencies/noble-curves/abstract/utils.js';
 import { Base64 } from '../../static_dependencies/jsencrypt/lib/asn1js/base64.js';
-
+import { ASN1 } from "../../static_dependencies/jsencrypt/lib/asn1js/asn1.js";
 /*  ------------------------------------------------------------------------ */
 
 const encoders = {
@@ -17,6 +17,11 @@ const encoders = {
 }
 
 type Digest = 'binary' | 'hex' | 'base64'
+
+const supportedCurve = [
+    '2B8104000A', // secp256k1
+    '2A8648CE3D030107', // secp256r1
+]
 
 /*  .............................................   */
 
@@ -37,6 +42,32 @@ const hmac = (request: Input, secret: Input, hash: CHash, digest: Digest = 'hex'
 function ecdsa (request: Hex, secret: Hex, curve: CurveFn, prehash: CHash = null) {
     if (prehash) {
         request = hash (request, prehash, 'hex')
+    }
+    if (typeof secret === 'string' && secret.length > 64) {
+        // decode pem key
+        if (secret.startsWith ('-----BEGIN EC PRIVATE KEY-----')) {
+            const der = Base64.unarmor (secret);
+            let asn1 = ASN1.decode(der);
+            if (asn1.sub.length === 4) {
+                // ECPrivateKey ::= SEQUENCE {
+                //     version        INTEGER { ecPrivkeyVer1(1) } (ecPrivkeyVer1),
+                //     privateKey     OCTET STRING,
+                //     parameters [0] ECParameters {{ NamedCurve }} OPTIONAL,
+                //     publicKey  [1] BIT STRING OPTIONAL
+                // }
+                if (asn1.sub[2].sub.length > 0) {
+                    const namedCurve = asn1.sub[2].sub[0].getHexStringValue();
+                    if (supportedCurve.indexOf(namedCurve) < 0) throw new Error('Unsupported curve');
+                }
+                secret = asn1.sub[1].getHexStringValue()
+            } else {
+                // maybe return false
+                throw new Error('Unsupported key format');
+            }
+        } else {
+            // maybe return false
+            throw new Error('Unsupported key format');
+        }
     }
     const signature = curve.sign (request, secret)
     return {
