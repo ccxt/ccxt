@@ -641,7 +641,7 @@ public partial class probit : Exchange
         //         ]
         //     }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseTickers(data, symbols);
     }
 
@@ -789,7 +789,7 @@ public partial class probit : Exchange
         //         ]
         //     }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseTrades(data, market, since, limit);
     }
 
@@ -848,7 +848,7 @@ public partial class probit : Exchange
         //         ]
         //     }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseTrades(data, market, since, limit);
     }
 
@@ -1058,7 +1058,7 @@ public partial class probit : Exchange
         //         ]
         //     }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseOHLCVs(data, market, timeframe, since, limit);
     }
 
@@ -1104,7 +1104,7 @@ public partial class probit : Exchange
             ((IDictionary<string,object>)request)["market_id"] = getValue(market, "id");
         }
         object response = await this.privateGetOpenOrder(this.extend(request, parameters));
-        object data = this.safeValue(response, "data");
+        object data = this.safeList(response, "data");
         return this.parseOrders(data, market, since, limit);
     }
 
@@ -1143,7 +1143,7 @@ public partial class probit : Exchange
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
         object response = await this.privateGetOrderHistory(this.extend(request, parameters));
-        object data = this.safeValue(response, "data");
+        object data = this.safeList(response, "data");
         return this.parseOrders(data, market, since, limit);
     }
 
@@ -1179,7 +1179,7 @@ public partial class probit : Exchange
         object query = this.omit(parameters, new List<object>() {"clientOrderId", "client_order_id"});
         object response = await this.privateGetOrder(this.extend(request, query));
         object data = this.safeValue(response, "data", new List<object>() {});
-        object order = this.safeValue(data, 0);
+        object order = this.safeDict(data, 0);
         return this.parseOrder(order, market);
     }
 
@@ -1401,7 +1401,7 @@ public partial class probit : Exchange
             { "order_id", id },
         };
         object response = await this.privatePostCancelOrder(this.extend(request, parameters));
-        object data = this.safeValue(response, "data");
+        object data = this.safeDict(response, "data");
         return this.parseOrder(data);
     }
 
@@ -1506,7 +1506,7 @@ public partial class probit : Exchange
             ((IDictionary<string,object>)request)["currency_id"] = String.Join(",", ((IList<object>)codes).ToArray());
         }
         object response = await this.privateGetDepositAddress(this.extend(request, parameters));
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseDepositAddresses(data, codes);
     }
 
@@ -1554,7 +1554,7 @@ public partial class probit : Exchange
             parameters = this.omit(parameters, "network");
         }
         object response = await this.privatePostWithdrawal(this.extend(request, parameters));
-        object data = this.safeValue(response, "data");
+        object data = this.safeDict(response, "data");
         return this.parseTransaction(data, currency);
     }
 
@@ -1825,7 +1825,7 @@ public partial class probit : Exchange
         //     ]
         //  }
         //
-        object data = this.safeValue(response, "data");
+        object data = this.safeList(response, "data");
         return this.parseDepositWithdrawFees(data, codes, "id");
     }
 

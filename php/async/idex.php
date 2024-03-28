@@ -361,7 +361,7 @@ class idex extends Exchange {
             //   }
             // )
             $response = Async\await($this->publicGetTickers (array_merge($request, $params)));
-            $ticker = $this->safe_value($response, 0);
+            $ticker = $this->safe_dict($response, 0);
             return $this->parse_ticker($ticker, $market);
         }) ();
     }
@@ -1506,7 +1506,7 @@ class idex extends Exchange {
             );
             // array( array( orderId => "688336f0-ec50-11ea-9842-b332f8a34d0e" ) )
             $response = Async\await($this->privateDeleteOrders (array_merge($request, $params)));
-            $canceledOrder = $this->safe_value($response, 0);
+            $canceledOrder = $this->safe_dict($response, 0);
             return $this->parse_order($canceledOrder, $market);
         }) ();
     }

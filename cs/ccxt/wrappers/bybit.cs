@@ -98,6 +98,12 @@ public partial class bybit
     /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.subType</term>
+    /// <description>
+    /// string : *contract only* 'linear', 'inverse'
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an array of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}.</returns>

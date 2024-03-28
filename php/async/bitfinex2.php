@@ -1807,7 +1807,7 @@ class bitfinex2 extends Exchange {
                 'all' => 1,
             );
             $response = Async\await($this->privatePostAuthWOrderCancelMulti (array_merge($request, $params)));
-            $orders = $this->safe_value($response, 4, array());
+            $orders = $this->safe_list($response, 4, array());
             return $this->parse_orders($orders);
         }) ();
     }

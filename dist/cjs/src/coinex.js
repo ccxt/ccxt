@@ -1371,7 +1371,7 @@ class coinex extends coinex$1 {
         //         "message": "OK"
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseOHLCVs(data, market, timeframe, since, limit);
     }
     async fetchMarginBalance(params = {}) {
@@ -2296,7 +2296,7 @@ class coinex extends coinex$1 {
         //
         //     {"code":0,"data":{"status":"success"},"message":"OK"}
         //
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         return this.parseOrder(data, market);
     }
     async createOrders(orders, params = {}) {
@@ -2598,7 +2598,7 @@ class coinex extends coinex$1 {
         //         "message": "Success"
         //     }
         //
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         return this.parseOrder(data, market);
     }
     async cancelOrder(id, symbol = undefined, params = {}) {
@@ -2788,7 +2788,7 @@ class coinex extends coinex$1 {
         //
         //     {"code":0,"data":{},"message":"Success"}
         //
-        const data = this.safeValue(response, 'data');
+        const data = this.safeDict(response, 'data');
         return this.parseOrder(data, market);
     }
     async cancelAllOrders(symbol = undefined, params = {}) {
@@ -2985,7 +2985,7 @@ class coinex extends coinex$1 {
         //         "message":"OK"
         //     }
         //
-        const data = this.safeValue(response, 'data');
+        const data = this.safeDict(response, 'data');
         return this.parseOrder(data, market);
     }
     async fetchOrdersByStatus(status, symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -3211,7 +3211,7 @@ class coinex extends coinex$1 {
         //
         const tradeRequest = (marketType === 'swap') ? 'records' : 'data';
         const data = this.safeValue(response, 'data');
-        const orders = this.safeValue(data, tradeRequest, []);
+        const orders = this.safeList(data, tradeRequest, []);
         return this.parseOrders(orders, market, since, limit);
     }
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -3277,7 +3277,7 @@ class coinex extends coinex$1 {
         //         },
         //         "message": "Success"
         //     }
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         return this.parseDepositAddress(data, currency);
     }
     async fetchDepositAddress(code, params = {}) {
@@ -3507,7 +3507,7 @@ class coinex extends coinex$1 {
         //
         const tradeRequest = swap ? 'records' : 'data';
         const data = this.safeValue(response, 'data');
-        const trades = this.safeValue(data, tradeRequest, []);
+        const trades = this.safeList(data, tradeRequest, []);
         return this.parseTrades(trades, market, since, limit);
     }
     async fetchPositions(symbols = undefined, params = {}) {
@@ -3702,7 +3702,7 @@ class coinex extends coinex$1 {
         //         "message": "OK"
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parsePosition(data[0], market);
     }
     parsePosition(position, market = undefined) {
@@ -4396,7 +4396,7 @@ class coinex extends coinex$1 {
         //         "message": "Ok"
         //     }
         //
-        const transaction = this.safeValue(response, 'data', {});
+        const transaction = this.safeDict(response, 'data', {});
         return this.parseTransaction(transaction, currency);
     }
     parseTransactionStatus(status) {
@@ -4813,7 +4813,7 @@ class coinex extends coinex$1 {
         //     }
         //
         const data = this.safeValue(response, 'data', {});
-        const transfers = this.safeValue(data, 'records', []);
+        const transfers = this.safeList(data, 'records', []);
         return this.parseTransfers(transfers, currency, since, limit);
     }
     async fetchWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {

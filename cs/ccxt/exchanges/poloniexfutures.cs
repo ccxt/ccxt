@@ -702,7 +702,7 @@ public partial class poloniexfutures : Exchange
         //        },
         //    }
         //
-        object trades = this.safeValue(response, "data", new List<object>() {});
+        object trades = this.safeList(response, "data", new List<object>() {});
         return this.parseTrades(trades, market, since, limit);
     }
 
@@ -785,7 +785,7 @@ public partial class poloniexfutures : Exchange
         //        ]
         //    }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseOHLCVs(data, market, timeframe, since, limit);
     }
 
@@ -1069,7 +1069,7 @@ public partial class poloniexfutures : Exchange
         //        ]
         //    }
         //
-        object data = this.safeValue(response, "data");
+        object data = this.safeList(response, "data");
         return this.parsePositions(data, symbols);
     }
 
@@ -1561,7 +1561,7 @@ public partial class poloniexfutures : Exchange
         //    }
         //
         object market = ((bool) isTrue((!isEqual(symbol, null)))) ? this.market(symbol) : null;
-        object responseData = this.safeValue(response, "data");
+        object responseData = this.safeDict(response, "data");
         return this.parseOrder(responseData, market);
     }
 
@@ -1810,7 +1810,7 @@ public partial class poloniexfutures : Exchange
         //    }
         //
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object trades = this.safeValue(data, "items", new Dictionary<string, object>() {});
+        object trades = this.safeList(data, "items", new List<object>() {});
         return this.parseTrades(trades, market, since, limit);
     }
 

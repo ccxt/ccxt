@@ -922,18 +922,17 @@ class kucoin extends \ccxt\async\kucoin {
     }
 
     public function handle_my_trade(Client $client, $message) {
-        $trades = $this->myTrades;
-        if ($trades === null) {
+        if ($this->myTrades === null) {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
-            $trades = new ArrayCacheBySymbolById ($limit);
+            $this->myTrades = new ArrayCacheBySymbolById ($limit);
         }
-        $data = $this->safe_value($message, 'data');
+        $data = $this->safe_dict($message, 'data');
         $parsed = $this->parse_ws_trade($data);
-        $trades->append ($parsed);
+        $this->myTrades.append ($parsed);
         $messageHash = 'myTrades';
-        $client->resolve ($trades, $messageHash);
+        $client->resolve ($this->myTrades, $messageHash);
         $symbolSpecificMessageHash = $messageHash . ':' . $parsed['symbol'];
-        $client->resolve ($trades, $symbolSpecificMessageHash);
+        $client->resolve ($this->myTrades, $symbolSpecificMessageHash);
     }
 
     public function parse_ws_trade($trade, $market = null) {

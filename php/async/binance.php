@@ -2431,15 +2431,6 @@ class binance extends Exchange {
         $this->options['sandboxMode'] = $enable;
     }
 
-    public function convert_expire_date($date) {
-        // parse YYMMDD to timestamp
-        $year = mb_substr($date, 0, 2 - 0);
-        $month = mb_substr($date, 2, 4 - 2);
-        $day = mb_substr($date, 4, 6 - 4);
-        $reconstructedDate = '20' . $year . '-' . $month . '-' . $day . 'T00:00:00Z';
-        return $reconstructedDate;
-    }
-
     public function create_expired_option_market(string $symbol) {
         // support expired option contracts
         $settle = 'USDT';
@@ -3946,28 +3937,25 @@ class binance extends Exchange {
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
              */
             Async\await($this->load_markets());
-            $symbols = $this->market_symbols($symbols);
-            $market = null;
-            if ($symbols !== null) {
-                $first = $this->safe_string($symbols, 0);
-                $market = $this->market($first);
-            }
+            $symbols = $this->market_symbols($symbols, null, true, true, true);
+            $market = $this->get_market_from_symbols($symbols);
             $type = null;
+            list($type, $params) = $this->handle_market_type_and_params('fetchBidsAsks', $market, $params);
             $subType = null;
             list($subType, $params) = $this->handle_sub_type_and_params('fetchBidsAsks', $market, $params);
-            list($type, $params) = $this->handle_market_type_and_params('fetchBidsAsks', $market, $params);
             $response = null;
             if ($this->is_linear($type, $subType)) {
                 $response = Async\await($this->fapiPublicGetTickerBookTicker ($params));
             } elseif ($this->is_inverse($type, $subType)) {
                 $response = Async\await($this->dapiPublicGetTickerBookTicker ($params));
-            } else {
+            } elseif ($type === 'spot') {
                 $request = array();
                 if ($symbols !== null) {
-                    $marketIds = $this->market_ids($symbols);
-                    $request['symbols'] = $this->json($marketIds);
+                    $request['symbols'] = $this->json($this->market_ids($symbols));
                 }
                 $response = Async\await($this->publicGetTickerBookTicker (array_merge($request, $params)));
+            } else {
+                throw new NotSupported($this->id . ' fetchBidsAsks() does not support ' . $type . ' markets yet');
             }
             return $this->parse_tickers($response, $symbols);
         }) ();
@@ -3986,12 +3974,12 @@ class binance extends Exchange {
              * @return {array} a dictionary of lastprices structures
              */
             Async\await($this->load_markets());
-            $symbols = $this->market_symbols($symbols);
+            $symbols = $this->market_symbols($symbols, null, true, true, true);
             $market = $this->get_market_from_symbols($symbols);
             $type = null;
+            list($type, $params) = $this->handle_market_type_and_params('fetchLastPrices', $market, $params);
             $subType = null;
             list($subType, $params) = $this->handle_sub_type_and_params('fetchLastPrices', $market, $params);
-            list($type, $params) = $this->handle_market_type_and_params('fetchLastPrices', $market, $params);
             $response = null;
             if ($this->is_linear($type, $subType)) {
                 $response = Async\await($this->fapiPublicV2GetTickerPrice ($params));
@@ -4091,30 +4079,27 @@ class binance extends Exchange {
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
              */
             Async\await($this->load_markets());
-            $type = null;
-            $market = null;
             $symbols = $this->market_symbols($symbols, null, true, true, true);
-            if ($symbols !== null) {
-                $first = $this->safe_string($symbols, 0);
-                $market = $this->market($first);
-            }
+            $market = $this->get_market_from_symbols($symbols);
+            $type = null;
             list($type, $params) = $this->handle_market_type_and_params('fetchTickers', $market, $params);
             $subType = null;
             list($subType, $params) = $this->handle_sub_type_and_params('fetchTickers', $market, $params);
             $response = null;
-            if ($type === 'option') {
-                $response = Async\await($this->eapiPublicGetTicker ($params));
-            } elseif ($this->is_linear($type, $subType)) {
+            if ($this->is_linear($type, $subType)) {
                 $response = Async\await($this->fapiPublicGetTicker24hr ($params));
             } elseif ($this->is_inverse($type, $subType)) {
                 $response = Async\await($this->dapiPublicGetTicker24hr ($params));
-            } else {
+            } elseif ($type === 'spot') {
                 $request = array();
                 if ($symbols !== null) {
-                    $marketIds = $this->market_ids($symbols);
-                    $request['symbols'] = $this->json($marketIds);
+                    $request['symbols'] = $this->json($this->market_ids($symbols));
                 }
                 $response = Async\await($this->publicGetTicker24hr (array_merge($request, $params)));
+            } elseif ($type === 'option') {
+                $response = Async\await($this->eapiPublicGetTicker ($params));
+            } else {
+                throw new NotSupported($this->id . ' fetchTickers() does not support ' . $type . ' markets yet');
             }
             return $this->parse_tickers($response, $symbols);
         }) ();
@@ -4774,7 +4759,7 @@ class binance extends Exchange {
             //         }
             //     }
             //
-            $data = $this->safe_value($response, 'newOrderResponse');
+            $data = $this->safe_dict($response, 'newOrderResponse');
             return $this->parse_order($data, $market);
         }) ();
     }
@@ -12236,7 +12221,7 @@ class binance extends Exchange {
             } else {
                 throw new BadRequest($this->id . ' fetchMarginModes () supports linear and inverse subTypes only');
             }
-            $assets = $this->safe_value($response, 'positions', array());
+            $assets = $this->safe_list($response, 'positions', array());
             return $this->parse_margin_modes($assets, $symbols, 'symbol', 'swap');
         }) ();
     }

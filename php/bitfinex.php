@@ -445,7 +445,7 @@ class bitfinex extends Exchange {
         //        }
         //    }
         //
-        $withdraw = $this->safe_value($response, 'withdraw');
+        $withdraw = $this->safe_list($response, 'withdraw');
         return $this->parse_deposit_withdraw_fees($withdraw, $codes);
     }
 

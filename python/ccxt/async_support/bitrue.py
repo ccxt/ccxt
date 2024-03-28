@@ -2404,7 +2404,7 @@ class bitrue(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        data = self.safe_value(response, 'data', [])
+        data = self.safe_list(response, 'data', [])
         return self.parse_transactions(data, currency, since, limit)
 
     async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
@@ -2642,7 +2642,7 @@ class bitrue(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        data = self.safe_value(response, 'data', {})
+        data = self.safe_dict(response, 'data', {})
         return self.parse_transaction(data, currency)
 
     def parse_deposit_withdraw_fee(self, fee, currency: Currency = None):
@@ -2693,7 +2693,7 @@ class bitrue(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         response = await self.spotV1PublicGetExchangeInfo(params)
-        coins = self.safe_value(response, 'coins')
+        coins = self.safe_list(response, 'coins')
         return self.parse_deposit_withdraw_fees(coins, codes, 'coin')
 
     def parse_transfer(self, transfer, currency=None):
@@ -2811,7 +2811,7 @@ class bitrue(Exchange, ImplicitAPI):
         #         'data': null
         #     }
         #
-        data = self.safe_value(response, 'data', {})
+        data = self.safe_dict(response, 'data', {})
         return self.parse_transfer(data, currency)
 
     async def set_leverage(self, leverage: Int, symbol: Str = None, params={}):

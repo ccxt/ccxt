@@ -541,7 +541,7 @@ class timex extends Exchange {
         //         }
         //     )
         //
-        $ticker = $this->safe_value($response, 0);
+        $ticker = $this->safe_dict($response, 0);
         return $this->parse_ticker($ticker, $market);
     }
 
@@ -794,7 +794,7 @@ class timex extends Exchange {
         //     }
         //
         $orders = $this->safe_value($response, 'orders', array());
-        $order = $this->safe_value($orders, 0, array());
+        $order = $this->safe_dict($orders, 0, array());
         return $this->parse_order($order, $market);
     }
 
@@ -846,7 +846,7 @@ class timex extends Exchange {
         }
         $orders = $this->safe_value($response, 'changedOrders', array());
         $firstOrder = $this->safe_value($orders, 0, array());
-        $order = $this->safe_value($firstOrder, 'newOrder', array());
+        $order = $this->safe_dict($firstOrder, 'newOrder', array());
         return $this->parse_order($order, $market);
     }
 
@@ -951,7 +951,7 @@ class timex extends Exchange {
         //     }
         //
         $order = $this->safe_value($response, 'order', array());
-        $trades = $this->safe_value($response, 'trades', array());
+        $trades = $this->safe_list($response, 'trades', array());
         return $this->parse_order(array_merge($order, array( 'trades' => $trades )));
     }
 
@@ -1005,7 +1005,7 @@ class timex extends Exchange {
         //         )
         //     }
         //
-        $orders = $this->safe_value($response, 'orders', array());
+        $orders = $this->safe_list($response, 'orders', array());
         return $this->parse_orders($orders, $market, $since, $limit);
     }
 
@@ -1064,7 +1064,7 @@ class timex extends Exchange {
         //         )
         //     }
         //
-        $orders = $this->safe_value($response, 'orders', array());
+        $orders = $this->safe_list($response, 'orders', array());
         return $this->parse_orders($orders, $market, $since, $limit);
     }
 
@@ -1126,7 +1126,7 @@ class timex extends Exchange {
         //         )
         //     }
         //
-        $trades = $this->safe_value($response, 'trades', array());
+        $trades = $this->safe_list($response, 'trades', array());
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 

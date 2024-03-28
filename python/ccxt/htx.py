@@ -2292,7 +2292,7 @@ class htx(Exchange, ImplicitAPI):
         else:
             raise NotSupported(self.id + ' fetchLastPrices() does not support ' + type + ' markets yet')
         tick = self.safe_value(response, 'tick', {})
-        data = self.safe_value(tick, 'data', [])
+        data = self.safe_list(tick, 'data', [])
         return self.parse_last_prices(data, symbols)
 
     def parse_last_price(self, entry, market: Market = None):
@@ -3712,7 +3712,7 @@ class htx(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        data = self.safe_value(response, 'data', [])
+        data = self.safe_list(response, 'data', [])
         return self.parse_orders(data, market, since, limit)
 
     def fetch_spot_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
@@ -6712,7 +6712,7 @@ class htx(Exchange, ImplicitAPI):
         else:
             request['symbol'] = market['id']
             response = self.contractPrivatePostApiV3ContractFinancialRecordExact(self.extend(request, query))
-        data = self.safe_value(response, 'data', [])
+        data = self.safe_list(response, 'data', [])
         return self.parse_incomes(data, market, since, limit)
 
     def set_leverage(self, leverage: Int, symbol: Str = None, params={}):
@@ -7441,7 +7441,7 @@ class htx(Exchange, ImplicitAPI):
         #        ]
         #    }
         #
-        data = self.safe_value(response, 'data')
+        data = self.safe_list(response, 'data')
         return self.parse_leverage_tiers(data, symbols, 'contract_code')
 
     def fetch_market_leverage_tiers(self, symbol: str, params={}):
@@ -7630,7 +7630,7 @@ class htx(Exchange, ImplicitAPI):
         #    }
         #
         data = self.safe_value(response, 'data')
-        tick = self.safe_value(data, 'tick')
+        tick = self.safe_list(data, 'tick')
         return self.parse_open_interests(tick, market, since, limit)
 
     def fetch_open_interest(self, symbol: str, params={}):
@@ -8109,7 +8109,7 @@ class htx(Exchange, ImplicitAPI):
         #        ]
         #    }
         #
-        data = self.safe_value(response, 'data')
+        data = self.safe_list(response, 'data')
         return self.parse_deposit_withdraw_fees(data, codes, 'currency')
 
     def parse_deposit_withdraw_fee(self, fee, currency: Currency = None):
@@ -8322,7 +8322,7 @@ class htx(Exchange, ImplicitAPI):
         #         "ts": 1604312615051
         #     }
         #
-        data = self.safe_value(response, 'data', [])
+        data = self.safe_list(response, 'data', [])
         return self.parse_liquidations(data, market, since, limit)
 
     def parse_liquidation(self, liquidation, market: Market = None):

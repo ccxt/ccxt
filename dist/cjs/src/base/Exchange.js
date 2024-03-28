@@ -3901,20 +3901,6 @@ class Exchange {
     async fetchStatus(params = {}) {
         throw new errors.NotSupported(this.id + ' fetchStatus() is not supported yet');
     }
-    async fetchFundingFee(code, params = {}) {
-        const warnOnFetchFundingFee = this.safeBool(this.options, 'warnOnFetchFundingFee', true);
-        if (warnOnFetchFundingFee) {
-            throw new errors.NotSupported(this.id + ' fetchFundingFee() method is deprecated, it will be removed in July 2022, please, use fetchTransactionFee() or set exchange.options["warnOnFetchFundingFee"] = false to suppress this warning');
-        }
-        return await this.fetchTransactionFee(code, params);
-    }
-    async fetchFundingFees(codes = undefined, params = {}) {
-        const warnOnFetchFundingFees = this.safeBool(this.options, 'warnOnFetchFundingFees', true);
-        if (warnOnFetchFundingFees) {
-            throw new errors.NotSupported(this.id + ' fetchFundingFees() method is deprecated, it will be removed in July 2022. Please, use fetchTransactionFees() or set exchange.options["warnOnFetchFundingFees"] = false to suppress this warning');
-        }
-        return await this.fetchTransactionFees(codes, params);
-    }
     async fetchTransactionFee(code, params = {}) {
         if (!this.has['fetchTransactionFees']) {
             throw new errors.NotSupported(this.id + ' fetchTransactionFee() is not supported yet');
@@ -5719,6 +5705,82 @@ class Exchange {
     }
     parseLeverage(leverage, market = undefined) {
         throw new errors.NotSupported(this.id + ' parseLeverage() is not supported yet');
+    }
+    convertExpireDate(date) {
+        // parse YYMMDD to datetime string
+        const year = date.slice(0, 2);
+        const month = date.slice(2, 4);
+        const day = date.slice(4, 6);
+        const reconstructedDate = '20' + year + '-' + month + '-' + day + 'T00:00:00Z';
+        return reconstructedDate;
+    }
+    convertExpireDateToMarketIdDate(date) {
+        // parse 240119 to 19JAN24
+        const year = date.slice(0, 2);
+        const monthRaw = date.slice(2, 4);
+        let month = undefined;
+        const day = date.slice(4, 6);
+        if (monthRaw === '01') {
+            month = 'JAN';
+        }
+        else if (monthRaw === '02') {
+            month = 'FEB';
+        }
+        else if (monthRaw === '03') {
+            month = 'MAR';
+        }
+        else if (monthRaw === '04') {
+            month = 'APR';
+        }
+        else if (monthRaw === '05') {
+            month = 'MAY';
+        }
+        else if (monthRaw === '06') {
+            month = 'JUN';
+        }
+        else if (monthRaw === '07') {
+            month = 'JUL';
+        }
+        else if (monthRaw === '08') {
+            month = 'AUG';
+        }
+        else if (monthRaw === '09') {
+            month = 'SEP';
+        }
+        else if (monthRaw === '10') {
+            month = 'OCT';
+        }
+        else if (monthRaw === '11') {
+            month = 'NOV';
+        }
+        else if (monthRaw === '12') {
+            month = 'DEC';
+        }
+        const reconstructedDate = day + month + year;
+        return reconstructedDate;
+    }
+    convertMarketIdExpireDate(date) {
+        // parse 19JAN24 to 240119
+        const monthMappping = {
+            'JAN': '01',
+            'FEB': '02',
+            'MAR': '03',
+            'APR': '04',
+            'MAY': '05',
+            'JUN': '06',
+            'JUL': '07',
+            'AUG': '08',
+            'SEP': '09',
+            'OCT': '10',
+            'NOV': '11',
+            'DEC': '12',
+        };
+        const year = date.slice(0, 2);
+        const monthName = date.slice(2, 5);
+        const month = this.safeString(monthMappping, monthName);
+        const day = date.slice(5, 7);
+        const reconstructedDate = day + month + year;
+        return reconstructedDate;
     }
 }
 

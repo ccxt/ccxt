@@ -410,7 +410,7 @@ class btcturk(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         response = await self.publicGetTicker(params)
-        tickers = self.safe_value(response, 'data')
+        tickers = self.safe_list(response, 'data')
         return self.parse_tickers(tickers, symbols)
 
     async def fetch_ticker(self, symbol: str, params={}) -> Ticker:
@@ -522,7 +522,7 @@ class btcturk(Exchange, ImplicitAPI):
         #       ]
         #     }
         #
-        data = self.safe_value(response, 'data')
+        data = self.safe_list(response, 'data')
         return self.parse_trades(data, market, since, limit)
 
     def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
@@ -665,7 +665,7 @@ class btcturk(Exchange, ImplicitAPI):
         elif not ('newClientOrderId' in params):
             request['newClientOrderId'] = self.uuid()
         response = await self.privatePostOrder(self.extend(request, params))
-        data = self.safe_value(response, 'data')
+        data = self.safe_dict(response, 'data')
         return self.parse_order(data, market)
 
     async def cancel_order(self, id: str, symbol: Str = None, params={}):
@@ -701,7 +701,7 @@ class btcturk(Exchange, ImplicitAPI):
         response = await self.privateGetOpenOrders(self.extend(request, params))
         data = self.safe_value(response, 'data')
         bids = self.safe_value(data, 'bids', [])
-        asks = self.safe_value(data, 'asks', [])
+        asks = self.safe_list(data, 'asks', [])
         return self.parse_orders(self.array_concat(bids, asks), market, since, limit)
 
     async def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
@@ -745,7 +745,7 @@ class btcturk(Exchange, ImplicitAPI):
         #     }
         #   ]
         # }
-        data = self.safe_value(response, 'data')
+        data = self.safe_list(response, 'data')
         return self.parse_orders(data, market, since, limit)
 
     def parse_order_status(self, status):
@@ -859,7 +859,7 @@ class btcturk(Exchange, ImplicitAPI):
         #       "code": "0"
         #     }
         #
-        data = self.safe_value(response, 'data')
+        data = self.safe_list(response, 'data')
         return self.parse_trades(data, market, since, limit)
 
     def nonce(self):

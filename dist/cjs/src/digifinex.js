@@ -1448,7 +1448,7 @@ class digifinex extends digifinex$1 {
         //         ]
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseTrades(data, market, since, limit);
     }
     parseOHLCV(ohlcv, market = undefined) {
@@ -2234,7 +2234,7 @@ class digifinex extends digifinex$1 {
         //         ]
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseOrders(data, market, since, limit);
     }
     async fetchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -2342,7 +2342,7 @@ class digifinex extends digifinex$1 {
         //         ]
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseOrders(data, market, since, limit);
     }
     async fetchOrder(id, symbol = undefined, params = {}) {
@@ -2545,7 +2545,7 @@ class digifinex extends digifinex$1 {
         //     }
         //
         const responseRequest = (marketType === 'swap') ? 'data' : 'list';
-        const data = this.safeValue(response, responseRequest, []);
+        const data = this.safeList(response, responseRequest, []);
         return this.parseTrades(data, market, since, limit);
     }
     parseLedgerEntryType(type) {
@@ -2794,7 +2794,7 @@ class digifinex extends digifinex$1 {
         //         ]
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseTransactions(data, currency, since, limit, { 'type': type });
     }
     async fetchDeposits(code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -3757,7 +3757,7 @@ class digifinex extends digifinex$1 {
         //         ]
         //     }
         //
-        const transfers = this.safeValue(response, 'data', []);
+        const transfers = this.safeList(response, 'data', []);
         return this.parseTransfers(transfers, currency, since, limit);
     }
     async fetchLeverageTiers(symbols = undefined, params = {}) {
@@ -3983,7 +3983,7 @@ class digifinex extends digifinex$1 {
         //       "code": 200,
         //   }
         //
-        const data = this.safeValue(response, 'data');
+        const data = this.safeList(response, 'data');
         return this.parseDepositWithdrawFees(data, codes);
     }
     parseDepositWithdrawFees(response, codes = undefined, currencyIdKey = undefined) {
@@ -4180,7 +4180,7 @@ class digifinex extends digifinex$1 {
         //         ]
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseIncomes(data, market, since, limit);
     }
     parseIncome(income, market = undefined) {

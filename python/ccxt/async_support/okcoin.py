@@ -971,7 +971,7 @@ class okcoin(Exchange, ImplicitAPI):
             'instType': 'SPOT',
         }
         response = await self.publicGetMarketTickers(self.extend(request, params))
-        data = self.safe_value(response, 'data', [])
+        data = self.safe_list(response, 'data', [])
         return self.parse_tickers(data, symbols, params)
 
     def parse_trade(self, trade, market: Market = None) -> Trade:
@@ -1072,7 +1072,7 @@ class okcoin(Exchange, ImplicitAPI):
             response = await self.publicGetMarketTrades(self.extend(request, params))
         else:
             response = await self.publicGetMarketHistoryTrades(self.extend(request, params))
-        data = self.safe_value(response, 'data', [])
+        data = self.safe_list(response, 'data', [])
         return self.parse_trades(data, market, since, limit)
 
     def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
@@ -1130,7 +1130,7 @@ class okcoin(Exchange, ImplicitAPI):
             response = await self.publicGetMarketCandles(self.extend(request, params))
         else:
             response = await self.publicGetMarketHistoryCandles(self.extend(request, params))
-        data = self.safe_value(response, 'data', [])
+        data = self.safe_list(response, 'data', [])
         return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
     def parse_account_balance(self, response):
@@ -1571,7 +1571,7 @@ class okcoin(Exchange, ImplicitAPI):
         response = await self.privatePostTradeCancelOrder(self.extend(request, query))
         # {"code":"0","data":[{"clOrdId":"","ordId":"317251910906576896","sCode":"0","sMsg":""}],"msg":""}
         data = self.safe_value(response, 'data', [])
-        order = self.safe_value(data, 0)
+        order = self.safe_dict(data, 0)
         return self.parse_order(order, market)
 
     def parse_ids(self, ids):
@@ -1654,7 +1654,7 @@ class okcoin(Exchange, ImplicitAPI):
         #     }
         #
         #
-        ordersData = self.safe_value(response, 'data', [])
+        ordersData = self.safe_list(response, 'data', [])
         return self.parse_orders(ordersData, market, None, None, params)
 
     def parse_order_status(self, status):
@@ -1895,7 +1895,7 @@ class okcoin(Exchange, ImplicitAPI):
         else:
             response = await self.privateGetTradeOrder(self.extend(request, query))
         data = self.safe_value(response, 'data', [])
-        order = self.safe_value(data, 0)
+        order = self.safe_dict(data, 0)
         return self.parse_order(order)
 
     async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
@@ -1936,7 +1936,7 @@ class okcoin(Exchange, ImplicitAPI):
             response = await self.privateGetTradeOrdersAlgoPending(self.extend(request, params))
         else:
             response = await self.privateGetTradeOrdersPending(self.extend(request, params))
-        data = self.safe_value(response, 'data', [])
+        data = self.safe_list(response, 'data', [])
         return self.parse_orders(data, market, since, limit)
 
     async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
@@ -2017,7 +2017,7 @@ class okcoin(Exchange, ImplicitAPI):
         #         "msg":""
         #     }
         #
-        data = self.safe_value(response, 'data', [])
+        data = self.safe_list(response, 'data', [])
         return self.parse_orders(data, market, since, limit)
 
     def parse_deposit_address(self, depositAddress, currency: Currency = None):
@@ -2223,7 +2223,7 @@ class okcoin(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_value(response, 'data', [])
-        rawTransfer = self.safe_value(data, 0, {})
+        rawTransfer = self.safe_dict(data, 0, {})
         return self.parse_transfer(rawTransfer, currency)
 
     def parse_transfer(self, transfer, currency: Currency = None):
@@ -2359,7 +2359,7 @@ class okcoin(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_value(response, 'data', [])
-        transaction = self.safe_value(data, 0)
+        transaction = self.safe_dict(data, 0)
         return self.parse_transaction(transaction, currency)
 
     async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
@@ -2428,7 +2428,7 @@ class okcoin(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        data = self.safe_value(response, 'data', [])
+        data = self.safe_list(response, 'data', [])
         return self.parse_transactions(data, currency, since, limit, params)
 
     async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
@@ -2489,7 +2489,7 @@ class okcoin(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        data = self.safe_value(response, 'data', [])
+        data = self.safe_list(response, 'data', [])
         return self.parse_transactions(data, currency, since, limit, params)
 
     def parse_transaction_status(self, status):
@@ -2650,7 +2650,7 @@ class okcoin(Exchange, ImplicitAPI):
             response = await self.privateGetTradeFillsHistory(self.extend(request, params))
         else:
             response = await self.privateGetTradeFills(self.extend(request, params))
-        data = self.safe_value(response, 'data', [])
+        data = self.safe_list(response, 'data', [])
         return self.parse_trades(data, market, since, limit)
 
     async def fetch_order_trades(self, id: str, symbol: Str = None, since: Int = None, limit: Int = None, params={}):

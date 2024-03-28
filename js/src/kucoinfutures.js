@@ -600,7 +600,7 @@ export default class kucoinfutures extends kucoin {
         //        ]
         //    }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseOHLCVs(data, market, timeframe, since, limit);
     }
     parseOHLCV(ohlcv, market = undefined) {
@@ -1073,7 +1073,7 @@ export default class kucoinfutures extends kucoin {
         //        }
         //    }
         //
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         return this.parsePosition(data, market);
     }
     async fetchPositions(symbols = undefined, params = {}) {
@@ -1134,7 +1134,7 @@ export default class kucoinfutures extends kucoin {
         //        ]
         //    }
         //
-        const data = this.safeValue(response, 'data');
+        const data = this.safeList(response, 'data');
         return this.parsePositions(data, symbols);
     }
     parsePosition(position, market = undefined) {
@@ -1282,7 +1282,7 @@ export default class kucoinfutures extends kucoin {
         //        },
         //    }
         //
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         return this.parseOrder(data, market);
     }
     async createOrders(orders, params = {}) {
@@ -1331,7 +1331,7 @@ export default class kucoinfutures extends kucoin {
         //         ]
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseOrders(data);
     }
     createContractOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
@@ -1737,7 +1737,7 @@ export default class kucoinfutures extends kucoin {
         //     }
         //
         const responseData = this.safeValue(response, 'data', {});
-        const orders = this.safeValue(responseData, 'items', []);
+        const orders = this.safeList(responseData, 'items', []);
         return this.parseOrders(orders, market, since, limit);
     }
     async fetchClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1834,7 +1834,7 @@ export default class kucoinfutures extends kucoin {
         //     }
         //
         const market = (symbol !== undefined) ? this.market(symbol) : undefined;
-        const responseData = this.safeValue(response, 'data');
+        const responseData = this.safeDict(response, 'data');
         return this.parseOrder(responseData, market);
     }
     parseOrder(order, market = undefined) {
@@ -2252,7 +2252,7 @@ export default class kucoinfutures extends kucoin {
         //          ]
         //      }
         //
-        const trades = this.safeValue(response, 'data', []);
+        const trades = this.safeList(response, 'data', []);
         return this.parseTrades(trades, market, since, limit);
     }
     parseTrade(trade, market = undefined) {

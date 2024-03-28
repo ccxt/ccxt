@@ -1073,7 +1073,7 @@ class bitstamp(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_value(response, 'data', {})
-        ohlc = self.safe_value(data, 'ohlc', [])
+        ohlc = self.safe_list(data, 'ohlc', [])
         return self.parse_ohlcvs(ohlc, market, timeframe, since, limit)
 
     def parse_balance(self, response) -> Balances:

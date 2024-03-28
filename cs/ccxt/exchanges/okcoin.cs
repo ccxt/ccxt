@@ -974,7 +974,7 @@ public partial class okcoin : Exchange
             { "instType", "SPOT" },
         };
         object response = await this.publicGetMarketTickers(this.extend(request, parameters));
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseTickers(data, symbols, parameters);
     }
 
@@ -1094,7 +1094,7 @@ public partial class okcoin : Exchange
         {
             response = await this.publicGetMarketHistoryTrades(this.extend(request, parameters));
         }
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseTrades(data, market, since, limit);
     }
 
@@ -1160,7 +1160,7 @@ public partial class okcoin : Exchange
         {
             response = await this.publicGetMarketHistoryCandles(this.extend(request, parameters));
         }
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseOHLCVs(data, market, timeframe, since, limit);
     }
 
@@ -1729,7 +1729,7 @@ public partial class okcoin : Exchange
         object response = await this.privatePostTradeCancelOrder(this.extend(request, query));
         // {"code":"0","data":[{"clOrdId":"","ordId":"317251910906576896","sCode":"0","sMsg":""}],"msg":""}
         object data = this.safeValue(response, "data", new List<object>() {});
-        object order = this.safeValue(data, 0);
+        object order = this.safeDict(data, 0);
         return this.parseOrder(order, market);
     }
 
@@ -1844,7 +1844,7 @@ public partial class okcoin : Exchange
         //     }
         //
         //
-        object ordersData = this.safeValue(response, "data", new List<object>() {});
+        object ordersData = this.safeList(response, "data", new List<object>() {});
         return this.parseOrders(ordersData, market, null, null, parameters);
     }
 
@@ -2119,7 +2119,7 @@ public partial class okcoin : Exchange
             response = await this.privateGetTradeOrder(this.extend(request, query));
         }
         object data = this.safeValue(response, "data", new List<object>() {});
-        object order = this.safeValue(data, 0);
+        object order = this.safeDict(data, 0);
         return this.parseOrder(order);
     }
 
@@ -2167,7 +2167,7 @@ public partial class okcoin : Exchange
         {
             response = await this.privateGetTradeOrdersPending(this.extend(request, parameters));
         }
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseOrders(data, market, since, limit);
     }
 
@@ -2265,7 +2265,7 @@ public partial class okcoin : Exchange
         //         "msg":""
         //     }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseOrders(data, market, since, limit);
     }
 
@@ -2491,7 +2491,7 @@ public partial class okcoin : Exchange
         //     }
         //
         object data = this.safeValue(response, "data", new List<object>() {});
-        object rawTransfer = this.safeValue(data, 0, new Dictionary<string, object>() {});
+        object rawTransfer = this.safeDict(data, 0, new Dictionary<string, object>() {});
         return this.parseTransfer(rawTransfer, currency);
     }
 
@@ -2648,7 +2648,7 @@ public partial class okcoin : Exchange
         //     }
         //
         object data = this.safeValue(response, "data", new List<object>() {});
-        object transaction = this.safeValue(data, 0);
+        object transaction = this.safeDict(data, 0);
         return this.parseTransaction(transaction, currency);
     }
 
@@ -2724,7 +2724,7 @@ public partial class okcoin : Exchange
         //         ]
         //     }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseTransactions(data, currency, since, limit, parameters);
     }
 
@@ -2792,7 +2792,7 @@ public partial class okcoin : Exchange
         //         ]
         //     }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseTransactions(data, currency, since, limit, parameters);
     }
 
@@ -2977,7 +2977,7 @@ public partial class okcoin : Exchange
         {
             response = await this.privateGetTradeFills(this.extend(request, parameters));
         }
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseTrades(data, market, since, limit);
     }
 

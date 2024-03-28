@@ -1354,12 +1354,12 @@ class bingx extends Exchange {
 
     public function fetch_ticker(string $symbol, $params = array ()): array {
         /**
-         * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+         * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
          * @see https://bingx-api.github.io/docs/#/swapV2/market-api.html#Get%20Ticker
          * @see https://bingx-api.github.io/docs/#/spot/market-api.html#24%E5%B0%8F%E6%97%B6%E4%BB%B7%E6%A0%BC%E5%8F%98%E5%8A%A8%E6%83%85%E5%86%B5
-         * @param {string} $symbol unified $symbol of the $market to fetch the $ticker for
+         * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structure~
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -1372,9 +1372,13 @@ class bingx extends Exchange {
         } else {
             $response = $this->swapV2PublicGetQuoteTicker (array_merge($request, $params));
         }
-        $data = $this->safe_value($response, 'data');
-        $ticker = $this->safe_value($data, 0, $data);
-        return $this->parse_ticker($ticker, $market);
+        $data = $this->safe_list($response, 'data');
+        if ($data !== null) {
+            $first = $this->safe_dict($data, 0, array());
+            return $this->parse_ticker($first, $market);
+        }
+        $dataDict = $this->safe_dict($response, 'data', array());
+        return $this->parse_ticker($dataDict, $market);
     }
 
     public function fetch_tickers(?array $symbols = null, $params = array ()): array {
@@ -1402,7 +1406,7 @@ class bingx extends Exchange {
         } else {
             $response = $this->swapV2PublicGetQuoteTicker ($params);
         }
-        $tickers = $this->safe_value($response, 'data');
+        $tickers = $this->safe_list($response, 'data');
         return $this->parse_tickers($tickers, $symbols);
     }
 
@@ -2023,7 +2027,7 @@ class bingx extends Exchange {
             $response = $this->parse_json($response);
         }
         $data = $this->safe_value($response, 'data', array());
-        $order = $this->safe_value($data, 'order', $data);
+        $order = $this->safe_dict($data, 'order', $data);
         return $this->parse_order($order, $market);
     }
 
@@ -2516,7 +2520,7 @@ class bingx extends Exchange {
         //    }
         //
         $data = $this->safe_value($response, 'data');
-        $first = $this->safe_value($data, 'order', $data);
+        $first = $this->safe_dict($data, 'order', $data);
         return $this->parse_order($first, $market);
     }
 
@@ -2753,7 +2757,7 @@ class bingx extends Exchange {
         //      }
         //
         $data = $this->safe_value($response, 'data');
-        $first = $this->safe_value($data, 'order', $data);
+        $first = $this->safe_dict($data, 'order', $data);
         return $this->parse_order($first, $market);
     }
 
@@ -2931,7 +2935,7 @@ class bingx extends Exchange {
         //    }
         //
         $data = $this->safe_value($response, 'data', array());
-        $orders = $this->safe_value($data, 'orders', array());
+        $orders = $this->safe_list($data, 'orders', array());
         return $this->parse_orders($orders, $market, $since, $limit);
     }
 
@@ -3666,7 +3670,7 @@ class bingx extends Exchange {
          */
         $this->load_markets();
         $response = $this->walletsV1PrivateGetCapitalConfigGetall ($params);
-        $coins = $this->safe_value($response, 'data');
+        $coins = $this->safe_list($response, 'data');
         return $this->parse_deposit_withdraw_fees($coins, $codes, 'coin');
     }
 

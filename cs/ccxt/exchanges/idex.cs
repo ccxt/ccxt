@@ -356,7 +356,7 @@ public partial class idex : Exchange
         //   }
         // ]
         object response = await this.publicGetTickers(this.extend(request, parameters));
-        object ticker = this.safeValue(response, 0);
+        object ticker = this.safeDict(response, 0);
         return this.parseTicker(ticker, market);
     }
 
@@ -1574,7 +1574,7 @@ public partial class idex : Exchange
         };
         // [ { orderId: "688336f0-ec50-11ea-9842-b332f8a34d0e" } ]
         object response = await this.privateDeleteOrders(this.extend(request, parameters));
-        object canceledOrder = this.safeValue(response, 0);
+        object canceledOrder = this.safeDict(response, 0);
         return this.parseOrder(canceledOrder, market);
     }
 

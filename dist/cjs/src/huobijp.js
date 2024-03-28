@@ -967,7 +967,7 @@ class huobijp extends huobijp$1 {
         //         ]
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseOHLCVs(data, market, timeframe, since, limit);
     }
     async fetchAccounts(params = {}) {
@@ -1166,7 +1166,7 @@ class huobijp extends huobijp$1 {
             'id': id,
         };
         const response = await this.privateGetOrderOrdersId(this.extend(request, params));
-        const order = this.safeValue(response, 'data');
+        const order = this.safeDict(response, 'data');
         return this.parseOrder(order);
     }
     async fetchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1264,7 +1264,7 @@ class huobijp extends huobijp$1 {
         //         ]
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseOrders(data, market, since, limit);
     }
     parseOrderStatus(status) {

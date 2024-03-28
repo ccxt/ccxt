@@ -1847,7 +1847,7 @@ class currencycom(Exchange, ImplicitAPI):
         #        ]
         #    }
         #
-        data = self.safe_value(response, 'positions', [])
+        data = self.safe_list(response, 'positions', [])
         return self.parse_positions(data, symbols)
 
     def parse_position(self, position, market: Market = None):

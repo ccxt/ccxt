@@ -1712,7 +1712,7 @@ class bitfinex2(Exchange, ImplicitAPI):
             'all': 1,
         }
         response = self.privatePostAuthWOrderCancelMulti(self.extend(request, params))
-        orders = self.safe_value(response, 4, [])
+        orders = self.safe_list(response, 4, [])
         return self.parse_orders(orders)
 
     def cancel_order(self, id: str, symbol: Str = None, params={}):

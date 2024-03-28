@@ -2566,7 +2566,7 @@ class bitrue extends bitrue$1 {
         //         ]
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseTransactions(data, currency, since, limit);
     }
     async fetchWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -2819,7 +2819,7 @@ class bitrue extends bitrue$1 {
         //         }
         //     }
         //
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         return this.parseTransaction(data, currency);
     }
     parseDepositWithdrawFee(fee, currency = undefined) {
@@ -2875,7 +2875,7 @@ class bitrue extends bitrue$1 {
          */
         await this.loadMarkets();
         const response = await this.spotV1PublicGetExchangeInfo(params);
-        const coins = this.safeValue(response, 'coins');
+        const coins = this.safeList(response, 'coins');
         return this.parseDepositWithdrawFees(coins, codes, 'coin');
     }
     parseTransfer(transfer, currency = undefined) {
@@ -3003,7 +3003,7 @@ class bitrue extends bitrue$1 {
         //         'data': null
         //     }
         //
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         return this.parseTransfer(data, currency);
     }
     async setLeverage(leverage, symbol = undefined, params = {}) {

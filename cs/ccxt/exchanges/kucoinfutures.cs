@@ -579,7 +579,7 @@ public partial class kucoinfutures : kucoin
         //        ]
         //    }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseOHLCVs(data, market, timeframe, since, limit);
     }
 
@@ -1075,7 +1075,7 @@ public partial class kucoinfutures : kucoin
         //        }
         //    }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return this.parsePosition(data, market);
     }
 
@@ -1139,7 +1139,7 @@ public partial class kucoinfutures : kucoin
         //        ]
         //    }
         //
-        object data = this.safeValue(response, "data");
+        object data = this.safeList(response, "data");
         return this.parsePositions(data, symbols);
     }
 
@@ -1294,7 +1294,7 @@ public partial class kucoinfutures : kucoin
         //        },
         //    }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return this.parseOrder(data, market);
     }
 
@@ -1347,7 +1347,7 @@ public partial class kucoinfutures : kucoin
         //         ]
         //     }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseOrders(data);
     }
 
@@ -1798,7 +1798,7 @@ public partial class kucoinfutures : kucoin
         //     }
         //
         object responseData = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object orders = this.safeValue(responseData, "items", new List<object>() {});
+        object orders = this.safeList(responseData, "items", new List<object>() {});
         return this.parseOrders(orders, market, since, limit);
     }
 
@@ -1906,7 +1906,7 @@ public partial class kucoinfutures : kucoin
         //     }
         //
         object market = ((bool) isTrue((!isEqual(symbol, null)))) ? this.market(symbol) : null;
-        object responseData = this.safeValue(response, "data");
+        object responseData = this.safeDict(response, "data");
         return this.parseOrder(responseData, market);
     }
 
@@ -2352,7 +2352,7 @@ public partial class kucoinfutures : kucoin
         //          ]
         //      }
         //
-        object trades = this.safeValue(response, "data", new List<object>() {});
+        object trades = this.safeList(response, "data", new List<object>() {});
         return this.parseTrades(trades, market, since, limit);
     }
 

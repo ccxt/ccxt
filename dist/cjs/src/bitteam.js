@@ -671,7 +671,7 @@ class bitteam extends bitteam$1 {
         //     }
         //
         const result = this.safeValue(response, 'result', {});
-        const data = this.safeValue(result, 'data', []);
+        const data = this.safeList(result, 'data', []);
         return this.parseOHLCVs(data, market, timeframe, since, limit);
     }
     parseOHLCV(ohlcv, market = undefined) {
@@ -852,7 +852,7 @@ class bitteam extends bitteam$1 {
         //     }
         //
         const result = this.safeValue(response, 'result', {});
-        const orders = this.safeValue(result, 'orders', []);
+        const orders = this.safeList(result, 'orders', []);
         return this.parseOrders(orders, market, since, limit);
     }
     async fetchOrder(id, symbol = undefined, params = {}) {
@@ -912,7 +912,7 @@ class bitteam extends bitteam$1 {
         //         }
         //     }
         //
-        const result = this.safeValue(response, 'result');
+        const result = this.safeDict(response, 'result');
         return this.parseOrder(result, market);
     }
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1023,7 +1023,7 @@ class bitteam extends bitteam$1 {
         //         }
         //     }
         //
-        const order = this.safeValue(response, 'result', {});
+        const order = this.safeDict(response, 'result', {});
         return this.parseOrder(order, market);
     }
     async cancelOrder(id, symbol = undefined, params = {}) {
@@ -1050,7 +1050,7 @@ class bitteam extends bitteam$1 {
         //         }
         //     }
         //
-        const result = this.safeValue(response, 'result', {});
+        const result = this.safeDict(response, 'result', {});
         return this.parseOrder(result);
     }
     async cancelAllOrders(symbol = undefined, params = {}) {
@@ -1513,7 +1513,7 @@ class bitteam extends bitteam$1 {
         //     }
         //
         const result = this.safeValue(response, 'result', {});
-        const pair = this.safeValue(result, 'pair', {});
+        const pair = this.safeDict(result, 'pair', {});
         return this.parseTicker(pair, market);
     }
     parseTicker(ticker, market = undefined) {
@@ -1842,7 +1842,7 @@ class bitteam extends bitteam$1 {
         //     }
         //
         const result = this.safeValue(response, 'result', {});
-        const trades = this.safeValue(result, 'trades', []);
+        const trades = this.safeList(result, 'trades', []);
         return this.parseTrades(trades, market, since, limit);
     }
     parseTrade(trade, market = undefined) {
@@ -2145,7 +2145,7 @@ class bitteam extends bitteam$1 {
         //     }
         //
         const result = this.safeValue(response, 'result', {});
-        const transactions = this.safeValue(result, 'transactions', []);
+        const transactions = this.safeList(result, 'transactions', []);
         return this.parseTransactions(transactions, currency, since, limit);
     }
     parseTransaction(transaction, currency = undefined) {

@@ -2068,7 +2068,7 @@ public partial class currencycom : Exchange
         //        ]
         //    }
         //
-        object data = this.safeValue(response, "positions", new List<object>() {});
+        object data = this.safeList(response, "positions", new List<object>() {});
         return this.parsePositions(data, symbols);
     }
 

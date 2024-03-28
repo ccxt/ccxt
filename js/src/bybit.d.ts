@@ -10,9 +10,6 @@ export default class bybit extends Exchange {
     addPaginationCursorToResult(response: any): any;
     isUnifiedEnabled(params?: {}): Promise<any[]>;
     upgradeUnifiedTradeAccount(params?: {}): Promise<any>;
-    convertExpireDate(date: any): string;
-    convertExpireDateToMarketIdDate(date: any): any;
-    convertMarketIdExpireDate(date: any): string;
     createExpiredOptionMarket(symbol: string): MarketInterface;
     safeMarket(marketId?: Str, market?: Market, delimiter?: Str, marketType?: Str): MarketInterface;
     getBybitType(method: any, market: any, params?: {}): any[];

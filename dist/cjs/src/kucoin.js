@@ -2507,8 +2507,12 @@ class kucoin extends kucoin$1 {
         //             ]
         //         }
         //    }
+        const listData = this.safeList(response, 'data');
+        if (listData !== undefined) {
+            return this.parseOrders(listData, market, since, limit);
+        }
         const responseData = this.safeDict(response, 'data', {});
-        const orders = this.safeValue(responseData, 'items', responseData);
+        const orders = this.safeList(responseData, 'items', []);
         return this.parseOrders(orders, market, since, limit);
     }
     async fetchClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {

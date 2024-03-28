@@ -1458,9 +1458,14 @@ public partial class bingx : Exchange
         {
             response = await this.swapV2PublicGetQuoteTicker(this.extend(request, parameters));
         }
-        object data = this.safeValue(response, "data");
-        object ticker = this.safeValue(data, 0, data);
-        return this.parseTicker(ticker, market);
+        object data = this.safeList(response, "data");
+        if (isTrue(!isEqual(data, null)))
+        {
+            object first = this.safeDict(data, 0, new Dictionary<string, object>() {});
+            return this.parseTicker(first, market);
+        }
+        object dataDict = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        return this.parseTicker(dataDict, market);
     }
 
     public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
@@ -1498,7 +1503,7 @@ public partial class bingx : Exchange
         {
             response = await this.swapV2PublicGetQuoteTicker(parameters);
         }
-        object tickers = this.safeValue(response, "data");
+        object tickers = this.safeList(response, "data");
         return this.parseTickers(tickers, symbols);
     }
 
@@ -2215,7 +2220,7 @@ public partial class bingx : Exchange
             response = this.parseJson(response);
         }
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object order = this.safeValue(data, "order", data);
+        object order = this.safeDict(data, "order", data);
         return this.parseOrder(order, market);
     }
 
@@ -2746,7 +2751,7 @@ public partial class bingx : Exchange
         //    }
         //
         object data = this.safeValue(response, "data");
-        object first = this.safeValue(data, "order", data);
+        object first = this.safeDict(data, "order", data);
         return this.parseOrder(first, market);
     }
 
@@ -2960,7 +2965,7 @@ public partial class bingx : Exchange
         //      }
         //
         object data = this.safeValue(response, "data");
-        object first = this.safeValue(data, "order", data);
+        object first = this.safeDict(data, "order", data);
         return this.parseOrder(first, market);
     }
 
@@ -3159,7 +3164,7 @@ public partial class bingx : Exchange
         //    }
         //
         object data = this.safeValue(response, "data", new List<object>() {});
-        object orders = this.safeValue(data, "orders", new List<object>() {});
+        object orders = this.safeList(data, "orders", new List<object>() {});
         return this.parseOrders(orders, market, since, limit);
     }
 
@@ -3942,7 +3947,7 @@ public partial class bingx : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object response = await this.walletsV1PrivateGetCapitalConfigGetall(parameters);
-        object coins = this.safeValue(response, "data");
+        object coins = this.safeList(response, "data");
         return this.parseDepositWithdrawFees(coins, codes, "coin");
     }
 

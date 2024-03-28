@@ -537,7 +537,7 @@ export default class krakenfutures extends Exchange {
         //        "serverTime": "2022-02-18T14:16:29.440Z"
         //    }
         //
-        const tickers = this.safeValue(response, 'tickers');
+        const tickers = this.safeList(response, 'tickers');
         return this.parseTickers(tickers, symbols);
     }
     parseTicker(ticker, market = undefined) {
@@ -675,7 +675,7 @@ export default class krakenfutures extends Exchange {
         //        "more_candles": true
         //    }
         //
-        const candles = this.safeValue(response, 'candles');
+        const candles = this.safeList(response, 'candles');
         return this.parseOHLCVs(candles, market, timeframe, since, limit);
     }
     parseOHLCV(ohlcv, market = undefined) {
@@ -1138,7 +1138,7 @@ export default class krakenfutures extends Exchange {
         //     ]
         // }
         //
-        const data = this.safeValue(response, 'batchStatus', []);
+        const data = this.safeList(response, 'batchStatus', []);
         return this.parseOrders(data);
     }
     async editOrder(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
@@ -1255,7 +1255,7 @@ export default class krakenfutures extends Exchange {
         //       }
         //     ]
         // }
-        const batchStatus = this.safeValue(response, 'batchStatus', []);
+        const batchStatus = this.safeList(response, 'batchStatus', []);
         return this.parseOrders(batchStatus);
     }
     async cancelAllOrders(symbol = undefined, params = {}) {
@@ -1293,7 +1293,7 @@ export default class krakenfutures extends Exchange {
             market = this.market(symbol);
         }
         const response = await this.privateGetOpenorders(params);
-        const orders = this.safeValue(response, 'openOrders', []);
+        const orders = this.safeList(response, 'openOrders', []);
         return this.parseOrders(orders, market, since, limit);
     }
     async fetchClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -2362,7 +2362,7 @@ export default class krakenfutures extends Exchange {
         //        "serverTime": "2018-07-19T11:32:39.433Z"
         //    }
         //
-        const data = this.safeValue(response, 'instruments');
+        const data = this.safeList(response, 'instruments');
         return this.parseLeverageTiers(data, symbols, 'symbol');
     }
     parseMarketLeverageTiers(info, market = undefined) {
