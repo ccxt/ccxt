@@ -1772,8 +1772,8 @@ export default class htx extends Exchange {
             const spot = !contract;
             let swap = false;
             let future = false;
-            let linear = false;
-            let inverse = false;
+            let linear = undefined;
+            let inverse = undefined;
             // check if parsed market is contract
             if (contract) {
                 id = contractId;
