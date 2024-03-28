@@ -2146,10 +2146,11 @@ export default class htx extends Exchange {
         const swap = (type === 'swap');
         const linear = (subType === 'linear');
         const inverse = (subType === 'inverse');
-        params = this.omit (params, [ 'type', 'subType' ]);
+        const isContract = future || swap || linear || inverse;
         let response = undefined;
-        if (future || swap) {
+        if (isContract) {
             if (linear) {
+                // supports calling all linear symbols (independently type), i.e. `fetchTickers (undefined, {subType:'linear'})`
                 if (future) {
                     request['business_type'] = 'futures';
                 }
@@ -2159,6 +2160,8 @@ export default class htx extends Exchange {
                     response = await this.contractPublicGetMarketDetailBatchMerged (this.extend (request, params));
                 } else if (swap) {
                     response = await this.contractPublicGetSwapExMarketDetailBatchMerged (this.extend (request, params));
+                } else {
+                    throw new NotSupported (this.id + ' fetchTickers() you have to set params["type"] to either "swap" or "future" for inverse contracts');
                 }
             }
         } else {
