@@ -654,7 +654,7 @@
                         "stopLossPrice": null,
                         "takeProfitPrice": null,
                         "average": 70.17,
-                        "cost": 0.7017,
+                        "cost": 7.017,
                         "amount": 0.1,
                         "filled": 0.1,
                         "remaining": 0,
@@ -893,7 +893,7 @@
                         "side": null,
                         "takerOrMaker": null,
                         "price": 65.2965,
-                        "amount": 10,
+                        "amount": 1,
                         "cost": 65.2965,
                         "fee": {
                             "cost": 0.0326,
@@ -1408,9 +1408,8 @@
         ],
         "fetchOrder": [
             {
-                "description": "fetch spot order",
+                "description": "fetch swap order",
                 "method": "fetchOrder",
-                "disabled": true,
                 "input": [
                   "1770683446830788608",
                   "LTC/USDT:USDT"
@@ -1527,7 +1526,7 @@
                   "stopLossPrice": 0,
                   "takeProfitPrice": 0,
                   "average": 83.71,
-                  "cost": 0,
+                  "cost": 8.371,
                   "amount": 0.1,
                   "filled": 0.1,
                   "remaining": 0,
@@ -1545,7 +1544,7 @@
                     }
                   ]
                 }
-            }
+              }
         ],
         "fetchPositions": [
             {
@@ -1616,7 +1615,7 @@
                     "realizedPnl": -0.0048,
                     "percentage": null,
                     "contracts": 0.1,
-                    "contractSize": 0.1,
+                    "contractSize": 1,
                     "markPrice": null,
                     "lastPrice": null,
                     "side": "long",
