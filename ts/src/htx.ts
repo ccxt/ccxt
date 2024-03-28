@@ -1713,27 +1713,6 @@ export default class htx extends Exchange {
         //         ]
         //     }
         //
-        // inverse future
-        //
-        //     {
-        //         "status":"ok",
-        //         "data":[
-        //             {
-        //                 "symbol":"BTC",
-        //                 "contract_code":"BTC211126",
-        //                 "contract_type":"this_week",
-        //                 "contract_size":100.000000000000000000,
-        //                 "price_tick":0.010000000000000000,
-        //                 "delivery_date":"20211126",
-        //                 "delivery_time":"1637913600000",
-        //                 "create_date":"20211112",
-        //                 "contract_status":1,
-        //                 "settlement_time":"1637481600000"
-        //             },
-        //         ],
-        //         "ts":1637474595140
-        //     }
-        //
         // linear (swap & future)
         //
         //     {
@@ -1759,8 +1738,30 @@ export default class htx extends Exchange {
         //         "ts":1640736207263
         //     }
         //
+        // inverse (swap & future)
         //
-        const markets = this.safeValue (response, 'data', []);
+        //     {
+        //         "status": "ok",
+        //         "data": [
+        //           {
+        //             "symbol": "BTC",
+        //             "contract_code": "BTC-USD",
+        //             "contract_size": 100,
+        //             "price_tick": 0.1,
+        //             "delivery_time": "",
+        //             "create_date": "20200325",
+        //             "contract_status": 1,
+        //             "settlement_date": "1711641600000" // only in inverse swap
+        //             "delivery_date":"20240329", // only in inverse future
+        //             "contract_type":"this_week", // only in inverse future
+        //             "settlement_time":"1711699200000" // only in inverse future
+        //           },
+        //           ...
+        //         ],
+        //         "ts":1637474595140
+        //     }
+        //
+        const markets = this.safeList (response, 'data', []);
         const numMarkets = markets.length;
         if (numMarkets < 1) {
             throw new NetworkError (this.id + ' fetchMarkets() returned an empty response: ' + this.json (markets));
@@ -1771,10 +1772,11 @@ export default class htx extends Exchange {
             let baseId = undefined;
             let quoteId = undefined;
             let settleId = undefined;
-            let id = undefined;
             let lowercaseId = undefined;
-            if (contract) {
-                id = this.safeString (market, 'contract_code');
+            let id = undefined;
+            const contractId = this.safeString (market, 'contract_code');
+            if (contractId !== undefined) {
+                id = contractId;
                 lowercaseId = id.toLowerCase ();
                 if (swap) {
                     const parts = id.split ('-');
