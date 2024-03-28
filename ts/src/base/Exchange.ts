@@ -208,30 +208,30 @@ export default class Exchange {
     origin = '*' // CORS origin
     //
     agent = undefined; // maintained for backwards compatibility
-    nodeHttpModuleLoaded = false;
+    nodeHttpModuleLoaded: boolean = false;
     httpAgent = undefined;
     httpsAgent = undefined;
 
-    minFundingAddressLength = 1 // used in checkAddress
-    substituteCommonCurrencyCodes = true  // reserved
-    quoteJsonNumbers = true // treat numbers in json as quoted precise strings
+    minFundingAddressLength: Int = 1 // used in checkAddress
+    substituteCommonCurrencyCodes: boolean = true  // reserved
+    quoteJsonNumbers: boolean = true // treat numbers in json as quoted precise strings
     number: (numberString: string) => number = Number // or String (a pointer to a function)
-    handleContentTypeApplicationZip = false
+    handleContentTypeApplicationZip: boolean = false
 
     // whether fees should be summed by currency code
-    reduceFees = true
+    reduceFees: boolean = true
 
     // do not delete this line, it is needed for users to be able to define their own fetchImplementation
     fetchImplementation: any
     AbortError: any
     FetchError: any
 
-    validateServerSsl = true
-    validateClientSsl = false
+    validateServerSsl: boolean = true
+    validateClientSsl: boolean = false
 
-    timeout       = 10000 // milliseconds
-    verbose       = false
-    twofa         = undefined // two-factor authentication (2FA)
+    timeout: Int      = 10000 // milliseconds
+    verbose: boolean  = false
+    twofa             = undefined // two-factor authentication (2FA)
 
     apiKey: string;
     secret: string;
@@ -264,16 +264,16 @@ export default class Exchange {
         referral?: string;
     };
 
-    requiresWeb3 = false
-    requiresEddsa = false
+    requiresWeb3: boolean = false
+    requiresEddsa: boolean = false
     precision: {
         amount: number | undefined,
         price: number | undefined
     };
 
-    enableLastJsonResponse = true
-    enableLastHttpResponse = true
-    enableLastResponseHeaders = true
+    enableLastJsonResponse: boolean = true
+    enableLastHttpResponse: boolean = true
+    enableLastResponseHeaders: boolean = true
     last_http_response    = undefined
     last_json_response    = undefined
     last_response_headers = undefined
@@ -324,25 +324,25 @@ export default class Exchange {
     currencies_by_id = undefined
     codes = undefined
 
-    reloadingMarkets = undefined
-    marketsLoading = undefined
+    reloadingMarkets: boolean = undefined
+    marketsLoading: Promise<Dictionary<any>> = undefined
 
     accounts = undefined
     accountsById = undefined
 
-    commonCurrencies = undefined
+    commonCurrencies: Dictionary<string> = undefined
 
     hostname: Str = undefined;
 
     precisionMode: Num = undefined;
-    paddingMode = undefined
+    paddingMode: Num = undefined
 
-    exceptions = {}
+    exceptions: Dictionary<string> = {}
     timeframes: Dictionary<number | string> = {}
 
     version: Str = undefined;
 
-    marketsByAltname = undefined
+    marketsByAltname: Dictionary<any> = undefined
 
     name:Str = undefined
 
@@ -353,11 +353,11 @@ export default class Exchange {
     stablePairs = {}
 
     // WS/PRO options
-    clients = {}
-    newUpdates = true
+    clients: Dictionary<WsClient> = {}
+    newUpdates: boolean = true
     streaming = {}
 
-    alias = false;
+    alias: boolean = false;
 
     deepExtend = deepExtend
     isNode = isNode
