@@ -1504,7 +1504,7 @@ export default class digifinex extends Exchange {
             request['instrument_id'] = market['id'];
             request['granularity'] = timeframe;
             if (limit !== undefined) {
-                request['limit'] = limit;
+                request['limit'] = Math.min (limit, 100);
             }
             response = await this.publicSwapGetPublicCandles (this.extend (request, params));
         } else {

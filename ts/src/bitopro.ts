@@ -767,18 +767,22 @@ export default class bitopro extends Exchange {
         // we need to have a limit argument because "to" and "from" are required
         if (limit === undefined) {
             limit = 500;
+        } else {
+            limit = Math.min (limit, 75000); // supports slightly more than 75k candles atm, but limit here to avoid errors
         }
         const timeframeInSeconds = this.parseTimeframe (timeframe);
         let alignedSince = undefined;
+        let to = undefined;
         if (since === undefined) {
             request['to'] = this.seconds ();
-            request['from'] = request['to'] - (limit * timeframeInSeconds);
+            to = request['to'] - (limit * timeframeInSeconds);
         } else {
             const timeframeInMilliseconds = timeframeInSeconds * 1000;
             alignedSince = Math.floor (since / timeframeInMilliseconds) * timeframeInMilliseconds;
             request['from'] = Math.floor (since / 1000);
-            request['to'] = this.sum (request['from'], limit * timeframeInSeconds);
+            to = this.sum (request['from'], limit * timeframeInSeconds);
         }
+        request['to'] = Math.max (to, 1); // errors before this
         const response = await this.publicGetTradingHistoryPair (this.extend (request, params));
         const data = this.safeValue (response, 'data', []);
         //

@@ -1007,6 +1007,8 @@ export default class lbank extends Exchange {
         const market = this.market (symbol);
         if (limit === undefined) {
             limit = 100;
+        } else {
+            limit = Math.min (limit, 2000);
         }
         if (since === undefined) {
             const duration = this.parseTimeframe (timeframe);

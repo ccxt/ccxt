@@ -1346,6 +1346,8 @@ export default class bitfinex extends Exchange {
         await this.loadMarkets ();
         if (limit === undefined) {
             limit = 100;
+        } else {
+            limit = Math.min (limit, 10000);
         }
         const market = this.market (symbol);
         const v2id = 't' + market['id'];

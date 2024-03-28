@@ -1214,6 +1214,8 @@ export default class zonda extends Exchange {
         };
         if (limit === undefined) {
             limit = 100;
+        } else {
+            limit = Math.min (limit, 11000); // supports up to 11k candles diapason
         }
         const duration = this.parseTimeframe (timeframe);
         const timerange = limit * duration * 1000;
