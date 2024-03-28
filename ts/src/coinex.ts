@@ -2675,7 +2675,7 @@ export default class coinex extends Exchange {
             request['amount'] = this.amountToPrecision (symbol, amount);
         }
         if (price !== undefined) {
-            request['price'] = this.v1PriceToPrecision (symbol, price);
+            request['price'] = this.priceToPrecision (symbol, price);
         }
         const response = await this.v1PrivatePostOrderModify (this.extend (request, params));
         //
