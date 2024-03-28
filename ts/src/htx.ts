@@ -1733,49 +1733,31 @@ export default class htx extends Exchange {
         //         "ts":1637474595140
         //     }
         //
-        // linear futures
+        // linear (swap & future)
         //
         //     {
         //         "status":"ok",
         //         "data":[
-        //             {
-        //                 "symbol":"BTC",
-        //                 "contract_code":"BTC-USDT-211231",
-        //                 "contract_size":0.001000000000000000,
-        //                 "price_tick":0.100000000000000000,
-        //                 "delivery_date":"20211231",
-        //                 "delivery_time":"1640937600000",
-        //                 "create_date":"20211228",
-        //                 "contract_status":1,
-        //                 "settlement_date":"1640764800000",
-        //                 "support_margin_mode":"cross",
-        //                 "business_type":"futures",
-        //                 "pair":"BTC-USDT",
-        //                 "contract_type":"this_week" // next_week, quarter
-        //             },
+        //           {
+        //               "symbol": "BTC",
+        //               "contract_code": "BTC-USDT", // or "BTC-USDT-240329"
+        //               "pair": "BTC-USDT",
+        //               "contract_size": 0.001,
+        //               "price_tick": 0.1,
+        //               "delivery_date": "",
+        //               "delivery_time": "",
+        //               "create_date": "20201021",
+        //               "contract_status": 1,
+        //               "settlement_date": "1711641600000",
+        //               "trade_partition": "USDT",
+        //               "business_type": "swap", // swap | futures
+        //               "contract_type": "swap", // swap | this_week | next_week | quarter
+        //               "support_margin_mode": "all", // all | cross
+        //           }
         //         ],
         //         "ts":1640736207263
         //     }
         //
-        // swaps
-        //
-        //     {
-        //         "status":"ok",
-        //         "data":[
-        //             {
-        //                 "symbol":"BTC",
-        //                 "contract_code":"BTC-USDT",
-        //                 "contract_size":0.001000000000000000,
-        //                 "price_tick":0.100000000000000000,
-        //                 "delivery_time":"",
-        //                 "create_date":"20201021",
-        //                 "contract_status":1,
-        //                 "settlement_date":"1637481600000",
-        //                 "support_margin_mode":"all", // isolated
-        //             },
-        //         ],
-        //         "ts":1637474774467
-        //     }
         //
         const markets = this.safeValue (response, 'data', []);
         const numMarkets = markets.length;
