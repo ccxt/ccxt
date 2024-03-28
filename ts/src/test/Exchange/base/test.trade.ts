@@ -1,7 +1,7 @@
 
 import testSharedMethods from './test.sharedMethods.js';
 
-function testTrade (exchange, skippedProperties, method, entry, symbol, now) {
+function testTrade (exchange, skippedProperties, method, entry, symbol = undefined, now = undefined) {
     const format = {
         'info': { },
         'id': '12345-67890:09876/54321', // string trade id

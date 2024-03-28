@@ -28,7 +28,7 @@ public partial class testMainClass : BaseTest
     public bool verbose = Tests.verbose;
     public bool debug = Tests.debug;
     public static string httpsAgent = "";
-    public string ext = ".cs";
+    public string ext = "cs";
     public bool loadKeys = false;
 
     public bool staticTestsFailed = false;
