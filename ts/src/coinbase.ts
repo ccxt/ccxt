@@ -44,6 +44,7 @@ export default class coinbase extends Exchange {
                 'cancelOrders': true,
                 'closeAllPositions': false,
                 'closePosition': false,
+                'createConversion': true,
                 'createDepositAddress': true,
                 'createLimitBuyOrder': true,
                 'createLimitSellOrder': true,
@@ -67,6 +68,7 @@ export default class coinbase extends Exchange {
                 'fetchBorrowRateHistory': false,
                 'fetchCanceledOrders': true,
                 'fetchClosedOrders': true,
+                'fetchConversion': true,
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
@@ -111,6 +113,7 @@ export default class coinbase extends Exchange {
                 'fetchTradingFees': false,
                 'fetchWithdrawals': true,
                 'reduceMargin': false,
+                'setConversion': true,
                 'setLeverage': false,
                 'setMarginMode': false,
                 'setPositionMode': false,
@@ -3800,6 +3803,79 @@ export default class coinbase extends Exchange {
         //
         const data = this.safeDict (response, 'data', {});
         return this.parseTransaction (data);
+    }
+
+    async setConversion (from: string, to: string, amount: number = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinbase#setConversion
+         * @description set a quote for converting from one currency to another
+         * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_createconvertquote
+         * @param {string} from the currency that you want to sell and convert from
+         * @param {string} to the currency that you want to buy and convert into
+         * @param {float} [amount] how much you want to trade in units of the from currency
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {object} [params.trade_incentive_metadata] an object to fill in user incentive data
+         * @param {string} [params.trade_incentive_metadata.user_incentive_id] the id of the incentive
+         * @param {string} [params.trade_incentive_metadata.code_val] the code value of the incentive
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        const request = {
+            'from_account': from.toUpperCase (),
+            'to_account': to.toUpperCase (),
+            'amount': this.numberToString (amount),
+        };
+        const response = await this.v3PrivatePostBrokerageConvertQuote (this.extend (request, params));
+        const data = this.safeDict (response, 'trade', {});
+        return this.parseOrder (data, undefined);
+    }
+
+    async createConversion (id: string, from: string, to: string, amount: number = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinbase#createConversion
+         * @description convert from one currency to another
+         * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_commitconverttrade
+         * @param {string} id the id of the trade that you want to make
+         * @param {string} from the currency that you want to sell and convert from
+         * @param {string} to the currency that you want to buy and convert into
+         * @param {float} [amount] how much you want to trade in units of the from currency
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        const request = {
+            'trade_id': id,
+            'from_account': from.toUpperCase (),
+            'to_account': to.toUpperCase (),
+        };
+        const response = await this.v3PrivatePostBrokerageConvertTradeTradeId (this.extend (request, params));
+        const data = this.safeDict (response, 'trade', {});
+        return this.parseOrder (data, undefined);
+    }
+
+    async fetchConversion (id: string, from: string, to: string, params = {}) {
+        /**
+         * @method
+         * @name coinbase#fetchConversion
+         * @description fetch the data for a conversion trade
+         * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getconverttrade
+         * @param {string} id the id of the trade that you want to commit
+         * @param {string} from the currency that you want to sell and convert from
+         * @param {string} to the currency that you want to buy and convert into
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        const request = {
+            'trade_id': id,
+            'from_account': from.toUpperCase (),
+            'to_account': to.toUpperCase (),
+        };
+        const response = await this.v3PrivateGetBrokerageConvertTradeTradeId (this.extend (request, params));
+        const data = this.safeDict (response, 'trade', {});
+        return this.parseOrder (data, undefined);
     }
 
     sign (path, api = [], method = 'GET', params = {}, headers = undefined, body = undefined) {
