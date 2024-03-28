@@ -72,7 +72,7 @@ trait ClientTrait {
         $promise = Async\async(function () use ($method, $args) {
             return Async\await($method(...$args));
         }) ();
-        $promise->done(function ($result) use ($future){
+        $promise->then(function ($result) use ($future){
             $future->resolve($result);
         }, function ($error) use ($future) {
             $future->reject($error);
