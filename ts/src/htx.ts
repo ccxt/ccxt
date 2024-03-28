@@ -1821,9 +1821,8 @@ export default class htx extends Exchange {
                 if (future) {
                     expiry = this.safeInteger (market, 'delivery_time');
                     symbol += '-' + this.yymmdd (expiry);
-                    // only in linear-futures market-ids format provided from fetch-tickers endpoint (BTC-USDT-CW)
-                    // is not standard and differs from market-id provided from "fetchMarkets"
-                    // so, down below we have to map the futures market-ids to symbols
+                    // from "Tickers" endpoint, futures market-ids format (BTC-USDT-CW or BTC_CW) is not standard and differs
+                    // from "fetchMarkets", so down below we have to map the futures market-ids to symbols
                     const futuresCharsMaps = {
                         'this_week': 'CW',
                         'next_week': 'NW',
@@ -1831,8 +1830,15 @@ export default class htx extends Exchange {
                         'next_quarter': 'NQ',
                     };
                     const contractType = this.safeString (market, 'contract_type');
-                    const marketIdForTickers = base + '-' + quote + '-' + futuresCharsMaps[contractType];
-                    this.options['futureMarketIdsForSymbols'][marketIdForTickers] = symbol;
+                    let marketId = undefined;
+                    if (linear) {
+                        // linear future, i.e. `BTC-USDT-CW`
+                        marketId = base + '-' + quote + '-' + futuresCharsMaps[contractType];
+                    } else {
+                        // inverse future, i.e. `BTC_CW`
+                        marketId = base + '_' + futuresCharsMaps[contractType];
+                    }
+                    this.options['futureMarketIdsForSymbols'][marketId] = symbol;
                 }
             }
             const contractSize = this.safeNumber (market, 'contract_size');
