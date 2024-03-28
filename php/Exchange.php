@@ -2137,6 +2137,10 @@ class Exchange {
         }
     }
 
+    public function method_exists ($obj, $methodName) {
+        return method_exists($obj, $methodName);
+    }
+
     function get_property($obj, $property, $defaultValue = null){
         return (property_exists($obj, $property) ? $obj->$property : $defaultValue);
     }

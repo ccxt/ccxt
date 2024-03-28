@@ -1665,6 +1665,43 @@ export default class Exchange {
         }
     }
 
+    handleDeltas (orderbook, deltas, nonce = undefined) {
+        for (let i = 0; i < deltas.length; i++) {
+            this.handleDelta (orderbook, deltas[i]);
+        }
+    }
+
+    // eslint-disable-next-line no-unused-vars
+    getCacheIndex (orderbook, deltas) {
+        // return the first index of the cache that can be applied to the orderbook or -1 if not possible
+        return -1;
+    }
+
+    handleOrderBookSubscription (client = undefined, message = undefined, subscription = undefined, messageHash = undefined) {
+        const symbol = this.safeString (subscription, 'symbol');
+        const orderBookLimitOld = this.safeInteger (this.options, 'watchOrderBookLimit', 1000); // support obsolete format for some period
+        const defaultLimit = this.handleOption ('watchOrderBook', 'limit', orderBookLimitOld);
+        const limit = this.safeInteger (subscription, 'limit', defaultLimit);
+        if (symbol in this.orderbooks) {
+            delete this.orderbooks[symbol];
+        }
+        this.orderbooks[symbol] = this.orderBook ({}, limit);
+        // watch the snapshot in a separate async call
+        if (this.methodExists (this, 'watchOrderBookSnapshot')) {
+            this.spawn (this.watchOrderBookSnapshot, client, message, subscription);
+        } else {
+            this.spawn (this.fetchOrderBookSnapshot, client, message, subscription);
+        }
+    }
+
+    async watchOrderBookSnapshot (client, message, subscription) {
+        throw new NotSupported (this.id + ' watchOrderBookSnapshot not implemented yet');
+    }
+
+    async fetchOrderBookSnapshot (client, message, subscription) {
+        throw new NotSupported (this.id + ' fetchOrderBookSnapshot not implemented yet');
+    }
+
     convertToBigInt(value: string) {
         return BigInt(value); // used on XT
     }
@@ -1682,6 +1719,10 @@ export default class Exchange {
             return array.slice(first);
         }
         return array.slice(first, second);
+    }
+
+    methodExists (obj, methodName) {
+        return (typeof obj[methodName] === 'function');
     }
 
     getProperty (obj, property, defaultValue = undefined) {

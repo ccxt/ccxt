@@ -268,6 +268,7 @@ class Transpiler {
             [ /\.checkProxySettings\s/g, '.check_proxy_settings'],
             [ /\.getExchangePropAllCase\s/g, '.get_exchange_prop_all_case'],
             [ /\.setExchangePropAllCase\s/g, '.set_exchange_prop_all_case'],
+            [ /\.methodExists\s/g, '.method_exists'],
             [ /\.getProperty\s/g, '.get_property'],
             [ /\.safeProp\s/g, '.safe_prop'],
             [ /\.safeProp2\s/g, '.safe_prop_2'],
