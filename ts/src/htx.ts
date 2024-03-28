@@ -1659,15 +1659,6 @@ export default class htx extends Exchange {
         let inverse = undefined;
         const request = {};
         let response = undefined;
-        // only in linear-futures market-ids format provided from fetch-tickers endpoint (BTC-USDT-CW)
-        // is not standard and differs from market-id provided from "fetchMarkets"
-        // so, down below we have to map the futures market-ids to symbols
-        const futuresCharsMaps = {
-            'this_week': '-CW',
-            'next_week': '-NW',
-            'quarter': '-CQ',
-            'next_quarter': '-NQ',
-        };
         if (contract) {
             linear = (subType === 'linear');
             inverse = (subType === 'inverse');
@@ -1822,6 +1813,15 @@ export default class htx extends Exchange {
                 if (future) {
                     expiry = this.safeInteger (market, 'delivery_time');
                     symbol += '-' + this.yymmdd (expiry);
+                    // only in linear-futures market-ids format provided from fetch-tickers endpoint (BTC-USDT-CW)
+                    // is not standard and differs from market-id provided from "fetchMarkets"
+                    // so, down below we have to map the futures market-ids to symbols
+                    const futuresCharsMaps = {
+                        'this_week': 'CW',
+                        'next_week': 'NW',
+                        'quarter': 'CQ',
+                        'next_quarter': 'NQ',
+                    };
                     const contractType = this.safeString (market, 'contract_type');
                     const marketIdForTickers = base + '-' + quote + '-' + futuresCharsMaps[contractType];
                     this.options['futureMarketIdsForSymbols'][marketIdForTickers] = id;
@@ -1986,7 +1986,10 @@ export default class htx extends Exchange {
         //
         const marketId = this.safeString2 (ticker, 'symbol', 'contract_code');
         let symbol = this.safeSymbol (marketId, market);
-        // this.options['futureMarketIdsForSymbols
+        if (!(symbol in this.markets)) {
+            const futureMarketIdsForSymbols = this.safeDict (this.options, 'futureMarketIdsForSymbols', {});
+            symbol = this.safeString (futureMarketIdsForSymbols, symbol, symbol);
+        }
         const timestamp = this.safeInteger2 (ticker, 'ts', 'quoteTime');
         let bid = undefined;
         let bidVolume = undefined;
