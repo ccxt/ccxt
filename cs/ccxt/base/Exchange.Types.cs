@@ -525,7 +525,7 @@ public struct Balances
 
     public Balances(object balances2)
     {
-        var balances = (Dictionary<string, object>)balances2;
+        var balances = (IDictionary<string, object>)balances2;
         this.balances = new Dictionary<string, Balance>();
         foreach (var balance in balances)
         {
@@ -556,7 +556,7 @@ public struct Balances
             total.Add(balance.Key, Convert.ToDouble(balance.Value));
         }
         // info = (Dictionary<string, object>)balances["info"];
-        var balancesInfo = balances["info"];
+        var balancesInfo = balances.ContainsKey("info") ? (balances["info"]) : null;
         if (balancesInfo is IDictionary<string, object>)
         {
             info = (Dictionary<string, object>)balancesInfo;
