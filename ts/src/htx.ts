@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/htx.js';
-import { AccountNotEnabled, ArgumentsRequired, AuthenticationError, ExchangeError, PermissionDenied, ExchangeNotAvailable, OnMaintenance, InvalidOrder, OrderNotFound, InsufficientFunds, BadSymbol, BadRequest, RateLimitExceeded, RequestTimeout, NetworkError, NotSupported } from './base/errors.js';
+import { AccountNotEnabled, ArgumentsRequired, AuthenticationError, ExchangeError, PermissionDenied, ExchangeNotAvailable, OnMaintenance, InvalidOrder, OrderNotFound, InsufficientFunds, BadSymbol, BadRequest, RateLimitExceeded, RequestTimeout, OperationFailed, NotSupported } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE, TRUNCATE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
@@ -941,16 +941,14 @@ export default class htx extends Exchange {
                 'fetchMarkets': {
                     'types': {
                         'spot': true,
-                        'future': {
-                            'linear': true,
-                            'inverse': true,
-                        },
-                        'swap': {
-                            'linear': true,
-                            'inverse': true,
+                        'linear': true,
+                        'inverse': {
+                            'future': true,
+                            'swap': true,
                         },
                     },
                 },
+                'futureMarketIdsForSymbols': {}, // to be filled in fetchMarkets
                 'fetchOHLCV': {
                     'useHistoricalEndpointForSpot': true,
                 },
@@ -1620,17 +1618,26 @@ export default class htx extends Exchange {
         let promises = [];
         const keys = Object.keys (types);
         for (let i = 0; i < keys.length; i++) {
-            const type = keys[i];
-            const value = this.safeValue (types, type);
-            if (value === true) {
-                promises.push (this.fetchMarketsByTypeAndSubType (type, undefined, params));
-            } else if (value) {
-                const subKeys = Object.keys (value);
-                for (let j = 0; j < subKeys.length; j++) {
-                    const subType = subKeys[j];
-                    const subValue = this.safeValue (value, subType);
-                    if (subValue) {
-                        promises.push (this.fetchMarketsByTypeAndSubType (type, subType, params));
+            const key = keys[i];
+            const value = this.safeValue (types, key);
+            if (key === 'spot') {
+                if (value === true) {
+                    promises.push (this.fetchMarketsByTypeAndSubType ('spot', undefined, params));
+                }
+            } else if (key === 'linear') {
+                if (value === true) {
+                    params['business_type'] = 'all';
+                    promises.push (this.fetchMarketsByTypeAndSubType (undefined, 'linear', params));
+                }
+            } else if (key === 'inverse') {
+                if (value) {
+                    const subKeys = Object.keys (value);
+                    for (let j = 0; j < subKeys.length; j++) {
+                        const marketType = subKeys[j];
+                        const subValue = this.safeValue (value, marketType);
+                        if (subValue) {
+                            promises.push (this.fetchMarketsByTypeAndSubType (marketType, 'inverse', params));
+                        }
                     }
                 }
             }
@@ -1644,26 +1651,17 @@ export default class htx extends Exchange {
 
     async fetchMarketsByTypeAndSubType (type, subType, params = {}) {
         const query = this.omit (params, [ 'type', 'subType' ]);
-        const spot = (type === 'spot');
-        const contract = (type !== 'spot');
-        const future = (type === 'future');
-        const swap = (type === 'swap');
-        let linear = undefined;
-        let inverse = undefined;
+        const isSpot = (type === 'spot');
         const request = {};
         let response = undefined;
-        if (contract) {
-            linear = (subType === 'linear');
-            inverse = (subType === 'inverse');
-            if (linear) {
-                if (future) {
-                    request['business_type'] = 'futures';
-                }
+        if (!isSpot) {
+            if (subType === 'linear') {
+                request['business_type'] = 'all';
                 response = await this.contractPublicGetLinearSwapApiV1SwapContractInfo (this.extend (request, query));
-            } else if (inverse) {
-                if (future) {
+            } else if (subType === 'inverse') {
+                if (type === 'future') {
                     response = await this.contractPublicGetApiV1ContractContractInfo (this.extend (request, query));
-                } else if (swap) {
+                } else if (type === 'swap') {
                     response = await this.contractPublicGetSwapApiV1SwapContractInfo (this.extend (request, query));
                 }
             }
@@ -1708,75 +1706,58 @@ export default class htx extends Exchange {
         //         ]
         //     }
         //
-        // inverse future
+        // linear (swap & future)
         //
         //     {
         //         "status":"ok",
         //         "data":[
-        //             {
-        //                 "symbol":"BTC",
-        //                 "contract_code":"BTC211126",
-        //                 "contract_type":"this_week",
-        //                 "contract_size":100.000000000000000000,
-        //                 "price_tick":0.010000000000000000,
-        //                 "delivery_date":"20211126",
-        //                 "delivery_time":"1637913600000",
-        //                 "create_date":"20211112",
-        //                 "contract_status":1,
-        //                 "settlement_time":"1637481600000"
-        //             },
-        //         ],
-        //         "ts":1637474595140
-        //     }
-        //
-        // linear futures
-        //
-        //     {
-        //         "status":"ok",
-        //         "data":[
-        //             {
-        //                 "symbol":"BTC",
-        //                 "contract_code":"BTC-USDT-211231",
-        //                 "contract_size":0.001000000000000000,
-        //                 "price_tick":0.100000000000000000,
-        //                 "delivery_date":"20211231",
-        //                 "delivery_time":"1640937600000",
-        //                 "create_date":"20211228",
-        //                 "contract_status":1,
-        //                 "settlement_date":"1640764800000",
-        //                 "support_margin_mode":"cross",
-        //                 "business_type":"futures",
-        //                 "pair":"BTC-USDT",
-        //                 "contract_type":"this_week" // next_week, quarter
-        //             },
+        //           {
+        //               "symbol": "BTC",
+        //               "contract_code": "BTC-USDT", // or "BTC-USDT-240329"
+        //               "pair": "BTC-USDT",
+        //               "contract_size": 0.001,
+        //               "price_tick": 0.1,
+        //               "delivery_date": "", // has value if "futures"
+        //               "delivery_time": "",
+        //               "create_date": "20201021",
+        //               "contract_status": 1,
+        //               "settlement_date": "1711641600000",
+        //               "trade_partition": "USDT",
+        //               "business_type": "swap", // swap | futures
+        //               "contract_type": "swap", // swap | this_week | next_week | quarter
+        //               "support_margin_mode": "all", // all | cross
+        //           }
         //         ],
         //         "ts":1640736207263
         //     }
         //
-        // swaps
+        // inverse (swap & future)
         //
         //     {
-        //         "status":"ok",
-        //         "data":[
-        //             {
-        //                 "symbol":"BTC",
-        //                 "contract_code":"BTC-USDT",
-        //                 "contract_size":0.001000000000000000,
-        //                 "price_tick":0.100000000000000000,
-        //                 "delivery_time":"",
-        //                 "create_date":"20201021",
-        //                 "contract_status":1,
-        //                 "settlement_date":"1637481600000",
-        //                 "support_margin_mode":"all", // isolated
-        //             },
+        //         "status": "ok",
+        //         "data": [
+        //           {
+        //             "symbol": "BTC",
+        //             "contract_code": "BTC-USD",
+        //             "contract_size": 100,
+        //             "price_tick": 0.1,
+        //             "delivery_time": "",
+        //             "create_date": "20200325",
+        //             "contract_status": 1,
+        //             "settlement_date": "1711641600000" // only in inverse swap
+        //             "delivery_date":"20240329", // only in inverse future
+        //             "contract_type":"this_week", // only in inverse future
+        //             "settlement_time":"1711699200000" // only in inverse future
+        //           },
+        //           ...
         //         ],
-        //         "ts":1637474774467
+        //         "ts":1637474595140
         //     }
         //
-        const markets = this.safeValue (response, 'data', []);
+        const markets = this.safeList (response, 'data', []);
         const numMarkets = markets.length;
         if (numMarkets < 1) {
-            throw new NetworkError (this.id + ' fetchMarkets() returned an empty response: ' + this.json (markets));
+            throw new OperationFailed (this.id + ' fetchMarkets() returned an empty response: ' + this.json (response));
         }
         const result = [];
         for (let i = 0; i < markets.length; i++) {
@@ -1784,11 +1765,25 @@ export default class htx extends Exchange {
             let baseId = undefined;
             let quoteId = undefined;
             let settleId = undefined;
-            let id = undefined;
             let lowercaseId = undefined;
+            let id = undefined;
+            const contractId = this.safeString (market, 'contract_code');
+            const contract = contractId !== undefined;
+            const spot = !contract;
+            let swap = false;
+            let future = false;
+            let linear = undefined;
+            let inverse = undefined;
+            // check if parsed market is contract
             if (contract) {
-                id = this.safeString (market, 'contract_code');
+                id = contractId;
                 lowercaseId = id.toLowerCase ();
+                const delivery_date = this.safeString (market, 'delivery_date');
+                const business_type = this.safeString (market, 'business_type');
+                future = delivery_date !== undefined;
+                swap = !future;
+                linear = business_type !== undefined;
+                inverse = !linear;
                 if (swap) {
                     const parts = id.split ('-');
                     baseId = this.safeStringLower (market, 'symbol');
@@ -1826,6 +1821,18 @@ export default class htx extends Exchange {
                 if (future) {
                     expiry = this.safeInteger (market, 'delivery_time');
                     symbol += '-' + this.yymmdd (expiry);
+                    // only in linear-futures market-ids format provided from fetch-tickers endpoint (BTC-USDT-CW)
+                    // is not standard and differs from market-id provided from "fetchMarkets"
+                    // so, down below we have to map the futures market-ids to symbols
+                    const futuresCharsMaps = {
+                        'this_week': 'CW',
+                        'next_week': 'NW',
+                        'quarter': 'CQ',
+                        'next_quarter': 'NQ',
+                    };
+                    const contractType = this.safeString (market, 'contract_type');
+                    const marketIdForTickers = base + '-' + quote + '-' + futuresCharsMaps[contractType];
+                    this.options['futureMarketIdsForSymbols'][marketIdForTickers] = id;
                 }
             }
             const contractSize = this.safeNumber (market, 'contract_size');
@@ -1881,6 +1888,14 @@ export default class htx extends Exchange {
                 createdDate = createdArray[0] + createdArray[1] + createdArray[2] + createdArray[3] + '-' + createdArray[4] + createdArray[5] + '-' + createdArray[6] + createdArray[7] + ' 00:00:00';
                 created = this.parse8601 (createdDate);
             }
+            let marketType = undefined;
+            if (spot) {
+                marketType = 'spot';
+            } else if (swap) {
+                marketType = 'swap';
+            } else if (future) {
+                marketType = 'future';
+            }
             result.push ({
                 'id': id,
                 'lowercaseId': lowercaseId,
@@ -1891,7 +1906,7 @@ export default class htx extends Exchange {
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'settleId': settleId,
-                'type': type,
+                'type': marketType,
                 'spot': spot,
                 'margin': (spot && hasLeverage),
                 'swap': swap,
@@ -1986,7 +2001,11 @@ export default class htx extends Exchange {
         //     }
         //
         const marketId = this.safeString2 (ticker, 'symbol', 'contract_code');
-        const symbol = this.safeSymbol (marketId, market);
+        let symbol = this.safeSymbol (marketId, market);
+        if (!(symbol in this.markets)) {
+            const futureMarketIdsForSymbols = this.safeDict (this.options, 'futureMarketIdsForSymbols', {});
+            symbol = this.safeString (futureMarketIdsForSymbols, symbol, symbol);
+        }
         const timestamp = this.safeInteger2 (ticker, 'ts', 'quoteTime');
         let bid = undefined;
         let bidVolume = undefined;
@@ -2054,6 +2073,7 @@ export default class htx extends Exchange {
         if (market['linear']) {
             request['contract_code'] = market['id'];
             response = await this.contractPublicGetLinearSwapExMarketDetailMerged (this.extend (request, params));
+            await this.defineFutureMarketIdSymbols ();
         } else if (market['inverse']) {
             if (market['future']) {
                 request['symbol'] = market['id'];
@@ -2137,29 +2157,41 @@ export default class htx extends Exchange {
         if (first !== undefined) {
             market = this.market (first);
         }
+        const isSubTypeRequested = ('subType' in params) || ('business_type' in params);
         let type = undefined;
         let subType = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
         [ subType, params ] = this.handleSubTypeAndParams ('fetchTickers', market, params);
         const request = {};
+        const isSpot = (type === 'spot');
         const future = (type === 'future');
         const swap = (type === 'swap');
         const linear = (subType === 'linear');
         const inverse = (subType === 'inverse');
-        params = this.omit (params, [ 'type', 'subType' ]);
+        const isContract = !isSpot || isSubTypeRequested;
         let response = undefined;
-        if (future || swap) {
+        if (isContract) {
             if (linear) {
+                // supports calling all linear symbols (independently type), i.e. `fetchTickers (undefined, {subType:'linear'})`
                 if (future) {
                     request['business_type'] = 'futures';
+                } else if (swap) {
+                    request['business_type'] = 'swap';
+                } else {
+                    request['business_type'] = 'all';
                 }
                 response = await this.contractPublicGetLinearSwapExMarketDetailBatchMerged (this.extend (request, params));
+                await this.defineFutureMarketIdSymbols ();
             } else if (inverse) {
                 if (future) {
                     response = await this.contractPublicGetMarketDetailBatchMerged (this.extend (request, params));
                 } else if (swap) {
                     response = await this.contractPublicGetSwapExMarketDetailBatchMerged (this.extend (request, params));
+                } else {
+                    throw new NotSupported (this.id + ' fetchTickers() you have to set params["type"] to either "swap" or "future" for inverse contracts');
                 }
+            } else {
+                throw new NotSupported (this.id + ' fetchTickers() you have to set params["subType"] to either "linear" or "inverse" for contracts');
             }
         } else {
             response = await this.spotPublicGetMarketTickers (this.extend (request, params));
@@ -2214,39 +2246,17 @@ export default class htx extends Exchange {
         //         "ts":1637504679376
         //     }
         //
-        const tickers = this.safeValue2 (response, 'data', 'ticks', []);
-        const timestamp = this.safeInteger (response, 'ts');
-        const result = {};
-        for (let i = 0; i < tickers.length; i++) {
-            const ticker = this.parseTicker (tickers[i]);
-            // the market ids for linear futures are non-standard and differ from all the other endpoints
-            // we are doing a linear-matching here
-            if (future && linear) {
-                for (let j = 0; j < this.symbols.length; j++) {
-                    const symbolInner = this.symbols[j];
-                    const marketInner = this.market (symbolInner);
-                    const contractType = this.safeString (marketInner['info'], 'contract_type');
-                    if ((contractType === 'this_week') && (ticker['symbol'] === (marketInner['baseId'] + '-' + marketInner['quoteId'] + '-CW'))) {
-                        ticker['symbol'] = marketInner['symbol'];
-                        break;
-                    } else if ((contractType === 'next_week') && (ticker['symbol'] === (marketInner['baseId'] + '-' + marketInner['quoteId'] + '-NW'))) {
-                        ticker['symbol'] = marketInner['symbol'];
-                        break;
-                    } else if ((contractType === 'this_quarter') && (ticker['symbol'] === (marketInner['baseId'] + '-' + marketInner['quoteId'] + '-CQ'))) {
-                        ticker['symbol'] = marketInner['symbol'];
-                        break;
-                    } else if ((contractType === 'next_quarter') && (ticker['symbol'] === (marketInner['baseId'] + '-' + marketInner['quoteId'] + '-NQ'))) {
-                        ticker['symbol'] = marketInner['symbol'];
-                        break;
-                    }
-                }
-            }
-            const symbol = ticker['symbol'];
-            ticker['timestamp'] = timestamp;
-            ticker['datetime'] = this.iso8601 (timestamp);
-            result[symbol] = ticker;
+        const rawTickers = this.safeValue2 (response, 'data', 'ticks', []);
+        const tickers = this.parseTickers (rawTickers, symbols, params);
+        return this.filterByArrayTickers (tickers, 'symbol', symbols);
+    }
+
+    async defineFutureMarketIdSymbols () {
+        // to find out more about this function, see comment aside line where "futureMarketIdsForSymbols" is defined.
+        if (!this.safeBool (this.options, 'futureMarketIdsForSymbolsDefined', false)) {
+            await this.fetchMarketsByTypeAndSubType ('future', 'linear', { 'business_type': 'futures' });
+            this.options['futureMarketIdsForSymbolsDefined'] = true;
         }
-        return this.filterByArrayTickers (result, 'symbol', symbols);
     }
 
     async fetchLastPrices (symbols: Strings = undefined, params = {}) {
