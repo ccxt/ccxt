@@ -43,7 +43,11 @@ public partial class Exchange
             {
                 f.task.ContinueWith((task) =>
                 {
-                    if (task.IsCompleted)
+                    if (task.IsFaulted)
+                    {
+                        future.reject(task.Exception);
+                    }
+                    else if (task.IsCompleted)
                     {
                         future.resolve(task.Result);
                     }
