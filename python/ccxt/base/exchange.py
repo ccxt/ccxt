@@ -7,7 +7,6 @@
 __version__ = '4.2.76'
 
 # -----------------------------------------------------------------------------
-
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import NetworkError
 from ccxt.base.errors import NotSupported
@@ -38,7 +37,7 @@ from ccxt.base.types import BalanceAccount, Currency, IndexType, OrderSide, Orde
 # rsa jwt signing
 from cryptography.hazmat import backends
 from cryptography.hazmat.primitives import hashes
-from cryptography.hazmat.primitives.asymmetric import padding
+from cryptography.hazmat.primitives.asymmetric import padding, ec
 from cryptography.hazmat.primitives.serialization import load_pem_private_key
 
 # -----------------------------------------------------------------------------
@@ -1316,13 +1315,15 @@ class Exchange(object):
         return Exchange.decode(base64.b64decode(s))
 
     @staticmethod
-    def jwt(request, secret, algorithm='sha256', is_rsa=False):
+    def jwt(request, secret, algorithm='sha256', is_rsa=False, opts={}):
         algos = {
             'sha256': hashlib.sha256,
             'sha384': hashlib.sha384,
             'sha512': hashlib.sha512,
         }
         alg = ('RS' if is_rsa else 'HS') + algorithm[3:]
+        if opts['alg'] is not None:
+            alg = opts['alg']
         header = Exchange.encode(Exchange.json({
             'alg': alg,
             'typ': 'JWT',
@@ -1330,8 +1331,19 @@ class Exchange(object):
         encoded_header = Exchange.base64urlencode(header)
         encoded_data = Exchange.base64urlencode(Exchange.encode(Exchange.json(request)))
         token = encoded_header + '.' + encoded_data
-        if is_rsa:
+        algoType = alg[0:2]
+        if is_rsa or algoType == 'RS':
             signature = Exchange.base64_to_binary(Exchange.rsa(token, Exchange.decode(secret), algorithm))
+        elif algoType == 'ES':
+            # do ecdsa
+            # print(isinstance(secret, str), secret)
+            # if isinstance(secret, str):
+            #     print (secret.startswith('-----BEGIN EC PRIVATE KEY-----'))
+            print(token)
+            priv_key = load_pem_private_key(secret, None, backends.default_backend())
+            signature = priv_key.sign(Exchange.encode(token), ec.ECDSA(hashes.SHA256()))
+            print(len(signature), signature.hex(), Exchange.binary_to_base64(signature))
+            # signature = Exchange.ecdsa(request, secret, 'p256', algos[algorithm])
         else:
             signature = Exchange.hmac(Exchange.encode(token), secret, algos[algorithm], 'binary')
         return token + '.' + Exchange.base64urlencode(signature)
@@ -1365,7 +1377,16 @@ class Exchange(object):
         return "%0.2X" % num
 
     @staticmethod
+    def random_bytes(length):
+        return format(random.getrandbits(length * 8), 'x')
+
+    @staticmethod
     def ecdsa(request, secret, algorithm='p256', hash=None, fixed_length=False):
+        # decode key if needed
+        # print(isinstance(secret, str), secret)
+        # if isinstance(secret, str):
+        #     print (secret.startswith('-----BEGIN EC PRIVATE KEY-----'))
+        # priv_key = load_pem_private_key(secret, None, backends.default_backend())
         # your welcome - frosty00
         algorithms = {
             'p192': [ecdsa.NIST192p, 'sha256'],
@@ -3779,6 +3800,11 @@ class Exchange(object):
         return result
 
     def check_required_credentials(self, error=True):
+        """
+         * @ignore
+        :param boolean error: raise an error that a credential is required if True
+        :returns boolean: True if all required credentials have been set, otherwise False or an error is thrown is param error=true
+        """
         keys = list(self.requiredCredentials.keys())
         for i in range(0, len(keys)):
             key = keys[i]
