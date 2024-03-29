@@ -7,6 +7,7 @@
 __version__ = '4.2.76'
 
 # -----------------------------------------------------------------------------
+
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import NetworkError
 from ccxt.base.errors import NotSupported
@@ -38,6 +39,7 @@ from ccxt.base.types import BalanceAccount, Currency, IndexType, OrderSide, Orde
 from cryptography.hazmat import backends
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import padding, ec
+from cryptography.hazmat.primitives.asymmetric.utils import decode_dss_signature
 from cryptography.hazmat.primitives.serialization import load_pem_private_key
 
 # -----------------------------------------------------------------------------
@@ -1327,6 +1329,8 @@ class Exchange(object):
         header = Exchange.encode(Exchange.json({
             'alg': alg,
             'typ': 'JWT',
+            'kid': opts['kid'],
+            'nonce': opts['nonce']
         }))
         encoded_header = Exchange.base64urlencode(header)
         encoded_data = Exchange.base64urlencode(Exchange.encode(Exchange.json(request)))
@@ -1336,13 +1340,16 @@ class Exchange(object):
             signature = Exchange.base64_to_binary(Exchange.rsa(token, Exchange.decode(secret), algorithm))
         elif algoType == 'ES':
             # do ecdsa
-            # print(isinstance(secret, str), secret)
             # if isinstance(secret, str):
             #     print (secret.startswith('-----BEGIN EC PRIVATE KEY-----'))
-            print(token)
             priv_key = load_pem_private_key(secret, None, backends.default_backend())
-            signature = priv_key.sign(Exchange.encode(token), ec.ECDSA(hashes.SHA256()))
-            print(len(signature), signature.hex(), Exchange.binary_to_base64(signature))
+            (ri, si) = decode_dss_signature(priv_key.sign(Exchange.encode(token), ec.ECDSA(hashes.SHA256())))
+            r = hex(ri).lstrip("0x")
+            s = hex(si).lstrip("0x")
+            r = '0' + r if len(r) < 64 else r
+            s = '0' + s if len(s) < 64 else s
+            signature = Exchange.base16_to_binary(r + s)
+            # TODO: integrate decode process into ecdsa function
             # signature = Exchange.ecdsa(request, secret, 'p256', algos[algorithm])
         else:
             signature = Exchange.hmac(Exchange.encode(token), secret, algos[algorithm], 'binary')
