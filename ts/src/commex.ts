@@ -1,7 +1,7 @@
 /* eslint-disable indent */
 import Exchange from './abstract/commex.js';
 import { ExchangeError, ArgumentsRequired, InvalidOrder } from './base/errors.js';
-import type { Currency, Int, OHLCV, Trade, Market, Ticker, Str, Tickers, Strings, Balances, Order, OrderType, OrderSide, Transaction } from './base/types.js';
+import type { OrderBook, Currency, Int, OHLCV, Trade, Market, Ticker, Str, Tickers, Strings, Balances, Order, OrderType, OrderSide, Transaction } from './base/types.js';
 import { TRUNCATE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
@@ -1655,5 +1655,29 @@ export default class commex extends Exchange {
             };
         }
         return result;
+    }
+
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+        /**
+         * @method
+         * @name commex#fetchOrderBook
+         * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://www.commex.com/api-docs/en/#order-book     // spot
+         * @param {string} symbol unified symbol of the market to fetch the order book for
+         * @param {int} [limit] the maximum amount of order book entries to return
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+            };
+        let response = undefined;
+        response = await this.publicGetDepth (this.extend (request, params));
+        const timestamp = this.safeInteger (response, 'T');
+        const orderbook = this.parseOrderBook (response, symbol, timestamp);
+        orderbook['nonce'] = this.safeInteger2 (response, 'lastUpdateId', 'u');
+        return orderbook;
     }
 }
