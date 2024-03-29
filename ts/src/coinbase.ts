@@ -3849,7 +3849,7 @@ export default class coinbase extends Exchange {
                         'uri': uri,
                         'iat': seconds,
                     };
-                    const token = jwt (request, this.encode (this.secret), sha256, true, { 'kid': this.apiKey, 'nonce': nonce, 'alg': 'ES256' });
+                    const token = jwt (request, this.encode (this.secret), sha256, false, { 'kid': this.apiKey, 'nonce': nonce, 'alg': 'ES256' });
                     authorizationString = 'Bearer ' + token;
                 } else {
                     const timestampString = this.seconds ().toString ();

@@ -31,14 +31,13 @@ function jwt (request: {}, secret: Uint8Array, hash: CHash, isRSA = false, opts 
     let signature = undefined;
     if (algoType === 'HS') {
         signature = urlencodeBase64 (hmac (token, secret, hash, 'base64'));
-    } else if (algoType === 'RS') {
+    } else if (isRSA || algoType === 'RS') {
         signature = urlencodeBase64 (rsa (token, utf8.encode (secret), hash));
     } else if (algoType === 'ES') {
-        const msgHash = hash (token);
-        const signedHash = ecdsa (msgHash.slice (-64), utf8.encode (secret), P256, undefined);
+        const signedHash = ecdsa (token, utf8.encode (secret), P256, hash);
         const r = (signedHash.r.length === 64) ? signedHash.r : '0' + signedHash.r;
         const s = (signedHash.s.length === 64) ? signedHash.s : '0' + signedHash.s;
-        signature = urlencodeBase64(binaryToBase64(base16ToBinary(r + s)));
+        signature = urlencodeBase64 (binaryToBase64 (base16ToBinary (r + s)));
     }
     return [ token, signature ].join ('.');
 }
