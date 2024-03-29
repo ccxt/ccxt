@@ -88,6 +88,10 @@ function test_market($exchange, $skipped_properties, $method, $market) {
         assert_in_array($exchange, $skipped_properties, $method, $market, 'margin', [false, null]);
     }
     if (!(is_array($skipped_properties) && array_key_exists('contractSize', $skipped_properties))) {
+        if (!$market['spot']) {
+            // if not spot, then contractSize should be defined
+            assert($market['contractSize'] !== null, '\"contractSize\" must be defined when \"spot\" is false' . $log_text);
+        }
         assert_greater($exchange, $skipped_properties, $method, $market, 'contractSize', '0');
     }
     // typical values

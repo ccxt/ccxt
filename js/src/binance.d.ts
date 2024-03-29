@@ -1,15 +1,14 @@
 import Exchange from './abstract/binance.js';
-import type { TransferEntry, Int, OrderSide, Balances, OrderType, Trade, OHLCV, Order, FundingRateHistory, OpenInterest, Liquidation, OrderRequest, Str, Transaction, Ticker, OrderBook, Tickers, Market, Greeks, Strings, Currency, MarketInterface, MarginMode, MarginModes, Leverage, Leverages, Num } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, Balances, OrderType, Trade, OHLCV, Order, FundingRateHistory, OpenInterest, Liquidation, OrderRequest, Str, Transaction, Ticker, OrderBook, Tickers, Market, Greeks, Strings, Currency, MarketInterface, MarginMode, MarginModes, Leverage, Leverages, Num, Option } from './base/types.js';
 /**
  * @class binance
  * @augments Exchange
  */
 export default class binance extends Exchange {
     describe(): any;
-    isInverse(type: any, subType?: any): boolean;
-    isLinear(type: any, subType?: any): boolean;
+    isInverse(type: string, subType?: Str): boolean;
+    isLinear(type: string, subType?: Str): boolean;
     setSandboxMode(enable: boolean): void;
-    convertExpireDate(date: any): string;
     createExpiredOptionMarket(symbol: string): MarketInterface;
     market(symbol: string): MarketInterface;
     safeMarket(marketId?: Str, market?: Market, delimiter?: Str, marketType?: Str): MarketInterface;
@@ -18,7 +17,7 @@ export default class binance extends Exchange {
     nonce(): number;
     fetchTime(params?: {}): Promise<number>;
     fetchCurrencies(params?: {}): Promise<{}>;
-    fetchMarkets(params?: {}): Promise<any[]>;
+    fetchMarkets(params?: {}): Promise<Market[]>;
     parseMarket(market: any): Market;
     parseBalanceHelper(entry: any): import("./base/types.js").BalanceAccount;
     parseBalanceCustom(response: any, type?: any, marginMode?: any, isPortfolioMargin?: boolean): Balances;
@@ -436,4 +435,24 @@ export default class binance extends Exchange {
     }>;
     fetchMarginModes(symbols?: string[], params?: {}): Promise<MarginModes>;
     parseMarginMode(marginMode: any, market?: any): MarginMode;
+    fetchOption(symbol: string, params?: {}): Promise<Option>;
+    parseOption(chain: any, currency?: Currency, market?: Market): {
+        info: any;
+        currency: any;
+        symbol: string;
+        timestamp: any;
+        datetime: any;
+        impliedVolatility: any;
+        openInterest: any;
+        bidPrice: number;
+        askPrice: number;
+        midPrice: any;
+        markPrice: any;
+        lastPrice: number;
+        underlyingPrice: number;
+        change: number;
+        percentage: number;
+        baseVolume: number;
+        quoteVolume: any;
+    };
 }

@@ -7,7 +7,7 @@ import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, Balances, Str, Tra
 export default class coinbasepro extends Exchange {
     describe(): any;
     fetchCurrencies(params?: {}): Promise<{}>;
-    fetchMarkets(params?: {}): Promise<any[]>;
+    fetchMarkets(params?: {}): Promise<Market[]>;
     fetchAccounts(params?: {}): Promise<Account[]>;
     parseAccount(account: any): {
         id: string;

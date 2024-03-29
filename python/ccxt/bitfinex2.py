@@ -508,7 +508,7 @@ class bitfinex2(Exchange, ImplicitAPI):
             'info': response,
         }
 
-    def fetch_markets(self, params={}):
+    def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for bitfinex2
         :see: https://docs.bitfinex.com/reference/rest-public-conf
@@ -1712,7 +1712,7 @@ class bitfinex2(Exchange, ImplicitAPI):
             'all': 1,
         }
         response = self.privatePostAuthWOrderCancelMulti(self.extend(request, params))
-        orders = self.safe_value(response, 4, [])
+        orders = self.safe_list(response, 4, [])
         return self.parse_orders(orders)
 
     def cancel_order(self, id: str, symbol: Str = None, params={}):

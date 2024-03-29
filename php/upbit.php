@@ -73,6 +73,7 @@ class upbit extends Exchange {
                 '1m' => 'minutes',
                 '3m' => 'minutes',
                 '5m' => 'minutes',
+                '10m' => 'minutes',
                 '15m' => 'minutes',
                 '30m' => 'minutes',
                 '1h' => 'minutes',
@@ -102,6 +103,7 @@ class upbit extends Exchange {
                         'candles/minutes/1',
                         'candles/minutes/3',
                         'candles/minutes/5',
+                        'candles/minutes/10',
                         'candles/minutes/15',
                         'candles/minutes/30',
                         'candles/minutes/60',
@@ -396,7 +398,7 @@ class upbit extends Exchange {
         ));
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): array {
         /**
          * @see https://docs.upbit.com/reference/%EB%A7%88%EC%BC%93-%EC%BD%94%EB%93%9C-%EC%A1%B0%ED%9A%8C
          * retrieves data on all markets for upbit

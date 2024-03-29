@@ -58,6 +58,8 @@ class delta extends Exchange {
                 'fetchOHLCV' => true,
                 'fetchOpenInterest' => true,
                 'fetchOpenOrders' => true,
+                'fetchOption' => true,
+                'fetchOptionChain' => false,
                 'fetchOrderBook' => true,
                 'fetchPosition' => true,
                 'fetchPositionMode' => false,
@@ -238,15 +240,6 @@ class delta extends Exchange {
                 ),
             ),
         ));
-    }
-
-    public function convert_expire_date($date) {
-        // parse YYMMDD to timestamp
-        $year = mb_substr($date, 0, 2 - 0);
-        $month = mb_substr($date, 2, 4 - 2);
-        $day = mb_substr($date, 4, 6 - 4);
-        $reconstructedDate = '20' . $year . '-' . $month . '-' . $day . 'T00:00:00Z';
-        return $reconstructedDate;
     }
 
     public function create_expired_option_market(string $symbol) {
@@ -515,7 +508,7 @@ class delta extends Exchange {
         return $result;
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): array {
         /**
          * retrieves data on all $markets for delta
          * @see https://docs.delta.exchange/#get-list-of-products
@@ -3289,6 +3282,151 @@ class delta extends Exchange {
             'info' => $marginMode,
             'symbol' => $symbol,
             'marginMode' => $this->safe_string($marginMode, 'margin_mode'),
+        );
+    }
+
+    public function fetch_option(string $symbol, $params = array ()): Option {
+        /**
+         * fetches option data that is commonly found in an option chain
+         * @see https://docs.delta.exchange/#get-ticker-for-a-product-by-$symbol
+         * @param {string} $symbol unified $market $symbol
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/#/?id=option-chain-structure option chain structure~
+         */
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'symbol' => $market['id'],
+        );
+        $response = $this->publicGetTickersSymbol (array_merge($request, $params));
+        //
+        //     {
+        //         "result" => array(
+        //             "close" => 6793.0,
+        //             "contract_type" => "call_options",
+        //             "greeks" => array(
+        //                 "delta" => "0.94739174",
+        //                 "gamma" => "0.00002206",
+        //                 "rho" => "11.00890725",
+        //                 "spot" => "36839.58124652",
+        //                 "theta" => "-18.18365310",
+        //                 "vega" => "7.85209698"
+        //             ),
+        //             "high" => 7556.0,
+        //             "low" => 6793.0,
+        //             "mark_price" => "6955.70698909",
+        //             "mark_vol" => "0.66916863",
+        //             "oi" => "1.8980",
+        //             "oi_change_usd_6h" => "110.4600",
+        //             "oi_contracts" => "1898",
+        //             "oi_value" => "1.8980",
+        //             "oi_value_symbol" => "BTC",
+        //             "oi_value_usd" => "69940.7319",
+        //             "open" => 7.2e3,
+        //             "price_band" => array(
+        //                 "lower_limit" => "5533.89814767",
+        //                 "upper_limit" => "11691.37688371"
+        //             ),
+        //             "product_id" => 129508,
+        //             "quotes" => array(
+        //                 "ask_iv" => "0.90180438",
+        //                 "ask_size" => "1898",
+        //                 "best_ask" => "7210",
+        //                 "best_bid" => "6913",
+        //                 "bid_iv" => "0.60881706",
+        //                 "bid_size" => "3163",
+        //                 "impact_mid_price" => null,
+        //                 "mark_iv" => "0.66973549"
+        //             ),
+        //             "size" => 5,
+        //             "spot_price" => "36839.58153868",
+        //             "strike_price" => "30000",
+        //             "symbol" => "C-BTC-30000-241123",
+        //             "timestamp" => 1699584998504530,
+        //             "turnover" => 184.41206804,
+        //             "turnover_symbol" => "USDT",
+        //             "turnover_usd" => 184.41206804,
+        //             "volume" => 0.005
+        //         ),
+        //         "success" => true
+        //     }
+        //
+        $result = $this->safe_dict($response, 'result', array());
+        return $this->parse_option($result, null, $market);
+    }
+
+    public function parse_option($chain, ?array $currency = null, ?array $market = null) {
+        //
+        //     {
+        //         "close" => 6793.0,
+        //         "contract_type" => "call_options",
+        //         "greeks" => array(
+        //             "delta" => "0.94739174",
+        //             "gamma" => "0.00002206",
+        //             "rho" => "11.00890725",
+        //             "spot" => "36839.58124652",
+        //             "theta" => "-18.18365310",
+        //             "vega" => "7.85209698"
+        //         ),
+        //         "high" => 7556.0,
+        //         "low" => 6793.0,
+        //         "mark_price" => "6955.70698909",
+        //         "mark_vol" => "0.66916863",
+        //         "oi" => "1.8980",
+        //         "oi_change_usd_6h" => "110.4600",
+        //         "oi_contracts" => "1898",
+        //         "oi_value" => "1.8980",
+        //         "oi_value_symbol" => "BTC",
+        //         "oi_value_usd" => "69940.7319",
+        //         "open" => 7.2e3,
+        //         "price_band" => array(
+        //             "lower_limit" => "5533.89814767",
+        //             "upper_limit" => "11691.37688371"
+        //         ),
+        //         "product_id" => 129508,
+        //         "quotes" => array(
+        //             "ask_iv" => "0.90180438",
+        //             "ask_size" => "1898",
+        //             "best_ask" => "7210",
+        //             "best_bid" => "6913",
+        //             "bid_iv" => "0.60881706",
+        //             "bid_size" => "3163",
+        //             "impact_mid_price" => null,
+        //             "mark_iv" => "0.66973549"
+        //         ),
+        //         "size" => 5,
+        //         "spot_price" => "36839.58153868",
+        //         "strike_price" => "30000",
+        //         "symbol" => "C-BTC-30000-241123",
+        //         "timestamp" => 1699584998504530,
+        //         "turnover" => 184.41206804,
+        //         "turnover_symbol" => "USDT",
+        //         "turnover_usd" => 184.41206804,
+        //         "volume" => 0.005
+        //     }
+        //
+        $marketId = $this->safe_string($chain, 'symbol');
+        $market = $this->safe_market($marketId, $market);
+        $quotes = $this->safe_dict($chain, 'quotes', array());
+        $timestamp = $this->safe_integer_product($chain, 'timestamp', 0.001);
+        return array(
+            'info' => $chain,
+            'currency' => null,
+            'symbol' => $market['symbol'],
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'impliedVolatility' => $this->safe_number($quotes, 'mark_iv'),
+            'openInterest' => $this->safe_number($chain, 'oi'),
+            'bidPrice' => $this->safe_number($quotes, 'best_bid'),
+            'askPrice' => $this->safe_number($quotes, 'best_ask'),
+            'midPrice' => $this->safe_number($quotes, 'impact_mid_price'),
+            'markPrice' => $this->safe_number($chain, 'mark_price'),
+            'lastPrice' => null,
+            'underlyingPrice' => $this->safe_number($chain, 'spot_price'),
+            'change' => null,
+            'percentage' => null,
+            'baseVolume' => $this->safe_number($chain, 'volume'),
+            'quoteVolume' => null,
         );
     }
 

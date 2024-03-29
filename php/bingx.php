@@ -627,7 +627,7 @@ class bingx extends Exchange {
             $symbol .= ':' . $settle;
         }
         $fees = $this->safe_dict($this->fees, $type, array());
-        $contractSize = $this->safe_number($market, 'size');
+        $contractSize = ($swap) ? $this->parse_number('1') : null;
         $isActive = $this->safe_string($market, 'status') === '1';
         $isInverse = ($spot) ? null : false;
         $isLinear = ($spot) ? null : $swap;
@@ -668,7 +668,7 @@ class bingx extends Exchange {
                     'max' => $this->safe_integer($market, 'maxLongLeverage'),
                 ),
                 'amount' => array(
-                    'min' => $this->safe_number($market, 'minQty'),
+                    'min' => $this->safe_number_2($market, 'minQty', 'tradeMinQuantity'),
                     'max' => $this->safe_number($market, 'maxQty'),
                 ),
                 'price' => array(
@@ -676,7 +676,7 @@ class bingx extends Exchange {
                     'max' => null,
                 ),
                 'cost' => array(
-                    'min' => $this->safe_number($market, 'minNotional'),
+                    'min' => $this->safe_number_2($market, 'minNotional', 'tradeMinUSDT'),
                     'max' => $this->safe_number($market, 'maxNotional'),
                 ),
             ),
@@ -685,7 +685,7 @@ class bingx extends Exchange {
         ));
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): array {
         /**
          * retrieves data on all markets for bingx
          * @see https://bingx-api.github.io/docs/#/spot/market-api.html#Query%20Symbols
@@ -1029,6 +1029,13 @@ class bingx extends Exchange {
         if ($isMaker !== null) {
             $takeOrMaker = $isMaker ? 'maker' : 'taker';
         }
+        $amount = $this->safe_string_n($trade, array( 'qty', 'amount', 'q' ));
+        if (($market !== null) && $market['swap'] && (is_array($trade) && array_key_exists('volume', $trade))) {
+            // private $trade returns num of contracts instead of base currency (as the order-related methods do)
+            $contractSize = $this->safe_string($market['info'], 'tradeMinQuantity');
+            $volume = $this->safe_string($trade, 'volume');
+            $amount = Precise::string_mul($volume, $contractSize);
+        }
         return $this->safe_trade(array(
             'id' => $this->safe_string_n($trade, array( 'id', 't' )),
             'info' => $trade,
@@ -1040,7 +1047,7 @@ class bingx extends Exchange {
             'side' => $this->parse_order_side($side),
             'takerOrMaker' => $takeOrMaker,
             'price' => $this->safe_string_2($trade, 'price', 'p'),
-            'amount' => $this->safe_string_n($trade, array( 'qty', 'volume', 'amount', 'q' )),
+            'amount' => $amount,
             'cost' => $cost,
             'fee' => array(
                 'cost' => $this->parse_number(Precise::string_abs($this->safe_string_2($trade, 'commission', 'n'))),
@@ -1354,12 +1361,12 @@ class bingx extends Exchange {
 
     public function fetch_ticker(string $symbol, $params = array ()): array {
         /**
-         * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+         * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
          * @see https://bingx-api.github.io/docs/#/swapV2/market-api.html#Get%20Ticker
          * @see https://bingx-api.github.io/docs/#/spot/market-api.html#24%E5%B0%8F%E6%97%B6%E4%BB%B7%E6%A0%BC%E5%8F%98%E5%8A%A8%E6%83%85%E5%86%B5
-         * @param {string} $symbol unified $symbol of the $market to fetch the $ticker for
+         * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structure~
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -1372,9 +1379,13 @@ class bingx extends Exchange {
         } else {
             $response = $this->swapV2PublicGetQuoteTicker (array_merge($request, $params));
         }
-        $data = $this->safe_value($response, 'data');
-        $ticker = $this->safe_value($data, 0, $data);
-        return $this->parse_ticker($ticker, $market);
+        $data = $this->safe_list($response, 'data');
+        if ($data !== null) {
+            $first = $this->safe_dict($data, 0, array());
+            return $this->parse_ticker($first, $market);
+        }
+        $dataDict = $this->safe_dict($response, 'data', array());
+        return $this->parse_ticker($dataDict, $market);
     }
 
     public function fetch_tickers(?array $symbols = null, $params = array ()): array {
@@ -1402,7 +1413,7 @@ class bingx extends Exchange {
         } else {
             $response = $this->swapV2PublicGetQuoteTicker ($params);
         }
-        $tickers = $this->safe_value($response, 'data');
+        $tickers = $this->safe_list($response, 'data');
         return $this->parse_tickers($tickers, $symbols);
     }
 
@@ -1657,19 +1668,27 @@ class bingx extends Exchange {
 
     public function parse_position($position, ?array $market = null) {
         //
-        //     {
-        //         "symbol" => "BTC-USDT",
-        //         "positionId" => "12345678",
-        //         "positionSide" => "LONG",
-        //         "isolated" => true,
-        //         "positionAmt" => "123.33",
-        //         "availableAmt" => "128.99",
-        //         "unrealizedProfit" => "1.22",
-        //         "realisedProfit" => "8.1",
-        //         "initialMargin" => "123.33",
-        //         "avgPrice" => "2.2",
-        //         "leverage" => 10,
-        //     }
+        //    {
+        //        "positionId":"1773122376147623936",
+        //        "symbol":"XRP-USDT",
+        //        "currency":"USDT",
+        //        "positionAmt":"3",
+        //        "availableAmt":"3",
+        //        "positionSide":"LONG",
+        //        "isolated":false,
+        //        "avgPrice":"0.6139",
+        //        "initialMargin":"0.0897",
+        //        "leverage":20,
+        //        "unrealizedProfit":"-0.0023",
+        //        "realisedProfit":"-0.0009",
+        //        "liquidationPrice":0,
+        //        "pnlRatio":"-0.0260",
+        //        "maxMarginReduction":"",
+        //        "riskRate":"",
+        //        "markPrice":"",
+        //        "positionValue":"",
+        //        "onlyOnePosition":false
+        //    }
         //
         // standard $position
         //
@@ -1696,7 +1715,7 @@ class bingx extends Exchange {
             'info' => $position,
             'id' => $this->safe_string($position, 'positionId'),
             'symbol' => $this->safe_symbol($marketId, $market, '-', 'swap'),
-            'notional' => $this->safe_number($position, 'positionAmt'),
+            'notional' => $this->safe_number($position, 'positionValue'),
             'marginMode' => $marginMode,
             'liquidationPrice' => null,
             'entryPrice' => $this->safe_number_2($position, 'avgPrice', 'entryPrice'),
@@ -1714,7 +1733,7 @@ class bingx extends Exchange {
             'lastUpdateTimestamp' => null,
             'maintenanceMargin' => null,
             'maintenanceMarginPercentage' => null,
-            'collateral' => $this->safe_number($position, 'positionAmt'),
+            'collateral' => null,
             'initialMargin' => $this->safe_number($position, 'initialMargin'),
             'initialMarginPercentage' => null,
             'leverage' => $this->safe_number($position, 'leverage'),
@@ -2023,7 +2042,7 @@ class bingx extends Exchange {
             $response = $this->parse_json($response);
         }
         $data = $this->safe_value($response, 'data', array());
-        $order = $this->safe_value($data, 'order', $data);
+        $order = $this->safe_dict($data, 'order', $data);
         return $this->parse_order($order, $market);
     }
 
@@ -2516,7 +2535,7 @@ class bingx extends Exchange {
         //    }
         //
         $data = $this->safe_value($response, 'data');
-        $first = $this->safe_value($data, 'order', $data);
+        $first = $this->safe_dict($data, 'order', $data);
         return $this->parse_order($first, $market);
     }
 
@@ -2753,7 +2772,7 @@ class bingx extends Exchange {
         //      }
         //
         $data = $this->safe_value($response, 'data');
-        $first = $this->safe_value($data, 'order', $data);
+        $first = $this->safe_dict($data, 'order', $data);
         return $this->parse_order($first, $market);
     }
 
@@ -2931,7 +2950,7 @@ class bingx extends Exchange {
         //    }
         //
         $data = $this->safe_value($response, 'data', array());
-        $orders = $this->safe_value($data, 'orders', array());
+        $orders = $this->safe_list($data, 'orders', array());
         return $this->parse_orders($orders, $market, $since, $limit);
     }
 
@@ -3666,7 +3685,7 @@ class bingx extends Exchange {
          */
         $this->load_markets();
         $response = $this->walletsV1PrivateGetCapitalConfigGetall ($params);
-        $coins = $this->safe_value($response, 'data');
+        $coins = $this->safe_list($response, 'data');
         return $this->parse_deposit_withdraw_fees($coins, $codes, 'coin');
     }
 

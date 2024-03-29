@@ -146,7 +146,7 @@ export default class btcturk extends Exchange {
         });
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name btcturk#fetchMarkets
@@ -424,7 +424,7 @@ export default class btcturk extends Exchange {
          */
         await this.loadMarkets ();
         const response = await this.publicGetTicker (params);
-        const tickers = this.safeValue (response, 'data');
+        const tickers = this.safeList (response, 'data');
         return this.parseTickers (tickers, symbols);
     }
 
@@ -545,7 +545,7 @@ export default class btcturk extends Exchange {
         //       ]
         //     }
         //
-        const data = this.safeValue (response, 'data');
+        const data = this.safeList (response, 'data');
         return this.parseTrades (data, market, since, limit);
     }
 
@@ -703,7 +703,7 @@ export default class btcturk extends Exchange {
             request['newClientOrderId'] = this.uuid ();
         }
         const response = await this.privatePostOrder (this.extend (request, params));
-        const data = this.safeValue (response, 'data');
+        const data = this.safeDict (response, 'data');
         return this.parseOrder (data, market);
     }
 
@@ -746,7 +746,7 @@ export default class btcturk extends Exchange {
         const response = await this.privateGetOpenOrders (this.extend (request, params));
         const data = this.safeValue (response, 'data');
         const bids = this.safeValue (data, 'bids', []);
-        const asks = this.safeValue (data, 'asks', []);
+        const asks = this.safeList (data, 'asks', []);
         return this.parseOrders (this.arrayConcat (bids, asks), market, since, limit);
     }
 
@@ -795,7 +795,7 @@ export default class btcturk extends Exchange {
         //     }
         //   ]
         // }
-        const data = this.safeValue (response, 'data');
+        const data = this.safeList (response, 'data');
         return this.parseOrders (data, market, since, limit);
     }
 
@@ -915,7 +915,7 @@ export default class btcturk extends Exchange {
         //       "code": "0"
         //     }
         //
-        const data = this.safeValue (response, 'data');
+        const data = this.safeList (response, 'data');
         return this.parseTrades (data, market, since, limit);
     }
 

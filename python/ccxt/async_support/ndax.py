@@ -395,7 +395,7 @@ class ndax(Exchange, ImplicitAPI):
             }
         return result
 
-    async def fetch_markets(self, params={}):
+    async def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for ndax
         :see: https://apidoc.ndax.io/#getinstruments
@@ -1858,7 +1858,7 @@ class ndax(Exchange, ImplicitAPI):
         #     ]
         #
         grouped = self.group_by(response, 'ChangeReason')
-        trades = self.safe_value(grouped, 'Trade', [])
+        trades = self.safe_list(grouped, 'Trade', [])
         return self.parse_trades(trades, market, since, limit)
 
     async def fetch_deposit_address(self, code: str, params={}):

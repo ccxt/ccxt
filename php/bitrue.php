@@ -398,7 +398,7 @@ class bitrue extends Exchange {
                     '-1022' => '\\ccxt\\AuthenticationError', // array("code":-1022,"msg":"Signature for this request is not valid.")
                     '-1100' => '\\ccxt\\BadRequest', // createOrder(symbol, 1, asdf) -> 'Illegal characters found in parameter 'price'
                     '-1101' => '\\ccxt\\BadRequest', // Too many parameters; expected %s and received %s.
-                    '-1102' => '\\ccxt\\BadRequest', // Param %s or %s must be sent, but both were empty
+                    '-1102' => '\\ccxt\\BadRequest', // Param %s or %s must be sent, but both were empty // array("code":-1102,"msg":"timestamp IllegalArgumentException.","data":null)
                     '-1103' => '\\ccxt\\BadRequest', // An unknown parameter was sent.
                     '-1104' => '\\ccxt\\BadRequest', // Not all sent parameters were read, read 8 parameters but was sent 9
                     '-1105' => '\\ccxt\\BadRequest', // Parameter %s was empty.
@@ -703,7 +703,7 @@ class bitrue extends Exchange {
         return $result;
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): array {
         /**
          * retrieves data on all $markets for bitrue
          * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#exchangeInfo_endpoint
@@ -2500,7 +2500,7 @@ class bitrue extends Exchange {
         //         )
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_list($response, 'data', array());
         return $this->parse_transactions($data, $currency, $since, $limit);
     }
 
@@ -2753,7 +2753,7 @@ class bitrue extends Exchange {
         //         }
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_dict($response, 'data', array());
         return $this->parse_transaction($data, $currency);
     }
 
@@ -2809,7 +2809,7 @@ class bitrue extends Exchange {
          */
         $this->load_markets();
         $response = $this->spotV1PublicGetExchangeInfo ($params);
-        $coins = $this->safe_value($response, 'coins');
+        $coins = $this->safe_list($response, 'coins');
         return $this->parse_deposit_withdraw_fees($coins, $codes, 'coin');
     }
 
@@ -2936,7 +2936,7 @@ class bitrue extends Exchange {
         //         'data' => null
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_dict($response, 'data', array());
         return $this->parse_transfer($data, $currency);
     }
 

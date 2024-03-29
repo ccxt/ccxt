@@ -390,7 +390,7 @@ class woo extends Exchange {
         }) ();
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * retrieves $data on all markets for woo
@@ -1345,7 +1345,7 @@ class woo extends Exchange {
             //     )
             // }
             //
-            $orders = $this->safe_value($response, 'data', $response);
+            $orders = $this->safe_dict($response, 'data', $response);
             return $this->parse_order($orders, $market);
         }) ();
     }

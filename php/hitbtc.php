@@ -649,7 +649,7 @@ class hitbtc extends Exchange {
         return $this->milliseconds();
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): array {
         /**
          * retrieves data on all markets for hitbtc
          * @see https://api.hitbtc.com/#symbols
@@ -1423,7 +1423,7 @@ class hitbtc extends Exchange {
         //       "status" => "SUCCESS",
         //       "type" => "DEPOSIT", // DEPOSIT, WITHDRAW, ..
         //       "subtype" => "BLOCKCHAIN",
-        //       "native" => {
+        //       "native" => array(
         //         "tx_id" => "e20b0965-4024-44d0-b63f-7fb8996a6706",
         //         "index" => "881652766",
         //         "currency" => "ETH",
@@ -1436,15 +1436,16 @@ class hitbtc extends Exchange {
         //         ),
         //         "fee" => "1.22" // only for WITHDRAW
         //       }
-        //     }
-        //
+        //     ),
+        //     "operation_id" => "084cfcd5-06b9-4826-882e-fdb75ec3625d", // only for WITHDRAW
+        //     "commit_risk" => array()
         // withdraw
         //
         //     {
         //         "id":"084cfcd5-06b9-4826-882e-fdb75ec3625d"
         //     }
         //
-        $id = $this->safe_string($transaction, 'id');
+        $id = $this->safe_string_2($transaction, 'operation_id', 'id');
         $timestamp = $this->parse8601($this->safe_string($transaction, 'created_at'));
         $updated = $this->parse8601($this->safe_string($transaction, 'updated_at'));
         $type = $this->parse_transaction_type($this->safe_string($transaction, 'type'));
@@ -1894,7 +1895,7 @@ class hitbtc extends Exchange {
         //       }
         //     )
         //
-        $order = $this->safe_value($response, 0);
+        $order = $this->safe_dict($response, 0);
         return $this->parse_order($order, $market);
     }
 

@@ -899,8 +899,8 @@ class mexc(Exchange, ImplicitAPI):
                     '30032': InvalidOrder,  # Cannot exceed the maximum position
                     '30041': InvalidOrder,  # current order type can not place order
                     '60005': ExchangeError,  # your account is abnormal
-                    '700001': AuthenticationError,  # API-key format invalid
-                    '700002': AuthenticationError,  # Signature for self request is not valid
+                    '700001': AuthenticationError,  # {"code":700002,"msg":"Signature for self request is not valid."}  # same message for expired API keys
+                    '700002': AuthenticationError,  # Signature for self request is not valid  # or the API secret is incorrect
                     '700004': BadRequest,  # Param 'origClientOrderId' or 'orderId' must be sent, but both were empty/null
                     '700005': InvalidNonce,  # recvWindow must less than 60000
                     '700006': BadRequest,  # IP non white list
@@ -1132,7 +1132,7 @@ class mexc(Exchange, ImplicitAPI):
             }
         return result
 
-    async def fetch_markets(self, params={}):
+    async def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for mexc
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -2680,7 +2680,7 @@ class mexc(Exchange, ImplicitAPI):
             #         ]
             #     }
             #
-            data = self.safe_value(response, 'data')
+            data = self.safe_list(response, 'data')
             return self.parse_orders(data, market)
 
     async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
@@ -2930,7 +2930,7 @@ class mexc(Exchange, ImplicitAPI):
             #         ]
             #     }
             #
-            data = self.safe_value(response, 'data')
+            data = self.safe_list(response, 'data')
             return self.parse_orders(data, market)
 
     async def cancel_all_orders(self, symbol: Str = None, params={}):
@@ -3013,7 +3013,7 @@ class mexc(Exchange, ImplicitAPI):
             #         "code": "0"
             #     }
             #
-            data = self.safe_value(response, 'data', [])
+            data = self.safe_list(response, 'data', [])
             return self.parse_orders(data, market)
 
     def parse_order(self, order, market: Market = None) -> Order:
@@ -4084,7 +4084,7 @@ class mexc(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        data = self.safe_value(response, 'data')
+        data = self.safe_list(response, 'data')
         return self.parse_leverage_tiers(data, symbols, 'symbol')
 
     def parse_market_leverage_tiers(self, info, market: Market = None):
@@ -4505,7 +4505,7 @@ class mexc(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        data = self.safe_value(response, 'data', [])
+        data = self.safe_list(response, 'data', [])
         return self.parse_positions(data, symbols)
 
     def parse_position(self, position, market: Market = None):
@@ -4596,7 +4596,7 @@ class mexc(Exchange, ImplicitAPI):
             #         }
             #     }
             #
-            data = self.safe_value(response, 'data', {})
+            data = self.safe_dict(response, 'data', {})
             return self.parse_transfer(data)
         elif marketType == 'swap':
             raise BadRequest(self.id + ' fetchTransfer() is not supported for ' + marketType)

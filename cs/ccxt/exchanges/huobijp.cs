@@ -1004,7 +1004,7 @@ public partial class huobijp : Exchange
         //         ]
         //     }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseOHLCVs(data, market, timeframe, since, limit);
     }
 
@@ -1225,7 +1225,7 @@ public partial class huobijp : Exchange
             { "id", id },
         };
         object response = await this.privateGetOrderOrdersId(this.extend(request, parameters));
-        object order = this.safeValue(response, "data");
+        object order = this.safeDict(response, "data");
         return this.parseOrder(order);
     }
 
@@ -1345,7 +1345,7 @@ public partial class huobijp : Exchange
         //         ]
         //     }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseOrders(data, market, since, limit);
     }
 

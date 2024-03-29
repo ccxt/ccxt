@@ -422,7 +422,7 @@ class bitrue(Exchange, ImplicitAPI):
                     '-1022': AuthenticationError,  # {"code":-1022,"msg":"Signature for self request is not valid."}
                     '-1100': BadRequest,  # createOrder(symbol, 1, asdf) -> 'Illegal characters found in parameter 'price'
                     '-1101': BadRequest,  # Too many parameters; expected %s and received %s.
-                    '-1102': BadRequest,  # Param %s or %s must be sent, but both were empty
+                    '-1102': BadRequest,  # Param %s or %s must be sent, but both were empty  # {"code":-1102,"msg":"timestamp IllegalArgumentException.","data":null}
                     '-1103': BadRequest,  # An unknown parameter was sent.
                     '-1104': BadRequest,  # Not all sent parameters were read, read 8 parameters but was sent 9
                     '-1105': BadRequest,  # Parameter %s was empty.
@@ -714,7 +714,7 @@ class bitrue(Exchange, ImplicitAPI):
             }
         return result
 
-    async def fetch_markets(self, params={}):
+    async def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for bitrue
         :see: https://github.com/Bitrue-exchange/Spot-official-api-docs#exchangeInfo_endpoint
@@ -2404,7 +2404,7 @@ class bitrue(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        data = self.safe_value(response, 'data', [])
+        data = self.safe_list(response, 'data', [])
         return self.parse_transactions(data, currency, since, limit)
 
     async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
@@ -2642,7 +2642,7 @@ class bitrue(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        data = self.safe_value(response, 'data', {})
+        data = self.safe_dict(response, 'data', {})
         return self.parse_transaction(data, currency)
 
     def parse_deposit_withdraw_fee(self, fee, currency: Currency = None):
@@ -2693,7 +2693,7 @@ class bitrue(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         response = await self.spotV1PublicGetExchangeInfo(params)
-        coins = self.safe_value(response, 'coins')
+        coins = self.safe_list(response, 'coins')
         return self.parse_deposit_withdraw_fees(coins, codes, 'coin')
 
     def parse_transfer(self, transfer, currency=None):
@@ -2811,7 +2811,7 @@ class bitrue(Exchange, ImplicitAPI):
         #         'data': null
         #     }
         #
-        data = self.safe_value(response, 'data', {})
+        data = self.safe_dict(response, 'data', {})
         return self.parse_transfer(data, currency)
 
     async def set_leverage(self, leverage: Int, symbol: Str = None, params={}):

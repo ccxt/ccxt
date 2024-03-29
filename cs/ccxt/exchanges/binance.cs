@@ -100,6 +100,8 @@ public partial class binance : Exchange
                 { "fetchOpenInterestHistory", true },
                 { "fetchOpenOrder", true },
                 { "fetchOpenOrders", true },
+                { "fetchOption", true },
+                { "fetchOptionChain", false },
                 { "fetchOrder", true },
                 { "fetchOrderBook", true },
                 { "fetchOrderBooks", false },
@@ -2288,7 +2290,7 @@ public partial class binance : Exchange
     {
         if (isTrue(isEqual(subType, null)))
         {
-            return isEqual(type, "delivery");
+            return (isEqual(type, "delivery"));
         } else
         {
             return isEqual(subType, "inverse");
@@ -2310,16 +2312,6 @@ public partial class binance : Exchange
     {
         base.setSandboxMode(enable);
         ((IDictionary<string,object>)this.options)["sandboxMode"] = enable;
-    }
-
-    public virtual object convertExpireDate(object date)
-    {
-        // parse YYMMDD to timestamp
-        object year = slice(date, 0, 2);
-        object month = slice(date, 2, 4);
-        object day = slice(date, 4, 6);
-        object reconstructedDate = add(add(add(add(add(add("20", year), "-"), month), "-"), day), "T00:00:00Z");
-        return reconstructedDate;
     }
 
     public override object createExpiredOptionMarket(object symbol)
@@ -3977,21 +3969,16 @@ public partial class binance : Exchange
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        symbols = this.marketSymbols(symbols);
-        object market = null;
-        if (isTrue(!isEqual(symbols, null)))
-        {
-            object first = this.safeString(symbols, 0);
-            market = this.market(first);
-        }
+        symbols = this.marketSymbols(symbols, null, true, true, true);
+        object market = this.getMarketFromSymbols(symbols);
         object type = null;
+        var typeparametersVariable = this.handleMarketTypeAndParams("fetchBidsAsks", market, parameters);
+        type = ((IList<object>)typeparametersVariable)[0];
+        parameters = ((IList<object>)typeparametersVariable)[1];
         object subType = null;
         var subTypeparametersVariable = this.handleSubTypeAndParams("fetchBidsAsks", market, parameters);
         subType = ((IList<object>)subTypeparametersVariable)[0];
         parameters = ((IList<object>)subTypeparametersVariable)[1];
-        var typeparametersVariable = this.handleMarketTypeAndParams("fetchBidsAsks", market, parameters);
-        type = ((IList<object>)typeparametersVariable)[0];
-        parameters = ((IList<object>)typeparametersVariable)[1];
         object response = null;
         if (isTrue(this.isLinear(type, subType)))
         {
@@ -3999,15 +3986,17 @@ public partial class binance : Exchange
         } else if (isTrue(this.isInverse(type, subType)))
         {
             response = await this.dapiPublicGetTickerBookTicker(parameters);
-        } else
+        } else if (isTrue(isEqual(type, "spot")))
         {
             object request = new Dictionary<string, object>() {};
             if (isTrue(!isEqual(symbols, null)))
             {
-                object marketIds = this.marketIds(symbols);
-                ((IDictionary<string,object>)request)["symbols"] = this.json(marketIds);
+                ((IDictionary<string,object>)request)["symbols"] = this.json(this.marketIds(symbols));
             }
             response = await this.publicGetTickerBookTicker(this.extend(request, parameters));
+        } else
+        {
+            throw new NotSupported ((string)add(add(add(this.id, " fetchBidsAsks() does not support "), type), " markets yet")) ;
         }
         return this.parseTickers(response, symbols);
     }
@@ -4028,16 +4017,16 @@ public partial class binance : Exchange
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        symbols = this.marketSymbols(symbols);
+        symbols = this.marketSymbols(symbols, null, true, true, true);
         object market = this.getMarketFromSymbols(symbols);
         object type = null;
+        var typeparametersVariable = this.handleMarketTypeAndParams("fetchLastPrices", market, parameters);
+        type = ((IList<object>)typeparametersVariable)[0];
+        parameters = ((IList<object>)typeparametersVariable)[1];
         object subType = null;
         var subTypeparametersVariable = this.handleSubTypeAndParams("fetchLastPrices", market, parameters);
         subType = ((IList<object>)subTypeparametersVariable)[0];
         parameters = ((IList<object>)subTypeparametersVariable)[1];
-        var typeparametersVariable = this.handleMarketTypeAndParams("fetchLastPrices", market, parameters);
-        type = ((IList<object>)typeparametersVariable)[0];
-        parameters = ((IList<object>)typeparametersVariable)[1];
         object response = null;
         if (isTrue(this.isLinear(type, subType)))
         {
@@ -4115,14 +4104,9 @@ public partial class binance : Exchange
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object type = null;
-        object market = null;
         symbols = this.marketSymbols(symbols, null, true, true, true);
-        if (isTrue(!isEqual(symbols, null)))
-        {
-            object first = this.safeString(symbols, 0);
-            market = this.market(first);
-        }
+        object market = this.getMarketFromSymbols(symbols);
+        object type = null;
         var typeparametersVariable = this.handleMarketTypeAndParams("fetchTickers", market, parameters);
         type = ((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
@@ -4131,24 +4115,26 @@ public partial class binance : Exchange
         subType = ((IList<object>)subTypeparametersVariable)[0];
         parameters = ((IList<object>)subTypeparametersVariable)[1];
         object response = null;
-        if (isTrue(isEqual(type, "option")))
-        {
-            response = await this.eapiPublicGetTicker(parameters);
-        } else if (isTrue(this.isLinear(type, subType)))
+        if (isTrue(this.isLinear(type, subType)))
         {
             response = await this.fapiPublicGetTicker24hr(parameters);
         } else if (isTrue(this.isInverse(type, subType)))
         {
             response = await this.dapiPublicGetTicker24hr(parameters);
-        } else
+        } else if (isTrue(isEqual(type, "spot")))
         {
             object request = new Dictionary<string, object>() {};
             if (isTrue(!isEqual(symbols, null)))
             {
-                object marketIds = this.marketIds(symbols);
-                ((IDictionary<string,object>)request)["symbols"] = this.json(marketIds);
+                ((IDictionary<string,object>)request)["symbols"] = this.json(this.marketIds(symbols));
             }
             response = await this.publicGetTicker24hr(this.extend(request, parameters));
+        } else if (isTrue(isEqual(type, "option")))
+        {
+            response = await this.eapiPublicGetTicker(parameters);
+        } else
+        {
+            throw new NotSupported ((string)add(add(add(this.id, " fetchTickers() does not support "), type), " markets yet")) ;
         }
         return this.parseTickers(response, symbols);
     }
@@ -4850,7 +4836,7 @@ public partial class binance : Exchange
         //         }
         //     }
         //
-        object data = this.safeValue(response, "newOrderResponse");
+        object data = this.safeDict(response, "newOrderResponse");
         return this.parseOrder(data, market);
     }
 
@@ -13102,7 +13088,7 @@ public partial class binance : Exchange
         {
             throw new BadRequest ((string)add(this.id, " fetchMarginModes () supports linear and inverse subTypes only")) ;
         }
-        object assets = this.safeValue(response, "positions", new List<object>() {});
+        object assets = this.safeList(response, "positions", new List<object>() {});
         return this.parseMarginModes(assets, symbols, "symbol", "swap");
     }
 
@@ -13115,6 +13101,99 @@ public partial class binance : Exchange
             { "info", marginMode },
             { "symbol", getValue(market, "symbol") },
             { "marginMode", ((bool) isTrue(isIsolated)) ? "isolated" : "cross" },
+        };
+    }
+
+    public async override Task<object> fetchOption(object symbol, object parameters = null)
+    {
+        /**
+        * @method
+        * @name binance#fetchOption
+        * @description fetches option data that is commonly found in an option chain
+        * @see https://binance-docs.github.io/apidocs/voptions/en/#24hr-ticker-price-change-statistics
+        * @param {string} symbol unified market symbol
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} an [option chain structure]{@link https://docs.ccxt.com/#/?id=option-chain-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        object request = new Dictionary<string, object>() {
+            { "symbol", getValue(market, "id") },
+        };
+        object response = await this.eapiPublicGetTicker(this.extend(request, parameters));
+        //
+        //     [
+        //         {
+        //             "symbol": "BTC-241227-80000-C",
+        //             "priceChange": "0",
+        //             "priceChangePercent": "0",
+        //             "lastPrice": "2750",
+        //             "lastQty": "0",
+        //             "open": "2750",
+        //             "high": "2750",
+        //             "low": "2750",
+        //             "volume": "0",
+        //             "amount": "0",
+        //             "bidPrice": "4880",
+        //             "askPrice": "0",
+        //             "openTime": 0,
+        //             "closeTime": 0,
+        //             "firstTradeId": 0,
+        //             "tradeCount": 0,
+        //             "strikePrice": "80000",
+        //             "exercisePrice": "63944.09893617"
+        //         }
+        //     ]
+        //
+        object chain = this.safeDict(response, 0, new Dictionary<string, object>() {});
+        return this.parseOption(chain, null, market);
+    }
+
+    public override object parseOption(object chain, object currency = null, object market = null)
+    {
+        //
+        //     {
+        //         "symbol": "BTC-241227-80000-C",
+        //         "priceChange": "0",
+        //         "priceChangePercent": "0",
+        //         "lastPrice": "2750",
+        //         "lastQty": "0",
+        //         "open": "2750",
+        //         "high": "2750",
+        //         "low": "2750",
+        //         "volume": "0",
+        //         "amount": "0",
+        //         "bidPrice": "4880",
+        //         "askPrice": "0",
+        //         "openTime": 0,
+        //         "closeTime": 0,
+        //         "firstTradeId": 0,
+        //         "tradeCount": 0,
+        //         "strikePrice": "80000",
+        //         "exercisePrice": "63944.09893617"
+        //     }
+        //
+        object marketId = this.safeString(chain, "symbol");
+        market = this.safeMarket(marketId, market);
+        return new Dictionary<string, object>() {
+            { "info", chain },
+            { "currency", null },
+            { "symbol", getValue(market, "symbol") },
+            { "timestamp", null },
+            { "datetime", null },
+            { "impliedVolatility", null },
+            { "openInterest", null },
+            { "bidPrice", this.safeNumber(chain, "bidPrice") },
+            { "askPrice", this.safeNumber(chain, "askPrice") },
+            { "midPrice", null },
+            { "markPrice", null },
+            { "lastPrice", this.safeNumber(chain, "lastPrice") },
+            { "underlyingPrice", this.safeNumber(chain, "exercisePrice") },
+            { "change", this.safeNumber(chain, "priceChange") },
+            { "percentage", this.safeNumber(chain, "priceChangePercent") },
+            { "baseVolume", this.safeNumber(chain, "volume") },
+            { "quoteVolume", null },
         };
     }
 }

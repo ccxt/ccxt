@@ -379,7 +379,7 @@ class woo extends Exchange {
         return $this->safe_integer($response, 'timestamp');
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): array {
         /**
          * retrieves $data on all markets for woo
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1311,7 +1311,7 @@ class woo extends Exchange {
         //     )
         // }
         //
-        $orders = $this->safe_value($response, 'data', $response);
+        $orders = $this->safe_dict($response, 'data', $response);
         return $this->parse_order($orders, $market);
     }
 

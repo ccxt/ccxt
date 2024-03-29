@@ -176,7 +176,7 @@ class bitstamp(Exchange, ImplicitAPI):
                         'transfer-from-main/': 1,
                         'my_trading_pairs/': 1,
                         'fees/trading/': 1,
-                        'fees/trading/{pair}': 1,
+                        'fees/trading/{market_symbol}': 1,
                         'fees/withdrawal/': 1,
                         'fees/withdrawal/{currency}/': 1,
                         'withdrawal-requests/': 1,
@@ -468,7 +468,7 @@ class bitstamp(Exchange, ImplicitAPI):
             },
         })
 
-    async def fetch_markets(self, params={}):
+    async def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for bitstamp
         :see: https://www.bitstamp.net/api/#tag/Market-info/operation/GetTradingPairsInfo
@@ -1073,7 +1073,7 @@ class bitstamp(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_value(response, 'data', {})
-        ohlc = self.safe_value(data, 'ohlc', [])
+        ohlc = self.safe_list(data, 'ohlc', [])
         return self.parse_ohlcvs(ohlc, market, timeframe, since, limit)
 
     def parse_balance(self, response) -> Balances:
@@ -1120,7 +1120,7 @@ class bitstamp(Exchange, ImplicitAPI):
     async def fetch_trading_fee(self, symbol: str, params={}):
         """
         fetch the trading fees for a market
-        :see: https://www.bitstamp.net/api/#tag/Fees/operation/GetAllTradingFees
+        :see: https://www.bitstamp.net/api/#tag/Fees/operation/GetTradingFeesForCurrency
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `fee structure <https://docs.ccxt.com/#/?id=fee-structure>`
@@ -1128,21 +1128,35 @@ class bitstamp(Exchange, ImplicitAPI):
         await self.load_markets()
         market = self.market(symbol)
         request = {
-            'pair': market['id'],
+            'market_symbol': market['id'],
         }
-        response = await self.privatePostBalancePair(self.extend(request, params))
-        return self.parse_trading_fee(response, market)
+        response = await self.privatePostFeesTrading(self.extend(request, params))
+        #
+        #     [
+        #         {
+        #             "currency_pair": "btcusd",
+        #             "fees":
+        #                 {
+        #                     "maker": "0.15000",
+        #                     "taker": "0.16000"
+        #                 },
+        #             "market": "btcusd"
+        #         }
+        #         ...
+        #     ]
+        #
+        tradingFeesByMarketId = self.index_by(response, 'currency_pair')
+        tradingFee = self.safe_dict(tradingFeesByMarketId, market['id'])
+        return self.parse_trading_fee(tradingFee, market)
 
     def parse_trading_fee(self, fee, market: Market = None):
-        market = self.safe_market(None, market)
-        feeString = self.safe_string(fee, market['id'] + '_fee')
-        dividedFeeString = Precise.string_div(feeString, '100')
-        tradeFee = self.parse_number(dividedFeeString)
+        marketId = self.safe_string(fee, 'market')
+        fees = self.safe_dict(fee, 'fees', {})
         return {
             'info': fee,
-            'symbol': market['symbol'],
-            'maker': tradeFee,
-            'taker': tradeFee,
+            'symbol': self.safe_symbol(marketId, market),
+            'maker': self.safe_number(fees, 'maker'),
+            'taker': self.safe_number(fees, 'taker'),
         }
 
     def parse_trading_fees(self, fees):
@@ -1150,8 +1164,7 @@ class bitstamp(Exchange, ImplicitAPI):
         symbols = self.symbols
         for i in range(0, len(symbols)):
             symbol = symbols[i]
-            market = self.market(symbol)
-            fee = self.parse_trading_fee(fees, market)
+            fee = self.parse_trading_fee(fees[i])
             result[symbol] = fee
         return result
 
@@ -1163,7 +1176,21 @@ class bitstamp(Exchange, ImplicitAPI):
         :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>` indexed by market symbols
         """
         await self.load_markets()
-        response = await self.privatePostBalance(params)
+        response = await self.privatePostFeesTrading(params)
+        #
+        #     [
+        #         {
+        #             "currency_pair": "btcusd",
+        #             "fees":
+        #                 {
+        #                     "maker": "0.15000",
+        #                     "taker": "0.16000"
+        #                 },
+        #             "market": "btcusd"
+        #         }
+        #         ...
+        #     ]
+        #
         return self.parse_trading_fees(response)
 
     async def fetch_transaction_fees(self, codes: List[str] = None, params={}):

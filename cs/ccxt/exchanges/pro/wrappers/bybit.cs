@@ -28,7 +28,7 @@ public partial class bybit
         return new Ticker(res);
     }
     /// <summary>
-    /// n watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+    /// watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
     /// </summary>
     /// <remarks>
     /// See <see href="https://bybit-exchange.github.io/docs/v5/websocket/public/ticker"/>  <br/>

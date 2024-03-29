@@ -6,7 +6,7 @@ import { ArgumentsRequired, ExchangeError, OrderNotFound, AuthenticationError, I
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import type { Dictionary, Int, Order, OrderSide, OrderType, Trade, OrderBook, OHLCV, Balances, Str, Transaction, Ticker, Tickers, Strings, Market, Currency, Num } from './base/types.js';
+import type { Dictionary, Int, Order, OrderSide, OrderType, Trade, OrderBook, OHLCV, Balances, Str, Transaction, Ticker, Tickers, Strings, Market, Currency, Num, MarginModification } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -259,22 +259,24 @@ export default class exmo extends Exchange {
         return margin;
     }
 
-    parseMarginModification (data, market: Market = undefined) {
+    parseMarginModification (data, market: Market = undefined): MarginModification {
         //
         //      {}
         //
         return {
             'info': data,
+            'symbol': this.safeSymbol (undefined, market),
             'type': undefined,
             'amount': undefined,
-            'code': this.safeValue (market, 'quote'),
-            'symbol': this.safeSymbol (undefined, market),
             'total': undefined,
+            'code': this.safeValue (market, 'quote'),
             'status': 'ok',
+            'timestamp': undefined,
+            'datetime': undefined,
         };
     }
 
-    async reduceMargin (symbol: string, amount, params = {}) {
+    async reduceMargin (symbol: string, amount, params = {}): Promise<MarginModification> {
         /**
          * @method
          * @name exmo#reduceMargin
@@ -288,7 +290,7 @@ export default class exmo extends Exchange {
         return await this.modifyMarginHelper (symbol, amount, 'reduce', params);
     }
 
-    async addMargin (symbol: string, amount, params = {}) {
+    async addMargin (symbol: string, amount, params = {}): Promise<MarginModification> {
         /**
          * @method
          * @name exmo#addMargin
@@ -722,7 +724,7 @@ export default class exmo extends Exchange {
         return result;
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name exmo#fetchMarkets
@@ -905,7 +907,7 @@ export default class exmo extends Exchange {
         //         ]
         //     }
         //
-        const candles = this.safeValue (response, 'candles', []);
+        const candles = this.safeList (response, 'candles', []);
         return this.parseOHLCVs (candles, market, timeframe, since, limit);
     }
 
@@ -1034,7 +1036,7 @@ export default class exmo extends Exchange {
             request['limit'] = limit;
         }
         const response = await this.publicGetOrderBook (this.extend (request, params));
-        const result = this.safeValue (response, market['id']);
+        const result = this.safeDict (response, market['id']);
         return this.parseOrderBook (result, market['symbol'], undefined, 'bid', 'ask');
     }
 
@@ -1307,7 +1309,7 @@ export default class exmo extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, market['id'], []);
+        const data = this.safeList (response, market['id'], []);
         return this.parseTrades (data, market, since, limit);
     }
 
@@ -1688,7 +1690,7 @@ export default class exmo extends Exchange {
             //     }
             //
         }
-        const trades = this.safeValue (response, 'trades');
+        const trades = this.safeList (response, 'trades');
         return this.parseTrades (trades, market, since, limit);
     }
 
@@ -2438,7 +2440,7 @@ export default class exmo extends Exchange {
         //         "count": 23
         //     }
         //
-        const items = this.safeValue (response, 'items', []);
+        const items = this.safeList (response, 'items', []);
         return this.parseTransactions (items, currency, since, limit);
     }
 
@@ -2491,7 +2493,7 @@ export default class exmo extends Exchange {
         //     }
         //
         const items = this.safeValue (response, 'items', []);
-        const first = this.safeValue (items, 0, {});
+        const first = this.safeDict (items, 0, {});
         return this.parseTransaction (first, currency);
     }
 
@@ -2544,7 +2546,7 @@ export default class exmo extends Exchange {
         //     }
         //
         const items = this.safeValue (response, 'items', []);
-        const first = this.safeValue (items, 0, {});
+        const first = this.safeDict (items, 0, {});
         return this.parseTransaction (first, currency);
     }
 
@@ -2599,7 +2601,7 @@ export default class exmo extends Exchange {
         //         "count": 23
         //     }
         //
-        const items = this.safeValue (response, 'items', []);
+        const items = this.safeList (response, 'items', []);
         return this.parseTransactions (items, currency, since, limit);
     }
 

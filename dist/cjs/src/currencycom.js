@@ -1934,7 +1934,7 @@ class currencycom extends currencycom$1 {
         //        ]
         //    }
         //
-        const data = this.safeValue(response, 'positions', []);
+        const data = this.safeList(response, 'positions', []);
         return this.parsePositions(data, symbols);
     }
     parsePosition(position, market = undefined) {

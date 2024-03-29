@@ -18,7 +18,7 @@ export default class bitfinex2 extends Exchange {
         url: any;
         info: any;
     }>;
-    fetchMarkets(params?: {}): Promise<any[]>;
+    fetchMarkets(params?: {}): Promise<Market[]>;
     fetchCurrencies(params?: {}): Promise<{}>;
     safeNetwork(networkId: any): string;
     fetchBalance(params?: {}): Promise<Balances>;

@@ -7,7 +7,7 @@ import type { Balances, Currency, FundingHistory, FundingRateHistory, Int, Marke
 export default class coinex extends Exchange {
     describe(): any;
     fetchCurrencies(params?: {}): Promise<{}>;
-    fetchMarkets(params?: {}): Promise<any>;
+    fetchMarkets(params?: {}): Promise<Market[]>;
     fetchSpotMarkets(params: any): Promise<any[]>;
     fetchContractMarkets(params: any): Promise<any[]>;
     parseTicker(ticker: any, market?: Market): Ticker;
@@ -211,7 +211,7 @@ export default class coinex extends Exchange {
     parseLeverage(leverage: any, market?: any): Leverage;
     handleMarginModeAndParams(methodName: any, params?: {}, defaultValue?: any): any[];
     nonce(): number;
-    sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
+    sign(path: any, api?: any[], method?: string, params?: {}, headers?: any, body?: any): {
         url: string;
         method: string;
         body: any;

@@ -138,7 +138,7 @@ class zaif extends Exchange {
         ));
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): array {
         /**
          * @see https://zaif-api-document.readthedocs.io/ja/latest/PublicAPI.html#id12
          * retrieves data on all $markets for zaif
@@ -619,7 +619,7 @@ class zaif extends Exchange {
         //         }
         //     }
         //
-        $returnData = $this->safe_value($result, 'return');
+        $returnData = $this->safe_dict($result, 'return');
         return $this->parse_transaction($returnData, $currency);
     }
 

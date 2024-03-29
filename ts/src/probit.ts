@@ -244,7 +244,7 @@ export default class probit extends Exchange {
         });
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name probit#fetchMarkets
@@ -630,7 +630,7 @@ export default class probit extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         return this.parseTickers (data, symbols);
     }
 
@@ -769,7 +769,7 @@ export default class probit extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         return this.parseTrades (data, market, since, limit);
     }
 
@@ -823,7 +823,7 @@ export default class probit extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         return this.parseTrades (data, market, since, limit);
     }
 
@@ -1011,7 +1011,7 @@ export default class probit extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
@@ -1060,7 +1060,7 @@ export default class probit extends Exchange {
             request['market_id'] = market['id'];
         }
         const response = await this.privateGetOpenOrder (this.extend (request, params));
-        const data = this.safeValue (response, 'data');
+        const data = this.safeList (response, 'data');
         return this.parseOrders (data, market, since, limit);
     }
 
@@ -1094,7 +1094,7 @@ export default class probit extends Exchange {
             request['limit'] = limit;
         }
         const response = await this.privateGetOrderHistory (this.extend (request, params));
-        const data = this.safeValue (response, 'data');
+        const data = this.safeList (response, 'data');
         return this.parseOrders (data, market, since, limit);
     }
 
@@ -1125,7 +1125,7 @@ export default class probit extends Exchange {
         const query = this.omit (params, [ 'clientOrderId', 'client_order_id' ]);
         const response = await this.privateGetOrder (this.extend (request, query));
         const data = this.safeValue (response, 'data', []);
-        const order = this.safeValue (data, 0);
+        const order = this.safeDict (data, 0);
         return this.parseOrder (order, market);
     }
 
@@ -1324,7 +1324,7 @@ export default class probit extends Exchange {
             'order_id': id,
         };
         const response = await this.privatePostCancelOrder (this.extend (request, params));
-        const data = this.safeValue (response, 'data');
+        const data = this.safeDict (response, 'data');
         return this.parseOrder (data);
     }
 
@@ -1421,7 +1421,7 @@ export default class probit extends Exchange {
             request['currency_id'] = codes.join (',');
         }
         const response = await this.privateGetDepositAddress (this.extend (request, params));
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         return this.parseDepositAddresses (data, codes);
     }
 
@@ -1469,7 +1469,7 @@ export default class probit extends Exchange {
             params = this.omit (params, 'network');
         }
         const response = await this.privatePostWithdrawal (this.extend (request, params));
-        const data = this.safeValue (response, 'data');
+        const data = this.safeDict (response, 'data');
         return this.parseTransaction (data, currency);
     }
 
@@ -1722,7 +1722,7 @@ export default class probit extends Exchange {
         //     ]
         //  }
         //
-        const data = this.safeValue (response, 'data');
+        const data = this.safeList (response, 'data');
         return this.parseDepositWithdrawFees (data, codes, 'id');
     }
 

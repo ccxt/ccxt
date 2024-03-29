@@ -15,7 +15,7 @@ export default class wavesexchange extends Exchange {
         cost: number;
     }>;
     getQuotes(): Promise<any>;
-    fetchMarkets(params?: {}): Promise<any[]>;
+    fetchMarkets(params?: {}): Promise<Market[]>;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     parseOrderBookSide(bookSide: any, market?: any, limit?: Int): any[];
     checkRequiredKeys(): void;

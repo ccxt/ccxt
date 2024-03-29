@@ -141,7 +141,7 @@ class btcturk extends Exchange {
         ));
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): array {
         /**
          * retrieves $data on all $markets for btcturk
          * @see https://docs.btcturk.com/public-endpoints/exchange-info
@@ -411,7 +411,7 @@ class btcturk extends Exchange {
          */
         $this->load_markets();
         $response = $this->publicGetTicker ($params);
-        $tickers = $this->safe_value($response, 'data');
+        $tickers = $this->safe_list($response, 'data');
         return $this->parse_tickers($tickers, $symbols);
     }
 
@@ -528,7 +528,7 @@ class btcturk extends Exchange {
         //       )
         //     }
         //
-        $data = $this->safe_value($response, 'data');
+        $data = $this->safe_list($response, 'data');
         return $this->parse_trades($data, $market, $since, $limit);
     }
 
@@ -682,7 +682,7 @@ class btcturk extends Exchange {
             $request['newClientOrderId'] = $this->uuid();
         }
         $response = $this->privatePostOrder (array_merge($request, $params));
-        $data = $this->safe_value($response, 'data');
+        $data = $this->safe_dict($response, 'data');
         return $this->parse_order($data, $market);
     }
 
@@ -721,7 +721,7 @@ class btcturk extends Exchange {
         $response = $this->privateGetOpenOrders (array_merge($request, $params));
         $data = $this->safe_value($response, 'data');
         $bids = $this->safe_value($data, 'bids', array());
-        $asks = $this->safe_value($data, 'asks', array());
+        $asks = $this->safe_list($data, 'asks', array());
         return $this->parse_orders($this->array_concat($bids, $asks), $market, $since, $limit);
     }
 
@@ -768,7 +768,7 @@ class btcturk extends Exchange {
         //     }
         //   )
         // }
-        $data = $this->safe_value($response, 'data');
+        $data = $this->safe_list($response, 'data');
         return $this->parse_orders($data, $market, $since, $limit);
     }
 
@@ -886,7 +886,7 @@ class btcturk extends Exchange {
         //       "code" => "0"
         //     }
         //
-        $data = $this->safe_value($response, 'data');
+        $data = $this->safe_list($response, 'data');
         return $this->parse_trades($data, $market, $since, $limit);
     }
 

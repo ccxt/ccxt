@@ -155,7 +155,7 @@ public partial class bitstamp : Exchange
                         { "transfer-from-main/", 1 },
                         { "my_trading_pairs/", 1 },
                         { "fees/trading/", 1 },
-                        { "fees/trading/{pair}", 1 },
+                        { "fees/trading/{market_symbol}", 1 },
                         { "fees/withdrawal/", 1 },
                         { "fees/withdrawal/{currency}/", 1 },
                         { "withdrawal-requests/", 1 },
@@ -1115,7 +1115,7 @@ public partial class bitstamp : Exchange
         //     }
         //
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object ohlc = this.safeValue(data, "ohlc", new List<object>() {});
+        object ohlc = this.safeList(data, "ohlc", new List<object>() {});
         return this.parseOHLCVs(ohlc, market, timeframe, since, limit);
     }
 
@@ -1177,7 +1177,7 @@ public partial class bitstamp : Exchange
         * @method
         * @name bitstamp#fetchTradingFee
         * @description fetch the trading fees for a market
-        * @see https://www.bitstamp.net/api/#tag/Fees/operation/GetAllTradingFees
+        * @see https://www.bitstamp.net/api/#tag/Fees/operation/GetTradingFeesForCurrency
         * @param {string} symbol unified market symbol
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
@@ -1186,23 +1186,37 @@ public partial class bitstamp : Exchange
         await this.loadMarkets();
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
-            { "pair", getValue(market, "id") },
+            { "market_symbol", getValue(market, "id") },
         };
-        object response = await this.privatePostBalancePair(this.extend(request, parameters));
-        return this.parseTradingFee(response, market);
+        object response = await this.privatePostFeesTrading(this.extend(request, parameters));
+        //
+        //     [
+        //         {
+        //             "currency_pair": "btcusd",
+        //             "fees":
+        //                 {
+        //                     "maker": "0.15000",
+        //                     "taker": "0.16000"
+        //                 },
+        //             "market": "btcusd"
+        //         }
+        //         ...
+        //     ]
+        //
+        object tradingFeesByMarketId = this.indexBy(response, "currency_pair");
+        object tradingFee = this.safeDict(tradingFeesByMarketId, getValue(market, "id"));
+        return this.parseTradingFee(tradingFee, market);
     }
 
     public virtual object parseTradingFee(object fee, object market = null)
     {
-        market = this.safeMarket(null, market);
-        object feeString = this.safeString(fee, add(getValue(market, "id"), "_fee"));
-        object dividedFeeString = Precise.stringDiv(feeString, "100");
-        object tradeFee = this.parseNumber(dividedFeeString);
+        object marketId = this.safeString(fee, "market");
+        object fees = this.safeDict(fee, "fees", new Dictionary<string, object>() {});
         return new Dictionary<string, object>() {
             { "info", fee },
-            { "symbol", getValue(market, "symbol") },
-            { "maker", tradeFee },
-            { "taker", tradeFee },
+            { "symbol", this.safeSymbol(marketId, market) },
+            { "maker", this.safeNumber(fees, "maker") },
+            { "taker", this.safeNumber(fees, "taker") },
         };
     }
 
@@ -1215,8 +1229,7 @@ public partial class bitstamp : Exchange
         for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);
-            object market = this.market(symbol);
-            object fee = this.parseTradingFee(fees, market);
+            object fee = this.parseTradingFee(getValue(fees, i));
             ((IDictionary<string,object>)result)[(string)symbol] = fee;
         }
         return result;
@@ -1234,7 +1247,21 @@ public partial class bitstamp : Exchange
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object response = await this.privatePostBalance(parameters);
+        object response = await this.privatePostFeesTrading(parameters);
+        //
+        //     [
+        //         {
+        //             "currency_pair": "btcusd",
+        //             "fees":
+        //                 {
+        //                     "maker": "0.15000",
+        //                     "taker": "0.16000"
+        //                 },
+        //             "market": "btcusd"
+        //         }
+        //         ...
+        //     ]
+        //
         return this.parseTradingFees(response);
     }
 

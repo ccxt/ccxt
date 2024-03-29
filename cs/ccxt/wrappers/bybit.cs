@@ -46,10 +46,10 @@ public partial class bybit
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> an array of objects representing market data.</returns>
-    public async Task<Dictionary<string, object>> FetchMarkets(Dictionary<string, object> parameters = null)
+    public async Task<List<MarketInterface>> FetchMarkets(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchMarkets(parameters);
-        return ((Dictionary<string, object>)res);
+        return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
     }
     public async Task<List<Dictionary<string, object>>> FetchSpotMarkets(object parameters)
     {
@@ -96,6 +96,12 @@ public partial class bybit
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.subType</term>
+    /// <description>
+    /// string : *contract only* 'linear', 'inverse'
     /// </description>
     /// </item>
     /// </list>
@@ -2222,5 +2228,45 @@ public partial class bybit
         var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchFundingHistory(symbol, since, limit, parameters);
         return ((IList<object>)res).Select(item => new FundingHistory(item)).ToList<FundingHistory>();
+    }
+    /// <summary>
+    /// fetches option data that is commonly found in an option chain
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://bybit-exchange.github.io/docs/v5/market/tickers"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> an [option chain structure]{@link https://docs.ccxt.com/#/?id=option-chain-structure}.</returns>
+    public async Task<Option> FetchOption(string symbol, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchOption(symbol, parameters);
+        return new Option(res);
+    }
+    /// <summary>
+    /// fetches data for an underlying asset that is commonly found in an option chain
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://bybit-exchange.github.io/docs/v5/market/tickers"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a list of [option chain structures]{@link https://docs.ccxt.com/#/?id=option-chain-structure}.</returns>
+    public async Task<OptionChain> FetchOptionChain(string code, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchOptionChain(code, parameters);
+        return new OptionChain(res);
     }
 }

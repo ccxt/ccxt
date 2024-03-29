@@ -385,7 +385,7 @@ class currencycom extends Exchange {
         return $result;
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): array {
         /**
          * retrieves data on all $markets for currencycom
          * @see https://apitradedoc.currency.com/swagger-ui.html#/rest-api/exchangeInfoUsingGET
@@ -1918,7 +1918,7 @@ class currencycom extends Exchange {
         //        )
         //    }
         //
-        $data = $this->safe_value($response, 'positions', array());
+        $data = $this->safe_list($response, 'positions', array());
         return $this->parse_positions($data, $symbols);
     }
 

@@ -8,7 +8,7 @@ export default class latoken extends Exchange {
     describe(): any;
     nonce(): number;
     fetchTime(params?: {}): Promise<number>;
-    fetchMarkets(params?: {}): Promise<any[]>;
+    fetchMarkets(params?: {}): Promise<Market[]>;
     fetchCurrenciesFromCache(params?: {}): Promise<any>;
     fetchCurrencies(params?: {}): Promise<{}>;
     fetchBalance(params?: {}): Promise<Balances>;

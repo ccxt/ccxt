@@ -476,7 +476,7 @@ class indodax extends indodax$1 {
         //         }
         //     }
         //
-        const ticker = this.safeValue(response, 'ticker', {});
+        const ticker = this.safeDict(response, 'ticker', {});
         return this.parseTicker(ticker, market);
     }
     async fetchTickers(symbols = undefined, params = {}) {
@@ -507,7 +507,7 @@ class indodax extends indodax$1 {
         // }
         //
         const response = await this.publicGetApiTickerAll(params);
-        const tickers = this.safeValue(response, 'tickers');
+        const tickers = this.safeList(response, 'tickers');
         return this.parseTickers(tickers, symbols);
     }
     parseTrade(trade, market = undefined) {

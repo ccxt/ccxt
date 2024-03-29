@@ -162,13 +162,15 @@ class idex extends idex$1 {
                 'network': 'MATIC',
             },
             'exceptions': {
-                'INVALID_ORDER_QUANTITY': errors.InvalidOrder,
-                'INSUFFICIENT_FUNDS': errors.InsufficientFunds,
-                'SERVICE_UNAVAILABLE': errors.ExchangeNotAvailable,
-                'EXCEEDED_RATE_LIMIT': errors.DDoSProtection,
-                'INVALID_PARAMETER': errors.BadRequest,
-                'WALLET_NOT_ASSOCIATED': errors.InvalidAddress,
-                'INVALID_WALLET_SIGNATURE': errors.AuthenticationError,
+                'exact': {
+                    'INVALID_ORDER_QUANTITY': errors.InvalidOrder,
+                    'INSUFFICIENT_FUNDS': errors.InsufficientFunds,
+                    'SERVICE_UNAVAILABLE': errors.ExchangeNotAvailable,
+                    'EXCEEDED_RATE_LIMIT': errors.DDoSProtection,
+                    'INVALID_PARAMETER': errors.BadRequest,
+                    'WALLET_NOT_ASSOCIATED': errors.InvalidAddress,
+                    'INVALID_WALLET_SIGNATURE': errors.AuthenticationError,
+                },
             },
             'requiredCredentials': {
                 'walletAddress': true,
@@ -358,7 +360,7 @@ class idex extends idex$1 {
         //   }
         // ]
         const response = await this.publicGetTickers(this.extend(request, params));
-        const ticker = this.safeValue(response, 0);
+        const ticker = this.safeDict(response, 0);
         return this.parseTicker(ticker, market);
     }
     async fetchTickers(symbols = undefined, params = {}) {
@@ -1488,17 +1490,14 @@ class idex extends idex$1 {
         };
         // [ { orderId: "688336f0-ec50-11ea-9842-b332f8a34d0e" } ]
         const response = await this.privateDeleteOrders(this.extend(request, params));
-        const canceledOrder = this.safeValue(response, 0);
+        const canceledOrder = this.safeDict(response, 0);
         return this.parseOrder(canceledOrder, market);
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         const errorCode = this.safeString(response, 'code');
         const message = this.safeString(response, 'message');
-        if (errorCode in this.exceptions) {
-            const Exception = this.exceptions[errorCode];
-            throw new Exception(this.id + ' ' + message);
-        }
         if (errorCode !== undefined) {
+            this.throwExactlyMatchedException(this.exceptions['exact'], errorCode, message);
             throw new errors.ExchangeError(this.id + ' ' + message);
         }
         return undefined;

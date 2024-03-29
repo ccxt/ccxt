@@ -1436,7 +1436,7 @@ public partial class digifinex : Exchange
         //         ]
         //     }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseTrades(data, market, since, limit);
     }
 
@@ -2303,7 +2303,7 @@ public partial class digifinex : Exchange
         //         ]
         //     }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseOrders(data, market, since, limit);
     }
 
@@ -2425,7 +2425,7 @@ public partial class digifinex : Exchange
         //         ]
         //     }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseOrders(data, market, since, limit);
     }
 
@@ -2654,7 +2654,7 @@ public partial class digifinex : Exchange
         //     }
         //
         object responseRequest = ((bool) isTrue((isEqual(marketType, "swap")))) ? "data" : "list";
-        object data = this.safeValue(response, responseRequest, new List<object>() {});
+        object data = this.safeList(response, responseRequest, new List<object>() {});
         return this.parseTrades(data, market, since, limit);
     }
 
@@ -2929,7 +2929,7 @@ public partial class digifinex : Exchange
         //         ]
         //     }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseTransactions(data, currency, since, limit, new Dictionary<string, object>() {
             { "type", type },
         });
@@ -3992,7 +3992,7 @@ public partial class digifinex : Exchange
         //         ]
         //     }
         //
-        object transfers = this.safeValue(response, "data", new List<object>() {});
+        object transfers = this.safeList(response, "data", new List<object>() {});
         return this.parseTransfers(transfers, currency, since, limit);
     }
 
@@ -4272,7 +4272,7 @@ public partial class digifinex : Exchange
         //       "code": 200,
         //   }
         //
-        object data = this.safeValue(response, "data");
+        object data = this.safeList(response, "data");
         return this.parseDepositWithdrawFees(data, codes);
     }
 
@@ -4495,7 +4495,7 @@ public partial class digifinex : Exchange
         //         ]
         //     }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseIncomes(data, market, since, limit);
     }
 

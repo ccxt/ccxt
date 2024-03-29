@@ -173,7 +173,7 @@ class ace(Exchange, ImplicitAPI):
             },
         })
 
-    async def fetch_markets(self, params={}):
+    async def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for ace
         :see: https://github.com/ace-exchange/ace-official-api-docs/blob/master/api_v2.md#oapi-api---market-pair
@@ -395,7 +395,7 @@ class ace(Exchange, ImplicitAPI):
         #         "status": 200
         #     }
         #
-        orderBook = self.safe_value(response, 'attachment')
+        orderBook = self.safe_dict(response, 'attachment')
         return self.parse_order_book(orderBook, market['symbol'], None, 'bids', 'asks')
 
     def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
@@ -602,7 +602,7 @@ class ace(Exchange, ImplicitAPI):
         #         "status": 200
         #     }
         #
-        data = self.safe_value(response, 'attachment')
+        data = self.safe_dict(response, 'attachment')
         return self.parse_order(data, market)
 
     async def cancel_order(self, id: str, symbol: Str = None, params={}):
@@ -664,7 +664,7 @@ class ace(Exchange, ImplicitAPI):
         #         "status": 200
         #     }
         #
-        data = self.safe_value(response, 'attachment')
+        data = self.safe_dict(response, 'attachment')
         return self.parse_order(data, None)
 
     async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
@@ -847,7 +847,7 @@ class ace(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_value(response, 'attachment')
-        trades = self.safe_value(data, 'trades', [])
+        trades = self.safe_list(data, 'trades', [])
         return self.parse_trades(trades, market, since, limit)
 
     async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
@@ -902,7 +902,7 @@ class ace(Exchange, ImplicitAPI):
         #         "status": 200
         #     }
         #
-        trades = self.safe_value(response, 'attachment', [])
+        trades = self.safe_list(response, 'attachment', [])
         return self.parse_trades(trades, market, since, limit)
 
     def parse_balance(self, response) -> Balances:

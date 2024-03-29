@@ -420,6 +420,7 @@ class kucoin extends Exchange {
                     'Order size below the minimum requirement.' => '\\ccxt\\InvalidOrder', // array("code":"400100","msg":"Order size below the minimum requirement.")
                     'The withdrawal amount is below the minimum requirement.' => '\\ccxt\\ExchangeError', // array("code":"400100","msg":"The withdrawal amount is below the minimum requirement.")
                     'Unsuccessful! Exceeded the max. funds out-transfer limit' => '\\ccxt\\InsufficientFunds', // array("code":"200000","msg":"Unsuccessful! Exceeded the max. funds out-transfer limit")
+                    'The amount increment is invalid.' => '\\ccxt\\BadRequest',
                     '400' => '\\ccxt\\BadRequest',
                     '401' => '\\ccxt\\AuthenticationError',
                     '403' => '\\ccxt\\NotSupported',
@@ -974,7 +975,7 @@ class kucoin extends Exchange {
         );
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): array {
         /**
          * retrieves $data on all markets for kucoin
          * @see https://docs.kucoin.com/#get-symbols-list-deprecated
@@ -2134,6 +2135,15 @@ class kucoin extends Exchange {
         return $this->parse_orders($data);
     }
 
+    public function market_order_amount_to_precision(string $symbol, $amount) {
+        $market = $this->market($symbol);
+        $result = $this->decimal_to_precision($amount, TRUNCATE, $market['info']['quoteIncrement'], $this->precisionMode, $this->paddingMode);
+        if ($result === '0') {
+            throw new InvalidOrder($this->id . ' $amount of ' . $market['symbol'] . ' must be greater than minimum $amount precision of ' . $this->number_to_string($market['precision']['amount']));
+        }
+        return $result;
+    }
+
     public function create_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         $market = $this->market($symbol);
         // required param, cannot be used twice
@@ -2154,7 +2164,7 @@ class kucoin extends Exchange {
             if ($quoteAmount !== null) {
                 $params = $this->omit($params, array( 'cost', 'funds' ));
                 // kucoin uses base precision even for quote values
-                $costString = $this->amount_to_precision($symbol, $quoteAmount);
+                $costString = $this->market_order_amount_to_precision($symbol, $quoteAmount);
                 $request['funds'] = $costString;
             } else {
                 $amountString = $this->amount_to_precision($symbol, $amount);
@@ -2449,8 +2459,12 @@ class kucoin extends Exchange {
         //             )
         //         }
         //    }
+        $listData = $this->safe_list($response, 'data');
+        if ($listData !== null) {
+            return $this->parse_orders($listData, $market, $since, $limit);
+        }
         $responseData = $this->safe_dict($response, 'data', array());
-        $orders = $this->safe_value($responseData, 'items', $responseData);
+        $orders = $this->safe_list($responseData, 'items', array());
         return $this->parse_orders($orders, $market, $since, $limit);
     }
 

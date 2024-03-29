@@ -450,7 +450,7 @@ class bitfinex extends bitfinex$1 {
         //        }
         //    }
         //
-        const withdraw = this.safeValue(response, 'withdraw');
+        const withdraw = this.safeList(response, 'withdraw');
         return this.parseDepositWithdrawFees(withdraw, codes);
     }
     parseDepositWithdrawFee(fee, currency = undefined) {

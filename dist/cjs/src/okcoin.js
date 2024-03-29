@@ -972,7 +972,7 @@ class okcoin extends okcoin$1 {
             'instType': 'SPOT',
         };
         const response = await this.publicGetMarketTickers(this.extend(request, params));
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseTickers(data, symbols, params);
     }
     parseTrade(trade, market = undefined) {
@@ -1081,7 +1081,7 @@ class okcoin extends okcoin$1 {
         else {
             response = await this.publicGetMarketHistoryTrades(this.extend(request, params));
         }
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseTrades(data, market, since, limit);
     }
     parseOHLCV(ohlcv, market = undefined) {
@@ -1133,8 +1133,10 @@ class okcoin extends okcoin$1 {
         const request = {
             'instId': market['id'],
             'bar': bar,
-            'limit': limit,
         };
+        if (limit !== undefined) {
+            request['limit'] = limit; // default 100, max 100
+        }
         let method = undefined;
         [method, params] = this.handleOptionAndParams(params, 'fetchOHLCV', 'method', 'publicGetMarketCandles');
         let response = undefined;
@@ -1144,7 +1146,7 @@ class okcoin extends okcoin$1 {
         else {
             response = await this.publicGetMarketHistoryCandles(this.extend(request, params));
         }
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseOHLCVs(data, market, timeframe, since, limit);
     }
     parseAccountBalance(response) {
@@ -1665,7 +1667,7 @@ class okcoin extends okcoin$1 {
         const response = await this.privatePostTradeCancelOrder(this.extend(request, query));
         // {"code":"0","data":[{"clOrdId":"","ordId":"317251910906576896","sCode":"0","sMsg":""}],"msg":""}
         const data = this.safeValue(response, 'data', []);
-        const order = this.safeValue(data, 0);
+        const order = this.safeDict(data, 0);
         return this.parseOrder(order, market);
     }
     parseIds(ids) {
@@ -1766,7 +1768,7 @@ class okcoin extends okcoin$1 {
         //     }
         //
         //
-        const ordersData = this.safeValue(response, 'data', []);
+        const ordersData = this.safeList(response, 'data', []);
         return this.parseOrders(ordersData, market, undefined, undefined, params);
     }
     parseOrderStatus(status) {
@@ -2026,7 +2028,7 @@ class okcoin extends okcoin$1 {
             response = await this.privateGetTradeOrder(this.extend(request, query));
         }
         const data = this.safeValue(response, 'data', []);
-        const order = this.safeValue(data, 0);
+        const order = this.safeDict(data, 0);
         return this.parseOrder(order);
     }
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -2074,7 +2076,7 @@ class okcoin extends okcoin$1 {
         else {
             response = await this.privateGetTradeOrdersPending(this.extend(request, params));
         }
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseOrders(data, market, since, limit);
     }
     async fetchClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -2163,7 +2165,7 @@ class okcoin extends okcoin$1 {
         //         "msg":""
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseOrders(data, market, since, limit);
     }
     parseDepositAddress(depositAddress, currency = undefined) {
@@ -2379,7 +2381,7 @@ class okcoin extends okcoin$1 {
         //     }
         //
         const data = this.safeValue(response, 'data', []);
-        const rawTransfer = this.safeValue(data, 0, {});
+        const rawTransfer = this.safeDict(data, 0, {});
         return this.parseTransfer(rawTransfer, currency);
     }
     parseTransfer(transfer, currency = undefined) {
@@ -2522,7 +2524,7 @@ class okcoin extends okcoin$1 {
         //     }
         //
         const data = this.safeValue(response, 'data', []);
-        const transaction = this.safeValue(data, 0);
+        const transaction = this.safeDict(data, 0);
         return this.parseTransaction(transaction, currency);
     }
     async fetchDeposits(code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -2596,7 +2598,7 @@ class okcoin extends okcoin$1 {
         //         ]
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseTransactions(data, currency, since, limit, params);
     }
     async fetchWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -2662,7 +2664,7 @@ class okcoin extends okcoin$1 {
         //         ]
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseTransactions(data, currency, since, limit, params);
     }
     parseTransactionStatus(status) {
@@ -2833,7 +2835,7 @@ class okcoin extends okcoin$1 {
         else {
             response = await this.privateGetTradeFills(this.extend(request, params));
         }
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseTrades(data, market, since, limit);
     }
     async fetchOrderTrades(id, symbol = undefined, since = undefined, limit = undefined, params = {}) {

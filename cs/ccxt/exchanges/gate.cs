@@ -126,6 +126,8 @@ public partial class gate : Exchange
                 { "fetchOpenInterest", false },
                 { "fetchOpenInterestHistory", true },
                 { "fetchOpenOrders", true },
+                { "fetchOption", true },
+                { "fetchOptionChain", true },
                 { "fetchOrder", true },
                 { "fetchOrderBook", true },
                 { "fetchPosition", true },
@@ -785,16 +787,6 @@ public partial class gate : Exchange
     {
         base.setSandboxMode(enable);
         ((IDictionary<string,object>)this.options)["sandboxMode"] = enable;
-    }
-
-    public virtual object convertExpireDate(object date)
-    {
-        // parse YYMMDD to timestamp
-        object year = slice(date, 0, 2);
-        object month = slice(date, 2, 4);
-        object day = slice(date, 4, 6);
-        object reconstructedDate = add(add(add(add(add(add("20", year), "-"), month), "-"), day), "T00:00:00Z");
-        return reconstructedDate;
     }
 
     public override object createExpiredOptionMarket(object symbol)
@@ -4495,8 +4487,19 @@ public partial class gate : Exchange
         };
         if (isTrue(!isEqual(amount, null)))
         {
-            object amountKey = ((bool) isTrue((getValue(market, "spot")))) ? "amount" : "size";
-            ((IDictionary<string,object>)request)[(string)amountKey] = this.amountToPrecision(symbol, amount);
+            if (isTrue(getValue(market, "spot")))
+            {
+                ((IDictionary<string,object>)request)["amount"] = this.amountToPrecision(symbol, amount);
+            } else
+            {
+                if (isTrue(isEqual(side, "sell")))
+                {
+                    ((IDictionary<string,object>)request)["size"] = Precise.stringNeg(this.amountToPrecision(symbol, amount));
+                } else
+                {
+                    ((IDictionary<string,object>)request)["size"] = this.amountToPrecision(symbol, amount);
+                }
+            }
         }
         if (isTrue(!isEqual(price, null)))
         {
@@ -5362,8 +5365,8 @@ public partial class gate : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = ((bool) isTrue((isEqual(symbol, null)))) ? null : this.market(symbol);
-        object stop = this.safeValue(parameters, "stop");
-        parameters = this.omit(parameters, "stop");
+        object stop = this.safeBool2(parameters, "stop", "trigger");
+        parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
         var typequeryVariable = this.handleMarketTypeAndParams("cancelAllOrders", market, parameters);
         var type = ((IList<object>) typequeryVariable)[0];
         var query = ((IList<object>) typequeryVariable)[1];
@@ -5723,7 +5726,7 @@ public partial class gate : Exchange
             { "unrealizedPnl", this.parseNumber(unrealisedPnl) },
             { "realizedPnl", this.safeNumber(position, "realised_pnl") },
             { "contracts", this.parseNumber(Precise.stringAbs(size)) },
-            { "contractSize", this.safeValue(market, "contractSize") },
+            { "contractSize", this.safeNumber(market, "contractSize") },
             { "marginRatio", null },
             { "liquidationPrice", this.safeNumber(position, "liq_price") },
             { "markPrice", this.safeNumber(position, "mark_price") },
@@ -7665,6 +7668,198 @@ public partial class gate : Exchange
             { "marginMode", null },
             { "longLeverage", leverageValue },
             { "shortLeverage", leverageValue },
+        };
+    }
+
+    public async override Task<object> fetchOption(object symbol, object parameters = null)
+    {
+        /**
+        * @method
+        * @name gate#fetchOption
+        * @description fetches option data that is commonly found in an option chain
+        * @see https://www.gate.io/docs/developers/apiv4/en/#query-specified-contract-detail
+        * @param {string} symbol unified market symbol
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} an [option chain structure]{@link https://docs.ccxt.com/#/?id=option-chain-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        object request = new Dictionary<string, object>() {
+            { "contract", getValue(market, "id") },
+        };
+        object response = await this.publicOptionsGetContractsContract(this.extend(request, parameters));
+        //
+        //     {
+        //         "is_active": true,
+        //         "mark_price_round": "0.01",
+        //         "settle_fee_rate": "0.00015",
+        //         "bid1_size": 30,
+        //         "taker_fee_rate": "0.0003",
+        //         "price_limit_fee_rate": "0.1",
+        //         "order_price_round": "0.1",
+        //         "tag": "month",
+        //         "ref_rebate_rate": "0",
+        //         "name": "ETH_USDT-20240628-4500-C",
+        //         "strike_price": "4500",
+        //         "ask1_price": "280.5",
+        //         "ref_discount_rate": "0",
+        //         "order_price_deviate": "0.2",
+        //         "ask1_size": -19,
+        //         "mark_price_down": "155.45",
+        //         "orderbook_id": 11724695,
+        //         "is_call": true,
+        //         "last_price": "188.7",
+        //         "mark_price": "274.26",
+        //         "underlying": "ETH_USDT",
+        //         "create_time": 1688024882,
+        //         "settle_limit_fee_rate": "0.1",
+        //         "orders_limit": 10,
+        //         "mark_price_up": "403.83",
+        //         "position_size": 80,
+        //         "order_size_max": 10000,
+        //         "position_limit": 100000,
+        //         "multiplier": "0.01",
+        //         "order_size_min": 1,
+        //         "trade_size": 229,
+        //         "underlying_price": "3326.6",
+        //         "maker_fee_rate": "0.0003",
+        //         "expiration_time": 1719561600,
+        //         "trade_id": 15,
+        //         "bid1_price": "269.3"
+        //     }
+        //
+        return this.parseOption(response, null, market);
+    }
+
+    public async override Task<object> fetchOptionChain(object code, object parameters = null)
+    {
+        /**
+        * @method
+        * @name gate#fetchOptionChain
+        * @description fetches data for an underlying asset that is commonly found in an option chain
+        * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-the-contracts-with-specified-underlying-and-expiration-time
+        * @param {string} currency base currency to fetch an option chain for
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string} [params.underlying] the underlying asset, can be obtained from fetchUnderlyingAssets ()
+        * @param {int} [params.expiration] unix timestamp of the expiration time
+        * @returns {object} a list of [option chain structures]{@link https://docs.ccxt.com/#/?id=option-chain-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object currency = this.currency(code);
+        object request = new Dictionary<string, object>() {
+            { "underlying", add(getValue(currency, "code"), "_USDT") },
+        };
+        object response = await this.publicOptionsGetContracts(this.extend(request, parameters));
+        //
+        //     [
+        //         {
+        //             "is_active": true,
+        //             "mark_price_round": "0.1",
+        //             "settle_fee_rate": "0.00015",
+        //             "bid1_size": 434,
+        //             "taker_fee_rate": "0.0003",
+        //             "price_limit_fee_rate": "0.1",
+        //             "order_price_round": "1",
+        //             "tag": "day",
+        //             "ref_rebate_rate": "0",
+        //             "name": "BTC_USDT-20240324-63500-P",
+        //             "strike_price": "63500",
+        //             "ask1_price": "387",
+        //             "ref_discount_rate": "0",
+        //             "order_price_deviate": "0.15",
+        //             "ask1_size": -454,
+        //             "mark_price_down": "124.3",
+        //             "orderbook_id": 29600,
+        //             "is_call": false,
+        //             "last_price": "0",
+        //             "mark_price": "366.6",
+        //             "underlying": "BTC_USDT",
+        //             "create_time": 1711118829,
+        //             "settle_limit_fee_rate": "0.1",
+        //             "orders_limit": 10,
+        //             "mark_price_up": "630",
+        //             "position_size": 0,
+        //             "order_size_max": 10000,
+        //             "position_limit": 10000,
+        //             "multiplier": "0.01",
+        //             "order_size_min": 1,
+        //             "trade_size": 0,
+        //             "underlying_price": "64084.65",
+        //             "maker_fee_rate": "0.0003",
+        //             "expiration_time": 1711267200,
+        //             "trade_id": 0,
+        //             "bid1_price": "307"
+        //         },
+        //     ]
+        //
+        return this.parseOptionChain(response, null, "name");
+    }
+
+    public override object parseOption(object chain, object currency = null, object market = null)
+    {
+        //
+        //     {
+        //         "is_active": true,
+        //         "mark_price_round": "0.1",
+        //         "settle_fee_rate": "0.00015",
+        //         "bid1_size": 434,
+        //         "taker_fee_rate": "0.0003",
+        //         "price_limit_fee_rate": "0.1",
+        //         "order_price_round": "1",
+        //         "tag": "day",
+        //         "ref_rebate_rate": "0",
+        //         "name": "BTC_USDT-20240324-63500-P",
+        //         "strike_price": "63500",
+        //         "ask1_price": "387",
+        //         "ref_discount_rate": "0",
+        //         "order_price_deviate": "0.15",
+        //         "ask1_size": -454,
+        //         "mark_price_down": "124.3",
+        //         "orderbook_id": 29600,
+        //         "is_call": false,
+        //         "last_price": "0",
+        //         "mark_price": "366.6",
+        //         "underlying": "BTC_USDT",
+        //         "create_time": 1711118829,
+        //         "settle_limit_fee_rate": "0.1",
+        //         "orders_limit": 10,
+        //         "mark_price_up": "630",
+        //         "position_size": 0,
+        //         "order_size_max": 10000,
+        //         "position_limit": 10000,
+        //         "multiplier": "0.01",
+        //         "order_size_min": 1,
+        //         "trade_size": 0,
+        //         "underlying_price": "64084.65",
+        //         "maker_fee_rate": "0.0003",
+        //         "expiration_time": 1711267200,
+        //         "trade_id": 0,
+        //         "bid1_price": "307"
+        //     }
+        //
+        object marketId = this.safeString(chain, "name");
+        market = this.safeMarket(marketId, market);
+        object timestamp = this.safeTimestamp(chain, "create_time");
+        return new Dictionary<string, object>() {
+            { "info", chain },
+            { "currency", null },
+            { "symbol", getValue(market, "symbol") },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
+            { "impliedVolatility", null },
+            { "openInterest", null },
+            { "bidPrice", this.safeNumber(chain, "bid1_price") },
+            { "askPrice", this.safeNumber(chain, "ask1_price") },
+            { "midPrice", null },
+            { "markPrice", this.safeNumber(chain, "mark_price") },
+            { "lastPrice", this.safeNumber(chain, "last_price") },
+            { "underlyingPrice", this.safeNumber(chain, "underlying_price") },
+            { "change", null },
+            { "percentage", null },
+            { "baseVolume", null },
+            { "quoteVolume", null },
         };
     }
 

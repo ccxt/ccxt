@@ -91,6 +91,8 @@ class okx extends Exchange {
                 'fetchOpenInterestHistory' => true,
                 'fetchOpenOrder' => null,
                 'fetchOpenOrders' => true,
+                'fetchOption' => true,
+                'fetchOptionChain' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrderBooks' => false,
@@ -1116,15 +1118,6 @@ class okx extends Exchange {
         return $this->safe_string($exchangeTypes, $type, $type);
     }
 
-    public function convert_expire_date($date) {
-        // parse YYMMDD to timestamp
-        $year = mb_substr($date, 0, 2 - 0);
-        $month = mb_substr($date, 2, 4 - 2);
-        $day = mb_substr($date, 4, 6 - 4);
-        $reconstructedDate = '20' . $year . '-' . $month . '-' . $day . 'T00:00:00Z';
-        return $reconstructedDate;
-    }
-
     public function create_expired_option_market(string $symbol) {
         // support expired option contracts
         $quote = 'USD';
@@ -1318,7 +1311,7 @@ class okx extends Exchange {
         return $result;
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): array {
         /**
          * retrieves data on all markets for okx
          * @see https://www.okx.com/docs-v5/en/#rest-api-public-data-get-instruments
@@ -1845,20 +1838,31 @@ class okx extends Exchange {
         //     }
         //
         $data = $this->safe_value($response, 'data', array());
-        $first = $this->safe_value($data, 0, array());
+        $first = $this->safe_dict($data, 0, array());
         return $this->parse_ticker($first, $market);
     }
 
-    public function fetch_tickers_by_type($type, ?array $symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()): array {
+        /**
+         * fetches price $tickers for multiple markets, statistical information calculated over the past 24 hours for each $market
+         * @see https://www.okx.com/docs-v5/en/#order-book-trading-$market-data-get-$tickers
+         * @param {string[]} [$symbols] unified $symbols of the markets to fetch the ticker for, all $market $tickers are returned if not assigned
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
+         */
         $this->load_markets();
+        $symbols = $this->market_symbols($symbols);
+        $market = $this->get_market_from_symbols($symbols);
+        $marketType = null;
+        list($marketType, $params) = $this->handle_market_type_and_params('fetchTickers', $market, $params);
         $request = array(
-            'instType' => $this->convert_to_instrument_type($type),
+            'instType' => $this->convert_to_instrument_type($marketType),
         );
-        if ($type === 'option') {
+        if ($marketType === 'option') {
             $defaultUnderlying = $this->safe_value($this->options, 'defaultUnderlying', 'BTC-USD');
             $currencyId = $this->safe_string_2($params, 'uly', 'marketId', $defaultUnderlying);
             if ($currencyId === null) {
-                throw new ArgumentsRequired($this->id . ' fetchTickersByType() requires an underlying uly or marketId parameter for options markets');
+                throw new ArgumentsRequired($this->id . ' fetchTickers() requires an underlying uly or marketId parameter for options markets');
             } else {
                 $request['uly'] = $currencyId;
             }
@@ -1890,27 +1894,8 @@ class okx extends Exchange {
         //         )
         //     }
         //
-        $tickers = $this->safe_value($response, 'data', array());
+        $tickers = $this->safe_list($response, 'data', array());
         return $this->parse_tickers($tickers, $symbols);
-    }
-
-    public function fetch_tickers(?array $symbols = null, $params = array ()): array {
-        /**
-         * fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each $market
-         * @see https://www.okx.com/docs-v5/en/#order-book-trading-$market-data-get-tickers
-         * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all $market tickers are returned if not assigned
-         * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
-         */
-        $this->load_markets();
-        $symbols = $this->market_symbols($symbols);
-        $first = $this->safe_string($symbols, 0);
-        $market = null;
-        if ($first !== null) {
-            $market = $this->market($first);
-        }
-        list($type, $query) = $this->handle_market_type_and_params('fetchTickers', $market, $params);
-        return $this->fetch_tickers_by_type($type, $symbols, $query);
     }
 
     public function parse_trade($trade, ?array $market = null): array {
@@ -2077,7 +2062,7 @@ class okx extends Exchange {
         //         "msg" => ""
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_list($response, 'data', array());
         return $this->parse_trades($data, $market, $since, $limit);
     }
 
@@ -2205,7 +2190,7 @@ class okx extends Exchange {
         //         ]
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_list($response, 'data', array());
         return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
     }
 
@@ -2911,7 +2896,7 @@ class okx extends Exchange {
         //     "msg" => "",
         //     "outTime" => "1697979038586493"
         // }
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_list($response, 'data', array());
         return $this->parse_orders($data);
     }
 
@@ -3113,7 +3098,7 @@ class okx extends Exchange {
         $response = $this->privatePostTradeCancelOrder (array_merge($request, $query));
         // array("code":"0","data":[array("clOrdId":"","ordId":"317251910906576896","sCode":"0","sMsg":"")],"msg":"")
         $data = $this->safe_value($response, 'data', array());
-        $order = $this->safe_value($data, 0);
+        $order = $this->safe_dict($data, 0);
         return $this->parse_order($order, $market);
     }
 
@@ -3225,7 +3210,7 @@ class okx extends Exchange {
         //         "msg" => ""
         //     }
         //
-        $ordersData = $this->safe_value($response, 'data', array());
+        $ordersData = $this->safe_list($response, 'data', array());
         return $this->parse_orders($ordersData, $market, null, null, $params);
     }
 
@@ -3593,7 +3578,7 @@ class okx extends Exchange {
         //     }
         //
         $data = $this->safe_value($response, 'data', array());
-        $order = $this->safe_value($data, 0);
+        $order = $this->safe_dict($data, 0);
         return $this->parse_order($order, $market);
     }
 
@@ -3754,7 +3739,7 @@ class okx extends Exchange {
         //         "msg" => ""
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_list($response, 'data', array());
         return $this->parse_orders($data, $market, $since, $limit);
     }
 
@@ -3937,7 +3922,7 @@ class okx extends Exchange {
         //         "msg" => ""
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_list($response, 'data', array());
         return $this->parse_orders($data, $market, $since, $limit);
     }
 
@@ -4121,7 +4106,7 @@ class okx extends Exchange {
         //         "msg" => ""
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_list($response, 'data', array());
         return $this->parse_orders($data, $market, $since, $limit);
     }
 
@@ -4192,7 +4177,7 @@ class okx extends Exchange {
         //         "msg" => ""
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_list($response, 'data', array());
         return $this->parse_trades($data, $market, $since, $limit, $query);
     }
 
@@ -4655,21 +4640,7 @@ class okx extends Exchange {
             }
         }
         $request['fee'] = $this->number_to_string($fee); // withdrawals to OKCoin or OKX are $fee-free, please set 0
-        if (is_array($params) && array_key_exists('password', $params)) {
-            $request['pwd'] = $params['password'];
-        } elseif (is_array($params) && array_key_exists('pwd', $params)) {
-            $request['pwd'] = $params['pwd'];
-        } else {
-            $options = $this->safe_value($this->options, 'withdraw', array());
-            $password = $this->safe_string_2($options, 'password', 'pwd');
-            if ($password !== null) {
-                $request['pwd'] = $password;
-            }
-        }
-        $query = $this->omit($params, array( 'fee', 'password', 'pwd' ));
-        if (!(is_array($request) && array_key_exists('pwd', $request))) {
-            throw new ExchangeError($this->id . ' withdraw() requires a $password parameter or a pwd parameter, it must be the funding $password, not the API passphrase');
-        }
+        $query = $this->omit($params, array( 'fee' ));
         $response = $this->privatePostAssetWithdrawal (array_merge($request, $query));
         //
         //     {
@@ -4685,7 +4656,7 @@ class okx extends Exchange {
         //     }
         //
         $data = $this->safe_value($response, 'data', array());
-        $transaction = $this->safe_value($data, 0);
+        $transaction = $this->safe_dict($data, 0);
         return $this->parse_transaction($transaction, $currency);
     }
 
@@ -4765,7 +4736,7 @@ class okx extends Exchange {
         //         )
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_list($response, 'data', array());
         return $this->parse_transactions($data, $currency, $since, $limit, $params);
     }
 
@@ -4789,7 +4760,7 @@ class okx extends Exchange {
         }
         $response = $this->privateGetAssetDepositHistory (array_merge($request, $params));
         $data = $this->safe_value($response, 'data');
-        $deposit = $this->safe_value($data, 0, array());
+        $deposit = $this->safe_dict($data, 0, array());
         return $this->parse_transaction($deposit, $currency);
     }
 
@@ -4861,7 +4832,7 @@ class okx extends Exchange {
         //         )
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_list($response, 'data', array());
         return $this->parse_transactions($data, $currency, $since, $limit, $params);
     }
 
@@ -4906,7 +4877,7 @@ class okx extends Exchange {
         //    }
         //
         $data = $this->safe_value($response, 'data');
-        $withdrawal = $this->safe_value($data, 0, array());
+        $withdrawal = $this->safe_dict($data, 0, array());
         return $this->parse_transaction($withdrawal);
     }
 
@@ -5523,7 +5494,7 @@ class okx extends Exchange {
         //     }
         //
         $data = $this->safe_value($response, 'data', array());
-        $rawTransfer = $this->safe_value($data, 0, array());
+        $rawTransfer = $this->safe_dict($data, 0, array());
         return $this->parse_transfer($rawTransfer, $currency);
     }
 
@@ -5640,7 +5611,7 @@ class okx extends Exchange {
         //     }
         //
         $data = $this->safe_value($response, 'data', array());
-        $transfer = $this->safe_value($data, 0);
+        $transfer = $this->safe_dict($data, 0);
         return $this->parse_transfer($transfer);
     }
 
@@ -5702,7 +5673,7 @@ class okx extends Exchange {
         //        "msg" => ""
         //    }
         //
-        $transfers = $this->safe_value($response, 'data', array());
+        $transfers = $this->safe_list($response, 'data', array());
         return $this->parse_transfers($transfers, $currency, $since, $limit, $params);
     }
 
@@ -6750,7 +6721,7 @@ class okx extends Exchange {
         //         "msg" => ""
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_list($response, 'data', array());
         return $this->parse_open_interest($data[0], $market);
     }
 
@@ -6818,7 +6789,7 @@ class okx extends Exchange {
         //        "msg" => ''
         //    }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_list($response, 'data', array());
         return $this->parse_open_interests($data, null, $since, $limit);
     }
 
@@ -6939,7 +6910,7 @@ class okx extends Exchange {
         //        "msg" => ""
         //    }
         //
-        $data = $this->safe_value($response, 'data');
+        $data = $this->safe_list($response, 'data');
         return $this->parse_deposit_withdraw_fees($data, $codes);
     }
 
@@ -7313,8 +7284,144 @@ class okx extends Exchange {
         //    }
         //
         $data = $this->safe_value($response, 'data');
-        $order = $this->safe_value($data, 0);
+        $order = $this->safe_dict($data, 0);
         return $this->parse_order($order, $market);
+    }
+
+    public function fetch_option(string $symbol, $params = array ()): Option {
+        /**
+         * fetches option data that is commonly found in an option $chain
+         * @see https://www.okx.com/docs-v5/en/#order-book-trading-$market-data-get-ticker
+         * @param {string} $symbol unified $market $symbol
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/#/?id=option-$chain-structure option $chain structure~
+         */
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'instId' => $market['id'],
+        );
+        $response = $this->publicGetMarketTicker (array_merge($request, $params));
+        //
+        //     {
+        //         "code" => "0",
+        //         "msg" => "",
+        //         "data" => array(
+        //             {
+        //                 "instType" => "OPTION",
+        //                 "instId" => "BTC-USD-241227-60000-P",
+        //                 "last" => "",
+        //                 "lastSz" => "0",
+        //                 "askPx" => "",
+        //                 "askSz" => "0",
+        //                 "bidPx" => "",
+        //                 "bidSz" => "0",
+        //                 "open24h" => "",
+        //                 "high24h" => "",
+        //                 "low24h" => "",
+        //                 "volCcy24h" => "0",
+        //                 "vol24h" => "0",
+        //                 "ts" => "1711176035035",
+        //                 "sodUtc0" => "",
+        //                 "sodUtc8" => ""
+        //             }
+        //         )
+        //     }
+        //
+        $result = $this->safe_list($response, 'data', array());
+        $chain = $this->safe_dict($result, 0, array());
+        return $this->parse_option($chain, null, $market);
+    }
+
+    public function fetch_option_chain(string $code, $params = array ()): OptionChain {
+        /**
+         * fetches data for an underlying asset that is commonly found in an option chain
+         * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-get-tickers
+         * @param {string} $currency base $currency to fetch an option chain for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->uly] the underlying asset, can be obtained from fetchUnderlyingAssets ()
+         * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=option-chain-structure option chain structures~
+         */
+        $this->load_markets();
+        $currency = $this->currency($code);
+        $request = array(
+            'uly' => $currency['code'] . '-USD',
+            'instType' => 'OPTION',
+        );
+        $response = $this->publicGetMarketTickers (array_merge($request, $params));
+        //
+        //     {
+        //         "code" => "0",
+        //         "msg" => "",
+        //         "data" => array(
+        //             array(
+        //                 "instType" => "OPTION",
+        //                 "instId" => "BTC-USD-240323-52000-C",
+        //                 "last" => "",
+        //                 "lastSz" => "0",
+        //                 "askPx" => "",
+        //                 "askSz" => "0",
+        //                 "bidPx" => "",
+        //                 "bidSz" => "0",
+        //                 "open24h" => "",
+        //                 "high24h" => "",
+        //                 "low24h" => "",
+        //                 "volCcy24h" => "0",
+        //                 "vol24h" => "0",
+        //                 "ts" => "1711176207008",
+        //                 "sodUtc0" => "",
+        //                 "sodUtc8" => ""
+        //             ),
+        //         )
+        //     }
+        //
+        $result = $this->safe_list($response, 'data', array());
+        return $this->parse_option_chain($result, null, 'instId');
+    }
+
+    public function parse_option($chain, ?array $currency = null, ?array $market = null) {
+        //
+        //     {
+        //         "instType" => "OPTION",
+        //         "instId" => "BTC-USD-241227-60000-P",
+        //         "last" => "",
+        //         "lastSz" => "0",
+        //         "askPx" => "",
+        //         "askSz" => "0",
+        //         "bidPx" => "",
+        //         "bidSz" => "0",
+        //         "open24h" => "",
+        //         "high24h" => "",
+        //         "low24h" => "",
+        //         "volCcy24h" => "0",
+        //         "vol24h" => "0",
+        //         "ts" => "1711176035035",
+        //         "sodUtc0" => "",
+        //         "sodUtc8" => ""
+        //     }
+        //
+        $marketId = $this->safe_string($chain, 'instId');
+        $market = $this->safe_market($marketId, $market);
+        $timestamp = $this->safe_integer($chain, 'ts');
+        return array(
+            'info' => $chain,
+            'currency' => null,
+            'symbol' => $market['symbol'],
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'impliedVolatility' => null,
+            'openInterest' => null,
+            'bidPrice' => $this->safe_number($chain, 'bidPx'),
+            'askPrice' => $this->safe_number($chain, 'askPx'),
+            'midPrice' => null,
+            'markPrice' => null,
+            'lastPrice' => $this->safe_number($chain, 'last'),
+            'underlyingPrice' => null,
+            'change' => null,
+            'percentage' => null,
+            'baseVolume' => $this->safe_number($chain, 'volCcy24h'),
+            'quoteVolume' => null,
+        );
     }
 
     public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {

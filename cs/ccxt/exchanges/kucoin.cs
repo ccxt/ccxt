@@ -384,6 +384,7 @@ public partial class kucoin : Exchange
                     { "Order size below the minimum requirement.", typeof(InvalidOrder) },
                     { "The withdrawal amount is below the minimum requirement.", typeof(ExchangeError) },
                     { "Unsuccessful! Exceeded the max. funds out-transfer limit", typeof(InsufficientFunds) },
+                    { "The amount increment is invalid.", typeof(BadRequest) },
                     { "400", typeof(BadRequest) },
                     { "401", typeof(AuthenticationError) },
                     { "403", typeof(NotSupported) },
@@ -2120,6 +2121,17 @@ public partial class kucoin : Exchange
         return this.parseOrders(data);
     }
 
+    public virtual object marketOrderAmountToPrecision(object symbol, object amount)
+    {
+        object market = this.market(symbol);
+        object result = this.decimalToPrecision(amount, TRUNCATE, getValue(getValue(market, "info"), "quoteIncrement"), this.precisionMode, this.paddingMode);
+        if (isTrue(isEqual(result, "0")))
+        {
+            throw new InvalidOrder ((string)add(add(add(add(this.id, " amount of "), getValue(market, "symbol")), " must be greater than minimum amount precision of "), this.numberToString(getValue(getValue(market, "precision"), "amount")))) ;
+        }
+        return result;
+    }
+
     public virtual object createOrderRequest(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
@@ -2146,7 +2158,7 @@ public partial class kucoin : Exchange
             {
                 parameters = this.omit(parameters, new List<object>() {"cost", "funds"});
                 // kucoin uses base precision even for quote values
-                costString = this.amountToPrecision(symbol, quoteAmount);
+                costString = this.marketOrderAmountToPrecision(symbol, quoteAmount);
                 ((IDictionary<string,object>)request)["funds"] = costString;
             } else
             {
@@ -2511,8 +2523,13 @@ public partial class kucoin : Exchange
         //             ]
         //         }
         //    }
+        object listData = this.safeList(response, "data");
+        if (isTrue(!isEqual(listData, null)))
+        {
+            return this.parseOrders(listData, market, since, limit);
+        }
         object responseData = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        object orders = this.safeValue(responseData, "items", responseData);
+        object orders = this.safeList(responseData, "items", new List<object>() {});
         return this.parseOrders(orders, market, since, limit);
     }
 

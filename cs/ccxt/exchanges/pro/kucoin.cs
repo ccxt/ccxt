@@ -983,19 +983,18 @@ public partial class kucoin : ccxt.kucoin
 
     public virtual void handleMyTrade(WebSocketClient client, object message)
     {
-        object trades = this.myTrades;
-        if (isTrue(isEqual(trades, null)))
+        if (isTrue(isEqual(this.myTrades, null)))
         {
             object limit = this.safeInteger(this.options, "tradesLimit", 1000);
-            trades = new ArrayCacheBySymbolById(limit);
+            this.myTrades = new ArrayCacheBySymbolById(limit);
         }
-        object data = this.safeValue(message, "data");
+        object data = this.safeDict(message, "data");
         object parsed = this.parseWsTrade(data);
-        callDynamically(trades, "append", new object[] {parsed});
+        callDynamically(this.myTrades, "append", new object[] {parsed});
         object messageHash = "myTrades";
-        callDynamically(client as WebSocketClient, "resolve", new object[] {trades, messageHash});
+        callDynamically(client as WebSocketClient, "resolve", new object[] {this.myTrades, messageHash});
         object symbolSpecificMessageHash = add(add(messageHash, ":"), getValue(parsed, "symbol"));
-        callDynamically(client as WebSocketClient, "resolve", new object[] {trades, symbolSpecificMessageHash});
+        callDynamically(client as WebSocketClient, "resolve", new object[] {this.myTrades, symbolSpecificMessageHash});
     }
 
     public override object parseWsTrade(object trade, object market = null)

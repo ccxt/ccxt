@@ -465,7 +465,7 @@ class kraken(Exchange, ImplicitAPI):
     def fee_to_precision(self, symbol, fee):
         return self.decimal_to_precision(fee, TRUNCATE, self.markets[symbol]['precision']['amount'], self.precisionMode)
 
-    def fetch_markets(self, params={}):
+    def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for kraken
         :see: https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getTradableAssetPairs
@@ -979,7 +979,7 @@ class kraken(Exchange, ImplicitAPI):
         #         }
         #     }
         result = self.safe_value(response, 'result', {})
-        ohlcvs = self.safe_value(result, market['id'], [])
+        ohlcvs = self.safe_list(result, market['id'], [])
         return self.parse_ohlcvs(ohlcvs, market, timeframe, since, limit)
 
     def parse_ledger_entry_type(self, type):
@@ -1341,7 +1341,7 @@ class kraken(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        result = self.safe_value(response, 'result')
+        result = self.safe_dict(response, 'result')
         return self.parse_order(result)
 
     def find_market_by_altname_or_id(self, id):
@@ -1724,7 +1724,7 @@ class kraken(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        data = self.safe_value(response, 'result', {})
+        data = self.safe_dict(response, 'result', {})
         return self.parse_order(data, market)
 
     def fetch_order(self, id: str, symbol: Str = None, params={}):
@@ -2022,8 +2022,8 @@ class kraken(Exchange, ImplicitAPI):
         market = None
         if symbol is not None:
             market = self.market(symbol)
-        result = self.safe_value(response, 'result', {})
-        orders = self.safe_value(result, 'open', [])
+        result = self.safe_dict(response, 'result', {})
+        orders = self.safe_dict(result, 'open', {})
         return self.parse_orders(orders, market, since, limit)
 
     def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
@@ -2090,8 +2090,8 @@ class kraken(Exchange, ImplicitAPI):
         market = None
         if symbol is not None:
             market = self.market(symbol)
-        result = self.safe_value(response, 'result', {})
-        orders = self.safe_value(result, 'closed', [])
+        result = self.safe_dict(response, 'result', {})
+        orders = self.safe_dict(result, 'closed', {})
         return self.parse_orders(orders, market, since, limit)
 
     def parse_transaction_status(self, status):
@@ -2518,7 +2518,7 @@ class kraken(Exchange, ImplicitAPI):
             #         }
             #     }
             #
-            result = self.safe_value(response, 'result', {})
+            result = self.safe_dict(response, 'result', {})
             return self.parse_transaction(result, currency)
         raise ExchangeError(self.id + " withdraw() requires a 'key' parameter(withdrawal key name, up on your account)")
 

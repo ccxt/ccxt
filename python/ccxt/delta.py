@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.delta import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, Greeks, Int, Leverage, MarginMode, Market, MarketInterface, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Balances, Currency, Greeks, Int, Leverage, MarginMode, Market, MarketInterface, Num, Option, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
@@ -71,6 +71,8 @@ class delta(Exchange, ImplicitAPI):
                 'fetchOHLCV': True,
                 'fetchOpenInterest': True,
                 'fetchOpenOrders': True,
+                'fetchOption': True,
+                'fetchOptionChain': False,
                 'fetchOrderBook': True,
                 'fetchPosition': True,
                 'fetchPositionMode': False,
@@ -251,14 +253,6 @@ class delta(Exchange, ImplicitAPI):
                 },
             },
         })
-
-    def convert_expire_date(self, date):
-        # parse YYMMDD to timestamp
-        year = date[0:2]
-        month = date[2:4]
-        day = date[4:6]
-        reconstructedDate = '20' + year + '-' + month + '-' + day + 'T00:00:00Z'
-        return reconstructedDate
 
     def create_expired_option_market(self, symbol: str):
         # support expired option contracts
@@ -511,7 +505,7 @@ class delta(Exchange, ImplicitAPI):
             result[numericIdString] = item
         return result
 
-    def fetch_markets(self, params={}):
+    def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for delta
         :see: https://docs.delta.exchange/#get-list-of-products
@@ -3190,6 +3184,149 @@ class delta(Exchange, ImplicitAPI):
             'info': marginMode,
             'symbol': symbol,
             'marginMode': self.safe_string(marginMode, 'margin_mode'),
+        }
+
+    def fetch_option(self, symbol: str, params={}) -> Option:
+        """
+        fetches option data that is commonly found in an option chain
+        :see: https://docs.delta.exchange/#get-ticker-for-a-product-by-symbol
+        :param str symbol: unified market symbol
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an `option chain structure <https://docs.ccxt.com/#/?id=option-chain-structure>`
+        """
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+        }
+        response = self.publicGetTickersSymbol(self.extend(request, params))
+        #
+        #     {
+        #         "result": {
+        #             "close": 6793.0,
+        #             "contract_type": "call_options",
+        #             "greeks": {
+        #                 "delta": "0.94739174",
+        #                 "gamma": "0.00002206",
+        #                 "rho": "11.00890725",
+        #                 "spot": "36839.58124652",
+        #                 "theta": "-18.18365310",
+        #                 "vega": "7.85209698"
+        #             },
+        #             "high": 7556.0,
+        #             "low": 6793.0,
+        #             "mark_price": "6955.70698909",
+        #             "mark_vol": "0.66916863",
+        #             "oi": "1.8980",
+        #             "oi_change_usd_6h": "110.4600",
+        #             "oi_contracts": "1898",
+        #             "oi_value": "1.8980",
+        #             "oi_value_symbol": "BTC",
+        #             "oi_value_usd": "69940.7319",
+        #             "open": 7.2e3,
+        #             "price_band": {
+        #                 "lower_limit": "5533.89814767",
+        #                 "upper_limit": "11691.37688371"
+        #             },
+        #             "product_id": 129508,
+        #             "quotes": {
+        #                 "ask_iv": "0.90180438",
+        #                 "ask_size": "1898",
+        #                 "best_ask": "7210",
+        #                 "best_bid": "6913",
+        #                 "bid_iv": "0.60881706",
+        #                 "bid_size": "3163",
+        #                 "impact_mid_price": null,
+        #                 "mark_iv": "0.66973549"
+        #             },
+        #             "size": 5,
+        #             "spot_price": "36839.58153868",
+        #             "strike_price": "30000",
+        #             "symbol": "C-BTC-30000-241123",
+        #             "timestamp": 1699584998504530,
+        #             "turnover": 184.41206804,
+        #             "turnover_symbol": "USDT",
+        #             "turnover_usd": 184.41206804,
+        #             "volume": 0.005
+        #         },
+        #         "success": True
+        #     }
+        #
+        result = self.safe_dict(response, 'result', {})
+        return self.parse_option(result, None, market)
+
+    def parse_option(self, chain, currency: Currency = None, market: Market = None):
+        #
+        #     {
+        #         "close": 6793.0,
+        #         "contract_type": "call_options",
+        #         "greeks": {
+        #             "delta": "0.94739174",
+        #             "gamma": "0.00002206",
+        #             "rho": "11.00890725",
+        #             "spot": "36839.58124652",
+        #             "theta": "-18.18365310",
+        #             "vega": "7.85209698"
+        #         },
+        #         "high": 7556.0,
+        #         "low": 6793.0,
+        #         "mark_price": "6955.70698909",
+        #         "mark_vol": "0.66916863",
+        #         "oi": "1.8980",
+        #         "oi_change_usd_6h": "110.4600",
+        #         "oi_contracts": "1898",
+        #         "oi_value": "1.8980",
+        #         "oi_value_symbol": "BTC",
+        #         "oi_value_usd": "69940.7319",
+        #         "open": 7.2e3,
+        #         "price_band": {
+        #             "lower_limit": "5533.89814767",
+        #             "upper_limit": "11691.37688371"
+        #         },
+        #         "product_id": 129508,
+        #         "quotes": {
+        #             "ask_iv": "0.90180438",
+        #             "ask_size": "1898",
+        #             "best_ask": "7210",
+        #             "best_bid": "6913",
+        #             "bid_iv": "0.60881706",
+        #             "bid_size": "3163",
+        #             "impact_mid_price": null,
+        #             "mark_iv": "0.66973549"
+        #         },
+        #         "size": 5,
+        #         "spot_price": "36839.58153868",
+        #         "strike_price": "30000",
+        #         "symbol": "C-BTC-30000-241123",
+        #         "timestamp": 1699584998504530,
+        #         "turnover": 184.41206804,
+        #         "turnover_symbol": "USDT",
+        #         "turnover_usd": 184.41206804,
+        #         "volume": 0.005
+        #     }
+        #
+        marketId = self.safe_string(chain, 'symbol')
+        market = self.safe_market(marketId, market)
+        quotes = self.safe_dict(chain, 'quotes', {})
+        timestamp = self.safe_integer_product(chain, 'timestamp', 0.001)
+        return {
+            'info': chain,
+            'currency': None,
+            'symbol': market['symbol'],
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'impliedVolatility': self.safe_number(quotes, 'mark_iv'),
+            'openInterest': self.safe_number(chain, 'oi'),
+            'bidPrice': self.safe_number(quotes, 'best_bid'),
+            'askPrice': self.safe_number(quotes, 'best_ask'),
+            'midPrice': self.safe_number(quotes, 'impact_mid_price'),
+            'markPrice': self.safe_number(chain, 'mark_price'),
+            'lastPrice': None,
+            'underlyingPrice': self.safe_number(chain, 'spot_price'),
+            'change': None,
+            'percentage': None,
+            'baseVolume': self.safe_number(chain, 'volume'),
+            'quoteVolume': None,
         }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):

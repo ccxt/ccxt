@@ -2834,7 +2834,7 @@ export default class mexc extends Exchange {
             //         ]
             //     }
             //
-            const data = this.safeValue(response, 'data');
+            const data = this.safeList(response, 'data');
             return this.parseOrders(data, market);
         }
     }
@@ -3119,7 +3119,7 @@ export default class mexc extends Exchange {
             //         ]
             //     }
             //
-            const data = this.safeValue(response, 'data');
+            const data = this.safeList(response, 'data');
             return this.parseOrders(data, market);
         }
     }
@@ -3213,7 +3213,7 @@ export default class mexc extends Exchange {
             //         "code": "0"
             //     }
             //
-            const data = this.safeValue(response, 'data', []);
+            const data = this.safeList(response, 'data', []);
             return this.parseOrders(data, market);
         }
     }
@@ -4356,7 +4356,7 @@ export default class mexc extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue(response, 'data');
+        const data = this.safeList(response, 'data');
         return this.parseLeverageTiers(data, symbols, 'symbol');
     }
     parseMarketLeverageTiers(info, market = undefined) {
@@ -4814,7 +4814,7 @@ export default class mexc extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parsePositions(data, symbols);
     }
     parsePosition(position, market = undefined) {
@@ -4905,7 +4905,7 @@ export default class mexc extends Exchange {
             //         }
             //     }
             //
-            const data = this.safeValue(response, 'data', {});
+            const data = this.safeDict(response, 'data', {});
             return this.parseTransfer(data);
         }
         else if (marketType === 'swap') {

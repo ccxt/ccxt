@@ -282,7 +282,7 @@ class coinspot extends coinspot$1 {
         //         }
         //     }
         //
-        const ticker = this.safeValue(prices, id);
+        const ticker = this.safeDict(prices, id);
         return this.parseTicker(ticker, market);
     }
     async fetchTickers(symbols = undefined, params = {}) {
@@ -354,7 +354,7 @@ class coinspot extends coinspot$1 {
         //         ],
         //     }
         //
-        const trades = this.safeValue(response, 'orders', []);
+        const trades = this.safeList(response, 'orders', []);
         return this.parseTrades(trades, market, since, limit);
     }
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {

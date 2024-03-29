@@ -891,8 +891,8 @@ class mexc extends Exchange {
                     '30032' => '\\ccxt\\InvalidOrder', // Cannot exceed the maximum position
                     '30041' => '\\ccxt\\InvalidOrder', // current order type can not place order
                     '60005' => '\\ccxt\\ExchangeError', // your account is abnormal
-                    '700001' => '\\ccxt\\AuthenticationError', // API-key format invalid
-                    '700002' => '\\ccxt\\AuthenticationError', // Signature for this request is not valid
+                    '700001' => '\\ccxt\\AuthenticationError', // array("code":700002,"msg":"Signature for this request is not valid.") // same message for expired API keys
+                    '700002' => '\\ccxt\\AuthenticationError', // Signature for this request is not valid // or the API secret is incorrect
                     '700004' => '\\ccxt\\BadRequest', // Param 'origClientOrderId' or 'orderId' must be sent, but both were empty/null
                     '700005' => '\\ccxt\\InvalidNonce', // recvWindow must less than 60000
                     '700006' => '\\ccxt\\BadRequest', // IP non white list
@@ -1145,7 +1145,7 @@ class mexc extends Exchange {
         }) ();
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * retrieves data on all markets for mexc
@@ -2836,7 +2836,7 @@ class mexc extends Exchange {
                 //         )
                 //     }
                 //
-                $data = $this->safe_value($response, 'data');
+                $data = $this->safe_list($response, 'data');
                 return $this->parse_orders($data, $market);
             }
         }) ();
@@ -3120,7 +3120,7 @@ class mexc extends Exchange {
                 //         )
                 //     }
                 //
-                $data = $this->safe_value($response, 'data');
+                $data = $this->safe_list($response, 'data');
                 return $this->parse_orders($data, $market);
             }
         }) ();
@@ -3212,7 +3212,7 @@ class mexc extends Exchange {
                 //         "code" => "0"
                 //     }
                 //
-                $data = $this->safe_value($response, 'data', array());
+                $data = $this->safe_list($response, 'data', array());
                 return $this->parse_orders($data, $market);
             }
         }) ();
@@ -4367,7 +4367,7 @@ class mexc extends Exchange {
             //         ]
             //     }
             //
-            $data = $this->safe_value($response, 'data');
+            $data = $this->safe_list($response, 'data');
             return $this->parse_leverage_tiers($data, $symbols, 'symbol');
         }) ();
     }
@@ -4834,7 +4834,7 @@ class mexc extends Exchange {
             //         )
             //     }
             //
-            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_list($response, 'data', array());
             return $this->parse_positions($data, $symbols);
         }) ();
     }
@@ -4929,7 +4929,7 @@ class mexc extends Exchange {
                 //         }
                 //     }
                 //
-                $data = $this->safe_value($response, 'data', array());
+                $data = $this->safe_dict($response, 'data', array());
                 return $this->parse_transfer($data);
             } elseif ($marketType === 'swap') {
                 throw new BadRequest($this->id . ' fetchTransfer() is not supported for ' . $marketType);

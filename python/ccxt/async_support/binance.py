@@ -8,7 +8,7 @@ from ccxt.abstract.binance import ImplicitAPI
 import asyncio
 import hashlib
 import json
-from ccxt.base.types import Balances, Currency, Greeks, Int, Leverage, Leverages, MarginMode, MarginModes, Market, MarketInterface, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
+from ccxt.base.types import Balances, Currency, Greeks, Int, Leverage, Leverages, MarginMode, MarginModes, Market, MarketInterface, Num, Option, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -134,6 +134,8 @@ class binance(Exchange, ImplicitAPI):
                 'fetchOpenInterestHistory': True,
                 'fetchOpenOrder': True,
                 'fetchOpenOrders': True,
+                'fetchOption': True,
+                'fetchOptionChain': False,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrderBooks': False,
@@ -2423,13 +2425,13 @@ class binance(Exchange, ImplicitAPI):
             },
         })
 
-    def is_inverse(self, type, subType=None) -> bool:
+    def is_inverse(self, type: str, subType: Str = None) -> bool:
         if subType is None:
-            return type == 'delivery'
+            return(type == 'delivery')
         else:
             return subType == 'inverse'
 
-    def is_linear(self, type, subType=None) -> bool:
+    def is_linear(self, type: str, subType: Str = None) -> bool:
         if subType is None:
             return(type == 'future') or (type == 'swap')
         else:
@@ -2438,14 +2440,6 @@ class binance(Exchange, ImplicitAPI):
     def set_sandbox_mode(self, enable: bool):
         super(binance, self).set_sandbox_mode(enable)
         self.options['sandboxMode'] = enable
-
-    def convert_expire_date(self, date):
-        # parse YYMMDD to timestamp
-        year = date[0:2]
-        month = date[2:4]
-        day = date[4:6]
-        reconstructedDate = '20' + year + '-' + month + '-' + day + 'T00:00:00Z'
-        return reconstructedDate
 
     def create_expired_option_market(self, symbol: str):
         # support expired option contracts
@@ -2788,7 +2782,7 @@ class binance(Exchange, ImplicitAPI):
             }
         return result
 
-    async def fetch_markets(self, params={}):
+    async def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for binance
         :see: https://binance-docs.github.io/apidocs/spot/en/#exchange-information         # spot
@@ -3858,26 +3852,24 @@ class binance(Exchange, ImplicitAPI):
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
-        symbols = self.market_symbols(symbols)
-        market = None
-        if symbols is not None:
-            first = self.safe_string(symbols, 0)
-            market = self.market(first)
+        symbols = self.market_symbols(symbols, None, True, True, True)
+        market = self.get_market_from_symbols(symbols)
         type = None
+        type, params = self.handle_market_type_and_params('fetchBidsAsks', market, params)
         subType = None
         subType, params = self.handle_sub_type_and_params('fetchBidsAsks', market, params)
-        type, params = self.handle_market_type_and_params('fetchBidsAsks', market, params)
         response = None
         if self.is_linear(type, subType):
             response = await self.fapiPublicGetTickerBookTicker(params)
         elif self.is_inverse(type, subType):
             response = await self.dapiPublicGetTickerBookTicker(params)
-        else:
+        elif type == 'spot':
             request = {}
             if symbols is not None:
-                marketIds = self.market_ids(symbols)
-                request['symbols'] = self.json(marketIds)
+                request['symbols'] = self.json(self.market_ids(symbols))
             response = await self.publicGetTickerBookTicker(self.extend(request, params))
+        else:
+            raise NotSupported(self.id + ' fetchBidsAsks() does not support ' + type + ' markets yet')
         return self.parse_tickers(response, symbols)
 
     async def fetch_last_prices(self, symbols: Strings = None, params={}):
@@ -3892,12 +3884,12 @@ class binance(Exchange, ImplicitAPI):
         :returns dict: a dictionary of lastprices structures
         """
         await self.load_markets()
-        symbols = self.market_symbols(symbols)
+        symbols = self.market_symbols(symbols, None, True, True, True)
         market = self.get_market_from_symbols(symbols)
         type = None
+        type, params = self.handle_market_type_and_params('fetchLastPrices', market, params)
         subType = None
         subType, params = self.handle_sub_type_and_params('fetchLastPrices', market, params)
-        type, params = self.handle_market_type_and_params('fetchLastPrices', market, params)
         response = None
         if self.is_linear(type, subType):
             response = await self.fapiPublicV2GetTickerPrice(params)
@@ -3992,28 +3984,26 @@ class binance(Exchange, ImplicitAPI):
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
-        type = None
-        market = None
         symbols = self.market_symbols(symbols, None, True, True, True)
-        if symbols is not None:
-            first = self.safe_string(symbols, 0)
-            market = self.market(first)
+        market = self.get_market_from_symbols(symbols)
+        type = None
         type, params = self.handle_market_type_and_params('fetchTickers', market, params)
         subType = None
         subType, params = self.handle_sub_type_and_params('fetchTickers', market, params)
         response = None
-        if type == 'option':
-            response = await self.eapiPublicGetTicker(params)
-        elif self.is_linear(type, subType):
+        if self.is_linear(type, subType):
             response = await self.fapiPublicGetTicker24hr(params)
         elif self.is_inverse(type, subType):
             response = await self.dapiPublicGetTicker24hr(params)
-        else:
+        elif type == 'spot':
             request = {}
             if symbols is not None:
-                marketIds = self.market_ids(symbols)
-                request['symbols'] = self.json(marketIds)
+                request['symbols'] = self.json(self.market_ids(symbols))
             response = await self.publicGetTicker24hr(self.extend(request, params))
+        elif type == 'option':
+            response = await self.eapiPublicGetTicker(params)
+        else:
+            raise NotSupported(self.id + ' fetchTickers() does not support ' + type + ' markets yet')
         return self.parse_tickers(response, symbols)
 
     def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
@@ -4634,7 +4624,7 @@ class binance(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        data = self.safe_value(response, 'newOrderResponse')
+        data = self.safe_dict(response, 'newOrderResponse')
         return self.parse_order(data, market)
 
     def edit_spot_order_request(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
@@ -11399,7 +11389,7 @@ class binance(Exchange, ImplicitAPI):
             #
         else:
             raise BadRequest(self.id + ' fetchMarginModes() supports linear and inverse subTypes only')
-        assets = self.safe_value(response, 'positions', [])
+        assets = self.safe_list(response, 'positions', [])
         return self.parse_margin_modes(assets, symbols, 'symbol', 'swap')
 
     def parse_margin_mode(self, marginMode, market=None) -> MarginMode:
@@ -11410,4 +11400,90 @@ class binance(Exchange, ImplicitAPI):
             'info': marginMode,
             'symbol': market['symbol'],
             'marginMode': 'isolated' if isIsolated else 'cross',
+        }
+
+    async def fetch_option(self, symbol: str, params={}) -> Option:
+        """
+        fetches option data that is commonly found in an option chain
+        :see: https://binance-docs.github.io/apidocs/voptions/en/#24hr-ticker-price-change-statistics
+        :param str symbol: unified market symbol
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an `option chain structure <https://docs.ccxt.com/#/?id=option-chain-structure>`
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+        }
+        response = await self.eapiPublicGetTicker(self.extend(request, params))
+        #
+        #     [
+        #         {
+        #             "symbol": "BTC-241227-80000-C",
+        #             "priceChange": "0",
+        #             "priceChangePercent": "0",
+        #             "lastPrice": "2750",
+        #             "lastQty": "0",
+        #             "open": "2750",
+        #             "high": "2750",
+        #             "low": "2750",
+        #             "volume": "0",
+        #             "amount": "0",
+        #             "bidPrice": "4880",
+        #             "askPrice": "0",
+        #             "openTime": 0,
+        #             "closeTime": 0,
+        #             "firstTradeId": 0,
+        #             "tradeCount": 0,
+        #             "strikePrice": "80000",
+        #             "exercisePrice": "63944.09893617"
+        #         }
+        #     ]
+        #
+        chain = self.safe_dict(response, 0, {})
+        return self.parse_option(chain, None, market)
+
+    def parse_option(self, chain, currency: Currency = None, market: Market = None):
+        #
+        #     {
+        #         "symbol": "BTC-241227-80000-C",
+        #         "priceChange": "0",
+        #         "priceChangePercent": "0",
+        #         "lastPrice": "2750",
+        #         "lastQty": "0",
+        #         "open": "2750",
+        #         "high": "2750",
+        #         "low": "2750",
+        #         "volume": "0",
+        #         "amount": "0",
+        #         "bidPrice": "4880",
+        #         "askPrice": "0",
+        #         "openTime": 0,
+        #         "closeTime": 0,
+        #         "firstTradeId": 0,
+        #         "tradeCount": 0,
+        #         "strikePrice": "80000",
+        #         "exercisePrice": "63944.09893617"
+        #     }
+        #
+        marketId = self.safe_string(chain, 'symbol')
+        market = self.safe_market(marketId, market)
+        return {
+            'info': chain,
+            'currency': None,
+            'symbol': market['symbol'],
+            'timestamp': None,
+            'datetime': None,
+            'impliedVolatility': None,
+            'openInterest': None,
+            'bidPrice': self.safe_number(chain, 'bidPrice'),
+            'askPrice': self.safe_number(chain, 'askPrice'),
+            'midPrice': None,
+            'markPrice': None,
+            'lastPrice': self.safe_number(chain, 'lastPrice'),
+            'underlyingPrice': self.safe_number(chain, 'exercisePrice'),
+            'change': self.safe_number(chain, 'priceChange'),
+            'percentage': self.safe_number(chain, 'priceChangePercent'),
+            'baseVolume': self.safe_number(chain, 'volume'),
+            'quoteVolume': None,
         }

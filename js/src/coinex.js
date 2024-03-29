@@ -31,6 +31,7 @@ export default class coinex extends Exchange {
             // 60 per 2 seconds => 30 per second => weight = 13.334
             // 40 per 2 seconds => 20 per second => weight = 20
             // 20 per 2 seconds => 10 per second => weight = 40
+            // v1 is per 2 seconds and v2 is per 1 second
             'rateLimit': 2.5,
             'pro': true,
             'certified': true,
@@ -137,156 +138,279 @@ export default class coinex extends Exchange {
                     'perpetualPrivate': 'https://api.coinex.com/perpetual',
                 },
                 'www': 'https://www.coinex.com',
-                'doc': 'https://viabtc.github.io/coinex_api_en_doc',
+                'doc': 'https://docs.coinex.com/api/v2',
                 'fees': 'https://www.coinex.com/fees',
                 'referral': 'https://www.coinex.com/register?refer_code=yw5fz',
             },
             'api': {
-                'public': {
-                    'get': {
-                        'amm/market': 1,
-                        'common/currency/rate': 1,
-                        'common/asset/config': 1,
-                        'common/maintain/info': 1,
-                        'common/temp-maintain/info': 1,
-                        'margin/market': 1,
-                        'market/info': 1,
-                        'market/list': 1,
-                        'market/ticker': 1,
-                        'market/ticker/all': 1,
-                        'market/depth': 1,
-                        'market/deals': 1,
-                        'market/kline': 1,
-                        'market/detail': 1,
+                'v1': {
+                    'public': {
+                        'get': {
+                            'amm/market': 1,
+                            'common/currency/rate': 1,
+                            'common/asset/config': 1,
+                            'common/maintain/info': 1,
+                            'common/temp-maintain/info': 1,
+                            'margin/market': 1,
+                            'market/info': 1,
+                            'market/list': 1,
+                            'market/ticker': 1,
+                            'market/ticker/all': 1,
+                            'market/depth': 1,
+                            'market/deals': 1,
+                            'market/kline': 1,
+                            'market/detail': 1,
+                        },
+                    },
+                    'private': {
+                        'get': {
+                            'account/amm/balance': 40,
+                            'account/investment/balance': 40,
+                            'account/balance/history': 40,
+                            'account/market/fee': 40,
+                            'balance/coin/deposit': 40,
+                            'balance/coin/withdraw': 40,
+                            'balance/info': 40,
+                            'balance/deposit/address/{coin_type}': 40,
+                            'contract/transfer/history': 40,
+                            'credit/info': 40,
+                            'credit/balance': 40,
+                            'investment/transfer/history': 40,
+                            'margin/account': 1,
+                            'margin/config': 1,
+                            'margin/loan/history': 40,
+                            'margin/transfer/history': 40,
+                            'order/deals': 40,
+                            'order/finished': 40,
+                            'order/pending': 8,
+                            'order/status': 8,
+                            'order/status/batch': 8,
+                            'order/user/deals': 40,
+                            'order/stop/finished': 40,
+                            'order/stop/pending': 8,
+                            'order/user/trade/fee': 1,
+                            'order/market/trade/info': 1,
+                            'sub_account/balance': 1,
+                            'sub_account/transfer/history': 40,
+                            'sub_account/auth/api': 40,
+                            'sub_account/auth/api/{user_auth_id}': 40,
+                        },
+                        'post': {
+                            'balance/coin/withdraw': 40,
+                            'contract/balance/transfer': 40,
+                            'margin/flat': 40,
+                            'margin/loan': 40,
+                            'margin/transfer': 40,
+                            'order/limit/batch': 40,
+                            'order/ioc': 13.334,
+                            'order/limit': 13.334,
+                            'order/market': 13.334,
+                            'order/modify': 13.334,
+                            'order/stop/limit': 13.334,
+                            'order/stop/market': 13.334,
+                            'order/stop/modify': 13.334,
+                            'sub_account/transfer': 40,
+                            'sub_account/register': 1,
+                            'sub_account/unfrozen': 40,
+                            'sub_account/frozen': 40,
+                            'sub_account/auth/api': 40,
+                        },
+                        'put': {
+                            'balance/deposit/address/{coin_type}': 40,
+                            'sub_account/unfrozen': 40,
+                            'sub_account/frozen': 40,
+                            'sub_account/auth/api/{user_auth_id}': 40,
+                            'v1/account/settings': 40,
+                        },
+                        'delete': {
+                            'balance/coin/withdraw': 40,
+                            'order/pending/batch': 40,
+                            'order/pending': 13.334,
+                            'order/stop/pending': 40,
+                            'order/stop/pending/{id}': 13.334,
+                            'order/pending/by_client_id': 40,
+                            'order/stop/pending/by_client_id': 40,
+                            'sub_account/auth/api/{user_auth_id}': 40,
+                            'sub_account/authorize/{id}': 40,
+                        },
+                    },
+                    'perpetualPublic': {
+                        'get': {
+                            'ping': 1,
+                            'time': 1,
+                            'market/list': 1,
+                            'market/limit_config': 1,
+                            'market/ticker': 1,
+                            'market/ticker/all': 1,
+                            'market/depth': 1,
+                            'market/deals': 1,
+                            'market/funding_history': 1,
+                            'market/kline': 1,
+                        },
+                    },
+                    'perpetualPrivate': {
+                        'get': {
+                            'market/user_deals': 1,
+                            'asset/query': 40,
+                            'order/pending': 8,
+                            'order/finished': 40,
+                            'order/stop_finished': 40,
+                            'order/stop_pending': 8,
+                            'order/status': 8,
+                            'order/stop_status': 8,
+                            'position/finished': 40,
+                            'position/pending': 40,
+                            'position/funding': 40,
+                            'position/adl_history': 40,
+                            'market/preference': 40,
+                            'position/margin_history': 40,
+                            'position/settle_history': 40,
+                        },
+                        'post': {
+                            'market/adjust_leverage': 1,
+                            'market/position_expect': 1,
+                            'order/put_limit': 20,
+                            'order/put_market': 20,
+                            'order/put_stop_limit': 20,
+                            'order/put_stop_market': 20,
+                            'order/modify': 20,
+                            'order/modify_stop': 20,
+                            'order/cancel': 20,
+                            'order/cancel_all': 40,
+                            'order/cancel_batch': 40,
+                            'order/cancel_stop': 20,
+                            'order/cancel_stop_all': 40,
+                            'order/close_limit': 20,
+                            'order/close_market': 20,
+                            'position/adjust_margin': 20,
+                            'position/stop_loss': 20,
+                            'position/take_profit': 20,
+                            'position/market_close': 20,
+                            'order/cancel/by_client_id': 20,
+                            'order/cancel_stop/by_client_id': 20,
+                            'market/preference': 20,
+                        },
                     },
                 },
-                'private': {
-                    'get': {
-                        'account/amm/balance': 40,
-                        'account/investment/balance': 40,
-                        'account/balance/history': 40,
-                        'account/market/fee': 40,
-                        'balance/coin/deposit': 40,
-                        'balance/coin/withdraw': 40,
-                        'balance/info': 40,
-                        'balance/deposit/address/{coin_type}': 40,
-                        'contract/transfer/history': 40,
-                        'credit/info': 40,
-                        'credit/balance': 40,
-                        'investment/transfer/history': 40,
-                        'margin/account': 1,
-                        'margin/config': 1,
-                        'margin/loan/history': 40,
-                        'margin/transfer/history': 40,
-                        'order/deals': 40,
-                        'order/finished': 40,
-                        'order/pending': 8,
-                        'order/status': 8,
-                        'order/status/batch': 8,
-                        'order/user/deals': 40,
-                        'order/stop/finished': 40,
-                        'order/stop/pending': 8,
-                        'order/user/trade/fee': 1,
-                        'order/market/trade/info': 1,
-                        'sub_account/balance': 1,
-                        'sub_account/transfer/history': 40,
-                        'sub_account/auth/api': 40,
-                        'sub_account/auth/api/{user_auth_id}': 40,
+                'v2': {
+                    'public': {
+                        'get': {
+                            'maintain-info': 1,
+                            'ping': 1,
+                            'time': 1,
+                            'spot/market': 1,
+                            'spot/ticker': 1,
+                            'spot/depth': 1,
+                            'spot/deals': 1,
+                            'spot/kline': 1,
+                            'spot/index': 1,
+                            'futures/market': 1,
+                            'futures/ticker': 1,
+                            'futures/depth': 1,
+                            'futures/deals': 1,
+                            'futures/kline': 1,
+                            'futures/index': 1,
+                            'futures/funding-rate': 1,
+                            'futures/funding-rate-history': 1,
+                            'futures/position-level': 1,
+                            'futures/liquidation-history': 1,
+                            'futures/basis-history': 1,
+                        },
                     },
-                    'post': {
-                        'balance/coin/withdraw': 40,
-                        'contract/balance/transfer': 40,
-                        'margin/flat': 40,
-                        'margin/loan': 40,
-                        'margin/transfer': 40,
-                        'order/limit/batch': 40,
-                        'order/ioc': 13.334,
-                        'order/limit': 13.334,
-                        'order/market': 13.334,
-                        'order/modify': 13.334,
-                        'order/stop/limit': 13.334,
-                        'order/stop/market': 13.334,
-                        'order/stop/modify': 13.334,
-                        'sub_account/transfer': 40,
-                        'sub_account/register': 1,
-                        'sub_account/unfrozen': 40,
-                        'sub_account/frozen': 40,
-                        'sub_account/auth/api': 40,
-                    },
-                    'put': {
-                        'balance/deposit/address/{coin_type}': 40,
-                        'sub_account/unfrozen': 40,
-                        'sub_account/frozen': 40,
-                        'sub_account/auth/api/{user_auth_id}': 40,
-                        'v1/account/settings': 40,
-                    },
-                    'delete': {
-                        'balance/coin/withdraw': 40,
-                        'order/pending/batch': 40,
-                        'order/pending': 13.334,
-                        'order/stop/pending': 40,
-                        'order/stop/pending/{id}': 13.334,
-                        'order/pending/by_client_id': 40,
-                        'order/stop/pending/by_client_id': 40,
-                        'sub_account/auth/api/{user_auth_id}': 40,
-                        'sub_account/authorize/{id}': 40,
-                    },
-                },
-                'perpetualPublic': {
-                    'get': {
-                        'ping': 1,
-                        'time': 1,
-                        'market/list': 1,
-                        'market/limit_config': 1,
-                        'market/ticker': 1,
-                        'market/ticker/all': 1,
-                        'market/depth': 1,
-                        'market/deals': 1,
-                        'market/funding_history': 1,
-                        'market/kline': 1,
-                    },
-                },
-                'perpetualPrivate': {
-                    'get': {
-                        'market/user_deals': 1,
-                        'asset/query': 40,
-                        'order/pending': 8,
-                        'order/finished': 40,
-                        'order/stop_finished': 40,
-                        'order/stop_pending': 8,
-                        'order/status': 8,
-                        'order/stop_status': 8,
-                        'position/finished': 40,
-                        'position/pending': 40,
-                        'position/funding': 40,
-                        'position/adl_history': 40,
-                        'market/preference': 40,
-                        'position/margin_history': 40,
-                        'position/settle_history': 40,
-                    },
-                    'post': {
-                        'market/adjust_leverage': 1,
-                        'market/position_expect': 1,
-                        'order/put_limit': 20,
-                        'order/put_market': 20,
-                        'order/put_stop_limit': 20,
-                        'order/put_stop_market': 20,
-                        'order/modify': 20,
-                        'order/modify_stop': 20,
-                        'order/cancel': 20,
-                        'order/cancel_all': 40,
-                        'order/cancel_batch': 40,
-                        'order/cancel_stop': 20,
-                        'order/cancel_stop_all': 40,
-                        'order/close_limit': 20,
-                        'order/close_market': 20,
-                        'position/adjust_margin': 20,
-                        'position/stop_loss': 20,
-                        'position/take_profit': 20,
-                        'position/market_close': 20,
-                        'order/cancel/by_client_id': 20,
-                        'order/cancel_stop/by_client_id': 20,
-                        'market/preference': 20,
+                    'private': {
+                        'get': {
+                            'account/subs': 1,
+                            'account/subs/api-detail': 40,
+                            'account/subs/info': 1,
+                            'account/subs/api': 40,
+                            'account/subs/transfer-history': 40,
+                            'account/subs/spot-balance': 1,
+                            'account/trade-fee-rate': 40,
+                            'assets/spot/balance': 40,
+                            'assets/futures/balance': 40,
+                            'assets/margin/balance': 1,
+                            'assets/financial/balance': 40,
+                            'assets/amm/liquidity': 40,
+                            'assets/credit/info': 40,
+                            'assets/margin/borrow-history': 40,
+                            'assets/margin/interest-limit': 1,
+                            'assets/deposit-address': 40,
+                            'assets/deposit-history': 40,
+                            'assets/withdraw': 40,
+                            'assets/deposit-withdraw-config': 1,
+                            'assets/transfer-history': 40,
+                            'spot/order-status': 8,
+                            'spot/batch-order-status': 8,
+                            'spot/pending-order': 8,
+                            'spot/finished-order': 40,
+                            'spot/pending-stop-order': 8,
+                            'spot/finished-stop-order': 40,
+                            'spot/user-deals': 40,
+                            'spot/order-deals': 40,
+                            'futures/order-status': 8,
+                            'futures/batch-order-status': 1,
+                            'futures/pending-order': 8,
+                            'futures/finished-order': 40,
+                            'futures/pending-stop-order': 8,
+                            'futures/finished-stop-order': 40,
+                            'futures/user-deals': 1,
+                            'futures/order-deals': 1,
+                            'futures/pending-position': 40,
+                            'futures/finished-position': 1,
+                            'futures/position-margin-history': 1,
+                            'futures/position-funding-history': 40,
+                            'futures/position-adl-history': 1,
+                            'futures/position-settle-history': 1,
+                        },
+                        'post': {
+                            'account/subs': 40,
+                            'account/subs/frozen': 40,
+                            'account/subs/unfrozen': 40,
+                            'account/subs/api': 40,
+                            'account/subs/edit-api': 40,
+                            'account/subs/delete-api': 40,
+                            'account/subs/transfer': 40,
+                            'account/settings': 40,
+                            'assets/margin/borrow': 40,
+                            'assets/margin/repay': 40,
+                            'assets/renewal-deposit-address': 40,
+                            'assets/withdraw': 40,
+                            'assets/cancel-withdraw': 40,
+                            'assets/transfer': 40,
+                            'assets/amm/add-liquidity': 1,
+                            'assets/amm/remove-liquidity': 1,
+                            'spot/order': 13.334,
+                            'spot/stop-order': 13.334,
+                            'spot/batch-order': 40,
+                            'spot/batch-stop-order': 1,
+                            'spot/modify-order': 13.334,
+                            'spot/modify-stop-order': 13.334,
+                            'spot/cancel-all-order': 1,
+                            'spot/cancel-order': 6.667,
+                            'spot/cancel-stop-order': 6.667,
+                            'spot/cancel-batch-order': 10,
+                            'spot/cancel-batch-stop-order': 10,
+                            'spot/cancel-order-by-client-id': 1,
+                            'spot/cancel-stop-order-by-client-id': 1,
+                            'futures/order': 20,
+                            'futures/stop-order': 20,
+                            'futures/batch-order': 1,
+                            'futures/batch-stop-order': 1,
+                            'futures/modify-order': 20,
+                            'futures/modify-stop-order': 20,
+                            'futures/cancel-all-order': 1,
+                            'futures/cancel-order': 10,
+                            'futures/cancel-stop-order': 10,
+                            'futures/cancel-batch-order': 20,
+                            'futures/cancel-batch-stop-order': 20,
+                            'futures/cancel-order-by-client-id': 1,
+                            'futures/cancel-stop-order-by-client-id': 1,
+                            'futures/close-position': 20,
+                            'futures/adjust-position-margin': 20,
+                            'futures/adjust-position-leverage': 20,
+                            'futures/set-position-stop-loss': 20,
+                            'futures/set-position-take-profit': 20,
+                        },
                     },
                 },
             },
@@ -357,7 +481,7 @@ export default class coinex extends Exchange {
         });
     }
     async fetchCurrencies(params = {}) {
-        const response = await this.publicGetCommonAssetConfig(params);
+        const response = await this.v1PublicGetCommonAssetConfig(params);
         //     {
         //         "code": 0,
         //         "data": {
@@ -505,7 +629,7 @@ export default class coinex extends Exchange {
         return this.arrayConcat(spotMarkets, swapMarkets);
     }
     async fetchSpotMarkets(params) {
-        const response = await this.publicGetMarketInfo(params);
+        const response = await this.v1PublicGetMarketInfo(params);
         //
         //     {
         //         "code": 0,
@@ -594,7 +718,7 @@ export default class coinex extends Exchange {
         return result;
     }
     async fetchContractMarkets(params) {
-        const response = await this.perpetualPublicGetMarketList(params);
+        const response = await this.v1PerpetualPublicGetMarketList(params);
         //
         //     {
         //         "code": 0,
@@ -776,10 +900,10 @@ export default class coinex extends Exchange {
         };
         let response = undefined;
         if (market['swap']) {
-            response = await this.perpetualPublicGetMarketTicker(this.extend(request, params));
+            response = await this.v1PerpetualPublicGetMarketTicker(this.extend(request, params));
         }
         else {
-            response = await this.publicGetMarketTicker(this.extend(request, params));
+            response = await this.v1PublicGetMarketTicker(this.extend(request, params));
         }
         //
         // Spot
@@ -858,10 +982,10 @@ export default class coinex extends Exchange {
         const [marketType, query] = this.handleMarketTypeAndParams('fetchTickers', market, params);
         let response = undefined;
         if (marketType === 'swap') {
-            response = await this.perpetualPublicGetMarketTickerAll(query);
+            response = await this.v1PerpetualPublicGetMarketTickerAll(query);
         }
         else {
-            response = await this.publicGetMarketTickerAll();
+            response = await this.v1PublicGetMarketTickerAll();
         }
         //
         // Spot
@@ -948,7 +1072,7 @@ export default class coinex extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {int} the current integer timestamp in milliseconds from the exchange server
          */
-        const response = await this.perpetualPublicGetTime(params);
+        const response = await this.v1PerpetualPublicGetTime(params);
         //
         //     {
         //         "code": "0",
@@ -982,10 +1106,10 @@ export default class coinex extends Exchange {
         };
         let response = undefined;
         if (market['swap']) {
-            response = await this.perpetualPublicGetMarketDepth(this.extend(request, params));
+            response = await this.v1PerpetualPublicGetMarketDepth(this.extend(request, params));
         }
         else {
-            response = await this.publicGetMarketDepth(this.extend(request, params));
+            response = await this.v1PublicGetMarketDepth(this.extend(request, params));
         }
         //
         // Spot
@@ -1186,10 +1310,10 @@ export default class coinex extends Exchange {
         }
         let response = undefined;
         if (market['swap']) {
-            response = await this.perpetualPublicGetMarketDeals(this.extend(request, params));
+            response = await this.v1PerpetualPublicGetMarketDeals(this.extend(request, params));
         }
         else {
-            response = await this.publicGetMarketDeals(this.extend(request, params));
+            response = await this.v1PublicGetMarketDeals(this.extend(request, params));
         }
         //
         // Spot and Swap
@@ -1226,7 +1350,7 @@ export default class coinex extends Exchange {
         const request = {
             'market': market['id'],
         };
-        const response = await this.publicGetMarketDetail(this.extend(request, params));
+        const response = await this.v1PublicGetMarketDetail(this.extend(request, params));
         //
         //     {
         //         "code": 0,
@@ -1256,7 +1380,7 @@ export default class coinex extends Exchange {
          * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
          */
         await this.loadMarkets();
-        const response = await this.publicGetMarketInfo(params);
+        const response = await this.v1PublicGetMarketInfo(params);
         //
         //     {
         //         "code": 0,
@@ -1344,10 +1468,10 @@ export default class coinex extends Exchange {
         }
         let response = undefined;
         if (market['swap']) {
-            response = await this.perpetualPublicGetMarketKline(this.extend(request, params));
+            response = await this.v1PerpetualPublicGetMarketKline(this.extend(request, params));
         }
         else {
-            response = await this.publicGetMarketKline(this.extend(request, params));
+            response = await this.v1PublicGetMarketKline(this.extend(request, params));
         }
         //
         // Spot
@@ -1374,7 +1498,7 @@ export default class coinex extends Exchange {
         //         "message": "OK"
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseOHLCVs(data, market, timeframe, since, limit);
     }
     async fetchMarginBalance(params = {}) {
@@ -1393,7 +1517,7 @@ export default class coinex extends Exchange {
         const request = {
             'market': marketId,
         };
-        const response = await this.privateGetMarginAccount(this.extend(request, params));
+        const response = await this.v1PrivateGetMarginAccount(this.extend(request, params));
         //
         //      {
         //          "code":    0,
@@ -1460,7 +1584,7 @@ export default class coinex extends Exchange {
     }
     async fetchSpotBalance(params = {}) {
         await this.loadMarkets();
-        const response = await this.privateGetBalanceInfo(params);
+        const response = await this.v1PrivateGetBalanceInfo(params);
         //
         //     {
         //       "code": 0,
@@ -1497,7 +1621,7 @@ export default class coinex extends Exchange {
     }
     async fetchSwapBalance(params = {}) {
         await this.loadMarkets();
-        const response = await this.perpetualPrivateGetAssetQuery(params);
+        const response = await this.v1PerpetualPrivateGetAssetQuery(params);
         //
         //     {
         //         "code": 0,
@@ -1531,7 +1655,7 @@ export default class coinex extends Exchange {
     }
     async fetchFinancialBalance(params = {}) {
         await this.loadMarkets();
-        const response = await this.privateGetAccountInvestmentBalance(params);
+        const response = await this.v1PrivateGetAccountInvestmentBalance(params);
         //
         //     {
         //          "code": 0,
@@ -2171,53 +2295,53 @@ export default class coinex extends Exchange {
         if (market['spot']) {
             if (isTriggerOrder) {
                 if (type === 'limit') {
-                    response = await this.privatePostOrderStopLimit(request);
+                    response = await this.v1PrivatePostOrderStopLimit(request);
                 }
                 else {
-                    response = await this.privatePostOrderStopMarket(request);
+                    response = await this.v1PrivatePostOrderStopMarket(request);
                 }
             }
             else {
                 if (type === 'limit') {
-                    response = await this.privatePostOrderLimit(request);
+                    response = await this.v1PrivatePostOrderLimit(request);
                 }
                 else {
-                    response = await this.privatePostOrderMarket(request);
+                    response = await this.v1PrivatePostOrderMarket(request);
                 }
             }
         }
         else {
             if (isTriggerOrder) {
                 if (type === 'limit') {
-                    response = await this.perpetualPrivatePostOrderPutStopLimit(request);
+                    response = await this.v1PerpetualPrivatePostOrderPutStopLimit(request);
                 }
                 else {
-                    response = await this.perpetualPrivatePostOrderPutStopMarket(request);
+                    response = await this.v1PerpetualPrivatePostOrderPutStopMarket(request);
                 }
             }
             else if (isStopLossOrTakeProfitTrigger) {
                 if (isStopLossTriggerOrder) {
-                    response = await this.perpetualPrivatePostPositionStopLoss(request);
+                    response = await this.v1PerpetualPrivatePostPositionStopLoss(request);
                 }
                 else if (isTakeProfitTriggerOrder) {
-                    response = await this.perpetualPrivatePostPositionTakeProfit(request);
+                    response = await this.v1PerpetualPrivatePostPositionTakeProfit(request);
                 }
             }
             else {
                 if (reduceOnly) {
                     if (type === 'limit') {
-                        response = await this.perpetualPrivatePostOrderCloseLimit(request);
+                        response = await this.v1PerpetualPrivatePostOrderCloseLimit(request);
                     }
                     else {
-                        response = await this.perpetualPrivatePostOrderCloseMarket(request);
+                        response = await this.v1PerpetualPrivatePostOrderCloseMarket(request);
                     }
                 }
                 else {
                     if (type === 'limit') {
-                        response = await this.perpetualPrivatePostOrderPutLimit(request);
+                        response = await this.v1PerpetualPrivatePostOrderPutLimit(request);
                     }
                     else {
-                        response = await this.perpetualPrivatePostOrderPutMarket(request);
+                        response = await this.v1PerpetualPrivatePostOrderPutMarket(request);
                     }
                 }
             }
@@ -2299,7 +2423,7 @@ export default class coinex extends Exchange {
         //
         //     {"code":0,"data":{"status":"success"},"message":"OK"}
         //
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         return this.parseOrder(data, market);
     }
     async createOrders(orders, params = {}) {
@@ -2345,7 +2469,7 @@ export default class coinex extends Exchange {
             'market': market['id'],
             'batch_orders': this.json(ordersRequests),
         };
-        const response = await this.privatePostOrderLimitBatch(request);
+        const response = await this.v1PrivatePostOrderLimitBatch(request);
         //
         //     {
         //         "code": 0,
@@ -2428,11 +2552,11 @@ export default class coinex extends Exchange {
         let response = undefined;
         if (market['spot']) {
             request['batch_ids'] = idsString;
-            response = await this.privateDeleteOrderPendingBatch(this.extend(request, params));
+            response = await this.v1PrivateDeleteOrderPendingBatch(this.extend(request, params));
         }
         else {
             request['order_ids'] = idsString;
-            response = await this.perpetualPrivatePostOrderCancelBatch(this.extend(request, params));
+            response = await this.v1PerpetualPrivatePostOrderCancelBatch(this.extend(request, params));
         }
         //
         // spot
@@ -2569,7 +2693,7 @@ export default class coinex extends Exchange {
         if (price !== undefined) {
             request['price'] = this.priceToPrecision(symbol, price);
         }
-        const response = await this.privatePostOrderModify(this.extend(request, params));
+        const response = await this.v1PrivatePostOrderModify(this.extend(request, params));
         //
         //     {
         //         "code": 0,
@@ -2601,7 +2725,7 @@ export default class coinex extends Exchange {
         //         "message": "Success"
         //     }
         //
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         return this.parseOrder(data, market);
     }
     async cancelOrder(id, symbol = undefined, params = {}) {
@@ -2650,18 +2774,18 @@ export default class coinex extends Exchange {
             request['client_id'] = clientOrderId;
             if (stop) {
                 if (swap) {
-                    response = await this.perpetualPrivatePostOrderCancelStopByClientId(this.extend(request, query));
+                    response = await this.v1PerpetualPrivatePostOrderCancelStopByClientId(this.extend(request, query));
                 }
                 else {
-                    response = await this.privateDeleteOrderStopPendingByClientId(this.extend(request, query));
+                    response = await this.v1PrivateDeleteOrderStopPendingByClientId(this.extend(request, query));
                 }
             }
             else {
                 if (swap) {
-                    response = await this.perpetualPrivatePostOrderCancelByClientId(this.extend(request, query));
+                    response = await this.v1PerpetualPrivatePostOrderCancelByClientId(this.extend(request, query));
                 }
                 else {
-                    response = await this.privateDeleteOrderPendingByClientId(this.extend(request, query));
+                    response = await this.v1PrivateDeleteOrderPendingByClientId(this.extend(request, query));
                 }
             }
         }
@@ -2670,18 +2794,18 @@ export default class coinex extends Exchange {
             request[idRequest] = id;
             if (stop) {
                 if (swap) {
-                    response = await this.perpetualPrivatePostOrderCancelStop(this.extend(request, query));
+                    response = await this.v1PerpetualPrivatePostOrderCancelStop(this.extend(request, query));
                 }
                 else {
-                    response = await this.privateDeleteOrderStopPendingId(this.extend(request, query));
+                    response = await this.v1PrivateDeleteOrderStopPendingId(this.extend(request, query));
                 }
             }
             else {
                 if (swap) {
-                    response = await this.perpetualPrivatePostOrderCancel(this.extend(request, query));
+                    response = await this.v1PerpetualPrivatePostOrderCancel(this.extend(request, query));
                 }
                 else {
-                    response = await this.privateDeleteOrderPending(this.extend(request, query));
+                    response = await this.v1PrivateDeleteOrderPending(this.extend(request, query));
                 }
             }
         }
@@ -2791,7 +2915,7 @@ export default class coinex extends Exchange {
         //
         //     {"code":0,"data":{},"message":"Success"}
         //
-        const data = this.safeValue(response, 'data');
+        const data = this.safeDict(response, 'data');
         return this.parseOrder(data, market);
     }
     async cancelAllOrders(symbol = undefined, params = {}) {
@@ -2825,19 +2949,19 @@ export default class coinex extends Exchange {
         let response = undefined;
         if (swap) {
             if (stop) {
-                response = await this.perpetualPrivatePostOrderCancelStopAll(this.extend(request, params));
+                response = await this.v1PerpetualPrivatePostOrderCancelStopAll(this.extend(request, params));
             }
             else {
-                response = await this.perpetualPrivatePostOrderCancelAll(this.extend(request, params));
+                response = await this.v1PerpetualPrivatePostOrderCancelAll(this.extend(request, params));
             }
         }
         else {
             request['account_id'] = accountId;
             if (stop) {
-                response = await this.privateDeleteOrderStopPending(this.extend(request, params));
+                response = await this.v1PrivateDeleteOrderStopPending(this.extend(request, params));
             }
             else {
-                response = await this.privateDeleteOrderPending(this.extend(request, params));
+                response = await this.v1PrivateDeleteOrderPending(this.extend(request, params));
             }
         }
         //
@@ -2881,14 +3005,14 @@ export default class coinex extends Exchange {
         let response = undefined;
         if (swap) {
             if (stop) {
-                response = await this.perpetualPrivateGetOrderStopStatus(this.extend(request, params));
+                response = await this.v1PerpetualPrivateGetOrderStopStatus(this.extend(request, params));
             }
             else {
-                response = await this.perpetualPrivateGetOrderStatus(this.extend(request, params));
+                response = await this.v1PerpetualPrivateGetOrderStatus(this.extend(request, params));
             }
         }
         else {
-            response = await this.privateGetOrderStatus(this.extend(request, params));
+            response = await this.v1PrivateGetOrderStatus(this.extend(request, params));
         }
         //
         // Spot
@@ -2988,7 +3112,7 @@ export default class coinex extends Exchange {
         //         "message":"OK"
         //     }
         //
-        const data = this.safeValue(response, 'data');
+        const data = this.safeDict(response, 'data');
         return this.parseOrder(data, market);
     }
     async fetchOrdersByStatus(status, symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -3032,14 +3156,14 @@ export default class coinex extends Exchange {
             }
             request['offset'] = 0;
             if (stop) {
-                response = await this.perpetualPrivateGetOrderStopPending(this.extend(request, params));
+                response = await this.v1PerpetualPrivateGetOrderStopPending(this.extend(request, params));
             }
             else {
                 if (status === 'finished') {
-                    response = await this.perpetualPrivateGetOrderFinished(this.extend(request, params));
+                    response = await this.v1PerpetualPrivateGetOrderFinished(this.extend(request, params));
                 }
                 else if (status === 'pending') {
-                    response = await this.perpetualPrivateGetOrderPending(this.extend(request, params));
+                    response = await this.v1PerpetualPrivateGetOrderPending(this.extend(request, params));
                 }
             }
         }
@@ -3047,18 +3171,18 @@ export default class coinex extends Exchange {
             request['page'] = 1;
             if (status === 'finished') {
                 if (stop) {
-                    response = await this.privateGetOrderStopFinished(this.extend(request, params));
+                    response = await this.v1PrivateGetOrderStopFinished(this.extend(request, params));
                 }
                 else {
-                    response = await this.privateGetOrderFinished(this.extend(request, params));
+                    response = await this.v1PrivateGetOrderFinished(this.extend(request, params));
                 }
             }
             else if (status === 'pending') {
                 if (stop) {
-                    response = await this.privateGetOrderStopPending(this.extend(request, params));
+                    response = await this.v1PrivateGetOrderStopPending(this.extend(request, params));
                 }
                 else {
-                    response = await this.privateGetOrderPending(this.extend(request, params));
+                    response = await this.v1PrivateGetOrderPending(this.extend(request, params));
                 }
             }
         }
@@ -3214,7 +3338,7 @@ export default class coinex extends Exchange {
         //
         const tradeRequest = (marketType === 'swap') ? 'records' : 'data';
         const data = this.safeValue(response, 'data');
-        const orders = this.safeValue(data, tradeRequest, []);
+        const orders = this.safeList(data, tradeRequest, []);
         return this.parseOrders(orders, market, since, limit);
     }
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -3270,7 +3394,7 @@ export default class coinex extends Exchange {
             params = this.omit(params, 'network');
             request['smart_contract_name'] = network;
         }
-        const response = await this.privatePutBalanceDepositAddressCoinType(this.extend(request, params));
+        const response = await this.v1PrivatePutBalanceDepositAddressCoinType(this.extend(request, params));
         //
         //     {
         //         "code": 0,
@@ -3280,7 +3404,7 @@ export default class coinex extends Exchange {
         //         },
         //         "message": "Success"
         //     }
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         return this.parseDepositAddress(data, currency);
     }
     async fetchDepositAddress(code, params = {}) {
@@ -3314,7 +3438,7 @@ export default class coinex extends Exchange {
         if (network !== undefined) {
             request['smart_contract_name'] = network;
         }
-        const response = await this.privateGetBalanceDepositAddressCoinType(this.extend(request, params));
+        const response = await this.v1PrivateGetBalanceDepositAddressCoinType(this.extend(request, params));
         //
         //      {
         //          "code": 0,
@@ -3430,11 +3554,11 @@ export default class coinex extends Exchange {
                 request['start_time'] = since;
             }
             request['side'] = 0;
-            response = await this.perpetualPrivateGetMarketUserDeals(this.extend(request, params));
+            response = await this.v1PerpetualPrivateGetMarketUserDeals(this.extend(request, params));
         }
         else {
             request['page'] = 1;
-            response = await this.privateGetOrderUserDeals(this.extend(request, params));
+            response = await this.v1PrivateGetOrderUserDeals(this.extend(request, params));
         }
         //
         // Spot and Margin
@@ -3510,7 +3634,7 @@ export default class coinex extends Exchange {
         //
         const tradeRequest = swap ? 'records' : 'data';
         const data = this.safeValue(response, 'data');
-        const trades = this.safeValue(data, tradeRequest, []);
+        const trades = this.safeList(data, tradeRequest, []);
         return this.parseTrades(trades, market, since, limit);
     }
     async fetchPositions(symbols = undefined, params = {}) {
@@ -3528,8 +3652,8 @@ export default class coinex extends Exchange {
          */
         await this.loadMarkets();
         let defaultMethod = undefined;
-        [defaultMethod, params] = this.handleOptionAndParams(params, 'fetchPositions', 'method', 'perpetualPrivateGetPositionPending');
-        const isHistory = (defaultMethod === 'perpetualPrivateGetPositionFinished');
+        [defaultMethod, params] = this.handleOptionAndParams(params, 'fetchPositions', 'method', 'v1PerpetualPrivateGetPositionPending');
+        const isHistory = (defaultMethod === 'v1PerpetualPrivateGetPositionFinished');
         symbols = this.marketSymbols(symbols);
         const request = {};
         let market = undefined;
@@ -3558,11 +3682,11 @@ export default class coinex extends Exchange {
             request['side'] = this.safeInteger(params, 'side', 0); // 0: All, 1: Sell, 2: Buy
         }
         let response = undefined;
-        if (defaultMethod === 'perpetualPrivateGetPositionPending') {
-            response = await this.perpetualPrivateGetPositionPending(this.extend(request, params));
+        if (defaultMethod === 'v1PerpetualPrivateGetPositionPending') {
+            response = await this.v1PerpetualPrivateGetPositionPending(this.extend(request, params));
         }
         else {
-            response = await this.perpetualPrivateGetPositionFinished(this.extend(request, params));
+            response = await this.v1PerpetualPrivateGetPositionFinished(this.extend(request, params));
         }
         //
         //     {
@@ -3645,7 +3769,7 @@ export default class coinex extends Exchange {
         const request = {
             'market': market['id'],
         };
-        const response = await this.perpetualPrivateGetPositionPending(this.extend(request, params));
+        const response = await this.v1PerpetualPrivateGetPositionPending(this.extend(request, params));
         //
         //     {
         //         "code": 0,
@@ -3705,7 +3829,7 @@ export default class coinex extends Exchange {
         //         "message": "OK"
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parsePosition(data[0], market);
     }
     parsePosition(position, market = undefined) {
@@ -3763,8 +3887,7 @@ export default class coinex extends Exchange {
         //     }
         //
         const marketId = this.safeString(position, 'market');
-        const defaultType = this.safeString(this.options, 'defaultType');
-        market = this.safeMarket(marketId, market, undefined, defaultType);
+        market = this.safeMarket(marketId, market, undefined, 'swap');
         const symbol = market['symbol'];
         const positionId = this.safeInteger(position, 'position_id');
         const marginModeInteger = this.safeInteger(position, 'type');
@@ -3860,7 +3983,7 @@ export default class coinex extends Exchange {
             'leverage': leverage.toString(),
             'position_type': positionType, // 1: isolated, 2: cross
         };
-        return await this.perpetualPrivatePostMarketAdjustLeverage(this.extend(request, params));
+        return await this.v1PerpetualPrivatePostMarketAdjustLeverage(this.extend(request, params));
     }
     async setLeverage(leverage, symbol = undefined, params = {}) {
         /**
@@ -3901,7 +4024,7 @@ export default class coinex extends Exchange {
             'leverage': leverage.toString(),
             'position_type': positionType, // 1: isolated, 2: cross
         };
-        return await this.perpetualPrivatePostMarketAdjustLeverage(this.extend(request, params));
+        return await this.v1PerpetualPrivatePostMarketAdjustLeverage(this.extend(request, params));
     }
     async fetchLeverageTiers(symbols = undefined, params = {}) {
         /**
@@ -3914,7 +4037,7 @@ export default class coinex extends Exchange {
          * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}, indexed by market symbols
          */
         await this.loadMarkets();
-        const response = await this.perpetualPublicGetMarketLimitConfig(params);
+        const response = await this.v1PerpetualPublicGetMarketLimitConfig(params);
         //
         //     {
         //         "code": 0,
@@ -3992,7 +4115,7 @@ export default class coinex extends Exchange {
             'amount': this.amountToPrecision(symbol, amount),
             'type': addOrReduce,
         };
-        const response = await this.perpetualPrivatePostPositionAdjustMargin(this.extend(request, params));
+        const response = await this.v1PerpetualPrivatePostPositionAdjustMargin(this.extend(request, params));
         //
         //     {
         //         "code": 0,
@@ -4122,7 +4245,7 @@ export default class coinex extends Exchange {
         if (since !== undefined) {
             request['start_time'] = since;
         }
-        const response = await this.perpetualPrivateGetPositionFunding(this.extend(request, params));
+        const response = await this.v1PerpetualPrivateGetPositionFunding(this.extend(request, params));
         //
         //     {
         //         "code": 0,
@@ -4188,7 +4311,7 @@ export default class coinex extends Exchange {
         const request = {
             'market': market['id'],
         };
-        const response = await this.perpetualPublicGetMarketTicker(this.extend(request, params));
+        const response = await this.v1PerpetualPublicGetMarketTicker(this.extend(request, params));
         //
         //     {
         //          "code": 0,
@@ -4299,7 +4422,7 @@ export default class coinex extends Exchange {
                 throw new BadSymbol(this.id + ' fetchFundingRates() supports swap contracts only');
             }
         }
-        const response = await this.perpetualPublicGetMarketTickerAll(params);
+        const response = await this.v1PerpetualPublicGetMarketTickerAll(params);
         //
         //     {
         //         "code": 0,
@@ -4381,7 +4504,7 @@ export default class coinex extends Exchange {
         if (networkCode !== undefined) {
             request['smart_contract_name'] = this.networkCodeToId(networkCode);
         }
-        const response = await this.privatePostBalanceCoinWithdraw(this.extend(request, params));
+        const response = await this.v1PrivatePostBalanceCoinWithdraw(this.extend(request, params));
         //
         //     {
         //         "code": 0,
@@ -4400,7 +4523,7 @@ export default class coinex extends Exchange {
         //         "message": "Ok"
         //     }
         //
-        const transaction = this.safeValue(response, 'data', {});
+        const transaction = this.safeDict(response, 'data', {});
         return this.parseTransaction(transaction, currency);
     }
     parseTransactionStatus(status) {
@@ -4453,7 +4576,7 @@ export default class coinex extends Exchange {
             request['start_time'] = since;
         }
         [request, params] = this.handleUntilOption('end_time', request, params);
-        const response = await this.perpetualPublicGetMarketFundingHistory(this.extend(request, params));
+        const response = await this.v1PerpetualPublicGetMarketFundingHistory(this.extend(request, params));
         //
         //     {
         //         "code": 0,
@@ -4630,11 +4753,11 @@ export default class coinex extends Exchange {
         let response = undefined;
         if ((fromAccount === 'spot') && (toAccount === 'swap')) {
             request['transfer_side'] = 'in'; // 'in' spot to swap, 'out' swap to spot
-            response = await this.privatePostContractBalanceTransfer(this.extend(request, params));
+            response = await this.v1PrivatePostContractBalanceTransfer(this.extend(request, params));
         }
         else if ((fromAccount === 'swap') && (toAccount === 'spot')) {
             request['transfer_side'] = 'out'; // 'in' spot to swap, 'out' swap to spot
-            response = await this.privatePostContractBalanceTransfer(this.extend(request, params));
+            response = await this.v1PrivatePostContractBalanceTransfer(this.extend(request, params));
         }
         else {
             const accountsById = this.safeValue(this.options, 'accountsById', {});
@@ -4644,7 +4767,7 @@ export default class coinex extends Exchange {
             // spot is 0, use fetchBalance() to find the margin account id
             request['from_account'] = parseInt(fromId);
             request['to_account'] = parseInt(toId);
-            response = await this.privatePostMarginTransfer(this.extend(request, params));
+            response = await this.v1PrivatePostMarginTransfer(this.extend(request, params));
         }
         //
         //     {"code": 0, "data": null, "message": "Success"}
@@ -4767,10 +4890,10 @@ export default class coinex extends Exchange {
         [marginMode, params] = this.handleMarginModeAndParams('fetchTransfers', params);
         let response = undefined;
         if (marginMode !== undefined) {
-            response = await this.privateGetMarginTransferHistory(this.extend(request, params));
+            response = await this.v1PrivateGetMarginTransferHistory(this.extend(request, params));
         }
         else {
-            response = await this.privateGetContractTransferHistory(this.extend(request, params));
+            response = await this.v1PrivateGetContractTransferHistory(this.extend(request, params));
         }
         //
         // Swap
@@ -4817,7 +4940,7 @@ export default class coinex extends Exchange {
         //     }
         //
         const data = this.safeValue(response, 'data', {});
-        const transfers = this.safeValue(data, 'records', []);
+        const transfers = this.safeList(data, 'records', []);
         return this.parseTransfers(transfers, currency, since, limit);
     }
     async fetchWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -4842,7 +4965,7 @@ export default class coinex extends Exchange {
         if (limit !== undefined) {
             request['Limit'] = limit;
         }
-        const response = await this.privateGetBalanceCoinWithdraw(this.extend(request, params));
+        const response = await this.v1PrivateGetBalanceCoinWithdraw(this.extend(request, params));
         //
         //    {
         //        "code": 0,
@@ -4909,7 +5032,7 @@ export default class coinex extends Exchange {
         if (limit !== undefined) {
             request['Limit'] = limit;
         }
-        const response = await this.privateGetBalanceCoinDeposit(this.extend(request, params));
+        const response = await this.v1PrivateGetBalanceCoinDeposit(this.extend(request, params));
         //
         //    {
         //        "code": 0,
@@ -5002,7 +5125,7 @@ export default class coinex extends Exchange {
         const request = {
             'market': market['id'],
         };
-        const response = await this.privateGetMarginConfig(this.extend(request, params));
+        const response = await this.v1PrivateGetMarginConfig(this.extend(request, params));
         //
         //     {
         //         "code": 0,
@@ -5036,7 +5159,7 @@ export default class coinex extends Exchange {
          * @returns {object} a list of [isolated borrow rate structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#isolated-borrow-rate-structure}
          */
         await this.loadMarkets();
-        const response = await this.privateGetMarginConfig(params);
+        const response = await this.v1PrivateGetMarginConfig(params);
         //
         //     {
         //         "code": 0,
@@ -5077,7 +5200,7 @@ export default class coinex extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.privateGetMarginLoanHistory(this.extend(request, params));
+        const response = await this.v1PrivateGetMarginLoanHistory(this.extend(request, params));
         //
         //     {
         //         "code": 0,
@@ -5173,7 +5296,7 @@ export default class coinex extends Exchange {
             'coin_type': currency['id'],
             'amount': this.currencyToPrecision(code, amount),
         };
-        const response = await this.privatePostMarginLoan(this.extend(request, params));
+        const response = await this.v1PrivatePostMarginLoan(this.extend(request, params));
         //
         //     {
         //         "code": 0,
@@ -5211,7 +5334,7 @@ export default class coinex extends Exchange {
             'coin_type': currency['id'],
             'amount': this.currencyToPrecision(code, amount),
         };
-        const response = await this.privatePostMarginFlat(this.extend(request, params));
+        const response = await this.v1PrivatePostMarginFlat(this.extend(request, params));
         //
         //     {
         //         "code": 0,
@@ -5269,7 +5392,7 @@ export default class coinex extends Exchange {
                 request['coin_type'] = this.safeValue(codes, 0);
             }
         }
-        const response = await this.publicGetCommonAssetConfig(this.extend(request, params));
+        const response = await this.v1PublicGetCommonAssetConfig(this.extend(request, params));
         //
         //    {
         //        "code": 0,
@@ -5369,7 +5492,7 @@ export default class coinex extends Exchange {
         if (marketType !== 'spot') {
             throw new NotSupported(this.id + ' fetchLeverages() supports spot margin markets only');
         }
-        const response = await this.privateGetMarginConfig(params);
+        const response = await this.v1PrivateGetMarginConfig(params);
         //
         //     {
         //         "code": 0,
@@ -5428,9 +5551,11 @@ export default class coinex extends Exchange {
     nonce() {
         return this.milliseconds();
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = [], method = 'GET', params = {}, headers = undefined, body = undefined) {
         path = this.implodeParams(path, params);
-        let url = this.urls['api'][api] + '/' + this.version + '/' + path;
+        const version = api[0];
+        const requestUrl = api[1];
+        let url = this.urls['api'][requestUrl] + '/' + version + '/' + path;
         let query = this.omit(params, this.extractParams(path));
         const nonce = this.nonce().toString();
         if (method === 'POST') {
@@ -5459,7 +5584,7 @@ export default class coinex extends Exchange {
                 }
             }
         }
-        if (api === 'perpetualPrivate') {
+        if (requestUrl === 'perpetualPrivate') {
             this.checkRequiredCredentials();
             query = this.extend({
                 'access_id': this.apiKey,
@@ -5480,29 +5605,49 @@ export default class coinex extends Exchange {
                 body = urlencoded;
             }
         }
-        else if (api === 'public' || api === 'perpetualPublic') {
+        else if (requestUrl === 'public' || requestUrl === 'perpetualPublic') {
             if (Object.keys(query).length) {
                 url += '?' + this.urlencode(query);
             }
         }
         else {
-            this.checkRequiredCredentials();
-            query = this.extend({
-                'access_id': this.apiKey,
-                'tonce': nonce,
-            }, query);
-            query = this.keysort(query);
-            const urlencoded = this.rawencode(query);
-            const signature = this.hash(this.encode(urlencoded + '&secret_key=' + this.secret), md5);
-            headers = {
-                'Authorization': signature.toUpperCase(),
-                'Content-Type': 'application/json',
-            };
-            if ((method === 'GET') || (method === 'DELETE') || (method === 'PUT')) {
-                url += '?' + urlencoded;
+            if (version === 'v1') {
+                this.checkRequiredCredentials();
+                query = this.extend({
+                    'access_id': this.apiKey,
+                    'tonce': nonce,
+                }, query);
+                query = this.keysort(query);
+                const urlencoded = this.rawencode(query);
+                const signature = this.hash(this.encode(urlencoded + '&secret_key=' + this.secret), md5);
+                headers = {
+                    'Authorization': signature.toUpperCase(),
+                    'Content-Type': 'application/json',
+                };
+                if ((method === 'GET') || (method === 'DELETE') || (method === 'PUT')) {
+                    url += '?' + urlencoded;
+                }
+                else {
+                    body = this.json(query);
+                }
             }
-            else {
-                body = this.json(query);
+            else if (version === 'v2') {
+                this.checkRequiredCredentials();
+                query = this.keysort(query);
+                const urlencoded = this.rawencode(query);
+                const preparedString = method + '/' + version + '/' + path + '?' + urlencoded + nonce + this.secret;
+                const signature = this.hash(this.encode(preparedString), sha256);
+                headers = {
+                    'X-COINEX-KEY': this.apiKey,
+                    'X-COINEX-SIGN': signature,
+                    'X-COINEX-TIMESTAMP': nonce,
+                };
+                if ((method === 'GET') || (method === 'DELETE') || (method === 'PUT')) {
+                    url += '?' + urlencoded;
+                }
+                else {
+                    body = this.json(query);
+                }
             }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };

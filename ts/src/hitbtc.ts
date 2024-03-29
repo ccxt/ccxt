@@ -3,7 +3,7 @@ import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { BadSymbol, BadRequest, OnMaintenance, AccountSuspended, PermissionDenied, ExchangeError, RateLimitExceeded, ExchangeNotAvailable, OrderNotFound, InsufficientFunds, InvalidOrder, AuthenticationError, ArgumentsRequired, NotSupported } from './base/errors.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { TransferEntry, Int, OrderSide, OrderType, FundingRateHistory, OHLCV, Ticker, Order, OrderBook, Dictionary, Position, Str, Trade, Balances, Transaction, MarginMode, Tickers, Strings, Market, Currency, MarginModes, Leverage, Num } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, FundingRateHistory, OHLCV, Ticker, Order, OrderBook, Dictionary, Position, Str, Trade, Balances, Transaction, MarginMode, Tickers, Strings, Market, Currency, MarginModes, Leverage, Num, MarginModification } from './base/types.js';
 
 /**
  * @class hitbtc
@@ -649,7 +649,7 @@ export default class hitbtc extends Exchange {
         return this.milliseconds ();
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name hitbtc#fetchMarkets
@@ -1454,15 +1454,16 @@ export default class hitbtc extends Exchange {
         //         ],
         //         "fee": "1.22" // only for WITHDRAW
         //       }
-        //     }
-        //
+        //     },
+        //     "operation_id": "084cfcd5-06b9-4826-882e-fdb75ec3625d", // only for WITHDRAW
+        //     "commit_risk": {}
         // withdraw
         //
         //     {
         //         "id":"084cfcd5-06b9-4826-882e-fdb75ec3625d"
         //     }
         //
-        const id = this.safeString (transaction, 'id');
+        const id = this.safeString2 (transaction, 'operation_id', 'id');
         const timestamp = this.parse8601 (this.safeString (transaction, 'created_at'));
         const updated = this.parse8601 (this.safeString (transaction, 'updated_at'));
         const type = this.parseTransactionType (this.safeString (transaction, 'type'));
@@ -1932,7 +1933,7 @@ export default class hitbtc extends Exchange {
         //       }
         //     ]
         //
-        const order = this.safeValue (response, 0);
+        const order = this.safeDict (response, 0);
         return this.parseOrder (order, market);
     }
 
@@ -3220,7 +3221,7 @@ export default class hitbtc extends Exchange {
         };
     }
 
-    async modifyMarginHelper (symbol: string, amount, type, params = {}) {
+    async modifyMarginHelper (symbol: string, amount, type, params = {}): Promise<MarginModification> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const leverage = this.safeString (params, 'leverage');
@@ -3279,20 +3280,44 @@ export default class hitbtc extends Exchange {
         });
     }
 
-    parseMarginModification (data, market: Market = undefined) {
+    parseMarginModification (data, market: Market = undefined): MarginModification {
+        //
+        // addMargin/reduceMargin
+        //
+        //     {
+        //         "symbol": "BTCUSDT_PERP",
+        //         "type": "isolated",
+        //         "leverage": "8.00",
+        //         "created_at": "2022-03-30T23:34:27.161Z",
+        //         "updated_at": "2022-03-30T23:34:27.161Z",
+        //         "currencies": [
+        //             {
+        //                 "code": "USDT",
+        //                 "margin_balance": "7.000000000000",
+        //                 "reserved_orders": "0",
+        //                 "reserved_positions": "0"
+        //             }
+        //         ],
+        //         "positions": null
+        //     }
+        //
         const currencies = this.safeValue (data, 'currencies', []);
         const currencyInfo = this.safeValue (currencies, 0);
+        const datetime = this.safeString (data, 'updated_at');
         return {
             'info': data,
+            'symbol': market['symbol'],
             'type': undefined,
             'amount': undefined,
+            'total': undefined,
             'code': this.safeString (currencyInfo, 'code'),
-            'symbol': market['symbol'],
             'status': undefined,
+            'timestamp': this.parse8601 (datetime),
+            'datetime': datetime,
         };
     }
 
-    async reduceMargin (symbol: string, amount, params = {}) {
+    async reduceMargin (symbol: string, amount, params = {}): Promise<MarginModification> {
         /**
          * @method
          * @name hitbtc#reduceMargin
@@ -3312,7 +3337,7 @@ export default class hitbtc extends Exchange {
         return await this.modifyMarginHelper (symbol, amount, 'reduce', params);
     }
 
-    async addMargin (symbol: string, amount, params = {}) {
+    async addMargin (symbol: string, amount, params = {}): Promise<MarginModification> {
         /**
          * @method
          * @name hitbtc#addMargin

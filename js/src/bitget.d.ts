@@ -10,7 +10,7 @@ export default class bitget extends Exchange {
     convertSymbolForSandbox(symbol: any): any;
     handleProductTypeAndParams(market?: any, params?: {}): {}[];
     fetchTime(params?: {}): Promise<number>;
-    fetchMarkets(params?: {}): Promise<any>;
+    fetchMarkets(params?: {}): Promise<Market[]>;
     parseMarket(market: any): Market;
     fetchMarketsByType(type: any, params?: {}): Promise<import("./base/types.js").MarketInterface[]>;
     fetchCurrencies(params?: {}): Promise<{}>;

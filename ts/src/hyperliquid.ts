@@ -8,7 +8,7 @@ import { TICK_SIZE, ROUND, SIGNIFICANT_DIGITS, DECIMAL_PLACES } from './base/fun
 import { keccak_256 as keccak } from './static_dependencies/noble-hashes/sha3.js';
 import { secp256k1 } from './static_dependencies/noble-curves/secp256k1.js';
 import { ecdsa } from './base/functions/crypto.js';
-import type { Market, TransferEntry, Balances, Int, OrderBook, OHLCV, Str, FundingRateHistory, Order, OrderType, OrderSide, Trade, Strings, Position, OrderRequest, Dict, Num } from './base/types.js';
+import type { Market, TransferEntry, Balances, Int, OrderBook, OHLCV, Str, FundingRateHistory, Order, OrderType, OrderSide, Trade, Strings, Position, OrderRequest, Dict, Num, MarginModification } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -46,7 +46,7 @@ export default class hyperliquid extends Exchange {
                 'createMarketSellOrderWithCost': false,
                 'createOrder': true,
                 'createOrders': true,
-                'createReduceOnlyOrder': false,
+                'createReduceOnlyOrder': true,
                 'editOrder': true,
                 'fetchAccounts': false,
                 'fetchBalance': true,
@@ -252,7 +252,7 @@ export default class hyperliquid extends Exchange {
         return result;
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name hyperliquid#fetchMarkets
@@ -905,7 +905,7 @@ export default class hyperliquid extends Exchange {
                     'tif': timeInForce,
                 };
             }
-            orderParams = this.omit (orderParams, [ 'clientOrderId', 'slippage', 'triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'timeInForce', 'client_id' ]);
+            orderParams = this.omit (orderParams, [ 'clientOrderId', 'slippage', 'triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'timeInForce', 'client_id', 'reduceOnly', 'postOnly' ]);
             const orderObj = {
                 'a': this.parseToInt (market['baseId']),
                 'b': isBuy,
@@ -1815,7 +1815,7 @@ export default class hyperliquid extends Exchange {
             throw new ArgumentsRequired (this.id + ' setMarginMode() requires a leverage parameter');
         }
         const asset = this.parseToInt (market['baseId']);
-        const isCross = (marginMode === 'isolated');
+        const isCross = (marginMode === 'cross');
         const nonce = this.milliseconds ();
         params = this.omit (params, [ 'leverage' ]);
         const updateAction = {
@@ -1831,9 +1831,10 @@ export default class hyperliquid extends Exchange {
                 vaultAddress = vaultAddress.replace ('0x', '');
             }
         }
-        const signature = this.signL1Action (updateAction, nonce, vaultAddress);
+        const extendedAction = this.extend (updateAction, params);
+        const signature = this.signL1Action (extendedAction, nonce, vaultAddress);
         const request = {
-            'action': updateAction,
+            'action': extendedAction,
             'nonce': nonce,
             'signature': signature,
             // 'vaultAddress': vaultAddress,
@@ -1841,7 +1842,7 @@ export default class hyperliquid extends Exchange {
         if (vaultAddress !== undefined) {
             request['vaultAddress'] = vaultAddress;
         }
-        const response = await this.privatePostExchange (this.extend (request, params));
+        const response = await this.privatePostExchange (request);
         //
         //     {
         //         'response': {
@@ -1904,7 +1905,7 @@ export default class hyperliquid extends Exchange {
         return response;
     }
 
-    async addMargin (symbol: string, amount, params = {}) {
+    async addMargin (symbol: string, amount, params = {}): Promise<MarginModification> {
         /**
          * @method
          * @name hyperliquid#addMargin
@@ -1918,7 +1919,7 @@ export default class hyperliquid extends Exchange {
         return await this.modifyMarginHelper (symbol, amount, 'add', params);
     }
 
-    async reduceMargin (symbol: string, amount, params = {}) {
+    async reduceMargin (symbol: string, amount, params = {}): Promise<MarginModification> {
         /**
          * @method
          * @name hyperliquid#reduceMargin
@@ -1932,7 +1933,7 @@ export default class hyperliquid extends Exchange {
         return await this.modifyMarginHelper (symbol, amount, 'reduce', params);
     }
 
-    async modifyMarginHelper (symbol: string, amount, type, params = {}) {
+    async modifyMarginHelper (symbol: string, amount, type, params = {}): Promise<MarginModification> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const asset = this.parseToInt (market['baseId']);
@@ -1968,10 +1969,28 @@ export default class hyperliquid extends Exchange {
         //         'status': 'ok'
         //     }
         //
-        return response;
-        // return this.extend (this.parseMarginModification (response, market), {
-        //     'code': code,
-        // });
+        return this.extend (this.parseMarginModification (response, market), {
+            'code': this.safeString (response, 'status'),
+        });
+    }
+
+    parseMarginModification (data, market: Market = undefined): MarginModification {
+        //
+        //    {
+        //        'type': 'default'
+        //    }
+        //
+        return {
+            'info': data,
+            'symbol': this.safeSymbol (undefined, market),
+            'type': undefined,
+            'amount': undefined,
+            'total': undefined,
+            'code': this.safeString (market, 'settle'),
+            'status': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+        };
     }
 
     async transfer (code: string, amount: number, fromAccount: string, toAccount: string, params = {}): Promise<TransferEntry> {
@@ -2075,10 +2094,10 @@ export default class hyperliquid extends Exchange {
         [ userAux, params ] = this.handleOptionAndParams (params, methodName, 'user');
         let user = userAux;
         [ user, params ] = this.handleOptionAndParams (params, methodName, 'address', userAux);
-        if (user !== undefined) {
+        if ((user !== undefined) && (user !== '')) {
             return [ user, params ];
         }
-        if (this.walletAddress !== undefined) {
+        if ((this.walletAddress !== undefined) && (this.walletAddress !== '')) {
             return [ this.walletAddress, params ];
         }
         throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a user parameter inside \'params\' or the wallet address set');

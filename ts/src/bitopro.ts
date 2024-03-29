@@ -279,7 +279,7 @@ export default class bitopro extends Exchange {
         return result;
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name bitopro#fetchMarkets
@@ -1690,7 +1690,7 @@ export default class bitopro extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         return this.parseDepositWithdrawFees (data, codes, 'currency');
     }
 

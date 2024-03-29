@@ -665,7 +665,7 @@ class hitbtc(Exchange, ImplicitAPI):
     def nonce(self):
         return self.milliseconds()
 
-    async def fetch_markets(self, params={}):
+    async def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for hitbtc
         :see: https://api.hitbtc.com/#symbols
@@ -1404,15 +1404,16 @@ class hitbtc(Exchange, ImplicitAPI):
         #         ],
         #         "fee": "1.22"  # only for WITHDRAW
         #       }
-        #     }
-        #
+        #     },
+        #     "operation_id": "084cfcd5-06b9-4826-882e-fdb75ec3625d",  # only for WITHDRAW
+        #     "commit_risk": {}
         # withdraw
         #
         #     {
         #         "id":"084cfcd5-06b9-4826-882e-fdb75ec3625d"
         #     }
         #
-        id = self.safe_string(transaction, 'id')
+        id = self.safe_string_2(transaction, 'operation_id', 'id')
         timestamp = self.parse8601(self.safe_string(transaction, 'created_at'))
         updated = self.parse8601(self.safe_string(transaction, 'updated_at'))
         type = self.parse_transaction_type(self.safe_string(transaction, 'type'))
@@ -1830,7 +1831,7 @@ class hitbtc(Exchange, ImplicitAPI):
         #       }
         #     ]
         #
-        order = self.safe_value(response, 0)
+        order = self.safe_dict(response, 0)
         return self.parse_order(order, market)
 
     async def fetch_order_trades(self, id: str, symbol: Str = None, since: Int = None, limit: Int = None, params={}):

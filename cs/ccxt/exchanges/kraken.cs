@@ -1021,7 +1021,7 @@ public partial class kraken : Exchange
         //         }
         //     }
         object result = this.safeValue(response, "result", new Dictionary<string, object>() {});
-        object ohlcvs = this.safeValue(result, getValue(market, "id"), new List<object>() {});
+        object ohlcvs = this.safeList(result, getValue(market, "id"), new List<object>() {});
         return this.parseOHLCVs(ohlcvs, market, timeframe, since, limit);
     }
 
@@ -1453,7 +1453,7 @@ public partial class kraken : Exchange
         //         }
         //     }
         //
-        object result = this.safeValue(response, "result");
+        object result = this.safeDict(response, "result");
         return this.parseOrder(result);
     }
 
@@ -1942,7 +1942,7 @@ public partial class kraken : Exchange
         //         }
         //     }
         //
-        object data = this.safeValue(response, "result", new Dictionary<string, object>() {});
+        object data = this.safeDict(response, "result", new Dictionary<string, object>() {});
         return this.parseOrder(data, market);
     }
 
@@ -2320,8 +2320,8 @@ public partial class kraken : Exchange
         {
             market = this.market(symbol);
         }
-        object result = this.safeValue(response, "result", new Dictionary<string, object>() {});
-        object orders = this.safeValue(result, "open", new List<object>() {});
+        object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
+        object orders = this.safeDict(result, "open", new Dictionary<string, object>() {});
         return this.parseOrders(orders, market, since, limit);
     }
 
@@ -2401,8 +2401,8 @@ public partial class kraken : Exchange
         {
             market = this.market(symbol);
         }
-        object result = this.safeValue(response, "result", new Dictionary<string, object>() {});
-        object orders = this.safeValue(result, "closed", new List<object>() {});
+        object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
+        object orders = this.safeDict(result, "closed", new Dictionary<string, object>() {});
         return this.parseOrders(orders, market, since, limit);
     }
 
@@ -2918,7 +2918,7 @@ public partial class kraken : Exchange
             //         }
             //     }
             //
-            object result = this.safeValue(response, "result", new Dictionary<string, object>() {});
+            object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
             return this.parseTransaction(result, currency);
         }
         throw new ExchangeError ((string)add(this.id, " withdraw() requires a \'key\' parameter (withdrawal key name, as set up on your account)")) ;

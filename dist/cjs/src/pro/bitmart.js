@@ -704,10 +704,10 @@ class bitmart extends bitmart$1 {
         //    }
         //
         const data = this.safeValue(message, 'data', []);
-        const cache = this.positions;
         if (this.positions === undefined) {
             this.positions = new Cache.ArrayCacheBySymbolBySide();
         }
+        const cache = this.positions;
         const newPositions = [];
         for (let i = 0; i < data.length; i++) {
             const rawPosition = data[i];

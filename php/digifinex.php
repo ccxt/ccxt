@@ -510,7 +510,7 @@ class digifinex extends Exchange {
         return $result;
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): array {
         /**
          * retrieves data on all markets for digifinex
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1423,7 +1423,7 @@ class digifinex extends Exchange {
         //         )
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_list($response, 'data', array());
         return $this->parse_trades($data, $market, $since, $limit);
     }
 
@@ -2167,7 +2167,7 @@ class digifinex extends Exchange {
         //         )
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_list($response, 'data', array());
         return $this->parse_orders($data, $market, $since, $limit);
     }
 
@@ -2270,7 +2270,7 @@ class digifinex extends Exchange {
         //         )
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_list($response, 'data', array());
         return $this->parse_orders($data, $market, $since, $limit);
     }
 
@@ -2463,7 +2463,7 @@ class digifinex extends Exchange {
         //     }
         //
         $responseRequest = ($marketType === 'swap') ? 'data' : 'list';
-        $data = $this->safe_value($response, $responseRequest, array());
+        $data = $this->safe_list($response, $responseRequest, array());
         return $this->parse_trades($data, $market, $since, $limit);
     }
 
@@ -2708,7 +2708,7 @@ class digifinex extends Exchange {
         //         )
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_list($response, 'data', array());
         return $this->parse_transactions($data, $currency, $since, $limit, array( 'type' => $type ));
     }
 
@@ -3659,7 +3659,7 @@ class digifinex extends Exchange {
         //         )
         //     }
         //
-        $transfers = $this->safe_value($response, 'data', array());
+        $transfers = $this->safe_list($response, 'data', array());
         return $this->parse_transfers($transfers, $currency, $since, $limit);
     }
 
@@ -3910,7 +3910,7 @@ class digifinex extends Exchange {
         //       "code" => 200,
         //   }
         //
-        $data = $this->safe_value($response, 'data');
+        $data = $this->safe_list($response, 'data');
         return $this->parse_deposit_withdraw_fees($data, $codes);
     }
 
@@ -4106,7 +4106,7 @@ class digifinex extends Exchange {
         //         )
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_list($response, 'data', array());
         return $this->parse_incomes($data, $market, $since, $limit);
     }
 

@@ -280,7 +280,7 @@ class bitopro(Exchange, ImplicitAPI):
             }
         return result
 
-    def fetch_markets(self, params={}):
+    def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for bitopro
         :see: https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/public/get_trading_pair_info.md
@@ -1574,7 +1574,7 @@ class bitopro(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        data = self.safe_value(response, 'data', [])
+        data = self.safe_list(response, 'data', [])
         return self.parse_deposit_withdraw_fees(data, codes, 'currency')
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):

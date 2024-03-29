@@ -824,17 +824,16 @@ class kucoin(ccxt.async_support.kucoin):
         return self.filter_by_symbol_since_limit(trades, symbol, since, limit, True)
 
     def handle_my_trade(self, client: Client, message):
-        trades = self.myTrades
-        if trades is None:
+        if self.myTrades is None:
             limit = self.safe_integer(self.options, 'tradesLimit', 1000)
-            trades = ArrayCacheBySymbolById(limit)
-        data = self.safe_value(message, 'data')
+            self.myTrades = ArrayCacheBySymbolById(limit)
+        data = self.safe_dict(message, 'data')
         parsed = self.parse_ws_trade(data)
-        trades.append(parsed)
+        self.myTrades.append(parsed)
         messageHash = 'myTrades'
-        client.resolve(trades, messageHash)
+        client.resolve(self.myTrades, messageHash)
         symbolSpecificMessageHash = messageHash + ':' + parsed['symbol']
-        client.resolve(trades, symbolSpecificMessageHash)
+        client.resolve(self.myTrades, symbolSpecificMessageHash)
 
     def parse_ws_trade(self, trade, market=None):
         #

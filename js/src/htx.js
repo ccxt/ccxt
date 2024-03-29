@@ -2202,7 +2202,7 @@ export default class htx extends Exchange {
         //         "ts":1639547261293
         //     }
         //
-        // inverse swaps, linear swaps, inverse futures
+        // linear swap, linear future, inverse swap, inverse future
         //
         //     {
         //         "status":"ok",
@@ -2219,35 +2219,13 @@ export default class htx extends Exchange {
         //                 "high":"0.10725",
         //                 "amount":"2340267.415144052378486261756692535687481566",
         //                 "count":882,
-        //                 "vol":"24706"
+        //                 "vol":"24706",
+        //                 "trade_turnover":"840726.5048", // only in linear futures
+        //                 "business_type":"futures", // only in linear futures
+        //                 "contract_code":"BTC-USDT-CW", // only in linear futures, instead of 'symbol'
         //             }
         //         ],
         //         "ts":1637504679376
-        //     }
-        //
-        // linear futures
-        //
-        //     {
-        //         "status":"ok",
-        //         "ticks":[
-        //             {
-        //                 "id":1640745627,
-        //                 "ts":1640745627957,
-        //                 "ask":[48079.1,20],
-        //                 "bid":[47713.8,125],
-        //                 "business_type":"futures",
-        //                 "contract_code":"BTC-USDT-CW",
-        //                 "open":"49011.8",
-        //                 "close":"47934",
-        //                 "low":"47292.3",
-        //                 "high":"49011.8",
-        //                 "amount":"17.398",
-        //                 "count":1515,
-        //                 "vol":"17398",
-        //                 "trade_turnover":"840726.5048"
-        //             }
-        //         ],
-        //         "ts":1640745627988
         //     }
         //
         const tickers = this.safeValue2(response, 'data', 'ticks', []);
@@ -2389,7 +2367,7 @@ export default class htx extends Exchange {
             throw new NotSupported(this.id + ' fetchLastPrices() does not support ' + type + ' markets yet');
         }
         const tick = this.safeValue(response, 'tick', {});
-        const data = this.safeValue(tick, 'data', []);
+        const data = this.safeList(tick, 'data', []);
         return this.parseLastPrices(data, symbols);
     }
     parseLastPrice(entry, market = undefined) {
@@ -3982,7 +3960,7 @@ export default class htx extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseOrders(data, market, since, limit);
     }
     async fetchSpotOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -7379,7 +7357,7 @@ export default class htx extends Exchange {
             request['symbol'] = market['id'];
             response = await this.contractPrivatePostApiV3ContractFinancialRecordExact(this.extend(request, query));
         }
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseIncomes(data, market, since, limit);
     }
     async setLeverage(leverage, symbol = undefined, params = {}) {
@@ -8163,7 +8141,7 @@ export default class htx extends Exchange {
         //        ]
         //    }
         //
-        const data = this.safeValue(response, 'data');
+        const data = this.safeList(response, 'data');
         return this.parseLeverageTiers(data, symbols, 'contract_code');
     }
     async fetchMarketLeverageTiers(symbol, params = {}) {
@@ -8367,7 +8345,7 @@ export default class htx extends Exchange {
         //    }
         //
         const data = this.safeValue(response, 'data');
-        const tick = this.safeValue(data, 'tick');
+        const tick = this.safeList(data, 'tick');
         return this.parseOpenInterests(tick, market, since, limit);
     }
     async fetchOpenInterest(symbol, params = {}) {
@@ -8875,7 +8853,7 @@ export default class htx extends Exchange {
         //        ]
         //    }
         //
-        const data = this.safeValue(response, 'data');
+        const data = this.safeList(response, 'data');
         return this.parseDepositWithdrawFees(data, codes, 'currency');
     }
     parseDepositWithdrawFee(fee, currency = undefined) {
@@ -9103,7 +9081,7 @@ export default class htx extends Exchange {
         //         "ts": 1604312615051
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseLiquidations(data, market, since, limit);
     }
     parseLiquidation(liquidation, market = undefined) {

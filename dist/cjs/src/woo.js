@@ -1349,7 +1349,7 @@ class woo extends woo$1 {
         //     ]
         // }
         //
-        const orders = this.safeValue(response, 'data', response);
+        const orders = this.safeDict(response, 'data', response);
         return this.parseOrder(orders, market);
     }
     async fetchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
