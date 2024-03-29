@@ -538,7 +538,7 @@ async function exportEverything () {
             // exceptions automatic import statement
             file: ccxtFileDir,
             regex:  /(import\s+\{)(.*?)(\}\s+from\s+'.\/src\/base\/errors.js'\n+)/g,
-            replacement: '$1' + errorsArray.join(", ") + '$3'
+            replacement: '$1' + errorsExports.join(", ") + '$3'
         },
         {
             file: ccxtFileDir,
