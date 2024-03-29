@@ -9,13 +9,20 @@ import { implicitReturnType } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
 interface Exchange {
+    publicGetTime (params?: {}): Promise<implicitReturnType>;
     publicGetTickerBookTicker (params?: {}): Promise<implicitReturnType>;
     publicGetExchangeInfo (params?: {}): Promise<implicitReturnType>;
+    publicGetSymbolType (params?: {}): Promise<implicitReturnType>;
+    publicGetTickerBookTicker (params?: {}): Promise<implicitReturnType>;
     publicGetKlines (params?: {}): Promise<implicitReturnType>;
-    publicGetTime (params?: {}): Promise<implicitReturnType>;
+    publicGetTicker24h (params?: {}): Promise<implicitReturnType>;
     publicGetDepth (params?: {}): Promise<implicitReturnType>;
     publicGetTrades (params?: {}): Promise<implicitReturnType>;
     publicGetAggTrades (params?: {}): Promise<implicitReturnType>;
+    publicGetTickerPrice (params?: {}): Promise<implicitReturnType>;
+    publicGetAccount (params?: {}): Promise<implicitReturnType>;
+    publicGetUserTrades (params?: {}): Promise<implicitReturnType>;
+    publicGetAssetTradeFee (params?: {}): Promise<implicitReturnType>;
     publicGetTicker24hr (params?: {}): Promise<implicitReturnType>;
     publicPostInnerGetAllAsset (params?: {}): Promise<implicitReturnType>;
     privateGetAllOrders (params?: {}): Promise<implicitReturnType>;
@@ -25,9 +32,24 @@ interface Exchange {
     privateGetOrder (params?: {}): Promise<implicitReturnType>;
     privateGetCapitalDepositHistory (params?: {}): Promise<implicitReturnType>;
     privateGetCapitalWithdrawHistory (params?: {}): Promise<implicitReturnType>;
+    privateGetCapitalDepositAddress (params?: {}): Promise<implicitReturnType>;
+    privateGetAssetTransferHistory (params?: {}): Promise<implicitReturnType>;
     privateDeleteOrder (params?: {}): Promise<implicitReturnType>;
+    privateDeleteOpenOrders (params?: {}): Promise<implicitReturnType>;
+    privateDeleteOrderOco (params?: {}): Promise<implicitReturnType>;
+    privateDeleteListenKey (params?: {}): Promise<implicitReturnType>;
     privatePostOrder (params?: {}): Promise<implicitReturnType>;
+    privatePostOrderOco (params?: {}): Promise<implicitReturnType>;
+    privatePostWidthdraw (params?: {}): Promise<implicitReturnType>;
+    privatePostCapitalWidthraw (params?: {}): Promise<implicitReturnType>;
+    privatePostAssetTransfer (params?: {}): Promise<implicitReturnType>;
+    privatePostInnerGetAllAsset (params?: {}): Promise<implicitReturnType>;
+    privatePostInnerGetCloudKycStatus (params?: {}): Promise<implicitReturnType>;
+    privatePostInnerOauthQueryOauthBindInfo (params?: {}): Promise<implicitReturnType>;
+    privatePostListenKey (params?: {}): Promise<implicitReturnType>;
+    privatePutListenKey (params?: {}): Promise<implicitReturnType>;
 }
 abstract class Exchange extends _Exchange {}
 
 export default Exchange
+
