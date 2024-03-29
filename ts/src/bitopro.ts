@@ -772,17 +772,15 @@ export default class bitopro extends Exchange {
         }
         const timeframeInSeconds = this.parseTimeframe (timeframe);
         let alignedSince = undefined;
-        let to = undefined;
         if (since === undefined) {
             request['to'] = this.seconds ();
-            to = request['to'] - (limit * timeframeInSeconds);
+            request['from'] = request['to'] - (limit * timeframeInSeconds);
         } else {
             const timeframeInMilliseconds = timeframeInSeconds * 1000;
             alignedSince = Math.floor (since / timeframeInMilliseconds) * timeframeInMilliseconds;
             request['from'] = Math.floor (since / 1000);
-            to = this.sum (request['from'], limit * timeframeInSeconds);
+            request['to'] = this.sum (request['from'], limit * timeframeInSeconds);
         }
-        request['to'] = Math.max (to, 1); // errors before this
         const response = await this.publicGetTradingHistoryPair (this.extend (request, params));
         const data = this.safeValue (response, 'data', []);
         //
