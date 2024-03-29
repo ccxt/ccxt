@@ -729,6 +729,52 @@
                   }
                 ]
             }
+        ],
+        "fetchTradingFees": [
+            {
+                "description": "trading fee",
+                "method": "fetchTradingFee",
+                "input": [
+                  "BTC/USDT"
+                ],
+                "httpResponse": {
+                  "code": "0",
+                  "data": [
+                    {
+                      "base_ccy": "BTC",
+                      "base_ccy_precision": "8",
+                      "is_amm_available": false,
+                      "is_margin_available": true,
+                      "maker_fee_rate": "0.002",
+                      "market": "BTCUSDT",
+                      "min_amount": "0.0001",
+                      "quote_ccy": "USDT",
+                      "quote_ccy_precision": "2",
+                      "taker_fee_rate": "0.002"
+                    }
+                  ],
+                  "message": "OK"
+                },
+                "parsedResponse": {
+                  "info": {
+                    "base_ccy": "BTC",
+                    "base_ccy_precision": "8",
+                    "is_amm_available": false,
+                    "is_margin_available": true,
+                    "maker_fee_rate": "0.002",
+                    "market": "BTCUSDT",
+                    "min_amount": "0.0001",
+                    "quote_ccy": "USDT",
+                    "quote_ccy_precision": "2",
+                    "taker_fee_rate": "0.002"
+                  },
+                  "symbol": "BTC/USDT",
+                  "maker": 0.002,
+                  "taker": 0.002,
+                  "percentage": true,
+                  "tierBased": true
+                }
+            }
         ]
     }
 }
