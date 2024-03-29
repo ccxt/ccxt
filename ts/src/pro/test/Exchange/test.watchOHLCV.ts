@@ -21,7 +21,7 @@ async function testWatchOHLCV (exchange, skippedProperties, symbol) {
         let response = undefined;
         try {
             response = await exchange.watchOHLCV (symbol, chosenTimeframeKey, since, limit);
-        } catch (e) {
+        } catch (e: any) {
             if (!testSharedMethods.isTemporaryFailure (e)) {
                 throw e;
             }
