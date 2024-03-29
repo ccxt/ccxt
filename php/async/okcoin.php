@@ -1146,8 +1146,10 @@ class okcoin extends Exchange {
             $request = array(
                 'instId' => $market['id'],
                 'bar' => $bar,
-                'limit' => $limit,
             );
+            if ($limit !== null) {
+                $request['limit'] = $limit; // default 100, max 100
+            }
             $method = null;
             list($method, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'method', 'publicGetMarketCandles');
             $response = null;

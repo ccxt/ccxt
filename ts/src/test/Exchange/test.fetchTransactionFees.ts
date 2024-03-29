@@ -1,5 +1,6 @@
+import { Exchange } from "../../../ccxt";
 
-async function testFetchTransactionFees (exchange, skippedProperties) {
+async function testFetchTransactionFees (exchange: Exchange, skippedProperties: string[]) {
     // const method = 'fetchTransactionFees';
     // const fees = await exchange.fetchTransactionFees ();
     // const withdrawKeys = Object.keys (fees['withdraw']);

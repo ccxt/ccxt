@@ -1121,8 +1121,9 @@ class okcoin(Exchange, ImplicitAPI):
         request = {
             'instId': market['id'],
             'bar': bar,
-            'limit': limit,
         }
+        if limit is not None:
+            request['limit'] = limit  # default 100, max 100
         method = None
         method, params = self.handle_option_and_params(params, 'fetchOHLCV', 'method', 'publicGetMarketCandles')
         response = None

@@ -644,7 +644,7 @@ public partial class bingx : Exchange
             symbol = add(symbol, add(":", settle));
         }
         object fees = this.safeDict(this.fees, type, new Dictionary<string, object>() {});
-        object contractSize = this.safeNumber(market, "size");
+        object contractSize = ((bool) isTrue((swap))) ? this.parseNumber("1") : null;
         object isActive = isEqual(this.safeString(market, "status"), "1");
         object isInverse = ((bool) isTrue((spot))) ? null : false;
         object isLinear = ((bool) isTrue((spot))) ? null : swap;
@@ -685,7 +685,7 @@ public partial class bingx : Exchange
                     { "max", this.safeInteger(market, "maxLongLeverage") },
                 } },
                 { "amount", new Dictionary<string, object>() {
-                    { "min", this.safeNumber(market, "minQty") },
+                    { "min", this.safeNumber2(market, "minQty", "tradeMinQuantity") },
                     { "max", this.safeNumber(market, "maxQty") },
                 } },
                 { "price", new Dictionary<string, object>() {
@@ -693,7 +693,7 @@ public partial class bingx : Exchange
                     { "max", null },
                 } },
                 { "cost", new Dictionary<string, object>() {
-                    { "min", this.safeNumber(market, "minNotional") },
+                    { "min", this.safeNumber2(market, "minNotional", "tradeMinUSDT") },
                     { "max", this.safeNumber(market, "maxNotional") },
                 } },
             } },
@@ -1072,6 +1072,14 @@ public partial class bingx : Exchange
         {
             takeOrMaker = ((bool) isTrue(isMaker)) ? "maker" : "taker";
         }
+        object amount = this.safeStringN(trade, new List<object>() {"qty", "amount", "q"});
+        if (isTrue(isTrue(isTrue((!isEqual(market, null))) && isTrue(getValue(market, "swap"))) && isTrue((inOp(trade, "volume")))))
+        {
+            // private trade returns num of contracts instead of base currency (as the order-related methods do)
+            object contractSize = this.safeString(getValue(market, "info"), "tradeMinQuantity");
+            object volume = this.safeString(trade, "volume");
+            amount = Precise.stringMul(volume, contractSize);
+        }
         return this.safeTrade(new Dictionary<string, object>() {
             { "id", this.safeStringN(trade, new List<object>() {"id", "t"}) },
             { "info", trade },
@@ -1083,7 +1091,7 @@ public partial class bingx : Exchange
             { "side", this.parseOrderSide(side) },
             { "takerOrMaker", takeOrMaker },
             { "price", this.safeString2(trade, "price", "p") },
-            { "amount", this.safeStringN(trade, new List<object>() {"qty", "volume", "amount", "q"}) },
+            { "amount", amount },
             { "cost", cost },
             { "fee", new Dictionary<string, object>() {
                 { "cost", this.parseNumber(Precise.stringAbs(this.safeString2(trade, "commission", "n"))) },
@@ -1786,19 +1794,27 @@ public partial class bingx : Exchange
     public override object parsePosition(object position, object market = null)
     {
         //
-        //     {
-        //         "symbol": "BTC-USDT",
-        //         "positionId": "12345678",
-        //         "positionSide": "LONG",
-        //         "isolated": true,
-        //         "positionAmt": "123.33",
-        //         "availableAmt": "128.99",
-        //         "unrealizedProfit": "1.22",
-        //         "realisedProfit": "8.1",
-        //         "initialMargin": "123.33",
-        //         "avgPrice": "2.2",
-        //         "leverage": 10,
-        //     }
+        //    {
+        //        "positionId":"1773122376147623936",
+        //        "symbol":"XRP-USDT",
+        //        "currency":"USDT",
+        //        "positionAmt":"3",
+        //        "availableAmt":"3",
+        //        "positionSide":"LONG",
+        //        "isolated":false,
+        //        "avgPrice":"0.6139",
+        //        "initialMargin":"0.0897",
+        //        "leverage":20,
+        //        "unrealizedProfit":"-0.0023",
+        //        "realisedProfit":"-0.0009",
+        //        "liquidationPrice":0,
+        //        "pnlRatio":"-0.0260",
+        //        "maxMarginReduction":"",
+        //        "riskRate":"",
+        //        "markPrice":"",
+        //        "positionValue":"",
+        //        "onlyOnePosition":false
+        //    }
         //
         // standard position
         //
@@ -1826,7 +1842,7 @@ public partial class bingx : Exchange
             { "info", position },
             { "id", this.safeString(position, "positionId") },
             { "symbol", this.safeSymbol(marketId, market, "-", "swap") },
-            { "notional", this.safeNumber(position, "positionAmt") },
+            { "notional", this.safeNumber(position, "positionValue") },
             { "marginMode", marginMode },
             { "liquidationPrice", null },
             { "entryPrice", this.safeNumber2(position, "avgPrice", "entryPrice") },
@@ -1844,7 +1860,7 @@ public partial class bingx : Exchange
             { "lastUpdateTimestamp", null },
             { "maintenanceMargin", null },
             { "maintenanceMarginPercentage", null },
-            { "collateral", this.safeNumber(position, "positionAmt") },
+            { "collateral", null },
             { "initialMargin", this.safeNumber(position, "initialMargin") },
             { "initialMarginPercentage", null },
             { "leverage", this.safeNumber(position, "leverage") },

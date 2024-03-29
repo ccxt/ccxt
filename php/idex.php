@@ -156,13 +156,15 @@ class idex extends Exchange {
                 'network' => 'MATIC',
             ),
             'exceptions' => array(
-                'INVALID_ORDER_QUANTITY' => '\\ccxt\\InvalidOrder',
-                'INSUFFICIENT_FUNDS' => '\\ccxt\\InsufficientFunds',
-                'SERVICE_UNAVAILABLE' => '\\ccxt\\ExchangeNotAvailable',
-                'EXCEEDED_RATE_LIMIT' => '\\ccxt\\DDoSProtection',
-                'INVALID_PARAMETER' => '\\ccxt\\BadRequest',
-                'WALLET_NOT_ASSOCIATED' => '\\ccxt\\InvalidAddress',
-                'INVALID_WALLET_SIGNATURE' => '\\ccxt\\AuthenticationError',
+                'exact' => array(
+                    'INVALID_ORDER_QUANTITY' => '\\ccxt\\InvalidOrder',
+                    'INSUFFICIENT_FUNDS' => '\\ccxt\\InsufficientFunds',
+                    'SERVICE_UNAVAILABLE' => '\\ccxt\\ExchangeNotAvailable',
+                    'EXCEEDED_RATE_LIMIT' => '\\ccxt\\DDoSProtection',
+                    'INVALID_PARAMETER' => '\\ccxt\\BadRequest',
+                    'WALLET_NOT_ASSOCIATED' => '\\ccxt\\InvalidAddress',
+                    'INVALID_WALLET_SIGNATURE' => '\\ccxt\\AuthenticationError',
+                ),
             ),
             'requiredCredentials' => array(
                 'walletAddress' => true,
@@ -1469,11 +1471,8 @@ class idex extends Exchange {
     public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         $errorCode = $this->safe_string($response, 'code');
         $message = $this->safe_string($response, 'message');
-        if (is_array($this->exceptions) && array_key_exists($errorCode, $this->exceptions)) {
-            $Exception = $this->exceptions[$errorCode];
-            throw new $Exception($this->id . ' ' . $message);
-        }
         if ($errorCode !== null) {
+            $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $message);
             throw new ExchangeError($this->id . ' ' . $message);
         }
         return null;

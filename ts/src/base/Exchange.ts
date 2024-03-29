@@ -64,6 +64,7 @@ import type {
     Liquidation,
     MarginMode,
     MarginModes,
+    MarginModification,
     Market,
     MarketInterface,
     MarketType,
@@ -2388,7 +2389,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' parseMarketLeverageTiers() is not supported yet');
     }
 
-    async fetchLeverageTiers (symbols: string[] = undefined, params = {}): Promise<Dictionary<LeverageTier>> {
+    async fetchLeverageTiers (symbols: string[] = undefined, params = {}): Promise<Dictionary<LeverageTier[]>> {
         throw new NotSupported (this.id + ' fetchLeverageTiers() is not supported yet');
     }
 
@@ -2469,11 +2470,11 @@ export default class Exchange {
         throw new NotSupported (this.id + ' setPositionMode() is not supported yet');
     }
 
-    async addMargin (symbol: string, amount: number, params = {}): Promise<{}> {
+    async addMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
         throw new NotSupported (this.id + ' addMargin() is not supported yet');
     }
 
-    async reduceMargin (symbol: string, amount: number, params = {}): Promise<{}> {
+    async reduceMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
         throw new NotSupported (this.id + ' reduceMargin() is not supported yet');
     }
 

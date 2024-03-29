@@ -162,13 +162,15 @@ class idex extends idex$1 {
                 'network': 'MATIC',
             },
             'exceptions': {
-                'INVALID_ORDER_QUANTITY': errors.InvalidOrder,
-                'INSUFFICIENT_FUNDS': errors.InsufficientFunds,
-                'SERVICE_UNAVAILABLE': errors.ExchangeNotAvailable,
-                'EXCEEDED_RATE_LIMIT': errors.DDoSProtection,
-                'INVALID_PARAMETER': errors.BadRequest,
-                'WALLET_NOT_ASSOCIATED': errors.InvalidAddress,
-                'INVALID_WALLET_SIGNATURE': errors.AuthenticationError,
+                'exact': {
+                    'INVALID_ORDER_QUANTITY': errors.InvalidOrder,
+                    'INSUFFICIENT_FUNDS': errors.InsufficientFunds,
+                    'SERVICE_UNAVAILABLE': errors.ExchangeNotAvailable,
+                    'EXCEEDED_RATE_LIMIT': errors.DDoSProtection,
+                    'INVALID_PARAMETER': errors.BadRequest,
+                    'WALLET_NOT_ASSOCIATED': errors.InvalidAddress,
+                    'INVALID_WALLET_SIGNATURE': errors.AuthenticationError,
+                },
             },
             'requiredCredentials': {
                 'walletAddress': true,
@@ -1494,11 +1496,8 @@ class idex extends idex$1 {
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         const errorCode = this.safeString(response, 'code');
         const message = this.safeString(response, 'message');
-        if (errorCode in this.exceptions) {
-            const Exception = this.exceptions[errorCode];
-            throw new Exception(this.id + ' ' + message);
-        }
         if (errorCode !== undefined) {
+            this.throwExactlyMatchedException(this.exceptions['exact'], errorCode, message);
             throw new errors.ExchangeError(this.id + ' ' + message);
         }
         return undefined;

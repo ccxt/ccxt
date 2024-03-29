@@ -111,7 +111,7 @@ function ioDirRead (path) {
     return files;
 }
 
-async function callMethod (testFiles, methodName, exchange, skippedProperties, args) {
+async function callMethod (testFiles, methodName, exchange, skippedProperties: string[], args) {
     // used for calling methods from test files
     return await testFiles[methodName] (exchange, skippedProperties, ...args);
 }
