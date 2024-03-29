@@ -26,7 +26,7 @@ export default class commex extends Exchange {
                 'spot': true,
                 'margin': false,
                 'swap': false,
-                'future': true,
+                'future': false,
                 'option': false,
                 'addMargin': false,
                 'cancelAllOrders': true,
@@ -144,13 +144,20 @@ export default class commex extends Exchange {
             'api': {
                 'public': {
                     'get': [
+                        'time',
                         'ticker/bookTicker',
                         'exchangeInfo',
+                        'symbolType',
+                        'ticker/bookTicker',
                         'klines',
-                        'time',
+                        'ticker/24h',
                         'depth',
                         'trades',
                         'aggTrades',
+                        'ticker/price',
+                        'account',
+                        'userTrades',
+                        'asset/tradeFee',
                         'ticker/24hr',
                     ],
                     'post': [
@@ -166,12 +173,28 @@ export default class commex extends Exchange {
                         'order',
                         'capital/deposit/history',
                         'capital/withdraw/history',
+                        'capital/deposit/address',
+                        'asset/transfer-history',
                     ],
                     'delete': [
                         'order',
+                        'openOrders',
+                        'order/oco',
+                        'listenKey',
                     ],
-                        'post': [
+                    'post': [
                         'order',
+                        'order/oco',
+                        'widthdraw',
+                        'capital/widthraw',
+                        'asset/transfer',
+                        'inner/getAllAsset',
+                        'inner/getCloudKycStatus',
+                        'inner/oauth/queryOauthBindInfo',
+                        'listenKey',
+                    ],
+                    'put': [
+                        'listenKey',
                     ],
                 },
             },
@@ -633,10 +656,9 @@ export default class commex extends Exchange {
          * @method
          * @name commex#fetchTicker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-         * @see https://www.commex.com/api-docs/en/#24hr-ticker-price-change-statistics         // spot
+         * @see https://www.commex.com/api-docs/en/#24hr-ticker-price-change-statistics
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {boolean} [params.rolling] (spot only) default false, if true, uses the rolling 24 hour ticker endpoint /api/v3/ticker
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          * Example request single ticker
          * {"symbol":"BTCUSDT","priceChange":"536.40000000","priceChangePercent":"1.257","weightedAvgPrice":"43067.42186779","prevClosePrice":null,"lastPrice":"43205.10000000",
@@ -708,9 +730,9 @@ export default class commex extends Exchange {
     async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         /**
          * @method
-         * @name binance#fetchTickers
+         * @name commex#fetchTickers
          * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-         * @see https://binance-docs.github.io/apidocs/spot/en/#24hr-ticker-price-change-statistics         // spot
+         * @see https://www.commex.com/api-docs/en/#24hr-ticker-price-change-statistics
          * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
