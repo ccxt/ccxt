@@ -752,9 +752,9 @@
         ],
         "fetchTime": [
             {
-                "description": "fetchTime",
+                "description": "Fetch the time",
                 "method": "fetchTime",
-                "url": "https://api.coinex.com/perpetual/v1/time",
+                "url": "https://api.coinex.com/v2/time",
                 "input": []
             }
         ],
