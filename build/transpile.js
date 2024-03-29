@@ -1000,6 +1000,7 @@ class Transpiler {
             'Liquidation': /-> (?:List\[)?Liquidation/,
             'MarginMode': /-> MarginMode:/,
             'MarginModes': /-> MarginModes:/,
+            'MarginModification': /-> MarginModification:/,
             'Market': /(-> Market:|: Market)/,
             'MarketInterface': /-> MarketInterface:/,
             'MarketType': /: MarketType/,
@@ -1671,7 +1672,7 @@ class Transpiler {
                 'Dictionary<any>': 'array',
                 'Dict': 'array',
             }
-            const phpArrayRegex = /^(?:Market|Currency|Account|AccountStructure|BalanceAccount|object|OHLCV|Order|OrderBook|Tickers?|Trade|Transaction|Balances?|MarketInterface|TransferEntry|Leverages|Leverage|Greeks|MarginModes|MarginMode|LastPrice|LastPrices)( \| undefined)?$|\w+\[\]/
+            const phpArrayRegex = /^(?:Market|Currency|Account|AccountStructure|BalanceAccount|object|OHLCV|Order|OrderBook|Tickers?|Trade|Transaction|Balances?|MarketInterface|TransferEntry|Leverages|Leverage|Greeks|MarginModes|MarginMode|MarginModification|LastPrice|LastPrices)( \| undefined)?$|\w+\[\]/
             let phpArgs = args.map (x => {
                 const parts = x.split (':')
                 if (parts.length === 1) {
