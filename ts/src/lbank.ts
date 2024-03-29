@@ -8,7 +8,7 @@ import { Precise } from './base/Precise.js';
 import { md5 } from './static_dependencies/noble-hashes/md5.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { rsa } from './base/functions/rsa.js';
-import type { Balances, Currency, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import type { Balances, Currency, Dictionary, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1232,7 +1232,7 @@ export default class lbank extends Exchange {
         return this.parseBalance (response);
     }
 
-    parseTradingFee (fee, market: Market = undefined) {
+    parseTradingFee (fee: any, market: Market = undefined): TradingFeeInterface {
         //
         //      {
         //          "symbol":"skt_usdt",
@@ -1247,10 +1247,12 @@ export default class lbank extends Exchange {
             'symbol': symbol,
             'maker': this.safeNumber (fee, 'makerCommission'),
             'taker': this.safeNumber (fee, 'takerCommission'),
+            'percentage': undefined,
+            'tierBased': undefined,
         };
     }
 
-    async fetchTradingFee (symbol: string, params = {}) {
+    async fetchTradingFee (symbol: string, params = {}): Promise<TradingFeeInterface> {
         /**
          * @method
          * @name lbank#fetchTradingFee
@@ -1262,10 +1264,10 @@ export default class lbank extends Exchange {
          */
         const market = this.market (symbol);
         const result = await this.fetchTradingFees (this.extend (params, { 'category': market['id'] }));
-        return result;
+        return this.safeDict (result, symbol) as TradingFeeInterface;
     }
 
-    async fetchTradingFees (params = {}) {
+    async fetchTradingFees (params = {}): Promise<Dictionary<TradingFeeInterface>> {
         /**
          * @method
          * @name lbank#fetchTradingFees
