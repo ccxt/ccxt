@@ -35,11 +35,7 @@ import * as functions from './src/base/functions.js'
 import * as errors   from './src/base/errors.js'
 import type { Market, Trade , Fee, Ticker, OrderBook, Order, Transaction, Tickers, Currency, Balance, DepositAddress, WithdrawalResponse, DepositAddressResponse, OHLCV, Balances, PartialBalances, Dictionary, MinMax, Position, FundingRateHistory, Liquidation, FundingHistory, MarginMode, Greeks, Leverage, Leverages, Option, OptionChain } from './src/base/types.js'
 
-import { BaseError, ExchangeClosedByUser, ExchangeError, PermissionDenied, AccountNotEnabled, AccountSuspended, ArgumentsRequired, BadRequest, BadSymbol, MarginModeAlreadySet, BadResponse, NullResponse, InsufficientFunds, InvalidAddress, InvalidOrder, OrderNotFound, OrderNotCached, CancelPending, OrderImmediatelyFillable, OrderNotFillable, DuplicateOrderId, NotSupported, NetworkError, DDoSProtection, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, InvalidNonce, RequestTimeout, AuthenticationError, AddressPending, ContractUnavailable, NoChange, OperationRejected, OperationFailed, ProxyError }  from './src/base/errors.js'
-
-export {
-    BaseError, ExchangeClosedByUser, ExchangeError, PermissionDenied, AccountNotEnabled, AccountSuspended, ArgumentsRequired, BadRequest, BadSymbol, MarginModeAlreadySet, BadResponse, NullResponse, InsufficientFunds, InvalidAddress, InvalidOrder, OrderNotFound, OrderNotCached, CancelPending, OrderImmediatelyFillable, OrderNotFillable, DuplicateOrderId, NotSupported, NetworkError, DDoSProtection, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, InvalidNonce, RequestTimeout, AuthenticationError, AddressPending, ContractUnavailable, NoChange, OperationRejected, OperationFailed, ProxyError
-}
+import {BaseError, ExchangeError, AuthenticationError, PermissionDenied, AccountNotEnabled, AccountSuspended, ArgumentsRequired, BadRequest, BadSymbol, OperationRejected, NoChange, MarginModeAlreadySet, BadResponse, NullResponse, InsufficientFunds, InvalidAddress, AddressPending, InvalidOrder, OrderNotFound, OrderNotCached, CancelPending, OrderImmediatelyFillable, OrderNotFillable, DuplicateOrderId, ContractUnavailable, NotSupported, ProxyError, OperationFailed, NetworkError, DDoSProtection, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, InvalidNonce, RequestTimeout, ExchangeClosedByUser} from './src/base/errors.js'
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
@@ -417,6 +413,42 @@ export {
     Precise,
     functions,
     errors,
+    BaseError,
+    ExchangeError,
+    AuthenticationError,
+    PermissionDenied,
+    AccountNotEnabled,
+    AccountSuspended,
+    ArgumentsRequired,
+    BadRequest,
+    BadSymbol,
+    OperationRejected,
+    NoChange,
+    MarginModeAlreadySet,
+    BadResponse,
+    NullResponse,
+    InsufficientFunds,
+    InvalidAddress,
+    AddressPending,
+    InvalidOrder,
+    OrderNotFound,
+    OrderNotCached,
+    CancelPending,
+    OrderImmediatelyFillable,
+    OrderNotFillable,
+    DuplicateOrderId,
+    ContractUnavailable,
+    NotSupported,
+    ProxyError,
+    OperationFailed,
+    NetworkError,
+    DDoSProtection,
+    RateLimitExceeded,
+    ExchangeNotAvailable,
+    OnMaintenance,
+    InvalidNonce,
+    RequestTimeout,
+    ExchangeClosedByUser,
     Market,
     Trade,
     Fee,
