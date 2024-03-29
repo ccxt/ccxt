@@ -1073,19 +1073,22 @@ export default class coinex extends Exchange {
          * @method
          * @name coinex#fetchTime
          * @description fetches the current integer timestamp in milliseconds from the exchange server
-         * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http005_system_time
+         * @see https://docs.coinex.com/api/v2/common/http/time
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {int} the current integer timestamp in milliseconds from the exchange server
          */
-        const response = await this.v1PerpetualPublicGetTime (params);
+        const response = await this.v2PublicGetTime (params);
         //
         //     {
-        //         "code": "0",
-        //         "data": "1653261274414",
+        //         "code": 0,
+        //         "data": {
+        //             "timestamp": 1711699867777
+        //         },
         //         "message": "OK"
         //     }
         //
-        return this.safeInteger (response, 'data');
+        const data = this.safeDict (response, 'data', {});
+        return this.safeInteger (data, 'timestamp');
     }
 
     async fetchOrderBook (symbol: string, limit: Int = 20, params = {}) {
