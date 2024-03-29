@@ -1323,23 +1323,31 @@ export default class bitstamp extends Exchange {
         //         ...
         //     ]
         //
-        return this.parseDepositWithdrawFees (response, codes);
+        const responseByCurrencyId = this.groupBy (response, 'currency');
+        return this.parseDepositWithdrawFees (responseByCurrencyId, codes);
     }
 
-    parseDepositWithdrawFees (response, codes = undefined, currencyIdKey = undefined) {
-        const result = {};
-        const currencies = this.indexBy (response, 'currency');
-        const ids = Object.keys (currencies);
-        for (let i = 0; i < ids.length; i++) {
-            const code = ids[i];
-            const fees = this.safeValue (response, i, {});
-            if (codes !== undefined && !this.inArray (code, codes)) {
-                continue;
-            }
-            result[code] = this.depositWithdrawFee ({});
-            result[code]['info'] = fees;
-            result[code]['withdraw']['fee'] = this.safeNumber (fees, 'fee');
-            result[code]['networks'] = this.safeString (fees, 'network');
+    parseDepositWithdrawFee (fee, currency = undefined) {
+        const result = this.depositWithdrawFee (fee);
+        for (let j = 0; j < fee.length; j++) {
+            const networkEntry = fee[j];
+            const networkId = this.safeString (networkEntry, 'network');
+            const networkCode = this.networkIdToCode (networkId);
+            const withdrawFee = this.safeNumber (networkEntry, 'fee');
+            result['withdraw'] = {
+                'fee': withdrawFee,
+                'percentage': undefined,
+            };
+            result['networks'][networkCode] = {
+                'withdraw': {
+                    'fee': withdrawFee,
+                    'percentage': undefined,
+                },
+                'deposit': {
+                    'fee': undefined,
+                    'percentage': undefined,
+                },
+            };
         }
         return result;
     }
