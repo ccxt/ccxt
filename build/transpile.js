@@ -982,9 +982,9 @@ class Transpiler {
             libraries.push ('import numbers')
         }
         const matchObject = {
-            'BalanceAccount': /-> BalanceAccount:/,
             'Account': /-> (?:List\[)?Account/,
             'Any': /: Any =/,
+            'BalanceAccount': /-> BalanceAccount:/,
             'Balances': /-> Balances:/,
             'Bool': /: Bool =/,
             'Currency': /(-> Currency:|: Currency)/,
@@ -992,6 +992,7 @@ class Transpiler {
             'Greeks': /-> Greeks:/,
             'IndexType': /: IndexType/,
             'Int': /: Int =/,
+            'Liquidation': /-> (?:List\[)?Liquidation/,
             'LastPrice': /-> LastPrice:/,
             'LastPrices': /-> LastPrices:/,
             'Leverage': /-> Leverage:/,
