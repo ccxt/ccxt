@@ -8,6 +8,8 @@ import { CurveFn as CurveFnEDDSA } from '../../static_dependencies/noble-curves/
 import { Hex } from '../../static_dependencies/noble-curves/abstract/utils.js';
 import { Base64 } from '../../static_dependencies/jsencrypt/lib/asn1js/base64.js';
 import { ASN1 } from "../../static_dependencies/jsencrypt/lib/asn1js/asn1.js";
+import { secp256k1 } from '../../static_dependencies/noble-curves/secp256k1.js';
+import { P256 } from '../../static_dependencies/noble-curves/p256.js';
 /*  ------------------------------------------------------------------------ */
 
 const encoders = {
@@ -18,10 +20,10 @@ const encoders = {
 
 type Digest = 'binary' | 'hex' | 'base64'
 
-const supportedCurve = [
-    '2B8104000A', // secp256k1
-    '2A8648CE3D030107', // secp256r1
-]
+const supportedCurve = {
+    '1.3.132.0.10': secp256k1,
+    '1.2.840.10045.3.1.7': P256,
+}
 
 /*  .............................................   */
 
@@ -55,9 +57,10 @@ function ecdsa (request: Hex, secret: Hex, curve: CurveFn, prehash: CHash = null
                 //     parameters [0] ECParameters {{ NamedCurve }} OPTIONAL,
                 //     publicKey  [1] BIT STRING OPTIONAL
                 // }
-                if (asn1.sub[2].sub.length > 0) {
-                    const namedCurve = asn1.sub[2].sub[0].getHexStringValue();
-                    if (supportedCurve.indexOf(namedCurve) < 0) throw new Error('Unsupported curve');
+                if (typeof asn1.sub[2].sub !== null && asn1.sub[2].sub.length > 0) {
+                    const oid = asn1.sub[2].sub[0].content (undefined);
+                    if (supportedCurve[oid] === undefined) throw new Error('Unsupported curve');
+                    curve = supportedCurve[oid];
                 }
                 secret = asn1.sub[1].getHexStringValue()
             } else {
