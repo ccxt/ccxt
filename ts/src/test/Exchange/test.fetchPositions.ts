@@ -3,7 +3,7 @@ import { Exchange } from "../../../ccxt";
 import testPosition from './base/test.position.js';
 import testSharedMethods from '../../test/Exchange/base/test.sharedMethods.js';
 
-async function testFetchPositions (exchange: Exchange, skippedProperties: string[], symbol: string) {
+async function testFetchPositions (exchange: Exchange, skippedProperties: object, symbol: string) {
     const method = 'fetchPositions';
     const now = exchange.milliseconds ();
     // without symbol

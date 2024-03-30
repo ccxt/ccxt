@@ -1,7 +1,7 @@
 import { Exchange } from "../../../../ccxt";
 import testSharedMethods from './test.sharedMethods.js';
 
-function testFundingRateHistory (exchange: Exchange, skippedProperties: string[], method: string, entry: object, symbol: string) {
+function testFundingRateHistory (exchange: Exchange, skippedProperties: object, method: string, entry: object, symbol: string) {
     const format = {
         'info': {}, // Or []
         'symbol': 'BTC/USDT:USDT',

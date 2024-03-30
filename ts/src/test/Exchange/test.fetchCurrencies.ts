@@ -2,7 +2,7 @@ import { Exchange } from "../../../ccxt";
 import testCurrency from './base/test.currency.js';
 import testSharedMethods from './base/test.sharedMethods.js';
 
-async function testFetchCurrencies (exchange: Exchange, skippedProperties: string[]) {
+async function testFetchCurrencies (exchange: Exchange, skippedProperties: object) {
     const method = 'fetchCurrencies';
     // const isNative = exchange.has['fetchCurrencies'] && exchange.has['fetchCurrencies'] !== 'emulated';
     const currencies = await exchange.fetchCurrencies ();

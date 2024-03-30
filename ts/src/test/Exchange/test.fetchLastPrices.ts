@@ -4,7 +4,7 @@ import testLastPrice from './base/test.lastPrice.js';
 import testSharedMethods from './base/test.sharedMethods.js';
 import { LastPrices } from '../../base/types';
 
-async function testFetchLastPrices (exchange: Exchange, skippedProperties: string[], symbol: string) {
+async function testFetchLastPrices (exchange: Exchange, skippedProperties: object, symbol: string) {
     const method = 'fetchLastprices';
     // log ('fetching all tickers at once...')
     let response: LastPrices = undefined;
