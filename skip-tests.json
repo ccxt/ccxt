@@ -290,7 +290,8 @@
                 "high": "same",
                 "previousClose": "same",
                 "vwap": "same",
-                "baseVolume":"temp"
+                "baseVolume":"temp",
+                "spread": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269724413#L3725"
             },
             "fetchPositions": {
                 "stopLossPrice": "undefined",
