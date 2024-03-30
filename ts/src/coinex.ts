@@ -5851,7 +5851,7 @@ export default class coinex extends Exchange {
         if (until !== undefined) {
             request['end_time'] = until;
         }
-        const response = await this.perpetualPrivateGetPositionMarginHistory (this.extend (request, params));
+        const response = await this.v1PerpetualPrivateGetPositionMarginHistory (this.extend (request, params));
         //
         //    {
         //        code: '0',
