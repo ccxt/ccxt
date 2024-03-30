@@ -350,8 +350,7 @@
         }
     },
     "onetrading": {
-        "skip": true,
-        "until": "2024-03-28",
+        "skip": "Api changed, as mentioned https://github.com/ccxt/ccxt/pull/21991",
         "skipWs": true,
         "skipMethods": {
             "fetchCurrencies": {
