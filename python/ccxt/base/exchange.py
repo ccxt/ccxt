@@ -38,7 +38,7 @@ from ccxt.base.types import BalanceAccount, Currency, IndexType, OrderSide, Orde
 # rsa jwt signing
 from cryptography.hazmat import backends
 from cryptography.hazmat.primitives import hashes
-from cryptography.hazmat.primitives.asymmetric import padding, ec
+from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.hazmat.primitives.asymmetric.utils import decode_dss_signature
 from cryptography.hazmat.primitives.serialization import load_pem_private_key
 
@@ -1339,18 +1339,8 @@ class Exchange(object):
         if is_rsa or algoType == 'RS':
             signature = Exchange.base64_to_binary(Exchange.rsa(token, Exchange.decode(secret), algorithm))
         elif algoType == 'ES':
-            # do ecdsa
-            # if isinstance(secret, str):
-            #     print (secret.startswith('-----BEGIN EC PRIVATE KEY-----'))
-            priv_key = load_pem_private_key(secret, None, backends.default_backend())
-            (ri, si) = decode_dss_signature(priv_key.sign(Exchange.encode(token), ec.ECDSA(hashes.SHA256())))
-            r = hex(ri).lstrip("0x")
-            s = hex(si).lstrip("0x")
-            r = '0' + r if len(r) < 64 else r
-            s = '0' + s if len(s) < 64 else s
-            signature = Exchange.base16_to_binary(r + s)
-            # TODO: integrate decode process into ecdsa function
-            # signature = Exchange.ecdsa(request, secret, 'p256', algos[algorithm])
+            rawSignature = Exchange.ecdsa(token, secret, 'p256', algorithm)
+            signature = Exchange.base16_to_binary(rawSignature['r'] + rawSignature['s'])
         else:
             signature = Exchange.hmac(Exchange.encode(token), secret, algos[algorithm], 'binary')
         return token + '.' + Exchange.base64urlencode(signature)
@@ -1389,11 +1379,6 @@ class Exchange(object):
 
     @staticmethod
     def ecdsa(request, secret, algorithm='p256', hash=None, fixed_length=False):
-        # decode key if needed
-        # print(isinstance(secret, str), secret)
-        # if isinstance(secret, str):
-        #     print (secret.startswith('-----BEGIN EC PRIVATE KEY-----'))
-        # priv_key = load_pem_private_key(secret, None, backends.default_backend())
         # your welcome - frosty00
         algorithms = {
             'p192': [ecdsa.NIST192p, 'sha256'],
@@ -1412,7 +1397,12 @@ class Exchange(object):
             digest = Exchange.hash(encoded_request, hash, 'binary')
         else:
             digest = base64.b16decode(encoded_request, casefold=True)
-        key = ecdsa.SigningKey.from_string(base64.b16decode(Exchange.encode(secret),
+        if isinstance(secret, str):
+            secret = Exchange.encode(secret)
+        if secret.index(b'-----BEGIN EC PRIVATE KEY-----') >= 0:
+            key = ecdsa.SigningKey.from_pem(secret, hash_function)
+        else:
+            key = ecdsa.SigningKey.from_string(base64.b16decode(secret,
                                                             casefold=True), curve=curve_info[0])
         r_binary, s_binary, v = key.sign_digest_deterministic(digest, hashfunc=hash_function,
                                                               sigencode=ecdsa.util.sigencode_strings_canonize)
