@@ -251,7 +251,7 @@ public partial class oceanex : Exchange
         //         }
         //     }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return this.parseTicker(data, market);
     }
 
@@ -502,7 +502,7 @@ public partial class oceanex : Exchange
         //          ]
         //      }
         //
-        object data = this.safeValue(response, "data");
+        object data = this.safeList(response, "data");
         return this.parseTrades(data, market, since, limit);
     }
 
@@ -678,7 +678,7 @@ public partial class oceanex : Exchange
             ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
         }
         object response = await this.privatePostOrders(this.extend(request, parameters));
-        object data = this.safeValue(response, "data");
+        object data = this.safeDict(response, "data");
         return this.parseOrder(data, market);
     }
 
@@ -853,7 +853,7 @@ public partial class oceanex : Exchange
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
         object response = await this.publicPostK(this.extend(request, parameters));
-        object ohlcvs = this.safeValue(response, "data", new List<object>() {});
+        object ohlcvs = this.safeList(response, "data", new List<object>() {});
         return this.parseOHLCVs(ohlcvs, market, timeframe, since, limit);
     }
 
@@ -942,7 +942,7 @@ public partial class oceanex : Exchange
         object response = await this.privatePostOrderDelete(this.extend(new Dictionary<string, object>() {
             { "id", id },
         }, parameters));
-        object data = this.safeValue(response, "data");
+        object data = this.safeDict(response, "data");
         return this.parseOrder(data);
     }
 
@@ -963,7 +963,7 @@ public partial class oceanex : Exchange
         object response = await this.privatePostOrderDeleteMulti(this.extend(new Dictionary<string, object>() {
             { "ids", ids },
         }, parameters));
-        object data = this.safeValue(response, "data");
+        object data = this.safeList(response, "data");
         return this.parseOrders(data);
     }
 
@@ -981,7 +981,7 @@ public partial class oceanex : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object response = await this.privatePostOrdersClear(parameters);
-        object data = this.safeValue(response, "data");
+        object data = this.safeList(response, "data");
         return this.parseOrders(data);
     }
 

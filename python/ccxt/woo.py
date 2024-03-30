@@ -1258,7 +1258,7 @@ class woo(Exchange, ImplicitAPI):
         #     ]
         # }
         #
-        orders = self.safe_value(response, 'data', response)
+        orders = self.safe_dict(response, 'data', response)
         return self.parse_order(orders, market)
 
     def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:

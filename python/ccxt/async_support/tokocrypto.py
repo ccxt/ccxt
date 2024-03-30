@@ -1203,7 +1203,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         }
         response = await self.binanceGetTicker24hr(self.extend(request, params))
         if isinstance(response, list):
-            firstTicker = self.safe_value(response, 0, {})
+            firstTicker = self.safe_dict(response, 0, {})
             return self.parse_ticker(firstTicker, market)
         return self.parse_ticker(response, market)
 
@@ -1311,7 +1311,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         #         [1591478640000,"0.02500800","0.02501100","0.02500300","0.02500800","154.14200000",1591478699999,"3.85405839",97,"5.32300000","0.13312641","0"],
         #     ]
         #
-        data = self.safe_value(response, 'data', response)
+        data = self.safe_list(response, 'data', response)
         return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
     async def fetch_balance(self, params={}) -> Balances:
@@ -1712,7 +1712,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         #         "timestamp": 1662710994975
         #     }
         #
-        rawOrder = self.safe_value(response, 'data', {})
+        rawOrder = self.safe_dict(response, 'data', {})
         return self.parse_order(rawOrder, market)
 
     async def fetch_order(self, id: str, symbol: Str = None, params={}):
@@ -1759,7 +1759,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         #
         data = self.safe_value(response, 'data', {})
         list = self.safe_value(data, 'list', [])
-        rawOrder = self.safe_value(list, 0, {})
+        rawOrder = self.safe_dict(list, 0, {})
         return self.parse_order(rawOrder)
 
     async def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
@@ -1825,7 +1825,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_value(response, 'data', {})
-        orders = self.safe_value(data, 'list', [])
+        orders = self.safe_list(data, 'list', [])
         return self.parse_orders(orders, market, since, limit)
 
     async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
@@ -1894,7 +1894,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         #         "timestamp": 1662710683634
         #     }
         #
-        rawOrder = self.safe_value(response, 'data', {})
+        rawOrder = self.safe_dict(response, 'data', {})
         return self.parse_order(rawOrder)
 
     async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
@@ -1949,7 +1949,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_value(response, 'data', {})
-        trades = self.safe_value(data, 'list', [])
+        trades = self.safe_list(data, 'list', [])
         return self.parse_trades(trades, market, since, limit)
 
     async def fetch_deposit_address(self, code: str, params={}):
@@ -2056,7 +2056,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_value(response, 'data', {})
-        deposits = self.safe_value(data, 'list', [])
+        deposits = self.safe_list(data, 'list', [])
         return self.parse_transactions(deposits, currency, since, limit)
 
     async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
@@ -2108,7 +2108,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_value(response, 'data', {})
-        withdrawals = self.safe_value(data, 'list', [])
+        withdrawals = self.safe_list(data, 'list', [])
         return self.parse_transactions(withdrawals, currency, since, limit)
 
     def parse_transaction_status_by_type(self, status, type=None):

@@ -485,7 +485,7 @@ class indodax extends Exchange {
             //         }
             //     }
             //
-            $ticker = $this->safe_value($response, 'ticker', array());
+            $ticker = $this->safe_dict($response, 'ticker', array());
             return $this->parse_ticker($ticker, $market);
         }) ();
     }
@@ -517,7 +517,7 @@ class indodax extends Exchange {
             // }
             //
             $response = Async\await($this->publicGetApiTickerAll ($params));
-            $tickers = $this->safe_value($response, 'tickers');
+            $tickers = $this->safe_list($response, 'tickers');
             return $this->parse_tickers($tickers, $symbols);
         }) ();
     }

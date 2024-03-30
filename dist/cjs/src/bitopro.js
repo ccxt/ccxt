@@ -1662,7 +1662,7 @@ class bitopro extends bitopro$1 {
         //         ]
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseDepositWithdrawFees(data, codes, 'currency');
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

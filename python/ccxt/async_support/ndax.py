@@ -1858,7 +1858,7 @@ class ndax(Exchange, ImplicitAPI):
         #     ]
         #
         grouped = self.group_by(response, 'ChangeReason')
-        trades = self.safe_value(grouped, 'Trade', [])
+        trades = self.safe_list(grouped, 'Trade', [])
         return self.parse_trades(trades, market, since, limit)
 
     async def fetch_deposit_address(self, code: str, params={}):

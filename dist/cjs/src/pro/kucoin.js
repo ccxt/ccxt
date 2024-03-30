@@ -887,18 +887,17 @@ class kucoin extends kucoin$1 {
         return this.filterBySymbolSinceLimit(trades, symbol, since, limit, true);
     }
     handleMyTrade(client, message) {
-        let trades = this.myTrades;
-        if (trades === undefined) {
+        if (this.myTrades === undefined) {
             const limit = this.safeInteger(this.options, 'tradesLimit', 1000);
-            trades = new Cache.ArrayCacheBySymbolById(limit);
+            this.myTrades = new Cache.ArrayCacheBySymbolById(limit);
         }
-        const data = this.safeValue(message, 'data');
+        const data = this.safeDict(message, 'data');
         const parsed = this.parseWsTrade(data);
-        trades.append(parsed);
+        this.myTrades.append(parsed);
         const messageHash = 'myTrades';
-        client.resolve(trades, messageHash);
+        client.resolve(this.myTrades, messageHash);
         const symbolSpecificMessageHash = messageHash + ':' + parsed['symbol'];
-        client.resolve(trades, symbolSpecificMessageHash);
+        client.resolve(this.myTrades, symbolSpecificMessageHash);
     }
     parseWsTrade(trade, market = undefined) {
         //

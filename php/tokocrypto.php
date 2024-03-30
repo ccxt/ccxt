@@ -1207,7 +1207,7 @@ class tokocrypto extends Exchange {
         );
         $response = $this->binanceGetTicker24hr (array_merge($request, $params));
         if (gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response))) {
-            $firstTicker = $this->safe_value($response, 0, array());
+            $firstTicker = $this->safe_dict($response, 0, array());
             return $this->parse_ticker($firstTicker, $market);
         }
         return $this->parse_ticker($response, $market);
@@ -1323,7 +1323,7 @@ class tokocrypto extends Exchange {
         //         [1591478640000,"0.02500800","0.02501100","0.02500300","0.02500800","154.14200000",1591478699999,"3.85405839",97,"5.32300000","0.13312641","0"],
         //     ]
         //
-        $data = $this->safe_value($response, 'data', $response);
+        $data = $this->safe_list($response, 'data', $response);
         return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
     }
 
@@ -1752,7 +1752,7 @@ class tokocrypto extends Exchange {
         //         "timestamp" => 1662710994975
         //     }
         //
-        $rawOrder = $this->safe_value($response, 'data', array());
+        $rawOrder = $this->safe_dict($response, 'data', array());
         return $this->parse_order($rawOrder, $market);
     }
 
@@ -1800,7 +1800,7 @@ class tokocrypto extends Exchange {
         //
         $data = $this->safe_value($response, 'data', array());
         $list = $this->safe_value($data, 'list', array());
-        $rawOrder = $this->safe_value($list, 0, array());
+        $rawOrder = $this->safe_dict($list, 0, array());
         return $this->parse_order($rawOrder);
     }
 
@@ -1870,7 +1870,7 @@ class tokocrypto extends Exchange {
         //     }
         //
         $data = $this->safe_value($response, 'data', array());
-        $orders = $this->safe_value($data, 'list', array());
+        $orders = $this->safe_list($data, 'list', array());
         return $this->parse_orders($orders, $market, $since, $limit);
     }
 
@@ -1942,7 +1942,7 @@ class tokocrypto extends Exchange {
         //         "timestamp" => 1662710683634
         //     }
         //
-        $rawOrder = $this->safe_value($response, 'data', array());
+        $rawOrder = $this->safe_dict($response, 'data', array());
         return $this->parse_order($rawOrder);
     }
 
@@ -2002,7 +2002,7 @@ class tokocrypto extends Exchange {
         //     }
         //
         $data = $this->safe_value($response, 'data', array());
-        $trades = $this->safe_value($data, 'list', array());
+        $trades = $this->safe_list($data, 'list', array());
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
@@ -2117,7 +2117,7 @@ class tokocrypto extends Exchange {
         //     }
         //
         $data = $this->safe_value($response, 'data', array());
-        $deposits = $this->safe_value($data, 'list', array());
+        $deposits = $this->safe_list($data, 'list', array());
         return $this->parse_transactions($deposits, $currency, $since, $limit);
     }
 
@@ -2173,7 +2173,7 @@ class tokocrypto extends Exchange {
         //     }
         //
         $data = $this->safe_value($response, 'data', array());
-        $withdrawals = $this->safe_value($data, 'list', array());
+        $withdrawals = $this->safe_list($data, 'list', array());
         return $this->parse_transactions($withdrawals, $currency, $since, $limit);
     }
 

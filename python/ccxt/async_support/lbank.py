@@ -634,7 +634,7 @@ class lbank(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_value(response, 'data', [])
-        first = self.safe_value(data, 0, {})
+        first = self.safe_dict(data, 0, {})
         return self.parse_ticker(first, market)
 
     async def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
@@ -708,7 +708,7 @@ class lbank(Exchange, ImplicitAPI):
         #         "success": True
         #     }
         #
-        data = self.safe_value(response, 'data', [])
+        data = self.safe_list(response, 'data', [])
         return self.parse_tickers(data, symbols)
 
     async def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
@@ -931,7 +931,7 @@ class lbank(Exchange, ImplicitAPI):
         #           "ts":1647021999308
         #      }
         #
-        trades = self.safe_value(response, 'data', [])
+        trades = self.safe_list(response, 'data', [])
         return self.parse_trades(trades, market, since, limit)
 
     def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
@@ -1515,7 +1515,7 @@ class lbank(Exchange, ImplicitAPI):
         #          "ts":1648164471827
         #      }
         #
-        result = self.safe_value(response, 'data', {})
+        result = self.safe_dict(response, 'data', {})
         return self.parse_order(result)
 
     async def fetch_order_default(self, id: str, symbol: Str = None, params={}):
@@ -1613,7 +1613,7 @@ class lbank(Exchange, ImplicitAPI):
         #          "ts":1648509742164
         #      }
         #
-        trades = self.safe_value(response, 'data', [])
+        trades = self.safe_list(response, 'data', [])
         return self.parse_trades(trades, market, since, limit)
 
     async def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
@@ -1669,7 +1669,7 @@ class lbank(Exchange, ImplicitAPI):
         #      }
         #
         result = self.safe_value(response, 'data', {})
-        orders = self.safe_value(result, 'orders', [])
+        orders = self.safe_list(result, 'orders', [])
         return self.parse_orders(orders, market, since, limit)
 
     async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
@@ -1722,7 +1722,7 @@ class lbank(Exchange, ImplicitAPI):
         #     }
         #
         result = self.safe_value(response, 'data', {})
-        orders = self.safe_value(result, 'orders', [])
+        orders = self.safe_list(result, 'orders', [])
         return self.parse_orders(orders, market, since, limit)
 
     async def cancel_order(self, id: str, symbol: Str = None, params={}):
@@ -2108,7 +2108,7 @@ class lbank(Exchange, ImplicitAPI):
         #      }
         #
         data = self.safe_value(response, 'data', {})
-        deposits = self.safe_value(data, 'depositOrders', [])
+        deposits = self.safe_list(data, 'depositOrders', [])
         return self.parse_transactions(deposits, currency, since, limit)
 
     async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
@@ -2161,7 +2161,7 @@ class lbank(Exchange, ImplicitAPI):
         #      }
         #
         data = self.safe_value(response, 'data', {})
-        withdraws = self.safe_value(data, 'withdraws', [])
+        withdraws = self.safe_list(data, 'withdraws', [])
         return self.parse_transactions(withdraws, currency, since, limit)
 
     async def fetch_transaction_fees(self, codes: List[str] = None, params={}):
@@ -2359,7 +2359,7 @@ class lbank(Exchange, ImplicitAPI):
         #        "code": 0
         #    }
         #
-        data = self.safe_value(response, 'data', [])
+        data = self.safe_list(response, 'data', [])
         return self.parse_deposit_withdraw_fees(data, codes, 'coin')
 
     async def fetch_public_deposit_withdraw_fees(self, codes=None, params={}):

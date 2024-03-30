@@ -1335,15 +1335,16 @@ public partial class hitbtc : Exchange
         //         ],
         //         "fee": "1.22" // only for WITHDRAW
         //       }
-        //     }
-        //
+        //     },
+        //     "operation_id": "084cfcd5-06b9-4826-882e-fdb75ec3625d", // only for WITHDRAW
+        //     "commit_risk": {}
         // withdraw
         //
         //     {
         //         "id":"084cfcd5-06b9-4826-882e-fdb75ec3625d"
         //     }
         //
-        object id = this.safeString(transaction, "id");
+        object id = this.safeString2(transaction, "operation_id", "id");
         object timestamp = this.parse8601(this.safeString(transaction, "created_at"));
         object updated = this.parse8601(this.safeString(transaction, "updated_at"));
         object type = this.parseTransactionType(this.safeString(transaction, "type"));
@@ -1878,7 +1879,7 @@ public partial class hitbtc : Exchange
         //       }
         //     ]
         //
-        object order = this.safeValue(response, 0);
+        object order = this.safeDict(response, 0);
         return this.parseOrder(order, market);
     }
 

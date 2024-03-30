@@ -635,7 +635,7 @@ export default class lbank extends Exchange {
         //     }
         //
         const data = this.safeValue(response, 'data', []);
-        const first = this.safeValue(data, 0, {});
+        const first = this.safeDict(data, 0, {});
         return this.parseTicker(first, market);
     }
     async fetchTickers(symbols = undefined, params = {}) {
@@ -715,7 +715,7 @@ export default class lbank extends Exchange {
         //         "success": true
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseTickers(data, symbols);
     }
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
@@ -961,7 +961,7 @@ export default class lbank extends Exchange {
         //           "ts":1647021999308
         //      }
         //
-        const trades = this.safeValue(response, 'data', []);
+        const trades = this.safeList(response, 'data', []);
         return this.parseTrades(trades, market, since, limit);
     }
     parseOHLCV(ohlcv, market = undefined) {
@@ -1596,7 +1596,7 @@ export default class lbank extends Exchange {
         //          "ts":1648164471827
         //      }
         //
-        const result = this.safeValue(response, 'data', {});
+        const result = this.safeDict(response, 'data', {});
         return this.parseOrder(result);
     }
     async fetchOrderDefault(id, symbol = undefined, params = {}) {
@@ -1702,7 +1702,7 @@ export default class lbank extends Exchange {
         //          "ts":1648509742164
         //      }
         //
-        const trades = this.safeValue(response, 'data', []);
+        const trades = this.safeList(response, 'data', []);
         return this.parseTrades(trades, market, since, limit);
     }
     async fetchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1762,7 +1762,7 @@ export default class lbank extends Exchange {
         //      }
         //
         const result = this.safeValue(response, 'data', {});
-        const orders = this.safeValue(result, 'orders', []);
+        const orders = this.safeList(result, 'orders', []);
         return this.parseOrders(orders, market, since, limit);
     }
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1819,7 +1819,7 @@ export default class lbank extends Exchange {
         //     }
         //
         const result = this.safeValue(response, 'data', {});
-        const orders = this.safeValue(result, 'orders', []);
+        const orders = this.safeList(result, 'orders', []);
         return this.parseOrders(orders, market, since, limit);
     }
     async cancelOrder(id, symbol = undefined, params = {}) {
@@ -2231,7 +2231,7 @@ export default class lbank extends Exchange {
         //      }
         //
         const data = this.safeValue(response, 'data', {});
-        const deposits = this.safeValue(data, 'depositOrders', []);
+        const deposits = this.safeList(data, 'depositOrders', []);
         return this.parseTransactions(deposits, currency, since, limit);
     }
     async fetchWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -2288,7 +2288,7 @@ export default class lbank extends Exchange {
         //      }
         //
         const data = this.safeValue(response, 'data', {});
-        const withdraws = this.safeValue(data, 'withdraws', []);
+        const withdraws = this.safeList(data, 'withdraws', []);
         return this.parseTransactions(withdraws, currency, since, limit);
     }
     async fetchTransactionFees(codes = undefined, params = {}) {
@@ -2506,7 +2506,7 @@ export default class lbank extends Exchange {
         //        "code": 0
         //    }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseDepositWithdrawFees(data, codes, 'coin');
     }
     async fetchPublicDepositWithdrawFees(codes = undefined, params = {}) {

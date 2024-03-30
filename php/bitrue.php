@@ -2500,7 +2500,7 @@ class bitrue extends Exchange {
         //         )
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_list($response, 'data', array());
         return $this->parse_transactions($data, $currency, $since, $limit);
     }
 
@@ -2753,7 +2753,7 @@ class bitrue extends Exchange {
         //         }
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_dict($response, 'data', array());
         return $this->parse_transaction($data, $currency);
     }
 
@@ -2809,7 +2809,7 @@ class bitrue extends Exchange {
          */
         $this->load_markets();
         $response = $this->spotV1PublicGetExchangeInfo ($params);
-        $coins = $this->safe_value($response, 'coins');
+        $coins = $this->safe_list($response, 'coins');
         return $this->parse_deposit_withdraw_fees($coins, $codes, 'coin');
     }
 
@@ -2936,7 +2936,7 @@ class bitrue extends Exchange {
         //         'data' => null
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_dict($response, 'data', array());
         return $this->parse_transfer($data, $currency);
     }
 

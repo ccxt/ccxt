@@ -2364,7 +2364,7 @@ class htx extends htx$1 {
             throw new errors.NotSupported(this.id + ' fetchLastPrices() does not support ' + type + ' markets yet');
         }
         const tick = this.safeValue(response, 'tick', {});
-        const data = this.safeValue(tick, 'data', []);
+        const data = this.safeList(tick, 'data', []);
         return this.parseLastPrices(data, symbols);
     }
     parseLastPrice(entry, market = undefined) {
@@ -3957,7 +3957,7 @@ class htx extends htx$1 {
         //         ]
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseOrders(data, market, since, limit);
     }
     async fetchSpotOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -7354,7 +7354,7 @@ class htx extends htx$1 {
             request['symbol'] = market['id'];
             response = await this.contractPrivatePostApiV3ContractFinancialRecordExact(this.extend(request, query));
         }
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseIncomes(data, market, since, limit);
     }
     async setLeverage(leverage, symbol = undefined, params = {}) {
@@ -8138,7 +8138,7 @@ class htx extends htx$1 {
         //        ]
         //    }
         //
-        const data = this.safeValue(response, 'data');
+        const data = this.safeList(response, 'data');
         return this.parseLeverageTiers(data, symbols, 'contract_code');
     }
     async fetchMarketLeverageTiers(symbol, params = {}) {
@@ -8342,7 +8342,7 @@ class htx extends htx$1 {
         //    }
         //
         const data = this.safeValue(response, 'data');
-        const tick = this.safeValue(data, 'tick');
+        const tick = this.safeList(data, 'tick');
         return this.parseOpenInterests(tick, market, since, limit);
     }
     async fetchOpenInterest(symbol, params = {}) {
@@ -8850,7 +8850,7 @@ class htx extends htx$1 {
         //        ]
         //    }
         //
-        const data = this.safeValue(response, 'data');
+        const data = this.safeList(response, 'data');
         return this.parseDepositWithdrawFees(data, codes, 'currency');
     }
     parseDepositWithdrawFee(fee, currency = undefined) {
@@ -9078,7 +9078,7 @@ class htx extends htx$1 {
         //         "ts": 1604312615051
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseLiquidations(data, market, since, limit);
     }
     parseLiquidation(liquidation, market = undefined) {

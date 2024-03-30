@@ -52,7 +52,7 @@ export default class Exchange {
     nodeHttpModuleLoaded: boolean;
     httpAgent: any;
     httpsAgent: any;
-    minFundingAddressLength: number;
+    minFundingAddressLength: Int;
     substituteCommonCurrencyCodes: boolean;
     quoteJsonNumbers: boolean;
     number: (numberString: string) => number;
@@ -63,7 +63,7 @@ export default class Exchange {
     FetchError: any;
     validateServerSsl: boolean;
     validateClientSsl: boolean;
-    timeout: number;
+    timeout: Int;
     verbose: boolean;
     twofa: any;
     apiKey: string;
@@ -146,23 +146,23 @@ export default class Exchange {
     quoteCurrencies: any;
     currencies_by_id: any;
     codes: any;
-    reloadingMarkets: any;
-    marketsLoading: any;
+    reloadingMarkets: boolean;
+    marketsLoading: Promise<Dictionary<any>>;
     accounts: any;
     accountsById: any;
-    commonCurrencies: any;
+    commonCurrencies: Dictionary<string>;
     hostname: Str;
     precisionMode: Num;
-    paddingMode: any;
-    exceptions: {};
+    paddingMode: Num;
+    exceptions: Dictionary<string>;
     timeframes: Dictionary<number | string>;
     version: Str;
-    marketsByAltname: any;
+    marketsByAltname: Dictionary<any>;
     name: Str;
     lastRestRequestTimestamp: number;
     targetAccount: any;
     stablePairs: {};
-    clients: {};
+    clients: Dictionary<WsClient>;
     newUpdates: boolean;
     streaming: {};
     alias: boolean;
@@ -844,8 +844,6 @@ export default class Exchange {
     fetchUsedBalance(params?: {}): Promise<Balance>;
     fetchTotalBalance(params?: {}): Promise<Balance>;
     fetchStatus(params?: {}): Promise<any>;
-    fetchFundingFee(code: string, params?: {}): Promise<{}>;
-    fetchFundingFees(codes?: string[], params?: {}): Promise<{}>;
     fetchTransactionFee(code: string, params?: {}): Promise<{}>;
     fetchTransactionFees(codes?: string[], params?: {}): Promise<{}>;
     fetchDepositWithdrawFees(codes?: string[], params?: {}): Promise<Dictionary<DepositWithdrawFeeNetwork>>;
@@ -868,7 +866,7 @@ export default class Exchange {
     watchTicker(symbol: string, params?: {}): Promise<Ticker>;
     fetchTickers(symbols?: string[], params?: {}): Promise<Tickers>;
     fetchOrderBooks(symbols?: string[], limit?: Int, params?: {}): Promise<Dictionary<OrderBook>>;
-    watchBidsAsks(symbols?: string[], params?: {}): Promise<Tickers>;
+    watchBidsAsks(symbols?: Strings, params?: {}): Promise<Tickers>;
     watchTickers(symbols?: string[], params?: {}): Promise<Tickers>;
     fetchOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
     fetchOrderWs(id: string, symbol?: Str, params?: {}): Promise<Order>;
@@ -1013,5 +1011,8 @@ export default class Exchange {
     parseMarginMode(marginMode: any, market?: Market): MarginMode;
     parseLeverages(response: object[], symbols?: string[], symbolKey?: Str, marketType?: MarketType): Leverages;
     parseLeverage(leverage: any, market?: Market): Leverage;
+    convertExpireDate(date: string): string;
+    convertExpireDateToMarketIdDate(date: string): string;
+    convertMarketIdExpireDate(date: string): string;
 }
 export { Exchange, };

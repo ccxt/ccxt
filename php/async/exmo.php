@@ -911,7 +911,7 @@ class exmo extends Exchange {
             //         )
             //     }
             //
-            $candles = $this->safe_value($response, 'candles', array());
+            $candles = $this->safe_list($response, 'candles', array());
             return $this->parse_ohlcvs($candles, $market, $timeframe, $since, $limit);
         }) ();
     }
@@ -1040,7 +1040,7 @@ class exmo extends Exchange {
                 $request['limit'] = $limit;
             }
             $response = Async\await($this->publicGetOrderBook (array_merge($request, $params)));
-            $result = $this->safe_value($response, $market['id']);
+            $result = $this->safe_dict($response, $market['id']);
             return $this->parse_order_book($result, $market['symbol'], null, 'bid', 'ask');
         }) ();
     }
@@ -1313,7 +1313,7 @@ class exmo extends Exchange {
             //         )
             //     }
             //
-            $data = $this->safe_value($response, $market['id'], array());
+            $data = $this->safe_list($response, $market['id'], array());
             return $this->parse_trades($data, $market, $since, $limit);
         }) ();
     }
@@ -1694,7 +1694,7 @@ class exmo extends Exchange {
                 //     }
                 //
             }
-            $trades = $this->safe_value($response, 'trades');
+            $trades = $this->safe_list($response, 'trades');
             return $this->parse_trades($trades, $market, $since, $limit);
         }) ();
     }
@@ -2444,7 +2444,7 @@ class exmo extends Exchange {
             //         "count" => 23
             //     }
             //
-            $items = $this->safe_value($response, 'items', array());
+            $items = $this->safe_list($response, 'items', array());
             return $this->parse_transactions($items, $currency, $since, $limit);
         }) ();
     }
@@ -2497,7 +2497,7 @@ class exmo extends Exchange {
             //     }
             //
             $items = $this->safe_value($response, 'items', array());
-            $first = $this->safe_value($items, 0, array());
+            $first = $this->safe_dict($items, 0, array());
             return $this->parse_transaction($first, $currency);
         }) ();
     }
@@ -2550,7 +2550,7 @@ class exmo extends Exchange {
             //     }
             //
             $items = $this->safe_value($response, 'items', array());
-            $first = $this->safe_value($items, 0, array());
+            $first = $this->safe_dict($items, 0, array());
             return $this->parse_transaction($first, $currency);
         }) ();
     }
@@ -2605,7 +2605,7 @@ class exmo extends Exchange {
             //         "count" => 23
             //     }
             //
-            $items = $this->safe_value($response, 'items', array());
+            $items = $this->safe_list($response, 'items', array());
             return $this->parse_transactions($items, $currency, $since, $limit);
         }) ();
     }

@@ -626,7 +626,7 @@ class lbank extends Exchange {
         //     }
         //
         $data = $this->safe_value($response, 'data', array());
-        $first = $this->safe_value($data, 0, array());
+        $first = $this->safe_dict($data, 0, array());
         return $this->parse_ticker($first, $market);
     }
 
@@ -704,7 +704,7 @@ class lbank extends Exchange {
         //         "success" => true
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_list($response, 'data', array());
         return $this->parse_tickers($data, $symbols);
     }
 
@@ -945,7 +945,7 @@ class lbank extends Exchange {
         //           "ts":1647021999308
         //      }
         //
-        $trades = $this->safe_value($response, 'data', array());
+        $trades = $this->safe_list($response, 'data', array());
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
@@ -1569,7 +1569,7 @@ class lbank extends Exchange {
         //          "ts":1648164471827
         //      }
         //
-        $result = $this->safe_value($response, 'data', array());
+        $result = $this->safe_dict($response, 'data', array());
         return $this->parse_order($result);
     }
 
@@ -1674,7 +1674,7 @@ class lbank extends Exchange {
         //          "ts":1648509742164
         //      }
         //
-        $trades = $this->safe_value($response, 'data', array());
+        $trades = $this->safe_list($response, 'data', array());
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
@@ -1733,7 +1733,7 @@ class lbank extends Exchange {
         //      }
         //
         $result = $this->safe_value($response, 'data', array());
-        $orders = $this->safe_value($result, 'orders', array());
+        $orders = $this->safe_list($result, 'orders', array());
         return $this->parse_orders($orders, $market, $since, $limit);
     }
 
@@ -1789,7 +1789,7 @@ class lbank extends Exchange {
         //     }
         //
         $result = $this->safe_value($response, 'data', array());
-        $orders = $this->safe_value($result, 'orders', array());
+        $orders = $this->safe_list($result, 'orders', array());
         return $this->parse_orders($orders, $market, $since, $limit);
     }
 
@@ -2198,7 +2198,7 @@ class lbank extends Exchange {
         //      }
         //
         $data = $this->safe_value($response, 'data', array());
-        $deposits = $this->safe_value($data, 'depositOrders', array());
+        $deposits = $this->safe_list($data, 'depositOrders', array());
         return $this->parse_transactions($deposits, $currency, $since, $limit);
     }
 
@@ -2254,7 +2254,7 @@ class lbank extends Exchange {
         //      }
         //
         $data = $this->safe_value($response, 'data', array());
-        $withdraws = $this->safe_value($data, 'withdraws', array());
+        $withdraws = $this->safe_list($data, 'withdraws', array());
         return $this->parse_transactions($withdraws, $currency, $since, $limit);
     }
 
@@ -2469,7 +2469,7 @@ class lbank extends Exchange {
         //        "code" => 0
         //    }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_list($response, 'data', array());
         return $this->parse_deposit_withdraw_fees($data, $codes, 'coin');
     }
 

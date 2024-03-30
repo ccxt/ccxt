@@ -2170,7 +2170,7 @@ class bitget extends Exchange {
         //         )
         //     }
         //
-        $rawTransactions = $this->safe_value($response, 'data', array());
+        $rawTransactions = $this->safe_list($response, 'data', array());
         return $this->parse_transactions($rawTransactions, $currency, $since, $limit);
     }
 
@@ -2316,7 +2316,7 @@ class bitget extends Exchange {
         //         )
         //     }
         //
-        $rawTransactions = $this->safe_value($response, 'data', array());
+        $rawTransactions = $this->safe_list($response, 'data', array());
         return $this->parse_transactions($rawTransactions, $currency, $since, $limit);
     }
 
@@ -2445,7 +2445,7 @@ class bitget extends Exchange {
         //         }
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_dict($response, 'data', array());
         return $this->parse_deposit_address($data, $currency);
     }
 
@@ -2727,7 +2727,7 @@ class bitget extends Exchange {
         //         )
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_list($response, 'data', array());
         return $this->parse_ticker($data[0], $market);
     }
 
@@ -2828,7 +2828,7 @@ class bitget extends Exchange {
         //         )
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_list($response, 'data', array());
         return $this->parse_tickers($data, $symbols);
     }
 
@@ -3062,7 +3062,7 @@ class bitget extends Exchange {
         //         )
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_list($response, 'data', array());
         return $this->parse_trades($data, $market, $since, $limit);
     }
 
@@ -4121,7 +4121,7 @@ class bitget extends Exchange {
         //         }
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_dict($response, 'data', array());
         return $this->parse_order($data, $market);
     }
 
@@ -4599,7 +4599,7 @@ class bitget extends Exchange {
         //         }
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_dict($response, 'data', array());
         return $this->parse_order($data, $market);
     }
 
@@ -4821,7 +4821,7 @@ class bitget extends Exchange {
         //     }
         //
         $data = $this->safe_value($response, 'data', array());
-        $orders = $this->safe_value($data, 'successList', array());
+        $orders = $this->safe_list($data, 'successList', array());
         return $this->parse_orders($orders, $market);
     }
 
@@ -5041,9 +5041,15 @@ class bitget extends Exchange {
         if (gettype($response) === 'string') {
             $response = json_decode($response, $as_associative_array = true);
         }
-        $data = $this->safe_value($response, 'data');
-        $first = $this->safe_value($data, 0, $data);
+        $data = $this->safe_dict($response, 'data');
+        if (($data !== null) && gettype($data) !== 'array' || array_keys($data) !== array_keys(array_keys($data))) {
+            return $this->parse_order($data, $market);
+        }
+        $dataList = $this->safe_list($response, 'data', array());
+        $first = $this->safe_dict($dataList, 0, array());
         return $this->parse_order($first, $market);
+        // $first = $this->safe_dict($data, 0, $data);
+        // return $this->parse_order($first, $market);
     }
 
     public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
@@ -5336,11 +5342,11 @@ class bitget extends Exchange {
         $data = $this->safe_value($response, 'data');
         if ($type === 'spot') {
             if (($marginMode !== null) || $stop) {
-                $resultList = $this->safe_value($data, 'orderList', array());
+                $resultList = $this->safe_list($data, 'orderList', array());
                 return $this->parse_orders($resultList, $market, $since, $limit);
             }
         } else {
-            $result = $this->safe_value($data, 'entrustedList', array());
+            $result = $this->safe_list($data, 'entrustedList', array());
             return $this->parse_orders($result, $market, $since, $limit);
         }
         return $this->parse_orders($data, $market, $since, $limit);
@@ -5696,7 +5702,7 @@ class bitget extends Exchange {
         if (gettype($response) === 'string') {
             $response = json_decode($response, $as_associative_array = true);
         }
-        $orders = $this->safe_value($response, 'data', array());
+        $orders = $this->safe_list($response, 'data', array());
         return $this->parse_orders($orders, $market, $since, $limit);
     }
 
@@ -6093,10 +6099,10 @@ class bitget extends Exchange {
         //
         $data = $this->safe_value($response, 'data');
         if (($market['swap']) || ($market['future'])) {
-            $fillList = $this->safe_value($data, 'fillList', array());
+            $fillList = $this->safe_list($data, 'fillList', array());
             return $this->parse_trades($fillList, $market, $since, $limit);
         } elseif ($marginMode !== null) {
-            $fills = $this->safe_value($data, 'fills', array());
+            $fills = $this->safe_list($data, 'fills', array());
             return $this->parse_trades($fills, $market, $since, $limit);
         }
         return $this->parse_trades($data, $market, $since, $limit);
@@ -6157,8 +6163,8 @@ class bitget extends Exchange {
         //         )
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
-        $first = $this->safe_value($data, 0, array());
+        $data = $this->safe_list($response, 'data', array());
+        $first = $this->safe_dict($data, 0, array());
         return $this->parse_position($first, $market);
     }
 
@@ -7084,7 +7090,7 @@ class bitget extends Exchange {
         //         }
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_dict($response, 'data', array());
         return $this->parse_open_interest($data, $market);
     }
 
@@ -7168,7 +7174,7 @@ class bitget extends Exchange {
         //         )
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_list($response, 'data', array());
         return $this->parse_transfers($data, $currency, $since, $limit);
     }
 
@@ -7366,7 +7372,7 @@ class bitget extends Exchange {
         //         "requestTime" => "1700120731773"
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_list($response, 'data', array());
         return $this->parse_deposit_withdraw_fees($data, $codes, 'coin');
     }
 
@@ -7667,7 +7673,7 @@ class bitget extends Exchange {
         //     }
         //
         $data = $this->safe_value($response, 'data', array());
-        $liquidations = $this->safe_value($data, 'resultList', array());
+        $liquidations = $this->safe_list($data, 'resultList', array());
         return $this->parse_liquidations($liquidations, $market, $since, $limit);
     }
 
@@ -8112,7 +8118,7 @@ class bitget extends Exchange {
         //     }
         //
         $data = $this->safe_value($response, 'data', array());
-        $order = $this->safe_value($data, 'successList', array());
+        $order = $this->safe_list($data, 'successList', array());
         return $this->parse_order($order[0], $market);
     }
 
@@ -8149,7 +8155,7 @@ class bitget extends Exchange {
         //     }
         //
         $data = $this->safe_value($response, 'data', array());
-        $orderInfo = $this->safe_value($data, 'successList', array());
+        $orderInfo = $this->safe_list($data, 'successList', array());
         return $this->parse_positions($orderInfo, null, $params);
     }
 

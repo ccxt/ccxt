@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.2.84'
+__version__ = '4.2.86'
 
 # -----------------------------------------------------------------------------
 
@@ -958,7 +958,7 @@ class Exchange(BaseExchange):
     async def fetch_order_books(self, symbols: List[str] = None, limit: Int = None, params={}):
         raise NotSupported(self.id + ' fetchOrderBooks() is not supported yet')
 
-    async def watch_bids_asks(self, symbols: List[str] = None, params={}):
+    async def watch_bids_asks(self, symbols: Strings = None, params={}):
         raise NotSupported(self.id + ' watchBidsAsks() is not supported yet')
 
     async def watch_tickers(self, symbols: List[str] = None, params={}):

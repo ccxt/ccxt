@@ -487,7 +487,7 @@ class bithumb(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        data = self.safe_value(response, 'data', {})
+        data = self.safe_dict(response, 'data', {})
         return self.parse_ticker(data, market)
 
     def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
@@ -552,7 +552,7 @@ class bithumb(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        data = self.safe_value(response, 'data', [])
+        data = self.safe_list(response, 'data', [])
         return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
     def parse_trade(self, trade, market: Market = None) -> Trade:
@@ -660,7 +660,7 @@ class bithumb(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        data = self.safe_value(response, 'data', [])
+        data = self.safe_list(response, 'data', [])
         return self.parse_trades(data, market, since, limit)
 
     def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
@@ -748,7 +748,7 @@ class bithumb(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        data = self.safe_value(response, 'data')
+        data = self.safe_dict(response, 'data')
         return self.parse_order(self.extend(data, {'order_id': id}), market)
 
     def parse_order_status(self, status):
@@ -893,7 +893,7 @@ class bithumb(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        data = self.safe_value(response, 'data', [])
+        data = self.safe_list(response, 'data', [])
         return self.parse_orders(data, market, since, limit)
 
     def cancel_order(self, id: str, symbol: Str = None, params={}):

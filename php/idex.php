@@ -156,13 +156,15 @@ class idex extends Exchange {
                 'network' => 'MATIC',
             ),
             'exceptions' => array(
-                'INVALID_ORDER_QUANTITY' => '\\ccxt\\InvalidOrder',
-                'INSUFFICIENT_FUNDS' => '\\ccxt\\InsufficientFunds',
-                'SERVICE_UNAVAILABLE' => '\\ccxt\\ExchangeNotAvailable',
-                'EXCEEDED_RATE_LIMIT' => '\\ccxt\\DDoSProtection',
-                'INVALID_PARAMETER' => '\\ccxt\\BadRequest',
-                'WALLET_NOT_ASSOCIATED' => '\\ccxt\\InvalidAddress',
-                'INVALID_WALLET_SIGNATURE' => '\\ccxt\\AuthenticationError',
+                'exact' => array(
+                    'INVALID_ORDER_QUANTITY' => '\\ccxt\\InvalidOrder',
+                    'INSUFFICIENT_FUNDS' => '\\ccxt\\InsufficientFunds',
+                    'SERVICE_UNAVAILABLE' => '\\ccxt\\ExchangeNotAvailable',
+                    'EXCEEDED_RATE_LIMIT' => '\\ccxt\\DDoSProtection',
+                    'INVALID_PARAMETER' => '\\ccxt\\BadRequest',
+                    'WALLET_NOT_ASSOCIATED' => '\\ccxt\\InvalidAddress',
+                    'INVALID_WALLET_SIGNATURE' => '\\ccxt\\AuthenticationError',
+                ),
             ),
             'requiredCredentials' => array(
                 'walletAddress' => true,
@@ -351,7 +353,7 @@ class idex extends Exchange {
         //   }
         // )
         $response = $this->publicGetTickers (array_merge($request, $params));
-        $ticker = $this->safe_value($response, 0);
+        $ticker = $this->safe_dict($response, 0);
         return $this->parse_ticker($ticker, $market);
     }
 
@@ -1462,18 +1464,15 @@ class idex extends Exchange {
         );
         // array( array( orderId => "688336f0-ec50-11ea-9842-b332f8a34d0e" ) )
         $response = $this->privateDeleteOrders (array_merge($request, $params));
-        $canceledOrder = $this->safe_value($response, 0);
+        $canceledOrder = $this->safe_dict($response, 0);
         return $this->parse_order($canceledOrder, $market);
     }
 
     public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         $errorCode = $this->safe_string($response, 'code');
         $message = $this->safe_string($response, 'message');
-        if (is_array($this->exceptions) && array_key_exists($errorCode, $this->exceptions)) {
-            $Exception = $this->exceptions[$errorCode];
-            throw new $Exception($this->id . ' ' . $message);
-        }
         if ($errorCode !== null) {
+            $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $message);
             throw new ExchangeError($this->id . ' ' . $message);
         }
         return null;

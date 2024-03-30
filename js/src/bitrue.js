@@ -2569,7 +2569,7 @@ export default class bitrue extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseTransactions(data, currency, since, limit);
     }
     async fetchWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -2822,7 +2822,7 @@ export default class bitrue extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         return this.parseTransaction(data, currency);
     }
     parseDepositWithdrawFee(fee, currency = undefined) {
@@ -2878,7 +2878,7 @@ export default class bitrue extends Exchange {
          */
         await this.loadMarkets();
         const response = await this.spotV1PublicGetExchangeInfo(params);
-        const coins = this.safeValue(response, 'coins');
+        const coins = this.safeList(response, 'coins');
         return this.parseDepositWithdrawFees(coins, codes, 'coin');
     }
     parseTransfer(transfer, currency = undefined) {
@@ -3006,7 +3006,7 @@ export default class bitrue extends Exchange {
         //         'data': null
         //     }
         //
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         return this.parseTransfer(data, currency);
     }
     async setLeverage(leverage, symbol = undefined, params = {}) {

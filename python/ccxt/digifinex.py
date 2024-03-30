@@ -1396,7 +1396,7 @@ class digifinex(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        data = self.safe_value(response, 'data', [])
+        data = self.safe_list(response, 'data', [])
         return self.parse_trades(data, market, since, limit)
 
     def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
@@ -2079,7 +2079,7 @@ class digifinex(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        data = self.safe_value(response, 'data', [])
+        data = self.safe_list(response, 'data', [])
         return self.parse_orders(data, market, since, limit)
 
     def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
@@ -2174,7 +2174,7 @@ class digifinex(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        data = self.safe_value(response, 'data', [])
+        data = self.safe_list(response, 'data', [])
         return self.parse_orders(data, market, since, limit)
 
     def fetch_order(self, id: str, symbol: Str = None, params={}):
@@ -2353,7 +2353,7 @@ class digifinex(Exchange, ImplicitAPI):
         #     }
         #
         responseRequest = 'data' if (marketType == 'swap') else 'list'
-        data = self.safe_value(response, responseRequest, [])
+        data = self.safe_list(response, responseRequest, [])
         return self.parse_trades(data, market, since, limit)
 
     def parse_ledger_entry_type(self, type):
@@ -2580,7 +2580,7 @@ class digifinex(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        data = self.safe_value(response, 'data', [])
+        data = self.safe_list(response, 'data', [])
         return self.parse_transactions(data, currency, since, limit, {'type': type})
 
     def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
@@ -3472,7 +3472,7 @@ class digifinex(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        transfers = self.safe_value(response, 'data', [])
+        transfers = self.safe_list(response, 'data', [])
         return self.parse_transfers(transfers, currency, since, limit)
 
     def fetch_leverage_tiers(self, symbols: Strings = None, params={}):
@@ -3708,7 +3708,7 @@ class digifinex(Exchange, ImplicitAPI):
         #       "code": 200,
         #   }
         #
-        data = self.safe_value(response, 'data')
+        data = self.safe_list(response, 'data')
         return self.parse_deposit_withdraw_fees(data, codes)
 
     def parse_deposit_withdraw_fees(self, response, codes=None, currencyIdKey=None):
@@ -3890,7 +3890,7 @@ class digifinex(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        data = self.safe_value(response, 'data', [])
+        data = self.safe_list(response, 'data', [])
         return self.parse_incomes(data, market, since, limit)
 
     def parse_income(self, income, market: Market = None):

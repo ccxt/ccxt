@@ -9,7 +9,6 @@ export default class binance extends Exchange {
     isInverse(type: string, subType?: Str): boolean;
     isLinear(type: string, subType?: Str): boolean;
     setSandboxMode(enable: boolean): void;
-    convertExpireDate(date: any): string;
     createExpiredOptionMarket(symbol: string): MarketInterface;
     market(symbol: string): MarketInterface;
     safeMarket(marketId?: Str, market?: Market, delimiter?: Str, marketType?: Str): MarketInterface;

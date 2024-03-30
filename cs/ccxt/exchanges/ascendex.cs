@@ -1063,7 +1063,7 @@ public partial class ascendex : Exchange
         //         }
         //     }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return this.parseTicker(data, market);
     }
 
@@ -1211,7 +1211,7 @@ public partial class ascendex : Exchange
         //         ]
         //     }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseOHLCVs(data, market, timeframe, since, limit);
     }
 
@@ -1290,7 +1290,7 @@ public partial class ascendex : Exchange
         //     }
         //
         object records = this.safeValue(response, "data", new List<object>() {});
-        object trades = this.safeValue(records, "data", new List<object>() {});
+        object trades = this.safeList(records, "data", new List<object>() {});
         return this.parseTrades(trades, market, since, limit);
     }
 
@@ -1863,7 +1863,7 @@ public partial class ascendex : Exchange
         //     }
         //
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object info = this.safeValue(data, "info", new List<object>() {});
+        object info = this.safeList(data, "info", new List<object>() {});
         return this.parseOrders(info, market);
     }
 
@@ -1978,7 +1978,7 @@ public partial class ascendex : Exchange
         //         }
         //     }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return this.parseOrder(data, market);
     }
 
@@ -2710,7 +2710,7 @@ public partial class ascendex : Exchange
         //     }
         //
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object transactions = this.safeValue(data, "data", new List<object>() {});
+        object transactions = this.safeList(data, "data", new List<object>() {});
         return this.parseTransactions(transactions, currency, since, limit);
     }
 
@@ -3330,7 +3330,7 @@ public partial class ascendex : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object response = await this.v2PublicGetAssets(parameters);
-        object data = this.safeValue(response, "data");
+        object data = this.safeList(response, "data");
         return this.parseDepositWithdrawFees(data, codes, "assetCode");
     }
 
@@ -3474,7 +3474,7 @@ public partial class ascendex : Exchange
         //     }
         //
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object rows = this.safeValue(data, "data", new List<object>() {});
+        object rows = this.safeList(data, "data", new List<object>() {});
         return this.parseIncomes(rows, market, since, limit);
     }
 

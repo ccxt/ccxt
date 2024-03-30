@@ -811,7 +811,7 @@ class bigone extends bigone$1 {
             //         }
             //     }
             //
-            const ticker = this.safeValue(response, 'data', {});
+            const ticker = this.safeDict(response, 'data', {});
             return this.parseTicker(ticker, market);
         }
         else {
@@ -998,7 +998,7 @@ class bigone extends bigone$1 {
             //         }
             //     }
             //
-            const orderbook = this.safeValue(response, 'data', {});
+            const orderbook = this.safeDict(response, 'data', {});
             return this.parseOrderBook(orderbook, market['symbol'], undefined, 'bids', 'asks', 'price', 'quantity');
         }
     }
@@ -1213,7 +1213,7 @@ class bigone extends bigone$1 {
         //         ]
         //     }
         //
-        const trades = this.safeValue(response, 'data', []);
+        const trades = this.safeList(response, 'data', []);
         return this.parseTrades(trades, market, since, limit);
     }
     parseOHLCV(ohlcv, market = undefined) {
@@ -1292,7 +1292,7 @@ class bigone extends bigone$1 {
         //         ]
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseOHLCVs(data, market, timeframe, since, limit);
     }
     parseBalance(response) {
@@ -1561,7 +1561,7 @@ class bigone extends bigone$1 {
         //        "updated_at":"2019-01-29T06:05:56Z"
         //    }
         //
-        const order = this.safeValue(response, 'data');
+        const order = this.safeDict(response, 'data');
         return this.parseOrder(order, market);
     }
     async cancelOrder(id, symbol = undefined, params = {}) {
@@ -1590,7 +1590,7 @@ class bigone extends bigone$1 {
         //        "created_at":"2019-01-29T06:05:56Z",
         //        "updated_at":"2019-01-29T06:05:56Z"
         //    }
-        const order = this.safeValue(response, 'data');
+        const order = this.safeDict(response, 'data');
         return this.parseOrder(order);
     }
     async cancelAllOrders(symbol = undefined, params = {}) {
@@ -1636,7 +1636,7 @@ class bigone extends bigone$1 {
         await this.loadMarkets();
         const request = { 'id': id };
         const response = await this.privateGetOrdersId(this.extend(request, params));
-        const order = this.safeValue(response, 'data', {});
+        const order = this.safeDict(response, 'data', {});
         return this.parseOrder(order);
     }
     async fetchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1687,7 +1687,7 @@ class bigone extends bigone$1 {
         //        "page_token":"dxzef",
         //    }
         //
-        const orders = this.safeValue(response, 'data', []);
+        const orders = this.safeList(response, 'data', []);
         return this.parseOrders(orders, market, since, limit);
     }
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1749,7 +1749,7 @@ class bigone extends bigone$1 {
         //         "page_token":"dxfv"
         //     }
         //
-        const trades = this.safeValue(response, 'data', []);
+        const trades = this.safeList(response, 'data', []);
         return this.parseTrades(trades, market, since, limit);
     }
     parseOrderStatus(status) {
@@ -2032,7 +2032,7 @@ class bigone extends bigone$1 {
         //         ]
         //     }
         //
-        const deposits = this.safeValue(response, 'data', []);
+        const deposits = this.safeList(response, 'data', []);
         return this.parseTransactions(deposits, currency, since, limit);
     }
     async fetchWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -2084,7 +2084,7 @@ class bigone extends bigone$1 {
         //         "page_token":"dxvf"
         //     }
         //
-        const withdrawals = this.safeValue(response, 'data', []);
+        const withdrawals = this.safeList(response, 'data', []);
         return this.parseTransactions(withdrawals, currency, since, limit);
     }
     async transfer(code, amount, fromAccount, toAccount, params = {}) {
@@ -2211,7 +2211,7 @@ class bigone extends bigone$1 {
         //         }
         //     }
         //
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         return this.parseTransaction(data, currency);
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {

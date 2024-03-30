@@ -1,4 +1,4 @@
-
+import { Exchange } from "../../../../ccxt";
 import testSharedMethods from './test.sharedMethods.js';
 
 function testTrade (exchange, skippedProperties, method, entry, symbol = undefined, now = undefined) {
