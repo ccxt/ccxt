@@ -940,18 +940,6 @@ export default class hyperliquid extends Exchange {
         return this.buildSig (chainId, messageTypes, message);
     }
 
-    buildInternalTransferSig (message) {
-        const isSandboxMode = this.safeBool (this.options, 'sandboxMode');
-        const chainId = (isSandboxMode) ? 421614 : 42161;
-        const messageTypes = {
-            'UsdTransferSignPayload': [
-                { 'name': 'destination', 'type': 'string' },
-                { 'name': 'amount', 'type': 'string' },
-                { 'name': 'time', 'type': 'uint64' },
-            ],
-        };
-    }
-
     buildWithdrawSig (message) {
         const isSandboxMode = this.safeBool (this.options, 'sandboxMode');
         const chainId = (isSandboxMode) ? 421614 : 42161;
