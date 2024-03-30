@@ -305,6 +305,89 @@
                     "takeProfitPrice": null,
                     "stopLossPrice": null
                 }
+            },
+            {
+                "description": "spot order",
+                "method": "fetchOrder",
+                "input": [
+                  "9078042987",
+                  "PURR/USDC"
+                ],
+                "httpResponse": {
+                  "order": {
+                    "order": {
+                      "children": [],
+                      "cloid": null,
+                      "coin": "PURR/USDC",
+                      "isPositionTpsl": false,
+                      "isTrigger": false,
+                      "limitPx": "0.01995",
+                      "oid": "9078042987",
+                      "orderType": "Limit",
+                      "origSz": "1000.0",
+                      "reduceOnly": false,
+                      "side": "B",
+                      "sz": "0.0",
+                      "tif": "Ioc",
+                      "timestamp": "1711797850059",
+                      "triggerCondition": "N/A",
+                      "triggerPx": "0.0"
+                    },
+                    "status": "filled",
+                    "statusTimestamp": "1711797850059"
+                  },
+                  "status": "order"
+                },
+                "parsedResponse": {
+                  "info": {
+                    "order": {
+                      "children": [],
+                      "cloid": null,
+                      "coin": "PURR/USDC",
+                      "isPositionTpsl": false,
+                      "isTrigger": false,
+                      "limitPx": "0.01995",
+                      "oid": "9078042987",
+                      "orderType": "Limit",
+                      "origSz": "1000.0",
+                      "reduceOnly": false,
+                      "side": "B",
+                      "sz": "0.0",
+                      "tif": "Ioc",
+                      "timestamp": "1711797850059",
+                      "triggerCondition": "N/A",
+                      "triggerPx": "0.0"
+                    },
+                    "status": "filled",
+                    "statusTimestamp": "1711797850059"
+                  },
+                  "id": "9078042987",
+                  "clientOrderId": null,
+                  "timestamp": 1711797850059,
+                  "datetime": "2024-03-30T11:24:10.059Z",
+                  "lastTradeTimestamp": null,
+                  "lastUpdateTimestamp": null,
+                  "symbol": "PURR/USDC",
+                  "type": "limit",
+                  "timeInForce": "IOC",
+                  "postOnly": false,
+                  "reduceOnly": false,
+                  "side": "buy",
+                  "price": 0.01995,
+                  "triggerPrice": null,
+                  "amount": null,
+                  "cost": null,
+                  "average": null,
+                  "filled": null,
+                  "remaining": 0,
+                  "status": "closed",
+                  "fee": null,
+                  "trades": [],
+                  "fees": [],
+                  "stopPrice": null,
+                  "takeProfitPrice": null,
+                  "stopLossPrice": null
+                }
             }
         ],
         "fetchPositions": [
@@ -547,6 +630,65 @@
                   "total": {
                     "USDC": 1481.844,
                     "PURR": 999.65004
+                  }
+                }
+            },
+            {
+                "description": "swap balance",
+                "method": "fetchBalance",
+                "input": [],
+                "httpResponse": {
+                  "assetPositions": [],
+                  "crossMaintenanceMarginUsed": "0.0",
+                  "crossMarginSummary": {
+                    "accountValue": "16570.115313",
+                    "totalMarginUsed": "0.0",
+                    "totalNtlPos": "0.0",
+                    "totalRawUsd": "16570.115313"
+                  },
+                  "marginSummary": {
+                    "accountValue": "16570.115313",
+                    "totalMarginUsed": "0.0",
+                    "totalNtlPos": "0.0",
+                    "totalRawUsd": "16570.115313"
+                  },
+                  "time": "1711801666353",
+                  "withdrawable": "16564.115313"
+                },
+                "parsedResponse": {
+                  "info": {
+                    "assetPositions": [],
+                    "crossMaintenanceMarginUsed": "0.0",
+                    "crossMarginSummary": {
+                      "accountValue": "16570.115313",
+                      "totalMarginUsed": "0.0",
+                      "totalNtlPos": "0.0",
+                      "totalRawUsd": "16570.115313"
+                    },
+                    "marginSummary": {
+                      "accountValue": "16570.115313",
+                      "totalMarginUsed": "0.0",
+                      "totalNtlPos": "0.0",
+                      "totalRawUsd": "16570.115313"
+                    },
+                    "time": "1711801666353",
+                    "withdrawable": "16564.115313"
+                  },
+                  "USDC": {
+                    "total": 16570.115313,
+                    "used": 0,
+                    "free": 16570.115313
+                  },
+                  "timestamp": 1711801666353,
+                  "datetime": "2024-03-30T12:27:46.353Z",
+                  "free": {
+                    "USDC": 16570.115313
+                  },
+                  "used": {
+                    "USDC": 0
+                  },
+                  "total": {
+                    "USDC": 16570.115313
                   }
                 }
             }

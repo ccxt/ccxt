@@ -446,15 +446,6 @@
                 "output": "{\"nonce\":1709652626969,\"action\":{\"type\":\"cancel\",\"cancels\":[{\"a\":5,\"o\":6927265353},{\"a\":5,\"o\":6927351467}]},\"signature\":{\"r\":\"0x546bc0dcf536756b5cce7206528aadf03a44d1b2a9b0a48c2e85fd21b1692b6f\",\"s\":\"0x5088740b9decdc966025ba75f127eb6cbb097eaab1835238dab8d95cfe101040\",\"v\":27}}"
             }
         ],
-        "fetchMarkets": [
-            {
-                "description": "fetchMarkets",
-                "method": "fetchMarkets",
-                "url": "https://api.hyperliquid.xyz/info",
-                "input": [],
-                "output": "{\"type\":\"metaAndAssetCtxs\"}"
-            }
-        ],
         "fetchBalance": [
             {
                 "description": "fetchBalance",
@@ -473,7 +464,8 @@
                 "url": "https://api.hyperliquid.xyz/info",
                 "input": [
                   {
-                    "type": "spot"
+                    "type": "spot",
+                    "user": "0x3B3741c0EFf9C6b556Ec813e70589161F416662A"
                   }
                 ],
                 "output": "{\"type\":\"spotClearinghouseState\",\"user\":\"0x3B3741c0EFf9C6b556Ec813e70589161F416662A\"}"

@@ -605,7 +605,7 @@ export default class hyperliquid extends Exchange {
         //            }
         //     }
         //
-        const balances = this.safeList (response, 'balances', []);
+        const balances = this.safeList (response, 'balances');
         if (balances !== undefined) {
             const spotBalances = { 'info': response };
             for (let i = 0; i < balances.length; i++) {
