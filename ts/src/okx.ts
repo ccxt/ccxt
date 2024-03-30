@@ -86,6 +86,7 @@ export default class okx extends Exchange {
                 'fetchLedgerEntry': undefined,
                 'fetchLeverage': true,
                 'fetchLeverageTiers': false,
+                'fetchMarginAdjustmentHistory': true,
                 'fetchMarketLeverageTiers': true,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': true,

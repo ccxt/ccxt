@@ -82,6 +82,7 @@ export default class coinex extends Exchange {
                 'fetchLeverage': 'emulated',
                 'fetchLeverages': true,
                 'fetchLeverageTiers': true,
+                'fetchMarginAdjustmentHistory': true,
                 'fetchMarketLeverageTiers': 'emulated',
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
