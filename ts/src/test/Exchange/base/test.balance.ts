@@ -3,7 +3,7 @@ import { Exchange } from "../../../../ccxt";
 import Precise from '../../../base/Precise.js';
 import testSharedMethods from './test.sharedMethods.js';
 
-function testBalance (exchange: Exchange, skippedProperties: string[], method: string, entry: object) {
+function testBalance (exchange: Exchange, skippedProperties: object, method: string, entry: object) {
     const format = {
         'free': {},
         'used': {},

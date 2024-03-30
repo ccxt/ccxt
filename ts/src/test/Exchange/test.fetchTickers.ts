@@ -3,13 +3,13 @@ import { Exchange } from "../../../ccxt";
 import testTicker from './base/test.ticker.js';
 import testSharedMethods from './base/test.sharedMethods.js';
 
-async function testFetchTickers (exchange: Exchange, skippedProperties: string[], symbol: string) {
+async function testFetchTickers (exchange: Exchange, skippedProperties: object, symbol: string) {
     const withoutSymbol = testFetchTickersHelper (exchange, skippedProperties, undefined);
     const withSymbol = testFetchTickersHelper (exchange, skippedProperties, [ symbol ]);
     await Promise.all ([ withSymbol, withoutSymbol ]);
 }
 
-async function testFetchTickersHelper (exchange: Exchange, skippedProperties: string[], argSymbols, argParams = {}) {
+async function testFetchTickersHelper (exchange: Exchange, skippedProperties: object, argSymbols, argParams = {}) {
     const method = 'fetchTickers';
     const response =  await exchange.fetchTickers (argSymbols, argParams);
     assert (typeof response === 'object', exchange.id + ' ' + method + ' ' + exchange.json (argSymbols) + ' must return an object. ' + exchange.json (response));

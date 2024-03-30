@@ -5,7 +5,7 @@ import testTrade from './base/test.trade.js';
 import Precise from '../../base/Precise.js';
 
 
-async function testFetchTrades (exchange: Exchange, skippedProperties: string[], symbol: string) {
+async function testFetchTrades (exchange: Exchange, skippedProperties: object, symbol: string) {
     const method = 'fetchTrades';
     const trades = await exchange.fetchTrades (symbol, undefined, 12000); // lets test with unrealistically high amount
     await testFetchTradesResponse (exchange, skippedProperties, symbol, method, trades);
