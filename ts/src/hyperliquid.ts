@@ -381,7 +381,7 @@ export default class hyperliquid extends Exchange {
         const first = this.safeDict (response, 0, {});
         const meta = this.safeList (first, 'universe', []);
         const tokens = this.safeList (first, 'tokens', []);
-        const markets: Market[] = [];
+        const markets = [];
         for (let i = 0; i < meta.length; i++) {
             const market = this.safeDict (meta, i, {});
             const marketName = this.safeString (market, 'name');
