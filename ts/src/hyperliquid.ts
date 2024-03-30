@@ -940,6 +940,18 @@ export default class hyperliquid extends Exchange {
         return this.buildSig (chainId, messageTypes, message);
     }
 
+    buildInternalTransferSig (message) {
+        const isSandboxMode = this.safeBool (this.options, 'sandboxMode');
+        const chainId = (isSandboxMode) ? 421614 : 42161;
+        const messageTypes = {
+            'UsdTransferSignPayload': [
+                { 'name': 'destination', 'type': 'string' },
+                { 'name': 'amount', 'type': 'string' },
+                { 'name': 'time', 'type': 'uint64' },
+            ],
+        };
+    }
+
     buildWithdrawSig (message) {
         const isSandboxMode = this.safeBool (this.options, 'sandboxMode');
         const chainId = (isSandboxMode) ? 421614 : 42161;
@@ -1158,6 +1170,7 @@ export default class hyperliquid extends Exchange {
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.clientOrderId] client order id, (optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
+         * @param {string} [params.vaultAddress] the vault address for order
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         return await this.cancelOrders ([ id ], symbol, params);
@@ -1174,6 +1187,7 @@ export default class hyperliquid extends Exchange {
          * @param {string} [symbol] unified market symbol
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string|string[]} [params.clientOrderId] client order ids, (optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
+         * @param {string} [params.vaultAddress] the vault address
          * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         this.checkRequiredCredentials ();
@@ -2187,13 +2201,44 @@ export default class hyperliquid extends Exchange {
          * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#l1-usdc-transfer
          * @param {string} code unified currency code
          * @param {float} amount amount to transfer
-         * @param {string} fromAccount account to transfer from
-         * @param {string} toAccount account to transfer to
+         * @param {string} fromAccount account to transfer from *spot, swap*
+         * @param {string} toAccount account to transfer to *swap, spot or address*
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.vaultAddress] the vault address for order
          * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
          */
         this.checkRequiredCredentials ();
         await this.loadMarkets ();
+        const isSandboxMode = this.safeBool (this.options, 'sandboxMode');
+        const nonce = this.milliseconds ();
+        if (this.inArray (fromAccount, [ 'spot', 'swap', 'perp' ])) {
+            // handle swap <> spot account transfer
+            if (!this.inArray (toAccount, [ 'spot', 'swap', 'perp' ])) {
+                throw new NotSupported (this.id + 'transfer() only support spot <> swap transfer');
+            }
+            const vaultAddress = this.formatVaultAddress (this.safeString (params, 'vaultAddress'));
+            params = this.omit (params, 'vaultAddress');
+            const toPerp = (toAccount === 'perp') || (toAccount === 'swap');
+            const action = {
+                'type': 'spotUser',
+                'classTransfer': {
+                    'usdc': amount,
+                    'toPerp': toPerp,
+                },
+            };
+            const signature = this.signL1Action (action, nonce, vaultAddress);
+            const innerRequest = {
+                'action': this.extend (action, params),
+                'nonce': nonce,
+                'signature': signature,
+            };
+            if (vaultAddress !== undefined) {
+                innerRequest['vaultAddress'] = vaultAddress;
+            }
+            const transferResponse = await this.privatePostExchange (innerRequest);
+            return transferResponse;
+        }
+        // handle sub-account/different account transfer
         this.checkAddress (toAccount);
         if (code !== undefined) {
             code = code.toUpperCase ();
@@ -2201,11 +2246,9 @@ export default class hyperliquid extends Exchange {
                 throw new NotSupported (this.id + 'withdraw() only support USDC');
             }
         }
-        const isSandboxMode = this.safeBool (this.options, 'sandboxMode');
-        const nonce = this.milliseconds ();
         const payload = {
             'destination': toAccount,
-            'amount': amount.toString (),
+            'amount': this.numberToString (amount),
             'time': nonce,
         };
         const sig = this.buildTransferSig (payload);

@@ -676,6 +676,32 @@
                 ],
                 "output": "{\"action\":{\"type\":\"updateLeverage\",\"asset\":5,\"isCross\":false,\"leverage\":5},\"nonce\":1711360592621,\"signature\":{\"r\":\"0x233801ff1dc0ce66c1ee523317721e282f52ee3542a9195d3467430d1c70cad1\",\"s\":\"0x2c01401e469679d99893ceaaf5603c2e28279fd83c7802f43603ec6b3b4019b9\",\"v\":28}}"
             }
+        ],
+        "transfer": [
+            {
+                "description": "transfer from spot to swap",
+                "method": "transfer",
+                "url": "https://api.hyperliquid-testnet.xyz/exchange",
+                "input": [
+                  "USDC",
+                  100,
+                  "spot",
+                  "swap"
+                ],
+                "output": "{\"action\":{\"type\":\"spotUser\",\"classTransfer\":{\"usdc\":100,\"toPerp\":true}},\"nonce\":1711801354232,\"signature\":{\"r\":\"0x4452aeee97fc1be0e1ace46fdcaa2c5bf10741c9868769ee5ad22a12ec89666a\",\"s\":\"0x231a723de53d2a6b4009f4139b2f58a0729761d462c57faf9b5704118019bd8d\",\"v\":28}}"
+            },
+            {
+                "description": "transfer from swap to spot",
+                "method": "transfer",
+                "url": "https://api.hyperliquid-testnet.xyz/exchange",
+                "input": [
+                  "USDC",
+                  100,
+                  "swap",
+                  "spot"
+                ],
+                "output": "{\"action\":{\"type\":\"spotUser\",\"classTransfer\":{\"usdc\":100,\"toPerp\":false}},\"nonce\":1711801415155,\"signature\":{\"r\":\"0x22acd4b8767652694c314361f83496cfbed25bb1297c6dd63e257a4106c9d715\",\"s\":\"0x28df849bd7b8604df860a8c78a353898cbcf670184df430deeeb1baec78902b3\",\"v\":27}}"
+            }
         ]
     }
 }
