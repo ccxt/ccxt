@@ -188,6 +188,7 @@ export default class hyperliquid extends Exchange {
             'commonCurrencies': {
             },
             'options': {
+                'defaultType': 'swap',
                 'sandboxMode': false,
                 'defaultSlippage': 0.05,
                 'zeroAddress': '0x0000000000000000000000000000000000000000',
@@ -381,7 +382,7 @@ export default class hyperliquid extends Exchange {
         const meta = this.safeList (first, 'universe', []);
         const tokens = this.safeList (first, 'tokens', []);
         const markets = [];
-        const result = [];
+        const result: Market[] = [];
         for (let i = 0; i < meta.length; i++) {
             const market = this.safeDict (meta, i, {});
             const marketName = this.safeString (market, 'name');
@@ -402,7 +403,7 @@ export default class hyperliquid extends Exchange {
             const baseDecimals = this.safeString (baseTokenInfo, 'szDecimals');
             const quoteDecimals = this.safeInteger (quoteTokenInfo, 'szDecimals');
             markets.push (this.safeMarketStructure ({
-                'id': marketName,
+                'id': this.numberToString (i + 10000),
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
@@ -453,7 +454,7 @@ export default class hyperliquid extends Exchange {
                 'info': market,
             }));
         }
-        return this.parseMarkets (result);
+        return result;
     }
 
     parseMarket (market): Market {
@@ -555,12 +556,17 @@ export default class hyperliquid extends Exchange {
          * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-a-users-state
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.user] user address, will default to this.walletAddress if not provided
+         * @param {string} [params.type] wallet type, ['spot', 'swap'], defaults to swap
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         let userAddress = undefined;
         [ userAddress, params ] = this.handlePublicAddress ('fetchBalance', params);
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
+        const isSpot = (type === 'spot');
+        const reqType = (isSpot) ? 'spotClearinghouseState' : 'clearinghouseState';
         const request = {
-            'type': 'clearinghouseState',
+            'type': reqType,
             'user': userAddress,
         };
         const response = await this.publicPostInfo (this.extend (request, params));
