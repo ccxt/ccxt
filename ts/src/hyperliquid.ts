@@ -381,15 +381,14 @@ export default class hyperliquid extends Exchange {
         const first = this.safeDict (response, 0, {});
         const meta = this.safeList (first, 'universe', []);
         const tokens = this.safeList (first, 'tokens', []);
-        const markets = [];
-        const result: Market[] = [];
+        const markets: Market[] = [];
         for (let i = 0; i < meta.length; i++) {
             const market = this.safeDict (meta, i, {});
             const marketName = this.safeString (market, 'name');
             const marketParts = marketName.split ('/');
-            const baseId = this.safeString (marketParts, 0);
+            const baseName = this.safeString (marketParts, 0);
             const quoteId = this.safeString (marketParts, 1);
-            const base = this.safeCurrencyCode (baseId);
+            const base = this.safeCurrencyCode (baseName);
             const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
             const fees = this.safeDict (this.fees, 'spot', {});
@@ -402,8 +401,9 @@ export default class hyperliquid extends Exchange {
             const quoteTokenInfo = this.safeDict (tokens, quoteTokenPos, {});
             const baseDecimals = this.safeString (baseTokenInfo, 'szDecimals');
             const quoteDecimals = this.safeInteger (quoteTokenInfo, 'szDecimals');
+            const baseId = this.numberToString (i + 10000);
             markets.push (this.safeMarketStructure ({
-                'id': this.numberToString (i + 10000),
+                'id': baseId,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
@@ -454,7 +454,7 @@ export default class hyperliquid extends Exchange {
                 'info': market,
             }));
         }
-        return result;
+        return markets;
     }
 
     parseMarket (market): Market {
@@ -589,7 +589,37 @@ export default class hyperliquid extends Exchange {
         //         "time": "1704261007014",
         //         "withdrawable": "100.0"
         //     }
+        // spot
         //
+        //     {
+        //         "balances":[
+        //            {
+        //               "coin":"USDC",
+        //               "hold":"0.0",
+        //               "total":"1481.844"
+        //            },
+        //            {
+        //               "coin":"PURR",
+        //               "hold":"0.0",
+        //               "total":"999.65004"
+        //            }
+        //     }
+        //
+        const balances = this.safeList (response, 'balances', []);
+        if (balances !== undefined) {
+            const spotBalances = { 'info': response };
+            for (let i = 0; i < balances.length; i++) {
+                const balance = balances[i];
+                const code = this.safeCurrencyCode (this.safeString (balance, 'coin'));
+                const account = this.account ();
+                const total = this.safeString (balance, 'total');
+                const free = this.safeString (balance, 'hold');
+                account['total'] = total;
+                account['free'] = free;
+                spotBalances[code] = account;
+            }
+            return this.safeBalance (spotBalances);
+        }
         const data = this.safeDict (response, 'marginSummary', {});
         const result = {
             'info': response,
@@ -1627,7 +1657,11 @@ export default class hyperliquid extends Exchange {
         const coin = this.safeString (entry, 'coin');
         let marketId = undefined;
         if (coin !== undefined) {
-            marketId = coin + '/USDC:USDC';
+            if (coin.indexOf ('/') > -1) {
+                marketId = coin;
+            } else {
+                marketId = coin + '/USDC:USDC';
+            }
         }
         if (this.safeString (entry, 'id') === undefined) {
             market = this.safeMarket (marketId, undefined);
