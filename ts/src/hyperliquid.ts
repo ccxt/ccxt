@@ -261,6 +261,25 @@ export default class hyperliquid extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} an array of objects representing market data
          */
+        const rawPromises = [
+            this.fetchSwapMarkets (params),
+            this.fetchSpotMarkets (params),
+        ];
+        const promises = await Promise.all (rawPromises);
+        const swapMarkets = promises[0];
+        const spotMarkets = promises[1];
+        return this.arrayConcat (swapMarkets, spotMarkets) as Market[];
+    }
+
+    async fetchSwapMarkets (params = {}): Promise<Market[]> {
+        /**
+         * @method
+         * @name hyperliquid#fetchMarkets
+         * @description retrieves data on all swap markets for hyperliquid
+         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-asset-contexts-includes-mark-price-current-funding-open-interest-etc
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} an array of objects representing market data
+         */
         const request = {
             'type': 'metaAndAssetCtxs',
         };
@@ -306,6 +325,133 @@ export default class hyperliquid extends Exchange {
             );
             data['baseId'] = i;
             result.push (data);
+        }
+        return this.parseMarkets (result);
+    }
+
+    async fetchSpotMarkets (params = {}): Promise<Market[]> {
+        /**
+         * @method
+         * @name hyperliquid#fetchMarkets
+         * @description retrieves data on all spot markets for hyperliquid
+         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-asset-contexts-includes-mark-price-current-funding-open-interest-etc
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} an array of objects representing market data
+         */
+        const request = {
+            'type': 'spotMetaAndAssetCtxs',
+        };
+        const response = await this.publicPostInfo (this.extend (request, params));
+        //
+        // [
+        //     {
+        //         'tokens': [
+        //             {
+        //                 'name': 'USDC',
+        //                 'szDecimals': '8',
+        //                 'weiDecimals': '8',
+        //             },
+        //             {
+        //                 'name': 'PURR',
+        //                 'szDecimals': '0',
+        //                 'weiDecimals': '5',
+        //             },
+        //         ],
+        //         'universe': [
+        //             {
+        //                 'name': 'PURR/USDC',
+        //                 'tokens': [
+        //                     1,
+        //                     0,
+        //                 ],
+        //             },
+        //         ],
+        //     },
+        //     [
+        //         {
+        //             'dayNtlVlm': '264250385.14640012',
+        //             'markPx': '0.018314',
+        //             'midPx': '0.0182235',
+        //             'prevDayPx': '0.017427',
+        //         },
+        //     ],
+        // ];
+        //
+        const first = this.safeDict (response, 0, {});
+        const meta = this.safeList (first, 'universe', []);
+        const tokens = this.safeList (first, 'tokens', []);
+        const markets = [];
+        const result = [];
+        for (let i = 0; i < meta.length; i++) {
+            const market = this.safeDict (meta, i, {});
+            const marketName = this.safeString (market, 'name');
+            const marketParts = marketName.split ('/');
+            const baseId = this.safeString (marketParts, 0);
+            const quoteId = this.safeString (marketParts, 1);
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
+            const symbol = base + '/' + quote;
+            const fees = this.safeDict (this.fees, 'spot', {});
+            const taker = this.safeNumber (fees, 'taker');
+            const maker = this.safeNumber (fees, 'maker');
+            const tokensPos = this.safeList (market, 'tokens', []);
+            const baseTokenPos = this.safeInteger (tokensPos, 0);
+            const quoteTokenPos = this.safeInteger (tokensPos, 1);
+            const baseTokenInfo = this.safeDict (tokens, baseTokenPos, {});
+            const quoteTokenInfo = this.safeDict (tokens, quoteTokenPos, {});
+            const baseDecimals = this.safeString (baseTokenInfo, 'szDecimals');
+            const quoteDecimals = this.safeInteger (quoteTokenInfo, 'szDecimals');
+            markets.push (this.safeMarketStructure ({
+                'id': marketName,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'settle': undefined,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'settleId': undefined,
+                'type': 'spot',
+                'spot': true,
+                'margin': undefined,
+                'swap': false,
+                'future': false,
+                'option': false,
+                'active': true,
+                'contract': false,
+                'linear': true,
+                'inverse': false,
+                'taker': taker,
+                'maker': maker,
+                'contractSize': undefined,
+                'expiry': undefined,
+                'expiryDatetime': undefined,
+                'strike': undefined,
+                'optionType': undefined,
+                'precision': {
+                    'amount': this.parseNumber (this.parsePrecision (baseDecimals)), // decimal places
+                    'price': quoteDecimals, // significant digits
+                },
+                'limits': {
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'amount': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'price': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'cost': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
+                'created': undefined,
+                'info': market,
+            }));
         }
         return this.parseMarkets (result);
     }
