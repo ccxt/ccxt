@@ -136,7 +136,8 @@
     "id-tests-py": "python python/ccxt/test/test_async.py --idTests",
     "id-tests-php": "php php/test/test_async.php --idTests",
     "id-tests-cs": "dotnet run --project cs/tests/tests.csproj --idTests",
-    "id-tests": "npm run id-tests-js && npm run id-tests-py && npm run id-tests-php && npm run id-tests-cs"
+    "id-tests": "npm run id-tests-js && npm run id-tests-py && npm run id-tests-php && npm run id-tests-cs",
+    "benchmark": "node --loader ts-node/esm examples/ts/benchmark.ts"
   },
   "types": "./js/ccxt.d.ts",
   "devDependencies": {
