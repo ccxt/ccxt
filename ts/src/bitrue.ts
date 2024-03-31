@@ -1349,9 +1349,6 @@ export default class bitrue extends Exchange {
                 'interval': this.safeString (timeframesFuture, timeframe, '1min'),
             };
             if (limit !== undefined) {
-                if (limit > 300) {
-                    limit = 300;
-                }
                 request['limit'] = limit;
             }
             if (market['linear']) {
@@ -1368,9 +1365,6 @@ export default class bitrue extends Exchange {
                 'scale': this.safeString (timeframesSpot, timeframe, '1m'),
             };
             if (limit !== undefined) {
-                if (limit > 1440) {
-                    limit = 1440;
-                }
                 request['limit'] = limit;
             }
             if (since !== undefined) {

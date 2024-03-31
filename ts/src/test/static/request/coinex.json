@@ -752,9 +752,9 @@
         ],
         "fetchTime": [
             {
-                "description": "fetchTime",
+                "description": "Fetch the time",
                 "method": "fetchTime",
-                "url": "https://api.coinex.com/perpetual/v1/time",
+                "url": "https://api.coinex.com/v2/time",
                 "input": []
             }
         ],
@@ -775,6 +775,42 @@
                 "url": "https://api.coinex.com/perpetual/v1/market/ticker?market=BTCUSDT",
                 "input": [
                     "BTC/USDT:USDT"
+                ]
+            }
+        ],
+        "fetchTradingFee": [
+            {
+                "description": "Spot fetch trading fee",
+                "method": "fetchTradingFee",
+                "url": "https://api.coinex.com/v2/spot/market?market=BTCUSDT",
+                "input": [
+                  "BTC/USDT"
+                ]
+            },
+            {
+                "description": "Swap fetch trading fee",
+                "method": "fetchTradingFee",
+                "url": "https://api.coinex.com/v2/futures/market?market=BTCUSDT",
+                "input": [
+                  "BTC/USDT:USDT"
+                ]
+            }
+        ],
+        "fetchTradingFees": [
+            {
+                "description": "Spot fetch trading fees",
+                "method": "fetchTradingFees",
+                "url": "https://api.coinex.com/v2/spot/market",
+                "input": []
+            },
+            {
+                "description": "Swap fetch trading fees",
+                "method": "fetchTradingFees",
+                "url": "https://api.coinex.com/v2/futures/market",
+                "input": [
+                  {
+                    "type": "swap"
+                  }
                 ]
             }
         ]

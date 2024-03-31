@@ -421,7 +421,7 @@ public partial class Exchange
             {
                 try
                 {
-                    await this.webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Close", CancellationToken.None);
+                    await this.webSocket.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, "Close", CancellationToken.None);
                 }
                 catch (Exception e)
                 {

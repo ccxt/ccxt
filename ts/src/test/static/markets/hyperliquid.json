@@ -258,5 +258,41 @@
             "prevDayPx": "0.79925",
             "baseId": 65
         }
+    },
+    "PURR/USDC": {
+        "id": "10000",
+        "symbol": "PURR/USDC",
+        "base": "PURR",
+        "quote": "USDC",
+        "baseId": "10000",
+        "quoteId": "USDC",
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "index": false,
+        "active": true,
+        "contract": false,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "precision": {
+            "amount": 1,
+            "price": 8
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {},
+            "price": {},
+            "cost": {}
+        },
+        "info": {
+            "name": "PURR/USDC",
+            "tokens": [
+                1,
+                0
+            ]
+        }
     }
 }

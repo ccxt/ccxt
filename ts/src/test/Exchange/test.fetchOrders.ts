@@ -3,7 +3,7 @@ import { Exchange } from "../../../ccxt";
 import testOrder from './base/test.order.js';
 import testSharedMethods from './base/test.sharedMethods.js';
 
-async function testFetchOrders (exchange: Exchange, skippedProperties: string[], symbol: string) {
+async function testFetchOrders (exchange: Exchange, skippedProperties: object, symbol: string) {
     const method = 'fetchOrders';
     const orders = await exchange.fetchOrders (symbol);
     assert (Array.isArray (orders), exchange.id + ' ' + method + ' must return an array, returned ' + exchange.json (orders));
