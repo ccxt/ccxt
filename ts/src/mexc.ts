@@ -6,7 +6,7 @@ import { BadRequest, InvalidNonce, BadSymbol, InvalidOrder, InvalidAddress, Exch
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { TransferEntry, IndexType, Int, OrderSide, Balances, OrderType, OHLCV, FundingRateHistory, Position, OrderBook, OrderRequest, FundingHistory, Order, Str, Trade, Transaction, Ticker, Tickers, Strings, Market, Currency } from './base/types.js';
+import type { TransferEntry, IndexType, Int, OrderSide, Balances, OrderType, OHLCV, FundingRateHistory, Position, OrderBook, OrderRequest, FundingHistory, Order, Str, Trade, Transaction, Ticker, Tickers, Strings, Market, Currency, Leverage, Num, Account, MarginModification } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -43,6 +43,7 @@ export default class mexc extends Exchange {
                 'createMarketSellOrderWithCost': false,
                 'createOrder': true,
                 'createOrders': true,
+                'createPostOnlyOrder': true,
                 'createReduceOnlyOrder': true,
                 'deposit': undefined,
                 'editOrder': undefined,
@@ -73,6 +74,8 @@ export default class mexc extends Exchange {
                 'fetchL2OrderBook': true,
                 'fetchLedger': undefined,
                 'fetchLedgerEntry': undefined,
+                'fetchLeverage': true,
+                'fetchLeverages': false,
                 'fetchLeverageTiers': true,
                 'fetchMarginMode': false,
                 'fetchMarketLeverageTiers': undefined,
@@ -884,8 +887,8 @@ export default class mexc extends Exchange {
                     '30032': InvalidOrder, // Cannot exceed the maximum position
                     '30041': InvalidOrder, // current order type can not place order
                     '60005': ExchangeError, // your account is abnormal
-                    '700001': AuthenticationError, // API-key format invalid
-                    '700002': AuthenticationError, // Signature for this request is not valid
+                    '700001': AuthenticationError, // {"code":700002,"msg":"Signature for this request is not valid."} // same message for expired API keys
+                    '700002': AuthenticationError, // Signature for this request is not valid // or the API secret is incorrect
                     '700004': BadRequest, // Param 'origClientOrderId' or 'orderId' must be sent, but both were empty/null
                     '700005': InvalidNonce, // recvWindow must less than 60000
                     '700006': BadRequest, // IP non white list
@@ -917,7 +920,7 @@ export default class mexc extends Exchange {
                     'Combination of optional parameters invalid': BadRequest, // code:-2011
                     'api market order is disabled': BadRequest, //
                     'Contract not allow place order!': InvalidOrder, // code:1002
-                    'Oversold': InvalidOrder, // code:30005
+                    'Oversold': InsufficientFunds, // code:30005
                     'Insufficient position': InsufficientFunds, // code:30004
                     'Insufficient balance!': InsufficientFunds, // code:2005
                     'Bid price is great than max allow price': InvalidOrder, // code:2003
@@ -1138,7 +1141,7 @@ export default class mexc extends Exchange {
         return result;
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name mexc#fetchMarkets
@@ -2193,7 +2196,7 @@ export default class mexc extends Exchange {
         return await this.createOrder (symbol, 'market', 'buy', cost, undefined, params);
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         /**
          * @method
          * @name mexc#createOrder
@@ -2209,6 +2212,14 @@ export default class mexc extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.marginMode] only 'isolated' is supported for spot-margin trading
          * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
+         * @param {bool} [params.postOnly] if true, the order will only be posted if it will be a maker order
+         * @param {bool} [params.reduceOnly] *contract only* indicates if this order is to reduce the size of a position
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+         * @param {int} [params.leverage] *contract only* leverage is necessary on isolated margin
+         * @param {long} [params.positionId] *contract only* it is recommended to fill in this parameter when closing a position
+         * @param {string} [params.externalOid] *contract only* external order ID
+         * @param {int} [params.positionMode] *contract only*  1:hedge, 2:one-way, default: the user's current config
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -2812,7 +2823,7 @@ export default class mexc extends Exchange {
             //         ]
             //     }
             //
-            const data = this.safeValue (response, 'data');
+            const data = this.safeList (response, 'data');
             return this.parseOrders (data, market);
         }
     }
@@ -3094,7 +3105,7 @@ export default class mexc extends Exchange {
             //         ]
             //     }
             //
-            const data = this.safeValue (response, 'data');
+            const data = this.safeList (response, 'data');
             return this.parseOrders (data, market);
         }
     }
@@ -3186,7 +3197,7 @@ export default class mexc extends Exchange {
             //         "code": "0"
             //     }
             //
-            const data = this.safeValue (response, 'data', []);
+            const data = this.safeList (response, 'data', []);
             return this.parseOrders (data, market);
         }
     }
@@ -3504,7 +3515,7 @@ export default class mexc extends Exchange {
         return undefined;
     }
 
-    async fetchAccounts (params = {}) {
+    async fetchAccounts (params = {}): Promise<Account[]> {
         /**
          * @method
          * @name mexc#fetchAccounts
@@ -4002,7 +4013,7 @@ export default class mexc extends Exchange {
         return response;
     }
 
-    async reduceMargin (symbol: string, amount, params = {}) {
+    async reduceMargin (symbol: string, amount, params = {}): Promise<MarginModification> {
         /**
          * @method
          * @name mexc#reduceMargin
@@ -4015,7 +4026,7 @@ export default class mexc extends Exchange {
         return await this.modifyMarginHelper (symbol, amount, 'SUB', params);
     }
 
-    async addMargin (symbol: string, amount, params = {}) {
+    async addMargin (symbol: string, amount, params = {}): Promise<MarginModification> {
         /**
          * @method
          * @name mexc#addMargin
@@ -4337,7 +4348,7 @@ export default class mexc extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data');
+        const data = this.safeList (response, 'data');
         return this.parseLeverageTiers (data, symbols, 'symbol');
     }
 
@@ -4804,7 +4815,7 @@ export default class mexc extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         return this.parsePositions (data, symbols);
     }
 
@@ -4897,7 +4908,7 @@ export default class mexc extends Exchange {
             //         }
             //     }
             //
-            const data = this.safeValue (response, 'data', {});
+            const data = this.safeDict (response, 'data', {});
             return this.parseTransfer (data);
         } else if (marketType === 'swap') {
             throw new BadRequest (this.id + ' fetchTransfer() is not supported for ' + marketType);
@@ -5391,6 +5402,80 @@ export default class mexc extends Exchange {
         return this.assignDefaultDepositWithdrawFees (result);
     }
 
+    async fetchLeverage (symbol: string, params = {}): Promise<Leverage> {
+        /**
+         * @method
+         * @name mexc#fetchLeverage
+         * @description fetch the set leverage for a market
+         * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-leverage
+         * @param {string} symbol unified market symbol
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this.contractPrivateGetPositionLeverage (this.extend (request, params));
+        //
+        //     {
+        //         "success": true,
+        //         "code": 0,
+        //         "data": [
+        //             {
+        //                 "level": 1,
+        //                 "maxVol": 463300,
+        //                 "mmr": 0.004,
+        //                 "imr": 0.005,
+        //                 "positionType": 1,
+        //                 "openType": 1,
+        //                 "leverage": 20,
+        //                 "limitBySys": false,
+        //                 "currentMmr": 0.004
+        //             },
+        //             {
+        //                 "level": 1,
+        //                 "maxVol": 463300,
+        //                 "mmr": 0.004,
+        //                 "imr": 0.005,
+        //                 "positionType": 2,
+        //                 "openType": 1,
+        //                 "leverage": 20,
+        //                 "limitBySys": false,
+        //                 "currentMmr": 0.004
+        //             }
+        //         ]
+        //     }
+        //
+        const data = this.safeList (response, 'data', []);
+        return this.parseLeverage (data, market);
+    }
+
+    parseLeverage (leverage, market = undefined): Leverage {
+        let marginMode = undefined;
+        let longLeverage = undefined;
+        let shortLeverage = undefined;
+        for (let i = 0; i < leverage.length; i++) {
+            const entry = leverage[i];
+            const openType = this.safeInteger (entry, 'openType');
+            const positionType = this.safeInteger (entry, 'positionType');
+            if (positionType === 1) {
+                longLeverage = this.safeInteger (entry, 'leverage');
+            } else if (positionType === 2) {
+                shortLeverage = this.safeInteger (entry, 'leverage');
+            }
+            marginMode = (openType === 1) ? 'isolated' : 'cross';
+        }
+        return {
+            'info': leverage,
+            'symbol': market['symbol'],
+            'marginMode': marginMode,
+            'longLeverage': longLeverage,
+            'shortLeverage': shortLeverage,
+        } as Leverage;
+    }
+
     handleMarginModeAndParams (methodName, params = {}, defaultValue = undefined) {
         /**
          * @ignore
@@ -5439,7 +5524,7 @@ export default class mexc extends Exchange {
                     'source': this.safeString (this.options, 'broker', 'CCXT'),
                 };
             }
-            if ((method === 'POST') || (method === 'PUT')) {
+            if ((method === 'POST') || (method === 'PUT') || (method === 'DELETE')) {
                 headers['Content-Type'] = 'application/json';
             }
         } else if (section === 'contract' || section === 'spot2') {

@@ -27,6 +27,7 @@ public partial class kucoinfutures : kucoin
                 { "addMargin", true },
                 { "cancelAllOrders", true },
                 { "cancelOrder", true },
+                { "closeAllPositions", false },
                 { "closePosition", true },
                 { "closePositions", false },
                 { "createDepositAddress", true },
@@ -75,7 +76,7 @@ public partial class kucoinfutures : kucoin
                 { "fetchPremiumIndexOHLCV", false },
                 { "fetchStatus", true },
                 { "fetchTicker", true },
-                { "fetchTickers", false },
+                { "fetchTickers", true },
                 { "fetchTime", true },
                 { "fetchTrades", true },
                 { "fetchTransactionFee", false },
@@ -578,7 +579,7 @@ public partial class kucoinfutures : kucoin
         //        ]
         //    }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseOHLCVs(data, market, timeframe, since, limit);
     }
 
@@ -743,6 +744,88 @@ public partial class kucoinfutures : kucoin
         return this.parseTicker(getValue(response, "data"), market);
     }
 
+    public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name kucoinfutures#fetchTickers
+        * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+        * @see https://www.kucoin.com/docs/rest/futures-trading/market-data/get-symbols-list
+        * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols);
+        object response = await this.futuresPublicGetContractsActive(parameters);
+        //
+        //    {
+        //        "code": "200000",
+        //        "data": {
+        //            "symbol": "ETHUSDTM",
+        //            "rootSymbol": "USDT",
+        //            "type": "FFWCSX",
+        //            "firstOpenDate": 1591086000000,
+        //            "expireDate": null,
+        //            "settleDate": null,
+        //            "baseCurrency": "ETH",
+        //            "quoteCurrency": "USDT",
+        //            "settleCurrency": "USDT",
+        //            "maxOrderQty": 1000000,
+        //            "maxPrice": 1000000.0000000000,
+        //            "lotSize": 1,
+        //            "tickSize": 0.05,
+        //            "indexPriceTickSize": 0.01,
+        //            "multiplier": 0.01,
+        //            "initialMargin": 0.01,
+        //            "maintainMargin": 0.005,
+        //            "maxRiskLimit": 1000000,
+        //            "minRiskLimit": 1000000,
+        //            "riskStep": 500000,
+        //            "makerFeeRate": 0.00020,
+        //            "takerFeeRate": 0.00060,
+        //            "takerFixFee": 0.0000000000,
+        //            "makerFixFee": 0.0000000000,
+        //            "settlementFee": null,
+        //            "isDeleverage": true,
+        //            "isQuanto": true,
+        //            "isInverse": false,
+        //            "markMethod": "FairPrice",
+        //            "fairMethod": "FundingRate",
+        //            "fundingBaseSymbol": ".ETHINT8H",
+        //            "fundingQuoteSymbol": ".USDTINT8H",
+        //            "fundingRateSymbol": ".ETHUSDTMFPI8H",
+        //            "indexSymbol": ".KETHUSDT",
+        //            "settlementSymbol": "",
+        //            "status": "Open",
+        //            "fundingFeeRate": 0.000535,
+        //            "predictedFundingFeeRate": 0.002197,
+        //            "openInterest": "8724443",
+        //            "turnoverOf24h": 341156641.03354263,
+        //            "volumeOf24h": 74833.54000000,
+        //            "markPrice": 4534.07,
+        //            "indexPrice":4531.92,
+        //            "lastTradePrice": 4545.4500000000,
+        //            "nextFundingRateTime": 25481884,
+        //            "maxLeverage": 100,
+        //            "sourceExchanges":  [ "huobi", "Okex", "Binance", "Kucoin", "Poloniex", "Hitbtc" ],
+        //            "premiumsSymbol1M": ".ETHUSDTMPI",
+        //            "premiumsSymbol8H": ".ETHUSDTMPI8H",
+        //            "fundingBaseSymbol1M": ".ETHINT",
+        //            "fundingQuoteSymbol1M": ".USDTINT",
+        //            "lowPrice": 4456.90,
+        //            "highPrice":  4674.25,
+        //            "priceChgPct": 0.0046,
+        //            "priceChg": 21.15
+        //        }
+        //    }
+        //
+        object data = this.safeList(response, "data", new List<object>() {});
+        object tickers = this.parseTickers(data, symbols);
+        return this.filterByArrayTickers(tickers, "symbol", symbols);
+    }
+
     public override object parseTicker(object ticker, object market = null)
     {
         //
@@ -763,16 +846,76 @@ public partial class kucoinfutures : kucoin
         //          }
         //     }
         //
-        object last = this.safeString(ticker, "price");
+        // from fetchTickers
+        //
+        // {
+        //     symbol: "XBTUSDTM",
+        //     rootSymbol: "USDT",
+        //     type: "FFWCSX",
+        //     firstOpenDate: 1585555200000,
+        //     expireDate: null,
+        //     settleDate: null,
+        //     baseCurrency: "XBT",
+        //     quoteCurrency: "USDT",
+        //     settleCurrency: "USDT",
+        //     maxOrderQty: 1000000,
+        //     maxPrice: 1000000,
+        //     lotSize: 1,
+        //     tickSize: 0.1,
+        //     indexPriceTickSize: 0.01,
+        //     multiplier: 0.001,
+        //     initialMargin: 0.008,
+        //     maintainMargin: 0.004,
+        //     maxRiskLimit: 100000,
+        //     minRiskLimit: 100000,
+        //     riskStep: 50000,
+        //     makerFeeRate: 0.0002,
+        //     takerFeeRate: 0.0006,
+        //     takerFixFee: 0,
+        //     makerFixFee: 0,
+        //     settlementFee: null,
+        //     isDeleverage: true,
+        //     isQuanto: true,
+        //     isInverse: false,
+        //     markMethod: "FairPrice",
+        //     fairMethod: "FundingRate",
+        //     fundingBaseSymbol: ".XBTINT8H",
+        //     fundingQuoteSymbol: ".USDTINT8H",
+        //     fundingRateSymbol: ".XBTUSDTMFPI8H",
+        //     indexSymbol: ".KXBTUSDT",
+        //     settlementSymbol: "",
+        //     status: "Open",
+        //     fundingFeeRate: 0.000297,
+        //     predictedFundingFeeRate: 0.000327,
+        //     fundingRateGranularity: 28800000,
+        //     openInterest: "8033200",
+        //     turnoverOf24h: 659795309.2524643,
+        //     volumeOf24h: 9998.54,
+        //     markPrice: 67193.51,
+        //     indexPrice: 67184.81,
+        //     lastTradePrice: 67191.8,
+        //     nextFundingRateTime: 20022985,
+        //     maxLeverage: 125,
+        //     premiumsSymbol1M: ".XBTUSDTMPI",
+        //     premiumsSymbol8H: ".XBTUSDTMPI8H",
+        //     fundingBaseSymbol1M: ".XBTINT",
+        //     fundingQuoteSymbol1M: ".USDTINT",
+        //     lowPrice: 64041.6,
+        //     highPrice: 67737.3,
+        //     priceChgPct: 0.0447,
+        //     priceChg: 2878.7
+        // }
+        //
         object marketId = this.safeString(ticker, "symbol");
         market = this.safeMarket(marketId, market, "-");
+        object last = this.safeString2(ticker, "price", "lastTradePrice");
         object timestamp = this.safeIntegerProduct(ticker, "ts", 0.000001);
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", getValue(market, "symbol") },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "high", null },
-            { "low", null },
+            { "high", this.safeString(ticker, "highPrice") },
+            { "low", this.safeString(ticker, "lowPrice") },
             { "bid", this.safeString(ticker, "bestBidPrice") },
             { "bidVolume", this.safeString(ticker, "bestBidSize") },
             { "ask", this.safeString(ticker, "bestAskPrice") },
@@ -782,11 +925,11 @@ public partial class kucoinfutures : kucoin
             { "close", last },
             { "last", last },
             { "previousClose", null },
-            { "change", null },
-            { "percentage", null },
+            { "change", this.safeString(ticker, "priceChg") },
+            { "percentage", this.safeString(ticker, "priceChgPct") },
             { "average", null },
-            { "baseVolume", null },
-            { "quoteVolume", null },
+            { "baseVolume", this.safeString(ticker, "volumeOf24h") },
+            { "quoteVolume", this.safeString(ticker, "turnoverOf24h") },
             { "info", ticker },
         }, market);
     }
@@ -932,7 +1075,7 @@ public partial class kucoinfutures : kucoin
         //        }
         //    }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return this.parsePosition(data, market);
     }
 
@@ -996,7 +1139,7 @@ public partial class kucoinfutures : kucoin
         //        ]
         //    }
         //
-        object data = this.safeValue(response, "data");
+        object data = this.safeList(response, "data");
         return this.parsePositions(data, symbols);
     }
 
@@ -1151,7 +1294,7 @@ public partial class kucoinfutures : kucoin
         //        },
         //    }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return this.parseOrder(data, market);
     }
 
@@ -1204,7 +1347,7 @@ public partial class kucoinfutures : kucoin
         //         ]
         //     }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseOrders(data);
     }
 
@@ -1655,7 +1798,7 @@ public partial class kucoinfutures : kucoin
         //     }
         //
         object responseData = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object orders = this.safeValue(responseData, "items", new List<object>() {});
+        object orders = this.safeList(responseData, "items", new List<object>() {});
         return this.parseOrders(orders, market, since, limit);
     }
 
@@ -1763,7 +1906,7 @@ public partial class kucoinfutures : kucoin
         //     }
         //
         object market = ((bool) isTrue((!isEqual(symbol, null)))) ? this.market(symbol) : null;
-        object responseData = this.safeValue(response, "data");
+        object responseData = this.safeDict(response, "data");
         return this.parseOrder(responseData, market);
     }
 
@@ -2167,8 +2310,8 @@ public partial class kucoinfutures : kucoin
         //        }
         //    }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object trades = this.safeValue(data, "items", new Dictionary<string, object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        object trades = this.safeList(data, "items", new List<object>() {});
         return this.parseTrades(trades, market, since, limit);
     }
 
@@ -2209,7 +2352,7 @@ public partial class kucoinfutures : kucoin
         //          ]
         //      }
         //
-        object trades = this.safeValue(response, "data", new List<object>() {});
+        object trades = this.safeList(response, "data", new List<object>() {});
         return this.parseTrades(trades, market, since, limit);
     }
 

@@ -300,7 +300,7 @@ class zonda extends Exchange {
         ));
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * @see https://docs.zondacrypto.exchange/reference/ticker-1
@@ -416,7 +416,7 @@ class zonda extends Exchange {
             Async\await($this->load_markets());
             $request = array();
             $response = Async\await($this->v1_01PrivateGetTradingOffer (array_merge($request, $params)));
-            $items = $this->safe_value($response, 'items', array());
+            $items = $this->safe_list($response, 'items', array());
             return $this->parse_orders($items, null, $since, $limit, array( 'status' => 'open' ));
         }) ();
     }
@@ -807,7 +807,7 @@ class zonda extends Exchange {
             } else {
                 throw new BadRequest($this->id . ' fetchTickers $params["method"] must be "v1_01PublicGetTradingTicker" or "v1_01PublicGetTradingStats"');
             }
-            $items = $this->safe_value($response, 'items');
+            $items = $this->safe_dict($response, 'items');
             return $this->parse_tickers($items, $symbols);
         }) ();
     }
@@ -1213,6 +1213,8 @@ class zonda extends Exchange {
             );
             if ($limit === null) {
                 $limit = 100;
+            } else {
+                $limit = min ($limit, 11000); // supports up to 11k candles diapason
             }
             $duration = $this->parse_timeframe($timeframe);
             $timerange = $limit * $duration * 1000;
@@ -1234,7 +1236,7 @@ class zonda extends Exchange {
             //         ]
             //     }
             //
-            $items = $this->safe_value($response, 'items', array());
+            $items = $this->safe_list($response, 'items', array());
             return $this->parse_ohlcvs($items, $market, $timeframe, $since, $limit);
         }) ();
     }
@@ -1341,7 +1343,7 @@ class zonda extends Exchange {
                 $request['limit'] = $limit; // default - 10, max - 300
             }
             $response = Async\await($this->v1_01PublicGetTradingTransactionsSymbol (array_merge($request, $params)));
-            $items = $this->safe_value($response, 'items');
+            $items = $this->safe_list($response, 'items');
             return $this->parse_trades($items, $market, $since, $limit);
         }) ();
     }
@@ -1568,7 +1570,7 @@ class zonda extends Exchange {
             //     }
             //
             $data = $this->safe_value($response, 'data');
-            $first = $this->safe_value($data, 0);
+            $first = $this->safe_dict($data, 0);
             return $this->parse_deposit_address($first, $currency);
         }) ();
     }
@@ -1597,7 +1599,7 @@ class zonda extends Exchange {
             //         ]
             //     }
             //
-            $data = $this->safe_value($response, 'data');
+            $data = $this->safe_list($response, 'data');
             return $this->parse_deposit_addresses($data, $codes);
         }) ();
     }
@@ -1757,7 +1759,7 @@ class zonda extends Exchange {
             //         }
             //     }
             //
-            $data = $this->safe_value($response, 'data');
+            $data = $this->safe_dict($response, 'data');
             return $this->parse_transaction($data, $currency);
         }) ();
     }

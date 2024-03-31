@@ -7,6 +7,9 @@ namespace ccxt\abstract;
 
 
 abstract class bingx extends \ccxt\Exchange {
+    public function spot_v1_public_get_server_time($params = array()) {
+        return $this->request('server/time', array('spot', 'v1', 'public'), 'GET', $params, null, null, array("cost" => 3));
+    }
     public function spot_v1_public_get_common_symbols($params = array()) {
         return $this->request('common/symbols', array('spot', 'v1', 'public'), 'GET', $params, null, null, array("cost" => 3));
     }
@@ -58,6 +61,9 @@ abstract class bingx extends \ccxt\Exchange {
     public function spot_v1_private_post_trade_cancelopenorders($params = array()) {
         return $this->request('trade/cancelOpenOrders', array('spot', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 3));
     }
+    public function spot_v1_private_post_trade_cancelallafter($params = array()) {
+        return $this->request('trade/cancelAllAfter', array('spot', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
     public function spot_v3_private_get_get_asset_transfer($params = array()) {
         return $this->request('get/asset/transfer', array('spot', 'v3', 'private'), 'GET', $params, null, null, array("cost" => 3));
     }
@@ -90,6 +96,9 @@ abstract class bingx extends \ccxt\Exchange {
     }
     public function swap_v1_private_post_positionside_dual($params = array()) {
         return $this->request('positionSide/dual', array('swap', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function swap_v1_private_post_trade_closeposition($params = array()) {
+        return $this->request('trade/closePosition', array('swap', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
     public function swap_v2_public_get_server_time($params = array()) {
         return $this->request('server/time', array('swap', 'v2', 'public'), 'GET', $params, null, null, array("cost" => 3));
@@ -295,6 +304,9 @@ abstract class bingx extends \ccxt\Exchange {
     public function api_v3_private_post_post_asset_transfer($params = array()) {
         return $this->request('post/asset/transfer', array('api', 'v3', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
+    public function spotV1PublicGetServerTime($params = array()) {
+        return $this->request('server/time', array('spot', 'v1', 'public'), 'GET', $params, null, null, array("cost" => 3));
+    }
     public function spotV1PublicGetCommonSymbols($params = array()) {
         return $this->request('common/symbols', array('spot', 'v1', 'public'), 'GET', $params, null, null, array("cost" => 3));
     }
@@ -346,6 +358,9 @@ abstract class bingx extends \ccxt\Exchange {
     public function spotV1PrivatePostTradeCancelOpenOrders($params = array()) {
         return $this->request('trade/cancelOpenOrders', array('spot', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 3));
     }
+    public function spotV1PrivatePostTradeCancelAllAfter($params = array()) {
+        return $this->request('trade/cancelAllAfter', array('spot', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
     public function spotV3PrivateGetGetAssetTransfer($params = array()) {
         return $this->request('get/asset/transfer', array('spot', 'v3', 'private'), 'GET', $params, null, null, array("cost" => 3));
     }
@@ -378,6 +393,9 @@ abstract class bingx extends \ccxt\Exchange {
     }
     public function swapV1PrivatePostPositionSideDual($params = array()) {
         return $this->request('positionSide/dual', array('swap', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function swapV1PrivatePostTradeClosePosition($params = array()) {
+        return $this->request('trade/closePosition', array('swap', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
     public function swapV2PublicGetServerTime($params = array()) {
         return $this->request('server/time', array('swap', 'v2', 'public'), 'GET', $params, null, null, array("cost" => 3));

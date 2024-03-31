@@ -26,7 +26,7 @@ export default class currencycom extends currencycomRest {
         cost: number;
         fee: any;
     };
-    handleTrades(client: Client, message: any, subscription: any): void;
+    handleTrades(client: Client, message: any): void;
     findTimeframe(timeframe: any, defaultTimeframes?: any): string;
     handleOHLCV(client: Client, message: any): void;
     requestId(): any;

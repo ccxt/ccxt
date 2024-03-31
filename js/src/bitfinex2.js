@@ -30,8 +30,8 @@ export default class bitfinex2 extends Exchange {
                 'spot': true,
                 'margin': true,
                 'swap': true,
-                'future': undefined,
-                'option': undefined,
+                'future': false,
+                'option': false,
                 'addMargin': false,
                 'borrowCrossMargin': false,
                 'borrowIsolatedMargin': false,
@@ -42,6 +42,7 @@ export default class bitfinex2 extends Exchange {
                 'createLimitOrder': true,
                 'createMarketOrder': true,
                 'createOrder': true,
+                'createPostOnlyOrder': true,
                 'createReduceOnlyOrder': true,
                 'createStopLimitOrder': true,
                 'createStopMarketOrder': true,
@@ -52,8 +53,11 @@ export default class bitfinex2 extends Exchange {
                 'editOrder': true,
                 'fetchBalance': true,
                 'fetchBorrowInterest': false,
+                'fetchBorrowRate': false,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
+                'fetchBorrowRates': false,
+                'fetchBorrowRatesPerSymbol': false,
                 'fetchClosedOrder': true,
                 'fetchClosedOrders': true,
                 'fetchCrossBorrowRate': false,
@@ -82,6 +86,8 @@ export default class bitfinex2 extends Exchange {
                 'fetchOpenOrder': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
+                'fetchOrderBook': true,
+                'fetchOrderBooks': false,
                 'fetchOrderTrades': true,
                 'fetchPosition': false,
                 'fetchPositionMode': false,
@@ -101,6 +107,8 @@ export default class bitfinex2 extends Exchange {
                 'setMargin': true,
                 'setMarginMode': false,
                 'setPositionMode': false,
+                'signIn': false,
+                'transfer': true,
                 'withdraw': true,
             },
             'timeframes': {
@@ -1375,13 +1383,18 @@ export default class bitfinex2 extends Exchange {
         if (limit === undefined) {
             limit = 10000;
         }
+        else {
+            limit = Math.min(limit, 10000);
+        }
         let request = {
             'symbol': market['id'],
             'timeframe': this.safeString(this.timeframes, timeframe, timeframe),
             'sort': 1,
-            'start': since,
             'limit': limit,
         };
+        if (since !== undefined) {
+            request['start'] = since;
+        }
         [request, params] = this.handleUntilOption('end', request, params);
         const response = await this.publicGetCandlesTradeTimeframeSymbolHist(this.extend(request, params));
         //
@@ -1533,7 +1546,16 @@ export default class bitfinex2 extends Exchange {
          * @param {float} amount how much you want to trade in units of the base currency
          * @param {float} [price] the price of the order, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} request to be sent to the exchange
+         * @param {float} [params.stopPrice] The price at which a trigger order is triggered at
+         * @param {string} [params.timeInForce] "GTC", "IOC", "FOK", or "PO"
+         * @param {bool} [params.postOnly]
+         * @param {bool} [params.reduceOnly] Ensures that the executed order does not flip the opened position.
+         * @param {int} [params.flags] additional order parameters: 4096 (Post Only), 1024 (Reduce Only), 16384 (OCO), 64 (Hidden), 512 (Close), 524288 (No Var Rates)
+         * @param {int} [params.lev] leverage for a derivative order, supported by derivative symbol orders only. The value should be between 1 and 100 inclusive.
+         * @param {string} [params.price_traling] The trailing price for a trailing stop order
+         * @param {string} [params.price_aux_limit] Order price for stop limit orders
+         * @param {string} [params.price_oco_stop] OCO stop price
+         * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         const market = this.market(symbol);
         let amountString = this.amountToPrecision(symbol, amount);
@@ -1766,7 +1788,7 @@ export default class bitfinex2 extends Exchange {
             'all': 1,
         };
         const response = await this.privatePostAuthWOrderCancelMulti(this.extend(request, params));
-        const orders = this.safeValue(response, 4, []);
+        const orders = this.safeList(response, 4, []);
         return this.parseOrders(orders);
     }
     async cancelOrder(id, symbol = undefined, params = {}) {
@@ -2945,7 +2967,7 @@ export default class bitfinex2 extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
          */
-        return this.fetchFundingRates([symbol], params);
+        return await this.fetchFundingRates([symbol], params);
     }
     async fetchFundingRates(symbols = undefined, params = {}) {
         /**
@@ -3068,10 +3090,10 @@ export default class bitfinex2 extends Exchange {
         }
         const reversedArray = [];
         const rawRates = this.filterBySymbolSinceLimit(rates, symbol, since, limit);
-        const rawRatesLength = rawRates.length;
-        const ratesLength = Math.max(rawRatesLength - 1, 0);
-        for (let i = ratesLength; i >= 0; i--) {
-            const valueAtIndex = rawRates[i];
+        const ratesLength = rawRates.length;
+        for (let i = 0; i < ratesLength; i++) {
+            const index = ratesLength - i - 1;
+            const valueAtIndex = rawRates[index];
             reversedArray.push(valueAtIndex);
         }
         return reversedArray;
@@ -3485,15 +3507,27 @@ export default class bitfinex2 extends Exchange {
         return this.parseMarginModification(data, market);
     }
     parseMarginModification(data, market = undefined) {
+        //
+        // setMargin
+        //
+        //     [
+        //         [
+        //             1
+        //         ]
+        //     ]
+        //
         const marginStatusRaw = data[0];
         const marginStatus = (marginStatusRaw === 1) ? 'ok' : 'failed';
         return {
             'info': data,
+            'symbol': market['symbol'],
             'type': undefined,
             'amount': undefined,
+            'total': undefined,
             'code': undefined,
-            'symbol': market['symbol'],
             'status': marginStatus,
+            'timestamp': undefined,
+            'datetime': undefined,
         };
     }
     async fetchOrder(id, symbol = undefined, params = {}) {

@@ -1,8 +1,9 @@
 import assert from 'assert';
-import testSharedMethods from './test.sharedMethods.js';
 import Precise from '../../../base/Precise.js';
+import { Exchange, Market } from "../../../../ccxt";
+import testSharedMethods from './test.sharedMethods.js';
 
-function testMarket (exchange, skippedProperties, method, market) {
+function testMarket (exchange: Exchange, skippedProperties: object, method: string, market: Market) {
     const format = {
         'id': 'btcusd', // string literal for referencing within an exchange
         'symbol': 'BTC/USD', // uppercase string literal of a pair of currencies
@@ -58,7 +59,7 @@ function testMarket (exchange, skippedProperties, method, market) {
     testSharedMethods.assertSymbol (exchange, skippedProperties, method, market, 'symbol');
     const logText = testSharedMethods.logTemplate (exchange, method, market);
     //
-    const validTypes = [ 'spot', 'margin', 'swap', 'future', 'option' ];
+    const validTypes = [ 'spot', 'margin', 'swap', 'future', 'option', 'index' ];
     testSharedMethods.assertInArray (exchange, skippedProperties, method, market, 'type', validTypes);
     const hasIndex = ('index' in market); // todo: add in all
     // check if string is consistent with 'type'
@@ -83,6 +84,10 @@ function testMarket (exchange, skippedProperties, method, market) {
         testSharedMethods.assertInArray (exchange, skippedProperties, method, market, 'margin', [ false, undefined ]);
     }
     if (!('contractSize' in skippedProperties)) {
+        if (!market['spot']) {
+            // if not spot, then contractSize should be defined
+            assert (market['contractSize'] !== undefined, '"contractSize" must be defined when "spot" is false' + logText);
+        }
         testSharedMethods.assertGreater (exchange, skippedProperties, method, market, 'contractSize', '0');
     }
     // typical values
@@ -190,7 +195,7 @@ function testMarket (exchange, skippedProperties, method, market) {
         }
     }
     // check whether valid currency ID and CODE is used
-    if (!('currencyIdAndCode' in skippedProperties)) {
+    if (!('currency' in skippedProperties) && !('currencyIdAndCode' in skippedProperties)) {
         testSharedMethods.assertValidCurrencyIdAndCode (exchange, skippedProperties, method, market, market['baseId'], market['base']);
         testSharedMethods.assertValidCurrencyIdAndCode (exchange, skippedProperties, method, market, market['quoteId'], market['quote']);
         testSharedMethods.assertValidCurrencyIdAndCode (exchange, skippedProperties, method, market, market['settleId'], market['settle']);

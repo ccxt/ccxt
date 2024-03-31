@@ -616,7 +616,7 @@ public partial class lbank : Exchange
         //     }
         //
         object data = this.safeValue(response, "data", new List<object>() {});
-        object first = this.safeValue(data, 0, new Dictionary<string, object>() {});
+        object first = this.safeDict(data, 0, new Dictionary<string, object>() {});
         return this.parseTicker(first, market);
     }
 
@@ -704,7 +704,7 @@ public partial class lbank : Exchange
         //         "success": true
         //     }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseTickers(data, symbols);
     }
 
@@ -975,7 +975,7 @@ public partial class lbank : Exchange
         //           "ts":1647021999308
         //      }
         //
-        object trades = this.safeValue(response, "data", new List<object>() {});
+        object trades = this.safeList(response, "data", new List<object>() {});
         return this.parseTrades(trades, market, since, limit);
     }
 
@@ -1016,6 +1016,9 @@ public partial class lbank : Exchange
         if (isTrue(isEqual(limit, null)))
         {
             limit = 100;
+        } else
+        {
+            limit = mathMin(limit, 2000);
         }
         if (isTrue(isEqual(since, null)))
         {
@@ -1669,7 +1672,7 @@ public partial class lbank : Exchange
         //          "ts":1648164471827
         //      }
         //
-        object result = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        object result = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return this.parseOrder(result);
     }
 
@@ -1774,7 +1777,7 @@ public partial class lbank : Exchange
         //          "ts":1648509742164
         //      }
         //
-        object trades = this.safeValue(response, "data", new List<object>() {});
+        object trades = this.safeList(response, "data", new List<object>() {});
         return this.parseTrades(trades, market, since, limit);
     }
 
@@ -1838,7 +1841,7 @@ public partial class lbank : Exchange
         //      }
         //
         object result = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object orders = this.safeValue(result, "orders", new List<object>() {});
+        object orders = this.safeList(result, "orders", new List<object>() {});
         return this.parseOrders(orders, market, since, limit);
     }
 
@@ -1900,7 +1903,7 @@ public partial class lbank : Exchange
         //     }
         //
         object result = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object orders = this.safeValue(result, "orders", new List<object>() {});
+        object orders = this.safeList(result, "orders", new List<object>() {});
         return this.parseOrders(orders, market, since, limit);
     }
 
@@ -2345,7 +2348,7 @@ public partial class lbank : Exchange
         //      }
         //
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object deposits = this.safeValue(data, "depositOrders", new List<object>() {});
+        object deposits = this.safeList(data, "depositOrders", new List<object>() {});
         return this.parseTransactions(deposits, currency, since, limit);
     }
 
@@ -2403,7 +2406,7 @@ public partial class lbank : Exchange
         //      }
         //
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object withdraws = this.safeValue(data, "withdraws", new List<object>() {});
+        object withdraws = this.safeList(data, "withdraws", new List<object>() {});
         return this.parseTransactions(withdraws, currency, since, limit);
     }
 
@@ -2648,7 +2651,7 @@ public partial class lbank : Exchange
         //        "code": 0
         //    }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseDepositWithdrawFees(data, codes, "coin");
     }
 
@@ -2862,7 +2865,7 @@ public partial class lbank : Exchange
             object sign = null;
             if (isTrue(isEqual(signatureMethod, "RSA")))
             {
-                object cacheSecretAsPem = this.safeValue(this.options, "cacheSecretAsPem", true);
+                object cacheSecretAsPem = this.safeBool(this.options, "cacheSecretAsPem", true);
                 object pem = null;
                 if (isTrue(cacheSecretAsPem))
                 {

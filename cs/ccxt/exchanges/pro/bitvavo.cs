@@ -1227,7 +1227,7 @@ public partial class bitvavo : ccxt.bitvavo
 
     public virtual void checkMessageHashDoesNotExist(object messageHash)
     {
-        object supressMultipleWsRequestsError = this.safeValue(this.options, "supressMultipleWsRequestsError", false);
+        object supressMultipleWsRequestsError = this.safeBool(this.options, "supressMultipleWsRequestsError", false);
         if (!isTrue(supressMultipleWsRequestsError))
         {
             var client = this.safeValue(this.clients, getValue(getValue(this.urls, "api"), "ws"));
@@ -1379,7 +1379,7 @@ public partial class bitvavo : ccxt.bitvavo
                 { "timestamp", timestamp },
             };
             object message = this.extend(request, parameters);
-            future = this.watch(url, messageHash, message);
+            future = await this.watch(url, messageHash, message, messageHash);
             ((IDictionary<string,object>)((WebSocketClient)client).subscriptions)[(string)messageHash] = future;
         }
         return future;

@@ -131,7 +131,7 @@ export default class bybit extends bybitRest {
         return requestId;
     }
 
-    getUrlByMarketType (symbol: Str = undefined, isPrivate = false, method: string = undefined, params = {}) {
+    getUrlByMarketType (symbol: Str = undefined, isPrivate = false, method: Str = undefined, params = {}) {
         const accessibility = isPrivate ? 'private' : 'public';
         let isUsdcSettled = undefined;
         let isSpot = undefined;
@@ -203,7 +203,7 @@ export default class bybit extends bybitRest {
         /**
          * @method
          * @name bybit#watchTickers
-         * @description n watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
          * @see https://bybit-exchange.github.io/docs/v5/websocket/public/ticker
          * @see https://bybit-exchange.github.io/docs/v5/websocket/public/etp-ticker
          * @param {string[]} symbols unified symbol of the market to fetch the ticker for
@@ -333,15 +333,29 @@ export default class bybit extends bybitRest {
         //             "price24hPcnt": "-0.0388"
         //         }
         //     }
+        // swap delta
+        //     {
+        //         "topic":"tickers.AAVEUSDT",
+        //         "type":"delta",
+        //         "data":{
+        //            "symbol":"AAVEUSDT",
+        //            "bid1Price":"112.89",
+        //            "bid1Size":"2.12",
+        //            "ask1Price":"112.90",
+        //            "ask1Size":"5.02"
+        //         },
+        //         "cs":78039939929,
+        //         "ts":1709210212704
+        //     }
         //
         const topic = this.safeString (message, 'topic', '');
         const updateType = this.safeString (message, 'type', '');
-        const data = this.safeValue (message, 'data', {});
-        const isSpot = this.safeString (data, 'fundingRate') === undefined;
+        const data = this.safeDict (message, 'data', {});
+        const isSpot = this.safeString (data, 'usdIndexPrice') !== undefined;
         const type = isSpot ? 'spot' : 'contract';
         let symbol = undefined;
         let parsed = undefined;
-        if ((updateType === 'snapshot') || isSpot) {
+        if ((updateType === 'snapshot')) {
             parsed = this.parseTicker (data);
             symbol = parsed['symbol'];
         } else if (updateType === 'delta') {
@@ -351,8 +365,8 @@ export default class bybit extends bybitRest {
             const market = this.safeMarket (marketId, undefined, undefined, type);
             symbol = market['symbol'];
             // update the info in place
-            const ticker = this.safeValue (this.tickers, symbol, {});
-            const rawTicker = this.safeValue (ticker, 'info', {});
+            const ticker = this.safeDict (this.tickers, symbol, {});
+            const rawTicker = this.safeDict (ticker, 'info', {});
             const merged = this.extend (rawTicker, data);
             parsed = this.parseTicker (merged);
         }
@@ -939,7 +953,7 @@ export default class bybit extends bybitRest {
         this.setPositionsCache (client, symbols);
         const cache = this.positions;
         const fetchPositionsSnapshot = this.handleOption ('watchPositions', 'fetchPositionsSnapshot', true);
-        const awaitPositionsSnapshot = this.safeValue ('watchPositions', 'awaitPositionsSnapshot', true);
+        const awaitPositionsSnapshot = this.safeBool ('watchPositions', 'awaitPositionsSnapshot', true);
         if (fetchPositionsSnapshot && awaitPositionsSnapshot && cache === undefined) {
             const snapshot = await client.future ('fetchPositionsSnapshot');
             return this.filterBySymbolsSinceLimit (snapshot, symbols, since, limit, true);
@@ -1039,8 +1053,22 @@ export default class bybit extends bybitRest {
         for (let i = 0; i < rawPositions.length; i++) {
             const rawPosition = rawPositions[i];
             const position = this.parsePosition (rawPosition);
+            const side = this.safeString (position, 'side');
+            // hacky solution to handle closing positions
+            // without crashing, we should handle this properly later
             newPositions.push (position);
-            cache.append (position);
+            if (side === undefined || side === '') {
+                // closing update, adding both sides to "reset" both sides
+                // since we don't know which side is being closed
+                position['side'] = 'long';
+                cache.append (position);
+                position['side'] = 'short';
+                cache.append (position);
+                position['side'] = undefined;
+            } else {
+                // regular update
+                cache.append (position);
+            }
         }
         const messageHashes = this.findMessageHashes (client, 'positions::');
         for (let i = 0; i < messageHashes.length; i++) {

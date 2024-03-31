@@ -13,6 +13,7 @@ public partial class binance : ccxt.binance
             { "has", new Dictionary<string, object>() {
                 { "ws", true },
                 { "watchBalance", true },
+                { "watchBidsAsks", true },
                 { "watchMyTrades", true },
                 { "watchOHLCV", true },
                 { "watchOHLCVForSymbols", false },
@@ -80,13 +81,13 @@ public partial class binance : ccxt.binance
                     { "future", 200 },
                     { "delivery", 200 },
                 } },
-                { "streamBySubscriptionsHash", new Dictionary<string, object>() {} },
+                { "streamBySubscriptionsHash", this.createSafeDictionary() },
                 { "streamIndex", -1 },
                 { "watchOrderBookRate", 100 },
                 { "tradesLimit", 1000 },
                 { "ordersLimit", 1000 },
                 { "OHLCVLimit", 1000 },
-                { "requestId", new Dictionary<string, object>() {} },
+                { "requestId", this.createSafeDictionary() },
                 { "watchOrderBookLimit", 1000 },
                 { "watchTrades", new Dictionary<string, object>() {
                     { "name", "trade" },
@@ -116,13 +117,21 @@ public partial class binance : ccxt.binance
                 { "ws", new Dictionary<string, object>() {
                     { "cost", 5 },
                 } },
+                { "tickerChannelsMap", new Dictionary<string, object>() {
+                    { "24hrTicker", "ticker" },
+                    { "24hrMiniTicker", "miniTicker" },
+                    { "1hTicker", "ticker_1h" },
+                    { "4hTicker", "ticker_4h" },
+                    { "1dTicker", "ticker_1d" },
+                    { "bookTicker", "bookTicker" },
+                } },
             } },
         });
     }
 
     public virtual object requestId(object url)
     {
-        object options = this.safeValue(this.options, "requestId", new Dictionary<string, object>() {});
+        object options = this.safeDict(this.options, "requestId", this.createSafeDictionary());
         object previousValue = this.safeInteger(options, url, 0);
         object newValue = this.sum(previousValue, 1);
         ((IDictionary<string,object>)getValue(this.options, "requestId"))[(string)url] = newValue;
@@ -132,7 +141,7 @@ public partial class binance : ccxt.binance
     public virtual object stream(object type, object subscriptionHash, object numSubscriptions = null)
     {
         numSubscriptions ??= 1;
-        object streamBySubscriptionsHash = this.safeValue(this.options, "streamBySubscriptionsHash", new Dictionary<string, object>() {});
+        object streamBySubscriptionsHash = this.safeDict(this.options, "streamBySubscriptionsHash", this.createSafeDictionary());
         object stream = this.safeString(streamBySubscriptionsHash, subscriptionHash);
         if (isTrue(isEqual(stream, null)))
         {
@@ -147,7 +156,7 @@ public partial class binance : ccxt.binance
             object subscriptionsByStreams = this.safeValue(this.options, "numSubscriptionsByStream");
             if (isTrue(isEqual(subscriptionsByStreams, null)))
             {
-                ((IDictionary<string,object>)this.options)["numSubscriptionsByStream"] = new Dictionary<string, object>() {};
+                ((IDictionary<string,object>)this.options)["numSubscriptionsByStream"] = this.createSafeDictionary();
             }
             object subscriptionsByStream = this.safeInteger(getValue(this.options, "numSubscriptionsByStream"), stream, 0);
             object newNumSubscriptions = add(subscriptionsByStream, numSubscriptions);
@@ -1021,34 +1030,16 @@ public partial class binance : ccxt.binance
         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         * @param {string} symbol unified symbol of the market to fetch the ticker for
         * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {string} [params.name] stream to use can be ticker or bookTicker
+        * @param {string} [params.name] stream to use can be ticker or miniTicker
         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object market = this.market(symbol);
-        object marketId = getValue(market, "lowercaseId");
-        object type = getValue(market, "type");
-        if (isTrue(getValue(market, "contract")))
-        {
-            type = ((bool) isTrue(getValue(market, "linear"))) ? "future" : "delivery";
-        }
-        object options = this.safeValue(this.options, "watchTicker", new Dictionary<string, object>() {});
-        object name = this.safeString(options, "name", "ticker");
-        name = this.safeString(parameters, "name", name);
-        parameters = this.omit(parameters, "name");
-        object messageHash = add(add(marketId, "@"), name);
-        object url = add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), type), "/"), this.stream(type, messageHash));
-        object requestId = this.requestId(url);
-        object request = new Dictionary<string, object>() {
-            { "method", "SUBSCRIBE" },
-            { "params", new List<object>() {messageHash} },
-            { "id", requestId },
-        };
-        object subscribe = new Dictionary<string, object>() {
-            { "id", requestId },
-        };
-        return await this.watch(url, messageHash, this.extend(request, parameters), messageHash, subscribe);
+        symbol = this.symbol(symbol);
+        object tickers = await this.watchTickers(new List<object>() {symbol}, this.extend(parameters, new Dictionary<string, object>() {
+            { "callerMethodName", "watchTicker" },
+        }));
+        return getValue(tickers, symbol);
     }
 
     public async override Task<object> watchTickers(object symbols = null, object parameters = null)
@@ -1062,70 +1053,131 @@ public partial class binance : ccxt.binance
         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
         */
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
-        symbols = this.marketSymbols(symbols, null, true, true, true);
-        object marketIds = this.marketIds(symbols);
-        object market = null;
-        object type = null;
-        if (isTrue(!isEqual(symbols, null)))
+        object channelName = null;
+        var channelNameparametersVariable = this.handleOptionAndParams(parameters, "watchTickers", "name", "ticker");
+        channelName = ((IList<object>)channelNameparametersVariable)[0];
+        parameters = ((IList<object>)channelNameparametersVariable)[1];
+        if (isTrue(isEqual(channelName, "bookTicker")))
         {
-            market = this.market(getValue(symbols, 0));
+            throw new BadRequest ((string)add(this.id, " deprecation notice - to subscribe for bids-asks, use watch_bids_asks() method instead")) ;
         }
-        var typeparametersVariable = this.handleMarketTypeAndParams("watchTickers", market, parameters);
-        type = ((IList<object>)typeparametersVariable)[0];
-        parameters = ((IList<object>)typeparametersVariable)[1];
-        object subType = null;
-        var subTypeparametersVariable = this.handleSubTypeAndParams("watchTickers", market, parameters);
-        subType = ((IList<object>)subTypeparametersVariable)[0];
-        parameters = ((IList<object>)subTypeparametersVariable)[1];
-        if (isTrue(this.isLinear(type, subType)))
-        {
-            type = "future";
-        } else if (isTrue(this.isInverse(type, subType)))
-        {
-            type = "delivery";
-        }
-        object options = this.safeValue(this.options, "watchTickers", new Dictionary<string, object>() {});
-        object name = this.safeString(options, "name", "ticker");
-        name = this.safeString(parameters, "name", name);
-        parameters = this.omit(parameters, "name");
-        object wsParams = new List<object>() {};
-        object messageHash = "tickers";
-        if (isTrue(!isEqual(symbols, null)))
-        {
-            messageHash = add("tickers::", String.Join(",", ((IList<object>)symbols).ToArray()));
-        }
-        if (isTrue(isEqual(name, "bookTicker")))
-        {
-            if (isTrue(isEqual(marketIds, null)))
-            {
-                throw new ArgumentsRequired ((string)add(this.id, " watchTickers() requires symbols for bookTicker")) ;
-            }
-            // simulate watchTickers with subscribe multiple individual bookTicker topic
-            for (object i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
-            {
-                ((IList<object>)wsParams).Add(add(((string)getValue(marketIds, i)).ToLower(), "@bookTicker"));
-            }
-        } else
-        {
-            wsParams = new List<object>() {add(add("!", name), "@arr")};
-        }
-        object url = add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), type), "/"), this.stream(type, messageHash));
-        object requestId = this.requestId(url);
-        object request = new Dictionary<string, object>() {
-            { "method", "SUBSCRIBE" },
-            { "params", wsParams },
-            { "id", requestId },
-        };
-        object subscribe = new Dictionary<string, object>() {
-            { "id", requestId },
-        };
-        object newTickers = await this.watch(url, messageHash, this.extend(request, parameters), messageHash, subscribe);
+        object newTickers = await this.watchMultiTickerHelper("watchTickers", channelName, symbols, parameters);
         if (isTrue(this.newUpdates))
         {
             return newTickers;
         }
         return this.filterByArray(this.tickers, "symbol", symbols);
+    }
+
+    public async override Task<object> watchBidsAsks(object symbols = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name binance#watchBidsAsks
+        * @see https://binance-docs.github.io/apidocs/spot/en/#individual-symbol-book-ticker-streams
+        * @see https://binance-docs.github.io/apidocs/futures/en/#all-book-tickers-stream
+        * @see https://binance-docs.github.io/apidocs/delivery/en/#all-book-tickers-stream
+        * @description watches best bid & ask for symbols
+        * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        object result = await this.watchMultiTickerHelper("watchBidsAsks", "bookTicker", symbols, parameters);
+        if (isTrue(this.newUpdates))
+        {
+            return result;
+        }
+        return this.filterByArray(this.tickers, "symbol", symbols);
+    }
+
+    public async virtual Task<object> watchMultiTickerHelper(object methodName, object channelName, object symbols = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols, null, true, false, true);
+        object firstMarket = null;
+        object marketType = null;
+        object symbolsDefined = (!isEqual(symbols, null));
+        if (isTrue(symbolsDefined))
+        {
+            firstMarket = this.market(getValue(symbols, 0));
+        }
+        var marketTypeparametersVariable = this.handleMarketTypeAndParams(methodName, firstMarket, parameters);
+        marketType = ((IList<object>)marketTypeparametersVariable)[0];
+        parameters = ((IList<object>)marketTypeparametersVariable)[1];
+        object subType = null;
+        var subTypeparametersVariable = this.handleSubTypeAndParams(methodName, firstMarket, parameters);
+        subType = ((IList<object>)subTypeparametersVariable)[0];
+        parameters = ((IList<object>)subTypeparametersVariable)[1];
+        object rawMarketType = null;
+        if (isTrue(this.isLinear(marketType, subType)))
+        {
+            rawMarketType = "future";
+        } else if (isTrue(this.isInverse(marketType, subType)))
+        {
+            rawMarketType = "delivery";
+        } else if (isTrue(isEqual(marketType, "spot")))
+        {
+            rawMarketType = marketType;
+        } else
+        {
+            throw new NotSupported ((string)add(add(add(this.id, " "), methodName), "() does not support options markets")) ;
+        }
+        object isBidAsk = (isEqual(channelName, "bookTicker"));
+        object subscriptionArgs = new List<object>() {};
+        object messageHashes = new List<object>() {};
+        if (isTrue(symbolsDefined))
+        {
+            for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+            {
+                object symbol = getValue(symbols, i);
+                object market = this.market(symbol);
+                ((IList<object>)subscriptionArgs).Add(add(add(getValue(market, "lowercaseId"), "@"), channelName));
+                ((IList<object>)messageHashes).Add(this.getMessageHash(channelName, getValue(market, "symbol"), isBidAsk));
+            }
+        } else
+        {
+            if (isTrue(isBidAsk))
+            {
+                if (isTrue(isEqual(marketType, "spot")))
+                {
+                    throw new ArgumentsRequired ((string)add(add(add(this.id, " "), methodName), "() requires symbols for this channel for spot markets")) ;
+                }
+                ((IList<object>)subscriptionArgs).Add(add("!", channelName));
+            } else
+            {
+                ((IList<object>)subscriptionArgs).Add(add(add("!", channelName), "@arr"));
+            }
+            ((IList<object>)messageHashes).Add(this.getMessageHash(channelName, null, isBidAsk));
+        }
+        object streamHash = channelName;
+        if (isTrue(symbolsDefined))
+        {
+            streamHash = add(add(channelName, "::"), String.Join(",", ((IList<object>)symbols).ToArray()));
+        }
+        object url = add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), rawMarketType), "/"), this.stream(rawMarketType, streamHash));
+        object requestId = this.requestId(url);
+        object request = new Dictionary<string, object>() {
+            { "method", "SUBSCRIBE" },
+            { "params", subscriptionArgs },
+            { "id", requestId },
+        };
+        object subscribe = new Dictionary<string, object>() {
+            { "id", requestId },
+        };
+        object result = await this.watchMultiple(url, messageHashes, this.deepExtend(request, parameters), subscriptionArgs, subscribe);
+        // for efficiency, we have two type of returned structure here - if symbols array was provided, then individual
+        // ticker dict comes in, otherwise all-tickers dict comes in
+        if (!isTrue(symbolsDefined))
+        {
+            return result;
+        } else
+        {
+            object newDict = new Dictionary<string, object>() {};
+            ((IDictionary<string,object>)newDict)[(string)getValue(result, "symbol")] = result;
+            return newDict;
+        }
     }
 
     public virtual object parseWsTicker(object message, object marketType)
@@ -1214,12 +1266,27 @@ public partial class binance : ccxt.binance
         }, market);
     }
 
-    public virtual void handleTicker(WebSocketClient client, object message)
+    public virtual void handleBidsAsks(WebSocketClient client, object message)
     {
         //
-        // 24hr rolling window ticker statistics for a single symbol
-        // These are NOT the statistics of the UTC day, but a 24hr rolling window for the previous 24hrs
-        // Update Speed 1000ms
+        // arrives one symbol dict or array of symbol dicts
+        //
+        //     {
+        //         "u": 7488717758,
+        //         "s": "BTCUSDT",
+        //         "b": "28621.74000000",
+        //         "B": "1.43278800",
+        //         "a": "28621.75000000",
+        //         "A": "2.52500800"
+        //     }
+        //
+        this.handleTickersAndBidsAsks(client as WebSocketClient, message, "bidasks");
+    }
+
+    public virtual void handleTickers(WebSocketClient client, object message)
+    {
+        //
+        // arrives one symbol dict or array of symbol dicts
         //
         //     {
         //         "e": "24hrTicker",      // event type
@@ -1247,45 +1314,16 @@ public partial class binance : ccxt.binance
         //         "n": 163222,            // total number of trades
         //     }
         //
-        object eventVar = this.safeString(message, "e", "bookTicker");
-        if (isTrue(isEqual(eventVar, "24hrTicker")))
-        {
-            eventVar = "ticker";
-        } else if (isTrue(isEqual(eventVar, "24hrMiniTicker")))
-        {
-            eventVar = "miniTicker";
-        }
-        object wsMarketId = this.safeStringLower(message, "s");
-        object messageHash = add(add(wsMarketId, "@"), eventVar);
-        object isSpot = (isTrue((isGreaterThan(getIndexOf(client.url, "/stream"), -1))) || isTrue((isGreaterThan(getIndexOf(client.url, "/testnet.binance"), -1))));
-        object marketType = ((bool) isTrue((isSpot))) ? "spot" : "contract";
-        object result = this.parseWsTicker(message, marketType);
-        object symbol = getValue(result, "symbol");
-        ((IDictionary<string,object>)this.tickers)[(string)symbol] = result;
-        callDynamically(client as WebSocketClient, "resolve", new object[] {result, messageHash});
-        if (isTrue(isEqual(eventVar, "bookTicker")))
-        {
-            // watch bookTickers
-            callDynamically(client as WebSocketClient, "resolve", new object[] {result, add("!", "bookTicker@arr")});
-            object messageHashes = this.findMessageHashes(client as WebSocketClient, "tickers::");
-            for (object i = 0; isLessThan(i, getArrayLength(messageHashes)); postFixIncrement(ref i))
-            {
-                object currentMessageHash = getValue(messageHashes, i);
-                object parts = ((string)currentMessageHash).Split(new [] {((string)"::")}, StringSplitOptions.None).ToList<object>();
-                object symbolsString = getValue(parts, 1);
-                object symbols = ((string)symbolsString).Split(new [] {((string)",")}, StringSplitOptions.None).ToList<object>();
-                if (isTrue(this.inArray(symbol, symbols)))
-                {
-                    callDynamically(client as WebSocketClient, "resolve", new object[] {result, currentMessageHash});
-                }
-            }
-        }
+        this.handleTickersAndBidsAsks(client as WebSocketClient, message, "tickers");
     }
 
-    public virtual void handleTickers(WebSocketClient client, object message)
+    public virtual void handleTickersAndBidsAsks(WebSocketClient client, object message, object methodType)
     {
         object isSpot = (isTrue((isGreaterThan(getIndexOf(client.url, "/stream"), -1))) || isTrue((isGreaterThan(getIndexOf(client.url, "/testnet.binance"), -1))));
         object marketType = ((bool) isTrue((isSpot))) ? "spot" : "contract";
+        object isBidAsk = (isEqual(methodType, "bidasks"));
+        object channelName = null;
+        object resolvedMessageHashes = new List<object>() {};
         object rawTickers = new List<object>() {};
         object newTickers = new Dictionary<string, object>() {};
         if (isTrue(((message is IList<object>) || (message.GetType().IsGenericType && message.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
@@ -1298,27 +1336,49 @@ public partial class binance : ccxt.binance
         for (object i = 0; isLessThan(i, getArrayLength(rawTickers)); postFixIncrement(ref i))
         {
             object ticker = getValue(rawTickers, i);
-            object result = this.parseWsTicker(ticker, marketType);
-            object symbol = getValue(result, "symbol");
-            ((IDictionary<string,object>)this.tickers)[(string)symbol] = result;
-            ((IDictionary<string,object>)newTickers)[(string)symbol] = result;
-        }
-        object messageHashes = this.findMessageHashes(client as WebSocketClient, "tickers::");
-        for (object i = 0; isLessThan(i, getArrayLength(messageHashes)); postFixIncrement(ref i))
-        {
-            object messageHash = getValue(messageHashes, i);
-            object parts = ((string)messageHash).Split(new [] {((string)"::")}, StringSplitOptions.None).ToList<object>();
-            object symbolsString = getValue(parts, 1);
-            object symbols = ((string)symbolsString).Split(new [] {((string)",")}, StringSplitOptions.None).ToList<object>();
-            object tickers = this.filterByArray(newTickers, "symbol", symbols);
-            object tickersSymbols = new List<object>(((IDictionary<string,object>)tickers).Keys);
-            object numTickers = getArrayLength(tickersSymbols);
-            if (isTrue(isGreaterThan(numTickers, 0)))
+            object eventVar = this.safeString(ticker, "e");
+            if (isTrue(isBidAsk))
             {
-                callDynamically(client as WebSocketClient, "resolve", new object[] {tickers, messageHash});
+                eventVar = "bookTicker"; // as noted in `handleMessage`, bookTicker doesn't have identifier, so manually set here
             }
+            channelName = this.safeString(getValue(this.options, "tickerChannelsMap"), eventVar, eventVar);
+            if (isTrue(isEqual(channelName, null)))
+            {
+                continue;
+            }
+            object parsedTicker = this.parseWsTicker(ticker, marketType);
+            object symbol = getValue(parsedTicker, "symbol");
+            ((IDictionary<string,object>)newTickers)[(string)symbol] = parsedTicker;
+            if (isTrue(isBidAsk))
+            {
+                ((IDictionary<string,object>)this.bidsasks)[(string)symbol] = parsedTicker;
+            } else
+            {
+                ((IDictionary<string,object>)this.tickers)[(string)symbol] = parsedTicker;
+            }
+            object messageHash = this.getMessageHash(channelName, symbol, isBidAsk);
+            ((IList<object>)resolvedMessageHashes).Add(messageHash);
+            callDynamically(client as WebSocketClient, "resolve", new object[] {parsedTicker, messageHash});
         }
-        callDynamically(client as WebSocketClient, "resolve", new object[] {newTickers, "tickers"});
+        // resolve batch endpoint
+        object length = getArrayLength(resolvedMessageHashes);
+        if (isTrue(isGreaterThan(length, 0)))
+        {
+            object batchMessageHash = this.getMessageHash(channelName, null, isBidAsk);
+            callDynamically(client as WebSocketClient, "resolve", new object[] {newTickers, batchMessageHash});
+        }
+    }
+
+    public virtual object getMessageHash(object channelName, object symbol, object isBidAsk)
+    {
+        object prefix = ((bool) isTrue(isBidAsk)) ? "bidask" : "ticker";
+        if (isTrue(!isEqual(symbol, null)))
+        {
+            return add(add(add(add(prefix, ":"), channelName), "@"), symbol);
+        } else
+        {
+            return add(add(add(prefix, "s"), ":"), channelName);
+        }
     }
 
     public virtual object signParams(object parameters = null)
@@ -2754,7 +2814,7 @@ public partial class binance : ccxt.binance
         this.setBalanceCache(client as WebSocketClient, type, isPortfolioMargin);
         this.setPositionsCache(client as WebSocketClient, type, symbols, isPortfolioMargin);
         object fetchPositionsSnapshot = this.handleOption("watchPositions", "fetchPositionsSnapshot", true);
-        object awaitPositionsSnapshot = this.safeValue("watchPositions", "awaitPositionsSnapshot", true);
+        object awaitPositionsSnapshot = this.safeBool("watchPositions", "awaitPositionsSnapshot", true);
         object cache = this.safeValue(this.positions, type);
         if (isTrue(isTrue(isTrue(fetchPositionsSnapshot) && isTrue(awaitPositionsSnapshot)) && isTrue(isEqual(cache, null))))
         {
@@ -2912,8 +2972,24 @@ public partial class binance : ccxt.binance
         //     }
         //
         object marketId = this.safeString(position, "s");
+        object contracts = this.safeString(position, "pa");
+        object contractsAbs = Precise.stringAbs(this.safeString(position, "pa"));
         object positionSide = this.safeStringLower(position, "ps");
-        object hedged = !isEqual(positionSide, "both");
+        object hedged = true;
+        if (isTrue(isEqual(positionSide, "both")))
+        {
+            hedged = false;
+            if (!isTrue(Precise.stringEq(contracts, "0")))
+            {
+                if (isTrue(Precise.stringLt(contracts, "0")))
+                {
+                    positionSide = "short";
+                } else
+                {
+                    positionSide = "long";
+                }
+            }
+        }
         return this.safePosition(new Dictionary<string, object>() {
             { "info", position },
             { "id", null },
@@ -2924,7 +3000,7 @@ public partial class binance : ccxt.binance
             { "entryPrice", this.safeNumber(position, "ep") },
             { "unrealizedPnl", this.safeNumber(position, "up") },
             { "percentage", null },
-            { "contracts", this.safeNumber(position, "pa") },
+            { "contracts", this.parseNumber(contractsAbs) },
             { "contractSize", null },
             { "markPrice", null },
             { "side", positionSide },
@@ -3376,11 +3452,17 @@ public partial class binance : ccxt.binance
             { "kline", this.handleOHLCV },
             { "markPrice_kline", this.handleOHLCV },
             { "indexPrice_kline", this.handleOHLCV },
+            { "1hTicker@arr", this.handleTickers },
+            { "4hTicker@arr", this.handleTickers },
+            { "1dTicker@arr", this.handleTickers },
             { "24hrTicker@arr", this.handleTickers },
             { "24hrMiniTicker@arr", this.handleTickers },
-            { "24hrTicker", this.handleTicker },
-            { "24hrMiniTicker", this.handleTicker },
-            { "bookTicker", this.handleTicker },
+            { "1hTicker", this.handleTickers },
+            { "4hTicker", this.handleTickers },
+            { "1dTicker", this.handleTickers },
+            { "24hrTicker", this.handleTickers },
+            { "24hrMiniTicker", this.handleTickers },
+            { "bookTicker", this.handleBidsAsks },
             { "outboundAccountPosition", this.handleBalance },
             { "balanceUpdate", this.handleBalance },
             { "ACCOUNT_UPDATE", this.handleAcountUpdate },
@@ -3413,10 +3495,9 @@ public partial class binance : ccxt.binance
             //         "A": "2.52500800"
             //     }
             //
-            if (isTrue(isEqual(eventVar, null)))
+            if (isTrue(isTrue(isTrue(isEqual(eventVar, null)) && isTrue((inOp(message, "a")))) && isTrue((inOp(message, "b")))))
             {
-                this.handleTicker(client as WebSocketClient, message);
-                this.handleTickers(client as WebSocketClient, message);
+                this.handleBidsAsks(client as WebSocketClient, message);
             }
         } else
         {

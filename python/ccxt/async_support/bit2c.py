@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.bit2c import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade
+from ccxt.base.types import Balances, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -406,7 +406,7 @@ class bit2c(Exchange, ImplicitAPI):
             }
         return result
 
-    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create a trade order
         :see: https://bit2c.co.il/home/api#addo
@@ -470,7 +470,7 @@ class bit2c(Exchange, ImplicitAPI):
         response = await self.privateGetOrderMyOrders(self.extend(request, params))
         orders = self.safe_value(response, market['id'], {})
         asks = self.safe_value(orders, 'ask', [])
-        bids = self.safe_value(orders, 'bid', [])
+        bids = self.safe_list(orders, 'bid', [])
         return self.parse_orders(self.array_concat(asks, bids), market, since, limit)
 
     async def fetch_order(self, id: str, symbol: Str = None, params={}):

@@ -58,6 +58,12 @@ abstract class blofin extends \ccxt\async\Exchange {
     public function private_get_account_leverage_info($params = array()) {
         return $this->request('account/leverage-info', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
+    public function private_get_account_margin_mode($params = array()) {
+        return $this->request('account/margin-mode', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function private_get_account_batch_leverage_info($params = array()) {
+        return $this->request('account/batch-leverage-info', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
     public function private_get_trade_orders_tpsl_pending($params = array()) {
         return $this->request('trade/orders-tpsl-pending', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -144,6 +150,12 @@ abstract class blofin extends \ccxt\async\Exchange {
     }
     public function privateGetAccountLeverageInfo($params = array()) {
         return $this->request('account/leverage-info', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function privateGetAccountMarginMode($params = array()) {
+        return $this->request('account/margin-mode', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function privateGetAccountBatchLeverageInfo($params = array()) {
+        return $this->request('account/batch-leverage-info', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     public function privateGetTradeOrdersTpslPending($params = array()) {
         return $this->request('trade/orders-tpsl-pending', 'private', 'GET', $params, null, null, array("cost" => 1));

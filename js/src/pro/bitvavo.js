@@ -1087,7 +1087,7 @@ export default class bitvavo extends bitvavoRest {
         return messageHash;
     }
     checkMessageHashDoesNotExist(messageHash) {
-        const supressMultipleWsRequestsError = this.safeValue(this.options, 'supressMultipleWsRequestsError', false);
+        const supressMultipleWsRequestsError = this.safeBool(this.options, 'supressMultipleWsRequestsError', false);
         if (!supressMultipleWsRequestsError) {
             const client = this.safeValue(this.clients, this.urls['api']['ws']);
             if (client !== undefined) {
@@ -1215,7 +1215,7 @@ export default class bitvavo extends bitvavoRest {
                 'timestamp': timestamp,
             };
             const message = this.extend(request, params);
-            future = this.watch(url, messageHash, message);
+            future = await this.watch(url, messageHash, message, messageHash);
             client.subscriptions[messageHash] = future;
         }
         return future;

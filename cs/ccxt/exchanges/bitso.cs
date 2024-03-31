@@ -675,7 +675,7 @@ public partial class bitso : Exchange
         //         ]
         //     }
         //
-        object payload = this.safeValue(response, "payload", new List<object>() {});
+        object payload = this.safeList(response, "payload", new List<object>() {});
         return this.parseOHLCVs(payload, market, timeframe, since, limit);
     }
 
@@ -1286,7 +1286,7 @@ public partial class bitso : Exchange
         //     }
         //
         object transactions = this.safeValue(response, "payload", new List<object>() {});
-        object first = this.safeValue(transactions, 0, new Dictionary<string, object>() {});
+        object first = this.safeDict(transactions, 0, new Dictionary<string, object>() {});
         return this.parseTransaction(first);
     }
 
@@ -1334,7 +1334,7 @@ public partial class bitso : Exchange
         //         }]
         //     }
         //
-        object transactions = this.safeValue(response, "payload", new List<object>() {});
+        object transactions = this.safeList(response, "payload", new List<object>() {});
         return this.parseTransactions(transactions, currency, since, limit, parameters);
     }
 
@@ -1531,7 +1531,7 @@ public partial class bitso : Exchange
         //        }
         //    }
         //
-        object payload = this.safeValue(response, "payload", new Dictionary<string, object>() {});
+        object payload = this.safeList(response, "payload", new List<object>() {});
         return this.parseDepositWithdrawFees(payload, codes);
     }
 
@@ -1680,7 +1680,7 @@ public partial class bitso : Exchange
         //     }
         //
         object payload = this.safeValue(response, "payload", new List<object>() {});
-        object first = this.safeValue(payload, 0);
+        object first = this.safeDict(payload, 0);
         return this.parseTransaction(first, currency);
     }
 

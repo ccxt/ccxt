@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.exmo import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Currency, Int, MarginModification, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -265,21 +265,23 @@ class exmo(Exchange, ImplicitAPI):
             margin['amount'] = amount
         return margin
 
-    def parse_margin_modification(self, data, market: Market = None):
+    def parse_margin_modification(self, data, market: Market = None) -> MarginModification:
         #
         #      {}
         #
         return {
             'info': data,
+            'symbol': self.safe_symbol(None, market),
             'type': None,
             'amount': None,
-            'code': self.safe_value(market, 'quote'),
-            'symbol': self.safe_symbol(None, market),
             'total': None,
+            'code': self.safe_value(market, 'quote'),
             'status': 'ok',
+            'timestamp': None,
+            'datetime': None,
         }
 
-    def reduce_margin(self, symbol: str, amount, params={}):
+    def reduce_margin(self, symbol: str, amount, params={}) -> MarginModification:
         """
         remove margin from a position
         :see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#eebf9f25-0289-4946-9482-89872c738449
@@ -290,7 +292,7 @@ class exmo(Exchange, ImplicitAPI):
         """
         return self.modify_margin_helper(symbol, amount, 'reduce', params)
 
-    def add_margin(self, symbol: str, amount, params={}):
+    def add_margin(self, symbol: str, amount, params={}) -> MarginModification:
         """
         add margin
         :see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#143ef808-79ca-4e49-9e79-a60ea4d8c0e3
@@ -683,7 +685,7 @@ class exmo(Exchange, ImplicitAPI):
             }
         return result
 
-    def fetch_markets(self, params={}):
+    def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for exmo
         :see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#7de7e75c-5833-45a8-b937-c2276d235aaa
@@ -824,26 +826,24 @@ class exmo(Exchange, ImplicitAPI):
             'symbol': market['id'],
             'resolution': self.safe_string(self.timeframes, timeframe, timeframe),
         }
-        options = self.safe_value(self.options, 'fetchOHLCV')
-        maxLimit = self.safe_integer(options, 'maxLimit', 3000)
+        maxLimit = 3000
         duration = self.parse_timeframe(timeframe)
         now = self.milliseconds()
         if since is None:
             if limit is None:
                 limit = 1000  # cap default at generous amount
-            if limit > maxLimit:
-                limit = maxLimit  # avoid exception
+            else:
+                limit = min(limit, maxLimit)
             request['from'] = self.parse_to_int(now / 1000) - limit * duration - 1
             request['to'] = self.parse_to_int(now / 1000)
         else:
             request['from'] = self.parse_to_int(since / 1000) - 1
             if limit is None:
-                request['to'] = self.parse_to_int(now / 1000)
+                limit = maxLimit
             else:
-                if limit > maxLimit:
-                    raise BadRequest(self.id + ' fetchOHLCV() will serve ' + str(maxLimit) + ' candles at most')
-                to = self.sum(since, limit * duration * 1000)
-                request['to'] = self.parse_to_int(to / 1000)
+                limit = min(limit, maxLimit)
+            to = self.sum(since, limit * duration * 1000)
+            request['to'] = self.parse_to_int(to / 1000)
         response = self.publicGetCandlesHistory(self.extend(request, params))
         #
         #     {
@@ -854,7 +854,7 @@ class exmo(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        candles = self.safe_value(response, 'candles', [])
+        candles = self.safe_list(response, 'candles', [])
         return self.parse_ohlcvs(candles, market, timeframe, since, limit)
 
     def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
@@ -967,7 +967,7 @@ class exmo(Exchange, ImplicitAPI):
         if limit is not None:
             request['limit'] = limit
         response = self.publicGetOrderBook(self.extend(request, params))
-        result = self.safe_value(response, market['id'])
+        result = self.safe_dict(response, market['id'])
         return self.parse_order_book(result, market['symbol'], None, 'bid', 'ask')
 
     def fetch_order_books(self, symbols: Strings = None, limit: Int = None, params={}):
@@ -1218,7 +1218,7 @@ class exmo(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        data = self.safe_value(response, market['id'], [])
+        data = self.safe_list(response, market['id'], [])
         return self.parse_trades(data, market, since, limit)
 
     def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
@@ -1313,7 +1313,7 @@ class exmo(Exchange, ImplicitAPI):
             result = self.array_concat(result, trades)
         return self.filter_by_since_limit(result, since, limit)
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create a trade order
         :see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#80daa469-ec59-4d0a-b229-6a311d8dd1cd
@@ -1558,7 +1558,7 @@ class exmo(Exchange, ImplicitAPI):
             #         ]
             #     }
             #
-        trades = self.safe_value(response, 'trades')
+        trades = self.safe_list(response, 'trades')
         return self.parse_trades(trades, market, since, limit)
 
     def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
@@ -1897,7 +1897,7 @@ class exmo(Exchange, ImplicitAPI):
                     result.append(order)
             return result
 
-    def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: float = None, price: float = None, params={}):
+    def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}):
         """
         *margin only* edit a trade order
         :see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#f27ee040-c75f-4b59-b608-d05bd45b7899  # margin
@@ -2240,7 +2240,7 @@ class exmo(Exchange, ImplicitAPI):
         #         "count": 23
         #     }
         #
-        items = self.safe_value(response, 'items', [])
+        items = self.safe_list(response, 'items', [])
         return self.parse_transactions(items, currency, since, limit)
 
     def fetch_withdrawal(self, id: str, code: Str = None, params={}):
@@ -2289,7 +2289,7 @@ class exmo(Exchange, ImplicitAPI):
         #     }
         #
         items = self.safe_value(response, 'items', [])
-        first = self.safe_value(items, 0, {})
+        first = self.safe_dict(items, 0, {})
         return self.parse_transaction(first, currency)
 
     def fetch_deposit(self, id=None, code: Str = None, params={}):
@@ -2338,7 +2338,7 @@ class exmo(Exchange, ImplicitAPI):
         #     }
         #
         items = self.safe_value(response, 'items', [])
-        first = self.safe_value(items, 0, {})
+        first = self.safe_dict(items, 0, {})
         return self.parse_transaction(first, currency)
 
     def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
@@ -2388,7 +2388,7 @@ class exmo(Exchange, ImplicitAPI):
         #         "count": 23
         #     }
         #
-        items = self.safe_value(response, 'items', [])
+        items = self.safe_list(response, 'items', [])
         return self.parse_transactions(items, currency, since, limit)
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):

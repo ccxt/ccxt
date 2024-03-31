@@ -4,6 +4,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 var index = require('../../static_dependencies/scure-base/index.js');
 var utils = require('../../static_dependencies/noble-curves/abstract/utils.js');
+var msgpack = require('../../static_dependencies/messagepack/msgpack.js');
 var index$1 = require('../../static_dependencies/qs/index.cjs.js');
 
 /* eslint-disable */
@@ -17,6 +18,9 @@ const json = (data, params = undefined) => JSON.stringify(data), isJsonEncodedOb
 , urlencodeBase64 = base64string => base64string.replace(/[=]+$/, '')
     .replace(/\+/g, '-')
     .replace(/\//g, '_'), numberToLE = (n, padding) => utils.numberToBytesLE(BigInt(n), padding), numberToBE = (n, padding) => utils.numberToBytesBE(BigInt(n), padding);
+function packb(req) {
+    return msgpack.serialize(req);
+}
 /*  ------------------------------------------------------------------------ */
 
 exports.base16ToBinary = base16ToBinary;
@@ -35,6 +39,7 @@ exports.isJsonEncodedObject = isJsonEncodedObject;
 exports.json = json;
 exports.numberToBE = numberToBE;
 exports.numberToLE = numberToLE;
+exports.packb = packb;
 exports.rawencode = rawencode;
 exports.stringToBase64 = stringToBase64;
 exports.stringToBinary = stringToBinary;

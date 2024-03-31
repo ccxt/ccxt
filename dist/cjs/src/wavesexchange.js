@@ -887,7 +887,7 @@ class wavesexchange extends wavesexchange$1 {
         //
         const data = this.safeValue(response, 'data', []);
         const ticker = this.safeValue(data, 0, {});
-        const dataTicker = this.safeValue(ticker, 'data', {});
+        const dataTicker = this.safeDict(ticker, 'data', {});
         return this.parseTicker(dataTicker, market);
     }
     async fetchTickers(symbols = undefined, params = {}) {
@@ -1378,7 +1378,7 @@ class wavesexchange extends wavesexchange$1 {
             'amountAsset': amountAsset,
             'priceAsset': priceAsset,
         };
-        const sandboxMode = this.safeValue(this.options, 'sandboxMode', false);
+        const sandboxMode = this.safeBool(this.options, 'sandboxMode', false);
         const chainId = (sandboxMode) ? 84 : 87;
         const body = {
             'senderPublicKey': this.apiKey,
@@ -1459,12 +1459,12 @@ class wavesexchange extends wavesexchange$1 {
         //
         if (isMarketOrder) {
             const response = await this.matcherPostMatcherOrderbookMarket(body);
-            const value = this.safeValue(response, 'message');
+            const value = this.safeDict(response, 'message');
             return this.parseOrder(value, market);
         }
         else {
             const response = await this.matcherPostMatcherOrderbook(body);
-            const value = this.safeValue(response, 'message');
+            const value = this.safeDict(response, 'message');
             return this.parseOrder(value, market);
         }
     }

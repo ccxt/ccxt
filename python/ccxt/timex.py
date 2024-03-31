@@ -5,7 +5,7 @@
 
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.timex import ImplicitAPI
-from ccxt.base.types import Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -292,7 +292,7 @@ class timex(Exchange, ImplicitAPI):
         #
         return self.parse_to_int(response) * 1000
 
-    def fetch_markets(self, params={}):
+    def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for timex
         :see: https://plasma-relay-backend.timex.io/swagger-ui/index.html?urls.primaryName=Relay#/Public/listMarkets
@@ -541,7 +541,7 @@ class timex(Exchange, ImplicitAPI):
         #         }
         #     ]
         #
-        ticker = self.safe_value(response, 0)
+        ticker = self.safe_dict(response, 0)
         return self.parse_ticker(ticker, market)
 
     def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
@@ -712,7 +712,7 @@ class timex(Exchange, ImplicitAPI):
         #
         return self.parse_balance(response)
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create a trade order
         :see: https://plasma-relay-backend.timex.io/swagger-ui/index.html?urls.primaryName=Relay#/Trading/createOrder
@@ -779,10 +779,10 @@ class timex(Exchange, ImplicitAPI):
         #     }
         #
         orders = self.safe_value(response, 'orders', [])
-        order = self.safe_value(orders, 0, {})
+        order = self.safe_dict(orders, 0, {})
         return self.parse_order(order, market)
 
-    def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: float = None, price: float = None, params={}):
+    def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}):
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -827,7 +827,7 @@ class timex(Exchange, ImplicitAPI):
             })
         orders = self.safe_value(response, 'changedOrders', [])
         firstOrder = self.safe_value(orders, 0, {})
-        order = self.safe_value(firstOrder, 'newOrder', {})
+        order = self.safe_dict(firstOrder, 'newOrder', {})
         return self.parse_order(order, market)
 
     def cancel_order(self, id: str, symbol: Str = None, params={}):
@@ -929,7 +929,7 @@ class timex(Exchange, ImplicitAPI):
         #     }
         #
         order = self.safe_value(response, 'order', {})
-        trades = self.safe_value(response, 'trades', [])
+        trades = self.safe_list(response, 'trades', [])
         return self.parse_order(self.extend(order, {'trades': trades}))
 
     def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
@@ -980,7 +980,7 @@ class timex(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        orders = self.safe_value(response, 'orders', [])
+        orders = self.safe_list(response, 'orders', [])
         return self.parse_orders(orders, market, since, limit)
 
     def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
@@ -1035,7 +1035,7 @@ class timex(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        orders = self.safe_value(response, 'orders', [])
+        orders = self.safe_list(response, 'orders', [])
         return self.parse_orders(orders, market, since, limit)
 
     def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
@@ -1093,7 +1093,7 @@ class timex(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        trades = self.safe_value(response, 'trades', [])
+        trades = self.safe_list(response, 'trades', [])
         return self.parse_trades(trades, market, since, limit)
 
     def parse_trading_fee(self, fee, market: Market = None):

@@ -8,7 +8,7 @@ from ccxt.abstract.digifinex import ImplicitAPI
 import asyncio
 import hashlib
 import json
-from ccxt.base.types import Balances, Currency, Int, Market, Order, TransferEntry, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Currency, Int, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -523,7 +523,7 @@ class digifinex(Exchange, ImplicitAPI):
             result[code]['precision'] = precision if (result[code]['precision'] is None) else max(result[code]['precision'], precision)
         return result
 
-    async def fetch_markets(self, params={}):
+    async def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for digifinex
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -1397,7 +1397,7 @@ class digifinex(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        data = self.safe_value(response, 'data', [])
+        data = self.safe_list(response, 'data', [])
         return self.parse_trades(data, market, since, limit)
 
     def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
@@ -1450,7 +1450,7 @@ class digifinex(Exchange, ImplicitAPI):
             request['instrument_id'] = market['id']
             request['granularity'] = timeframe
             if limit is not None:
-                request['limit'] = limit
+                request['limit'] = min(limit, 100)
             response = await self.publicSwapGetPublicCandles(self.extend(request, params))
         else:
             request['symbol'] = market['id']
@@ -1464,7 +1464,8 @@ class digifinex(Exchange, ImplicitAPI):
             elif limit is not None:
                 endTime = self.seconds()
                 duration = self.parse_timeframe(timeframe)
-                request['start_time'] = self.sum(endTime, -limit * duration)
+                auxLimit = limit  # in c# -limit is mutating the arg
+                request['start_time'] = self.sum(endTime, -auxLimit * duration)
             response = await self.publicSpotGetKline(self.extend(request, params))
         #
         # spot
@@ -1501,7 +1502,7 @@ class digifinex(Exchange, ImplicitAPI):
             candles = self.safe_value(response, 'data', [])
         return self.parse_ohlcvs(candles, market, timeframe, since, limit)
 
-    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create a trade order
         :see: https://docs.digifinex.com/en-ww/spot/v3/rest.html#create-new-order
@@ -1638,7 +1639,7 @@ class digifinex(Exchange, ImplicitAPI):
             result.append(individualOrder)
         return self.parse_orders(result, market)
 
-    def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
+    def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
          * @ignore
         helper function to build request
@@ -2079,7 +2080,7 @@ class digifinex(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        data = self.safe_value(response, 'data', [])
+        data = self.safe_list(response, 'data', [])
         return self.parse_orders(data, market, since, limit)
 
     async def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
@@ -2174,7 +2175,7 @@ class digifinex(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        data = self.safe_value(response, 'data', [])
+        data = self.safe_list(response, 'data', [])
         return self.parse_orders(data, market, since, limit)
 
     async def fetch_order(self, id: str, symbol: Str = None, params={}):
@@ -2353,7 +2354,7 @@ class digifinex(Exchange, ImplicitAPI):
         #     }
         #
         responseRequest = 'data' if (marketType == 'swap') else 'list'
-        data = self.safe_value(response, responseRequest, [])
+        data = self.safe_list(response, responseRequest, [])
         return self.parse_trades(data, market, since, limit)
 
     def parse_ledger_entry_type(self, type):
@@ -2580,7 +2581,7 @@ class digifinex(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        data = self.safe_value(response, 'data', [])
+        data = self.safe_list(response, 'data', [])
         return self.parse_transactions(data, currency, since, limit, {'type': type})
 
     async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
@@ -3472,7 +3473,7 @@ class digifinex(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        transfers = self.safe_value(response, 'data', [])
+        transfers = self.safe_list(response, 'data', [])
         return self.parse_transfers(transfers, currency, since, limit)
 
     async def fetch_leverage_tiers(self, symbols: Strings = None, params={}):
@@ -3708,7 +3709,7 @@ class digifinex(Exchange, ImplicitAPI):
         #       "code": 200,
         #   }
         #
-        data = self.safe_value(response, 'data')
+        data = self.safe_list(response, 'data')
         return self.parse_deposit_withdraw_fees(data, codes)
 
     def parse_deposit_withdraw_fees(self, response, codes=None, currencyIdKey=None):
@@ -3776,7 +3777,7 @@ class digifinex(Exchange, ImplicitAPI):
             depositWithdrawFees[code] = self.assign_default_deposit_withdraw_fees(depositWithdrawFees[code], currency)
         return depositWithdrawFees
 
-    async def add_margin(self, symbol: str, amount, params={}):
+    async def add_margin(self, symbol: str, amount, params={}) -> MarginModification:
         """
         add margin to a position
         :see: https://docs.digifinex.com/en-ww/swap/v2/rest.html#positionmargin
@@ -3790,7 +3791,7 @@ class digifinex(Exchange, ImplicitAPI):
         self.check_required_argument('addMargin', side, 'side', ['long', 'short'])
         return await self.modify_margin_helper(symbol, amount, 1, params)
 
-    async def reduce_margin(self, symbol: str, amount, params={}):
+    async def reduce_margin(self, symbol: str, amount, params={}) -> MarginModification:
         """
         remove margin from a position
         :see: https://docs.digifinex.com/en-ww/swap/v2/rest.html#positionmargin
@@ -3804,7 +3805,7 @@ class digifinex(Exchange, ImplicitAPI):
         self.check_required_argument('reduceMargin', side, 'side', ['long', 'short'])
         return await self.modify_margin_helper(symbol, amount, 2, params)
 
-    async def modify_margin_helper(self, symbol: str, amount, type, params={}):
+    async def modify_margin_helper(self, symbol: str, amount, type, params={}) -> MarginModification:
         await self.load_markets()
         side = self.safe_string(params, 'side')
         market = self.market(symbol)
@@ -3833,7 +3834,7 @@ class digifinex(Exchange, ImplicitAPI):
             'status': status,
         })
 
-    def parse_margin_modification(self, data, market: Market = None):
+    def parse_margin_modification(self, data, market: Market = None) -> MarginModification:
         #
         #     {
         #         "instrument_id": "BTCUSDTPERP",
@@ -3846,12 +3847,14 @@ class digifinex(Exchange, ImplicitAPI):
         rawType = self.safe_integer(data, 'type')
         return {
             'info': data,
+            'symbol': self.safe_symbol(marketId, market, None, 'swap'),
             'type': 'add' if (rawType == 1) else 'reduce',
             'amount': self.safe_number(data, 'amount'),
             'total': None,
             'code': market['settle'],
-            'symbol': self.safe_symbol(marketId, market, None, 'swap'),
             'status': None,
+            'timestamp': None,
+            'datetime': None,
         }
 
     async def fetch_funding_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
@@ -3890,7 +3893,7 @@ class digifinex(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        data = self.safe_value(response, 'data', [])
+        data = self.safe_list(response, 'data', [])
         return self.parse_incomes(data, market, since, limit)
 
     def parse_income(self, income, market: Market = None):

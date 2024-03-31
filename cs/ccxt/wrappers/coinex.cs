@@ -22,10 +22,10 @@ public partial class coinex
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> an array of objects representing market data.</returns>
-    public async Task<Dictionary<string, object>> FetchMarkets(Dictionary<string, object> parameters = null)
+    public async Task<List<MarketInterface>> FetchMarkets(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchMarkets(parameters);
-        return ((Dictionary<string, object>)res);
+        return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
     }
     public async Task<List<Dictionary<string, object>>> FetchSpotMarkets(object parameters)
     {
@@ -83,7 +83,7 @@ public partial class coinex
     /// fetches the current integer timestamp in milliseconds from the exchange server
     /// </summary>
     /// <remarks>
-    /// See <see href="https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http005_system_time"/>  <br/>
+    /// See <see href="https://docs.coinex.com/api/v2/common/http/time"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -165,7 +165,8 @@ public partial class coinex
     /// fetch the trading fees for a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot001_market003_single_market_info"/>  <br/>
+    /// See <see href="https://docs.coinex.com/api/v2/spot/market/http/list-market"/>  <br/>
+    /// See <see href="https://docs.coinex.com/api/v2/futures/market/http/list-market"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -185,7 +186,8 @@ public partial class coinex
     /// fetch the trading fees for multiple markets
     /// </summary>
     /// <remarks>
-    /// See <see href="https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot001_market002_all_market_info"/>  <br/>
+    /// See <see href="https://docs.coinex.com/api/v2/spot/market/http/list-market"/>  <br/>
+    /// See <see href="https://docs.coinex.com/api/v2/futures/market/http/list-market"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -305,7 +307,7 @@ public partial class coinex
         var res = await this.createMarketBuyOrderWithCost(symbol, cost, parameters);
         return new Order(res);
     }
-    public Dictionary<string, object> CreateOrderRequest(object symbol, object type, object side, double amount, double? price2 = 0, Dictionary<string, object> parameters = null)
+    public Dictionary<string, object> CreateOrderRequest(string symbol, string type, string side, double amount, double? price2 = 0, Dictionary<string, object> parameters = null)
     {
         var price = price2 == 0 ? null : (object)price2;
         var res = this.createOrderRequest(symbol, type, side, amount, price, parameters);
@@ -1132,5 +1134,25 @@ public partial class coinex
     {
         var res = await this.fetchDepositWithdrawFees(codes, parameters);
         return ((Dictionary<string, object>)res);
+    }
+    /// <summary>
+    /// fetch the set leverage for all contract and margin markets
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account007_margin_account_settings"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a list of [leverage structures]{@link https://docs.ccxt.com/#/?id=leverage-structure}.</returns>
+    public async Task<Leverages> FetchLeverages(List<string> symbols = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchLeverages(symbols, parameters);
+        return new Leverages(res);
     }
 }

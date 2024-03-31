@@ -1,9 +1,9 @@
-
 import assert from 'assert';
+import { Exchange, OrderBook } from "../../../../ccxt";
 import Precise from '../../../base/Precise.js';
 import testSharedMethods from './test.sharedMethods.js';
 
-function testOrderBook (exchange, skippedProperties, method, orderbook, symbol) {
+function testOrderBook (exchange: Exchange, skippedProperties: object, method: string, orderbook: OrderBook, symbol: string) {
     const format = {
         'symbol': 'ETH/BTC',
         'asks': [
@@ -28,6 +28,7 @@ function testOrderBook (exchange, skippedProperties, method, orderbook, symbol) 
     if (('bid' in skippedProperties) || ('ask' in skippedProperties)) {
         return;
     }
+    // todo: check non-emtpy arrays for bids/asks for toptier exchanges
     const bids = orderbook['bids'];
     const bidsLength = bids.length;
     for (let i = 0; i < bidsLength; i++) {
@@ -54,14 +55,13 @@ function testOrderBook (exchange, skippedProperties, method, orderbook, symbol) 
         testSharedMethods.assertGreater (exchange, skippedProperties, method, asks[i], 0, '0');
         testSharedMethods.assertGreater (exchange, skippedProperties, method, asks[i], 1, '0');
     }
-    if ('spread' in skippedProperties) {
-        return;
-    }
-    if (bidsLength && asksLength) {
-        const firstBid = exchange.safeString (bids[0], 0);
-        const firstAsk = exchange.safeString (asks[0], 0);
-        // check bid-ask spread
-        assert (Precise.stringLt (firstBid, firstAsk), 'bids[0][0] (' + firstAsk + ') should be < than asks[0][0] (' + firstAsk + ')' + logText);
+    if (!('spread' in skippedProperties)) {
+        if (bidsLength && asksLength) {
+            const firstBid = exchange.safeString (bids[0], 0);
+            const firstAsk = exchange.safeString (asks[0], 0);
+            // check bid-ask spread
+            assert (Precise.stringLt (firstBid, firstAsk), 'bids[0][0] (' + firstAsk + ') should be < than asks[0][0] (' + firstAsk + ')' + logText);
+        }
     }
 }
 

@@ -576,7 +576,7 @@ class cryptocom extends \ccxt\async\cryptocom {
             $client = $this->client($url);
             $this->set_positions_cache($client, $symbols);
             $fetchPositionsSnapshot = $this->handle_option('watchPositions', 'fetchPositionsSnapshot', true);
-            $awaitPositionsSnapshot = $this->safe_value('watchPositions', 'awaitPositionsSnapshot', true);
+            $awaitPositionsSnapshot = $this->safe_bool('watchPositions', 'awaitPositionsSnapshot', true);
             if ($fetchPositionsSnapshot && $awaitPositionsSnapshot && $this->positions === null) {
                 $snapshot = Async\await($client->future ('fetchPositionsSnapshot'));
                 return $this->filter_by_symbols_since_limit($snapshot, $symbols, $since, $limit, true);
@@ -1031,28 +1031,30 @@ class cryptocom extends \ccxt\async\cryptocom {
     }
 
     public function authenticate($params = array ()) {
-        $this->check_required_credentials();
-        $url = $this->urls['api']['ws']['private'];
-        $client = $this->client($url);
-        $messageHash = 'authenticated';
-        $future = $client->future ($messageHash);
-        $authenticated = $this->safe_value($client->subscriptions, $messageHash);
-        if ($authenticated === null) {
-            $method = 'public/auth';
-            $nonce = (string) $this->nonce();
-            $auth = $method . $nonce . $this->apiKey . $nonce;
-            $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256');
-            $request = array(
-                'id' => $nonce,
-                'nonce' => $nonce,
-                'method' => $method,
-                'api_key' => $this->apiKey,
-                'sig' => $signature,
-            );
-            $message = array_merge($request, $params);
-            $this->watch($url, $messageHash, $message, $messageHash);
-        }
-        return $future;
+        return Async\async(function () use ($params) {
+            $this->check_required_credentials();
+            $url = $this->urls['api']['ws']['private'];
+            $client = $this->client($url);
+            $messageHash = 'authenticated';
+            $future = $client->future ($messageHash);
+            $authenticated = $this->safe_value($client->subscriptions, $messageHash);
+            if ($authenticated === null) {
+                $method = 'public/auth';
+                $nonce = (string) $this->nonce();
+                $auth = $method . $nonce . $this->apiKey . $nonce;
+                $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256');
+                $request = array(
+                    'id' => $nonce,
+                    'nonce' => $nonce,
+                    'method' => $method,
+                    'api_key' => $this->apiKey,
+                    'sig' => $signature,
+                );
+                $message = array_merge($request, $params);
+                $this->watch($url, $messageHash, $message, $messageHash);
+            }
+            return Async\await($future);
+        }) ();
     }
 
     public function handle_ping(Client $client, $message) {

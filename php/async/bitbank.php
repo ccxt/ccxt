@@ -139,26 +139,28 @@ class bitbank extends Exchange {
             ),
             'precisionMode' => TICK_SIZE,
             'exceptions' => array(
-                '20001' => '\\ccxt\\AuthenticationError',
-                '20002' => '\\ccxt\\AuthenticationError',
-                '20003' => '\\ccxt\\AuthenticationError',
-                '20005' => '\\ccxt\\AuthenticationError',
-                '20004' => '\\ccxt\\InvalidNonce',
-                '40020' => '\\ccxt\\InvalidOrder',
-                '40021' => '\\ccxt\\InvalidOrder',
-                '40025' => '\\ccxt\\ExchangeError',
-                '40013' => '\\ccxt\\OrderNotFound',
-                '40014' => '\\ccxt\\OrderNotFound',
-                '50008' => '\\ccxt\\PermissionDenied',
-                '50009' => '\\ccxt\\OrderNotFound',
-                '50010' => '\\ccxt\\OrderNotFound',
-                '60001' => '\\ccxt\\InsufficientFunds',
-                '60005' => '\\ccxt\\InvalidOrder',
+                'exact' => array(
+                    '20001' => '\\ccxt\\AuthenticationError',
+                    '20002' => '\\ccxt\\AuthenticationError',
+                    '20003' => '\\ccxt\\AuthenticationError',
+                    '20005' => '\\ccxt\\AuthenticationError',
+                    '20004' => '\\ccxt\\InvalidNonce',
+                    '40020' => '\\ccxt\\InvalidOrder',
+                    '40021' => '\\ccxt\\InvalidOrder',
+                    '40025' => '\\ccxt\\ExchangeError',
+                    '40013' => '\\ccxt\\OrderNotFound',
+                    '40014' => '\\ccxt\\OrderNotFound',
+                    '50008' => '\\ccxt\\PermissionDenied',
+                    '50009' => '\\ccxt\\OrderNotFound',
+                    '50010' => '\\ccxt\\OrderNotFound',
+                    '60001' => '\\ccxt\\InsufficientFunds',
+                    '60005' => '\\ccxt\\InvalidOrder',
+                ),
             ),
         ));
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * retrieves $data on all markets for bitbank
@@ -302,7 +304,7 @@ class bitbank extends Exchange {
                 'pair' => $market['id'],
             );
             $response = Async\await($this->publicGetPairTicker (array_merge($request, $params)));
-            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_dict($response, 'data', array());
             return $this->parse_ticker($data, $market);
         }) ();
     }
@@ -393,7 +395,7 @@ class bitbank extends Exchange {
             );
             $response = Async\await($this->publicGetPairTransactions (array_merge($request, $params)));
             $data = $this->safe_value($response, 'data', array());
-            $trades = $this->safe_value($data, 'transactions', array());
+            $trades = $this->safe_list($data, 'transactions', array());
             return $this->parse_trades($trades, $market, $since, $limit);
         }) ();
     }
@@ -526,7 +528,7 @@ class bitbank extends Exchange {
             $data = $this->safe_value($response, 'data', array());
             $candlestick = $this->safe_value($data, 'candlestick', array());
             $first = $this->safe_value($candlestick, 0, array());
-            $ohlcv = $this->safe_value($first, 'ohlcv', array());
+            $ohlcv = $this->safe_list($first, 'ohlcv', array());
             return $this->parse_ohlcvs($ohlcv, $market, $timeframe, $since, $limit);
         }) ();
     }
@@ -674,7 +676,7 @@ class bitbank extends Exchange {
                 $request['price'] = $this->price_to_precision($symbol, $price);
             }
             $response = Async\await($this->privatePostUserSpotOrder (array_merge($request, $params)));
-            $data = $this->safe_value($response, 'data');
+            $data = $this->safe_dict($response, 'data');
             return $this->parse_order($data, $market);
         }) ();
     }
@@ -717,7 +719,7 @@ class bitbank extends Exchange {
                 'pair' => $market['id'],
             );
             $response = Async\await($this->privateGetUserSpotOrder (array_merge($request, $params)));
-            $data = $this->safe_value($response, 'data');
+            $data = $this->safe_dict($response, 'data');
             return $this->parse_order($data, $market);
         }) ();
     }
@@ -746,7 +748,7 @@ class bitbank extends Exchange {
             }
             $response = Async\await($this->privateGetUserSpotActiveOrders (array_merge($request, $params)));
             $data = $this->safe_value($response, 'data', array());
-            $orders = $this->safe_value($data, 'orders', array());
+            $orders = $this->safe_list($data, 'orders', array());
             return $this->parse_orders($orders, $market, $since, $limit);
         }) ();
     }
@@ -777,7 +779,7 @@ class bitbank extends Exchange {
             }
             $response = Async\await($this->privateGetUserSpotTradeHistory (array_merge($request, $params)));
             $data = $this->safe_value($response, 'data', array());
-            $trades = $this->safe_value($data, 'trades', array());
+            $trades = $this->safe_list($data, 'trades', array());
             return $this->parse_trades($trades, $market, $since, $limit);
         }) ();
     }
@@ -852,7 +854,7 @@ class bitbank extends Exchange {
             //         }
             //     }
             //
-            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_dict($response, 'data', array());
             return $this->parse_transaction($data, $currency);
         }) ();
     }
@@ -1007,15 +1009,10 @@ class bitbank extends Exchange {
                 '70009' => 'We are currently temporarily restricting orders to be carried out. Please use the limit order.',
                 '70010' => 'We are temporarily raising the minimum order quantity system load is now rising.',
             );
-            $errorClasses = $this->exceptions;
             $code = $this->safe_string($data, 'code');
             $message = $this->safe_string($errorMessages, $code, 'Error');
-            $ErrorClass = $this->safe_value($errorClasses, $code);
-            if ($ErrorClass !== null) {
-                throw new $errorClasses[$code]($message);
-            } else {
-                throw new ExchangeError($this->id . ' ' . $this->json($response));
-            }
+            $this->throw_exactly_matched_exception($this->exceptions['exact'], $code, $message);
+            throw new ExchangeError($this->id . ' ' . $this->json($response));
         }
         return null;
     }

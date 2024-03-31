@@ -82,9 +82,9 @@ export default class btcturk extends Exchange {
                 '30m': 30,
                 '1h': 60,
                 '4h': 240,
-                '1d': '1 day',
-                '1w': '1 week',
-                '1y': '1 year',
+                '1d': '1 d',
+                '1w': '1 w',
+                '1y': '1 y',
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/51840849/87153926-efbef500-c2c0-11ea-9842-05b63612c4b9.jpg',
@@ -418,7 +418,7 @@ export default class btcturk extends Exchange {
          */
         await this.loadMarkets();
         const response = await this.publicGetTicker(params);
-        const tickers = this.safeValue(response, 'data');
+        const tickers = this.safeList(response, 'data');
         return this.parseTickers(tickers, symbols);
     }
     async fetchTicker(symbol, params = {}) {
@@ -536,7 +536,7 @@ export default class btcturk extends Exchange {
         //       ]
         //     }
         //
-        const data = this.safeValue(response, 'data');
+        const data = this.safeList(response, 'data');
         return this.parseTrades(data, market, since, limit);
     }
     parseOHLCV(ohlcv, market = undefined) {
@@ -588,6 +588,7 @@ export default class btcturk extends Exchange {
             limit = 100; // default value
         }
         if (limit !== undefined) {
+            limit = Math.min(limit, 11000); // max 11000 candles diapason can be covered
             if (timeframe === '1y') { // difficult with leap years
                 throw new BadRequest(this.id + ' fetchOHLCV () does not accept a limit parameter when timeframe == "1y"');
             }
@@ -598,7 +599,7 @@ export default class btcturk extends Exchange {
                 request['to'] = Math.min(request['to'], to);
             }
             else {
-                request['from'] = this.parseToInt(until / 1000) - limitSeconds;
+                request['from'] = this.parseToInt(0 / 1000) - limitSeconds;
             }
         }
         const response = await this.graphGetKlinesHistory(this.extend(request, params));
@@ -693,7 +694,7 @@ export default class btcturk extends Exchange {
             request['newClientOrderId'] = this.uuid();
         }
         const response = await this.privatePostOrder(this.extend(request, params));
-        const data = this.safeValue(response, 'data');
+        const data = this.safeDict(response, 'data');
         return this.parseOrder(data, market);
     }
     async cancelOrder(id, symbol = undefined, params = {}) {
@@ -734,7 +735,7 @@ export default class btcturk extends Exchange {
         const response = await this.privateGetOpenOrders(this.extend(request, params));
         const data = this.safeValue(response, 'data');
         const bids = this.safeValue(data, 'bids', []);
-        const asks = this.safeValue(data, 'asks', []);
+        const asks = this.safeList(data, 'asks', []);
         return this.parseOrders(this.arrayConcat(bids, asks), market, since, limit);
     }
     async fetchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -782,7 +783,7 @@ export default class btcturk extends Exchange {
         //     }
         //   ]
         // }
-        const data = this.safeValue(response, 'data');
+        const data = this.safeList(response, 'data');
         return this.parseOrders(data, market, since, limit);
     }
     parseOrderStatus(status) {
@@ -899,7 +900,7 @@ export default class btcturk extends Exchange {
         //       "code": "0"
         //     }
         //
-        const data = this.safeValue(response, 'data');
+        const data = this.safeList(response, 'data');
         return this.parseTrades(data, market, since, limit);
     }
     nonce() {

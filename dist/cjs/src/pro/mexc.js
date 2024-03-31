@@ -244,7 +244,7 @@ class mexc extends mexc$1 {
         //        "d": {
         //            "e": "spot@public.kline.v3.api",
         //            "k": {
-        //                "t": 1678642260,
+        //                "t": 1678642261,
         //                "o": 20626.94,
         //                "c": 20599.69,
         //                "h": 20626.94,
@@ -457,7 +457,7 @@ class mexc extends mexc$1 {
             client.subscriptions[messageHash] = 1;
             this.orderbooks[symbol] = this.countedOrderBook({});
         }
-        const storedOrderBook = this.safeValue(this.orderbooks, symbol);
+        const storedOrderBook = this.orderbooks[symbol];
         const nonce = this.safeInteger(storedOrderBook, 'nonce');
         if (nonce === undefined) {
             const cacheLength = storedOrderBook.cache.length;
@@ -500,10 +500,12 @@ class mexc extends mexc$1 {
         }
     }
     handleDelta(orderbook, delta) {
-        const nonce = this.safeInteger(orderbook, 'nonce');
+        const existingNonce = this.safeInteger(orderbook, 'nonce');
         const deltaNonce = this.safeInteger2(delta, 'r', 'version');
-        if (deltaNonce !== nonce && deltaNonce !== nonce + 1) {
-            throw new errors.ExchangeError(this.id + ' handleOrderBook received an out-of-order nonce');
+        if (deltaNonce < existingNonce) {
+            // even when doing < comparison, this happens: https://app.travis-ci.com/github/ccxt/ccxt/builds/269234741#L1809
+            // so, we just skip old updates
+            return;
         }
         orderbook['nonce'] = deltaNonce;
         const asks = this.safeValue(delta, 'asks', []);

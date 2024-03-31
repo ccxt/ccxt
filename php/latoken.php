@@ -243,7 +243,7 @@ class latoken extends Exchange {
         return $this->safe_integer($response, 'serverTime');
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): array {
         /**
          * retrieves data on all markets for latoken
          * @see https://api.latoken.com/doc/v2/#tag/Pair/operation/getActivePairs
@@ -1430,7 +1430,7 @@ class latoken extends Exchange {
         if ($code !== null) {
             $currency = $this->currency($code);
         }
-        $content = $this->safe_value($response, 'content', array());
+        $content = $this->safe_list($response, 'content', array());
         return $this->parse_transactions($content, $currency, $since, $limit);
     }
 
@@ -1559,11 +1559,11 @@ class latoken extends Exchange {
         //         "hasContent" => true
         //     }
         //
-        $transfers = $this->safe_value($response, 'content', array());
+        $transfers = $this->safe_list($response, 'content', array());
         return $this->parse_transfers($transfers, $currency, $since, $limit);
     }
 
-    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): TransferEntry {
+    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): array {
         /**
          * transfer $currency internally between wallets on the same account
          * @see https://api.latoken.com/doc/v2/#tag/Transfer/operation/transferByEmail

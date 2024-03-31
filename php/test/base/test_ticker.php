@@ -34,7 +34,14 @@ function test_ticker($exchange, $skipped_properties, $method, $entry, $symbol) {
         'quoteVolume' => $exchange->parse_number('1.234'),
     );
     // todo: atm, many exchanges fail, so temporarily decrease stict mode
-    $empty_allowed_for = ['timestamp', 'datetime', 'open', 'high', 'low', 'close', 'last', 'ask', 'bid', 'bidVolume', 'askVolume', 'baseVolume', 'quoteVolume', 'previousClose', 'vwap', 'change', 'percentage', 'average'];
+    $empty_allowed_for = ['timestamp', 'datetime', 'open', 'high', 'low', 'close', 'last', 'baseVolume', 'quoteVolume', 'previousClose', 'vwap', 'change', 'percentage', 'average'];
+    // trick csharp-transpiler for string
+    if (!str_contains(((string) $method), 'BidsAsks')) {
+        $empty_allowed_for[] = 'bid';
+        $empty_allowed_for[] = 'ask';
+        $empty_allowed_for[] = 'bidVolume';
+        $empty_allowed_for[] = 'askVolume';
+    }
     assert_structure($exchange, $skipped_properties, $method, $entry, $format, $empty_allowed_for);
     assert_timestamp_and_datetime($exchange, $skipped_properties, $method, $entry);
     $log_text = log_template($exchange, $method, $entry);
@@ -78,7 +85,7 @@ function test_ticker($exchange, $skipped_properties, $method, $entry, $symbol) {
             assert($base_volume !== null, 'quoteVolume & vwap is defined, but baseVolume is not' . $log_text);
         }
     }
-    if (!(is_array($skipped_properties) && array_key_exists('ask', $skipped_properties)) && !(is_array($skipped_properties) && array_key_exists('bid', $skipped_properties))) {
+    if (!(is_array($skipped_properties) && array_key_exists('spread', $skipped_properties)) && !(is_array($skipped_properties) && array_key_exists('ask', $skipped_properties)) && !(is_array($skipped_properties) && array_key_exists('bid', $skipped_properties))) {
         $ask_string = $exchange->safe_string($entry, 'ask');
         $bid_string = $exchange->safe_string($entry, 'bid');
         if (($ask_string !== null) && ($bid_string !== null)) {

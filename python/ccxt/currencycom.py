@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.currencycom import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Account, Balances, Currency, Int, Leverage, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
@@ -395,7 +395,7 @@ class currencycom(Exchange, ImplicitAPI):
             }
         return result
 
-    def fetch_markets(self, params={}):
+    def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for currencycom
         :see: https://apitradedoc.currency.com/swagger-ui.html#/rest-api/exchangeInfoUsingGET
@@ -574,7 +574,7 @@ class currencycom(Exchange, ImplicitAPI):
             })
         return result
 
-    def fetch_accounts(self, params={}):
+    def fetch_accounts(self, params={}) -> List[Account]:
         """
         fetch all the accounts associated with a profile
         :see: https://apitradedoc.currency.com/swagger-ui.html#/rest-api/accountUsingGET
@@ -963,7 +963,7 @@ class currencycom(Exchange, ImplicitAPI):
         if since is not None:
             request['startTime'] = since
         if limit is not None:
-            request['limit'] = limit  # default 500, max 1000
+            request['limit'] = min(limit, 1000)  # default 500, max 1000
         response = self.publicGetV2Klines(self.extend(request, params))
         #
         #     [
@@ -1230,7 +1230,7 @@ class currencycom(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create a trade order
         :see: https://apitradedoc.currency.com/swagger-ui.html#/rest-api/orderUsingPOST
@@ -1714,7 +1714,7 @@ class currencycom(Exchange, ImplicitAPI):
         }
         return self.safe_string(types, type, type)
 
-    def fetch_leverage(self, symbol: str, params={}):
+    def fetch_leverage(self, symbol: str, params={}) -> Leverage:
         """
         fetch the set leverage for a market
         :see: https://apitradedoc.currency.com/swagger-ui.html#/rest-api/leverageSettingsUsingGET
@@ -1729,12 +1729,22 @@ class currencycom(Exchange, ImplicitAPI):
         }
         response = self.privateGetV2LeverageSettings(self.extend(request, params))
         #
-        # {
-        #     "values": [1, 2, 5, 10,],
-        #     "value": "10",
-        # }
+        #     {
+        #         "values": [1, 2, 5, 10,],
+        #         "value": "10",
+        #     }
         #
-        return self.safe_number(response, 'value')
+        return self.parse_leverage(response, market)
+
+    def parse_leverage(self, leverage, market=None) -> Leverage:
+        leverageValue = self.safe_integer(leverage, 'value')
+        return {
+            'info': leverage,
+            'symbol': market['symbol'],
+            'marginMode': None,
+            'longLeverage': leverageValue,
+            'shortLeverage': leverageValue,
+        }
 
     def fetch_deposit_address(self, code: str, params={}):
         """
@@ -1837,7 +1847,7 @@ class currencycom(Exchange, ImplicitAPI):
         #        ]
         #    }
         #
-        data = self.safe_value(response, 'positions', [])
+        data = self.safe_list(response, 'positions', [])
         return self.parse_positions(data, symbols)
 
     def parse_position(self, position, market: Market = None):

@@ -61,6 +61,9 @@ function assert_structure($exchange, $skipped_properties, $method, $entry, $form
         for ($i = 0; $i < count($format); $i++) {
             $empty_allowed_for_this_key = $exchange->in_array($i, $empty_allowed_for);
             $value = $entry[$i];
+            if (is_array($skipped_properties) && array_key_exists($i, $skipped_properties)) {
+                continue;
+            }
             // check when:
             // - it's not inside "allowe empty values" list
             // - it's not undefined
@@ -69,7 +72,8 @@ function assert_structure($exchange, $skipped_properties, $method, $entry, $form
             }
             assert($value !== null, ((string) $i) . ' index is expected to have a value' . $log_text);
             // because of other langs, this is needed for arrays
-            assert(assert_type($exchange, $skipped_properties, $entry, $i, $format), ((string) $i) . ' index does not have an expected type ' . $log_text);
+            $type_assertion = assert_type($exchange, $skipped_properties, $entry, $i, $format);
+            assert($type_assertion, ((string) $i) . ' index does not have an expected type ' . $log_text);
         }
     } else {
         assert(is_array($entry), 'entry is not an object' . $log_text);
@@ -80,6 +84,9 @@ function assert_structure($exchange, $skipped_properties, $method, $entry, $form
                 continue;
             }
             assert(is_array($entry) && array_key_exists($key, $entry), '\"' . string_value($key) . '\" key is missing from structure' . $log_text);
+            if (is_array($skipped_properties) && array_key_exists($key, $skipped_properties)) {
+                continue;
+            }
             $empty_allowed_for_this_key = $exchange->in_array($key, $empty_allowed_for);
             $value = $entry[$key];
             // check when:
@@ -92,7 +99,8 @@ function assert_structure($exchange, $skipped_properties, $method, $entry, $form
             assert($value !== null, '\"' . string_value($key) . '\" key is expected to have a value' . $log_text);
             // add exclusion for info key, as it can be any type
             if ($key !== 'info') {
-                assert(assert_type($exchange, $skipped_properties, $entry, $key, $format), '\"' . string_value($key) . '\" key is neither undefined, neither of expected type' . $log_text);
+                $type_assertion = assert_type($exchange, $skipped_properties, $entry, $key, $format);
+                assert($type_assertion, '\"' . string_value($key) . '\" key is neither undefined, neither of expected type' . $log_text);
             }
         }
     }
@@ -117,7 +125,7 @@ function assert_timestamp($exchange, $skipped_properties, $method, $entry, $now_
         assert((is_int($ts) || is_float($ts)), 'timestamp is not numeric' . $log_text);
         assert(is_int($ts), 'timestamp should be an integer' . $log_text);
         $min_ts = 1230940800000; // 03 Jan 2009 - first block
-        $max_ts = 2147483648000; // 03 Jan 2009 - first block
+        $max_ts = 2147483648000; // 19 Jan 2038 - max int
         assert($ts > $min_ts, 'timestamp is impossible to be before ' . ((string) $min_ts) . ' (03.01.2009)' . $log_text); // 03 Jan 2009 - first block
         assert($ts < $max_ts, 'timestamp more than ' . ((string) $max_ts) . ' (19.01.2038)' . $log_text); // 19 Jan 2038 - int32 overflows // 7258118400000  -> Jan 1 2200
         if ($now_to_check !== null) {
@@ -154,7 +162,7 @@ function assert_timestamp_and_datetime($exchange, $skipped_properties, $method, 
 
 
 function assert_currency_code($exchange, $skipped_properties, $method, $entry, $actual_code, $expected_code = null) {
-    if (is_array($skipped_properties) && array_key_exists('currency', $skipped_properties)) {
+    if ((is_array($skipped_properties) && array_key_exists('currency', $skipped_properties)) || (is_array($skipped_properties) && array_key_exists('currencyIdAndCode', $skipped_properties))) {
         return;
     }
     $log_text = log_template($exchange, $method, $entry);
@@ -170,7 +178,7 @@ function assert_currency_code($exchange, $skipped_properties, $method, $entry, $
 
 function assert_valid_currency_id_and_code($exchange, $skipped_properties, $method, $entry, $currency_id, $currency_code) {
     // this is exclusive exceptional key name to be used in `skip-tests.json`, to skip check for currency id and code
-    if (is_array($skipped_properties) && array_key_exists('currencyIdAndCode', $skipped_properties)) {
+    if ((is_array($skipped_properties) && array_key_exists('currency', $skipped_properties)) || (is_array($skipped_properties) && array_key_exists('currencyIdAndCode', $skipped_properties))) {
         return;
     }
     $log_text = log_template($exchange, $method, $entry);
@@ -389,4 +397,27 @@ function set_proxy_options($exchange, $skipped_properties, $proxy_url, $http_pro
     $exchange->http_proxy = $http_proxy;
     $exchange->https_proxy = $https_proxy;
     $exchange->socks_proxy = $socks_proxy;
+}
+
+
+function assert_non_emtpy_array($exchange, $skipped_properties, $method, $entry, $hint = null) {
+    $log_text = log_template($exchange, $method, $entry);
+    if ($hint !== null) {
+        $log_text = $log_text . ' ' . $hint;
+    }
+    assert(gettype($entry) === 'array' && array_keys($entry) === array_keys(array_keys($entry)), 'response is expected to be an array' . $log_text);
+    if (!(is_array($skipped_properties) && array_key_exists('emptyResponse', $skipped_properties))) {
+        return;
+    }
+    assert(count($entry) > 0, 'response is expected to be a non-empty array' . $log_text . ' (add \"emptyResponse\" in skip-tests.json to skip this check)');
+}
+
+
+function assert_round_minute_timestamp($exchange, $skipped_properties, $method, $entry, $key) {
+    if (is_array($skipped_properties) && array_key_exists($key, $skipped_properties)) {
+        return;
+    }
+    $log_text = log_template($exchange, $method, $entry);
+    $ts = $exchange->safe_string($entry, $key);
+    assert(Precise::string_mod($ts, '60000') === '0', 'timestamp should be a multiple of 60 seconds (1 minute)' . $log_text);
 }

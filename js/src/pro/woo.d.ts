@@ -30,6 +30,7 @@ export default class woo extends wooRest {
     handlePositions(client: any, message: any): void;
     watchBalance(params?: {}): Promise<Balances>;
     handleBalance(client: any, message: any): void;
+    handleErrorMessage(client: Client, message: any): boolean;
     handleMessage(client: Client, message: any): void;
     ping(client: Client): {
         event: string;

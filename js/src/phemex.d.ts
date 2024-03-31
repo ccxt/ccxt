@@ -1,5 +1,5 @@
 import Exchange from './abstract/phemex.js';
-import type { TransferEntry, Balances, Currency, FundingHistory, FundingRateHistory, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import type { TransferEntry, Balances, Currency, FundingHistory, FundingRateHistory, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, MarginModification } from './base/types.js';
 /**
  * @class phemex
  * @augments Exchange
@@ -9,7 +9,7 @@ export default class phemex extends Exchange {
     parseSafeNumber(value?: any): any;
     parseSwapMarket(market: any): import("./base/types.js").MarketInterface;
     parseSpotMarket(market: any): import("./base/types.js").MarketInterface;
-    fetchMarkets(params?: {}): Promise<any[]>;
+    fetchMarkets(params?: {}): Promise<Market[]>;
     fetchCurrencies(params?: {}): Promise<{}>;
     customParseBidAsk(bidask: any, priceKey?: number, amountKey?: number, market?: Market): number[];
     customParseOrderBook(orderbook: any, symbol: any, timestamp?: any, bidsKey?: string, asksKey?: string, priceKey?: number, amountKey?: number, market?: Market): any;
@@ -38,8 +38,8 @@ export default class phemex extends Exchange {
     parseOrderSide(side: any): string;
     parseSwapOrder(order: any, market?: Market): Order;
     parseOrder(order: any, market?: Market): Order;
-    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: number, params?: {}): Promise<Order>;
-    editOrder(id: string, symbol: string, type?: OrderType, side?: OrderSide, amount?: number, price?: number, params?: {}): Promise<Order>;
+    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
+    editOrder(id: string, symbol: string, type?: OrderType, side?: OrderSide, amount?: Num, price?: Num, params?: {}): Promise<Order>;
     cancelOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
     cancelAllOrders(symbol?: Str, params?: {}): Promise<any>;
     fetchOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
@@ -99,17 +99,9 @@ export default class phemex extends Exchange {
         previousFundingTimestamp: any;
         previousFundingDatetime: any;
     };
-    setMargin(symbol: string, amount: number, params?: {}): Promise<any>;
+    setMargin(symbol: string, amount: number, params?: {}): Promise<MarginModification>;
     parseMarginStatus(status: any): string;
-    parseMarginModification(data: any, market?: Market): {
-        info: any;
-        type: string;
-        amount: any;
-        total: any;
-        code: string;
-        symbol: string;
-        status: string;
-    };
+    parseMarginModification(data: any, market?: Market): MarginModification;
     setMarginMode(marginMode: string, symbol?: Str, params?: {}): Promise<any>;
     setPositionMode(hedged: boolean, symbol?: Str, params?: {}): Promise<any>;
     fetchLeverageTiers(symbols?: Strings, params?: {}): Promise<{}>;

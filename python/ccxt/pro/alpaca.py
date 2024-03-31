@@ -562,7 +562,7 @@ class alpaca(ccxt.async_support.alpaca):
                     },
                 }
             self.watch(url, messageHash, request, messageHash, future)
-        return future
+        return await future
 
     def handle_error_message(self, client: Client, message):
         #
@@ -589,7 +589,7 @@ class alpaca(ccxt.async_support.alpaca):
         for i in range(0, len(message)):
             data = message[i]
             T = self.safe_string(data, 'T')
-            msg = self.safe_value(data, 'msg', {})
+            msg = self.safe_string(data, 'msg')
             if T == 'subscription':
                 self.handle_subscription(client, data)
                 return

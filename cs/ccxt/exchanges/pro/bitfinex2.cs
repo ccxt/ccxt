@@ -57,7 +57,7 @@ public partial class bitfinex2 : ccxt.bitfinex2
         object result = await this.watch(url, messageHash, this.deepExtend(request, parameters), messageHash, new Dictionary<string, object>() {
             { "checksum", false },
         });
-        object checksum = this.safeValue(this.options, "checksum", true);
+        object checksum = this.safeBool(this.options, "checksum", true);
         if (isTrue(isTrue(isTrue(checksum) && !isTrue(getValue(getValue(((WebSocketClient)client).subscriptions, messageHash), "checksum"))) && isTrue((isEqual(channel, "book")))))
         {
             ((IDictionary<string,object>)getValue(((WebSocketClient)client).subscriptions, messageHash))["checksum"] = true;
@@ -359,10 +359,11 @@ public partial class bitfinex2 : ccxt.bitfinex2
             // initial snapshot
             object trades = this.safeList(message, 1, new List<object>() {});
             // needs to be reversed to make chronological order
-            trades = trades = (trades as IList<object>).Reverse().ToList();
-            for (object i = 0; isLessThan(i, getArrayLength(trades)); postFixIncrement(ref i))
+            object length = getArrayLength(trades);
+            for (object i = 0; isLessThan(i, length); postFixIncrement(ref i))
             {
-                object parsed = this.parseWsTrade(getValue(trades, i), market);
+                object index = subtract(subtract(length, i), 1);
+                object parsed = this.parseWsTrade(getValue(trades, index), market);
                 callDynamically(stored, "append", new object[] {parsed});
             }
         } else
@@ -950,7 +951,7 @@ public partial class bitfinex2 : ccxt.bitfinex2
             object message = this.extend(request, parameters);
             this.watch(url, messageHash, message, messageHash);
         }
-        return future;
+        return await (future as Exchange.Future);
     }
 
     public virtual void handleAuthenticationMessage(WebSocketClient client, object message)

@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.bitfinex2 import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, Int, Market, Order, TransferEntry, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Currency, Int, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -46,8 +46,8 @@ class bitfinex2(Exchange, ImplicitAPI):
                 'spot': True,
                 'margin': True,
                 'swap': True,
-                'future': None,
-                'option': None,
+                'future': False,
+                'option': False,
                 'addMargin': False,
                 'borrowCrossMargin': False,
                 'borrowIsolatedMargin': False,
@@ -58,6 +58,7 @@ class bitfinex2(Exchange, ImplicitAPI):
                 'createLimitOrder': True,
                 'createMarketOrder': True,
                 'createOrder': True,
+                'createPostOnlyOrder': True,
                 'createReduceOnlyOrder': True,
                 'createStopLimitOrder': True,
                 'createStopMarketOrder': True,
@@ -68,8 +69,11 @@ class bitfinex2(Exchange, ImplicitAPI):
                 'editOrder': True,
                 'fetchBalance': True,
                 'fetchBorrowInterest': False,
+                'fetchBorrowRate': False,
                 'fetchBorrowRateHistories': False,
                 'fetchBorrowRateHistory': False,
+                'fetchBorrowRates': False,
+                'fetchBorrowRatesPerSymbol': False,
                 'fetchClosedOrder': True,
                 'fetchClosedOrders': True,
                 'fetchCrossBorrowRate': False,
@@ -98,6 +102,8 @@ class bitfinex2(Exchange, ImplicitAPI):
                 'fetchOpenOrder': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
+                'fetchOrderBook': True,
+                'fetchOrderBooks': False,
                 'fetchOrderTrades': True,
                 'fetchPosition': False,
                 'fetchPositionMode': False,
@@ -117,6 +123,8 @@ class bitfinex2(Exchange, ImplicitAPI):
                 'setMargin': True,
                 'setMarginMode': False,
                 'setPositionMode': False,
+                'signIn': False,
+                'transfer': True,
                 'withdraw': True,
             },
             'timeframes': {
@@ -500,7 +508,7 @@ class bitfinex2(Exchange, ImplicitAPI):
             'info': response,
         }
 
-    async def fetch_markets(self, params={}):
+    async def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for bitfinex2
         :see: https://docs.bitfinex.com/reference/rest-public-conf
@@ -1335,13 +1343,16 @@ class bitfinex2(Exchange, ImplicitAPI):
         market = self.market(symbol)
         if limit is None:
             limit = 10000
+        else:
+            limit = min(limit, 10000)
         request = {
             'symbol': market['id'],
             'timeframe': self.safe_string(self.timeframes, timeframe, timeframe),
             'sort': 1,
-            'start': since,
             'limit': limit,
         }
+        if since is not None:
+            request['start'] = since
         request, params = self.handle_until_option('end', request, params)
         response = await self.publicGetCandlesTradeTimeframeSymbolHist(self.extend(request, params))
         #
@@ -1474,7 +1485,7 @@ class bitfinex2(Exchange, ImplicitAPI):
             'trades': None,
         }, market)
 
-    def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
+    def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
          * @ignore
         helper function to build an order request
@@ -1484,7 +1495,16 @@ class bitfinex2(Exchange, ImplicitAPI):
         :param float amount: how much you want to trade in units of the base currency
         :param float [price]: the price of the order, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: request to be sent to the exchange
+        :param float [params.stopPrice]: The price at which a trigger order is triggered at
+        :param str [params.timeInForce]: "GTC", "IOC", "FOK", or "PO"
+        :param bool [params.postOnly]:
+        :param bool [params.reduceOnly]: Ensures that the executed order does not flip the opened position.
+        :param int [params.flags]: additional order parameters: 4096(Post Only), 1024(Reduce Only), 16384(OCO), 64(Hidden), 512(Close), 524288(No Var Rates)
+        :param int [params.lev]: leverage for a derivative order, supported by derivative symbol orders only. The value should be between 1 and 100 inclusive.
+        :param str [params.price_traling]: The trailing price for a trailing stop order
+        :param str [params.price_aux_limit]: Order price for stop limit orders
+        :param str [params.price_oco_stop]: OCO stop price
+        :returns dict: an `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         market = self.market(symbol)
         amountString = self.amount_to_precision(symbol, amount)
@@ -1543,7 +1563,7 @@ class bitfinex2(Exchange, ImplicitAPI):
         params = self.omit(params, ['triggerPrice', 'stopPrice', 'timeInForce', 'postOnly', 'reduceOnly', 'trailingAmount', 'clientOrderId'])
         return self.extend(request, params)
 
-    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create an order on the exchange
         :see: https://docs.bitfinex.com/reference/rest-auth-submit-order
@@ -1694,7 +1714,7 @@ class bitfinex2(Exchange, ImplicitAPI):
             'all': 1,
         }
         response = await self.privatePostAuthWOrderCancelMulti(self.extend(request, params))
-        orders = self.safe_value(response, 4, [])
+        orders = self.safe_list(response, 4, [])
         return self.parse_orders(orders)
 
     async def cancel_order(self, id: str, symbol: Str = None, params={}):
@@ -2775,7 +2795,7 @@ class bitfinex2(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `funding rate structure <https://docs.ccxt.com/#/?id=funding-rate-structure>`
         """
-        return self.fetch_funding_rates([symbol], params)
+        return await self.fetch_funding_rates([symbol], params)
 
     async def fetch_funding_rates(self, symbols: Strings = None, params={}):
         """
@@ -2889,10 +2909,10 @@ class bitfinex2(Exchange, ImplicitAPI):
             rates.append(rate)
         reversedArray = []
         rawRates = self.filter_by_symbol_since_limit(rates, symbol, since, limit)
-        rawRatesLength = len(rawRates)
-        ratesLength = max(rawRatesLength - 1, 0)
-        for i in range(ratesLength, 0):
-            valueAtIndex = rawRates[i]
+        ratesLength = len(rawRates)
+        for i in range(0, ratesLength):
+            index = ratesLength - i - 1
+            valueAtIndex = rawRates[index]
             reversedArray.append(valueAtIndex)
         return reversedArray
 
@@ -3261,7 +3281,7 @@ class bitfinex2(Exchange, ImplicitAPI):
             'datetime': self.iso8601(timestamp),
         })
 
-    async def set_margin(self, symbol: str, amount: float, params={}):
+    async def set_margin(self, symbol: str, amount: float, params={}) -> MarginModification:
         """
         either adds or reduces margin in a swap position in order to set the margin to a specific value
         :see: https://docs.bitfinex.com/reference/rest-auth-deriv-pos-collateral-set
@@ -3289,19 +3309,31 @@ class bitfinex2(Exchange, ImplicitAPI):
         data = self.safe_value(response, 0)
         return self.parse_margin_modification(data, market)
 
-    def parse_margin_modification(self, data, market=None):
+    def parse_margin_modification(self, data, market=None) -> MarginModification:
+        #
+        # setMargin
+        #
+        #     [
+        #         [
+        #             1
+        #         ]
+        #     ]
+        #
         marginStatusRaw = data[0]
         marginStatus = 'ok' if (marginStatusRaw == 1) else 'failed'
         return {
             'info': data,
+            'symbol': market['symbol'],
             'type': None,
             'amount': None,
+            'total': None,
             'code': None,
-            'symbol': market['symbol'],
             'status': marginStatus,
+            'timestamp': None,
+            'datetime': None,
         }
 
-    async def fetch_order(self, id: str, symbol: str = None, params={}):
+    async def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
         fetches information on an order made by the user
         :see: https://docs.bitfinex.com/reference/rest-auth-retrieve-orders
@@ -3364,7 +3396,7 @@ class bitfinex2(Exchange, ImplicitAPI):
         order = self.safe_list(response, 0)
         return self.parse_order(order, market)
 
-    async def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: float = None, price: float = None, params={}):
+    async def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}):
         """
         edit a trade order
         :see: https://docs.bitfinex.com/reference/rest-auth-update-order

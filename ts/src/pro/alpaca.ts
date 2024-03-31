@@ -604,7 +604,7 @@ export default class alpaca extends alpacaRest {
             }
             this.watch (url, messageHash, request, messageHash, future);
         }
-        return future;
+        return await future;
     }
 
     handleErrorMessage (client: Client, message) {
@@ -634,7 +634,7 @@ export default class alpaca extends alpacaRest {
         for (let i = 0; i < message.length; i++) {
             const data = message[i];
             const T = this.safeString (data, 'T');
-            const msg = this.safeValue (data, 'msg', {});
+            const msg = this.safeString (data, 'msg');
             if (T === 'subscription') {
                 this.handleSubscription (client, data);
                 return;

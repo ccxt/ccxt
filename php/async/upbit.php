@@ -80,6 +80,7 @@ class upbit extends Exchange {
                 '1m' => 'minutes',
                 '3m' => 'minutes',
                 '5m' => 'minutes',
+                '10m' => 'minutes',
                 '15m' => 'minutes',
                 '30m' => 'minutes',
                 '1h' => 'minutes',
@@ -109,6 +110,7 @@ class upbit extends Exchange {
                         'candles/minutes/1',
                         'candles/minutes/3',
                         'candles/minutes/5',
+                        'candles/minutes/10',
                         'candles/minutes/15',
                         'candles/minutes/30',
                         'candles/minutes/60',
@@ -411,7 +413,7 @@ class upbit extends Exchange {
         }) ();
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * @see https://docs.upbit.com/reference/%EB%A7%88%EC%BC%93-%EC%BD%94%EB%93%9C-%EC%A1%B0%ED%9A%8C
@@ -632,7 +634,7 @@ class upbit extends Exchange {
         //                    "trade_time" => "104543",
         //                "trade_date_kst" => "20181122",
         //                "trade_time_kst" => "194543",
-        //               "trade_timestamp" =>  1542883543097,
+        //               "trade_timestamp" =>  1542883543096,
         //                 "opening_price" =>  0.02976455,
         //                    "high_price" =>  0.02992577,
         //                     "low_price" =>  0.02934283,

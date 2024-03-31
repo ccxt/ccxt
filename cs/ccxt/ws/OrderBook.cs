@@ -14,6 +14,7 @@ public interface IOrderBook : IDictionary<string, object>
     public IOrderBook update(object snapshot);
     IAsks asks { get; set; }
     IBids bids { get; set; }
+    public IList<object> cache { get; set; }
 }
 
 public class OrderBook : CustomConcurrentDictionary<string, object>, IOrderBook
@@ -193,8 +194,12 @@ public class OrderBook : CustomConcurrentDictionary<string, object>, IOrderBook
             //     {"symbol", this["symbol"]},
             // });
             var copy = new OrderBook(new Dictionary<string, object>());
-            copy["asks"] = this.asks.Copy();
-            copy["bids"] = this.bids.Copy();
+            var copiedAsks = this.asks.Copy();
+            copy["asks"] = copiedAsks;
+            copy.asks = copiedAsks;
+            var copiedBids = this.bids.Copy();
+            copy["bids"] = copiedBids;
+            copy.bids = copiedBids;
             copy["nonce"] = this["nonce"];
             copy["timestamp"] = this["timestamp"];
             copy["datetime"] = this["datetime"];
@@ -242,8 +247,8 @@ public class CountedOrderBook : OrderBook, IOrderBook
 {
     public CountedAsks asks;
     public CountedBids bids;
-    
-    public CountedOrderBook(object snapshot = null, object depth2 = null) : base(Exchange.Extend(snapshot ?? new Dictionary<string,object>(), new CustomConcurrentDictionary<string, object> {
+
+    public CountedOrderBook(object snapshot = null, object depth2 = null) : base(Exchange.Extend(snapshot ?? new Dictionary<string, object>(), new CustomConcurrentDictionary<string, object> {
        {"asks", new CountedAsks(Exchange.SafeValue(snapshot ?? new Dictionary<string,object>(), "asks", new SlimConcurrentList<object>()), depth2)},
        {"bids", new CountedBids(Exchange.SafeValue(snapshot ?? new Dictionary<string,object>(), "bids", new SlimConcurrentList<object>()), depth2)}
     }), depth2)

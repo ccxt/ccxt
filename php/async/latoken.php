@@ -250,7 +250,7 @@ class latoken extends Exchange {
         }) ();
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * retrieves data on all markets for latoken
@@ -1474,7 +1474,7 @@ class latoken extends Exchange {
             if ($code !== null) {
                 $currency = $this->currency($code);
             }
-            $content = $this->safe_value($response, 'content', array());
+            $content = $this->safe_list($response, 'content', array());
             return $this->parse_transactions($content, $currency, $since, $limit);
         }) ();
     }
@@ -1605,7 +1605,7 @@ class latoken extends Exchange {
             //         "hasContent" => true
             //     }
             //
-            $transfers = $this->safe_value($response, 'content', array());
+            $transfers = $this->safe_list($response, 'content', array());
             return $this->parse_transfers($transfers, $currency, $since, $limit);
         }) ();
     }

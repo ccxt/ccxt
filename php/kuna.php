@@ -511,7 +511,7 @@ class kuna extends Exchange {
         );
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): array {
         /**
          * retrieves $data on all $markets for kuna
          * @see https://docs.kuna.io/docs/get-all-traded-$markets
@@ -647,7 +647,7 @@ class kuna extends Exchange {
         //          }
         //      }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_dict($response, 'data', array());
         return $this->parse_order_book($data, $market['symbol'], null, 'bids', 'asks', 0, 1);
     }
 
@@ -728,7 +728,7 @@ class kuna extends Exchange {
         //        )
         //    }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_list($response, 'data', array());
         return $this->parse_tickers($data, $symbols, $params);
     }
 
@@ -767,7 +767,7 @@ class kuna extends Exchange {
         //    }
         //
         $data = $this->safe_value($response, 'data', array());
-        $ticker = $this->safe_value($data, 0);
+        $ticker = $this->safe_dict($data, 0);
         return $this->parse_ticker($ticker, $market);
     }
 
@@ -796,7 +796,7 @@ class kuna extends Exchange {
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
-            'pair' => $market['id'],
+            'pairs' => $market['id'],
         );
         if ($limit !== null) {
             $request['limit'] = $limit;
@@ -804,18 +804,21 @@ class kuna extends Exchange {
         $response = $this->v4PublicGetTradePublicBookPairs (array_merge($request, $params));
         //
         //    {
-        //        "data" => {
-        //            "id" => "3e5591ba-2778-4d85-8851-54284045ea44",       // Unique identifier of a trade
-        //            "pair" => "BTC_USDT",                                 // Market pair that is being traded
-        //            "quoteQuantity" => "11528.8118",                      // Qty of the quote asset, property_exists($this, USDT) example
-        //            "matchPrice" => "18649",                              // Exchange price at the moment of execution
-        //            "matchQuantity" => "0.6182",                          // Qty of the base asset, property_exists($this, BTC) example
-        //            "createdAt" => "2022-09-23T14:30:41.486Z",            // Date-time of trade execution, UTC
-        //            "side" => "Ask"                                       // Trade type => `Ask` or `Bid`. Bid for buying base asset, Ask for selling base asset (e.g. for BTC_USDT trading pair, BTC is the base asset).
-        //        }
+        //        'data' => array(
+        //            array(
+        //                'createdAt' => '2024-03-02T00:10:49.385Z',
+        //                'id' => '3b42878a-3688-4bc1-891e-5cc2fc902142',
+        //                'matchPrice' => '62181.31',
+        //                'matchQuantity' => '0.00568',
+        //                'pair' => 'BTC_USDT',
+        //                'quoteQuantity' => '353.1898408',
+        //                'side' => 'Bid'
+        //            ),
+        //            ...
+        //        )
         //    }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_list($response, 'data', array());
         return $this->parse_trades($data, $market, $since, $limit);
     }
 
@@ -979,7 +982,7 @@ class kuna extends Exchange {
         //        }
         //    }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_dict($response, 'data', array());
         return $this->parse_order($data, $market);
     }
 
@@ -1037,7 +1040,7 @@ class kuna extends Exchange {
         //        )
         //    }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_list($response, 'data', array());
         return $this->parse_orders($data);
     }
 
@@ -1183,7 +1186,7 @@ class kuna extends Exchange {
         //        }
         //    }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_dict($response, 'data', array());
         return $this->parse_order($data);
     }
 
@@ -1242,7 +1245,7 @@ class kuna extends Exchange {
         //        )
         //    }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_list($response, 'data', array());
         return $this->parse_orders($data, $market, $since, $limit);
     }
 
@@ -1324,7 +1327,7 @@ class kuna extends Exchange {
         //        )
         //    }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_list($response, 'data', array());
         return $this->parse_orders($data, $market, $since, $limit);
     }
 
@@ -1369,7 +1372,7 @@ class kuna extends Exchange {
         //        )
         //    }
         //
-        $data = $this->safe_value($response, 'data');
+        $data = $this->safe_list($response, 'data');
         return $this->parse_trades($data, $market, $since, $limit);
     }
 
@@ -1420,7 +1423,7 @@ class kuna extends Exchange {
         //        }
         //    }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_dict($response, 'data', array());
         return $this->parse_transaction($data, $currency);
     }
 
@@ -1487,7 +1490,7 @@ class kuna extends Exchange {
         //        )
         //    }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_list($response, 'data', array());
         return $this->parse_transactions($data, $currency);
     }
 
@@ -1526,7 +1529,7 @@ class kuna extends Exchange {
         //        }
         //    }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_dict($response, 'data', array());
         return $this->parse_transaction($data);
     }
 
@@ -1553,7 +1556,7 @@ class kuna extends Exchange {
         //        }
         //    }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_dict($response, 'data', array());
         return $this->parse_deposit_address($data, $currency);
     }
 
@@ -1580,7 +1583,7 @@ class kuna extends Exchange {
         //        }
         //    }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_dict($response, 'data', array());
         return $this->parse_deposit_address($data, $currency);
     }
 
@@ -1679,7 +1682,7 @@ class kuna extends Exchange {
         //        )
         //    }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_list($response, 'data', array());
         return $this->parse_transactions($data, $currency);
     }
 
@@ -1722,7 +1725,7 @@ class kuna extends Exchange {
         //        }
         //    }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_dict($response, 'data', array());
         return $this->parse_transaction($data, $currency);
     }
 

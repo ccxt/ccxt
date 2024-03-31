@@ -30,13 +30,15 @@ SOFTWARE.
 
 namespace ccxt;
 
+use MessagePack\MessagePack;
 use kornrunner\Keccak;
+use Web3\Contracts\TypedDataEncoder;
 use Elliptic\EC;
 use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '4.2.54';
+$version = '4.2.87';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +57,7 @@ const PAD_WITH_ZERO = 6;
 
 class Exchange {
 
-    const VERSION = '4.2.54';
+    const VERSION = '4.2.87';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -273,8 +275,6 @@ class Exchange {
         'fetchDepositAddresses' => null,
         'fetchDepositAddressesByNetwork' => null,
         'fetchDeposits' => null,
-        'fetchFundingFee' => null,
-        'fetchFundingFees' => null,
         'fetchFundingHistory' => null,
         'fetchFundingRate' => null,
         'fetchFundingRateHistory' => null,
@@ -410,6 +410,7 @@ class Exchange {
         'bybit',
         'cex',
         'coinbase',
+        'coinbaseinternational',
         'coinbasepro',
         'coincheck',
         'coinex',
@@ -435,6 +436,7 @@ class Exchange {
         'htx',
         'huobi',
         'huobijp',
+        'hyperliquid',
         'idex',
         'independentreserve',
         'indodax',
@@ -463,6 +465,7 @@ class Exchange {
         'probit',
         'timex',
         'tokocrypto',
+        'tradeogre',
         'upbit',
         'wavesexchange',
         'wazirx',
@@ -1093,6 +1096,10 @@ class Exchange {
         return hex2bin($data);
     }
 
+    public static function int_to_base16($integer) {
+        return dechex($integer);
+    }
+
     public static function json($data, $params = array()) {
         $options = array(
             'convertArraysToObjects' => JSON_FORCE_OBJECT,
@@ -1299,6 +1306,27 @@ class Exchange {
         $hex_secret = substr(bin2hex(base64_decode($match[1])), 32);
         $signature = $curve->sign(bin2hex(static::encode($request)), $hex_secret);
         return static::binary_to_base64(static::base16_to_binary($signature->toHex()));
+    }
+
+    public function eth_abi_encode($types, $args) {
+        $typedDataEncoder = new TypedDataEncoder();
+        $abiEncoder = $typedDataEncoder->ethabi;
+        // workaround to replace array() with []
+        $types = preg_replace('/array\(\)/', '[]', $types);
+        return hex2bin(str_replace('0x', '', $abiEncoder->encodeParameters($types, $args)));
+    }
+
+    public function eth_encode_structured_data($domainData, $messageTypes, $messageData) {
+        $typedDataEncoder = new TypedDataEncoder();
+        return $this->binary_concat(
+            hex2bin('1901'),
+            hex2bin(str_replace('0x', '', $typedDataEncoder->hashDomain($domainData))),
+            hex2bin(str_replace('0x', '', $typedDataEncoder->hashEIP712Message($messageTypes, $messageData)))
+        );
+    }
+
+    public function packb($data) {
+        return MessagePack::pack($data);
     }
 
     public function throttle($cost = null) {
@@ -2132,6 +2160,14 @@ class Exchange {
         return $modifiedContent;
     }
 
+    public function extend_exchange_options($newOptions) {
+        $this->options = array_merge($this->options, $newOptions);
+    }
+
+    public function create_safe_dictionary() {
+        return array();
+    }
+
     // ########################################################################
     // ########################################################################
     // ########################################################################
@@ -2533,7 +2569,7 @@ class Exchange {
         return $this->filter_by_limit($result, $limit, $key, $sinceIsDefined);
     }
 
-    public function set_sandbox_mode($enabled) {
+    public function set_sandbox_mode(bool $enabled) {
         if ($enabled) {
             if (is_array($this->urls) && array_key_exists('test', $this->urls)) {
                 if (gettype($this->urls['api']) === 'string') {
@@ -2605,8 +2641,17 @@ class Exchange {
         throw new NotSupported($this->id . ' fetchOrderBook() is not supported yet');
     }
 
-    public function fetch_margin_mode(?string $symbol = null, $params = array ()) {
-        throw new NotSupported($this->id . ' fetchMarginMode() is not supported yet');
+    public function fetch_margin_mode(string $symbol, $params = array ()) {
+        if ($this->has['fetchMarginModes']) {
+            $marginModes = $this->fetchMarginModes (array( $symbol ), $params);
+            return $this->safe_dict($marginModes, $symbol);
+        } else {
+            throw new NotSupported($this->id . ' fetchMarginMode() is not supported yet');
+        }
+    }
+
+    public function fetch_margin_modes(?array $symbols = null, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchMarginModes () is not supported yet');
     }
 
     public function fetch_rest_order_book_safe($symbol, $limit = null, $params = array ()) {
@@ -2728,6 +2773,18 @@ class Exchange {
         throw new NotSupported($this->id . ' fetchFundingRates() is not supported yet');
     }
 
+    public function watch_funding_rate(string $symbol, $params = array ()) {
+        throw new NotSupported($this->id . ' watchFundingRate() is not supported yet');
+    }
+
+    public function watch_funding_rates(array $symbols, $params = array ()) {
+        throw new NotSupported($this->id . ' watchFundingRates() is not supported yet');
+    }
+
+    public function watch_funding_rates_for_symbols(array $symbols, $params = array ()) {
+        return $this->watchFundingRates ($symbols, $params);
+    }
+
     public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()) {
         throw new NotSupported($this->id . ' transfer() is not supported yet');
     }
@@ -2745,7 +2802,16 @@ class Exchange {
     }
 
     public function fetch_leverage(string $symbol, $params = array ()) {
-        throw new NotSupported($this->id . ' fetchLeverage() is not supported yet');
+        if ($this->has['fetchLeverages']) {
+            $leverages = $this->fetchLeverages (array( $symbol ), $params);
+            return $this->safe_dict($leverages, $symbol);
+        } else {
+            throw new NotSupported($this->id . ' fetchLeverage() is not supported yet');
+        }
+    }
+
+    public function fetch_leverages(?array $symbols = null, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchLeverages() is not supported yet');
     }
 
     public function set_position_mode(bool $hedged, ?string $symbol = null, $params = array ()) {
@@ -2808,7 +2874,7 @@ class Exchange {
         return intval($stringVersion);
     }
 
-    public function is_round_number($value) {
+    public function is_round_number(float $value) {
         // this method is similar to isInteger, but this is more loyal and does not check for types.
         // i.e. isRoundNumber(1.000) returns true, while isInteger(1.000) returns false
         $res = $this->parse_to_numeric((fmod($value, 1)));
@@ -3440,6 +3506,17 @@ class Exchange {
     }
 
     public function calculate_fee(string $symbol, string $type, string $side, float $amount, float $price, $takerOrMaker = 'taker', $params = array ()) {
+        /**
+         * calculates the presumptive fee that would be charged for an order
+         * @param {string} $symbol unified $market $symbol
+         * @param {string} $type 'market' or 'limit'
+         * @param {string} $side 'buy' or 'sell'
+         * @param {float} $amount how much you want to trade, in units of the base currency on most exchanges, or number of contracts
+         * @param {float} $price the $price for the order to be filled at, in units of the quote currency
+         * @param {string} $takerOrMaker 'taker' or 'maker'
+         * @param {array} $params
+         * @return {array} contains the $rate, the percentage multiplied to the order $amount to obtain the fee $amount, and $cost, the total value of the fee in units of the quote currency, for the order
+         */
         if ($type === 'market' && $takerOrMaker === 'maker') {
             throw new ArgumentsRequired($this->id . ' calculateFee() - you have provided incompatible arguments - "market" $type order can not be "maker". Change either the "type" or the "takerOrMaker" argument to calculate the fee.');
         }
@@ -3765,7 +3842,7 @@ class Exchange {
         throw new NotSupported($this->id . ' watchOHLCV() is not supported yet');
     }
 
-    public function convert_trading_view_to_ohlcv($ohlcvs, $timestamp = 't', $open = 'o', $high = 'h', $low = 'l', $close = 'c', $volume = 'v', $ms = false) {
+    public function convert_trading_view_to_ohlcv(array $ohlcvs, $timestamp = 't', $open = 'o', $high = 'h', $low = 'l', $close = 'c', $volume = 'v', $ms = false) {
         $result = array();
         $timestamps = $this->safe_list($ohlcvs, $timestamp, array());
         $opens = $this->safe_list($ohlcvs, $open, array());
@@ -3786,7 +3863,7 @@ class Exchange {
         return $result;
     }
 
-    public function convert_ohlcv_to_trading_view($ohlcvs, $timestamp = 't', $open = 'o', $high = 'h', $low = 'l', $close = 'c', $volume = 'v', $ms = false) {
+    public function convert_ohlcv_to_trading_view(array $ohlcvs, $timestamp = 't', $open = 'o', $high = 'h', $low = 'l', $close = 'c', $volume = 'v', $ms = false) {
         $result = array();
         $result[$timestamp] = array();
         $result[$open] = array();
@@ -3858,7 +3935,7 @@ class Exchange {
         }
     }
 
-    public function market_ids($symbols) {
+    public function market_ids(?array $symbols = null) {
         if ($symbols === null) {
             return $symbols;
         }
@@ -3869,7 +3946,7 @@ class Exchange {
         return $result;
     }
 
-    public function market_symbols($symbols, ?string $type = null, $allowEmpty = true, $sameTypeOnly = false, $sameSubTypeOnly = false) {
+    public function market_symbols(?array $symbols = null, ?string $type = null, $allowEmpty = true, $sameTypeOnly = false, $sameSubTypeOnly = false) {
         if ($symbols === null) {
             if (!$allowEmpty) {
                 throw new ArgumentsRequired($this->id . ' empty list of $symbols is not supported');
@@ -3911,7 +3988,7 @@ class Exchange {
         return $result;
     }
 
-    public function market_codes($codes) {
+    public function market_codes(?array $codes = null) {
         if ($codes === null) {
             return $codes;
         }
@@ -3970,10 +4047,10 @@ class Exchange {
     public function network_code_to_id(string $networkCode, ?string $currencyCode = null) {
         /**
          * @ignore
-         * tries to convert the provided $networkCode (which is expected to be an unified network code) to a network id. In order to achieve this, derived class needs to have 'options->networks' defined.
-         * @param {string} $networkCode unified network code
-         * @param {string} $currencyCode unified currency code, but this argument is not required by default, unless there is an exchange (like huobi) that needs an override of the method to be able to pass $currencyCode argument additionally
-         * @return {string|null} exchange-specific network id
+         * tries to convert the provided $networkCode (which is expected to be an unified $network code) to a $network id. In order to achieve this, derived class needs to have 'options->networks' defined.
+         * @param {string} $networkCode unified $network code
+         * @param {string} $currencyCode unified $currency code, but this argument is not required by default, unless there is an exchange (like huobi) that needs an override of the method to be able to pass $currencyCode argument additionally
+         * @return {string|null} exchange-specific $network id
          */
         if ($networkCode === null) {
             return null;
@@ -3983,29 +4060,43 @@ class Exchange {
         // for example, if 'ETH' is passed for $networkCode, but 'ETH' $key not defined in `options->networks` object
         if ($networkId === null) {
             if ($currencyCode === null) {
-                // if $currencyCode was not provided, then we just set passed $value to $networkId
-                $networkId = $networkCode;
+                $currencies = is_array($this->currencies) ? array_values($this->currencies) : array();
+                for ($i = 0; $i < count($currencies); $i++) {
+                    $currency = array( $i );
+                    $networks = $this->safe_dict($currency, 'networks');
+                    $network = $this->safe_dict($networks, $networkCode);
+                    $networkId = $this->safe_string($network, 'id');
+                    if ($networkId !== null) {
+                        break;
+                    }
+                }
             } else {
-                // if $currencyCode was provided, then we try to find if that $currencyCode has a replacement ($i->e. ERC20 for ETH)
+                // if $currencyCode was provided, then we try to find if that $currencyCode has a replacement ($i->e. ERC20 for ETH) or is in the $currency
                 $defaultNetworkCodeReplacements = $this->safe_value($this->options, 'defaultNetworkCodeReplacements', array());
                 if (is_array($defaultNetworkCodeReplacements) && array_key_exists($currencyCode, $defaultNetworkCodeReplacements)) {
-                    // if there is a replacement for the passed $networkCode, then we use it to find network-id in `options->networks` object
+                    // if there is a replacement for the passed $networkCode, then we use it to find $network-id in `options->networks` object
                     $replacementObject = $defaultNetworkCodeReplacements[$currencyCode]; // $i->e. array( 'ERC20' => 'ETH' )
                     $keys = is_array($replacementObject) ? array_keys($replacementObject) : array();
                     for ($i = 0; $i < count($keys); $i++) {
                         $key = $keys[$i];
                         $value = $replacementObject[$key];
-                        // if $value matches to provided unified $networkCode, then we use it's $key to find network-id in `options->networks` object
+                        // if $value matches to provided unified $networkCode, then we use it's $key to find $network-id in `options->networks` object
                         if ($value === $networkCode) {
                             $networkId = $this->safe_string($networkIdsByCodes, $key);
                             break;
                         }
                     }
+                } else {
+                    // serach for $network inside $currency
+                    $currency = $this->safe_dict($this->currencies, $currencyCode);
+                    $networks = $this->safe_dict($currency, 'networks');
+                    $network = $this->safe_dict($networks, $networkCode);
+                    $networkId = $this->safe_string($network, 'id');
                 }
-                // if it wasn't found, we just set the provided $value to network-id
-                if ($networkId === null) {
-                    $networkId = $networkCode;
-                }
+            }
+            // if it wasn't found, we just set the provided $value to $network-id
+            if ($networkId === null) {
+                $networkId = $networkCode;
             }
         }
         return $networkId;
@@ -4279,8 +4370,16 @@ class Exchange {
         return $this->safe_string($market, 'symbol', $symbol);
     }
 
-    public function handle_param_string(array $params, string $paramName, $defaultValue = null) {
+    public function handle_param_string(array $params, string $paramName, ?string $defaultValue = null) {
         $value = $this->safe_string($params, $paramName, $defaultValue);
+        if ($value !== null) {
+            $params = $this->omit ($params, $paramName);
+        }
+        return array( $value, $params );
+    }
+
+    public function handle_param_integer(array $params, string $paramName, ?int $defaultValue = null) {
+        $value = $this->safe_integer($params, $paramName, $defaultValue);
         if ($value !== null) {
             $params = $this->omit ($params, $paramName);
         }
@@ -4576,6 +4675,11 @@ class Exchange {
     }
 
     public function check_required_credentials($error = true) {
+        /**
+         * @ignore
+         * @param {boolean} $error throw an $error that a credential is required if true
+         * @return {boolean} true if all required credentials have been set, otherwise false or an $error is thrown is param $error=true
+         */
         $keys = is_array($this->requiredCredentials) ? array_keys($this->requiredCredentials) : array();
         for ($i = 0; $i < count($keys); $i++) {
             $key = $keys[$i];
@@ -4635,22 +4739,6 @@ class Exchange {
         throw new NotSupported($this->id . ' fetchStatus() is not supported yet');
     }
 
-    public function fetch_funding_fee(string $code, $params = array ()) {
-        $warnOnFetchFundingFee = $this->safe_bool($this->options, 'warnOnFetchFundingFee', true);
-        if ($warnOnFetchFundingFee) {
-            throw new NotSupported($this->id . ' fetchFundingFee() method is deprecated, it will be removed in July 2022, please, use fetchTransactionFee() or set exchange.options["warnOnFetchFundingFee"] = false to suppress this warning');
-        }
-        return $this->fetch_transaction_fee($code, $params);
-    }
-
-    public function fetch_funding_fees(?array $codes = null, $params = array ()) {
-        $warnOnFetchFundingFees = $this->safe_bool($this->options, 'warnOnFetchFundingFees', true);
-        if ($warnOnFetchFundingFees) {
-            throw new NotSupported($this->id . ' fetchFundingFees() method is deprecated, it will be removed in July 2022. Please, use fetchTransactionFees() or set exchange.options["warnOnFetchFundingFees"] = false to suppress this warning');
-        }
-        return $this->fetch_transaction_fees($codes, $params);
-    }
-
     public function fetch_transaction_fee(string $code, $params = array ()) {
         if (!$this->has['fetchTransactionFees']) {
             throw new NotSupported($this->id . ' fetchTransactionFee() is not supported yet');
@@ -4700,7 +4788,7 @@ class Exchange {
         if (!$this->has['fetchBorrowRates']) {
             throw new NotSupported($this->id . ' fetchIsolatedBorrowRate() is not supported yet');
         }
-        $borrowRates = $this->fetchIsolatedBorrowRates ($params);
+        $borrowRates = $this->fetch_isolated_borrow_rates($params);
         $rate = $this->safe_dict($borrowRates, $symbol);
         if ($rate === null) {
             throw new ExchangeError($this->id . ' fetchIsolatedBorrowRate() could not find the borrow $rate for market $symbol ' . $symbol);
@@ -4716,6 +4804,8 @@ class Exchange {
         if ($value !== null) {
             $params = $this->omit ($params, array( $optionName, $defaultOptionName ));
         } else {
+            // handle routed methods like "watchTrades > watchTradesForSymbols" (or "watchTicker > watchTickers")
+            list($methodName, $params) = $this->handle_param_string($params, 'callerMethodName', $methodName);
             // check if exchange has properties for this method
             $exchangeWideMethodOptions = $this->safe_value($this->options, $methodName);
             if ($exchangeWideMethodOptions !== null) {
@@ -4883,6 +4973,10 @@ class Exchange {
         throw new NotSupported($this->id . ' fetchOrderBooks() is not supported yet');
     }
 
+    public function watch_bids_asks(?array $symbols = null, $params = array ()) {
+        throw new NotSupported($this->id . ' watchBidsAsks() is not supported yet');
+    }
+
     public function watch_tickers(?array $symbols = null, $params = array ()) {
         throw new NotSupported($this->id . ' watchTickers() is not supported yet');
     }
@@ -4910,7 +5004,7 @@ class Exchange {
         throw new NotSupported($this->id . ' createOrder() is not supported yet');
     }
 
-    public function create_trailing_amount_order(string $symbol, string $type, string $side, $amount, $price = null, $trailingAmount = null, $trailingTriggerPrice = null, $params = array ()) {
+    public function create_trailing_amount_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $trailingAmount = null, $trailingTriggerPrice = null, $params = array ()) {
         /**
          * create a trailing order by providing the $symbol, $type, $side, $amount, $price and $trailingAmount
          * @param {string} $symbol unified $symbol of the market to create an order in
@@ -4936,7 +5030,7 @@ class Exchange {
         throw new NotSupported($this->id . ' createTrailingAmountOrder() is not supported yet');
     }
 
-    public function create_trailing_percent_order(string $symbol, string $type, string $side, $amount, $price = null, $trailingPercent = null, $trailingTriggerPrice = null, $params = array ()) {
+    public function create_trailing_percent_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $trailingPercent = null, $trailingTriggerPrice = null, $params = array ()) {
         /**
          * create a trailing order by providing the $symbol, $type, $side, $amount, $price and $trailingPercent
          * @param {string} $symbol unified $symbol of the market to create an order in
@@ -5005,7 +5099,7 @@ class Exchange {
         throw new NotSupported($this->id . ' createMarketSellOrderWithCost() is not supported yet');
     }
 
-    public function create_trigger_order(string $symbol, string $type, string $side, $amount, $price = null, $triggerPrice = null, $params = array ()) {
+    public function create_trigger_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, ?float $triggerPrice = null, $params = array ()) {
         /**
          * create a trigger stop order ($type 1)
          * @param {string} $symbol unified $symbol of the market to create an order in
@@ -5253,6 +5347,14 @@ class Exchange {
 
     public function fetch_greeks(string $symbol, $params = array ()) {
         throw new NotSupported($this->id . ' fetchGreeks() is not supported yet');
+    }
+
+    public function fetch_option_chain(string $code, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchOptionChain() is not supported yet');
+    }
+
+    public function fetch_option(string $symbol, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchOption() is not supported yet');
     }
 
     public function fetch_deposits_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
@@ -6183,7 +6285,10 @@ class Exchange {
                     $response = $this->$method ($symbol, null, $maxEntriesPerRequest, $params);
                     $responseLength = count($response);
                     if ($this->verbose) {
-                        $backwardMessage = 'Dynamic pagination call ' . $calls . ' $method ' . $method . ' $response length ' . $responseLength . ' timestamp ' . $paginationTimestamp;
+                        $backwardMessage = 'Dynamic pagination call ' . $this->number_to_string($calls) . ' $method ' . $method . ' $response length ' . $this->number_to_string($responseLength);
+                        if ($paginationTimestamp !== null) {
+                            $backwardMessage .= ' timestamp ' . $this->number_to_string($paginationTimestamp);
+                        }
                         $this->log ($backwardMessage);
                     }
                     if ($responseLength === 0) {
@@ -6201,7 +6306,10 @@ class Exchange {
                     $response = $this->$method ($symbol, $paginationTimestamp, $maxEntriesPerRequest, $params);
                     $responseLength = count($response);
                     if ($this->verbose) {
-                        $forwardMessage = 'Dynamic pagination call ' . $calls . ' $method ' . $method . ' $response length ' . $responseLength . ' timestamp ' . $paginationTimestamp;
+                        $forwardMessage = 'Dynamic pagination call ' . $this->number_to_string($calls) . ' $method ' . $method . ' $response length ' . $this->number_to_string($responseLength);
+                        if ($paginationTimestamp !== null) {
+                            $forwardMessage .= ' timestamp ' . $this->number_to_string($paginationTimestamp);
+                        }
                         $this->log ($forwardMessage);
                     }
                     if ($responseLength === 0) {
@@ -6467,5 +6575,124 @@ class Exchange {
 
     public function parse_greeks($greeks, ?array $market = null) {
         throw new NotSupported($this->id . ' parseGreeks () is not supported yet');
+    }
+
+    public function parse_option($chain, ?array $currency = null, ?array $market = null) {
+        throw new NotSupported($this->id . ' parseOption () is not supported yet');
+    }
+
+    public function parse_option_chain(mixed $response, ?string $currencyKey = null, ?string $symbolKey = null) {
+        $optionStructures = array();
+        for ($i = 0; $i < count($response); $i++) {
+            $info = $response[$i];
+            $currencyId = $this->safe_string($info, $currencyKey);
+            $currency = $this->safe_currency($currencyId);
+            $marketId = $this->safe_string($info, $symbolKey);
+            $market = $this->safe_market($marketId, null, null, 'option');
+            $optionStructures[$market['symbol']] = $this->parseOption ($info, $currency, $market);
+        }
+        return $optionStructures;
+    }
+
+    public function parse_margin_modes(mixed $response, ?array $symbols = null, ?string $symbolKey = null, ?string $marketType = null) {
+        $marginModeStructures = array();
+        for ($i = 0; $i < count($response); $i++) {
+            $info = $response[$i];
+            $marketId = $this->safe_string($info, $symbolKey);
+            $market = $this->safe_market($marketId, null, null, $marketType);
+            if (($symbols === null) || $this->in_array($market['symbol'], $symbols)) {
+                $marginModeStructures[$market['symbol']] = $this->parse_margin_mode($info, $market);
+            }
+        }
+        return $marginModeStructures;
+    }
+
+    public function parse_margin_mode($marginMode, ?array $market = null) {
+        throw new NotSupported($this->id . ' parseMarginMode () is not supported yet');
+    }
+
+    public function parse_leverages(mixed $response, ?array $symbols = null, ?string $symbolKey = null, ?string $marketType = null) {
+        $leverageStructures = array();
+        for ($i = 0; $i < count($response); $i++) {
+            $info = $response[$i];
+            $marketId = $this->safe_string($info, $symbolKey);
+            $market = $this->safe_market($marketId, null, null, $marketType);
+            if (($symbols === null) || $this->in_array($market['symbol'], $symbols)) {
+                $leverageStructures[$market['symbol']] = $this->parse_leverage($info, $market);
+            }
+        }
+        return $leverageStructures;
+    }
+
+    public function parse_leverage($leverage, ?array $market = null) {
+        throw new NotSupported($this->id . ' parseLeverage() is not supported yet');
+    }
+
+    public function convert_expire_date(string $date) {
+        // parse YYMMDD to datetime string
+        $year = mb_substr($date, 0, 2 - 0);
+        $month = mb_substr($date, 2, 4 - 2);
+        $day = mb_substr($date, 4, 6 - 4);
+        $reconstructedDate = '20' . $year . '-' . $month . '-' . $day . 'T00:00:00Z';
+        return $reconstructedDate;
+    }
+
+    public function convert_expire_date_to_market_id_date(string $date) {
+        // parse 240119 to 19JAN24
+        $year = mb_substr($date, 0, 2 - 0);
+        $monthRaw = mb_substr($date, 2, 4 - 2);
+        $month = null;
+        $day = mb_substr($date, 4, 6 - 4);
+        if ($monthRaw === '01') {
+            $month = 'JAN';
+        } elseif ($monthRaw === '02') {
+            $month = 'FEB';
+        } elseif ($monthRaw === '03') {
+            $month = 'MAR';
+        } elseif ($monthRaw === '04') {
+            $month = 'APR';
+        } elseif ($monthRaw === '05') {
+            $month = 'MAY';
+        } elseif ($monthRaw === '06') {
+            $month = 'JUN';
+        } elseif ($monthRaw === '07') {
+            $month = 'JUL';
+        } elseif ($monthRaw === '08') {
+            $month = 'AUG';
+        } elseif ($monthRaw === '09') {
+            $month = 'SEP';
+        } elseif ($monthRaw === '10') {
+            $month = 'OCT';
+        } elseif ($monthRaw === '11') {
+            $month = 'NOV';
+        } elseif ($monthRaw === '12') {
+            $month = 'DEC';
+        }
+        $reconstructedDate = $day . $month . $year;
+        return $reconstructedDate;
+    }
+
+    public function convert_market_id_expire_date(string $date) {
+        // parse 19JAN24 to 240119
+        $monthMappping = array(
+            'JAN' => '01',
+            'FEB' => '02',
+            'MAR' => '03',
+            'APR' => '04',
+            'MAY' => '05',
+            'JUN' => '06',
+            'JUL' => '07',
+            'AUG' => '08',
+            'SEP' => '09',
+            'OCT' => '10',
+            'NOV' => '11',
+            'DEC' => '12',
+        );
+        $year = mb_substr($date, 0, 2 - 0);
+        $monthName = mb_substr($date, 2, 5 - 2);
+        $month = $this->safe_string($monthMappping, $monthName);
+        $day = mb_substr($date, 5, 7 - 5);
+        $reconstructedDate = $day . $month . $year;
+        return $reconstructedDate;
     }
 }

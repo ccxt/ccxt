@@ -294,7 +294,7 @@ class alpaca extends Exchange {
         }) ();
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * retrieves data on all markets for alpaca
@@ -447,7 +447,7 @@ class alpaca extends Exchange {
                 'loc' => $loc,
             );
             $params = $this->omit($params, array( 'loc', 'method' ));
-            $response = null;
+            $symbolTrades = null;
             if ($method === 'marketPublicGetV1beta3CryptoLocTrades') {
                 if ($since !== null) {
                     $request['start'] = $this->iso8601($since);
@@ -456,43 +456,44 @@ class alpaca extends Exchange {
                     $request['limit'] = $limit;
                 }
                 $response = Async\await($this->marketPublicGetV1beta3CryptoLocTrades (array_merge($request, $params)));
+                //
+                //    {
+                //        "next_page_token" => null,
+                //        "trades" => {
+                //            "BTC/USD" => array(
+                //                {
+                //                    "i" => 36440704,
+                //                    "p" => 22625,
+                //                    "s" => 0.0001,
+                //                    "t" => "2022-07-21T11:47:31.073391Z",
+                //                    "tks" => "B"
+                //                }
+                //            )
+                //        }
+                //    }
+                //
+                $trades = $this->safe_dict($response, 'trades', array());
+                $symbolTrades = $this->safe_list($trades, $marketId, array());
             } elseif ($method === 'marketPublicGetV1beta3CryptoLocLatestTrades') {
                 $response = Async\await($this->marketPublicGetV1beta3CryptoLocLatestTrades (array_merge($request, $params)));
+                //
+                //    {
+                //       "trades" => {
+                //            "BTC/USD" => {
+                //                "i" => 36440704,
+                //                "p" => 22625,
+                //                "s" => 0.0001,
+                //                "t" => "2022-07-21T11:47:31.073391Z",
+                //                "tks" => "B"
+                //            }
+                //        }
+                //    }
+                //
+                $trades = $this->safe_dict($response, 'trades', array());
+                $symbolTrades = $this->safe_dict($trades, $marketId, array());
+                $symbolTrades = array( $symbolTrades );
             } else {
                 throw new NotSupported($this->id . ' fetchTrades() does not support ' . $method . ', marketPublicGetV1beta3CryptoLocTrades and marketPublicGetV1beta3CryptoLocLatestTrades are supported');
-            }
-            //
-            // {
-            //     "next_page_token":null,
-            //     "trades":{
-            //        "BTC/USD":array(
-            //           {
-            //              "i":36440704,
-            //              "p":22625,
-            //              "s":0.0001,
-            //              "t":"2022-07-21T11:47:31.073391Z",
-            //              "tks":"B"
-            //           }
-            //        )
-            //     }
-            // }
-            //
-            // {
-            //     "trades":{
-            //        "BTC/USD":{
-            //           "i":36440704,
-            //           "p":22625,
-            //           "s":0.0001,
-            //           "t":"2022-07-21T11:47:31.073391Z",
-            //           "tks":"B"
-            //        }
-            //     }
-            // }
-            //
-            $trades = $this->safe_value($response, 'trades', array());
-            $symbolTrades = $this->safe_value($trades, $marketId, array());
-            if (gettype($symbolTrades) !== 'array' || array_keys($symbolTrades) !== array_keys(array_keys($symbolTrades))) {
-                $symbolTrades = array( $symbolTrades );
             }
             return $this->parse_trades($symbolTrades, $market, $since, $limit);
         }) ();
@@ -587,7 +588,7 @@ class alpaca extends Exchange {
                 'loc' => $loc,
             );
             $params = $this->omit($params, array( 'loc', 'method' ));
-            $response = null;
+            $ohlcvs = null;
             if ($method === 'marketPublicGetV1beta3CryptoLocBars') {
                 if ($limit !== null) {
                     $request['limit'] = $limit;
@@ -597,59 +598,60 @@ class alpaca extends Exchange {
                 }
                 $request['timeframe'] = $this->safe_string($this->timeframes, $timeframe, $timeframe);
                 $response = Async\await($this->marketPublicGetV1beta3CryptoLocBars (array_merge($request, $params)));
+                //
+                //    {
+                //        "bars" => {
+                //           "BTC/USD" => array(
+                //              array(
+                //                 "c" => 22887,
+                //                 "h" => 22888,
+                //                 "l" => 22873,
+                //                 "n" => 11,
+                //                 "o" => 22883,
+                //                 "t" => "2022-07-21T05:00:00Z",
+                //                 "v" => 1.1138,
+                //                 "vw" => 22883.0155324116
+                //              ),
+                //              array(
+                //                 "c" => 22895,
+                //                 "h" => 22895,
+                //                 "l" => 22884,
+                //                 "n" => 6,
+                //                 "o" => 22884,
+                //                 "t" => "2022-07-21T05:01:00Z",
+                //                 "v" => 0.001,
+                //                 "vw" => 22889.5
+                //              }
+                //           )
+                //        ),
+                //        "next_page_token" => "QlRDL1VTRHxNfDIwMjItMDctMjFUMDU6MDE6MDAuMDAwMDAwMDAwWg=="
+                //     }
+                //
+                $bars = $this->safe_dict($response, 'bars', array());
+                $ohlcvs = $this->safe_list($bars, $marketId, array());
             } elseif ($method === 'marketPublicGetV1beta3CryptoLocLatestBars') {
                 $response = Async\await($this->marketPublicGetV1beta3CryptoLocLatestBars (array_merge($request, $params)));
+                //
+                //    {
+                //        "bars" => {
+                //           "BTC/USD" => {
+                //              "c" => 22887,
+                //              "h" => 22888,
+                //              "l" => 22873,
+                //              "n" => 11,
+                //              "o" => 22883,
+                //              "t" => "2022-07-21T05:00:00Z",
+                //              "v" => 1.1138,
+                //              "vw" => 22883.0155324116
+                //           }
+                //        }
+                //     }
+                //
+                $bars = $this->safe_dict($response, 'bars', array());
+                $ohlcvs = $this->safe_dict($bars, $marketId, array());
+                $ohlcvs = array( $ohlcvs );
             } else {
                 throw new NotSupported($this->id . ' fetchOHLCV() does not support ' . $method . ', marketPublicGetV1beta3CryptoLocBars and marketPublicGetV1beta3CryptoLocLatestBars are supported');
-            }
-            //
-            //    {
-            //        "bars":{
-            //           "BTC/USD":array(
-            //              array(
-            //                 "c":22887,
-            //                 "h":22888,
-            //                 "l":22873,
-            //                 "n":11,
-            //                 "o":22883,
-            //                 "t":"2022-07-21T05:00:00Z",
-            //                 "v":1.1138,
-            //                 "vw":22883.0155324116
-            //              ),
-            //              array(
-            //                 "c":22895,
-            //                 "h":22895,
-            //                 "l":22884,
-            //                 "n":6,
-            //                 "o":22884,
-            //                 "t":"2022-07-21T05:01:00Z",
-            //                 "v":0.001,
-            //                 "vw":22889.5
-            //              }
-            //           )
-            //        ),
-            //        "next_page_token":"QlRDL1VTRHxNfDIwMjItMDctMjFUMDU6MDE6MDAuMDAwMDAwMDAwWg=="
-            //     }
-            //
-            //    {
-            //        "bars":{
-            //           "BTC/USD":{
-            //              "c":22887,
-            //              "h":22888,
-            //              "l":22873,
-            //              "n":11,
-            //              "o":22883,
-            //              "t":"2022-07-21T05:00:00Z",
-            //              "v":1.1138,
-            //              "vw":22883.0155324116
-            //           }
-            //        }
-            //     }
-            //
-            $bars = $this->safe_value($response, 'bars', array());
-            $ohlcvs = $this->safe_value($bars, $marketId, array());
-            if (gettype($ohlcvs) !== 'array' || array_keys($ohlcvs) !== array_keys(array_keys($ohlcvs))) {
-                $ohlcvs = array( $ohlcvs );
             }
             return $this->parse_ohlcvs($ohlcvs, $market, $timeframe, $since, $limit);
         }) ();

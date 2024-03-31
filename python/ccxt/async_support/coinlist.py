@@ -7,7 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.coinlist import ImplicitAPI
 import hashlib
 import math
-from ccxt.base.types import Balances, Currency, Int, Market, Order, TransferEntry, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Account, Balances, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -397,7 +397,7 @@ class coinlist(Exchange, ImplicitAPI):
             }
         return result
 
-    async def fetch_markets(self, params={}):
+    async def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for coinlist
         :see: https://trade-docs.coinlist.co/?javascript--nodejs#list-symbols
@@ -708,7 +708,7 @@ class coinlist(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        candles = self.safe_value(response, 'candles', [])
+        candles = self.safe_list(response, 'candles', [])
         return self.parse_ohlcvs(candles, market, timeframe, since, limit)
 
     def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
@@ -781,7 +781,7 @@ class coinlist(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        auctions = self.safe_value(response, 'auctions', [])
+        auctions = self.safe_list(response, 'auctions', [])
         return self.parse_trades(auctions, market, since, limit)
 
     def parse_trade(self, trade, market: Market = None) -> Trade:
@@ -1031,7 +1031,7 @@ class coinlist(Exchange, ImplicitAPI):
             'taker': takerFees,
         }
 
-    async def fetch_accounts(self, params={}):
+    async def fetch_accounts(self, params={}) -> List[Account]:
         """
         fetch all the accounts associated with a profile
         :see: https://trade-docs.coinlist.co/?javascript--nodejs#list-accounts
@@ -1163,7 +1163,7 @@ class coinlist(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        fills = self.safe_value(response, 'fills', [])
+        fills = self.safe_list(response, 'fills', [])
         return self.parse_trades(fills, market, since, limit)
 
     async def fetch_order_trades(self, id: str, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
@@ -1240,7 +1240,7 @@ class coinlist(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        orders = self.safe_value(response, 'orders', [])
+        orders = self.safe_list(response, 'orders', [])
         return self.parse_orders(orders, market, since, limit)
 
     async def fetch_order(self, id: str, symbol: Str = None, params={}):
@@ -1395,7 +1395,7 @@ class coinlist(Exchange, ImplicitAPI):
         response = await self.privateDeleteV1OrdersBulk(params)
         return response
 
-    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create a trade order
         :see: https://trade-docs.coinlist.co/?javascript--nodejs#create-new-order
@@ -1458,10 +1458,10 @@ class coinlist(Exchange, ImplicitAPI):
         #         "timestamp": "2023-10-26T11:30:55.376Z"
         #     }
         #
-        order = self.safe_value(response, 'order', {})
+        order = self.safe_dict(response, 'order', {})
         return self.parse_order(order, market)
 
-    async def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: float = None, price: float = None, params={}):
+    async def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}):
         """
         create a trade order
         :see: https://trade-docs.coinlist.co/?javascript--nodejs#modify-existing-order
@@ -1729,7 +1729,7 @@ class coinlist(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        transfers = self.safe_value(response, 'transfers', [])
+        transfers = self.safe_list(response, 'transfers', [])
         return self.parse_transfers(transfers, currency, since, limit)
 
     def parse_transfer(self, transfer, currency: Currency = None):
@@ -1889,7 +1889,7 @@ class coinlist(Exchange, ImplicitAPI):
         #         "transfer_id": "d4a2d8dd-7def-4545-a062-761683b9aa05"
         #     }
         #
-        data = self.safe_value(response, 'data', {})
+        data = self.safe_dict(response, 'data', {})
         return self.parse_transaction(data, currency)
 
     def parse_transaction(self, transaction, currency: Currency = None) -> Transaction:

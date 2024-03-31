@@ -129,6 +129,7 @@ export default class cex extends cexRest {
         const url = this.urls['api']['ws'];
         const messageHash = 'trades';
         const subscriptionHash = 'old:' + symbol;
+        this.options['currentWatchTradeSymbol'] = symbol; // exchange supports only 1 symbol for this watchTrades channel
         const client = this.safeValue(this.clients, url);
         if (client !== undefined) {
             const subscriptionKeys = Object.keys(client.subscriptions);
@@ -160,17 +161,26 @@ export default class cex extends cexRest {
         //     {
         //         "e": "history",
         //         "data": [
-        //             "sell:1665467367741:3888551:19058.8:14541219",
-        //             "buy:1665467367741:1059339:19071.5:14541218",
+        //            'buy:1710255706095:444444:71222.2:14892622'
+        //            'sell:1710255658251:42530:71300:14892621'
+        //            'buy:1710252424241:87913:72800:14892620'
+        //            ... timestamp descending
         //         ]
         //     }
         //
-        const data = this.safeValue(message, 'data', []);
+        const data = this.safeList(message, 'data', []);
         const limit = this.safeInteger(this.options, 'tradesLimit', 1000);
         const stored = new ArrayCache(limit);
-        for (let i = 0; i < data.length; i++) {
-            const rawTrade = data[i];
-            const parsed = this.parseWsOldTrade(rawTrade);
+        const symbol = this.safeString(this.options, 'currentWatchTradeSymbol');
+        if (symbol === undefined) {
+            return;
+        }
+        const market = this.market(symbol);
+        const dataLength = data.length;
+        for (let i = 0; i < dataLength; i++) {
+            const index = dataLength - 1 - i;
+            const rawTrade = data[index];
+            const parsed = this.parseWsOldTrade(rawTrade, market);
             stored.append(parsed);
         }
         const messageHash = 'trades';
@@ -197,7 +207,7 @@ export default class cex extends cexRest {
             'id': id,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'symbol': undefined,
+            'symbol': this.safeString(market, 'symbol'),
             'type': undefined,
             'side': side,
             'order': undefined,
@@ -219,8 +229,10 @@ export default class cex extends cexRest {
         //
         const data = this.safeValue(message, 'data', []);
         const stored = this.trades; // to do fix this, this.trades is not meant to be used like this
-        for (let i = 0; i < data.length; i++) {
-            const rawTrade = data[i];
+        const dataLength = data.length;
+        for (let i = 0; i < dataLength; i++) {
+            const index = dataLength - 1 - i;
+            const rawTrade = data[index];
             const parsed = this.parseWsOldTrade(rawTrade);
             stored.append(parsed);
         }
@@ -336,12 +348,17 @@ export default class cex extends cexRest {
         const data = this.safeValue(message, 'data', {});
         const ticker = this.parseWsTicker(data);
         const symbol = ticker['symbol'];
+        if (symbol === undefined) {
+            return;
+        }
         this.tickers[symbol] = ticker;
         let messageHash = 'ticker:' + symbol;
         client.resolve(ticker, messageHash);
         client.resolve(ticker, 'tickers');
         messageHash = this.safeString(message, 'oid');
-        client.resolve(ticker, messageHash);
+        if (messageHash !== undefined) {
+            client.resolve(ticker, messageHash);
+        }
     }
     parseWsTicker(ticker, market = undefined) {
         //
@@ -1091,7 +1108,10 @@ export default class cex extends cexRest {
         for (let i = 0; i < sorted.length; i++) {
             stored.append(this.parseOHLCV(sorted[i], market));
         }
-        this.ohlcvs[symbol] = stored;
+        if (!(symbol in this.ohlcvs)) {
+            this.ohlcvs[symbol] = {};
+        }
+        this.ohlcvs[symbol]['unknown'] = stored;
         client.resolve(stored, messageHash);
     }
     handleOHLCV24(client, message) {
@@ -1150,7 +1170,8 @@ export default class cex extends cexRest {
         const pair = this.safeString(message, 'pair');
         const symbol = this.pairToSymbol(pair);
         const messageHash = 'ohlcv:' + symbol;
-        const stored = this.safeValue(this.ohlcvs, symbol);
+        // const stored = this.safeValue (this.ohlcvs, symbol);
+        const stored = this.ohlcvs[symbol]['unknown'];
         for (let i = 0; i < data.length; i++) {
             const ohlcv = [
                 this.safeTimestamp(data[i], 0),

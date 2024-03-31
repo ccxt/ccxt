@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.whitebit import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, Int, MarketType, Market, Order, TransferEntry, OrderBook, OrderSide, OrderType, Str, Bool, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Bool, Currency, Int, Market, MarketType, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -281,7 +281,7 @@ class whitebit(Exchange, ImplicitAPI):
             },
         })
 
-    def fetch_markets(self, params={}):
+    def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for whitebit
         :see: https://docs.whitebit.com/public/http-v4/#market-info
@@ -728,7 +728,7 @@ class whitebit(Exchange, ImplicitAPI):
         #         },
         #     }
         #
-        ticker = self.safe_value(response, 'result', {})
+        ticker = self.safe_dict(response, 'result', {})
         return self.parse_ticker(ticker, market)
 
     def parse_ticker(self, ticker, market: Market = None) -> Ticker:
@@ -1069,7 +1069,7 @@ class whitebit(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        result = self.safe_value(response, 'result', [])
+        result = self.safe_list(response, 'result', [])
         return self.parse_ohlcvs(result, market, timeframe, since, limit)
 
     def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
@@ -1130,7 +1130,7 @@ class whitebit(Exchange, ImplicitAPI):
         #
         return self.safe_integer(response, 'time')
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create a trade order
         :see: https://docs.whitebit.com/private/http-trade-v4/#create-limit-order
@@ -1523,7 +1523,7 @@ class whitebit(Exchange, ImplicitAPI):
         #         "limit": 100
         #     }
         #
-        data = self.safe_value(response, 'records', [])
+        data = self.safe_list(response, 'records', [])
         return self.parse_trades(data, market)
 
     def fetch_deposit_address(self, code: str, params={}):
@@ -1842,7 +1842,7 @@ class whitebit(Exchange, ImplicitAPI):
         #     }
         #
         records = self.safe_value(response, 'records', [])
-        first = self.safe_value(records, 0, {})
+        first = self.safe_dict(records, 0, {})
         return self.parse_transaction(first, currency)
 
     def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
@@ -1905,7 +1905,7 @@ class whitebit(Exchange, ImplicitAPI):
         #         "total": 300                                                                                             # total number of  transactions, use self for calculating ‘limit’ and ‘offset'
         #     }
         #
-        records = self.safe_value(response, 'records', [])
+        records = self.safe_list(response, 'records', [])
         return self.parse_transactions(records, currency, since, limit)
 
     def fetch_borrow_interest(self, code: Str = None, symbol: Str = None, since: Int = None, limit: Int = None, params={}):

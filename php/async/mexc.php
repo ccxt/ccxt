@@ -47,6 +47,7 @@ class mexc extends Exchange {
                 'createMarketSellOrderWithCost' => false,
                 'createOrder' => true,
                 'createOrders' => true,
+                'createPostOnlyOrder' => true,
                 'createReduceOnlyOrder' => true,
                 'deposit' => null,
                 'editOrder' => null,
@@ -77,6 +78,8 @@ class mexc extends Exchange {
                 'fetchL2OrderBook' => true,
                 'fetchLedger' => null,
                 'fetchLedgerEntry' => null,
+                'fetchLeverage' => true,
+                'fetchLeverages' => false,
                 'fetchLeverageTiers' => true,
                 'fetchMarginMode' => false,
                 'fetchMarketLeverageTiers' => null,
@@ -888,8 +891,8 @@ class mexc extends Exchange {
                     '30032' => '\\ccxt\\InvalidOrder', // Cannot exceed the maximum position
                     '30041' => '\\ccxt\\InvalidOrder', // current order type can not place order
                     '60005' => '\\ccxt\\ExchangeError', // your account is abnormal
-                    '700001' => '\\ccxt\\AuthenticationError', // API-key format invalid
-                    '700002' => '\\ccxt\\AuthenticationError', // Signature for this request is not valid
+                    '700001' => '\\ccxt\\AuthenticationError', // array("code":700002,"msg":"Signature for this request is not valid.") // same message for expired API keys
+                    '700002' => '\\ccxt\\AuthenticationError', // Signature for this request is not valid // or the API secret is incorrect
                     '700004' => '\\ccxt\\BadRequest', // Param 'origClientOrderId' or 'orderId' must be sent, but both were empty/null
                     '700005' => '\\ccxt\\InvalidNonce', // recvWindow must less than 60000
                     '700006' => '\\ccxt\\BadRequest', // IP non white list
@@ -921,7 +924,7 @@ class mexc extends Exchange {
                     'Combination of optional parameters invalid' => '\\ccxt\\BadRequest', // code:-2011
                     'api market order is disabled' => '\\ccxt\\BadRequest', //
                     'Contract not allow place order!' => '\\ccxt\\InvalidOrder', // code:1002
-                    'Oversold' => '\\ccxt\\InvalidOrder', // code:30005
+                    'Oversold' => '\\ccxt\\InsufficientFunds', // code:30005
                     'Insufficient position' => '\\ccxt\\InsufficientFunds', // code:30004
                     'Insufficient balance!' => '\\ccxt\\InsufficientFunds', // code:2005
                     'Bid price is great than max allow price' => '\\ccxt\\InvalidOrder', // code:2003
@@ -1142,7 +1145,7 @@ class mexc extends Exchange {
         }) ();
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * retrieves data on all markets for mexc
@@ -2216,6 +2219,14 @@ class mexc extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->marginMode] only 'isolated' is supported for spot-margin trading
              * @param {float} [$params->triggerPrice] The $price at which a trigger order is triggered at
+             * @param {bool} [$params->postOnly] if true, the order will only be posted if it will be a maker order
+             * @param {bool} [$params->reduceOnly] *contract only* indicates if this order is to reduce the size of a position
+             *
+             * EXCHANGE SPECIFIC PARAMETERS
+             * @param {int} [$params->leverage] *contract only* leverage is necessary on isolated margin
+             * @param {long} [$params->positionId] *contract only* it is recommended to property_exists($this, fill) parameter when closing a position
+             * @param {string} [$params->externalOid] *contract only* external order ID
+             * @param {int} [$params->positionMode] *contract only*  1:hedge, 2:one-way, default => the user's current config
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
              */
             Async\await($this->load_markets());
@@ -2825,7 +2836,7 @@ class mexc extends Exchange {
                 //         )
                 //     }
                 //
-                $data = $this->safe_value($response, 'data');
+                $data = $this->safe_list($response, 'data');
                 return $this->parse_orders($data, $market);
             }
         }) ();
@@ -3109,7 +3120,7 @@ class mexc extends Exchange {
                 //         )
                 //     }
                 //
-                $data = $this->safe_value($response, 'data');
+                $data = $this->safe_list($response, 'data');
                 return $this->parse_orders($data, $market);
             }
         }) ();
@@ -3201,7 +3212,7 @@ class mexc extends Exchange {
                 //         "code" => "0"
                 //     }
                 //
-                $data = $this->safe_value($response, 'data', array());
+                $data = $this->safe_list($response, 'data', array());
                 return $this->parse_orders($data, $market);
             }
         }) ();
@@ -3522,7 +3533,7 @@ class mexc extends Exchange {
         }) ();
     }
 
-    public function fetch_accounts($params = array ()) {
+    public function fetch_accounts($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetch all the accounts associated with a profile
@@ -4022,7 +4033,7 @@ class mexc extends Exchange {
         }) ();
     }
 
-    public function reduce_margin(string $symbol, $amount, $params = array ()) {
+    public function reduce_margin(string $symbol, $amount, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $amount, $params) {
             /**
              * remove margin from a position
@@ -4035,7 +4046,7 @@ class mexc extends Exchange {
         }) ();
     }
 
-    public function add_margin(string $symbol, $amount, $params = array ()) {
+    public function add_margin(string $symbol, $amount, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $amount, $params) {
             /**
              * add margin
@@ -4356,7 +4367,7 @@ class mexc extends Exchange {
             //         ]
             //     }
             //
-            $data = $this->safe_value($response, 'data');
+            $data = $this->safe_list($response, 'data');
             return $this->parse_leverage_tiers($data, $symbols, 'symbol');
         }) ();
     }
@@ -4823,7 +4834,7 @@ class mexc extends Exchange {
             //         )
             //     }
             //
-            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_list($response, 'data', array());
             return $this->parse_positions($data, $symbols);
         }) ();
     }
@@ -4918,7 +4929,7 @@ class mexc extends Exchange {
                 //         }
                 //     }
                 //
-                $data = $this->safe_value($response, 'data', array());
+                $data = $this->safe_dict($response, 'data', array());
                 return $this->parse_transfer($data);
             } elseif ($marketType === 'swap') {
                 throw new BadRequest($this->id . ' fetchTransfer() is not supported for ' . $marketType);
@@ -5417,6 +5428,80 @@ class mexc extends Exchange {
         return $this->assign_default_deposit_withdraw_fees($result);
     }
 
+    public function fetch_leverage(string $symbol, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * fetch the set leverage for a $market
+             * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-leverage
+             * @param {string} $symbol unified $market $symbol
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=leverage-structure leverage structure~
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'symbol' => $market['id'],
+            );
+            $response = Async\await($this->contractPrivateGetPositionLeverage (array_merge($request, $params)));
+            //
+            //     {
+            //         "success" => true,
+            //         "code" => 0,
+            //         "data" => array(
+            //             array(
+            //                 "level" => 1,
+            //                 "maxVol" => 463300,
+            //                 "mmr" => 0.004,
+            //                 "imr" => 0.005,
+            //                 "positionType" => 1,
+            //                 "openType" => 1,
+            //                 "leverage" => 20,
+            //                 "limitBySys" => false,
+            //                 "currentMmr" => 0.004
+            //             ),
+            //             {
+            //                 "level" => 1,
+            //                 "maxVol" => 463300,
+            //                 "mmr" => 0.004,
+            //                 "imr" => 0.005,
+            //                 "positionType" => 2,
+            //                 "openType" => 1,
+            //                 "leverage" => 20,
+            //                 "limitBySys" => false,
+            //                 "currentMmr" => 0.004
+            //             }
+            //         )
+            //     }
+            //
+            $data = $this->safe_list($response, 'data', array());
+            return $this->parse_leverage($data, $market);
+        }) ();
+    }
+
+    public function parse_leverage($leverage, $market = null): array {
+        $marginMode = null;
+        $longLeverage = null;
+        $shortLeverage = null;
+        for ($i = 0; $i < count($leverage); $i++) {
+            $entry = $leverage[$i];
+            $openType = $this->safe_integer($entry, 'openType');
+            $positionType = $this->safe_integer($entry, 'positionType');
+            if ($positionType === 1) {
+                $longLeverage = $this->safe_integer($entry, 'leverage');
+            } elseif ($positionType === 2) {
+                $shortLeverage = $this->safe_integer($entry, 'leverage');
+            }
+            $marginMode = ($openType === 1) ? 'isolated' : 'cross';
+        }
+        return array(
+            'info' => $leverage,
+            'symbol' => $market['symbol'],
+            'marginMode' => $marginMode,
+            'longLeverage' => $longLeverage,
+            'shortLeverage' => $shortLeverage,
+        );
+    }
+
     public function handle_margin_mode_and_params($methodName, $params = array (), $defaultValue = null) {
         /**
          * @ignore
@@ -5464,7 +5549,7 @@ class mexc extends Exchange {
                     'source' => $this->safe_string($this->options, 'broker', 'CCXT'),
                 );
             }
-            if (($method === 'POST') || ($method === 'PUT')) {
+            if (($method === 'POST') || ($method === 'PUT') || ($method === 'DELETE')) {
                 $headers['Content-Type'] = 'application/json';
             }
         } elseif ($section === 'contract' || $section === 'spot2') {

@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '4.2.54'
+__version__ = '4.2.87'
 
 # ----------------------------------------------------------------------------
 
@@ -118,6 +118,7 @@ from ccxt.btcturk import btcturk                                      # noqa: F4
 from ccxt.bybit import bybit                                          # noqa: F401
 from ccxt.cex import cex                                              # noqa: F401
 from ccxt.coinbase import coinbase                                    # noqa: F401
+from ccxt.coinbaseinternational import coinbaseinternational          # noqa: F401
 from ccxt.coinbasepro import coinbasepro                              # noqa: F401
 from ccxt.coincheck import coincheck                                  # noqa: F401
 from ccxt.coinex import coinex                                        # noqa: F401
@@ -143,6 +144,7 @@ from ccxt.hollaex import hollaex                                      # noqa: F4
 from ccxt.htx import htx                                              # noqa: F401
 from ccxt.huobi import huobi                                          # noqa: F401
 from ccxt.huobijp import huobijp                                      # noqa: F401
+from ccxt.hyperliquid import hyperliquid                              # noqa: F401
 from ccxt.idex import idex                                            # noqa: F401
 from ccxt.independentreserve import independentreserve                # noqa: F401
 from ccxt.indodax import indodax                                      # noqa: F401
@@ -171,6 +173,7 @@ from ccxt.poloniexfutures import poloniexfutures                      # noqa: F4
 from ccxt.probit import probit                                        # noqa: F401
 from ccxt.timex import timex                                          # noqa: F401
 from ccxt.tokocrypto import tokocrypto                                # noqa: F401
+from ccxt.tradeogre import tradeogre                                  # noqa: F401
 from ccxt.upbit import upbit                                          # noqa: F401
 from ccxt.wavesexchange import wavesexchange                          # noqa: F401
 from ccxt.wazirx import wazirx                                        # noqa: F401
@@ -220,6 +223,7 @@ exchanges = [
     'bybit',
     'cex',
     'coinbase',
+    'coinbaseinternational',
     'coinbasepro',
     'coincheck',
     'coinex',
@@ -245,6 +249,7 @@ exchanges = [
     'htx',
     'huobi',
     'huobijp',
+    'hyperliquid',
     'idex',
     'independentreserve',
     'indodax',
@@ -273,6 +278,7 @@ exchanges = [
     'probit',
     'timex',
     'tokocrypto',
+    'tradeogre',
     'upbit',
     'wavesexchange',
     'wazirx',
