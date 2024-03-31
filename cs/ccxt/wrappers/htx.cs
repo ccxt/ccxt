@@ -31,10 +31,10 @@ public partial class htx
         var res = await this.fetchTradingLimitsById(id, parameters);
         return ((Dictionary<string, object>)res);
     }
-    public async Task<List<Dictionary<string, object>>> FetchMarkets(Dictionary<string, object> parameters = null)
+    public async Task<List<MarketInterface>> FetchMarkets(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchMarkets(parameters);
-        return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
+        return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
     }
     public async Task<List<Dictionary<string, object>>> FetchMarketsByTypeAndSubType(object type, object subType, Dictionary<string, object> parameters = null)
     {

@@ -363,6 +363,33 @@ public struct LastPrice
     }
 }
 
+public struct MarginModification
+{
+    public string symbol; 
+    public string? type;
+    public double? amount;
+    public double? total;
+    public string? code;
+    public string? status;
+    public Int64? timestamp;
+    public string? datetime;
+    public Dictionary<string, object> info;
+
+    public MarginModification(object marginModification2)
+    {
+        var marginModification = (Dictionary<string, object>)marginModification2;
+        symbol = Exchange.SafeString(marginModification, "symbol");
+        type = Exchange.SafeString(marginModification, "type");
+        amount = Exchange.SafeFloat(marginModification, "amount");
+        total = Exchange.SafeFloat(marginModification, "total");
+        code = Exchange.SafeString(marginModification, "code");
+        status = Exchange.SafeString(marginModification, "status");
+        timestamp = Exchange.SafeInteger(marginModification, "timestamp");
+        datetime = Exchange.SafeString(marginModification, "datetime");
+        info = marginModification.ContainsKey("info") ? (Dictionary<string, object>)marginModification["info"] : null;
+    }
+}
+
 public struct LastPrices
 {
     public Dictionary<string, object> info;
@@ -525,7 +552,7 @@ public struct Balances
 
     public Balances(object balances2)
     {
-        var balances = (Dictionary<string, object>)balances2;
+        var balances = (IDictionary<string, object>)balances2;
         this.balances = new Dictionary<string, Balance>();
         foreach (var balance in balances)
         {
@@ -556,7 +583,7 @@ public struct Balances
             total.Add(balance.Key, Convert.ToDouble(balance.Value));
         }
         // info = (Dictionary<string, object>)balances["info"];
-        var balancesInfo = balances["info"];
+        var balancesInfo = balances.ContainsKey("info") ? (balances["info"]) : null;
         if (balancesInfo is IDictionary<string, object>)
         {
             info = (Dictionary<string, object>)balancesInfo;
@@ -1390,5 +1417,93 @@ public struct Account
         id = Exchange.SafeString(accountStructure, "id");
         type = Exchange.SafeString(accountStructure, "type");
         code = Exchange.SafeString(accountStructure, "code");
+    }
+}
+
+
+public struct Option
+{
+    public string? currency;
+    public string? symbol;
+    public Int64? timestamp;
+    public string? datetime;
+
+    public double? impliedVolatility;
+
+    public double? openInterest;
+
+    public double? bidPrice;
+    public double? askPrice;
+    public double? midPrice;
+    public double? markPrice;
+    public double? lastPrice;
+    public double? underlyingPrice;
+    public double? change;
+    public double? percentage;
+
+    public double? baseVolume;
+    public double? quoteVolume;
+    public Dictionary<string, object> info;
+
+    public Option(object option2)
+    {
+        var ticker = (Dictionary<string, object>)option2;
+        currency = Exchange.SafeString(option2, "currency");
+        symbol = Exchange.SafeString(option2, "symbol");
+        timestamp = Exchange.SafeInteger(option2, "timestamp");
+        datetime = Exchange.SafeString(option2, "datetime");
+        impliedVolatility = Exchange.SafeFloat(option2, "bidVolume");
+        openInterest = Exchange.SafeFloat(option2, "openInterest");
+        bidPrice = Exchange.SafeFloat(option2, "askVolume");
+        askPrice = Exchange.SafeFloat(option2, "vwap");
+        midPrice = Exchange.SafeFloat(option2, "open");
+        markPrice = Exchange.SafeFloat(option2, "close");
+        lastPrice = Exchange.SafeFloat(option2, "last");
+        underlyingPrice = Exchange.SafeFloat(option2, "previousClose");
+        change = Exchange.SafeFloat(option2, "change");
+        percentage = Exchange.SafeFloat(option2, "percentage");
+        baseVolume = Exchange.SafeFloat(option2, "baseVolume");
+        quoteVolume = Exchange.SafeFloat(option2, "quoteVolume");
+        info = ticker.ContainsKey("info") ? (Dictionary<string, object>)ticker["info"] : null;
+    }
+}
+
+
+public struct OptionChain
+{
+    public Dictionary<string, object> info;
+    public Dictionary<string, Option> chains;
+
+    public OptionChain(object optionchains2)
+    {
+        var marginModes = (Dictionary<string, object>)optionchains2;
+
+        info = marginModes.ContainsKey("info") ? (Dictionary<string, object>)marginModes["info"] : null;
+        this.chains = new Dictionary<string, Option>();
+        foreach (var marginMode in marginModes)
+        {
+            if (marginMode.Key != "info")
+                this.chains.Add(marginMode.Key, new Option(marginMode.Value));
+        }
+    }
+
+    // Indexer
+    public Option this[string key]
+    {
+        get
+        {
+            if (chains.ContainsKey(key))
+            {
+                return chains[key];
+            }
+            else
+            {
+                throw new KeyNotFoundException($"The key '{key}' was not found in the chains.");
+            }
+        }
+        set
+        {
+            chains[key] = value;
+        }
     }
 }

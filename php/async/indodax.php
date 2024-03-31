@@ -227,7 +227,7 @@ class indodax extends Exchange {
         }) ();
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * retrieves data on all markets for indodax
@@ -485,7 +485,7 @@ class indodax extends Exchange {
             //         }
             //     }
             //
-            $ticker = $this->safe_value($response, 'ticker', array());
+            $ticker = $this->safe_dict($response, 'ticker', array());
             return $this->parse_ticker($ticker, $market);
         }) ();
     }
@@ -517,7 +517,7 @@ class indodax extends Exchange {
             // }
             //
             $response = Async\await($this->publicGetApiTickerAll ($params));
-            $tickers = $this->safe_value($response, 'tickers');
+            $tickers = $this->safe_list($response, 'tickers');
             return $this->parse_tickers($tickers, $symbols);
         }) ();
     }

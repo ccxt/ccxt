@@ -419,7 +419,7 @@ class huobijp(Exchange, ImplicitAPI):
     def cost_to_precision(self, symbol, cost):
         return self.decimal_to_precision(cost, TRUNCATE, self.markets[symbol]['precision']['cost'], self.precisionMode)
 
-    async def fetch_markets(self, params={}):
+    async def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for huobijp
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -927,7 +927,7 @@ class huobijp(Exchange, ImplicitAPI):
             'period': self.safe_string(self.timeframes, timeframe, timeframe),
         }
         if limit is not None:
-            request['size'] = limit
+            request['size'] = min(limit, 2000)
         response = await self.marketGetHistoryKline(self.extend(request, params))
         #
         #     {
@@ -941,7 +941,7 @@ class huobijp(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        data = self.safe_value(response, 'data', [])
+        data = self.safe_list(response, 'data', [])
         return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
     async def fetch_accounts(self, params={}) -> List[Account]:
@@ -1125,7 +1125,7 @@ class huobijp(Exchange, ImplicitAPI):
             'id': id,
         }
         response = await self.privateGetOrderOrdersId(self.extend(request, params))
-        order = self.safe_value(response, 'data')
+        order = self.safe_dict(response, 'data')
         return self.parse_order(order)
 
     async def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
@@ -1210,7 +1210,7 @@ class huobijp(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        data = self.safe_value(response, 'data', [])
+        data = self.safe_list(response, 'data', [])
         return self.parse_orders(data, market, since, limit)
 
     def parse_order_status(self, status):

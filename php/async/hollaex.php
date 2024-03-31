@@ -210,7 +210,7 @@ class hollaex extends Exchange {
         ));
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * retrieves data on all markets for hollaex
@@ -642,7 +642,7 @@ class hollaex extends Exchange {
             //         )
             //     }
             //
-            $trades = $this->safe_value($response, $market['id'], array());
+            $trades = $this->safe_list($response, $market['id'], array());
             return $this->parse_trades($trades, $market, $since, $limit);
         }) ();
     }
@@ -1074,7 +1074,7 @@ class hollaex extends Exchange {
             //         )
             //     }
             //
-            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_list($response, 'data', array());
             return $this->parse_orders($data, $market, $since, $limit);
         }) ();
     }
@@ -1344,7 +1344,7 @@ class hollaex extends Exchange {
             //         )
             //     }
             //
-            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_list($response, 'data', array());
             return $this->parse_trades($data, $market, $since, $limit);
         }) ();
     }
@@ -1500,7 +1500,7 @@ class hollaex extends Exchange {
             //         )
             //     }
             //
-            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_list($response, 'data', array());
             return $this->parse_transactions($data, $currency, $since, $limit);
         }) ();
     }
@@ -1549,7 +1549,7 @@ class hollaex extends Exchange {
             //     }
             //
             $data = $this->safe_value($response, 'data', array());
-            $transaction = $this->safe_value($data, 0, array());
+            $transaction = $this->safe_dict($data, 0, array());
             return $this->parse_transaction($transaction, $currency);
         }) ();
     }
@@ -1610,7 +1610,7 @@ class hollaex extends Exchange {
             //         )
             //     }
             //
-            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_list($response, 'data', array());
             return $this->parse_transactions($data, $currency, $since, $limit);
         }) ();
     }
@@ -1872,7 +1872,7 @@ class hollaex extends Exchange {
             //         "network":"https://api.hollaex.network"
             //     }
             //
-            $coins = $this->safe_value($response, 'coins');
+            $coins = $this->safe_list($response, 'coins');
             return $this->parse_deposit_withdraw_fees($coins, $codes, 'symbol');
         }) ();
     }

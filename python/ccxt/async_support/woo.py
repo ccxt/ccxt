@@ -387,7 +387,7 @@ class woo(Exchange, ImplicitAPI):
         #
         return self.safe_integer(response, 'timestamp')
 
-    async def fetch_markets(self, params={}):
+    async def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for woo
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -1258,7 +1258,7 @@ class woo(Exchange, ImplicitAPI):
         #     ]
         # }
         #
-        orders = self.safe_value(response, 'data', response)
+        orders = self.safe_dict(response, 'data', response)
         return self.parse_order(orders, market)
 
     async def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:

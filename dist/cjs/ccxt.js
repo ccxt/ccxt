@@ -127,6 +127,7 @@ var bitcoincom$1 = require('./src/pro/bitcoincom.js');
 var bitfinex$1 = require('./src/pro/bitfinex.js');
 var bitfinex2$1 = require('./src/pro/bitfinex2.js');
 var bitget$1 = require('./src/pro/bitget.js');
+var bithumb$1 = require('./src/pro/bithumb.js');
 var bitmart$1 = require('./src/pro/bitmart.js');
 var bitmex$1 = require('./src/pro/bitmex.js');
 var bitopro$1 = require('./src/pro/bitopro.js');
@@ -181,7 +182,7 @@ var woo$1 = require('./src/pro/woo.js');
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
-const version = '4.2.78';
+const version = '4.2.87';
 Exchange["default"].ccxtVersion = version;
 const exchanges = {
     'ace': ace,
@@ -301,6 +302,7 @@ const pro = {
     'bitfinex': bitfinex$1,
     'bitfinex2': bitfinex2$1,
     'bitget': bitget$1,
+    'bithumb': bithumb$1,
     'bitmart': bitmart$1,
     'bitmex': bitmex$1,
     'bitopro': bitopro$1,

@@ -236,7 +236,7 @@ class p2b(Exchange, ImplicitAPI):
             },
         })
 
-    def fetch_markets(self, params={}):
+    def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for bigone
         :see: https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#markets
@@ -564,7 +564,7 @@ class p2b(Exchange, ImplicitAPI):
         #        current_time: '1699255571.413828'
         #    }
         #
-        result = self.safe_value(response, 'result', [])
+        result = self.safe_list(response, 'result', [])
         return self.parse_trades(result, market, since, limit)
 
     def parse_trade(self, trade, market: Market = None):
@@ -676,7 +676,7 @@ class p2b(Exchange, ImplicitAPI):
         #        current_time: '1699256375.030494'
         #    }
         #
-        result = self.safe_value(response, 'result', [])
+        result = self.safe_list(response, 'result', [])
         return self.parse_ohlcvs(result, market, timeframe, since, limit)
 
     def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
@@ -805,7 +805,7 @@ class p2b(Exchange, ImplicitAPI):
         #        }
         #    }
         #
-        result = self.safe_value(response, 'result')
+        result = self.safe_dict(response, 'result')
         return self.parse_order(result, market)
 
     def cancel_order(self, id: str, symbol: Str = None, params={}):
@@ -848,7 +848,7 @@ class p2b(Exchange, ImplicitAPI):
         #        }
         #    }
         #
-        result = self.safe_value(response, 'result')
+        result = self.safe_dict(response, 'result')
         return self.parse_order(result)
 
     def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
@@ -899,7 +899,7 @@ class p2b(Exchange, ImplicitAPI):
         #        ]
         #    }
         #
-        result = self.safe_value(response, 'result', [])
+        result = self.safe_list(response, 'result', [])
         return self.parse_orders(result, market, since, limit)
 
     def fetch_order_trades(self, id: str, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
@@ -948,7 +948,7 @@ class p2b(Exchange, ImplicitAPI):
         #    }
         #
         result = self.safe_value(response, 'result', {})
-        records = self.safe_value(result, 'records', [])
+        records = self.safe_list(result, 'records', [])
         return self.parse_trades(records, market, since, limit)
 
     def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
@@ -1015,7 +1015,7 @@ class p2b(Exchange, ImplicitAPI):
         #    }
         #
         result = self.safe_value(response, 'result', {})
-        deals = self.safe_value(result, 'deals', [])
+        deals = self.safe_list(result, 'deals', [])
         return self.parse_trades(deals, market, since, limit)
 
     def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:

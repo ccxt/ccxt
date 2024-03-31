@@ -215,7 +215,7 @@ class poloniexfutures(Exchange, ImplicitAPI):
             },
         })
 
-    async def fetch_markets(self, params={}):
+    async def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for poloniexfutures
         :see: https://futures-docs.poloniex.com/#symbol-2
@@ -665,7 +665,7 @@ class poloniexfutures(Exchange, ImplicitAPI):
         #        },
         #    }
         #
-        trades = self.safe_value(response, 'data', [])
+        trades = self.safe_list(response, 'data', [])
         return self.parse_trades(trades, market, since, limit)
 
     async def fetch_time(self, params={}):
@@ -729,7 +729,7 @@ class poloniexfutures(Exchange, ImplicitAPI):
         #        ]
         #    }
         #
-        data = self.safe_value(response, 'data', [])
+        data = self.safe_list(response, 'data', [])
         return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
     def parse_balance(self, response) -> Balances:
@@ -970,7 +970,7 @@ class poloniexfutures(Exchange, ImplicitAPI):
         #        ]
         #    }
         #
-        data = self.safe_value(response, 'data')
+        data = self.safe_list(response, 'data')
         return self.parse_positions(data, symbols)
 
     def parse_position(self, position, market: Market = None):
@@ -1389,7 +1389,7 @@ class poloniexfutures(Exchange, ImplicitAPI):
         #    }
         #
         market = self.market(symbol) if (symbol is not None) else None
-        responseData = self.safe_value(response, 'data')
+        responseData = self.safe_dict(response, 'data')
         return self.parse_order(responseData, market)
 
     def parse_order(self, order, market: Market = None) -> Order:
@@ -1616,7 +1616,7 @@ class poloniexfutures(Exchange, ImplicitAPI):
         #    }
         #
         data = self.safe_value(response, 'data', {})
-        trades = self.safe_value(data, 'items', {})
+        trades = self.safe_list(data, 'items', [])
         return self.parse_trades(trades, market, since, limit)
 
     async def set_margin_mode(self, marginMode: str, symbol: Str = None, params={}):

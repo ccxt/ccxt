@@ -397,7 +397,7 @@ class currencycom extends Exchange {
         }) ();
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * retrieves data on all $markets for currencycom
@@ -1003,7 +1003,7 @@ class currencycom extends Exchange {
                 $request['startTime'] = $since;
             }
             if ($limit !== null) {
-                $request['limit'] = $limit; // default 500, max 1000
+                $request['limit'] = min ($limit, 1000); // default 500, max 1000
             }
             $response = Async\await($this->publicGetV2Klines (array_merge($request, $params)));
             //
@@ -1973,7 +1973,7 @@ class currencycom extends Exchange {
             //        )
             //    }
             //
-            $data = $this->safe_value($response, 'positions', array());
+            $data = $this->safe_list($response, 'positions', array());
             return $this->parse_positions($data, $symbols);
         }) ();
     }

@@ -845,6 +845,6 @@ public partial class blockchaincom : ccxt.blockchaincom
             };
             return this.watch(url, messageHash, this.extend(request, parameters), messageHash);
         }
-        return future;
+        return await (future as Exchange.Future);
     }
 }

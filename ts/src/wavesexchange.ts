@@ -491,7 +491,7 @@ export default class wavesexchange extends Exchange {
         }
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name wavesexchange#fetchMarkets
@@ -892,7 +892,7 @@ export default class wavesexchange extends Exchange {
         //
         const data = this.safeValue (response, 'data', []);
         const ticker = this.safeValue (data, 0, {});
-        const dataTicker = this.safeValue (ticker, 'data', {});
+        const dataTicker = this.safeDict (ticker, 'data', {});
         return this.parseTicker (dataTicker, market);
     }
 
@@ -1474,11 +1474,11 @@ export default class wavesexchange extends Exchange {
         //
         if (isMarketOrder) {
             const response = await this.matcherPostMatcherOrderbookMarket (body);
-            const value = this.safeValue (response, 'message');
+            const value = this.safeDict (response, 'message');
             return this.parseOrder (value, market);
         } else {
             const response = await this.matcherPostMatcherOrderbook (body);
-            const value = this.safeValue (response, 'message');
+            const value = this.safeDict (response, 'message');
             return this.parseOrder (value, market);
         }
     }

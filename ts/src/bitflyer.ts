@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/bitflyer.js';
-import { ExchangeError, ArgumentsRequired, OrderNotFound } from './base/errors.js';
+import { ExchangeError, ArgumentsRequired, OrderNotFound, OnMaintenance } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import type { Balances, Currency, Int, Market, MarketInterface, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Trade, Transaction } from './base/types.js';
@@ -116,6 +116,11 @@ export default class bitflyer extends Exchange {
                 },
             },
             'precisionMode': TICK_SIZE,
+            'exceptions': {
+                'exact': {
+                    '-2': OnMaintenance, // {"status":-2,"error_message":"Under maintenance","data":null}
+                },
+            },
         });
     }
 
@@ -148,7 +153,7 @@ export default class bitflyer extends Exchange {
         return super.safeMarket (marketId, market, delimiter, 'spot');
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name bitflyer#fetchMarkets
@@ -1066,5 +1071,20 @@ export default class bitflyer extends Exchange {
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    }
+
+    handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+        if (response === undefined) {
+            return undefined; // fallback to the default error handler
+        }
+        const feedback = this.id + ' ' + body;
+        // i.e. {"status":-2,"error_message":"Under maintenance","data":null}
+        const errorMessage = this.safeString (response, 'error_message');
+        const statusCode = this.safeNumber (response, 'status');
+        if (errorMessage !== undefined) {
+            this.throwExactlyMatchedException (this.exceptions['exact'], statusCode, feedback);
+            this.throwBroadlyMatchedException (this.exceptions['broad'], errorMessage, feedback);
+        }
+        return undefined;
     }
 }

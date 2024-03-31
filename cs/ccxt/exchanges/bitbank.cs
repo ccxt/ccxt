@@ -105,21 +105,23 @@ public partial class bitbank : Exchange
             } },
             { "precisionMode", TICK_SIZE },
             { "exceptions", new Dictionary<string, object>() {
-                { "20001", typeof(AuthenticationError) },
-                { "20002", typeof(AuthenticationError) },
-                { "20003", typeof(AuthenticationError) },
-                { "20005", typeof(AuthenticationError) },
-                { "20004", typeof(InvalidNonce) },
-                { "40020", typeof(InvalidOrder) },
-                { "40021", typeof(InvalidOrder) },
-                { "40025", typeof(ExchangeError) },
-                { "40013", typeof(OrderNotFound) },
-                { "40014", typeof(OrderNotFound) },
-                { "50008", typeof(PermissionDenied) },
-                { "50009", typeof(OrderNotFound) },
-                { "50010", typeof(OrderNotFound) },
-                { "60001", typeof(InsufficientFunds) },
-                { "60005", typeof(InvalidOrder) },
+                { "exact", new Dictionary<string, object>() {
+                    { "20001", typeof(AuthenticationError) },
+                    { "20002", typeof(AuthenticationError) },
+                    { "20003", typeof(AuthenticationError) },
+                    { "20005", typeof(AuthenticationError) },
+                    { "20004", typeof(InvalidNonce) },
+                    { "40020", typeof(InvalidOrder) },
+                    { "40021", typeof(InvalidOrder) },
+                    { "40025", typeof(ExchangeError) },
+                    { "40013", typeof(OrderNotFound) },
+                    { "40014", typeof(OrderNotFound) },
+                    { "50008", typeof(PermissionDenied) },
+                    { "50009", typeof(OrderNotFound) },
+                    { "50010", typeof(OrderNotFound) },
+                    { "60001", typeof(InsufficientFunds) },
+                    { "60005", typeof(InvalidOrder) },
+                } },
             } },
         });
     }
@@ -275,7 +277,7 @@ public partial class bitbank : Exchange
             { "pair", getValue(market, "id") },
         };
         object response = await this.publicGetPairTicker(this.extend(request, parameters));
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return this.parseTicker(data, market);
     }
 
@@ -372,7 +374,7 @@ public partial class bitbank : Exchange
         };
         object response = await this.publicGetPairTransactions(this.extend(request, parameters));
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object trades = this.safeValue(data, "transactions", new List<object>() {});
+        object trades = this.safeList(data, "transactions", new List<object>() {});
         return this.parseTrades(trades, market, since, limit);
     }
 
@@ -507,7 +509,7 @@ public partial class bitbank : Exchange
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
         object candlestick = this.safeValue(data, "candlestick", new List<object>() {});
         object first = this.safeValue(candlestick, 0, new Dictionary<string, object>() {});
-        object ohlcv = this.safeValue(first, "ohlcv", new List<object>() {});
+        object ohlcv = this.safeList(first, "ohlcv", new List<object>() {});
         return this.parseOHLCVs(ohlcv, market, timeframe, since, limit);
     }
 
@@ -664,7 +666,7 @@ public partial class bitbank : Exchange
             ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
         }
         object response = await this.privatePostUserSpotOrder(this.extend(request, parameters));
-        object data = this.safeValue(response, "data");
+        object data = this.safeDict(response, "data");
         return this.parseOrder(data, market);
     }
 
@@ -711,7 +713,7 @@ public partial class bitbank : Exchange
             { "pair", getValue(market, "id") },
         };
         object response = await this.privateGetUserSpotOrder(this.extend(request, parameters));
-        object data = this.safeValue(response, "data");
+        object data = this.safeDict(response, "data");
         return this.parseOrder(data, market);
     }
 
@@ -744,7 +746,7 @@ public partial class bitbank : Exchange
         }
         object response = await this.privateGetUserSpotActiveOrders(this.extend(request, parameters));
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object orders = this.safeValue(data, "orders", new List<object>() {});
+        object orders = this.safeList(data, "orders", new List<object>() {});
         return this.parseOrders(orders, market, since, limit);
     }
 
@@ -780,7 +782,7 @@ public partial class bitbank : Exchange
         }
         object response = await this.privateGetUserSpotTradeHistory(this.extend(request, parameters));
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object trades = this.safeValue(data, "trades", new List<object>() {});
+        object trades = this.safeList(data, "trades", new List<object>() {});
         return this.parseTrades(trades, market, since, limit);
     }
 
@@ -862,7 +864,7 @@ public partial class bitbank : Exchange
         //         }
         //     }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return this.parseTransaction(data, currency);
     }
 
@@ -1036,17 +1038,10 @@ public partial class bitbank : Exchange
                 { "70009", "We are currently temporarily restricting orders to be carried out. Please use the limit order." },
                 { "70010", "We are temporarily raising the minimum order quantity as the system load is now rising." },
             };
-            object errorClasses = this.exceptions;
             object code = this.safeString(data, "code");
             object message = this.safeString(errorMessages, code, "Error");
-            object ErrorClass = this.safeValue(errorClasses, code);
-            if (isTrue(!isEqual(ErrorClass, null)))
-            {
-                throwDynamicException(getValue(errorClasses, code), message);
-            } else
-            {
-                throw new ExchangeError ((string)add(add(this.id, " "), this.json(response))) ;
-            }
+            this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), code, message);
+            throw new ExchangeError ((string)add(add(this.id, " "), this.json(response))) ;
         }
         return null;
     }

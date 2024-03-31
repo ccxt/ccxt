@@ -111,6 +111,8 @@ class binance extends binance$1 {
                 'fetchOpenInterestHistory': true,
                 'fetchOpenOrder': true,
                 'fetchOpenOrders': true,
+                'fetchOption': true,
+                'fetchOptionChain': false,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrderBooks': false,
@@ -2402,7 +2404,7 @@ class binance extends binance$1 {
     }
     isInverse(type, subType = undefined) {
         if (subType === undefined) {
-            return type === 'delivery';
+            return (type === 'delivery');
         }
         else {
             return subType === 'inverse';
@@ -2419,14 +2421,6 @@ class binance extends binance$1 {
     setSandboxMode(enable) {
         super.setSandboxMode(enable);
         this.options['sandboxMode'] = enable;
-    }
-    convertExpireDate(date) {
-        // parse YYMMDD to timestamp
-        const year = date.slice(0, 2);
-        const month = date.slice(2, 4);
-        const day = date.slice(4, 6);
-        const reconstructedDate = '20' + year + '-' + month + '-' + day + 'T00:00:00Z';
-        return reconstructedDate;
     }
     createExpiredOptionMarket(symbol) {
         // support expired option contracts
@@ -3964,16 +3958,12 @@ class binance extends binance$1 {
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets();
-        symbols = this.marketSymbols(symbols);
-        let market = undefined;
-        if (symbols !== undefined) {
-            const first = this.safeString(symbols, 0);
-            market = this.market(first);
-        }
+        symbols = this.marketSymbols(symbols, undefined, true, true, true);
+        const market = this.getMarketFromSymbols(symbols);
         let type = undefined;
+        [type, params] = this.handleMarketTypeAndParams('fetchBidsAsks', market, params);
         let subType = undefined;
         [subType, params] = this.handleSubTypeAndParams('fetchBidsAsks', market, params);
-        [type, params] = this.handleMarketTypeAndParams('fetchBidsAsks', market, params);
         let response = undefined;
         if (this.isLinear(type, subType)) {
             response = await this.fapiPublicGetTickerBookTicker(params);
@@ -3981,13 +3971,15 @@ class binance extends binance$1 {
         else if (this.isInverse(type, subType)) {
             response = await this.dapiPublicGetTickerBookTicker(params);
         }
-        else {
+        else if (type === 'spot') {
             const request = {};
             if (symbols !== undefined) {
-                const marketIds = this.marketIds(symbols);
-                request['symbols'] = this.json(marketIds);
+                request['symbols'] = this.json(this.marketIds(symbols));
             }
             response = await this.publicGetTickerBookTicker(this.extend(request, params));
+        }
+        else {
+            throw new errors.NotSupported(this.id + ' fetchBidsAsks() does not support ' + type + ' markets yet');
         }
         return this.parseTickers(response, symbols);
     }
@@ -4005,12 +3997,12 @@ class binance extends binance$1 {
          * @returns {object} a dictionary of lastprices structures
          */
         await this.loadMarkets();
-        symbols = this.marketSymbols(symbols);
+        symbols = this.marketSymbols(symbols, undefined, true, true, true);
         const market = this.getMarketFromSymbols(symbols);
         let type = undefined;
+        [type, params] = this.handleMarketTypeAndParams('fetchLastPrices', market, params);
         let subType = undefined;
         [subType, params] = this.handleSubTypeAndParams('fetchLastPrices', market, params);
-        [type, params] = this.handleMarketTypeAndParams('fetchLastPrices', market, params);
         let response = undefined;
         if (this.isLinear(type, subType)) {
             response = await this.fapiPublicV2GetTickerPrice(params);
@@ -4111,33 +4103,31 @@ class binance extends binance$1 {
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets();
-        let type = undefined;
-        let market = undefined;
         symbols = this.marketSymbols(symbols, undefined, true, true, true);
-        if (symbols !== undefined) {
-            const first = this.safeString(symbols, 0);
-            market = this.market(first);
-        }
+        const market = this.getMarketFromSymbols(symbols);
+        let type = undefined;
         [type, params] = this.handleMarketTypeAndParams('fetchTickers', market, params);
         let subType = undefined;
         [subType, params] = this.handleSubTypeAndParams('fetchTickers', market, params);
         let response = undefined;
-        if (type === 'option') {
-            response = await this.eapiPublicGetTicker(params);
-        }
-        else if (this.isLinear(type, subType)) {
+        if (this.isLinear(type, subType)) {
             response = await this.fapiPublicGetTicker24hr(params);
         }
         else if (this.isInverse(type, subType)) {
             response = await this.dapiPublicGetTicker24hr(params);
         }
-        else {
+        else if (type === 'spot') {
             const request = {};
             if (symbols !== undefined) {
-                const marketIds = this.marketIds(symbols);
-                request['symbols'] = this.json(marketIds);
+                request['symbols'] = this.json(this.marketIds(symbols));
             }
             response = await this.publicGetTicker24hr(this.extend(request, params));
+        }
+        else if (type === 'option') {
+            response = await this.eapiPublicGetTicker(params);
+        }
+        else {
+            throw new errors.NotSupported(this.id + ' fetchTickers() does not support ' + type + ' markets yet');
         }
         return this.parseTickers(response, symbols);
     }
@@ -4805,7 +4795,7 @@ class binance extends binance$1 {
         //         }
         //     }
         //
-        const data = this.safeValue(response, 'newOrderResponse');
+        const data = this.safeDict(response, 'newOrderResponse');
         return this.parseOrder(data, market);
     }
     editSpotOrderRequest(id, symbol, type, side, amount, price = undefined, params = {}) {
@@ -11222,6 +11212,16 @@ class binance extends binance$1 {
         });
     }
     parseMarginModification(data, market = undefined) {
+        //
+        // add/reduce margin
+        //
+        //     {
+        //         "code": 200,
+        //         "msg": "Successfully modify position margin.",
+        //         "amount": 0.001,
+        //         "type": 1
+        //     }
+        //
         const rawType = this.safeInteger(data, 'type');
         const resultType = (rawType === 1) ? 'add' : 'reduce';
         const resultAmount = this.safeNumber(data, 'amount');
@@ -11229,11 +11229,14 @@ class binance extends binance$1 {
         const status = (errorCode === '200') ? 'ok' : 'failed';
         return {
             'info': data,
+            'symbol': market['symbol'],
             'type': resultType,
             'amount': resultAmount,
+            'total': undefined,
             'code': undefined,
-            'symbol': market['symbol'],
             'status': status,
+            'timestamp': undefined,
+            'datetime': undefined,
         };
     }
     async reduceMargin(symbol, amount, params = {}) {
@@ -12395,7 +12398,7 @@ class binance extends binance$1 {
         else {
             throw new errors.BadRequest(this.id + ' fetchMarginModes () supports linear and inverse subTypes only');
         }
-        const assets = this.safeValue(response, 'positions', []);
+        const assets = this.safeList(response, 'positions', []);
         return this.parseMarginModes(assets, symbols, 'symbol', 'swap');
     }
     parseMarginMode(marginMode, market = undefined) {
@@ -12406,6 +12409,94 @@ class binance extends binance$1 {
             'info': marginMode,
             'symbol': market['symbol'],
             'marginMode': isIsolated ? 'isolated' : 'cross',
+        };
+    }
+    async fetchOption(symbol, params = {}) {
+        /**
+         * @method
+         * @name binance#fetchOption
+         * @description fetches option data that is commonly found in an option chain
+         * @see https://binance-docs.github.io/apidocs/voptions/en/#24hr-ticker-price-change-statistics
+         * @param {string} symbol unified market symbol
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [option chain structure]{@link https://docs.ccxt.com/#/?id=option-chain-structure}
+         */
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this.eapiPublicGetTicker(this.extend(request, params));
+        //
+        //     [
+        //         {
+        //             "symbol": "BTC-241227-80000-C",
+        //             "priceChange": "0",
+        //             "priceChangePercent": "0",
+        //             "lastPrice": "2750",
+        //             "lastQty": "0",
+        //             "open": "2750",
+        //             "high": "2750",
+        //             "low": "2750",
+        //             "volume": "0",
+        //             "amount": "0",
+        //             "bidPrice": "4880",
+        //             "askPrice": "0",
+        //             "openTime": 0,
+        //             "closeTime": 0,
+        //             "firstTradeId": 0,
+        //             "tradeCount": 0,
+        //             "strikePrice": "80000",
+        //             "exercisePrice": "63944.09893617"
+        //         }
+        //     ]
+        //
+        const chain = this.safeDict(response, 0, {});
+        return this.parseOption(chain, undefined, market);
+    }
+    parseOption(chain, currency = undefined, market = undefined) {
+        //
+        //     {
+        //         "symbol": "BTC-241227-80000-C",
+        //         "priceChange": "0",
+        //         "priceChangePercent": "0",
+        //         "lastPrice": "2750",
+        //         "lastQty": "0",
+        //         "open": "2750",
+        //         "high": "2750",
+        //         "low": "2750",
+        //         "volume": "0",
+        //         "amount": "0",
+        //         "bidPrice": "4880",
+        //         "askPrice": "0",
+        //         "openTime": 0,
+        //         "closeTime": 0,
+        //         "firstTradeId": 0,
+        //         "tradeCount": 0,
+        //         "strikePrice": "80000",
+        //         "exercisePrice": "63944.09893617"
+        //     }
+        //
+        const marketId = this.safeString(chain, 'symbol');
+        market = this.safeMarket(marketId, market);
+        return {
+            'info': chain,
+            'currency': undefined,
+            'symbol': market['symbol'],
+            'timestamp': undefined,
+            'datetime': undefined,
+            'impliedVolatility': undefined,
+            'openInterest': undefined,
+            'bidPrice': this.safeNumber(chain, 'bidPrice'),
+            'askPrice': this.safeNumber(chain, 'askPrice'),
+            'midPrice': undefined,
+            'markPrice': undefined,
+            'lastPrice': this.safeNumber(chain, 'lastPrice'),
+            'underlyingPrice': this.safeNumber(chain, 'exercisePrice'),
+            'change': this.safeNumber(chain, 'priceChange'),
+            'percentage': this.safeNumber(chain, 'priceChangePercent'),
+            'baseVolume': this.safeNumber(chain, 'volume'),
+            'quoteVolume': undefined,
         };
     }
 }

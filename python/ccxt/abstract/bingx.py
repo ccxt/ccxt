@@ -32,6 +32,7 @@ class ImplicitAPI:
     swap_v1_private_get_trade_batchcancelreplace = swapV1PrivateGetTradeBatchCancelReplace = Entry('trade/batchCancelReplace', ['swap', 'v1', 'private'], 'GET', {'cost': 1})
     swap_v1_private_post_trade_cancelreplace = swapV1PrivatePostTradeCancelReplace = Entry('trade/cancelReplace', ['swap', 'v1', 'private'], 'POST', {'cost': 1})
     swap_v1_private_post_positionside_dual = swapV1PrivatePostPositionSideDual = Entry('positionSide/dual', ['swap', 'v1', 'private'], 'POST', {'cost': 1})
+    swap_v1_private_post_trade_closeposition = swapV1PrivatePostTradeClosePosition = Entry('trade/closePosition', ['swap', 'v1', 'private'], 'POST', {'cost': 1})
     swap_v2_public_get_server_time = swapV2PublicGetServerTime = Entry('server/time', ['swap', 'v2', 'public'], 'GET', {'cost': 3})
     swap_v2_public_get_quote_contracts = swapV2PublicGetQuoteContracts = Entry('quote/contracts', ['swap', 'v2', 'public'], 'GET', {'cost': 1})
     swap_v2_public_get_quote_price = swapV2PublicGetQuotePrice = Entry('quote/price', ['swap', 'v2', 'public'], 'GET', {'cost': 1})

@@ -2380,7 +2380,7 @@ class htx extends htx$1 {
             };
             this.watch(url, messageHash, request, messageHash, subscription);
         }
-        return future;
+        return await future;
     }
 }
 

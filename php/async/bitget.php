@@ -1226,6 +1226,7 @@ class bitget extends Exchange {
                     '40768' => '\\ccxt\\OrderNotFound', // Order does not exist"
                     '41114' => '\\ccxt\\OnMaintenance', // array("code":"41114","msg":"The current trading pair is under maintenance, please refer to the official announcement for the opening time","requestTime":1679196062544,"data":null)
                     '43011' => '\\ccxt\\InvalidOrder', // The parameter does not meet the specification executePrice <= 0
+                    '43012' => '\\ccxt\\InsufficientFunds', // array("code":"43012","msg":"Insufficient balance","requestTime":1711648951774,"data":null)
                     '43025' => '\\ccxt\\InvalidOrder', // Plan order does not exist
                     '43115' => '\\ccxt\\OnMaintenance', // array("code":"43115","msg":"The current trading pair is opening soon, please refer to the official announcement for the opening time","requestTime":1688907202434,"data":null)
                     '45110' => '\\ccxt\\InvalidOrder', // array("code":"45110","msg":"less than the minimum amount 5 USDT","requestTime":1669911118932,"data":null)
@@ -1300,6 +1301,7 @@ class bitget extends Exchange {
             'precisionMode' => TICK_SIZE,
             'commonCurrencies' => array(
                 'JADE' => 'Jade Protocol',
+                'DEGEN' => 'DegenReborn',
             ),
             'options' => array(
                 'timeframes' => array(
@@ -1511,7 +1513,7 @@ class bitget extends Exchange {
         }) ();
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * retrieves data on all markets for bitget
@@ -2190,7 +2192,7 @@ class bitget extends Exchange {
             //         )
             //     }
             //
-            $rawTransactions = $this->safe_value($response, 'data', array());
+            $rawTransactions = $this->safe_list($response, 'data', array());
             return $this->parse_transactions($rawTransactions, $currency, $since, $limit);
         }) ();
     }
@@ -2340,7 +2342,7 @@ class bitget extends Exchange {
             //         )
             //     }
             //
-            $rawTransactions = $this->safe_value($response, 'data', array());
+            $rawTransactions = $this->safe_list($response, 'data', array());
             return $this->parse_transactions($rawTransactions, $currency, $since, $limit);
         }) ();
     }
@@ -2471,7 +2473,7 @@ class bitget extends Exchange {
             //         }
             //     }
             //
-            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_dict($response, 'data', array());
             return $this->parse_deposit_address($data, $currency);
         }) ();
     }
@@ -2757,7 +2759,7 @@ class bitget extends Exchange {
             //         )
             //     }
             //
-            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_list($response, 'data', array());
             return $this->parse_ticker($data[0], $market);
         }) ();
     }
@@ -2770,6 +2772,7 @@ class bitget extends Exchange {
              * @see https://www.bitget.com/api-doc/contract/market/Get-All-Symbol-Ticker
              * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all $market tickers are returned if not assigned
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->subType] *contract only* 'linear', 'inverse'
              * @param {string} [$params->productType] *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
              */
@@ -2785,15 +2788,20 @@ class bitget extends Exchange {
                     $market = $this->market($symbol);
                 }
             }
+            $response = null;
             $request = array();
             $type = null;
             list($type, $params) = $this->handle_market_type_and_params('fetchTickers', $market, $params);
-            $response = null;
-            if ($type === 'spot') {
+            // Calls like `.fetch_tickers(null, array(subType:'inverse'))` should be supported for this exchange, so
+            // as "options.defaultSubType" is also set in exchange options, we should consider `$params->subType`
+            // with higher priority and only default to spot, if `subType` is not set in $params
+            $passedSubType = $this->safe_string($params, 'subType');
+            $productType = null;
+            list($productType, $params) = $this->handle_product_type_and_params($market, $params);
+            // only if $passedSubType && $productType is null, then use spot
+            if ($type === 'spot' && $passedSubType === null) {
                 $response = Async\await($this->publicSpotGetV2SpotMarketTickers (array_merge($request, $params)));
             } else {
-                $productType = null;
-                list($productType, $params) = $this->handle_product_type_and_params($market, $params);
                 $request['productType'] = $productType;
                 $response = Async\await($this->publicMixGetV2MixMarketTickers (array_merge($request, $params)));
             }
@@ -2854,7 +2862,7 @@ class bitget extends Exchange {
             //         )
             //     }
             //
-            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_list($response, 'data', array());
             return $this->parse_tickers($data, $symbols);
         }) ();
     }
@@ -3090,7 +3098,7 @@ class bitget extends Exchange {
             //         )
             //     }
             //
-            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_list($response, 'data', array());
             return $this->parse_trades($data, $market, $since, $limit);
         }) ();
     }
@@ -4161,7 +4169,7 @@ class bitget extends Exchange {
             //         }
             //     }
             //
-            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_dict($response, 'data', array());
             return $this->parse_order($data, $market);
         }) ();
     }
@@ -4643,7 +4651,7 @@ class bitget extends Exchange {
             //         }
             //     }
             //
-            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_dict($response, 'data', array());
             return $this->parse_order($data, $market);
         }) ();
     }
@@ -4869,7 +4877,7 @@ class bitget extends Exchange {
             //     }
             //
             $data = $this->safe_value($response, 'data', array());
-            $orders = $this->safe_value($data, 'successList', array());
+            $orders = $this->safe_list($data, 'successList', array());
             return $this->parse_orders($orders, $market);
         }) ();
     }
@@ -5093,9 +5101,15 @@ class bitget extends Exchange {
             if (gettype($response) === 'string') {
                 $response = json_decode($response, $as_associative_array = true);
             }
-            $data = $this->safe_value($response, 'data');
-            $first = $this->safe_value($data, 0, $data);
+            $data = $this->safe_dict($response, 'data');
+            if (($data !== null) && gettype($data) !== 'array' || array_keys($data) !== array_keys(array_keys($data))) {
+                return $this->parse_order($data, $market);
+            }
+            $dataList = $this->safe_list($response, 'data', array());
+            $first = $this->safe_dict($dataList, 0, array());
             return $this->parse_order($first, $market);
+            // $first = $this->safe_dict($data, 0, $data);
+            // return $this->parse_order($first, $market);
         }) ();
     }
 
@@ -5390,11 +5404,11 @@ class bitget extends Exchange {
             $data = $this->safe_value($response, 'data');
             if ($type === 'spot') {
                 if (($marginMode !== null) || $stop) {
-                    $resultList = $this->safe_value($data, 'orderList', array());
+                    $resultList = $this->safe_list($data, 'orderList', array());
                     return $this->parse_orders($resultList, $market, $since, $limit);
                 }
             } else {
-                $result = $this->safe_value($data, 'entrustedList', array());
+                $result = $this->safe_list($data, 'entrustedList', array());
                 return $this->parse_orders($result, $market, $since, $limit);
             }
             return $this->parse_orders($data, $market, $since, $limit);
@@ -5756,7 +5770,7 @@ class bitget extends Exchange {
             if (gettype($response) === 'string') {
                 $response = json_decode($response, $as_associative_array = true);
             }
-            $orders = $this->safe_value($response, 'data', array());
+            $orders = $this->safe_list($response, 'data', array());
             return $this->parse_orders($orders, $market, $since, $limit);
         }) ();
     }
@@ -6157,10 +6171,10 @@ class bitget extends Exchange {
             //
             $data = $this->safe_value($response, 'data');
             if (($market['swap']) || ($market['future'])) {
-                $fillList = $this->safe_value($data, 'fillList', array());
+                $fillList = $this->safe_list($data, 'fillList', array());
                 return $this->parse_trades($fillList, $market, $since, $limit);
             } elseif ($marginMode !== null) {
-                $fills = $this->safe_value($data, 'fills', array());
+                $fills = $this->safe_list($data, 'fills', array());
                 return $this->parse_trades($fills, $market, $since, $limit);
             }
             return $this->parse_trades($data, $market, $since, $limit);
@@ -6223,8 +6237,8 @@ class bitget extends Exchange {
             //         )
             //     }
             //
-            $data = $this->safe_value($response, 'data', array());
-            $first = $this->safe_value($data, 0, array());
+            $data = $this->safe_list($response, 'data', array());
+            $first = $this->safe_dict($data, 0, array());
             return $this->parse_position($first, $market);
         }) ();
     }
@@ -6819,7 +6833,7 @@ class bitget extends Exchange {
         return $this->filter_by_since_limit($sorted, $since, $limit);
     }
 
-    public function modify_margin_helper(string $symbol, $amount, $type, $params = array ()) {
+    public function modify_margin_helper(string $symbol, $amount, $type, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $amount, $type, $params) {
             Async\await($this->load_markets());
             $holdSide = $this->safe_string($params, 'holdSide');
@@ -6857,20 +6871,33 @@ class bitget extends Exchange {
         }) ();
     }
 
-    public function parse_margin_modification($data, ?array $market = null) {
+    public function parse_margin_modification($data, ?array $market = null): array {
+        //
+        // addMargin/reduceMargin
+        //
+        //     {
+        //         "code" => "00000",
+        //         "msg" => "success",
+        //         "requestTime" => 1700813444618,
+        //         "data" => ""
+        //     }
+        //
         $errorCode = $this->safe_string($data, 'code');
         $status = ($errorCode === '00000') ? 'ok' : 'failed';
         return array(
             'info' => $data,
+            'symbol' => $market['symbol'],
             'type' => null,
             'amount' => null,
+            'total' => null,
             'code' => $market['settle'],
-            'symbol' => $market['symbol'],
             'status' => $status,
+            'timestamp' => null,
+            'datetime' => null,
         );
     }
 
-    public function reduce_margin(string $symbol, $amount, $params = array ()) {
+    public function reduce_margin(string $symbol, $amount, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $amount, $params) {
             /**
              * remove margin from a position
@@ -6891,7 +6918,7 @@ class bitget extends Exchange {
         }) ();
     }
 
-    public function add_margin(string $symbol, $amount, $params = array ()) {
+    public function add_margin(string $symbol, $amount, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $amount, $params) {
             /**
              * add margin
@@ -7174,7 +7201,7 @@ class bitget extends Exchange {
             //         }
             //     }
             //
-            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_dict($response, 'data', array());
             return $this->parse_open_interest($data, $market);
         }) ();
     }
@@ -7260,7 +7287,7 @@ class bitget extends Exchange {
             //         )
             //     }
             //
-            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_list($response, 'data', array());
             return $this->parse_transfers($data, $currency, $since, $limit);
         }) ();
     }
@@ -7462,7 +7489,7 @@ class bitget extends Exchange {
             //         "requestTime" => "1700120731773"
             //     }
             //
-            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_list($response, 'data', array());
             return $this->parse_deposit_withdraw_fees($data, $codes, 'coin');
         }) ();
     }
@@ -7773,7 +7800,7 @@ class bitget extends Exchange {
             //     }
             //
             $data = $this->safe_value($response, 'data', array());
-            $liquidations = $this->safe_value($data, 'resultList', array());
+            $liquidations = $this->safe_list($data, 'resultList', array());
             return $this->parse_liquidations($liquidations, $market, $since, $limit);
         }) ();
     }
@@ -8226,7 +8253,7 @@ class bitget extends Exchange {
             //     }
             //
             $data = $this->safe_value($response, 'data', array());
-            $order = $this->safe_value($data, 'successList', array());
+            $order = $this->safe_list($data, 'successList', array());
             return $this->parse_order($order[0], $market);
         }) ();
     }
@@ -8265,7 +8292,7 @@ class bitget extends Exchange {
             //     }
             //
             $data = $this->safe_value($response, 'data', array());
-            $orderInfo = $this->safe_value($data, 'successList', array());
+            $orderInfo = $this->safe_list($data, 'successList', array());
             return $this->parse_positions($orderInfo, null, $params);
         }) ();
     }

@@ -306,7 +306,7 @@ class bitvavo extends Exchange {
         return $this->safe_integer($response, 'time');
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): array {
         /**
          * @see https://docs.bitvavo.com/#tag/General/paths/~1markets/get
          * retrieves data on all markets for bitvavo
@@ -930,6 +930,8 @@ class bitvavo extends Exchange {
             $request['start'] = $since;
             if ($limit === null) {
                 $limit = 1440;
+            } else {
+                $limit = min ($limit, 1440);
             }
             $request['end'] = $this->sum($since, $limit * $duration * 1000);
         }

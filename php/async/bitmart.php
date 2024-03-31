@@ -981,7 +981,7 @@ class bitmart extends Exchange {
         }) ();
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * retrieves data on all markets for bitmart
@@ -1331,7 +1331,7 @@ class bitmart extends Exchange {
             } elseif ($market['swap']) {
                 $tickersById = $this->index_by($tickers, 'contract_symbol');
             }
-            $ticker = $this->safe_value($tickersById, $market['id']);
+            $ticker = $this->safe_dict($tickersById, $market['id']);
             return $this->parse_ticker($ticker, $market);
         }) ();
     }
@@ -1597,7 +1597,7 @@ class bitmart extends Exchange {
             //     }
             //
             $data = $this->safe_value($response, 'data', array());
-            $trades = $this->safe_value($data, 'trades', array());
+            $trades = $this->safe_list($data, 'trades', array());
             return $this->parse_trades($trades, $market, $since, $limit);
         }) ();
     }
@@ -1764,7 +1764,7 @@ class bitmart extends Exchange {
             //         "trace" => "96c989db-e0f5-46f5-bba6-60cfcbde699b"
             //     }
             //
-            $ohlcv = $this->safe_value($response, 'data', array());
+            $ohlcv = $this->safe_list($response, 'data', array());
             return $this->parse_ohlcvs($ohlcv, $market, $timeframe, $since, $limit);
         }) ();
     }
@@ -1879,7 +1879,7 @@ class bitmart extends Exchange {
             //         "trace" => "4cad855074634097ac6ba5257c47305d.62.16959616054873723"
             //     }
             //
-            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_list($response, 'data', array());
             return $this->parse_trades($data, $market, $since, $limit);
         }) ();
     }
@@ -1901,7 +1901,7 @@ class bitmart extends Exchange {
                 'orderId' => $id,
             );
             $response = Async\await($this->privatePostSpotV4QueryOrderTrades (array_merge($request, $params)));
-            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_list($response, 'data', array());
             return $this->parse_trades($data, null, $since, $limit);
         }) ();
     }
@@ -2769,7 +2769,7 @@ class bitmart extends Exchange {
             //     }
             //
             $data = $this->safe_value($response, 'data', array());
-            $orders = $this->safe_value($data, 'orders', array());
+            $orders = $this->safe_list($data, 'orders', array());
             return $this->parse_orders($orders, $market, $since, $limit);
         }) ();
     }
@@ -2896,7 +2896,7 @@ class bitmart extends Exchange {
             //         "trace" => "7f9d94g10f9d4513bc08a7rfc3a5559a.71.16957022303515933"
             //     }
             //
-            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_list($response, 'data', array());
             return $this->parse_orders($data, $market, $since, $limit);
         }) ();
     }
@@ -2950,7 +2950,7 @@ class bitmart extends Exchange {
             } else {
                 $response = Async\await($this->privateGetContractPrivateOrderHistory (array_merge($request, $params)));
             }
-            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_list($response, 'data', array());
             return $this->parse_orders($data, $market, $since, $limit);
         }) ();
     }
@@ -3070,7 +3070,7 @@ class bitmart extends Exchange {
             //         "trace" => "4cad855075664097af6ba5257c47605d.63.14957831547451715"
             //     }
             //
-            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_dict($response, 'data', array());
             return $this->parse_order($data, $market);
         }) ();
     }
@@ -3114,7 +3114,7 @@ class bitmart extends Exchange {
             //        }
             //    }
             //
-            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_dict($response, 'data', array());
             return $this->parse_deposit_address($data, $currency);
         }) ();
     }
@@ -3268,7 +3268,7 @@ class bitmart extends Exchange {
             //     }
             //
             $data = $this->safe_value($response, 'data', array());
-            $records = $this->safe_value($data, 'records', array());
+            $records = $this->safe_list($data, 'records', array());
             return $this->parse_transactions($records, $currency, $since, $limit);
         }) ();
     }
@@ -3310,7 +3310,7 @@ class bitmart extends Exchange {
             //     }
             //
             $data = $this->safe_value($response, 'data', array());
-            $record = $this->safe_value($data, 'record', array());
+            $record = $this->safe_dict($data, 'record', array());
             return $this->parse_transaction($record);
         }) ();
     }
@@ -3366,7 +3366,7 @@ class bitmart extends Exchange {
             //     }
             //
             $data = $this->safe_value($response, 'data', array());
-            $record = $this->safe_value($data, 'record', array());
+            $record = $this->safe_dict($data, 'record', array());
             return $this->parse_transaction($record);
         }) ();
     }
@@ -3925,7 +3925,7 @@ class bitmart extends Exchange {
             //     }
             //
             $data = $this->safe_value($response, 'data', array());
-            $records = $this->safe_value($data, 'records', array());
+            $records = $this->safe_list($data, 'records', array());
             return $this->parse_transfers($records, $currency, $since, $limit);
         }) ();
     }
@@ -4045,7 +4045,7 @@ class bitmart extends Exchange {
             //         "trace" => "7f9c94e10f9d4513bc08a7bfc2a5559a.72.16946575108274991"
             //     }
             //
-            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_dict($response, 'data', array());
             return $this->parse_open_interest($data, $market);
         }) ();
     }
@@ -4215,7 +4215,7 @@ class bitmart extends Exchange {
             //     }
             //
             $data = $this->safe_value($response, 'data', array());
-            $first = $this->safe_value($data, 0, array());
+            $first = $this->safe_dict($data, 0, array());
             return $this->parse_position($first, $market);
         }) ();
     }

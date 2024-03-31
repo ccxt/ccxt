@@ -562,7 +562,7 @@ class alpaca(ccxt.async_support.alpaca):
                     },
                 }
             self.watch(url, messageHash, request, messageHash, future)
-        return future
+        return await future
 
     def handle_error_message(self, client: Client, message):
         #

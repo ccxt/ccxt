@@ -280,7 +280,7 @@ class bitopro(Exchange, ImplicitAPI):
             }
         return result
 
-    def fetch_markets(self, params={}):
+    def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for bitopro
         :see: https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/public/get_trading_pair_info.md
@@ -735,6 +735,8 @@ class bitopro(Exchange, ImplicitAPI):
         # we need to have a limit argument because "to" and "from" are required
         if limit is None:
             limit = 500
+        else:
+            limit = min(limit, 75000)  # supports slightly more than 75k candles atm, but limit here to avoid errors
         timeframeInSeconds = self.parse_timeframe(timeframe)
         alignedSince = None
         if since is None:
@@ -1574,7 +1576,7 @@ class bitopro(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        data = self.safe_value(response, 'data', [])
+        data = self.safe_list(response, 'data', [])
         return self.parse_deposit_withdraw_fees(data, codes, 'currency')
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):

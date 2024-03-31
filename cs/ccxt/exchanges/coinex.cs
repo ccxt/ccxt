@@ -118,156 +118,279 @@ public partial class coinex : Exchange
                     { "perpetualPrivate", "https://api.coinex.com/perpetual" },
                 } },
                 { "www", "https://www.coinex.com" },
-                { "doc", "https://viabtc.github.io/coinex_api_en_doc" },
+                { "doc", "https://docs.coinex.com/api/v2" },
                 { "fees", "https://www.coinex.com/fees" },
                 { "referral", "https://www.coinex.com/register?refer_code=yw5fz" },
             } },
             { "api", new Dictionary<string, object>() {
-                { "public", new Dictionary<string, object>() {
-                    { "get", new Dictionary<string, object>() {
-                        { "amm/market", 1 },
-                        { "common/currency/rate", 1 },
-                        { "common/asset/config", 1 },
-                        { "common/maintain/info", 1 },
-                        { "common/temp-maintain/info", 1 },
-                        { "margin/market", 1 },
-                        { "market/info", 1 },
-                        { "market/list", 1 },
-                        { "market/ticker", 1 },
-                        { "market/ticker/all", 1 },
-                        { "market/depth", 1 },
-                        { "market/deals", 1 },
-                        { "market/kline", 1 },
-                        { "market/detail", 1 },
+                { "v1", new Dictionary<string, object>() {
+                    { "public", new Dictionary<string, object>() {
+                        { "get", new Dictionary<string, object>() {
+                            { "amm/market", 1 },
+                            { "common/currency/rate", 1 },
+                            { "common/asset/config", 1 },
+                            { "common/maintain/info", 1 },
+                            { "common/temp-maintain/info", 1 },
+                            { "margin/market", 1 },
+                            { "market/info", 1 },
+                            { "market/list", 1 },
+                            { "market/ticker", 1 },
+                            { "market/ticker/all", 1 },
+                            { "market/depth", 1 },
+                            { "market/deals", 1 },
+                            { "market/kline", 1 },
+                            { "market/detail", 1 },
+                        } },
+                    } },
+                    { "private", new Dictionary<string, object>() {
+                        { "get", new Dictionary<string, object>() {
+                            { "account/amm/balance", 40 },
+                            { "account/investment/balance", 40 },
+                            { "account/balance/history", 40 },
+                            { "account/market/fee", 40 },
+                            { "balance/coin/deposit", 40 },
+                            { "balance/coin/withdraw", 40 },
+                            { "balance/info", 40 },
+                            { "balance/deposit/address/{coin_type}", 40 },
+                            { "contract/transfer/history", 40 },
+                            { "credit/info", 40 },
+                            { "credit/balance", 40 },
+                            { "investment/transfer/history", 40 },
+                            { "margin/account", 1 },
+                            { "margin/config", 1 },
+                            { "margin/loan/history", 40 },
+                            { "margin/transfer/history", 40 },
+                            { "order/deals", 40 },
+                            { "order/finished", 40 },
+                            { "order/pending", 8 },
+                            { "order/status", 8 },
+                            { "order/status/batch", 8 },
+                            { "order/user/deals", 40 },
+                            { "order/stop/finished", 40 },
+                            { "order/stop/pending", 8 },
+                            { "order/user/trade/fee", 1 },
+                            { "order/market/trade/info", 1 },
+                            { "sub_account/balance", 1 },
+                            { "sub_account/transfer/history", 40 },
+                            { "sub_account/auth/api", 40 },
+                            { "sub_account/auth/api/{user_auth_id}", 40 },
+                        } },
+                        { "post", new Dictionary<string, object>() {
+                            { "balance/coin/withdraw", 40 },
+                            { "contract/balance/transfer", 40 },
+                            { "margin/flat", 40 },
+                            { "margin/loan", 40 },
+                            { "margin/transfer", 40 },
+                            { "order/limit/batch", 40 },
+                            { "order/ioc", 13.334 },
+                            { "order/limit", 13.334 },
+                            { "order/market", 13.334 },
+                            { "order/modify", 13.334 },
+                            { "order/stop/limit", 13.334 },
+                            { "order/stop/market", 13.334 },
+                            { "order/stop/modify", 13.334 },
+                            { "sub_account/transfer", 40 },
+                            { "sub_account/register", 1 },
+                            { "sub_account/unfrozen", 40 },
+                            { "sub_account/frozen", 40 },
+                            { "sub_account/auth/api", 40 },
+                        } },
+                        { "put", new Dictionary<string, object>() {
+                            { "balance/deposit/address/{coin_type}", 40 },
+                            { "sub_account/unfrozen", 40 },
+                            { "sub_account/frozen", 40 },
+                            { "sub_account/auth/api/{user_auth_id}", 40 },
+                            { "v1/account/settings", 40 },
+                        } },
+                        { "delete", new Dictionary<string, object>() {
+                            { "balance/coin/withdraw", 40 },
+                            { "order/pending/batch", 40 },
+                            { "order/pending", 13.334 },
+                            { "order/stop/pending", 40 },
+                            { "order/stop/pending/{id}", 13.334 },
+                            { "order/pending/by_client_id", 40 },
+                            { "order/stop/pending/by_client_id", 40 },
+                            { "sub_account/auth/api/{user_auth_id}", 40 },
+                            { "sub_account/authorize/{id}", 40 },
+                        } },
+                    } },
+                    { "perpetualPublic", new Dictionary<string, object>() {
+                        { "get", new Dictionary<string, object>() {
+                            { "ping", 1 },
+                            { "time", 1 },
+                            { "market/list", 1 },
+                            { "market/limit_config", 1 },
+                            { "market/ticker", 1 },
+                            { "market/ticker/all", 1 },
+                            { "market/depth", 1 },
+                            { "market/deals", 1 },
+                            { "market/funding_history", 1 },
+                            { "market/kline", 1 },
+                        } },
+                    } },
+                    { "perpetualPrivate", new Dictionary<string, object>() {
+                        { "get", new Dictionary<string, object>() {
+                            { "market/user_deals", 1 },
+                            { "asset/query", 40 },
+                            { "order/pending", 8 },
+                            { "order/finished", 40 },
+                            { "order/stop_finished", 40 },
+                            { "order/stop_pending", 8 },
+                            { "order/status", 8 },
+                            { "order/stop_status", 8 },
+                            { "position/finished", 40 },
+                            { "position/pending", 40 },
+                            { "position/funding", 40 },
+                            { "position/adl_history", 40 },
+                            { "market/preference", 40 },
+                            { "position/margin_history", 40 },
+                            { "position/settle_history", 40 },
+                        } },
+                        { "post", new Dictionary<string, object>() {
+                            { "market/adjust_leverage", 1 },
+                            { "market/position_expect", 1 },
+                            { "order/put_limit", 20 },
+                            { "order/put_market", 20 },
+                            { "order/put_stop_limit", 20 },
+                            { "order/put_stop_market", 20 },
+                            { "order/modify", 20 },
+                            { "order/modify_stop", 20 },
+                            { "order/cancel", 20 },
+                            { "order/cancel_all", 40 },
+                            { "order/cancel_batch", 40 },
+                            { "order/cancel_stop", 20 },
+                            { "order/cancel_stop_all", 40 },
+                            { "order/close_limit", 20 },
+                            { "order/close_market", 20 },
+                            { "position/adjust_margin", 20 },
+                            { "position/stop_loss", 20 },
+                            { "position/take_profit", 20 },
+                            { "position/market_close", 20 },
+                            { "order/cancel/by_client_id", 20 },
+                            { "order/cancel_stop/by_client_id", 20 },
+                            { "market/preference", 20 },
+                        } },
                     } },
                 } },
-                { "private", new Dictionary<string, object>() {
-                    { "get", new Dictionary<string, object>() {
-                        { "account/amm/balance", 40 },
-                        { "account/investment/balance", 40 },
-                        { "account/balance/history", 40 },
-                        { "account/market/fee", 40 },
-                        { "balance/coin/deposit", 40 },
-                        { "balance/coin/withdraw", 40 },
-                        { "balance/info", 40 },
-                        { "balance/deposit/address/{coin_type}", 40 },
-                        { "contract/transfer/history", 40 },
-                        { "credit/info", 40 },
-                        { "credit/balance", 40 },
-                        { "investment/transfer/history", 40 },
-                        { "margin/account", 1 },
-                        { "margin/config", 1 },
-                        { "margin/loan/history", 40 },
-                        { "margin/transfer/history", 40 },
-                        { "order/deals", 40 },
-                        { "order/finished", 40 },
-                        { "order/pending", 8 },
-                        { "order/status", 8 },
-                        { "order/status/batch", 8 },
-                        { "order/user/deals", 40 },
-                        { "order/stop/finished", 40 },
-                        { "order/stop/pending", 8 },
-                        { "order/user/trade/fee", 1 },
-                        { "order/market/trade/info", 1 },
-                        { "sub_account/balance", 1 },
-                        { "sub_account/transfer/history", 40 },
-                        { "sub_account/auth/api", 40 },
-                        { "sub_account/auth/api/{user_auth_id}", 40 },
+                { "v2", new Dictionary<string, object>() {
+                    { "public", new Dictionary<string, object>() {
+                        { "get", new Dictionary<string, object>() {
+                            { "maintain-info", 1 },
+                            { "ping", 1 },
+                            { "time", 1 },
+                            { "spot/market", 1 },
+                            { "spot/ticker", 1 },
+                            { "spot/depth", 1 },
+                            { "spot/deals", 1 },
+                            { "spot/kline", 1 },
+                            { "spot/index", 1 },
+                            { "futures/market", 1 },
+                            { "futures/ticker", 1 },
+                            { "futures/depth", 1 },
+                            { "futures/deals", 1 },
+                            { "futures/kline", 1 },
+                            { "futures/index", 1 },
+                            { "futures/funding-rate", 1 },
+                            { "futures/funding-rate-history", 1 },
+                            { "futures/position-level", 1 },
+                            { "futures/liquidation-history", 1 },
+                            { "futures/basis-history", 1 },
+                        } },
                     } },
-                    { "post", new Dictionary<string, object>() {
-                        { "balance/coin/withdraw", 40 },
-                        { "contract/balance/transfer", 40 },
-                        { "margin/flat", 40 },
-                        { "margin/loan", 40 },
-                        { "margin/transfer", 40 },
-                        { "order/limit/batch", 40 },
-                        { "order/ioc", 13.334 },
-                        { "order/limit", 13.334 },
-                        { "order/market", 13.334 },
-                        { "order/modify", 13.334 },
-                        { "order/stop/limit", 13.334 },
-                        { "order/stop/market", 13.334 },
-                        { "order/stop/modify", 13.334 },
-                        { "sub_account/transfer", 40 },
-                        { "sub_account/register", 1 },
-                        { "sub_account/unfrozen", 40 },
-                        { "sub_account/frozen", 40 },
-                        { "sub_account/auth/api", 40 },
-                    } },
-                    { "put", new Dictionary<string, object>() {
-                        { "balance/deposit/address/{coin_type}", 40 },
-                        { "sub_account/unfrozen", 40 },
-                        { "sub_account/frozen", 40 },
-                        { "sub_account/auth/api/{user_auth_id}", 40 },
-                        { "v1/account/settings", 40 },
-                    } },
-                    { "delete", new Dictionary<string, object>() {
-                        { "balance/coin/withdraw", 40 },
-                        { "order/pending/batch", 40 },
-                        { "order/pending", 13.334 },
-                        { "order/stop/pending", 40 },
-                        { "order/stop/pending/{id}", 13.334 },
-                        { "order/pending/by_client_id", 40 },
-                        { "order/stop/pending/by_client_id", 40 },
-                        { "sub_account/auth/api/{user_auth_id}", 40 },
-                        { "sub_account/authorize/{id}", 40 },
-                    } },
-                } },
-                { "perpetualPublic", new Dictionary<string, object>() {
-                    { "get", new Dictionary<string, object>() {
-                        { "ping", 1 },
-                        { "time", 1 },
-                        { "market/list", 1 },
-                        { "market/limit_config", 1 },
-                        { "market/ticker", 1 },
-                        { "market/ticker/all", 1 },
-                        { "market/depth", 1 },
-                        { "market/deals", 1 },
-                        { "market/funding_history", 1 },
-                        { "market/kline", 1 },
-                    } },
-                } },
-                { "perpetualPrivate", new Dictionary<string, object>() {
-                    { "get", new Dictionary<string, object>() {
-                        { "market/user_deals", 1 },
-                        { "asset/query", 40 },
-                        { "order/pending", 8 },
-                        { "order/finished", 40 },
-                        { "order/stop_finished", 40 },
-                        { "order/stop_pending", 8 },
-                        { "order/status", 8 },
-                        { "order/stop_status", 8 },
-                        { "position/finished", 40 },
-                        { "position/pending", 40 },
-                        { "position/funding", 40 },
-                        { "position/adl_history", 40 },
-                        { "market/preference", 40 },
-                        { "position/margin_history", 40 },
-                        { "position/settle_history", 40 },
-                    } },
-                    { "post", new Dictionary<string, object>() {
-                        { "market/adjust_leverage", 1 },
-                        { "market/position_expect", 1 },
-                        { "order/put_limit", 20 },
-                        { "order/put_market", 20 },
-                        { "order/put_stop_limit", 20 },
-                        { "order/put_stop_market", 20 },
-                        { "order/modify", 20 },
-                        { "order/modify_stop", 20 },
-                        { "order/cancel", 20 },
-                        { "order/cancel_all", 40 },
-                        { "order/cancel_batch", 40 },
-                        { "order/cancel_stop", 20 },
-                        { "order/cancel_stop_all", 40 },
-                        { "order/close_limit", 20 },
-                        { "order/close_market", 20 },
-                        { "position/adjust_margin", 20 },
-                        { "position/stop_loss", 20 },
-                        { "position/take_profit", 20 },
-                        { "position/market_close", 20 },
-                        { "order/cancel/by_client_id", 20 },
-                        { "order/cancel_stop/by_client_id", 20 },
-                        { "market/preference", 20 },
+                    { "private", new Dictionary<string, object>() {
+                        { "get", new Dictionary<string, object>() {
+                            { "account/subs", 1 },
+                            { "account/subs/api-detail", 40 },
+                            { "account/subs/info", 1 },
+                            { "account/subs/api", 40 },
+                            { "account/subs/transfer-history", 40 },
+                            { "account/subs/spot-balance", 1 },
+                            { "account/trade-fee-rate", 40 },
+                            { "assets/spot/balance", 40 },
+                            { "assets/futures/balance", 40 },
+                            { "assets/margin/balance", 1 },
+                            { "assets/financial/balance", 40 },
+                            { "assets/amm/liquidity", 40 },
+                            { "assets/credit/info", 40 },
+                            { "assets/margin/borrow-history", 40 },
+                            { "assets/margin/interest-limit", 1 },
+                            { "assets/deposit-address", 40 },
+                            { "assets/deposit-history", 40 },
+                            { "assets/withdraw", 40 },
+                            { "assets/deposit-withdraw-config", 1 },
+                            { "assets/transfer-history", 40 },
+                            { "spot/order-status", 8 },
+                            { "spot/batch-order-status", 8 },
+                            { "spot/pending-order", 8 },
+                            { "spot/finished-order", 40 },
+                            { "spot/pending-stop-order", 8 },
+                            { "spot/finished-stop-order", 40 },
+                            { "spot/user-deals", 40 },
+                            { "spot/order-deals", 40 },
+                            { "futures/order-status", 8 },
+                            { "futures/batch-order-status", 1 },
+                            { "futures/pending-order", 8 },
+                            { "futures/finished-order", 40 },
+                            { "futures/pending-stop-order", 8 },
+                            { "futures/finished-stop-order", 40 },
+                            { "futures/user-deals", 1 },
+                            { "futures/order-deals", 1 },
+                            { "futures/pending-position", 40 },
+                            { "futures/finished-position", 1 },
+                            { "futures/position-margin-history", 1 },
+                            { "futures/position-funding-history", 40 },
+                            { "futures/position-adl-history", 1 },
+                            { "futures/position-settle-history", 1 },
+                        } },
+                        { "post", new Dictionary<string, object>() {
+                            { "account/subs", 40 },
+                            { "account/subs/frozen", 40 },
+                            { "account/subs/unfrozen", 40 },
+                            { "account/subs/api", 40 },
+                            { "account/subs/edit-api", 40 },
+                            { "account/subs/delete-api", 40 },
+                            { "account/subs/transfer", 40 },
+                            { "account/settings", 40 },
+                            { "assets/margin/borrow", 40 },
+                            { "assets/margin/repay", 40 },
+                            { "assets/renewal-deposit-address", 40 },
+                            { "assets/withdraw", 40 },
+                            { "assets/cancel-withdraw", 40 },
+                            { "assets/transfer", 40 },
+                            { "assets/amm/add-liquidity", 1 },
+                            { "assets/amm/remove-liquidity", 1 },
+                            { "spot/order", 13.334 },
+                            { "spot/stop-order", 13.334 },
+                            { "spot/batch-order", 40 },
+                            { "spot/batch-stop-order", 1 },
+                            { "spot/modify-order", 13.334 },
+                            { "spot/modify-stop-order", 13.334 },
+                            { "spot/cancel-all-order", 1 },
+                            { "spot/cancel-order", 6.667 },
+                            { "spot/cancel-stop-order", 6.667 },
+                            { "spot/cancel-batch-order", 10 },
+                            { "spot/cancel-batch-stop-order", 10 },
+                            { "spot/cancel-order-by-client-id", 1 },
+                            { "spot/cancel-stop-order-by-client-id", 1 },
+                            { "futures/order", 20 },
+                            { "futures/stop-order", 20 },
+                            { "futures/batch-order", 1 },
+                            { "futures/batch-stop-order", 1 },
+                            { "futures/modify-order", 20 },
+                            { "futures/modify-stop-order", 20 },
+                            { "futures/cancel-all-order", 1 },
+                            { "futures/cancel-order", 10 },
+                            { "futures/cancel-stop-order", 10 },
+                            { "futures/cancel-batch-order", 20 },
+                            { "futures/cancel-batch-stop-order", 20 },
+                            { "futures/cancel-order-by-client-id", 1 },
+                            { "futures/cancel-stop-order-by-client-id", 1 },
+                            { "futures/close-position", 20 },
+                            { "futures/adjust-position-margin", 20 },
+                            { "futures/adjust-position-leverage", 20 },
+                            { "futures/set-position-stop-loss", 20 },
+                            { "futures/set-position-take-profit", 20 },
+                        } },
                     } },
                 } },
             } },
@@ -340,7 +463,7 @@ public partial class coinex : Exchange
     public async override Task<object> fetchCurrencies(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object response = await this.publicGetCommonAssetConfig(parameters);
+        object response = await this.v1PublicGetCommonAssetConfig(parameters);
         //     {
         //         "code": 0,
         //         "data": {
@@ -496,7 +619,7 @@ public partial class coinex : Exchange
 
     public async virtual Task<object> fetchSpotMarkets(object parameters)
     {
-        object response = await this.publicGetMarketInfo(parameters);
+        object response = await this.v1PublicGetMarketInfo(parameters);
         //
         //     {
         //         "code": 0,
@@ -589,7 +712,7 @@ public partial class coinex : Exchange
 
     public async virtual Task<object> fetchContractMarkets(object parameters)
     {
-        object response = await this.perpetualPublicGetMarketList(parameters);
+        object response = await this.v1PerpetualPublicGetMarketList(parameters);
         //
         //     {
         //         "code": 0,
@@ -778,10 +901,10 @@ public partial class coinex : Exchange
         object response = null;
         if (isTrue(getValue(market, "swap")))
         {
-            response = await this.perpetualPublicGetMarketTicker(this.extend(request, parameters));
+            response = await this.v1PerpetualPublicGetMarketTicker(this.extend(request, parameters));
         } else
         {
-            response = await this.publicGetMarketTicker(this.extend(request, parameters));
+            response = await this.v1PublicGetMarketTicker(this.extend(request, parameters));
         }
         //
         // Spot
@@ -867,10 +990,10 @@ public partial class coinex : Exchange
         object response = null;
         if (isTrue(isEqual(marketType, "swap")))
         {
-            response = await this.perpetualPublicGetMarketTickerAll(query);
+            response = await this.v1PerpetualPublicGetMarketTickerAll(query);
         } else
         {
-            response = await this.publicGetMarketTickerAll();
+            response = await this.v1PublicGetMarketTickerAll();
         }
         //
         // Spot
@@ -956,20 +1079,23 @@ public partial class coinex : Exchange
         * @method
         * @name coinex#fetchTime
         * @description fetches the current integer timestamp in milliseconds from the exchange server
-        * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http005_system_time
+        * @see https://docs.coinex.com/api/v2/common/http/time
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {int} the current integer timestamp in milliseconds from the exchange server
         */
         parameters ??= new Dictionary<string, object>();
-        object response = await this.perpetualPublicGetTime(parameters);
+        object response = await this.v2PublicGetTime(parameters);
         //
         //     {
-        //         "code": "0",
-        //         "data": "1653261274414",
+        //         "code": 0,
+        //         "data": {
+        //             "timestamp": 1711699867777
+        //         },
         //         "message": "OK"
         //     }
         //
-        return this.safeInteger(response, "data");
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        return this.safeInteger(data, "timestamp");
     }
 
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
@@ -1001,10 +1127,10 @@ public partial class coinex : Exchange
         object response = null;
         if (isTrue(getValue(market, "swap")))
         {
-            response = await this.perpetualPublicGetMarketDepth(this.extend(request, parameters));
+            response = await this.v1PerpetualPublicGetMarketDepth(this.extend(request, parameters));
         } else
         {
-            response = await this.publicGetMarketDepth(this.extend(request, parameters));
+            response = await this.v1PublicGetMarketDepth(this.extend(request, parameters));
         }
         //
         // Spot
@@ -1217,10 +1343,10 @@ public partial class coinex : Exchange
         object response = null;
         if (isTrue(getValue(market, "swap")))
         {
-            response = await this.perpetualPublicGetMarketDeals(this.extend(request, parameters));
+            response = await this.v1PerpetualPublicGetMarketDeals(this.extend(request, parameters));
         } else
         {
-            response = await this.publicGetMarketDeals(this.extend(request, parameters));
+            response = await this.v1PublicGetMarketDeals(this.extend(request, parameters));
         }
         //
         // Spot and Swap
@@ -1249,7 +1375,8 @@ public partial class coinex : Exchange
         * @method
         * @name coinex#fetchTradingFee
         * @description fetch the trading fees for a market
-        * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot001_market003_single_market_info
+        * @see https://docs.coinex.com/api/v2/spot/market/http/list-market
+        * @see https://docs.coinex.com/api/v2/futures/market/http/list-market
         * @param {string} symbol unified market symbol
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
@@ -1260,25 +1387,17 @@ public partial class coinex : Exchange
         object request = new Dictionary<string, object>() {
             { "market", getValue(market, "id") },
         };
-        object response = await this.publicGetMarketDetail(this.extend(request, parameters));
-        //
-        //     {
-        //         "code": 0,
-        //         "data": {
-        //           "name": "BTCUSDC",
-        //           "min_amount": "0.0005",
-        //           "maker_fee_rate": "0.002",
-        //           "taker_fee_rate": "0.002",
-        //           "pricing_name": "USDC",
-        //           "pricing_decimal": 2,
-        //           "trading_name": "BTC",
-        //           "trading_decimal": 8
-        //         },
-        //         "message": "OK"
-        //      }
-        //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        return this.parseTradingFee(data, market);
+        object response = null;
+        if (isTrue(getValue(market, "spot")))
+        {
+            response = await this.v2PublicGetSpotMarket(this.extend(request, parameters));
+        } else
+        {
+            response = await this.v2PublicGetFuturesMarket(this.extend(request, parameters));
+        }
+        object data = this.safeList(response, "data", new List<object>() {});
+        object result = this.safeDict(data, 0, new Dictionary<string, object>() {});
+        return this.parseTradingFee(result, market);
     }
 
     public async override Task<object> fetchTradingFees(object parameters = null)
@@ -1287,46 +1406,41 @@ public partial class coinex : Exchange
         * @method
         * @name coinex#fetchTradingFees
         * @description fetch the trading fees for multiple markets
-        * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot001_market002_all_market_info
+        * @see https://docs.coinex.com/api/v2/spot/market/http/list-market
+        * @see https://docs.coinex.com/api/v2/futures/market/http/list-market
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object response = await this.publicGetMarketInfo(parameters);
-        //
-        //     {
-        //         "code": 0,
-        //         "data": {
-        //             "WAVESBTC": {
-        //                 "name": "WAVESBTC",
-        //                 "min_amount": "1",
-        //                 "maker_fee_rate": "0.001",
-        //                 "taker_fee_rate": "0.001",
-        //                 "pricing_name": "BTC",
-        //                 "pricing_decimal": 8,
-        //                 "trading_name": "WAVES",
-        //                 "trading_decimal": 8
-        //             }
-        //             ...
-        //         }
-        //     }
-        //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(this.symbols)); postFixIncrement(ref i))
+        object type = null;
+        var typeparametersVariable = this.handleMarketTypeAndParams("fetchTradingFees", null, parameters);
+        type = ((IList<object>)typeparametersVariable)[0];
+        parameters = ((IList<object>)typeparametersVariable)[1];
+        object response = null;
+        if (isTrue(isEqual(type, "swap")))
         {
-            object symbol = getValue(this.symbols, i);
-            object market = this.market(symbol);
-            object fee = this.safeValue(data, getValue(market, "id"), new Dictionary<string, object>() {});
-            ((IDictionary<string,object>)result)[(string)symbol] = this.parseTradingFee(fee, market);
+            response = await this.v2PublicGetFuturesMarket(parameters);
+        } else
+        {
+            response = await this.v2PublicGetSpotMarket(parameters);
+        }
+        object data = this.safeList(response, "data", new List<object>() {});
+        object result = new Dictionary<string, object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+        {
+            object entry = getValue(data, i);
+            object marketId = this.safeString(entry, "market");
+            object market = this.safeMarket(marketId, null, null, type);
+            object symbol = getValue(market, "symbol");
+            ((IDictionary<string,object>)result)[(string)symbol] = this.parseTradingFee(entry, market);
         }
         return result;
     }
 
     public virtual object parseTradingFee(object fee, object market = null)
     {
-        object marketId = this.safeValue(fee, "name");
+        object marketId = this.safeValue(fee, "market");
         object symbol = this.safeSymbol(marketId, market);
         return new Dictionary<string, object>() {
             { "info", fee },
@@ -1385,10 +1499,10 @@ public partial class coinex : Exchange
         object response = null;
         if (isTrue(getValue(market, "swap")))
         {
-            response = await this.perpetualPublicGetMarketKline(this.extend(request, parameters));
+            response = await this.v1PerpetualPublicGetMarketKline(this.extend(request, parameters));
         } else
         {
-            response = await this.publicGetMarketKline(this.extend(request, parameters));
+            response = await this.v1PublicGetMarketKline(this.extend(request, parameters));
         }
         //
         // Spot
@@ -1415,7 +1529,7 @@ public partial class coinex : Exchange
         //         "message": "OK"
         //     }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseOHLCVs(data, market, timeframe, since, limit);
     }
 
@@ -1438,7 +1552,7 @@ public partial class coinex : Exchange
         object request = new Dictionary<string, object>() {
             { "market", marketId },
         };
-        object response = await this.privateGetMarginAccount(this.extend(request, parameters));
+        object response = await this.v1PrivateGetMarginAccount(this.extend(request, parameters));
         //
         //      {
         //          "code":    0,
@@ -1510,7 +1624,7 @@ public partial class coinex : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object response = await this.privateGetBalanceInfo(parameters);
+        object response = await this.v1PrivateGetBalanceInfo(parameters);
         //
         //     {
         //       "code": 0,
@@ -1553,7 +1667,7 @@ public partial class coinex : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object response = await this.perpetualPrivateGetAssetQuery(parameters);
+        object response = await this.v1PerpetualPrivateGetAssetQuery(parameters);
         //
         //     {
         //         "code": 0,
@@ -1593,7 +1707,7 @@ public partial class coinex : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object response = await this.privateGetAccountInvestmentBalance(parameters);
+        object response = await this.v1PrivateGetAccountInvestmentBalance(parameters);
         //
         //     {
         //          "code": 0,
@@ -2298,19 +2412,19 @@ public partial class coinex : Exchange
             {
                 if (isTrue(isEqual(type, "limit")))
                 {
-                    response = await this.privatePostOrderStopLimit(request);
+                    response = await this.v1PrivatePostOrderStopLimit(request);
                 } else
                 {
-                    response = await this.privatePostOrderStopMarket(request);
+                    response = await this.v1PrivatePostOrderStopMarket(request);
                 }
             } else
             {
                 if (isTrue(isEqual(type, "limit")))
                 {
-                    response = await this.privatePostOrderLimit(request);
+                    response = await this.v1PrivatePostOrderLimit(request);
                 } else
                 {
-                    response = await this.privatePostOrderMarket(request);
+                    response = await this.v1PrivatePostOrderMarket(request);
                 }
             }
         } else
@@ -2319,19 +2433,19 @@ public partial class coinex : Exchange
             {
                 if (isTrue(isEqual(type, "limit")))
                 {
-                    response = await this.perpetualPrivatePostOrderPutStopLimit(request);
+                    response = await this.v1PerpetualPrivatePostOrderPutStopLimit(request);
                 } else
                 {
-                    response = await this.perpetualPrivatePostOrderPutStopMarket(request);
+                    response = await this.v1PerpetualPrivatePostOrderPutStopMarket(request);
                 }
             } else if (isTrue(isStopLossOrTakeProfitTrigger))
             {
                 if (isTrue(isStopLossTriggerOrder))
                 {
-                    response = await this.perpetualPrivatePostPositionStopLoss(request);
+                    response = await this.v1PerpetualPrivatePostPositionStopLoss(request);
                 } else if (isTrue(isTakeProfitTriggerOrder))
                 {
-                    response = await this.perpetualPrivatePostPositionTakeProfit(request);
+                    response = await this.v1PerpetualPrivatePostPositionTakeProfit(request);
                 }
             } else
             {
@@ -2339,19 +2453,19 @@ public partial class coinex : Exchange
                 {
                     if (isTrue(isEqual(type, "limit")))
                     {
-                        response = await this.perpetualPrivatePostOrderCloseLimit(request);
+                        response = await this.v1PerpetualPrivatePostOrderCloseLimit(request);
                     } else
                     {
-                        response = await this.perpetualPrivatePostOrderCloseMarket(request);
+                        response = await this.v1PerpetualPrivatePostOrderCloseMarket(request);
                     }
                 } else
                 {
                     if (isTrue(isEqual(type, "limit")))
                     {
-                        response = await this.perpetualPrivatePostOrderPutLimit(request);
+                        response = await this.v1PerpetualPrivatePostOrderPutLimit(request);
                     } else
                     {
-                        response = await this.perpetualPrivatePostOrderPutMarket(request);
+                        response = await this.v1PerpetualPrivatePostOrderPutMarket(request);
                     }
                 }
             }
@@ -2433,7 +2547,7 @@ public partial class coinex : Exchange
         //
         //     {"code":0,"data":{"status":"success"},"message":"OK"}
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return this.parseOrder(data, market);
     }
 
@@ -2487,7 +2601,7 @@ public partial class coinex : Exchange
             { "market", getValue(market, "id") },
             { "batch_orders", this.json(ordersRequests) },
         };
-        object response = await this.privatePostOrderLimitBatch(request);
+        object response = await this.v1PrivatePostOrderLimitBatch(request);
         //
         //     {
         //         "code": 0,
@@ -2578,11 +2692,11 @@ public partial class coinex : Exchange
         if (isTrue(getValue(market, "spot")))
         {
             ((IDictionary<string,object>)request)["batch_ids"] = idsString;
-            response = await this.privateDeleteOrderPendingBatch(this.extend(request, parameters));
+            response = await this.v1PrivateDeleteOrderPendingBatch(this.extend(request, parameters));
         } else
         {
             ((IDictionary<string,object>)request)["order_ids"] = idsString;
-            response = await this.perpetualPrivatePostOrderCancelBatch(this.extend(request, parameters));
+            response = await this.v1PerpetualPrivatePostOrderCancelBatch(this.extend(request, parameters));
         }
         //
         // spot
@@ -2727,7 +2841,7 @@ public partial class coinex : Exchange
         {
             ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
         }
-        object response = await this.privatePostOrderModify(this.extend(request, parameters));
+        object response = await this.v1PrivatePostOrderModify(this.extend(request, parameters));
         //
         //     {
         //         "code": 0,
@@ -2759,7 +2873,7 @@ public partial class coinex : Exchange
         //         "message": "Success"
         //     }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return this.parseOrder(data, market);
     }
 
@@ -2819,19 +2933,19 @@ public partial class coinex : Exchange
             {
                 if (isTrue(swap))
                 {
-                    response = await this.perpetualPrivatePostOrderCancelStopByClientId(this.extend(request, query));
+                    response = await this.v1PerpetualPrivatePostOrderCancelStopByClientId(this.extend(request, query));
                 } else
                 {
-                    response = await this.privateDeleteOrderStopPendingByClientId(this.extend(request, query));
+                    response = await this.v1PrivateDeleteOrderStopPendingByClientId(this.extend(request, query));
                 }
             } else
             {
                 if (isTrue(swap))
                 {
-                    response = await this.perpetualPrivatePostOrderCancelByClientId(this.extend(request, query));
+                    response = await this.v1PerpetualPrivatePostOrderCancelByClientId(this.extend(request, query));
                 } else
                 {
-                    response = await this.privateDeleteOrderPendingByClientId(this.extend(request, query));
+                    response = await this.v1PrivateDeleteOrderPendingByClientId(this.extend(request, query));
                 }
             }
         } else
@@ -2842,19 +2956,19 @@ public partial class coinex : Exchange
             {
                 if (isTrue(swap))
                 {
-                    response = await this.perpetualPrivatePostOrderCancelStop(this.extend(request, query));
+                    response = await this.v1PerpetualPrivatePostOrderCancelStop(this.extend(request, query));
                 } else
                 {
-                    response = await this.privateDeleteOrderStopPendingId(this.extend(request, query));
+                    response = await this.v1PrivateDeleteOrderStopPendingId(this.extend(request, query));
                 }
             } else
             {
                 if (isTrue(swap))
                 {
-                    response = await this.perpetualPrivatePostOrderCancel(this.extend(request, query));
+                    response = await this.v1PerpetualPrivatePostOrderCancel(this.extend(request, query));
                 } else
                 {
-                    response = await this.privateDeleteOrderPending(this.extend(request, query));
+                    response = await this.v1PrivateDeleteOrderPending(this.extend(request, query));
                 }
             }
         }
@@ -2964,7 +3078,7 @@ public partial class coinex : Exchange
         //
         //     {"code":0,"data":{},"message":"Success"}
         //
-        object data = this.safeValue(response, "data");
+        object data = this.safeDict(response, "data");
         return this.parseOrder(data, market);
     }
 
@@ -3002,20 +3116,20 @@ public partial class coinex : Exchange
         {
             if (isTrue(stop))
             {
-                response = await this.perpetualPrivatePostOrderCancelStopAll(this.extend(request, parameters));
+                response = await this.v1PerpetualPrivatePostOrderCancelStopAll(this.extend(request, parameters));
             } else
             {
-                response = await this.perpetualPrivatePostOrderCancelAll(this.extend(request, parameters));
+                response = await this.v1PerpetualPrivatePostOrderCancelAll(this.extend(request, parameters));
             }
         } else
         {
             ((IDictionary<string,object>)request)["account_id"] = accountId;
             if (isTrue(stop))
             {
-                response = await this.privateDeleteOrderStopPending(this.extend(request, parameters));
+                response = await this.v1PrivateDeleteOrderStopPending(this.extend(request, parameters));
             } else
             {
-                response = await this.privateDeleteOrderPending(this.extend(request, parameters));
+                response = await this.v1PrivateDeleteOrderPending(this.extend(request, parameters));
             }
         }
         //
@@ -3063,14 +3177,14 @@ public partial class coinex : Exchange
         {
             if (isTrue(stop))
             {
-                response = await this.perpetualPrivateGetOrderStopStatus(this.extend(request, parameters));
+                response = await this.v1PerpetualPrivateGetOrderStopStatus(this.extend(request, parameters));
             } else
             {
-                response = await this.perpetualPrivateGetOrderStatus(this.extend(request, parameters));
+                response = await this.v1PerpetualPrivateGetOrderStatus(this.extend(request, parameters));
             }
         } else
         {
-            response = await this.privateGetOrderStatus(this.extend(request, parameters));
+            response = await this.v1PrivateGetOrderStatus(this.extend(request, parameters));
         }
         //
         // Spot
@@ -3170,7 +3284,7 @@ public partial class coinex : Exchange
         //         "message":"OK"
         //     }
         //
-        object data = this.safeValue(response, "data");
+        object data = this.safeDict(response, "data");
         return this.parseOrder(data, market);
     }
 
@@ -3225,15 +3339,15 @@ public partial class coinex : Exchange
             ((IDictionary<string,object>)request)["offset"] = 0;
             if (isTrue(stop))
             {
-                response = await this.perpetualPrivateGetOrderStopPending(this.extend(request, parameters));
+                response = await this.v1PerpetualPrivateGetOrderStopPending(this.extend(request, parameters));
             } else
             {
                 if (isTrue(isEqual(status, "finished")))
                 {
-                    response = await this.perpetualPrivateGetOrderFinished(this.extend(request, parameters));
+                    response = await this.v1PerpetualPrivateGetOrderFinished(this.extend(request, parameters));
                 } else if (isTrue(isEqual(status, "pending")))
                 {
-                    response = await this.perpetualPrivateGetOrderPending(this.extend(request, parameters));
+                    response = await this.v1PerpetualPrivateGetOrderPending(this.extend(request, parameters));
                 }
             }
         } else
@@ -3243,19 +3357,19 @@ public partial class coinex : Exchange
             {
                 if (isTrue(stop))
                 {
-                    response = await this.privateGetOrderStopFinished(this.extend(request, parameters));
+                    response = await this.v1PrivateGetOrderStopFinished(this.extend(request, parameters));
                 } else
                 {
-                    response = await this.privateGetOrderFinished(this.extend(request, parameters));
+                    response = await this.v1PrivateGetOrderFinished(this.extend(request, parameters));
                 }
             } else if (isTrue(isEqual(status, "pending")))
             {
                 if (isTrue(stop))
                 {
-                    response = await this.privateGetOrderStopPending(this.extend(request, parameters));
+                    response = await this.v1PrivateGetOrderStopPending(this.extend(request, parameters));
                 } else
                 {
-                    response = await this.privateGetOrderPending(this.extend(request, parameters));
+                    response = await this.v1PrivateGetOrderPending(this.extend(request, parameters));
                 }
             }
         }
@@ -3411,7 +3525,7 @@ public partial class coinex : Exchange
         //
         object tradeRequest = ((bool) isTrue((isEqual(marketType, "swap")))) ? "records" : "data";
         object data = this.safeValue(response, "data");
-        object orders = this.safeValue(data, tradeRequest, new List<object>() {});
+        object orders = this.safeList(data, tradeRequest, new List<object>() {});
         return this.parseOrders(orders, market, since, limit);
     }
 
@@ -3477,7 +3591,7 @@ public partial class coinex : Exchange
             parameters = this.omit(parameters, "network");
             ((IDictionary<string,object>)request)["smart_contract_name"] = network;
         }
-        object response = await this.privatePutBalanceDepositAddressCoinType(this.extend(request, parameters));
+        object response = await this.v1PrivatePutBalanceDepositAddressCoinType(this.extend(request, parameters));
         //
         //     {
         //         "code": 0,
@@ -3487,7 +3601,7 @@ public partial class coinex : Exchange
         //         },
         //         "message": "Success"
         //     }
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return this.parseDepositAddress(data, currency);
     }
 
@@ -3528,7 +3642,7 @@ public partial class coinex : Exchange
         {
             ((IDictionary<string,object>)request)["smart_contract_name"] = network;
         }
-        object response = await this.privateGetBalanceDepositAddressCoinType(this.extend(request, parameters));
+        object response = await this.v1PrivateGetBalanceDepositAddressCoinType(this.extend(request, parameters));
         //
         //      {
         //          "code": 0,
@@ -3663,11 +3777,11 @@ public partial class coinex : Exchange
                 ((IDictionary<string,object>)request)["start_time"] = since;
             }
             ((IDictionary<string,object>)request)["side"] = 0;
-            response = await this.perpetualPrivateGetMarketUserDeals(this.extend(request, parameters));
+            response = await this.v1PerpetualPrivateGetMarketUserDeals(this.extend(request, parameters));
         } else
         {
             ((IDictionary<string,object>)request)["page"] = 1;
-            response = await this.privateGetOrderUserDeals(this.extend(request, parameters));
+            response = await this.v1PrivateGetOrderUserDeals(this.extend(request, parameters));
         }
         //
         // Spot and Margin
@@ -3743,7 +3857,7 @@ public partial class coinex : Exchange
         //
         object tradeRequest = ((bool) isTrue(swap)) ? "records" : "data";
         object data = this.safeValue(response, "data");
-        object trades = this.safeValue(data, tradeRequest, new List<object>() {});
+        object trades = this.safeList(data, tradeRequest, new List<object>() {});
         return this.parseTrades(trades, market, since, limit);
     }
 
@@ -3764,10 +3878,10 @@ public partial class coinex : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object defaultMethod = null;
-        var defaultMethodparametersVariable = this.handleOptionAndParams(parameters, "fetchPositions", "method", "perpetualPrivateGetPositionPending");
+        var defaultMethodparametersVariable = this.handleOptionAndParams(parameters, "fetchPositions", "method", "v1PerpetualPrivateGetPositionPending");
         defaultMethod = ((IList<object>)defaultMethodparametersVariable)[0];
         parameters = ((IList<object>)defaultMethodparametersVariable)[1];
-        object isHistory = (isEqual(defaultMethod, "perpetualPrivateGetPositionFinished"));
+        object isHistory = (isEqual(defaultMethod, "v1PerpetualPrivateGetPositionFinished"));
         symbols = this.marketSymbols(symbols);
         object request = new Dictionary<string, object>() {};
         object market = null;
@@ -3801,12 +3915,12 @@ public partial class coinex : Exchange
             ((IDictionary<string,object>)request)["side"] = this.safeInteger(parameters, "side", 0); // 0: All, 1: Sell, 2: Buy
         }
         object response = null;
-        if (isTrue(isEqual(defaultMethod, "perpetualPrivateGetPositionPending")))
+        if (isTrue(isEqual(defaultMethod, "v1PerpetualPrivateGetPositionPending")))
         {
-            response = await this.perpetualPrivateGetPositionPending(this.extend(request, parameters));
+            response = await this.v1PerpetualPrivateGetPositionPending(this.extend(request, parameters));
         } else
         {
-            response = await this.perpetualPrivateGetPositionFinished(this.extend(request, parameters));
+            response = await this.v1PerpetualPrivateGetPositionFinished(this.extend(request, parameters));
         }
         //
         //     {
@@ -3893,7 +4007,7 @@ public partial class coinex : Exchange
         object request = new Dictionary<string, object>() {
             { "market", getValue(market, "id") },
         };
-        object response = await this.perpetualPrivateGetPositionPending(this.extend(request, parameters));
+        object response = await this.v1PerpetualPrivateGetPositionPending(this.extend(request, parameters));
         //
         //     {
         //         "code": 0,
@@ -3953,7 +4067,7 @@ public partial class coinex : Exchange
         //         "message": "OK"
         //     }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parsePosition(getValue(data, 0), market);
     }
 
@@ -4013,8 +4127,7 @@ public partial class coinex : Exchange
         //     }
         //
         object marketId = this.safeString(position, "market");
-        object defaultType = this.safeString(this.options, "defaultType");
-        market = this.safeMarket(marketId, market, null, defaultType);
+        market = this.safeMarket(marketId, market, null, "swap");
         object symbol = getValue(market, "symbol");
         object positionId = this.safeInteger(position, "position_id");
         object marginModeInteger = this.safeInteger(position, "type");
@@ -4120,7 +4233,7 @@ public partial class coinex : Exchange
             { "leverage", ((object)leverage).ToString() },
             { "position_type", positionType },
         };
-        return await this.perpetualPrivatePostMarketAdjustLeverage(this.extend(request, parameters));
+        return await this.v1PerpetualPrivatePostMarketAdjustLeverage(this.extend(request, parameters));
     }
 
     public async override Task<object> setLeverage(object leverage, object symbol = null, object parameters = null)
@@ -4170,7 +4283,7 @@ public partial class coinex : Exchange
             { "leverage", ((object)leverage).ToString() },
             { "position_type", positionType },
         };
-        return await this.perpetualPrivatePostMarketAdjustLeverage(this.extend(request, parameters));
+        return await this.v1PerpetualPrivatePostMarketAdjustLeverage(this.extend(request, parameters));
     }
 
     public async override Task<object> fetchLeverageTiers(object symbols = null, object parameters = null)
@@ -4186,7 +4299,7 @@ public partial class coinex : Exchange
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object response = await this.perpetualPublicGetMarketLimitConfig(parameters);
+        object response = await this.v1PerpetualPublicGetMarketLimitConfig(parameters);
         //
         //     {
         //         "code": 0,
@@ -4275,7 +4388,7 @@ public partial class coinex : Exchange
             { "amount", this.amountToPrecision(symbol, amount) },
             { "type", addOrReduce },
         };
-        object response = await this.perpetualPrivatePostPositionAdjustMargin(this.extend(request, parameters));
+        object response = await this.v1PerpetualPrivatePostPositionAdjustMargin(this.extend(request, parameters));
         //
         //     {
         //         "code": 0,
@@ -4344,13 +4457,72 @@ public partial class coinex : Exchange
 
     public virtual object parseMarginModification(object data, object market = null)
     {
+        //
+        // addMargin/reduceMargin
+        //
+        //    {
+        //        "adl_sort": 1,
+        //        "adl_sort_val": "0.00004320",
+        //        "amount": "0.0005",
+        //        "amount_max": "0.0005",
+        //        "amount_max_margin": "6.57352000000000000000",
+        //        "bkr_price": "16294.08000000000000011090",
+        //        "bkr_price_imply": "0.00000000000000000000",
+        //        "close_left": "0.0005",
+        //        "create_time": 1651202571.320778,
+        //        "deal_all": "19.72000000000000000000",
+        //        "deal_asset_fee": "0.00000000000000000000",
+        //        "fee_asset": "",
+        //        "finish_type": 1,
+        //        "first_price": "39441.12",
+        //        "insurance": "0.00000000000000000000",
+        //        "latest_price": "39441.12",
+        //        "leverage": "3",
+        //        "liq_amount": "0.00000000000000000000",
+        //        "liq_order_price": "0",
+        //        "liq_order_time": 0,
+        //        "liq_price": "16491.28560000000000011090",
+        //        "liq_price_imply": "0.00000000000000000000",
+        //        "liq_profit": "0.00000000000000000000",
+        //        "liq_time": 0,
+        //        "mainten_margin": "0.005",
+        //        "mainten_margin_amount": "0.09860280000000000000",
+        //        "maker_fee": "0.00000000000000000000",
+        //        "margin_amount": "11.57352000000000000000",
+        //        "market": "BTCUSDT",
+        //        "open_margin": "0.58687582908396110455",
+        //        "open_margin_imply": "0.00000000000000000000",
+        //        "open_price": "39441.12000000000000000000",
+        //        "open_val": "19.72056000000000000000",
+        //        "open_val_max": "19.72056000000000000000",
+        //        "position_id": 65171206,
+        //        "profit_clearing": "-0.00986028000000000000",
+        //        "profit_real": "-0.00986028000000000000",
+        //        "profit_unreal": "0.00",
+        //        "side": 2,
+        //        "stop_loss_price": "0.00000000000000000000",
+        //        "stop_loss_type": 0,
+        //        "sys": 0,
+        //        "take_profit_price": "0.00000000000000000000",
+        //        "take_profit_type": 0,
+        //        "taker_fee": "0.00000000000000000000",
+        //        "total": 3464,
+        //        "type": 1,
+        //        "update_time": 1651202638.911212,
+        //        "user_id": 3620173
+        //    }
+        //
+        object timestamp = this.safeIntegerProduct(data, "update_time", 1000);
         return new Dictionary<string, object>() {
             { "info", data },
-            { "type", null },
-            { "amount", null },
-            { "code", getValue(market, "quote") },
             { "symbol", this.safeSymbol(null, market) },
+            { "type", null },
+            { "amount", this.safeNumber(data, "margin_amount") },
+            { "total", null },
+            { "code", getValue(market, "quote") },
             { "status", null },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
         };
     }
 
@@ -4415,7 +4587,7 @@ public partial class coinex : Exchange
         {
             ((IDictionary<string,object>)request)["start_time"] = since;
         }
-        object response = await this.perpetualPrivateGetPositionFunding(this.extend(request, parameters));
+        object response = await this.v1PerpetualPrivateGetPositionFunding(this.extend(request, parameters));
         //
         //     {
         //         "code": 0,
@@ -4486,7 +4658,7 @@ public partial class coinex : Exchange
         object request = new Dictionary<string, object>() {
             { "market", getValue(market, "id") },
         };
-        object response = await this.perpetualPublicGetMarketTicker(this.extend(request, parameters));
+        object response = await this.v1PerpetualPublicGetMarketTicker(this.extend(request, parameters));
         //
         //     {
         //          "code": 0,
@@ -4604,7 +4776,7 @@ public partial class coinex : Exchange
                 throw new BadSymbol ((string)add(this.id, " fetchFundingRates() supports swap contracts only")) ;
             }
         }
-        object response = await this.perpetualPublicGetMarketTickerAll(parameters);
+        object response = await this.v1PerpetualPublicGetMarketTickerAll(parameters);
         //
         //     {
         //         "code": 0,
@@ -4695,7 +4867,7 @@ public partial class coinex : Exchange
         {
             ((IDictionary<string,object>)request)["smart_contract_name"] = this.networkCodeToId(networkCode);
         }
-        object response = await this.privatePostBalanceCoinWithdraw(this.extend(request, parameters));
+        object response = await this.v1PrivatePostBalanceCoinWithdraw(this.extend(request, parameters));
         //
         //     {
         //         "code": 0,
@@ -4714,7 +4886,7 @@ public partial class coinex : Exchange
         //         "message": "Ok"
         //     }
         //
-        object transaction = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        object transaction = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return this.parseTransaction(transaction, currency);
     }
 
@@ -4779,7 +4951,7 @@ public partial class coinex : Exchange
         var requestparametersVariable = this.handleUntilOption("end_time", request, parameters);
         request = ((IList<object>)requestparametersVariable)[0];
         parameters = ((IList<object>)requestparametersVariable)[1];
-        object response = await this.perpetualPublicGetMarketFundingHistory(this.extend(request, parameters));
+        object response = await this.v1PerpetualPublicGetMarketFundingHistory(this.extend(request, parameters));
         //
         //     {
         //         "code": 0,
@@ -4968,11 +5140,11 @@ public partial class coinex : Exchange
         if (isTrue(isTrue((isEqual(fromAccount, "spot"))) && isTrue((isEqual(toAccount, "swap")))))
         {
             ((IDictionary<string,object>)request)["transfer_side"] = "in"; // 'in' spot to swap, 'out' swap to spot
-            response = await this.privatePostContractBalanceTransfer(this.extend(request, parameters));
+            response = await this.v1PrivatePostContractBalanceTransfer(this.extend(request, parameters));
         } else if (isTrue(isTrue((isEqual(fromAccount, "swap"))) && isTrue((isEqual(toAccount, "spot")))))
         {
             ((IDictionary<string,object>)request)["transfer_side"] = "out"; // 'in' spot to swap, 'out' swap to spot
-            response = await this.privatePostContractBalanceTransfer(this.extend(request, parameters));
+            response = await this.v1PrivatePostContractBalanceTransfer(this.extend(request, parameters));
         } else
         {
             object accountsById = this.safeValue(this.options, "accountsById", new Dictionary<string, object>() {});
@@ -4982,7 +5154,7 @@ public partial class coinex : Exchange
             // spot is 0, use fetchBalance() to find the margin account id
             ((IDictionary<string,object>)request)["from_account"] = parseInt(fromId);
             ((IDictionary<string,object>)request)["to_account"] = parseInt(toId);
-            response = await this.privatePostMarginTransfer(this.extend(request, parameters));
+            response = await this.v1PrivatePostMarginTransfer(this.extend(request, parameters));
         }
         //
         //     {"code": 0, "data": null, "message": "Success"}
@@ -5115,10 +5287,10 @@ public partial class coinex : Exchange
         object response = null;
         if (isTrue(!isEqual(marginMode, null)))
         {
-            response = await this.privateGetMarginTransferHistory(this.extend(request, parameters));
+            response = await this.v1PrivateGetMarginTransferHistory(this.extend(request, parameters));
         } else
         {
-            response = await this.privateGetContractTransferHistory(this.extend(request, parameters));
+            response = await this.v1PrivateGetContractTransferHistory(this.extend(request, parameters));
         }
         //
         // Swap
@@ -5165,7 +5337,7 @@ public partial class coinex : Exchange
         //     }
         //
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object transfers = this.safeValue(data, "records", new List<object>() {});
+        object transfers = this.safeList(data, "records", new List<object>() {});
         return this.parseTransfers(transfers, currency, since, limit);
     }
 
@@ -5195,7 +5367,7 @@ public partial class coinex : Exchange
         {
             ((IDictionary<string,object>)request)["Limit"] = limit;
         }
-        object response = await this.privateGetBalanceCoinWithdraw(this.extend(request, parameters));
+        object response = await this.v1PrivateGetBalanceCoinWithdraw(this.extend(request, parameters));
         //
         //    {
         //        "code": 0,
@@ -5268,7 +5440,7 @@ public partial class coinex : Exchange
         {
             ((IDictionary<string,object>)request)["Limit"] = limit;
         }
-        object response = await this.privateGetBalanceCoinDeposit(this.extend(request, parameters));
+        object response = await this.v1PrivateGetBalanceCoinDeposit(this.extend(request, parameters));
         //
         //    {
         //        "code": 0,
@@ -5367,7 +5539,7 @@ public partial class coinex : Exchange
         object request = new Dictionary<string, object>() {
             { "market", getValue(market, "id") },
         };
-        object response = await this.privateGetMarginConfig(this.extend(request, parameters));
+        object response = await this.v1PrivateGetMarginConfig(this.extend(request, parameters));
         //
         //     {
         //         "code": 0,
@@ -5404,7 +5576,7 @@ public partial class coinex : Exchange
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object response = await this.privateGetMarginConfig(parameters);
+        object response = await this.v1PrivateGetMarginConfig(parameters);
         //
         //     {
         //         "code": 0,
@@ -5451,7 +5623,7 @@ public partial class coinex : Exchange
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
-        object response = await this.privateGetMarginLoanHistory(this.extend(request, parameters));
+        object response = await this.v1PrivateGetMarginLoanHistory(this.extend(request, parameters));
         //
         //     {
         //         "code": 0,
@@ -5553,7 +5725,7 @@ public partial class coinex : Exchange
             { "coin_type", getValue(currency, "id") },
             { "amount", this.currencyToPrecision(code, amount) },
         };
-        object response = await this.privatePostMarginLoan(this.extend(request, parameters));
+        object response = await this.v1PrivatePostMarginLoan(this.extend(request, parameters));
         //
         //     {
         //         "code": 0,
@@ -5594,7 +5766,7 @@ public partial class coinex : Exchange
             { "coin_type", getValue(currency, "id") },
             { "amount", this.currencyToPrecision(code, amount) },
         };
-        object response = await this.privatePostMarginFlat(this.extend(request, parameters));
+        object response = await this.v1PrivatePostMarginFlat(this.extend(request, parameters));
         //
         //     {
         //         "code": 0,
@@ -5659,7 +5831,7 @@ public partial class coinex : Exchange
                 ((IDictionary<string,object>)request)["coin_type"] = this.safeValue(codes, 0);
             }
         }
-        object response = await this.publicGetCommonAssetConfig(this.extend(request, parameters));
+        object response = await this.v1PublicGetCommonAssetConfig(this.extend(request, parameters));
         //
         //    {
         //        "code": 0,
@@ -5773,7 +5945,7 @@ public partial class coinex : Exchange
         {
             throw new NotSupported ((string)add(this.id, " fetchLeverages() supports spot margin markets only")) ;
         }
-        object response = await this.privateGetMarginConfig(parameters);
+        object response = await this.v1PrivateGetMarginConfig(parameters);
         //
         //     {
         //         "code": 0,
@@ -5846,11 +6018,13 @@ public partial class coinex : Exchange
 
     public override object sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
     {
-        api ??= "public";
+        api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         path = this.implodeParams(path, parameters);
-        object url = add(add(add(add(getValue(getValue(this.urls, "api"), api), "/"), this.version), "/"), path);
+        object version = getValue(api, 0);
+        object requestUrl = getValue(api, 1);
+        object url = add(add(add(add(getValue(getValue(this.urls, "api"), requestUrl), "/"), version), "/"), path);
         object query = this.omit(parameters, this.extractParams(path));
         object nonce = ((object)this.nonce()).ToString();
         if (isTrue(isEqual(method, "POST")))
@@ -5882,7 +6056,7 @@ public partial class coinex : Exchange
                 }
             }
         }
-        if (isTrue(isEqual(api, "perpetualPrivate")))
+        if (isTrue(isEqual(requestUrl, "perpetualPrivate")))
         {
             this.checkRequiredCredentials();
             query = this.extend(new Dictionary<string, object>() {
@@ -5904,7 +6078,7 @@ public partial class coinex : Exchange
                 ((IDictionary<string,object>)headers)["Content-Type"] = "application/x-www-form-urlencoded";
                 body = urlencoded;
             }
-        } else if (isTrue(isTrue(isEqual(api, "public")) || isTrue(isEqual(api, "perpetualPublic"))))
+        } else if (isTrue(isTrue(isEqual(requestUrl, "public")) || isTrue(isEqual(requestUrl, "perpetualPublic"))))
         {
             if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys))))
             {
@@ -5912,24 +6086,46 @@ public partial class coinex : Exchange
             }
         } else
         {
-            this.checkRequiredCredentials();
-            query = this.extend(new Dictionary<string, object>() {
-                { "access_id", this.apiKey },
-                { "tonce", nonce },
-            }, query);
-            query = this.keysort(query);
-            object urlencoded = this.rawencode(query);
-            object signature = this.hash(this.encode(add(add(urlencoded, "&secret_key="), this.secret)), md5);
-            headers = new Dictionary<string, object>() {
-                { "Authorization", ((string)signature).ToUpper() },
-                { "Content-Type", "application/json" },
-            };
-            if (isTrue(isTrue(isTrue((isEqual(method, "GET"))) || isTrue((isEqual(method, "DELETE")))) || isTrue((isEqual(method, "PUT")))))
+            if (isTrue(isEqual(version, "v1")))
             {
-                url = add(url, add("?", urlencoded));
-            } else
+                this.checkRequiredCredentials();
+                query = this.extend(new Dictionary<string, object>() {
+                    { "access_id", this.apiKey },
+                    { "tonce", nonce },
+                }, query);
+                query = this.keysort(query);
+                object urlencoded = this.rawencode(query);
+                object signature = this.hash(this.encode(add(add(urlencoded, "&secret_key="), this.secret)), md5);
+                headers = new Dictionary<string, object>() {
+                    { "Authorization", ((string)signature).ToUpper() },
+                    { "Content-Type", "application/json" },
+                };
+                if (isTrue(isTrue(isTrue((isEqual(method, "GET"))) || isTrue((isEqual(method, "DELETE")))) || isTrue((isEqual(method, "PUT")))))
+                {
+                    url = add(url, add("?", urlencoded));
+                } else
+                {
+                    body = this.json(query);
+                }
+            } else if (isTrue(isEqual(version, "v2")))
             {
-                body = this.json(query);
+                this.checkRequiredCredentials();
+                query = this.keysort(query);
+                object urlencoded = this.rawencode(query);
+                object preparedString = add(add(add(add(add(add(add(add(method, "/"), version), "/"), path), "?"), urlencoded), nonce), this.secret);
+                object signature = this.hash(this.encode(preparedString), sha256);
+                headers = new Dictionary<string, object>() {
+                    { "X-COINEX-KEY", this.apiKey },
+                    { "X-COINEX-SIGN", signature },
+                    { "X-COINEX-TIMESTAMP", nonce },
+                };
+                if (isTrue(isTrue(isTrue((isEqual(method, "GET"))) || isTrue((isEqual(method, "DELETE")))) || isTrue((isEqual(method, "PUT")))))
+                {
+                    url = add(url, add("?", urlencoded));
+                } else
+                {
+                    body = this.json(query);
+                }
             }
         }
         return new Dictionary<string, object>() {

@@ -31,6 +31,7 @@ interface Exchange {
     swapV1PrivateGetTradeBatchCancelReplace(params?: {}): Promise<implicitReturnType>;
     swapV1PrivatePostTradeCancelReplace(params?: {}): Promise<implicitReturnType>;
     swapV1PrivatePostPositionSideDual(params?: {}): Promise<implicitReturnType>;
+    swapV1PrivatePostTradeClosePosition(params?: {}): Promise<implicitReturnType>;
     swapV2PublicGetServerTime(params?: {}): Promise<implicitReturnType>;
     swapV2PublicGetQuoteContracts(params?: {}): Promise<implicitReturnType>;
     swapV2PublicGetQuotePrice(params?: {}): Promise<implicitReturnType>;

@@ -172,7 +172,7 @@ class bl3p(Exchange, ImplicitAPI):
             'market': market['id'],
         }
         response = self.publicGetMarketOrderbook(self.extend(request, params))
-        orderbook = self.safe_value(response, 'data')
+        orderbook = self.safe_dict(response, 'data')
         return self.parse_order_book(orderbook, market['symbol'], None, 'bids', 'asks', 'price_int', 'amount_int')
 
     def parse_ticker(self, ticker, market: Market = None) -> Ticker:
