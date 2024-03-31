@@ -300,6 +300,7 @@ class bitget(Exchange, ImplicitAPI):
                             'v2/spot/trade/fills',
                             'v2/spot/trade/current-plan-order',
                             'v2/spot/trade/history-plan-order',
+                            'v2/spot/trade/plan-sub-order',
                             'v2/spot/account/info',
                             'v2/spot/account/assets',
                             'v2/spot/account/subaccount-assets',
@@ -425,6 +426,7 @@ class bitget(Exchange, ImplicitAPI):
                             'v2/mix/order/orders-history',
                             'v2/mix/order/orders-plan-pending',
                             'v2/mix/order/orders-plan-history',
+                            'v2/mix/order/plan-sub-order',
                         ],
                         'post': [
                             'mix/v1/account/sub-account-contract-assets',  # 0.1 times/1s(UID) => 20/0.1 = 200
@@ -3719,7 +3721,7 @@ class bitget(Exchange, ImplicitAPI):
         market = self.safe_market(marketId, market, None, marketType)
         timestamp = self.safe_integer_2(order, 'cTime', 'ctime')
         updateTimestamp = self.safe_integer(order, 'uTime')
-        rawStatus = self.safe_string_2(order, 'status', 'state')
+        rawStatus = self.safe_string_n(order, ['status', 'state', 'planStatus'])
         fee = None
         feeCostString = self.safe_string(order, 'fee')
         if feeCostString is not None:
@@ -4634,42 +4636,44 @@ class bitget(Exchange, ImplicitAPI):
             market = self.market(symbol)
         request = {
             'orderId': id,
+            'symbol': market['id'],
         }
         response = None
-        order_type = self.safe_string(params, 'type', None)
+        order_type = params.pop('type', None)
         if market['spot']:
-            if order_type == 'stop':
-                orderId = int(request.pop('orderId'))
-                request['isLessThan'] = str(orderId + 1)
-                request['limit'] = '1'
-                request['symbol'] = market['id']
-                response = self.privateSpotGetV2SpotTradeCurrentPlanOrder(request)
-                if isinstance(response, str):
-                    response = json.loads(response)
-                data = self.safe_value(response, 'data')
-                data = self.safe_value(data, 'orderList')
-                first = self.safe_value(data, 0, data)
-                return self.parse_order(first, market)
-            else:
-                response = self.privateSpotGetV2SpotTradeOrderInfo(self.extend(request, params))
+            reg_fetch_func = self.privateSpotGetV2SpotTradeOrderInfo
+            trigger_params = {'stop': True, 'idLessThan': int(id) + 1, 'limit': 1}
         elif market['swap'] or market['future']:
-            request['symbol'] = market['id']
-            productType = None
             productType, params = self.handle_product_type_and_params(market, params)
             request['productType'] = productType
-            if order_type == 'stop':
-                request['planType'] = 'normal_plan'
-                response = self.privateMixGetV2MixOrderOrdersPlanPending(self.extend(request, params))
-                if isinstance(response, str):
-                    response = json.loads(response)
-                data = self.safe_value(response, 'data')
-                data = self.safe_value(data, 'entrustedList')
-                first = self.safe_value(data, 0, data)
-                return self.parse_order(first, market)
-            else:
-                response = self.privateMixGetV2MixOrderDetail(self.extend(request, params))
+            reg_fetch_func = self.privateMixGetV2MixOrderDetail
+            trigger_params = {'stop': True, 'orderId': id}
         else:
             raise NotSupported(self.id + ' fetchOrder() does not support ' + market['type'] + ' orders')
+
+        if order_type == 'stop':
+            fetch_func = None
+            try:
+                data = self.get_trigger_sub_order(id, symbol)
+                order_id = self.safe_value(data, 'orderId')
+                if order_id and order_id != 'null':
+                    request['orderId'] = order_id
+                else:
+                    fetch_func = self.fetch_canceled_and_closed_orders
+            except ExchangeError as e:
+                # {"code":"40307","msg":"The current plan order does not exist or has not been triggered","requestTime":1711868491378,"data":null}
+                if '40307' not in str(e):
+                    raise
+                fetch_func = self.fetch_open_orders
+            if fetch_func:
+                orders = fetch_func(symbol, params=trigger_params)
+                if orders:
+                    order = orders[0]
+                    if order['id'] == id:
+                        return order
+                raise OrderNotFound(f'order {id} not found')
+        response = reg_fetch_func(self.extend(request, params))
+
         #
         # spot
         #
@@ -4741,7 +4745,10 @@ class bitget(Exchange, ImplicitAPI):
             response = json.loads(response)
         data = self.safe_value(response, 'data')
         first = self.safe_value(data, 0, data)
-        return self.parse_order(first, market)
+        if first:
+            return self.parse_order(first, market)
+        else:
+            raise OrderNotFound(f'order {id} not found')
 
     def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
@@ -5348,12 +5355,10 @@ class bitget(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', {})
         if marketType == 'spot':
             if (marginMode is not None) or stop:
-                return self.safe_value(data, 'orderList', [])
+                data = self.safe_value(data, 'orderList', [])
         else:
-            return self.safe_value(data, 'entrustedList', [])
-        if isinstance(response, str):
-            response = json.loads(response)
-        return self.safe_value(response, 'data', [])
+            data = self.safe_value(data, 'entrustedList', [])
+        return self.parse_orders(data, market, since, limit)
 
     def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
         """
@@ -7736,3 +7741,24 @@ class bitget(Exchange, ImplicitAPI):
             'creation': datetime.fromtimestamp(int(data['regisTime'])/1000),
             'role_type': data['traderType'],
         }
+
+    def get_trigger_sub_order(self, id: str, symbol: str):
+        self.load_markets()
+        sandboxMode = self.safe_value(self.options, 'sandboxMode', False)
+        market = None
+        if sandboxMode:
+            sandboxSymbol = self.convert_symbol_for_sandbox(symbol)
+            market = self.market(sandboxSymbol)
+        else:
+            market = self.market(symbol)
+        marketType = market['type']
+        request = {'planOrderId': id}
+        if marketType == 'spot':
+            response = self.privateSpotGetV2SpotTradePlanSubOrder(request)
+        elif (marketType == 'swap') or (marketType == 'future'):
+            request['planType'] = 'normal_plan'
+            request['productType'] = self.handle_product_type_and_params(market)[0]
+            response = self.privateMixGetV2MixOrderPlanSubOrder(request)
+        if isinstance(response, str):
+            response = json.loads(response)
+        return self.safe_value(response, 'data')[0]
