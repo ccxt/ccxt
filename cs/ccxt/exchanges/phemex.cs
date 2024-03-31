@@ -4307,12 +4307,14 @@ public partial class phemex : Exchange
         object codeCurrency = ((bool) isTrue(inverse)) ? "base" : "quote";
         return new Dictionary<string, object>() {
             { "info", data },
+            { "symbol", this.safeSymbol(null, market) },
             { "type", "set" },
             { "amount", null },
             { "total", null },
             { "code", getValue(market, codeCurrency) },
-            { "symbol", this.safeSymbol(null, market) },
             { "status", this.parseMarginStatus(this.safeString(data, "code")) },
+            { "timestamp", null },
+            { "datetime", null },
         };
     }
 

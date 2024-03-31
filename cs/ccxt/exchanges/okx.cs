@@ -6742,28 +6742,42 @@ public partial class okx : Exchange
         //       "msg": ""
         //     }
         //
-        return this.parseMarginModification(response, market);
+        object data = this.safeList(response, "data", new List<object>() {});
+        object errorCode = this.safeString(response, "code");
+        object item = this.safeDict(data, 0, new Dictionary<string, object>() {});
+        return this.extend(this.parseMarginModification(item, market), new Dictionary<string, object>() {
+            { "status", ((bool) isTrue((isEqual(errorCode, "0")))) ? "ok" : "failed" },
+        });
     }
 
     public virtual object parseMarginModification(object data, object market = null)
     {
-        object innerData = this.safeValue(data, "data", new List<object>() {});
-        object entry = this.safeValue(innerData, 0, new Dictionary<string, object>() {});
-        object errorCode = this.safeString(data, "code");
-        object status = ((bool) isTrue((isEqual(errorCode, "0")))) ? "ok" : "failed";
-        object amountRaw = this.safeNumber(entry, "amt");
-        object typeRaw = this.safeString(entry, "type");
+        //
+        // addMargin/reduceMargin
+        //
+        //    {
+        //        "amt": "0.01",
+        //        "instId": "ETH-USD-SWAP",
+        //        "posSide": "net",
+        //        "type": "reduce"
+        //    }
+        //
+        object amountRaw = this.safeNumber(data, "amt");
+        object typeRaw = this.safeString(data, "type");
         object type = ((bool) isTrue((isEqual(typeRaw, "reduce")))) ? "reduce" : "add";
-        object marketId = this.safeString(entry, "instId");
+        object marketId = this.safeString(data, "instId");
         object responseMarket = this.safeMarket(marketId, market);
         object code = ((bool) isTrue(getValue(responseMarket, "inverse"))) ? getValue(responseMarket, "base") : getValue(responseMarket, "quote");
         return new Dictionary<string, object>() {
             { "info", data },
+            { "symbol", getValue(responseMarket, "symbol") },
             { "type", type },
             { "amount", amountRaw },
+            { "total", null },
             { "code", code },
-            { "symbol", getValue(responseMarket, "symbol") },
-            { "status", status },
+            { "status", null },
+            { "timestamp", null },
+            { "datetime", null },
         };
     }
 

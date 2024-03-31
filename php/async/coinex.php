@@ -1082,19 +1082,22 @@ class coinex extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * fetches the current integer timestamp in milliseconds from the exchange server
-             * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http005_system_time
+             * @see https://docs.coinex.com/api/v2/common/http/time
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {int} the current integer timestamp in milliseconds from the exchange server
              */
-            $response = Async\await($this->v1PerpetualPublicGetTime ($params));
+            $response = Async\await($this->v2PublicGetTime ($params));
             //
             //     {
-            //         "code" => "0",
-            //         "data" => "1653261274414",
+            //         "code" => 0,
+            //         "data" => array(
+            //             "timestamp" => 1711699867777
+            //         ),
             //         "message" => "OK"
             //     }
             //
-            return $this->safe_integer($response, 'data');
+            $data = $this->safe_dict($response, 'data', array());
+            return $this->safe_integer($data, 'timestamp');
         }) ();
     }
 
@@ -1353,7 +1356,8 @@ class coinex extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch the trading fees for a $market
-             * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot001_market003_single_market_info
+             * @see https://docs.coinex.com/api/v2/spot/market/http/list-$market
+             * @see https://docs.coinex.com/api/v2/futures/market/http/list-$market
              * @param {string} $symbol unified $market $symbol
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=fee-structure fee structure~
@@ -1363,25 +1367,56 @@ class coinex extends Exchange {
             $request = array(
                 'market' => $market['id'],
             );
-            $response = Async\await($this->v1PublicGetMarketDetail (array_merge($request, $params)));
-            //
-            //     {
-            //         "code" => 0,
-            //         "data" => array(
-            //           "name" => "BTCUSDC",
-            //           "min_amount" => "0.0005",
-            //           "maker_fee_rate" => "0.002",
-            //           "taker_fee_rate" => "0.002",
-            //           "pricing_name" => "USDC",
-            //           "pricing_decimal" => 2,
-            //           "trading_name" => "BTC",
-            //           "trading_decimal" => 8
-            //         ),
-            //         "message" => "OK"
-            //      }
-            //
-            $data = $this->safe_value($response, 'data', array());
-            return $this->parse_trading_fee($data, $market);
+            $response = null;
+            if ($market['spot']) {
+                $response = Async\await($this->v2PublicGetSpotMarket (array_merge($request, $params)));
+                //
+                //     {
+                //         "code" => 0,
+                //         "data" => array(
+                //             {
+                //                 "base_ccy" => "BTC",
+                //                 "base_ccy_precision" => 8,
+                //                 "is_amm_available" => false,
+                //                 "is_margin_available" => true,
+                //                 "maker_fee_rate" => "0.002",
+                //                 "market" => "BTCUSDT",
+                //                 "min_amount" => "0.0001",
+                //                 "quote_ccy" => "USDT",
+                //                 "quote_ccy_precision" => 2,
+                //                 "taker_fee_rate" => "0.002"
+                //             }
+                //         ),
+                //         "message" => "OK"
+                //     }
+                //
+            } else {
+                $response = Async\await($this->v2PublicGetFuturesMarket (array_merge($request, $params)));
+                //
+                //     {
+                //         "code" => 0,
+                //         "data" => [
+                //             {
+                //                 "base_ccy" => "BTC",
+                //                 "base_ccy_precision" => 8,
+                //                 "contract_type" => "linear",
+                //                 "leverage" => ["1","2","3","5","8","10","15","20","30","50","100"],
+                //                 "maker_fee_rate" => "0",
+                //                 "market" => "BTCUSDT",
+                //                 "min_amount" => "0.0001",
+                //                 "open_interest_volume" => "185.7498",
+                //                 "quote_ccy" => "USDT",
+                //                 "quote_ccy_precision" => 2,
+                //                 "taker_fee_rate" => "0"
+                //             }
+                //         ],
+                //         "message" => "OK"
+                //     }
+                //
+            }
+            $data = $this->safe_list($response, 'data', array());
+            $result = $this->safe_dict($data, 0, array());
+            return $this->parse_trading_fee($result, $market);
         }) ();
     }
 
@@ -1389,44 +1424,76 @@ class coinex extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * fetch the trading fees for multiple markets
-             * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot001_market002_all_market_info
+             * @see https://docs.coinex.com/api/v2/spot/market/http/list-$market
+             * @see https://docs.coinex.com/api/v2/futures/market/http/list-$market
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$fee-structure $fee structures~ indexed by $market symbols
+             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=fee-structure fee structures~ indexed by $market symbols
              */
             Async\await($this->load_markets());
-            $response = Async\await($this->v1PublicGetMarketInfo ($params));
-            //
-            //     {
-            //         "code" => 0,
-            //         "data" => {
-            //             "WAVESBTC" => {
-            //                 "name" => "WAVESBTC",
-            //                 "min_amount" => "1",
-            //                 "maker_fee_rate" => "0.001",
-            //                 "taker_fee_rate" => "0.001",
-            //                 "pricing_name" => "BTC",
-            //                 "pricing_decimal" => 8,
-            //                 "trading_name" => "WAVES",
-            //                 "trading_decimal" => 8
-            //             }
-            //             ...
-            //         }
-            //     }
-            //
-            $data = $this->safe_value($response, 'data', array());
+            $type = null;
+            list($type, $params) = $this->handle_market_type_and_params('fetchTradingFees', null, $params);
+            $response = null;
+            if ($type === 'swap') {
+                $response = Async\await($this->v2PublicGetFuturesMarket ($params));
+                //
+                //     {
+                //         "code" => 0,
+                //         "data" => [
+                //             {
+                //                 "base_ccy" => "BTC",
+                //                 "base_ccy_precision" => 8,
+                //                 "contract_type" => "linear",
+                //                 "leverage" => ["1","2","3","5","8","10","15","20","30","50","100"],
+                //                 "maker_fee_rate" => "0",
+                //                 "market" => "BTCUSDT",
+                //                 "min_amount" => "0.0001",
+                //                 "open_interest_volume" => "185.7498",
+                //                 "quote_ccy" => "USDT",
+                //                 "quote_ccy_precision" => 2,
+                //                 "taker_fee_rate" => "0"
+                //             }
+                //         ],
+                //         "message" => "OK"
+                //     }
+                //
+            } else {
+                $response = Async\await($this->v2PublicGetSpotMarket ($params));
+                //
+                //     {
+                //         "code" => 0,
+                //         "data" => array(
+                //             array(
+                //                 "base_ccy" => "BTC",
+                //                 "base_ccy_precision" => 8,
+                //                 "is_amm_available" => false,
+                //                 "is_margin_available" => true,
+                //                 "maker_fee_rate" => "0.002",
+                //                 "market" => "BTCUSDT",
+                //                 "min_amount" => "0.0001",
+                //                 "quote_ccy" => "USDT",
+                //                 "quote_ccy_precision" => 2,
+                //                 "taker_fee_rate" => "0.002"
+                //             ),
+                //         ),
+                //         "message" => "OK"
+                //     }
+                //
+            }
+            $data = $this->safe_list($response, 'data', array());
             $result = array();
-            for ($i = 0; $i < count($this->symbols); $i++) {
-                $symbol = $this->symbols[$i];
-                $market = $this->market($symbol);
-                $fee = $this->safe_value($data, $market['id'], array());
-                $result[$symbol] = $this->parse_trading_fee($fee, $market);
+            for ($i = 0; $i < count($data); $i++) {
+                $entry = $data[$i];
+                $marketId = $this->safe_string($entry, 'market');
+                $market = $this->safe_market($marketId, null, null, $type);
+                $symbol = $market['symbol'];
+                $result[$symbol] = $this->parse_trading_fee($entry, $market);
             }
             return $result;
         }) ();
     }
 
     public function parse_trading_fee($fee, ?array $market = null) {
-        $marketId = $this->safe_value($fee, 'name');
+        $marketId = $this->safe_value($fee, 'market');
         $symbol = $this->safe_symbol($marketId, $market);
         return array(
             'info' => $fee,
@@ -4183,18 +4250,77 @@ class coinex extends Exchange {
         }) ();
     }
 
-    public function parse_margin_modification($data, ?array $market = null) {
+    public function parse_margin_modification($data, ?array $market = null): array {
+        //
+        // addMargin/reduceMargin
+        //
+        //    {
+        //        "adl_sort" => 1,
+        //        "adl_sort_val" => "0.00004320",
+        //        "amount" => "0.0005",
+        //        "amount_max" => "0.0005",
+        //        "amount_max_margin" => "6.57352000000000000000",
+        //        "bkr_price" => "16294.08000000000000011090",
+        //        "bkr_price_imply" => "0.00000000000000000000",
+        //        "close_left" => "0.0005",
+        //        "create_time" => 1651202571.320778,
+        //        "deal_all" => "19.72000000000000000000",
+        //        "deal_asset_fee" => "0.00000000000000000000",
+        //        "fee_asset" => "",
+        //        "finish_type" => 1,
+        //        "first_price" => "39441.12",
+        //        "insurance" => "0.00000000000000000000",
+        //        "latest_price" => "39441.12",
+        //        "leverage" => "3",
+        //        "liq_amount" => "0.00000000000000000000",
+        //        "liq_order_price" => "0",
+        //        "liq_order_time" => 0,
+        //        "liq_price" => "16491.28560000000000011090",
+        //        "liq_price_imply" => "0.00000000000000000000",
+        //        "liq_profit" => "0.00000000000000000000",
+        //        "liq_time" => 0,
+        //        "mainten_margin" => "0.005",
+        //        "mainten_margin_amount" => "0.09860280000000000000",
+        //        "maker_fee" => "0.00000000000000000000",
+        //        "margin_amount" => "11.57352000000000000000",
+        //        "market" => "BTCUSDT",
+        //        "open_margin" => "0.58687582908396110455",
+        //        "open_margin_imply" => "0.00000000000000000000",
+        //        "open_price" => "39441.12000000000000000000",
+        //        "open_val" => "19.72056000000000000000",
+        //        "open_val_max" => "19.72056000000000000000",
+        //        "position_id" => 65171206,
+        //        "profit_clearing" => "-0.00986028000000000000",
+        //        "profit_real" => "-0.00986028000000000000",
+        //        "profit_unreal" => "0.00",
+        //        "side" => 2,
+        //        "stop_loss_price" => "0.00000000000000000000",
+        //        "stop_loss_type" => 0,
+        //        "sys" => 0,
+        //        "take_profit_price" => "0.00000000000000000000",
+        //        "take_profit_type" => 0,
+        //        "taker_fee" => "0.00000000000000000000",
+        //        "total" => 3464,
+        //        "type" => 1,
+        //        "update_time" => 1651202638.911212,
+        //        "user_id" => 3620173
+        //    }
+        //
+        $timestamp = $this->safe_integer_product($data, 'update_time', 1000);
         return array(
             'info' => $data,
-            'type' => null,
-            'amount' => null,
-            'code' => $market['quote'],
             'symbol' => $this->safe_symbol(null, $market),
+            'type' => null,
+            'amount' => $this->safe_number($data, 'margin_amount'),
+            'total' => null,
+            'code' => $market['quote'],
             'status' => null,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
         );
     }
 
-    public function add_margin(string $symbol, $amount, $params = array ()) {
+    public function add_margin(string $symbol, $amount, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $amount, $params) {
             /**
              * add margin
@@ -4208,7 +4334,7 @@ class coinex extends Exchange {
         }) ();
     }
 
-    public function reduce_margin(string $symbol, $amount, $params = array ()) {
+    public function reduce_margin(string $symbol, $amount, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $amount, $params) {
             /**
              * remove margin from a position

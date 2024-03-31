@@ -2663,12 +2663,14 @@ class delta extends delta$1 {
         market = this.safeMarket(marketId, market);
         return {
             'info': data,
+            'symbol': market['symbol'],
             'type': undefined,
             'amount': undefined,
             'total': this.safeNumber(data, 'margin'),
             'code': undefined,
-            'symbol': market['symbol'],
             'status': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
         };
     }
     async fetchOpenInterest(symbol, params = {}) {

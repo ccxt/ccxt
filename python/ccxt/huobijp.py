@@ -927,7 +927,7 @@ class huobijp(Exchange, ImplicitAPI):
             'period': self.safe_string(self.timeframes, timeframe, timeframe),
         }
         if limit is not None:
-            request['size'] = limit
+            request['size'] = min(limit, 2000)
         response = self.marketGetHistoryKline(self.extend(request, params))
         #
         #     {

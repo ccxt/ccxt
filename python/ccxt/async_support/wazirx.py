@@ -324,7 +324,7 @@ class wazirx(Exchange, ImplicitAPI):
             'interval': self.safe_string(self.timeframes, timeframe, timeframe),
         }
         if limit is not None:
-            request['limit'] = limit
+            request['limit'] = min(limit, 2000)
         until = self.safe_integer(params, 'until')
         params = self.omit(params, ['until'])
         if since is not None:

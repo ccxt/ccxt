@@ -7,7 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.abstract.phemex import ImplicitAPI
 import hashlib
 import numbers
-from ccxt.base.types import Balances, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
+from ccxt.base.types import Balances, Currency, Int, MarginModification, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -3744,7 +3744,7 @@ class phemex(Exchange, ImplicitAPI):
             'previousFundingDatetime': None,
         }
 
-    def set_margin(self, symbol: str, amount: float, params={}):
+    def set_margin(self, symbol: str, amount: float, params={}) -> MarginModification:
         """
         Either adds or reduces margin in an isolated position in order to set the margin to a specific value
         :see: https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md#assign-position-balance-in-isolated-marign-mode
@@ -3777,7 +3777,7 @@ class phemex(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_margin_modification(self, data, market: Market = None):
+    def parse_margin_modification(self, data, market: Market = None) -> MarginModification:
         #
         #     {
         #         "code": 0,
@@ -3790,12 +3790,14 @@ class phemex(Exchange, ImplicitAPI):
         codeCurrency = 'base' if inverse else 'quote'
         return {
             'info': data,
+            'symbol': self.safe_symbol(None, market),
             'type': 'set',
             'amount': None,
             'total': None,
             'code': market[codeCurrency],
-            'symbol': self.safe_symbol(None, market),
             'status': self.parse_margin_status(self.safe_string(data, 'code')),
+            'timestamp': None,
+            'datetime': None,
         }
 
     def set_margin_mode(self, marginMode: str, symbol: Str = None, params={}):

@@ -7,7 +7,7 @@ namespace ccxt;
 public partial class hyperliquid
 {
     /// <summary>
-    /// retrieves data on all markets for hyperliquid
+    /// retrieves data on all spot markets for hyperliquid
     /// </summary>
     /// <remarks>
     /// See <see href="https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-asset-contexts-includes-mark-price-current-funding-open-interest-etc"/>  <br/>
@@ -26,6 +26,16 @@ public partial class hyperliquid
         var res = await this.fetchMarkets(parameters);
         return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
     }
+    public async Task<List<MarketInterface>> FetchSwapMarkets(Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchSwapMarkets(parameters);
+        return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
+    }
+    public async Task<List<MarketInterface>> FetchSpotMarkets(Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchSpotMarkets(parameters);
+        return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
+    }
     /// <summary>
     /// query for balance and get the amount of funds available for trading or funds locked in orders
     /// </summary>
@@ -42,6 +52,12 @@ public partial class hyperliquid
     /// <term>params.user</term>
     /// <description>
     /// string : user address, will default to this.walletAddress if not provided
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.type</term>
+    /// <description>
+    /// string : wallet type, ['spot', 'swap'], defaults to swap
     /// </description>
     /// </item>
     /// </list>
@@ -274,6 +290,12 @@ public partial class hyperliquid
     /// string : client order id, (optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.vaultAddress</term>
+    /// <description>
+    /// string : the vault address for order
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
@@ -299,6 +321,12 @@ public partial class hyperliquid
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.vaultAddress</term>
+    /// <description>
+    /// string : the vault address
     /// </description>
     /// </item>
     /// </list>
@@ -672,6 +700,12 @@ public partial class hyperliquid
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.vaultAddress</term>
+    /// <description>
+    /// string : the vault address for order
     /// </description>
     /// </item>
     /// </list>

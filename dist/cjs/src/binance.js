@@ -11212,6 +11212,16 @@ class binance extends binance$1 {
         });
     }
     parseMarginModification(data, market = undefined) {
+        //
+        // add/reduce margin
+        //
+        //     {
+        //         "code": 200,
+        //         "msg": "Successfully modify position margin.",
+        //         "amount": 0.001,
+        //         "type": 1
+        //     }
+        //
         const rawType = this.safeInteger(data, 'type');
         const resultType = (rawType === 1) ? 'add' : 'reduce';
         const resultAmount = this.safeNumber(data, 'amount');
@@ -11219,11 +11229,14 @@ class binance extends binance$1 {
         const status = (errorCode === '200') ? 'ok' : 'failed';
         return {
             'info': data,
+            'symbol': market['symbol'],
             'type': resultType,
             'amount': resultAmount,
+            'total': undefined,
             'code': undefined,
-            'symbol': market['symbol'],
             'status': status,
+            'timestamp': undefined,
+            'datetime': undefined,
         };
     }
     async reduceMargin(symbol, amount, params = {}) {

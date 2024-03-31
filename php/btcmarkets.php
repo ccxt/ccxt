@@ -535,7 +535,7 @@ class btcmarkets extends Exchange {
             $request['from'] = $this->iso8601($since);
         }
         if ($limit !== null) {
-            $request['limit'] = $limit; // default is 10, max 200
+            $request['limit'] = min ($limit, 200); // default is 10, max 200
         }
         $response = $this->publicGetMarketsMarketIdCandles (array_merge($request, $params));
         //

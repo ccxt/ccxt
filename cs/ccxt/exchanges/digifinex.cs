@@ -1488,7 +1488,7 @@ public partial class digifinex : Exchange
             ((IDictionary<string,object>)request)["granularity"] = timeframe;
             if (isTrue(!isEqual(limit, null)))
             {
-                ((IDictionary<string,object>)request)["limit"] = limit;
+                ((IDictionary<string,object>)request)["limit"] = mathMin(limit, 100);
             }
             response = await this.publicSwapGetPublicCandles(this.extend(request, parameters));
         } else
@@ -4438,12 +4438,14 @@ public partial class digifinex : Exchange
         object rawType = this.safeInteger(data, "type");
         return new Dictionary<string, object>() {
             { "info", data },
+            { "symbol", this.safeSymbol(marketId, market, null, "swap") },
             { "type", ((bool) isTrue((isEqual(rawType, 1)))) ? "add" : "reduce" },
             { "amount", this.safeNumber(data, "amount") },
             { "total", null },
             { "code", getValue(market, "settle") },
-            { "symbol", this.safeSymbol(marketId, market, null, "swap") },
             { "status", null },
+            { "timestamp", null },
+            { "datetime", null },
         };
     }
 

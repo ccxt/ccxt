@@ -5,7 +5,7 @@
 
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.coinex import ImplicitAPI
-from ccxt.base.types import Balances, Currency, Int, Leverage, Leverages, Market, Num, Order, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
+from ccxt.base.types import Balances, Currency, Int, Leverage, Leverages, MarginModification, Market, Num, Order, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -1054,19 +1054,22 @@ class coinex(Exchange, ImplicitAPI):
     def fetch_time(self, params={}):
         """
         fetches the current integer timestamp in milliseconds from the exchange server
-        :see: https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http005_system_time
+        :see: https://docs.coinex.com/api/v2/common/http/time
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int: the current integer timestamp in milliseconds from the exchange server
         """
-        response = self.v1PerpetualPublicGetTime(params)
+        response = self.v2PublicGetTime(params)
         #
         #     {
-        #         "code": "0",
-        #         "data": "1653261274414",
+        #         "code": 0,
+        #         "data": {
+        #             "timestamp": 1711699867777
+        #         },
         #         "message": "OK"
         #     }
         #
-        return self.safe_integer(response, 'data')
+        data = self.safe_dict(response, 'data', {})
+        return self.safe_integer(data, 'timestamp')
 
     def fetch_order_book(self, symbol: str, limit: Int = 20, params={}):
         """
@@ -1305,7 +1308,8 @@ class coinex(Exchange, ImplicitAPI):
     def fetch_trading_fee(self, symbol: str, params={}):
         """
         fetch the trading fees for a market
-        :see: https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot001_market003_single_market_info
+        :see: https://docs.coinex.com/api/v2/spot/market/http/list-market
+        :see: https://docs.coinex.com/api/v2/futures/market/http/list-market
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `fee structure <https://docs.ccxt.com/#/?id=fee-structure>`
@@ -1315,64 +1319,125 @@ class coinex(Exchange, ImplicitAPI):
         request = {
             'market': market['id'],
         }
-        response = self.v1PublicGetMarketDetail(self.extend(request, params))
-        #
-        #     {
-        #         "code": 0,
-        #         "data": {
-        #           "name": "BTCUSDC",
-        #           "min_amount": "0.0005",
-        #           "maker_fee_rate": "0.002",
-        #           "taker_fee_rate": "0.002",
-        #           "pricing_name": "USDC",
-        #           "pricing_decimal": 2,
-        #           "trading_name": "BTC",
-        #           "trading_decimal": 8
-        #         },
-        #         "message": "OK"
-        #      }
-        #
-        data = self.safe_value(response, 'data', {})
-        return self.parse_trading_fee(data, market)
+        response = None
+        if market['spot']:
+            response = self.v2PublicGetSpotMarket(self.extend(request, params))
+            #
+            #     {
+            #         "code": 0,
+            #         "data": [
+            #             {
+            #                 "base_ccy": "BTC",
+            #                 "base_ccy_precision": 8,
+            #                 "is_amm_available": False,
+            #                 "is_margin_available": True,
+            #                 "maker_fee_rate": "0.002",
+            #                 "market": "BTCUSDT",
+            #                 "min_amount": "0.0001",
+            #                 "quote_ccy": "USDT",
+            #                 "quote_ccy_precision": 2,
+            #                 "taker_fee_rate": "0.002"
+            #             }
+            #         ],
+            #         "message": "OK"
+            #     }
+            #
+        else:
+            response = self.v2PublicGetFuturesMarket(self.extend(request, params))
+            #
+            #     {
+            #         "code": 0,
+            #         "data": [
+            #             {
+            #                 "base_ccy": "BTC",
+            #                 "base_ccy_precision": 8,
+            #                 "contract_type": "linear",
+            #                 "leverage": ["1","2","3","5","8","10","15","20","30","50","100"],
+            #                 "maker_fee_rate": "0",
+            #                 "market": "BTCUSDT",
+            #                 "min_amount": "0.0001",
+            #                 "open_interest_volume": "185.7498",
+            #                 "quote_ccy": "USDT",
+            #                 "quote_ccy_precision": 2,
+            #                 "taker_fee_rate": "0"
+            #             }
+            #         ],
+            #         "message": "OK"
+            #     }
+            #
+        data = self.safe_list(response, 'data', [])
+        result = self.safe_dict(data, 0, {})
+        return self.parse_trading_fee(result, market)
 
     def fetch_trading_fees(self, params={}):
         """
         fetch the trading fees for multiple markets
-        :see: https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot001_market002_all_market_info
+        :see: https://docs.coinex.com/api/v2/spot/market/http/list-market
+        :see: https://docs.coinex.com/api/v2/futures/market/http/list-market
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>` indexed by market symbols
         """
         self.load_markets()
-        response = self.v1PublicGetMarketInfo(params)
-        #
-        #     {
-        #         "code": 0,
-        #         "data": {
-        #             "WAVESBTC": {
-        #                 "name": "WAVESBTC",
-        #                 "min_amount": "1",
-        #                 "maker_fee_rate": "0.001",
-        #                 "taker_fee_rate": "0.001",
-        #                 "pricing_name": "BTC",
-        #                 "pricing_decimal": 8,
-        #                 "trading_name": "WAVES",
-        #                 "trading_decimal": 8
-        #             }
-        #             ...
-        #         }
-        #     }
-        #
-        data = self.safe_value(response, 'data', {})
+        type = None
+        type, params = self.handle_market_type_and_params('fetchTradingFees', None, params)
+        response = None
+        if type == 'swap':
+            response = self.v2PublicGetFuturesMarket(params)
+            #
+            #     {
+            #         "code": 0,
+            #         "data": [
+            #             {
+            #                 "base_ccy": "BTC",
+            #                 "base_ccy_precision": 8,
+            #                 "contract_type": "linear",
+            #                 "leverage": ["1","2","3","5","8","10","15","20","30","50","100"],
+            #                 "maker_fee_rate": "0",
+            #                 "market": "BTCUSDT",
+            #                 "min_amount": "0.0001",
+            #                 "open_interest_volume": "185.7498",
+            #                 "quote_ccy": "USDT",
+            #                 "quote_ccy_precision": 2,
+            #                 "taker_fee_rate": "0"
+            #             }
+            #         ],
+            #         "message": "OK"
+            #     }
+            #
+        else:
+            response = self.v2PublicGetSpotMarket(params)
+            #
+            #     {
+            #         "code": 0,
+            #         "data": [
+            #             {
+            #                 "base_ccy": "BTC",
+            #                 "base_ccy_precision": 8,
+            #                 "is_amm_available": False,
+            #                 "is_margin_available": True,
+            #                 "maker_fee_rate": "0.002",
+            #                 "market": "BTCUSDT",
+            #                 "min_amount": "0.0001",
+            #                 "quote_ccy": "USDT",
+            #                 "quote_ccy_precision": 2,
+            #                 "taker_fee_rate": "0.002"
+            #             },
+            #         ],
+            #         "message": "OK"
+            #     }
+            #
+        data = self.safe_list(response, 'data', [])
         result = {}
-        for i in range(0, len(self.symbols)):
-            symbol = self.symbols[i]
-            market = self.market(symbol)
-            fee = self.safe_value(data, market['id'], {})
-            result[symbol] = self.parse_trading_fee(fee, market)
+        for i in range(0, len(data)):
+            entry = data[i]
+            marketId = self.safe_string(entry, 'market')
+            market = self.safe_market(marketId, None, None, type)
+            symbol = market['symbol']
+            result[symbol] = self.parse_trading_fee(entry, market)
         return result
 
     def parse_trading_fee(self, fee, market: Market = None):
-        marketId = self.safe_value(fee, 'name')
+        marketId = self.safe_value(fee, 'market')
         symbol = self.safe_symbol(marketId, market)
         return {
             'info': fee,
@@ -3909,17 +3974,76 @@ class coinex(Exchange, ImplicitAPI):
             'status': status,
         })
 
-    def parse_margin_modification(self, data, market: Market = None):
+    def parse_margin_modification(self, data, market: Market = None) -> MarginModification:
+        #
+        # addMargin/reduceMargin
+        #
+        #    {
+        #        "adl_sort": 1,
+        #        "adl_sort_val": "0.00004320",
+        #        "amount": "0.0005",
+        #        "amount_max": "0.0005",
+        #        "amount_max_margin": "6.57352000000000000000",
+        #        "bkr_price": "16294.08000000000000011090",
+        #        "bkr_price_imply": "0.00000000000000000000",
+        #        "close_left": "0.0005",
+        #        "create_time": 1651202571.320778,
+        #        "deal_all": "19.72000000000000000000",
+        #        "deal_asset_fee": "0.00000000000000000000",
+        #        "fee_asset": "",
+        #        "finish_type": 1,
+        #        "first_price": "39441.12",
+        #        "insurance": "0.00000000000000000000",
+        #        "latest_price": "39441.12",
+        #        "leverage": "3",
+        #        "liq_amount": "0.00000000000000000000",
+        #        "liq_order_price": "0",
+        #        "liq_order_time": 0,
+        #        "liq_price": "16491.28560000000000011090",
+        #        "liq_price_imply": "0.00000000000000000000",
+        #        "liq_profit": "0.00000000000000000000",
+        #        "liq_time": 0,
+        #        "mainten_margin": "0.005",
+        #        "mainten_margin_amount": "0.09860280000000000000",
+        #        "maker_fee": "0.00000000000000000000",
+        #        "margin_amount": "11.57352000000000000000",
+        #        "market": "BTCUSDT",
+        #        "open_margin": "0.58687582908396110455",
+        #        "open_margin_imply": "0.00000000000000000000",
+        #        "open_price": "39441.12000000000000000000",
+        #        "open_val": "19.72056000000000000000",
+        #        "open_val_max": "19.72056000000000000000",
+        #        "position_id": 65171206,
+        #        "profit_clearing": "-0.00986028000000000000",
+        #        "profit_real": "-0.00986028000000000000",
+        #        "profit_unreal": "0.00",
+        #        "side": 2,
+        #        "stop_loss_price": "0.00000000000000000000",
+        #        "stop_loss_type": 0,
+        #        "sys": 0,
+        #        "take_profit_price": "0.00000000000000000000",
+        #        "take_profit_type": 0,
+        #        "taker_fee": "0.00000000000000000000",
+        #        "total": 3464,
+        #        "type": 1,
+        #        "update_time": 1651202638.911212,
+        #        "user_id": 3620173
+        #    }
+        #
+        timestamp = self.safe_integer_product(data, 'update_time', 1000)
         return {
             'info': data,
-            'type': None,
-            'amount': None,
-            'code': market['quote'],
             'symbol': self.safe_symbol(None, market),
+            'type': None,
+            'amount': self.safe_number(data, 'margin_amount'),
+            'total': None,
+            'code': market['quote'],
             'status': None,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
         }
 
-    def add_margin(self, symbol: str, amount, params={}):
+    def add_margin(self, symbol: str, amount, params={}) -> MarginModification:
         """
         add margin
         :see: https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http032_adjust_position_margin
@@ -3930,7 +4054,7 @@ class coinex(Exchange, ImplicitAPI):
         """
         return self.modify_margin_helper(symbol, amount, 1, params)
 
-    def reduce_margin(self, symbol: str, amount, params={}):
+    def reduce_margin(self, symbol: str, amount, params={}) -> MarginModification:
         """
         remove margin from a position
         :see: https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http032_adjust_position_margin

@@ -1353,9 +1353,6 @@ class bitrue extends Exchange {
                     'interval' => $this->safe_string($timeframesFuture, $timeframe, '1min'),
                 );
                 if ($limit !== null) {
-                    if ($limit > 300) {
-                        $limit = 300;
-                    }
                     $request['limit'] = $limit;
                 }
                 if ($market['linear']) {
@@ -1372,9 +1369,6 @@ class bitrue extends Exchange {
                     'scale' => $this->safe_string($timeframesSpot, $timeframe, '1m'),
                 );
                 if ($limit !== null) {
-                    if ($limit > 1440) {
-                        $limit = 1440;
-                    }
                     $request['limit'] = $limit;
                 }
                 if ($since !== null) {
@@ -3036,18 +3030,30 @@ class bitrue extends Exchange {
         }) ();
     }
 
-    public function parse_margin_modification($data, $market = null) {
+    public function parse_margin_modification($data, $market = null): array {
+        //
+        // setMargin
+        //
+        //     {
+        //         "code" => 0,
+        //         "msg" => "success"
+        //         "data" => null
+        //     }
+        //
         return array(
             'info' => $data,
+            'symbol' => $market['symbol'],
             'type' => null,
             'amount' => null,
+            'total' => null,
             'code' => null,
-            'symbol' => $market['symbol'],
             'status' => null,
+            'timestamp' => null,
+            'datetime' => null,
         );
     }
 
-    public function set_margin(string $symbol, float $amount, $params = array ()) {
+    public function set_margin(string $symbol, float $amount, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $amount, $params) {
             /**
              * Either adds or reduces margin in an isolated position in order to set the margin to a specific value

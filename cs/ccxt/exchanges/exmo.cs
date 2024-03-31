@@ -206,12 +206,14 @@ public partial class exmo : Exchange
         //
         return new Dictionary<string, object>() {
             { "info", data },
+            { "symbol", this.safeSymbol(null, market) },
             { "type", null },
             { "amount", null },
-            { "code", this.safeValue(market, "quote") },
-            { "symbol", this.safeSymbol(null, market) },
             { "total", null },
+            { "code", this.safeValue(market, "quote") },
             { "status", "ok" },
+            { "timestamp", null },
+            { "datetime", null },
         };
     }
 
@@ -865,8 +867,7 @@ public partial class exmo : Exchange
             { "symbol", getValue(market, "id") },
             { "resolution", this.safeString(this.timeframes, timeframe, timeframe) },
         };
-        object options = this.safeValue(this.options, "fetchOHLCV");
-        object maxLimit = this.safeInteger(options, "maxLimit", 3000);
+        object maxLimit = 3000;
         object duration = this.parseTimeframe(timeframe);
         object now = this.milliseconds();
         if (isTrue(isEqual(since, null)))
@@ -874,10 +875,9 @@ public partial class exmo : Exchange
             if (isTrue(isEqual(limit, null)))
             {
                 limit = 1000; // cap default at generous amount
-            }
-            if (isTrue(isGreaterThan(limit, maxLimit)))
+            } else
             {
-                limit = maxLimit; // avoid exception
+                limit = mathMin(limit, maxLimit);
             }
             ((IDictionary<string,object>)request)["from"] = subtract(subtract(this.parseToInt(divide(now, 1000)), multiply(limit, duration)), 1);
             ((IDictionary<string,object>)request)["to"] = this.parseToInt(divide(now, 1000));
@@ -886,16 +886,13 @@ public partial class exmo : Exchange
             ((IDictionary<string,object>)request)["from"] = subtract(this.parseToInt(divide(since, 1000)), 1);
             if (isTrue(isEqual(limit, null)))
             {
-                ((IDictionary<string,object>)request)["to"] = this.parseToInt(divide(now, 1000));
+                limit = maxLimit;
             } else
             {
-                if (isTrue(isGreaterThan(limit, maxLimit)))
-                {
-                    throw new BadRequest ((string)add(add(add(this.id, " fetchOHLCV() will serve "), ((object)maxLimit).ToString()), " candles at most")) ;
-                }
-                object to = this.sum(since, multiply(multiply(limit, duration), 1000));
-                ((IDictionary<string,object>)request)["to"] = this.parseToInt(divide(to, 1000));
+                limit = mathMin(limit, maxLimit);
             }
+            object to = this.sum(since, multiply(multiply(limit, duration), 1000));
+            ((IDictionary<string,object>)request)["to"] = this.parseToInt(divide(to, 1000));
         }
         object response = await this.publicGetCandlesHistory(this.extend(request, parameters));
         //

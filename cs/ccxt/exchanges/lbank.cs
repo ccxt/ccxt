@@ -1016,6 +1016,9 @@ public partial class lbank : Exchange
         if (isTrue(isEqual(limit, null)))
         {
             limit = 100;
+        } else
+        {
+            limit = mathMin(limit, 2000);
         }
         if (isTrue(isEqual(since, null)))
         {

@@ -975,7 +975,7 @@ class huobijp extends Exchange {
                 'period' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
             );
             if ($limit !== null) {
-                $request['size'] = $limit;
+                $request['size'] = min ($limit, 2000);
             }
             $response = Async\await($this->marketGetHistoryKline (array_merge($request, $params)));
             //

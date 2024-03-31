@@ -2876,15 +2876,25 @@ export default class ascendex extends Exchange {
         });
     }
     parseMarginModification(data, market = undefined) {
+        //
+        // addMargin/reduceMargin
+        //
+        //     {
+        //          "code": 0
+        //     }
+        //
         const errorCode = this.safeString(data, 'code');
         const status = (errorCode === '0') ? 'ok' : 'failed';
         return {
             'info': data,
+            'symbol': market['symbol'],
             'type': undefined,
             'amount': undefined,
+            'total': undefined,
             'code': market['quote'],
-            'symbol': market['symbol'],
             'status': status,
+            'timestamp': undefined,
+            'datetime': undefined,
         };
     }
     async reduceMargin(symbol, amount, params = {}) {
