@@ -1,4 +1,5 @@
 import { Command } from 'commander';
+import callMethod from './callMethod.js';
 
 // Function to extract methods and their parameters
 export function extractMethodsAndParams(exchange: any) {
@@ -19,14 +20,15 @@ export function extractMethodsAndParams(exchange: any) {
 }
 
 // Create CLI based on extracted methods and parameters
-export async function createExchangeCommand(program: Command, exchange: any) {
+export function createExchangeCommand(program: Command, exchange: any) {
     const exchangeCmd = program.command(exchange.id)
     const methods = extractMethodsAndParams(exchange);
 
     for (const methodName in methods) {
         const methodCmd = exchangeCmd
             .command(methodName)
-        //   .description () // TODO: is it possible to grab from jsdocs?
+            // TODO: add auto-generated alias?
+            // TODO: add auto-generated docs?
 
         methods[methodName].forEach((param, index) => {
             if (param.includes('=')) {
@@ -38,8 +40,7 @@ export async function createExchangeCommand(program: Command, exchange: any) {
         });
         methodCmd.action(async (...args: any[]) => {
             const params = args.slice(0, -1); // exclude the last action callback
-            const instance = exchange;
-            console.log(await instance[methodName](...params));
+            await callMethod (exchange, methodName, params);
         });
     }
 }
