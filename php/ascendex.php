@@ -2806,7 +2806,7 @@ class ascendex extends Exchange {
         return $this->filter_by_array($result, 'symbol', $symbols);
     }
 
-    public function modify_margin_helper(string $symbol, $amount, $type, $params = array ()) {
+    public function modify_margin_helper(string $symbol, $amount, $type, $params = array ()): array {
         $this->load_markets();
         $this->load_accounts();
         $market = $this->market($symbol);
@@ -2835,20 +2835,30 @@ class ascendex extends Exchange {
         ));
     }
 
-    public function parse_margin_modification($data, ?array $market = null) {
+    public function parse_margin_modification($data, ?array $market = null): array {
+        //
+        // addMargin/reduceMargin
+        //
+        //     {
+        //          "code" => 0
+        //     }
+        //
         $errorCode = $this->safe_string($data, 'code');
         $status = ($errorCode === '0') ? 'ok' : 'failed';
         return array(
             'info' => $data,
+            'symbol' => $market['symbol'],
             'type' => null,
             'amount' => null,
+            'total' => null,
             'code' => $market['quote'],
-            'symbol' => $market['symbol'],
             'status' => $status,
+            'timestamp' => null,
+            'datetime' => null,
         );
     }
 
-    public function reduce_margin(string $symbol, $amount, $params = array ()) {
+    public function reduce_margin(string $symbol, $amount, $params = array ()): array {
         /**
          * remove margin from a position
          * @param {string} $symbol unified market $symbol
@@ -2859,7 +2869,7 @@ class ascendex extends Exchange {
         return $this->modify_margin_helper($symbol, -$amount, 'reduce', $params);
     }
 
-    public function add_margin(string $symbol, $amount, $params = array ()) {
+    public function add_margin(string $symbol, $amount, $params = array ()): array {
         /**
          * add margin
          * @param {string} $symbol unified market $symbol

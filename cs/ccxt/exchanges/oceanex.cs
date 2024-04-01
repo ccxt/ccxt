@@ -850,7 +850,7 @@ public partial class oceanex : Exchange
         }
         if (isTrue(!isEqual(limit, null)))
         {
-            ((IDictionary<string,object>)request)["limit"] = limit;
+            ((IDictionary<string,object>)request)["limit"] = mathMin(limit, 10000);
         }
         object response = await this.publicPostK(this.extend(request, parameters));
         object ohlcvs = this.safeList(response, "data", new List<object>() {});

@@ -1079,20 +1079,23 @@ public partial class coinex : Exchange
         * @method
         * @name coinex#fetchTime
         * @description fetches the current integer timestamp in milliseconds from the exchange server
-        * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http005_system_time
+        * @see https://docs.coinex.com/api/v2/common/http/time
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {int} the current integer timestamp in milliseconds from the exchange server
         */
         parameters ??= new Dictionary<string, object>();
-        object response = await this.v1PerpetualPublicGetTime(parameters);
+        object response = await this.v2PublicGetTime(parameters);
         //
         //     {
-        //         "code": "0",
-        //         "data": "1653261274414",
+        //         "code": 0,
+        //         "data": {
+        //             "timestamp": 1711699867777
+        //         },
         //         "message": "OK"
         //     }
         //
-        return this.safeInteger(response, "data");
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        return this.safeInteger(data, "timestamp");
     }
 
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
@@ -1372,7 +1375,8 @@ public partial class coinex : Exchange
         * @method
         * @name coinex#fetchTradingFee
         * @description fetch the trading fees for a market
-        * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot001_market003_single_market_info
+        * @see https://docs.coinex.com/api/v2/spot/market/http/list-market
+        * @see https://docs.coinex.com/api/v2/futures/market/http/list-market
         * @param {string} symbol unified market symbol
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
@@ -1383,25 +1387,17 @@ public partial class coinex : Exchange
         object request = new Dictionary<string, object>() {
             { "market", getValue(market, "id") },
         };
-        object response = await this.v1PublicGetMarketDetail(this.extend(request, parameters));
-        //
-        //     {
-        //         "code": 0,
-        //         "data": {
-        //           "name": "BTCUSDC",
-        //           "min_amount": "0.0005",
-        //           "maker_fee_rate": "0.002",
-        //           "taker_fee_rate": "0.002",
-        //           "pricing_name": "USDC",
-        //           "pricing_decimal": 2,
-        //           "trading_name": "BTC",
-        //           "trading_decimal": 8
-        //         },
-        //         "message": "OK"
-        //      }
-        //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        return this.parseTradingFee(data, market);
+        object response = null;
+        if (isTrue(getValue(market, "spot")))
+        {
+            response = await this.v2PublicGetSpotMarket(this.extend(request, parameters));
+        } else
+        {
+            response = await this.v2PublicGetFuturesMarket(this.extend(request, parameters));
+        }
+        object data = this.safeList(response, "data", new List<object>() {});
+        object result = this.safeDict(data, 0, new Dictionary<string, object>() {});
+        return this.parseTradingFee(result, market);
     }
 
     public async override Task<object> fetchTradingFees(object parameters = null)
@@ -1410,46 +1406,41 @@ public partial class coinex : Exchange
         * @method
         * @name coinex#fetchTradingFees
         * @description fetch the trading fees for multiple markets
-        * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot001_market002_all_market_info
+        * @see https://docs.coinex.com/api/v2/spot/market/http/list-market
+        * @see https://docs.coinex.com/api/v2/futures/market/http/list-market
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object response = await this.v1PublicGetMarketInfo(parameters);
-        //
-        //     {
-        //         "code": 0,
-        //         "data": {
-        //             "WAVESBTC": {
-        //                 "name": "WAVESBTC",
-        //                 "min_amount": "1",
-        //                 "maker_fee_rate": "0.001",
-        //                 "taker_fee_rate": "0.001",
-        //                 "pricing_name": "BTC",
-        //                 "pricing_decimal": 8,
-        //                 "trading_name": "WAVES",
-        //                 "trading_decimal": 8
-        //             }
-        //             ...
-        //         }
-        //     }
-        //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(this.symbols)); postFixIncrement(ref i))
+        object type = null;
+        var typeparametersVariable = this.handleMarketTypeAndParams("fetchTradingFees", null, parameters);
+        type = ((IList<object>)typeparametersVariable)[0];
+        parameters = ((IList<object>)typeparametersVariable)[1];
+        object response = null;
+        if (isTrue(isEqual(type, "swap")))
         {
-            object symbol = getValue(this.symbols, i);
-            object market = this.market(symbol);
-            object fee = this.safeValue(data, getValue(market, "id"), new Dictionary<string, object>() {});
-            ((IDictionary<string,object>)result)[(string)symbol] = this.parseTradingFee(fee, market);
+            response = await this.v2PublicGetFuturesMarket(parameters);
+        } else
+        {
+            response = await this.v2PublicGetSpotMarket(parameters);
+        }
+        object data = this.safeList(response, "data", new List<object>() {});
+        object result = new Dictionary<string, object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+        {
+            object entry = getValue(data, i);
+            object marketId = this.safeString(entry, "market");
+            object market = this.safeMarket(marketId, null, null, type);
+            object symbol = getValue(market, "symbol");
+            ((IDictionary<string,object>)result)[(string)symbol] = this.parseTradingFee(entry, market);
         }
         return result;
     }
 
     public virtual object parseTradingFee(object fee, object market = null)
     {
-        object marketId = this.safeValue(fee, "name");
+        object marketId = this.safeValue(fee, "market");
         object symbol = this.safeSymbol(marketId, market);
         return new Dictionary<string, object>() {
             { "info", fee },
@@ -4466,13 +4457,72 @@ public partial class coinex : Exchange
 
     public virtual object parseMarginModification(object data, object market = null)
     {
+        //
+        // addMargin/reduceMargin
+        //
+        //    {
+        //        "adl_sort": 1,
+        //        "adl_sort_val": "0.00004320",
+        //        "amount": "0.0005",
+        //        "amount_max": "0.0005",
+        //        "amount_max_margin": "6.57352000000000000000",
+        //        "bkr_price": "16294.08000000000000011090",
+        //        "bkr_price_imply": "0.00000000000000000000",
+        //        "close_left": "0.0005",
+        //        "create_time": 1651202571.320778,
+        //        "deal_all": "19.72000000000000000000",
+        //        "deal_asset_fee": "0.00000000000000000000",
+        //        "fee_asset": "",
+        //        "finish_type": 1,
+        //        "first_price": "39441.12",
+        //        "insurance": "0.00000000000000000000",
+        //        "latest_price": "39441.12",
+        //        "leverage": "3",
+        //        "liq_amount": "0.00000000000000000000",
+        //        "liq_order_price": "0",
+        //        "liq_order_time": 0,
+        //        "liq_price": "16491.28560000000000011090",
+        //        "liq_price_imply": "0.00000000000000000000",
+        //        "liq_profit": "0.00000000000000000000",
+        //        "liq_time": 0,
+        //        "mainten_margin": "0.005",
+        //        "mainten_margin_amount": "0.09860280000000000000",
+        //        "maker_fee": "0.00000000000000000000",
+        //        "margin_amount": "11.57352000000000000000",
+        //        "market": "BTCUSDT",
+        //        "open_margin": "0.58687582908396110455",
+        //        "open_margin_imply": "0.00000000000000000000",
+        //        "open_price": "39441.12000000000000000000",
+        //        "open_val": "19.72056000000000000000",
+        //        "open_val_max": "19.72056000000000000000",
+        //        "position_id": 65171206,
+        //        "profit_clearing": "-0.00986028000000000000",
+        //        "profit_real": "-0.00986028000000000000",
+        //        "profit_unreal": "0.00",
+        //        "side": 2,
+        //        "stop_loss_price": "0.00000000000000000000",
+        //        "stop_loss_type": 0,
+        //        "sys": 0,
+        //        "take_profit_price": "0.00000000000000000000",
+        //        "take_profit_type": 0,
+        //        "taker_fee": "0.00000000000000000000",
+        //        "total": 3464,
+        //        "type": 1,
+        //        "update_time": 1651202638.911212,
+        //        "user_id": 3620173
+        //    }
+        //
+        object timestamp = this.safeIntegerProduct(data, "update_time", 1000);
         return new Dictionary<string, object>() {
             { "info", data },
-            { "type", null },
-            { "amount", null },
-            { "code", getValue(market, "quote") },
             { "symbol", this.safeSymbol(null, market) },
+            { "type", null },
+            { "amount", this.safeNumber(data, "margin_amount") },
+            { "total", null },
+            { "code", getValue(market, "quote") },
             { "status", null },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
         };
     }
 

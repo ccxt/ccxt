@@ -3,7 +3,7 @@ import { Exchange, OrderBook } from "../../../../ccxt";
 import Precise from '../../../base/Precise.js';
 import testSharedMethods from './test.sharedMethods.js';
 
-function testOrderBook (exchange: Exchange, skippedProperties: string[], method: string, orderbook: OrderBook, symbol: string) {
+function testOrderBook (exchange: Exchange, skippedProperties: object, method: string, orderbook: OrderBook, symbol: string) {
     const format = {
         'symbol': 'ETH/BTC',
         'asks': [

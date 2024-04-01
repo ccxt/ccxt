@@ -1181,6 +1181,8 @@ class zonda(Exchange, ImplicitAPI):
         }
         if limit is None:
             limit = 100
+        else:
+            limit = min(limit, 11000)  # supports up to 11k candles diapason
         duration = self.parse_timeframe(timeframe)
         timerange = limit * duration * 1000
         if since is None:

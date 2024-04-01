@@ -3934,7 +3934,7 @@ class phemex extends Exchange {
         );
     }
 
-    public function set_margin(string $symbol, float $amount, $params = array ()) {
+    public function set_margin(string $symbol, float $amount, $params = array ()): array {
         /**
          * Either adds or reduces margin in an isolated position in order to set the margin to a specific value
          * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md#assign-position-balance-in-isolated-marign-mode
@@ -3969,7 +3969,7 @@ class phemex extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_margin_modification($data, ?array $market = null) {
+    public function parse_margin_modification($data, ?array $market = null): array {
         //
         //     {
         //         "code" => 0,
@@ -3982,12 +3982,14 @@ class phemex extends Exchange {
         $codeCurrency = $inverse ? 'base' : 'quote';
         return array(
             'info' => $data,
+            'symbol' => $this->safe_symbol(null, $market),
             'type' => 'set',
             'amount' => null,
             'total' => null,
             'code' => $market[$codeCurrency],
-            'symbol' => $this->safe_symbol(null, $market),
             'status' => $this->parse_margin_status($this->safe_string($data, 'code')),
+            'timestamp' => null,
+            'datetime' => null,
         );
     }
 

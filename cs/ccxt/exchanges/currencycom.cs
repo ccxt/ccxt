@@ -1022,7 +1022,7 @@ public partial class currencycom : Exchange
         }
         if (isTrue(!isEqual(limit, null)))
         {
-            ((IDictionary<string,object>)request)["limit"] = limit; // default 500, max 1000
+            ((IDictionary<string,object>)request)["limit"] = mathMin(limit, 1000); // default 500, max 1000
         }
         object response = await this.publicGetV2Klines(this.extend(request, parameters));
         //

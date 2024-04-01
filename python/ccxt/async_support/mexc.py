@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.mexc import ImplicitAPI
 import hashlib
-from ccxt.base.types import Account, Balances, Currency, IndexType, Int, Leverage, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
+from ccxt.base.types import Account, Balances, Currency, IndexType, Int, Leverage, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -3778,7 +3778,7 @@ class mexc(Exchange, ImplicitAPI):
         #     }
         return response
 
-    async def reduce_margin(self, symbol: str, amount, params={}):
+    async def reduce_margin(self, symbol: str, amount, params={}) -> MarginModification:
         """
         remove margin from a position
         :param str symbol: unified market symbol
@@ -3788,7 +3788,7 @@ class mexc(Exchange, ImplicitAPI):
         """
         return await self.modify_margin_helper(symbol, amount, 'SUB', params)
 
-    async def add_margin(self, symbol: str, amount, params={}):
+    async def add_margin(self, symbol: str, amount, params={}) -> MarginModification:
         """
         add margin
         :param str symbol: unified market symbol

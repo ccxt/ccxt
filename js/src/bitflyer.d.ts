@@ -44,4 +44,5 @@ export default class bitflyer extends Exchange {
         body: any;
         headers: any;
     };
+    handleErrors(code: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): any;
 }

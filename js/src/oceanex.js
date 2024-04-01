@@ -797,7 +797,7 @@ export default class oceanex extends Exchange {
             request['timestamp'] = since;
         }
         if (limit !== undefined) {
-            request['limit'] = limit;
+            request['limit'] = Math.min(limit, 10000);
         }
         const response = await this.publicPostK(this.extend(request, params));
         const ohlcvs = this.safeList(response, 'data', []);

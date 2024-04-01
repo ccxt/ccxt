@@ -1409,6 +1409,9 @@ public partial class bitfinex2 : Exchange
         if (isTrue(isEqual(limit, null)))
         {
             limit = 10000;
+        } else
+        {
+            limit = mathMin(limit, 10000);
         }
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
@@ -3749,15 +3752,27 @@ public partial class bitfinex2 : Exchange
 
     public virtual object parseMarginModification(object data, object market = null)
     {
+        //
+        // setMargin
+        //
+        //     [
+        //         [
+        //             1
+        //         ]
+        //     ]
+        //
         object marginStatusRaw = getValue(data, 0);
         object marginStatus = ((bool) isTrue((isEqual(marginStatusRaw, 1)))) ? "ok" : "failed";
         return new Dictionary<string, object>() {
             { "info", data },
+            { "symbol", getValue(market, "symbol") },
             { "type", null },
             { "amount", null },
+            { "total", null },
             { "code", null },
-            { "symbol", getValue(market, "symbol") },
             { "status", marginStatus },
+            { "timestamp", null },
+            { "datetime", null },
         };
     }
 

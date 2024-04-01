@@ -83,7 +83,7 @@ public partial class coinex
     /// fetches the current integer timestamp in milliseconds from the exchange server
     /// </summary>
     /// <remarks>
-    /// See <see href="https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http005_system_time"/>  <br/>
+    /// See <see href="https://docs.coinex.com/api/v2/common/http/time"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -165,7 +165,8 @@ public partial class coinex
     /// fetch the trading fees for a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot001_market003_single_market_info"/>  <br/>
+    /// See <see href="https://docs.coinex.com/api/v2/spot/market/http/list-market"/>  <br/>
+    /// See <see href="https://docs.coinex.com/api/v2/futures/market/http/list-market"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -185,7 +186,8 @@ public partial class coinex
     /// fetch the trading fees for multiple markets
     /// </summary>
     /// <remarks>
-    /// See <see href="https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot001_market002_all_market_info"/>  <br/>
+    /// See <see href="https://docs.coinex.com/api/v2/spot/market/http/list-market"/>  <br/>
+    /// See <see href="https://docs.coinex.com/api/v2/futures/market/http/list-market"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>

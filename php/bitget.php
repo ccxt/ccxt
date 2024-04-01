@@ -1216,6 +1216,7 @@ class bitget extends Exchange {
                     '40768' => '\\ccxt\\OrderNotFound', // Order does not exist"
                     '41114' => '\\ccxt\\OnMaintenance', // array("code":"41114","msg":"The current trading pair is under maintenance, please refer to the official announcement for the opening time","requestTime":1679196062544,"data":null)
                     '43011' => '\\ccxt\\InvalidOrder', // The parameter does not meet the specification executePrice <= 0
+                    '43012' => '\\ccxt\\InsufficientFunds', // array("code":"43012","msg":"Insufficient balance","requestTime":1711648951774,"data":null)
                     '43025' => '\\ccxt\\InvalidOrder', // Plan order does not exist
                     '43115' => '\\ccxt\\OnMaintenance', // array("code":"43115","msg":"The current trading pair is opening soon, please refer to the official announcement for the opening time","requestTime":1688907202434,"data":null)
                     '45110' => '\\ccxt\\InvalidOrder', // array("code":"45110","msg":"less than the minimum amount 5 USDT","requestTime":1669911118932,"data":null)
@@ -6750,7 +6751,7 @@ class bitget extends Exchange {
         return $this->filter_by_since_limit($sorted, $since, $limit);
     }
 
-    public function modify_margin_helper(string $symbol, $amount, $type, $params = array ()) {
+    public function modify_margin_helper(string $symbol, $amount, $type, $params = array ()): array {
         $this->load_markets();
         $holdSide = $this->safe_string($params, 'holdSide');
         $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
@@ -6786,20 +6787,33 @@ class bitget extends Exchange {
         ));
     }
 
-    public function parse_margin_modification($data, ?array $market = null) {
+    public function parse_margin_modification($data, ?array $market = null): array {
+        //
+        // addMargin/reduceMargin
+        //
+        //     {
+        //         "code" => "00000",
+        //         "msg" => "success",
+        //         "requestTime" => 1700813444618,
+        //         "data" => ""
+        //     }
+        //
         $errorCode = $this->safe_string($data, 'code');
         $status = ($errorCode === '00000') ? 'ok' : 'failed';
         return array(
             'info' => $data,
+            'symbol' => $market['symbol'],
             'type' => null,
             'amount' => null,
+            'total' => null,
             'code' => $market['settle'],
-            'symbol' => $market['symbol'],
             'status' => $status,
+            'timestamp' => null,
+            'datetime' => null,
         );
     }
 
-    public function reduce_margin(string $symbol, $amount, $params = array ()) {
+    public function reduce_margin(string $symbol, $amount, $params = array ()): array {
         /**
          * remove margin from a position
          * @see https://www.bitget.com/api-doc/contract/account/Change-Margin
@@ -6818,7 +6832,7 @@ class bitget extends Exchange {
         return $this->modify_margin_helper($symbol, $amount, 'reduce', $params);
     }
 
-    public function add_margin(string $symbol, $amount, $params = array ()) {
+    public function add_margin(string $symbol, $amount, $params = array ()): array {
         /**
          * add margin
          * @see https://www.bitget.com/api-doc/contract/account/Change-Margin

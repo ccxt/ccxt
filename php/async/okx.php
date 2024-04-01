@@ -6440,7 +6440,7 @@ class okx extends Exchange {
         }) ();
     }
 
-    public function modify_margin_helper(string $symbol, $amount, $type, $params = array ()) {
+    public function modify_margin_helper(string $symbol, $amount, $type, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $amount, $type, $params) {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -6467,32 +6467,46 @@ class okx extends Exchange {
             //       "msg" => ""
             //     }
             //
-            return $this->parse_margin_modification($response, $market);
+            $data = $this->safe_list($response, 'data', array());
+            $errorCode = $this->safe_string($response, 'code');
+            $item = $this->safe_dict($data, 0, array());
+            return array_merge($this->parse_margin_modification($item, $market), array(
+                'status' => ($errorCode === '0') ? 'ok' : 'failed',
+            ));
         }) ();
     }
 
-    public function parse_margin_modification($data, ?array $market = null) {
-        $innerData = $this->safe_value($data, 'data', array());
-        $entry = $this->safe_value($innerData, 0, array());
-        $errorCode = $this->safe_string($data, 'code');
-        $status = ($errorCode === '0') ? 'ok' : 'failed';
-        $amountRaw = $this->safe_number($entry, 'amt');
-        $typeRaw = $this->safe_string($entry, 'type');
+    public function parse_margin_modification($data, ?array $market = null): array {
+        //
+        // addMargin/reduceMargin
+        //
+        //    {
+        //        "amt" => "0.01",
+        //        "instId" => "ETH-USD-SWAP",
+        //        "posSide" => "net",
+        //        "type" => "reduce"
+        //    }
+        //
+        $amountRaw = $this->safe_number($data, 'amt');
+        $typeRaw = $this->safe_string($data, 'type');
         $type = ($typeRaw === 'reduce') ? 'reduce' : 'add';
-        $marketId = $this->safe_string($entry, 'instId');
+        $marketId = $this->safe_string($data, 'instId');
         $responseMarket = $this->safe_market($marketId, $market);
         $code = $responseMarket['inverse'] ? $responseMarket['base'] : $responseMarket['quote'];
         return array(
             'info' => $data,
+            'symbol' => $responseMarket['symbol'],
             'type' => $type,
             'amount' => $amountRaw,
+            'total' => null,
             'code' => $code,
-            'symbol' => $responseMarket['symbol'],
-            'status' => $status,
+            'status' => null,
+            'timestamp' => null,
+            'datetime' => null,
         );
     }
 
-    public function reduce_margin(string $symbol, $amount, $params = array ()) {
+    public function reduce_margin(string $symbol, $amount, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $amount, $params) {
             /**
              * remove margin from a position
@@ -6506,7 +6520,7 @@ class okx extends Exchange {
         }) ();
     }
 
-    public function add_margin(string $symbol, $amount, $params = array ()) {
+    public function add_margin(string $symbol, $amount, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $amount, $params) {
             /**
              * add margin

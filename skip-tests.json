@@ -346,7 +346,8 @@
                 "high": "same",
                 "previousClose": "same",
                 "vwap": "same",
-                "baseVolume":"temp"
+                "baseVolume":"temp",
+                "spread": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269724413#L3725"
             },
             "fetchPositions": {
                 "stopLossPrice": "undefined",
@@ -409,8 +410,7 @@
         }
     },
     "onetrading": {
-        "skip": true,
-        "until": "2024-03-28",
+        "skip": "Api changed, as mentioned https://github.com/ccxt/ccxt/pull/21991",
         "skipWs": true,
         "skipMethods": {
             "fetchCurrencies": {

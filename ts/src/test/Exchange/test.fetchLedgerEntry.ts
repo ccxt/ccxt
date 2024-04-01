@@ -2,7 +2,7 @@ import { Exchange } from "../../../ccxt";
 import testLedgerEntry from './base/test.ledgerEntry.js';
 import testSharedMethods from './base/test.sharedMethods.js';
 
-async function testFetchLedgerEntry (exchange: Exchange, skippedProperties: string[], code: string) {
+async function testFetchLedgerEntry (exchange: Exchange, skippedProperties: object, code: string) {
     const method = 'fetchLedgerEntry';
     const items = await exchange.fetchLedger (code);
     const length = items.length;

@@ -2554,7 +2554,7 @@ class delta extends Exchange {
         );
     }
 
-    public function add_margin(string $symbol, $amount, $params = array ()) {
+    public function add_margin(string $symbol, $amount, $params = array ()): array {
         /**
          * add margin
          * @see https://docs.delta.exchange/#add-remove-position-margin
@@ -2566,7 +2566,7 @@ class delta extends Exchange {
         return $this->modify_margin_helper($symbol, $amount, 'add', $params);
     }
 
-    public function reduce_margin(string $symbol, $amount, $params = array ()) {
+    public function reduce_margin(string $symbol, $amount, $params = array ()): array {
         /**
          * remove margin from a position
          * @see https://docs.delta.exchange/#add-remove-position-margin
@@ -2578,7 +2578,7 @@ class delta extends Exchange {
         return $this->modify_margin_helper($symbol, $amount, 'reduce', $params);
     }
 
-    public function modify_margin_helper(string $symbol, $amount, $type, $params = array ()) {
+    public function modify_margin_helper(string $symbol, $amount, $type, $params = array ()): array {
         $this->load_markets();
         $market = $this->market($symbol);
         $amount = (string) $amount;
@@ -2617,7 +2617,7 @@ class delta extends Exchange {
         return $this->parse_margin_modification($result, $market);
     }
 
-    public function parse_margin_modification($data, ?array $market = null) {
+    public function parse_margin_modification($data, ?array $market = null): array {
         //
         //     {
         //         "auto_topup" => false,
@@ -2642,12 +2642,14 @@ class delta extends Exchange {
         $market = $this->safe_market($marketId, $market);
         return array(
             'info' => $data,
+            'symbol' => $market['symbol'],
             'type' => null,
             'amount' => null,
             'total' => $this->safe_number($data, 'margin'),
             'code' => null,
-            'symbol' => $market['symbol'],
             'status' => null,
+            'timestamp' => null,
+            'datetime' => null,
         );
     }
 

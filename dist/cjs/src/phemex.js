@@ -4060,12 +4060,14 @@ class phemex extends phemex$1 {
         const codeCurrency = inverse ? 'base' : 'quote';
         return {
             'info': data,
+            'symbol': this.safeSymbol(undefined, market),
             'type': 'set',
             'amount': undefined,
             'total': undefined,
             'code': market[codeCurrency],
-            'symbol': this.safeSymbol(undefined, market),
             'status': this.parseMarginStatus(this.safeString(data, 'code')),
+            'timestamp': undefined,
+            'datetime': undefined,
         };
     }
     async setMarginMode(marginMode, symbol = undefined, params = {}) {

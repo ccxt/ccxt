@@ -536,14 +536,18 @@ class kucoin(ccxt.async_support.kucoin):
         marketId = self.safe_string(data, 'symbol', topicSymbol)
         symbol = self.safe_symbol(marketId, None, '-')
         messageHash = 'orderbook:' + symbol
-        orderbook = self.safe_dict(self.orderbooks, symbol)
+        # orderbook = self.safe_dict(self.orderbooks, symbol)
         if subject == 'level2':
-            if orderbook is None:
-                orderbook = self.order_book()
+            if not (symbol in self.orderbooks):
+                self.orderbooks[symbol] = self.order_book()
             else:
+                orderbook = self.orderbooks[symbol]
                 orderbook.reset()
-            orderbook['symbol'] = symbol
+            self.orderbooks[symbol]['symbol'] = symbol
         else:
+            if not (symbol in self.orderbooks):
+                self.orderbooks[symbol] = self.order_book()
+            orderbook = self.orderbooks[symbol]
             nonce = self.safe_integer(orderbook, 'nonce')
             deltaEnd = self.safe_integer_2(data, 'sequenceEnd', 'timestamp')
             if nonce is None:
@@ -563,8 +567,8 @@ class kucoin(ccxt.async_support.kucoin):
                 return
             elif nonce >= deltaEnd:
                 return
-        self.handle_delta(orderbook, data)
-        client.resolve(orderbook, messageHash)
+        self.handle_delta(self.orderbooks[symbol], data)
+        client.resolve(self.orderbooks[symbol], messageHash)
 
     def get_cache_index(self, orderbook, cache):
         firstDelta = self.safe_value(cache, 0)

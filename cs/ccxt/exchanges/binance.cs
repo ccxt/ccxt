@@ -11892,6 +11892,16 @@ public partial class binance : Exchange
 
     public virtual object parseMarginModification(object data, object market = null)
     {
+        //
+        // add/reduce margin
+        //
+        //     {
+        //         "code": 200,
+        //         "msg": "Successfully modify position margin.",
+        //         "amount": 0.001,
+        //         "type": 1
+        //     }
+        //
         object rawType = this.safeInteger(data, "type");
         object resultType = ((bool) isTrue((isEqual(rawType, 1)))) ? "add" : "reduce";
         object resultAmount = this.safeNumber(data, "amount");
@@ -11899,11 +11909,14 @@ public partial class binance : Exchange
         object status = ((bool) isTrue((isEqual(errorCode, "200")))) ? "ok" : "failed";
         return new Dictionary<string, object>() {
             { "info", data },
+            { "symbol", getValue(market, "symbol") },
             { "type", resultType },
             { "amount", resultAmount },
+            { "total", null },
             { "code", null },
-            { "symbol", getValue(market, "symbol") },
             { "status", status },
+            { "timestamp", null },
+            { "datetime", null },
         };
     }
 

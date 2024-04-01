@@ -630,16 +630,13 @@ class krakenfutures extends Exchange {
             $request['from'] = $this->parse_to_int($since / 1000);
             if ($limit === null) {
                 $limit = 5000;
-            } elseif ($limit > 5000) {
-                throw new BadRequest($this->id . ' fetchOHLCV() $limit cannot exceed 5000');
             }
+            $limit = min ($limit, 5000);
             $toTimestamp = $this->sum($request['from'], $limit * $duration - 1);
             $currentTimestamp = $this->seconds();
             $request['to'] = min ($toTimestamp, $currentTimestamp);
         } elseif ($limit !== null) {
-            if ($limit > 5000) {
-                throw new BadRequest($this->id . ' fetchOHLCV() $limit cannot exceed 5000');
-            }
+            $limit = min ($limit, 5000);
             $duration = $this->parse_timeframe($timeframe);
             $request['to'] = $this->seconds();
             $request['from'] = $this->parse_to_int($request['to'] - ($duration * $limit));

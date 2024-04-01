@@ -1505,7 +1505,7 @@ class digifinex extends digifinex$1 {
             request['instrument_id'] = market['id'];
             request['granularity'] = timeframe;
             if (limit !== undefined) {
-                request['limit'] = limit;
+                request['limit'] = Math.min(limit, 100);
             }
             response = await this.publicSwapGetPublicCandles(this.extend(request, params));
         }
@@ -4131,12 +4131,14 @@ class digifinex extends digifinex$1 {
         const rawType = this.safeInteger(data, 'type');
         return {
             'info': data,
+            'symbol': this.safeSymbol(marketId, market, undefined, 'swap'),
             'type': (rawType === 1) ? 'add' : 'reduce',
             'amount': this.safeNumber(data, 'amount'),
             'total': undefined,
             'code': market['settle'],
-            'symbol': this.safeSymbol(marketId, market, undefined, 'swap'),
             'status': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
         };
     }
     async fetchFundingHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {

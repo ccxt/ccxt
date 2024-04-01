@@ -1181,6 +1181,7 @@ public partial class bitget : Exchange
                     { "40768", typeof(OrderNotFound) },
                     { "41114", typeof(OnMaintenance) },
                     { "43011", typeof(InvalidOrder) },
+                    { "43012", typeof(InsufficientFunds) },
                     { "43025", typeof(InvalidOrder) },
                     { "43115", typeof(OnMaintenance) },
                     { "45110", typeof(InvalidOrder) },
@@ -7494,15 +7495,28 @@ public partial class bitget : Exchange
 
     public virtual object parseMarginModification(object data, object market = null)
     {
+        //
+        // addMargin/reduceMargin
+        //
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1700813444618,
+        //         "data": ""
+        //     }
+        //
         object errorCode = this.safeString(data, "code");
         object status = ((bool) isTrue((isEqual(errorCode, "00000")))) ? "ok" : "failed";
         return new Dictionary<string, object>() {
             { "info", data },
+            { "symbol", getValue(market, "symbol") },
             { "type", null },
             { "amount", null },
+            { "total", null },
             { "code", getValue(market, "settle") },
-            { "symbol", getValue(market, "symbol") },
             { "status", status },
+            { "timestamp", null },
+            { "datetime", null },
         };
     }
 

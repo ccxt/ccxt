@@ -2916,7 +2916,7 @@ class htx extends Exchange {
         $untilSeconds = ($until !== null) ? $this->parse_to_int($until / 1000) : null;
         if ($market['contract']) {
             if ($limit !== null) {
-                $request['size'] = $limit; // when using $limit => from & to are ignored
+                $request['size'] = min ($limit, 2000); // when using $limit => from & to are ignored
                 // https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-get-kline-$data
             } else {
                 $limit = 2000; // only used for from/to calculation
@@ -2990,7 +2990,7 @@ class htx extends Exchange {
             list($useHistorical, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'useHistoricalEndpointForSpot', true);
             if (!$useHistorical) {
                 if ($limit !== null) {
-                    $request['size'] = min (2000, $limit); // max 2000
+                    $request['size'] = min ($limit, 2000); // max 2000
                 }
                 $response = $this->spotPublicGetMarketHistoryKline (array_merge($request, $params));
             } else {

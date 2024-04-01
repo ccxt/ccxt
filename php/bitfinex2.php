@@ -1372,6 +1372,8 @@ class bitfinex2 extends Exchange {
         $market = $this->market($symbol);
         if ($limit === null) {
             $limit = 10000;
+        } else {
+            $limit = min ($limit, 10000);
         }
         $request = array(
             'symbol' => $market['id'],
@@ -3433,7 +3435,7 @@ class bitfinex2 extends Exchange {
         ));
     }
 
-    public function set_margin(string $symbol, float $amount, $params = array ()) {
+    public function set_margin(string $symbol, float $amount, $params = array ()): array {
         /**
          * either adds or reduces margin in a swap position in order to set the margin to a specific value
          * @see https://docs.bitfinex.com/reference/rest-auth-deriv-pos-collateral-set
@@ -3463,16 +3465,28 @@ class bitfinex2 extends Exchange {
         return $this->parse_margin_modification($data, $market);
     }
 
-    public function parse_margin_modification($data, $market = null) {
+    public function parse_margin_modification($data, $market = null): array {
+        //
+        // setMargin
+        //
+        //     array(
+        //         array(
+        //             1
+        //         )
+        //     )
+        //
         $marginStatusRaw = $data[0];
         $marginStatus = ($marginStatusRaw === 1) ? 'ok' : 'failed';
         return array(
             'info' => $data,
+            'symbol' => $market['symbol'],
             'type' => null,
             'amount' => null,
+            'total' => null,
             'code' => null,
-            'symbol' => $market['symbol'],
             'status' => $marginStatus,
+            'timestamp' => null,
+            'datetime' => null,
         );
     }
 

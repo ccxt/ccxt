@@ -5,7 +5,7 @@
 
 from ccxt.kucoin import kucoin
 from ccxt.abstract.kucoinfutures import ImplicitAPI
-from ccxt.base.types import Balances, Currency, Int, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
+from ccxt.base.types import Balances, Currency, Int, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import AccountSuspended
@@ -1424,7 +1424,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         #
         return self.safe_value(response, 'data')
 
-    def add_margin(self, symbol: str, amount, params={}):
+    def add_margin(self, symbol: str, amount, params={}) -> MarginModification:
         """
         add margin
         :see: https://www.kucoin.com/docs/rest/futures-trading/positions/add-margin-manually
