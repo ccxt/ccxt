@@ -138,10 +138,10 @@ public partial class Exchange
         var res = await this.fetchIsolatedBorrowRates(parameters);
         return ((Dictionary<string, object>)res);
     }
-    public async Task<Dictionary<string, LeverageTier>> FetchLeverageTiers(List<string> symbols = null, Dictionary<string, object> parameters = null)
+    public async Task<Dictionary<string, LeverageTier[]>> FetchLeverageTiers(List<string> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchLeverageTiers(symbols, parameters);
-        return ((Dictionary<string, LeverageTier>)res);
+        return ((Dictionary<string, LeverageTier[]>)res);
     }
     public async Task<Dictionary<string, object>> FetchFundingRates(List<string> symbols = null, Dictionary<string, object> parameters = null)
     {

@@ -262,22 +262,24 @@ class exmo extends Exchange {
         }) ();
     }
 
-    public function parse_margin_modification($data, ?array $market = null) {
+    public function parse_margin_modification($data, ?array $market = null): array {
         //
         //      array()
         //
         return array(
             'info' => $data,
+            'symbol' => $this->safe_symbol(null, $market),
             'type' => null,
             'amount' => null,
-            'code' => $this->safe_value($market, 'quote'),
-            'symbol' => $this->safe_symbol(null, $market),
             'total' => null,
+            'code' => $this->safe_value($market, 'quote'),
             'status' => 'ok',
+            'timestamp' => null,
+            'datetime' => null,
         );
     }
 
-    public function reduce_margin(string $symbol, $amount, $params = array ()) {
+    public function reduce_margin(string $symbol, $amount, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $amount, $params) {
             /**
              * remove margin from a position
@@ -291,7 +293,7 @@ class exmo extends Exchange {
         }) ();
     }
 
-    public function add_margin(string $symbol, $amount, $params = array ()) {
+    public function add_margin(string $symbol, $amount, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $amount, $params) {
             /**
              * add margin
@@ -876,30 +878,26 @@ class exmo extends Exchange {
                 'symbol' => $market['id'],
                 'resolution' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
             );
-            $options = $this->safe_value($this->options, 'fetchOHLCV');
-            $maxLimit = $this->safe_integer($options, 'maxLimit', 3000);
+            $maxLimit = 3000;
             $duration = $this->parse_timeframe($timeframe);
             $now = $this->milliseconds();
             if ($since === null) {
                 if ($limit === null) {
                     $limit = 1000; // cap default at generous amount
-                }
-                if ($limit > $maxLimit) {
-                    $limit = $maxLimit; // avoid exception
+                } else {
+                    $limit = min ($limit, $maxLimit);
                 }
                 $request['from'] = $this->parse_to_int($now / 1000) - $limit * $duration - 1;
                 $request['to'] = $this->parse_to_int($now / 1000);
             } else {
                 $request['from'] = $this->parse_to_int($since / 1000) - 1;
                 if ($limit === null) {
-                    $request['to'] = $this->parse_to_int($now / 1000);
+                    $limit = $maxLimit;
                 } else {
-                    if ($limit > $maxLimit) {
-                        throw new BadRequest($this->id . ' fetchOHLCV() will serve ' . (string) $maxLimit . ' $candles at most');
-                    }
-                    $to = $this->sum($since, $limit * $duration * 1000);
-                    $request['to'] = $this->parse_to_int($to / 1000);
+                    $limit = min ($limit, $maxLimit);
                 }
+                $to = $this->sum($since, $limit * $duration * 1000);
+                $request['to'] = $this->parse_to_int($to / 1000);
             }
             $response = Async\await($this->publicGetCandlesHistory (array_merge($request, $params)));
             //

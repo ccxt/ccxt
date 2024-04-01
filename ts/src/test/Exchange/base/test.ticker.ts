@@ -3,7 +3,7 @@ import { Exchange, Ticker } from "../../../../ccxt";
 import Precise from '../../../base/Precise.js';
 import testSharedMethods from './test.sharedMethods.js';
 
-function testTicker (exchange: Exchange, skippedProperties: string[], method: string, entry: Ticker, symbol: string) {
+function testTicker (exchange: Exchange, skippedProperties: object, method: string, entry: Ticker, symbol: string) {
     const format = {
         'info': {},
         'symbol': 'ETH/BTC',

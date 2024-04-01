@@ -1745,7 +1745,7 @@ export default class hitbtc extends Exchange {
         }
         [ request, params ] = this.handleUntilOption ('till', request, params);
         if (limit !== undefined) {
-            request['limit'] = limit;
+            request['limit'] = Math.min (limit, 1000);
         }
         const price = this.safeString (params, 'price');
         params = this.omit (params, 'price');

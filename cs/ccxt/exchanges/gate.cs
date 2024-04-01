@@ -6565,11 +6565,14 @@ public partial class gate : Exchange
         object total = this.safeNumber(data, "margin");
         return new Dictionary<string, object>() {
             { "info", data },
-            { "amount", null },
-            { "code", this.safeValue(market, "quote") },
             { "symbol", getValue(market, "symbol") },
+            { "type", null },
+            { "amount", null },
             { "total", total },
+            { "code", this.safeValue(market, "quote") },
             { "status", "ok" },
+            { "timestamp", null },
+            { "datetime", null },
         };
     }
 

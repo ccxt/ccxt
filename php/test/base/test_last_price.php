@@ -7,7 +7,6 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 // -----------------------------------------------------------------------------
-use \ccxt\Precise;
 include_once PATH_TO_CCXT . '/test/base/test_shared_methods.php';
 
 function test_last_price($exchange, $skipped_properties, $method, $entry, $symbol) {

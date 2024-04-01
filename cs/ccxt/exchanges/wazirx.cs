@@ -326,7 +326,7 @@ public partial class wazirx : Exchange
         };
         if (isTrue(!isEqual(limit, null)))
         {
-            ((IDictionary<string,object>)request)["limit"] = limit;
+            ((IDictionary<string,object>)request)["limit"] = mathMin(limit, 2000);
         }
         object until = this.safeInteger(parameters, "until");
         parameters = this.omit(parameters, new List<object>() {"until"});

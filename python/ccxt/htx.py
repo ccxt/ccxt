@@ -2833,7 +2833,7 @@ class htx(Exchange, ImplicitAPI):
         untilSeconds = self.parse_to_int(until / 1000) if (until is not None) else None
         if market['contract']:
             if limit is not None:
-                request['size'] = limit  # when using limit: from & to are ignored
+                request['size'] = min(limit, 2000)  # when using limit: from & to are ignored
                 # https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-get-kline-data
             else:
                 limit = 2000  # only used for from/to calculation
@@ -2897,7 +2897,7 @@ class htx(Exchange, ImplicitAPI):
             useHistorical, params = self.handle_option_and_params(params, 'fetchOHLCV', 'useHistoricalEndpointForSpot', True)
             if not useHistorical:
                 if limit is not None:
-                    request['size'] = min(2000, limit)  # max 2000
+                    request['size'] = min(limit, 2000)  # max 2000
                 response = self.spotPublicGetMarketHistoryKline(self.extend(request, params))
             else:
                 # "from & to" only available for the self endpoint

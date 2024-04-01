@@ -5,8 +5,8 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 import assert from 'assert';
-import testSharedMethods from './test.sharedMethods.js';
 import Precise from '../../../base/Precise.js';
+import testSharedMethods from './test.sharedMethods.js';
 function testTicker(exchange, skippedProperties, method, entry, symbol) {
     const format = {
         'info': {},

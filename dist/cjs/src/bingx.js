@@ -30,6 +30,7 @@ class bingx extends bingx$1 {
                 'swap': true,
                 'future': false,
                 'option': false,
+                'addMargin': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'cancelOrders': true,
@@ -76,6 +77,7 @@ class bingx extends bingx$1 {
                 'fetchTrades': true,
                 'fetchTransfers': true,
                 'fetchWithdrawals': true,
+                'reduceMargin': true,
                 'setLeverage': true,
                 'setMargin': true,
                 'setMarginMode': true,
@@ -3464,6 +3466,18 @@ class bingx extends bingx$1 {
         };
         return await this.swapV2PrivatePostTradeMarginType(this.extend(request, params));
     }
+    async addMargin(symbol, amount, params = {}) {
+        const request = {
+            'type': 1,
+        };
+        return await this.setMargin(symbol, amount, this.extend(request, params));
+    }
+    async reduceMargin(symbol, amount, params = {}) {
+        const request = {
+            'type': 2,
+        };
+        return await this.setMargin(symbol, amount, this.extend(request, params));
+    }
     async setMargin(symbol, amount, params = {}) {
         /**
          * @method
@@ -3498,7 +3512,29 @@ class bingx extends bingx$1 {
         //        "type": 1
         //    }
         //
-        return response;
+        return this.parseMarginModification(response, market);
+    }
+    parseMarginModification(data, market = undefined) {
+        //
+        //    {
+        //        "code": 0,
+        //        "msg": "",
+        //        "amount": 1,
+        //        "type": 1
+        //    }
+        //
+        const type = this.safeString(data, 'type');
+        return {
+            'info': data,
+            'symbol': this.safeString(market, 'symbol'),
+            'type': (type === '1') ? 'add' : 'reduce',
+            'amount': this.safeNumber(data, 'amount'),
+            'total': this.safeNumber(data, 'margin'),
+            'code': this.safeString(market, 'settle'),
+            'status': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+        };
     }
     async fetchLeverage(symbol, params = {}) {
         /**

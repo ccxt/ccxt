@@ -1,5 +1,5 @@
 import Exchange from './abstract/delta.js';
-import type { Balances, Currency, Greeks, Int, Market, MarketInterface, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Position, Leverage, MarginMode, Num, Option } from './base/types.js';
+import type { Balances, Currency, Greeks, Int, Market, MarketInterface, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Position, Leverage, MarginMode, Num, Option, MarginModification } from './base/types.js';
 /**
  * @class delta
  * @augments Exchange
@@ -115,42 +115,10 @@ export default class delta extends Exchange {
         previousFundingTimestamp: any;
         previousFundingDatetime: any;
     };
-    addMargin(symbol: string, amount: any, params?: {}): Promise<{
-        info: any;
-        type: any;
-        amount: any;
-        total: number;
-        code: any;
-        symbol: string;
-        status: any;
-    }>;
-    reduceMargin(symbol: string, amount: any, params?: {}): Promise<{
-        info: any;
-        type: any;
-        amount: any;
-        total: number;
-        code: any;
-        symbol: string;
-        status: any;
-    }>;
-    modifyMarginHelper(symbol: string, amount: any, type: any, params?: {}): Promise<{
-        info: any;
-        type: any;
-        amount: any;
-        total: number;
-        code: any;
-        symbol: string;
-        status: any;
-    }>;
-    parseMarginModification(data: any, market?: Market): {
-        info: any;
-        type: any;
-        amount: any;
-        total: number;
-        code: any;
-        symbol: string;
-        status: any;
-    };
+    addMargin(symbol: string, amount: any, params?: {}): Promise<MarginModification>;
+    reduceMargin(symbol: string, amount: any, params?: {}): Promise<MarginModification>;
+    modifyMarginHelper(symbol: string, amount: any, type: any, params?: {}): Promise<MarginModification>;
+    parseMarginModification(data: any, market?: Market): MarginModification;
     fetchOpenInterest(symbol: string, params?: {}): Promise<import("./base/types.js").OpenInterest>;
     parseOpenInterest(interest: any, market?: Market): import("./base/types.js").OpenInterest;
     fetchLeverage(symbol: string, params?: {}): Promise<Leverage>;

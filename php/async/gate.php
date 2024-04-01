@@ -6061,7 +6061,7 @@ class gate extends Exchange {
         }) ();
     }
 
-    public function parse_margin_modification($data, ?array $market = null) {
+    public function parse_margin_modification($data, ?array $market = null): array {
         //
         //     {
         //         "value" => "11.9257",
@@ -6094,15 +6094,18 @@ class gate extends Exchange {
         $total = $this->safe_number($data, 'margin');
         return array(
             'info' => $data,
-            'amount' => null,
-            'code' => $this->safe_value($market, 'quote'),
             'symbol' => $market['symbol'],
+            'type' => null,
+            'amount' => null,
             'total' => $total,
+            'code' => $this->safe_value($market, 'quote'),
             'status' => 'ok',
+            'timestamp' => null,
+            'datetime' => null,
         );
     }
 
-    public function reduce_margin(string $symbol, $amount, $params = array ()) {
+    public function reduce_margin(string $symbol, $amount, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $amount, $params) {
             /**
              * remove margin from a position
@@ -6117,7 +6120,7 @@ class gate extends Exchange {
         }) ();
     }
 
-    public function add_margin(string $symbol, $amount, $params = array ()) {
+    public function add_margin(string $symbol, $amount, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $amount, $params) {
             /**
              * add margin

@@ -8,7 +8,7 @@ from ccxt.abstract.bitrue import ImplicitAPI
 import asyncio
 import hashlib
 import json
-from ccxt.base.types import Balances, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
+from ccxt.base.types import Balances, Currency, Int, MarginModification, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -1311,8 +1311,6 @@ class bitrue(Exchange, ImplicitAPI):
                 'interval': self.safe_string(timeframesFuture, timeframe, '1min'),
             }
             if limit is not None:
-                if limit > 300:
-                    limit = 300
                 request['limit'] = limit
             if market['linear']:
                 response = await self.fapiV1PublicGetKlines(self.extend(request, params))
@@ -1327,8 +1325,6 @@ class bitrue(Exchange, ImplicitAPI):
                 'scale': self.safe_string(timeframesSpot, timeframe, '1m'),
             }
             if limit is not None:
-                if limit > 1440:
-                    limit = 1440
                 request['limit'] = limit
             if since is not None:
                 request['fromIdx'] = since
@@ -2843,17 +2839,29 @@ class bitrue(Exchange, ImplicitAPI):
             response = await self.dapiV2PrivatePostLevelEdit(self.extend(request, params))
         return response
 
-    def parse_margin_modification(self, data, market=None):
+    def parse_margin_modification(self, data, market=None) -> MarginModification:
+        #
+        # setMargin
+        #
+        #     {
+        #         "code": 0,
+        #         "msg": "success"
+        #         "data": null
+        #     }
+        #
         return {
             'info': data,
+            'symbol': market['symbol'],
             'type': None,
             'amount': None,
+            'total': None,
             'code': None,
-            'symbol': market['symbol'],
             'status': None,
+            'timestamp': None,
+            'datetime': None,
         }
 
-    async def set_margin(self, symbol: str, amount: float, params={}):
+    async def set_margin(self, symbol: str, amount: float, params={}) -> MarginModification:
         """
         Either adds or reduces margin in an isolated position in order to set the margin to a specific value
         :see: https://www.bitrue.com/api-docs#modify-isolated-position-margin-trade-hmac-sha256

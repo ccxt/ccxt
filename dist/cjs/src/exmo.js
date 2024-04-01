@@ -262,12 +262,14 @@ class exmo extends exmo$1 {
         //
         return {
             'info': data,
+            'symbol': this.safeSymbol(undefined, market),
             'type': undefined,
             'amount': undefined,
-            'code': this.safeValue(market, 'quote'),
-            'symbol': this.safeSymbol(undefined, market),
             'total': undefined,
+            'code': this.safeValue(market, 'quote'),
             'status': 'ok',
+            'timestamp': undefined,
+            'datetime': undefined,
         };
     }
     async reduceMargin(symbol, amount, params = {}) {
@@ -860,16 +862,15 @@ class exmo extends exmo$1 {
             'symbol': market['id'],
             'resolution': this.safeString(this.timeframes, timeframe, timeframe),
         };
-        const options = this.safeValue(this.options, 'fetchOHLCV');
-        const maxLimit = this.safeInteger(options, 'maxLimit', 3000);
+        const maxLimit = 3000;
         const duration = this.parseTimeframe(timeframe);
         const now = this.milliseconds();
         if (since === undefined) {
             if (limit === undefined) {
                 limit = 1000; // cap default at generous amount
             }
-            if (limit > maxLimit) {
-                limit = maxLimit; // avoid exception
+            else {
+                limit = Math.min(limit, maxLimit);
             }
             request['from'] = this.parseToInt(now / 1000) - limit * duration - 1;
             request['to'] = this.parseToInt(now / 1000);
@@ -877,15 +878,13 @@ class exmo extends exmo$1 {
         else {
             request['from'] = this.parseToInt(since / 1000) - 1;
             if (limit === undefined) {
-                request['to'] = this.parseToInt(now / 1000);
+                limit = maxLimit;
             }
             else {
-                if (limit > maxLimit) {
-                    throw new errors.BadRequest(this.id + ' fetchOHLCV() will serve ' + maxLimit.toString() + ' candles at most');
-                }
-                const to = this.sum(since, limit * duration * 1000);
-                request['to'] = this.parseToInt(to / 1000);
+                limit = Math.min(limit, maxLimit);
             }
+            const to = this.sum(since, limit * duration * 1000);
+            request['to'] = this.parseToInt(to / 1000);
         }
         const response = await this.publicGetCandlesHistory(this.extend(request, params));
         //

@@ -3,7 +3,7 @@ import Precise from '../../../base/Precise.js';
 import { Exchange, Market } from "../../../../ccxt";
 import testSharedMethods from './test.sharedMethods.js';
 
-function testMarket (exchange: Exchange, skippedProperties: string[], method: string, market: Market) {
+function testMarket (exchange: Exchange, skippedProperties: object, method: string, market: Market) {
     const format = {
         'id': 'btcusd', // string literal for referencing within an exchange
         'symbol': 'BTC/USD', // uppercase string literal of a pair of currencies

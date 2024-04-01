@@ -1479,7 +1479,7 @@ class digifinex extends Exchange {
             $request['instrument_id'] = $market['id'];
             $request['granularity'] = $timeframe;
             if ($limit !== null) {
-                $request['limit'] = $limit;
+                $request['limit'] = min ($limit, 100);
             }
             $response = $this->publicSwapGetPublicCandles (array_merge($request, $params));
         } else {
@@ -3985,7 +3985,7 @@ class digifinex extends Exchange {
         return $depositWithdrawFees;
     }
 
-    public function add_margin(string $symbol, $amount, $params = array ()) {
+    public function add_margin(string $symbol, $amount, $params = array ()): array {
         /**
          * add margin to a position
          * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#positionmargin
@@ -4000,7 +4000,7 @@ class digifinex extends Exchange {
         return $this->modify_margin_helper($symbol, $amount, 1, $params);
     }
 
-    public function reduce_margin(string $symbol, $amount, $params = array ()) {
+    public function reduce_margin(string $symbol, $amount, $params = array ()): array {
         /**
          * remove margin from a position
          * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#positionmargin
@@ -4015,7 +4015,7 @@ class digifinex extends Exchange {
         return $this->modify_margin_helper($symbol, $amount, 2, $params);
     }
 
-    public function modify_margin_helper(string $symbol, $amount, $type, $params = array ()) {
+    public function modify_margin_helper(string $symbol, $amount, $type, $params = array ()): array {
         $this->load_markets();
         $side = $this->safe_string($params, 'side');
         $market = $this->market($symbol);
@@ -4045,7 +4045,7 @@ class digifinex extends Exchange {
         ));
     }
 
-    public function parse_margin_modification($data, ?array $market = null) {
+    public function parse_margin_modification($data, ?array $market = null): array {
         //
         //     {
         //         "instrument_id" => "BTCUSDTPERP",
@@ -4058,12 +4058,14 @@ class digifinex extends Exchange {
         $rawType = $this->safe_integer($data, 'type');
         return array(
             'info' => $data,
+            'symbol' => $this->safe_symbol($marketId, $market, null, 'swap'),
             'type' => ($rawType === 1) ? 'add' : 'reduce',
             'amount' => $this->safe_number($data, 'amount'),
             'total' => null,
             'code' => $market['settle'],
-            'symbol' => $this->safe_symbol($marketId, $market, null, 'swap'),
             'status' => null,
+            'timestamp' => null,
+            'datetime' => null,
         );
     }
 

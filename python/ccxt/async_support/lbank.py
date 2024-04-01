@@ -970,6 +970,8 @@ class lbank(Exchange, ImplicitAPI):
         market = self.market(symbol)
         if limit is None:
             limit = 100
+        else:
+            limit = min(limit, 2000)
         if since is None:
             duration = self.parse_timeframe(timeframe)
             since = self.milliseconds() - duration * 1000 * limit

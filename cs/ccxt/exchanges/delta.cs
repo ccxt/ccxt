@@ -2712,12 +2712,14 @@ public partial class delta : Exchange
         market = this.safeMarket(marketId, market);
         return new Dictionary<string, object>() {
             { "info", data },
+            { "symbol", getValue(market, "symbol") },
             { "type", null },
             { "amount", null },
             { "total", this.safeNumber(data, "margin") },
             { "code", null },
-            { "symbol", getValue(market, "symbol") },
             { "status", null },
+            { "timestamp", null },
+            { "datetime", null },
         };
     }
 

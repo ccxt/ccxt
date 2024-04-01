@@ -750,7 +750,7 @@ class oceanex(Exchange, ImplicitAPI):
         if since is not None:
             request['timestamp'] = since
         if limit is not None:
-            request['limit'] = limit
+            request['limit'] = min(limit, 10000)
         response = self.publicPostK(self.extend(request, params))
         ohlcvs = self.safe_list(response, 'data', [])
         return self.parse_ohlcvs(ohlcvs, market, timeframe, since, limit)
