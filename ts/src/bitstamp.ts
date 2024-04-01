@@ -430,6 +430,30 @@ export default class bitstamp extends Exchange {
             'commonCurrencies': {
                 'UST': 'USTC',
             },
+            // exchange-specific options
+            'options': {
+                'networksById': {
+                    'bitcoin-cash': 'BCH',
+                    'bitcoin': 'BTC',
+                    'ethereum': 'ERC20',
+                    'litecoin': 'LTC',
+                    'stellar': 'XLM',
+                    'xrpl': 'XRP',
+                    'tron': 'TRC20',
+                    'algorand': 'ALGO',
+                    'flare': 'FLR',
+                    'hedera': 'HBAR',
+                    'cardana': 'ADA',
+                    'songbird': 'FLR',
+                    'avalanche-c-chain': 'AVAX',
+                    'solana': 'SOL',
+                    'polkadot': 'DOT',
+                    'near': 'NEAR',
+                    'doge': 'DOGE',
+                    'sui': 'SUI',
+                    'casper': 'CSRP',
+                },
+            },
             'exceptions': {
                 'exact': {
                     'No permission found': PermissionDenied,
