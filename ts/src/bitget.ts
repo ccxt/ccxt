@@ -1998,7 +1998,7 @@ export default class bitget extends Exchange {
             }
             params = this.omit (params, 'code');
             const currency = this.currency (code);
-            request['coin'] = currency['ie'];
+            request['coin'] = currency['id'];
             response = await this.privateMarginGetV2MarginCrossedTierData (this.extend (request, params));
         } else {
             throw new BadRequest (this.id + ' fetchMarketLeverageTiers() symbol does not support market ' + market['symbol']);
@@ -2155,7 +2155,7 @@ export default class bitget extends Exchange {
             since = this.milliseconds () - 7776000000; // 90 days
         }
         let request = {
-            'coin': currency['ie'],
+            'coin': currency['id'],
             'startTime': since,
             'endTime': this.milliseconds (),
         };
