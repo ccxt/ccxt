@@ -288,33 +288,33 @@ const testExchange = async (exchange) => {
         )
     }
 
-    const allTests = allTestsWithoutTs.concat([
-        { language: 'TypeScript',     key: '--ts',           exec: ['node',  '--loader', 'ts-node/esm',  'ts/src/test/test.ts',           ...args] },
-    ]);
+        const allTests = allTestsWithoutTs.concat([
+            { language: 'TypeScript',     key: '--ts',           exec: ['node',  '--loader', 'ts-node/esm',  'ts/src/test/test.ts',           ...args] },
+        ]);
 
-    const selectedTests  = allTests.filter (t => langKeys[t.key]);
-    // if specific langs were requested, then run them (even TS). Otherwise, by default run all langs except TS
-    let scheduledTests = selectedTests.length ? selectedTests : allTestsWithoutTs
-    // when bulk tests are run, we skip php-async, however, if your specifically run php-async (as a single language from run-tests), lets allow it
-    const specificLangSet = (Object.values (langKeys).filter (x => x)).length === 1;
-    if (skipSettings[exchange] && skipSettings[exchange].skipPhpAsync && !specificLangSet) {
-        // some exchanges are failing in php async tests with this error:
-        // An error occured on the underlying stream while buffering: Unexpected end of response body after 212743/262800 bytes
-        scheduledTests = scheduledTests.filter (x => x.key !== '--php-async');
-    }
-    const completeTests  = await sequentialMap (scheduledTests, async test => Object.assign (test, await  exec (...test.exec)))
-    , failed         = completeTests.find (test => test.failed)
-    , hasWarnings    = completeTests.find (test => test.warnings.length)
-    , warnings       = completeTests.reduce (
-        (total, { warnings }) => {
-            return total.concat(['\n\n']).concat (warnings)
-        }, []
-    )
-    , infos       = completeTests.reduce (
-        (total, { infos }) => {
-            return total.concat(['\n\n']).concat (infos)
-        }, []
-    )
+        const selectedTests  = allTests.filter (t => langKeys[t.key]);
+        // if specific langs were requested, then run them (even TS). Otherwise, by default run all langs except TS
+        let scheduledTests = selectedTests.length ? selectedTests : allTestsWithoutTs
+        // when bulk tests are run, we skip php-async, however, if your specifically run php-async (as a single language from run-tests), lets allow it
+        const specificLangSet = (Object.values (langKeys).filter (x => x)).length === 1;
+        if (skipSettings[exchange] && skipSettings[exchange].skipPhpAsync && !specificLangSet) {
+            // some exchanges are failing in php async tests with this error:
+            // An error occured on the underlying stream while buffering: Unexpected end of response body after 212743/262800 bytes
+            scheduledTests = scheduledTests.filter (x => x.key !== '--php-async');
+        }
+        const completeTests  = await sequentialMap (scheduledTests, async test => Object.assign (test, await  exec (...test.exec)))
+        , failed         = completeTests.find (test => test.failed)
+        , hasWarnings    = completeTests.find (test => test.warnings.length)
+        , warnings       = completeTests.reduce (
+            (total, { warnings }) => {
+                return total.concat(['\n\n']).concat (warnings)
+            }, []
+        )
+        , infos       = completeTests.reduce (
+            (total, { infos }) => {
+                return total.concat(['\n\n']).concat (infos)
+            }, []
+        )
 
 /*  Print interactive log output    */
 
