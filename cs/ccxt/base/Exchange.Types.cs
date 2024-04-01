@@ -451,6 +451,45 @@ public struct LastPrices
     }
 }
 
+public struct Currencies
+{
+    public Dictionary<string, object> info;
+    public Dictionary<string, Currency> currencies;
+
+    public Currencies(object currencies2)
+    {
+        var currencies = (Dictionary<string, object>)currencies2;
+
+        info = currencies.ContainsKey("info") ? (Dictionary<string, object>)currencies["info"] : null;
+        this.currencies = new Dictionary<string, Currency>();
+        foreach (var currency in currencies)
+        {
+            if (currency.Key != "info")
+                this.currencies.Add(currency.Key, new Currency(currency.Value));
+        }
+    }
+
+    // Indexer
+    public Currency this[string key]
+    {
+        get
+        {
+            if (currencies.ContainsKey(key))
+            {
+                return currencies[key];
+            }
+            else
+            {
+                throw new KeyNotFoundException($"The key '{key}' was not found in the currencies.");
+            }
+        }
+        set
+        {
+            currencies[key] = value;
+        }
+    }
+}
+
 public struct Transaction
 {
     public string? id;

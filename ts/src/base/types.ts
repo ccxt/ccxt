@@ -525,6 +525,8 @@ export interface Leverages extends Dictionary<Leverage> {
 
 export interface LastPrices extends Dictionary<LastPrice> {
 }
+export interface Currencies extends Dictionary<CurrencyInterface> {
+}
 
 export interface MarginModes extends Dictionary<MarginMode> {
 }
