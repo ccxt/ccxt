@@ -15,7 +15,7 @@
         "option": false,
         "margin": false,
         "contract": true,
-        "contractSize": 0.0001,
+        "contractSize": 1,
         "settle": "USD",
         "settleId": "usd",
         "precision": {
@@ -236,7 +236,7 @@
         "option": false,
         "margin": false,
         "contract": true,
-        "contractSize": 0.001,
+        "contractSize": 1,
         "settle": "USD",
         "settleId": "usd",
         "precision": {
@@ -353,7 +353,7 @@
         "option": false,
         "margin": false,
         "contract": true,
-        "contractSize": 0.01,
+        "contractSize": 1,
         "settle": "USD",
         "settleId": "usd",
         "precision": {
@@ -620,6 +620,100 @@
                     0
                 ]
             ]
+        }
+    },
+    "PEPE/USD:USD": {
+        "id": "PF_PEPEUSD",
+        "symbol": "PEPE/USD:USD",
+        "base": "PEPE",
+        "quote": "USD",
+        "settle": "USD",
+        "baseId": "PEPE",
+        "quoteId": "usd",
+        "settleId": "usd",
+        "type": "swap",
+        "spot": false,
+        "margin": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "index": false,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0.0005,
+        "maker": 0.0002,
+        "contractSize": 1,
+        "precision": {
+            "amount": 1000,
+            "price": 1e-10
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {},
+            "price": {},
+            "cost": {}
+        },
+        "created": 1685011945000,
+        "info": {
+            "symbol": "PF_PEPEUSD",
+            "type": "flexible_futures",
+            "tickSize": "0.0000000001",
+            "contractSize": "1",
+            "tradeable": true,
+            "impactMidSize": "125000000.00",
+            "maxPositionSize": "1000000000000.00000000000",
+            "openingDate": "2023-05-25T10:52:25.000Z",
+            "marginLevels": [{
+                    "numNonContractUnits": "0E-20",
+                    "initialMargin": "0.05",
+                    "maintenanceMargin": "0.025"
+                }, {
+                    "numNonContractUnits": "10000.00000000000000000000",
+                    "initialMargin": "0.1",
+                    "maintenanceMargin": "0.05"
+                }, {
+                    "numNonContractUnits": "250000.00000000000000000000",
+                    "initialMargin": "0.3",
+                    "maintenanceMargin": "0.15"
+                }, {
+                    "numNonContractUnits": "1250000.00000000000000000000",
+                    "initialMargin": "0.5",
+                    "maintenanceMargin": "0.25"
+                }
+            ],
+            "fundingRateCoefficient": "24",
+            "maxRelativeFundingRate": "0.0025",
+            "contractValueTradePrecision": "-3",
+            "postOnly": false,
+            "feeScheduleUid": "97ae0cc8-2964-43ea-91e9-d8e720b02b19",
+            "retailMarginLevels": [{
+                    "numNonContractUnits": "0E-20",
+                    "initialMargin": "0.05",
+                    "maintenanceMargin": "0.025"
+                }, {
+                    "numNonContractUnits": "10000.00000000000000000000",
+                    "initialMargin": "0.1",
+                    "maintenanceMargin": "0.05"
+                }, {
+                    "numNonContractUnits": "250000.00000000000000000000",
+                    "initialMargin": "0.3",
+                    "maintenanceMargin": "0.15"
+                }, {
+                    "numNonContractUnits": "1250000.00000000000000000000",
+                    "initialMargin": "0.5",
+                    "maintenanceMargin": "0.25"
+                }
+            ],
+            "category": "Community",
+            "tags": []
+        },
+        "tierBased": true,
+        "percentage": true,
+        "tiers": {
+            "taker": [[0, 0.0005], [100000, 0.0004], [1000000, 0.0003], [5000000, 0.00025], [10000000, 0.0002], [20000000, 0.00015], [50000000, 0.000125], [100000000, 0.0001]],
+            "maker": [[0, 0.0002], [100000, 0.0015], [1000000, 0.000125], [5000000, 0.0001], [10000000, 0.000075], [20000000, 0.00005], [50000000, 0.000025], [100000000, 0]]
         }
     }
 }
