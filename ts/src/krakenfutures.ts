@@ -353,7 +353,8 @@ export default class krakenfutures extends Exchange {
             // swap == perpetual
             let settle = undefined;
             let settleId = undefined;
-            const amountPrecision = this.parseNumber (this.parsePrecision (this.safeString (market, 'contractValueTradePrecision', '0')));
+            const cvtp = this.safeString (market, 'contractValueTradePrecision');
+            const amountPrecision = this.parseNumber (this.integerPrecisionToAmount (cvtp));
             const pricePrecision = this.safeNumber (market, 'tickSize');
             const contract = (swap || future || index);
             const swapOrFutures = (swap || future);
@@ -374,9 +375,6 @@ export default class krakenfutures extends Exchange {
                     symbol = symbol + '-' + this.yymmdd (expiry);
                 }
             }
-            // 'contractSize' field value is always '1' for all markets, so we need the below value
-            const cvtp = this.safeString (market, 'contractValueTradePrecision');
-            const contractSize = this.parseNumber (this.integerPrecisionToAmount (cvtp));
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -397,7 +395,7 @@ export default class krakenfutures extends Exchange {
                 'contract': contract,
                 'linear': linear,
                 'inverse': inverse,
-                'contractSize': contractSize,
+                'contractSize': this.safeNumber (market, 'contractSize'),
                 'maintenanceMarginRate': undefined,
                 'expiry': expiry,
                 'expiryDatetime': this.iso8601 (expiry),
