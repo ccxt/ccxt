@@ -6,7 +6,7 @@ import { TICK_SIZE } from './base/functions/number.js';
 import { AuthenticationError, BadRequest, DDoSProtection, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidOrder, OrderNotFound, PermissionDenied, ArgumentsRequired, BadSymbol } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, Liquidation, OrderBook, Balances, Str, Transaction, Ticker, Tickers, Market, Strings, Currency, MarketType, Leverage, Leverages, Num, CurrencyInterface, Dictionary } from './base/types.js';
+import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, Liquidation, OrderBook, Balances, Str, Transaction, Ticker, Tickers, Market, Strings, Currency, MarketType, Leverage, Leverages, Num, Currencies } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -281,7 +281,7 @@ export default class bitmex extends Exchange {
         });
     }
 
-    async fetchCurrencies (params = {}): Promise<Dictionary<CurrencyInterface>> {
+    async fetchCurrencies (params = {}): Promise<Currencies> {
         /**
          * @method
          * @name bitmex#fetchCurrencies

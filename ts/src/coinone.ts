@@ -6,7 +6,7 @@ import { BadSymbol, BadRequest, ExchangeError, ArgumentsRequired, OrderNotFound,
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import type { Balances, CurrencyInterface, Dictionary, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
+import type { Balances, Currencies, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -201,7 +201,7 @@ export default class coinone extends Exchange {
         });
     }
 
-    async fetchCurrencies (params = {}): Promise<Dictionary<CurrencyInterface>> {
+    async fetchCurrencies (params = {}): Promise<Currencies> {
         /**
          * @method
          * @name coinone#fetchCurrencies

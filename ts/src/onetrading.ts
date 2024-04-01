@@ -5,7 +5,7 @@ import Exchange from './abstract/onetrading.js';
 import { AuthenticationError, ExchangeError, PermissionDenied, BadRequest, ArgumentsRequired, OrderNotFound, InsufficientFunds, ExchangeNotAvailable, DDoSProtection, InvalidAddress, InvalidOrder } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Currency, CurrencyInterface, Dictionary, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction } from './base/types.js';
+import type { Balances, Currencies, Currency, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -319,7 +319,7 @@ export default class onetrading extends Exchange {
         return this.safeInteger (response, 'epoch_millis');
     }
 
-    async fetchCurrencies (params = {}): Promise<Dictionary<CurrencyInterface>> {
+    async fetchCurrencies (params = {}): Promise<Currencies> {
         /**
          * @method
          * @name onetrading#fetchCurrencies
@@ -445,7 +445,7 @@ export default class onetrading extends Exchange {
         };
     }
 
-    async fetchTradingFees (params = {}): Promise<Dictionary<TradingFeeInterface>> {
+    async fetchTradingFees (params = {}): Promise<TradingFees> {
         /**
          * @method
          * @name onetrading#fetchTradingFees

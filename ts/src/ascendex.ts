@@ -6,7 +6,7 @@ import { ArgumentsRequired, AuthenticationError, ExchangeError, InsufficientFund
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { TransferEntry, FundingHistory, Int, OHLCV, Order, OrderSide, OrderType, OrderRequest, Str, Trade, Balances, Transaction, Ticker, OrderBook, Tickers, Strings, Num, Currency, Market, Leverage, Leverages, Account, MarginModes, MarginMode, MarginModification, CurrencyInterface, Dictionary, TradingFeeInterface } from './base/types.js';
+import type { TransferEntry, FundingHistory, Int, OHLCV, Order, OrderSide, OrderType, OrderRequest, Str, Trade, Balances, Transaction, Ticker, OrderBook, Tickers, Strings, Num, Currency, Market, Leverage, Leverages, Account, MarginModes, MarginMode, MarginModification, Currencies, TradingFees } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -389,7 +389,7 @@ export default class ascendex extends Exchange {
         return this.capitalize (lowercaseAccount);
     }
 
-    async fetchCurrencies (params = {}): Promise<Dictionary<CurrencyInterface>> {
+    async fetchCurrencies (params = {}): Promise<Currencies> {
         /**
          * @method
          * @name ascendex#fetchCurrencies
@@ -1453,7 +1453,7 @@ export default class ascendex extends Exchange {
         }, market);
     }
 
-    async fetchTradingFees (params = {}): Promise<Dictionary<TradingFeeInterface>> {
+    async fetchTradingFees (params = {}): Promise<TradingFees> {
         /**
          * @method
          * @name ascendex#fetchTradingFees
@@ -1487,7 +1487,7 @@ export default class ascendex extends Exchange {
         //
         const data = this.safeValue (response, 'data', {});
         const fees = this.safeValue (data, 'fees', []);
-        const result: Dictionary<TradingFeeInterface> = {};
+        const result = {};
         for (let i = 0; i < fees.length; i++) {
             const fee = fees[i];
             const marketId = this.safeString (fee, 'symbol');
