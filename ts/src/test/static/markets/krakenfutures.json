@@ -15,7 +15,7 @@
         "option": false,
         "margin": false,
         "contract": true,
-        "contractSize": 1,
+        "contractSize": 0.0001,
         "settle": "USD",
         "settleId": "usd",
         "precision": {
@@ -236,7 +236,7 @@
         "option": false,
         "margin": false,
         "contract": true,
-        "contractSize": 1,
+        "contractSize": 0.001,
         "settle": "USD",
         "settleId": "usd",
         "precision": {
@@ -353,7 +353,7 @@
         "option": false,
         "margin": false,
         "contract": true,
-        "contractSize": 1,
+        "contractSize": 0.01,
         "settle": "USD",
         "settleId": "usd",
         "precision": {
