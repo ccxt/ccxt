@@ -2280,6 +2280,17 @@
                         "subType": "inverse"
                     }
                 ]
+            },
+            {
+                "description": "account positions with filterClosed option",
+                "method": "fetchAccountPositions",
+                "url": "https://testnet.binancefuture.com/fapi/v2/account?timestamp=1711968805532&filterClosed=true&recvWindow=10000&signature=d70e7146e12dff30106d51e77574cda0b75aa353c505746b1a78a5c086a7ac19",
+                "input": [
+                  null,
+                  {
+                    "filterClosed": true
+                  }
+                ]
             }
         ],
         "fetchOpenInterest": [
