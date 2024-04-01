@@ -518,7 +518,6 @@ function getErrorHierarchy() {
 // ----------------------------------------------------------------------------
 
 function generateErrorsTs () {
-    const errorsTsPath = './ts/src/base/errors.ts';
     const errors = getErrorHierarchy ();
     const classBlock = (className, extendedClassName) => {
         return `class BaseError extends Error {` +
@@ -527,7 +526,8 @@ function generateErrorsTs () {
             `        this.name = 'BaseError';` +
             `}`
         `}`;
-            
+    }
+    const errorsTsPath = './ts/src/base/errors.ts';
     debugger;
 }
 
