@@ -419,6 +419,7 @@ class MarginModification(TypedDict):
 
 LastPrices = Dict[Str, LastPrice]
 Currencies = Dict[Str, CurrencyInterface]
+TradingFees = Dict[Str, TradingFeeInterface]
 
 Market = Optional[MarketInterface]
 Currency = Optional[CurrencyInterface]

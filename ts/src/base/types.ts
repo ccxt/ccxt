@@ -528,6 +528,9 @@ export interface LastPrices extends Dictionary<LastPrice> {
 export interface Currencies extends Dictionary<CurrencyInterface> {
 }
 
+export interface TradingFees extends Dictionary<TradingFeeInterface> {
+}
+
 export interface MarginModes extends Dictionary<MarginMode> {
 }
 

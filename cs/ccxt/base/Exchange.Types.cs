@@ -490,6 +490,45 @@ public struct Currencies
     }
 }
 
+public struct TradingFees
+{
+    public Dictionary<string, object> info;
+    public Dictionary<string, TradingFeeInterface> tradingFees;
+
+    public TradingFees(object tradingFees2)
+    {
+        var tradingFees = (Dictionary<string, object>)tradingFees2;
+
+        info = tradingFees.ContainsKey("info") ? (Dictionary<string, object>)tradingFees["info"] : null;
+        this.tradingFees = new Dictionary<string, TradingFeeInterface>();
+        foreach (var tradingFee in tradingFees)
+        {
+            if (tradingFee.Key != "info")
+                this.tradingFees.Add(tradingFee.Key, new TradingFeeInterface(tradingFee.Value));
+        }
+    }
+
+    // Indexer
+    public TradingFeeInterface this[string key]
+    {
+        get
+        {
+            if (tradingFees.ContainsKey(key))
+            {
+                return tradingFees[key];
+            }
+            else
+            {
+                throw new KeyNotFoundException($"The key '{key}' was not found in the tradingFees.");
+            }
+        }
+        set
+        {
+            tradingFees[key] = value;
+        }
+    }
+}
+
 public struct Transaction
 {
     public string? id;
