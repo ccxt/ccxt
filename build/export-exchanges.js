@@ -517,11 +517,28 @@ function getErrorHierarchy() {
 
 // ----------------------------------------------------------------------------
 
+function generateErrorsTs () {
+    const errorsTsPath = './ts/src/base/errors.ts';
+    const errors = getErrorHierarchy ();
+    const classBlock = (className, extendedClassName) => {
+        return `class BaseError extends Error {` +
+            `    constructor (message) {` +
+            `        super (message);` +
+            `        this.name = 'BaseError';` +
+            `}`
+        `}`;
+            
+    debugger;
+}
+
+// ----------------------------------------------------------------------------
+
 async function exportEverything () {
     const ids = getIncludedExchangeIds ('./ts/src')
 
     const wsIds = getIncludedExchangeIds ('./ts/src/pro')
 
+    generateErrorsTs();
     const errorHierarchy = getErrorHierarchy()
     const flat = flatten (errorHierarchy)
     flat.push ('error_hierarchy')
