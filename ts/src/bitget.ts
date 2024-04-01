@@ -1871,7 +1871,7 @@ export default class bitget extends Exchange {
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
             const id = this.safeString (entry, 'coin'); // we don't use 'coinId' as it has no use. it is 'coin' field that needs to be used in currency related endpoints (deposit, withdraw, etc..)
-            const code = this.safeCurrencyCode (this.safeString (entry, 'coin'));
+            const code = this.safeCurrencyCode (id);
             const chains = this.safeValue (entry, 'chains', []);
             const networks = {};
             let deposit = false;
