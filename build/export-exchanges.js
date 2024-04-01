@@ -518,17 +518,37 @@ function getErrorHierarchy() {
 // ----------------------------------------------------------------------------
 
 function generateErrorsTs () {
-    const errors = getErrorHierarchy ();
     const classBlock = (className, extendedClassName) => {
-        return `class BaseError extends Error {` +
-            `    constructor (message) {` +
-            `        super (message);` +
-            `        this.name = 'BaseError';` +
-            `}`
-        `}`;
+        return '' + 
+            `class ${className} extends ${extendedClassName} {\n` +
+            `    constructor (message) {\n` +
+            `        super (message);\n` +
+            `        this.name = '${className}';\n` +
+            `    }\n` +
+            `}`;
     }
+    const errorsHierarchyJson = getErrorHierarchy ();
+    const errorsFlatArray = [];
+    let result = '/* eslint-disable max-classes-per-file */\n\n';
+    // recursively go through the error hierarchy
+    const generateErrorClasses = (errorObject, parentClassName) => {
+        for (const key in errorObject) {
+            const className = key;
+            const extendedClassName = parentClassName;
+            errorsFlatArray.push(className);
+            result += classBlock(className, extendedClassName) + '\n';
+            if (Object.keys(errorObject[key]).length) {
+                generateErrorClasses(errorObject[key], className);
+            }
+        }
+    }
+    generateErrorClasses(errorsHierarchyJson, 'Error');
+    result += '\n';
+    result += 'export { ' + errorsFlatArray.join(', ') + ' };\n';
+    result += '\n';
+    result += 'export default { ' + errorsFlatArray.join(', ') + ' };\n';
     const errorsTsPath = './ts/src/base/errors.ts';
-    debugger;
+    fs.writeFileSync(errorsTsPath, result);
 }
 
 // ----------------------------------------------------------------------------
