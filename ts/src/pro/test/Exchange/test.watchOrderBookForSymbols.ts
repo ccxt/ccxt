@@ -22,7 +22,7 @@ async function testWatchOrderBookForSymbols (exchange, skippedProperties, symbol
         assert (typeof response === 'object', exchange.id + ' ' + method + ' ' + exchange.json (symbols) + ' must return an object. ' + exchange.json (response));
         now = exchange.milliseconds ();
         testSharedMethods.assertInArray (exchange, skippedProperties, method, response, 'symbol', symbols);
-        testOrderBook (exchange, skippedProperties, method, response);
+        testOrderBook (exchange, skippedProperties, method, response, undefined);
     }
 }
 
