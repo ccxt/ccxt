@@ -943,6 +943,7 @@ export default class Exchange {
     safeNumber(obj: object, key: IndexType, defaultNumber?: Num): Num;
     safeNumberN(obj: object, arr: IndexType[], defaultNumber?: Num): Num;
     parsePrecision(precision?: string): string;
+    integerPrecisionToAmount(precision: Str): string;
     loadTimeDifference(params?: {}): Promise<any>;
     implodeHostname(url: string): any;
     fetchMarketLeverageTiers(symbol: string, params?: {}): Promise<any>;

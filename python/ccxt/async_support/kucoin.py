@@ -3326,9 +3326,9 @@ class kucoin(Exchange, ImplicitAPI):
     async def fetch_balance(self, params={}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
-        :see: https://docs.kucoin.com/#list-accounts
         :see: https://www.kucoin.com/docs/rest/account/basic-info/get-account-list-spot-margin-trade_hf
-        :see: https://docs.kucoin.com/#query-isolated-margin-account-info
+        :see: https://www.kucoin.com/docs/rest/funding/funding-overview/get-account-detail-margin
+        :see: https://www.kucoin.com/docs/rest/funding/funding-overview/get-account-detail-isolated-margin
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param dict [params.marginMode]: 'cross' or 'isolated', margin type for fetching margin balance
         :param dict [params.type]: extra parameters specific to the exchange API endpoint
@@ -3353,7 +3353,7 @@ class kucoin(Exchange, ImplicitAPI):
         response = None
         request = {}
         isolated = (marginMode == 'isolated') or (type == 'isolated')
-        cross = (marginMode == 'cross') or (type == 'cross')
+        cross = (marginMode == 'cross') or (type == 'margin')
         if isolated:
             if currency is not None:
                 request['balanceCurrency'] = currency['id']
@@ -3418,13 +3418,14 @@ class kucoin(Exchange, ImplicitAPI):
         #        }
         #    }
         #
-        data = self.safe_list(response, 'data', [])
+        data = None
         result = {
             'info': response,
             'timestamp': None,
             'datetime': None,
         }
         if isolated:
+            data = self.safe_dict(response, 'data', {})
             assets = self.safe_value(data, 'assets', data)
             for i in range(0, len(assets)):
                 entry = assets[i]
@@ -3439,6 +3440,7 @@ class kucoin(Exchange, ImplicitAPI):
                 subResult[quoteCode] = self.parse_balance_helper(quote)
                 result[symbol] = self.safe_balance(subResult)
         elif cross:
+            data = self.safe_dict(response, 'data', {})
             accounts = self.safe_list(data, 'accounts', [])
             for i in range(0, len(accounts)):
                 balance = accounts[i]
@@ -3446,6 +3448,7 @@ class kucoin(Exchange, ImplicitAPI):
                 codeInner = self.safe_currency_code(currencyId)
                 result[codeInner] = self.parse_balance_helper(balance)
         else:
+            data = self.safe_list(response, 'data', [])
             for i in range(0, len(data)):
                 balance = data[i]
                 balanceType = self.safe_string(balance, 'type')
