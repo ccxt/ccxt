@@ -286,7 +286,6 @@ export default class gemini extends Exchange {
                     'ATOM': 'cosmos',
                     'DOT': 'polkadot',
                 },
-                'nonce': 'milliseconds', // if getting a Network 400 error change to seconds
             },
         });
     }
@@ -1655,10 +1654,7 @@ export default class gemini extends Exchange {
     }
 
     nonce () {
-        const nonceMethod = this.safeString (this.options, 'nonce', 'milliseconds');
-        if (nonceMethod === 'milliseconds') {
-            return this.milliseconds ();
-        }
+        // previously here was option to choose between milliseconds vs seconds, however, api server proves that it accepts only seconds
         return this.seconds ();
     }
 
