@@ -17,7 +17,6 @@ using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Collections;
 using Org.BouncyCastle.Utilities.Encoders;
 using Org.BouncyCastle.Utilities.IO.Pem;
-using Org.BouncyCastle.X509;
 
 namespace Org.BouncyCastle.OpenSsl
 {
@@ -35,21 +34,21 @@ namespace Org.BouncyCastle.OpenSsl
 
         static PemReader()
         {
-//			Parsers.Add("CERTIFICATE REQUEST", new PKCS10CertificationRequestParser());
-//			Parsers.Add("NEW CERTIFICATE REQUEST", new PKCS10CertificationRequestParser());
-//			Parsers.Add("CERTIFICATE", new X509CertificateParser(provider));
-//			Parsers.Add("X509 CERTIFICATE", new X509CertificateParser(provider));
-//			Parsers.Add("X509 CRL", new X509CRLParser(provider));
-//			Parsers.Add("PKCS7", new PKCS7Parser());
-//			Parsers.Add("ATTRIBUTE CERTIFICATE", new X509AttributeCertificateParser());
-//			Parsers.Add("EC PARAMETERS", new ECNamedCurveSpecParser());
-//			Parsers.Add("PUBLIC KEY", new PublicKeyParser(provider));
-//			Parsers.Add("RSA PUBLIC KEY", new RSAPublicKeyParser(provider));
-//			Parsers.Add("RSA PRIVATE KEY", new RSAKeyPairParser(provider));
-//			Parsers.Add("DSA PRIVATE KEY", new DSAKeyPairParser(provider));
-//			Parsers.Add("EC PRIVATE KEY", new ECDSAKeyPairParser(provider));
-//			Parsers.Add("ENCRYPTED PRIVATE KEY", new EncryptedPrivateKeyParser(provider));
-//			Parsers.Add("PRIVATE KEY", new PrivateKeyParser(provider));
+            //			Parsers.Add("CERTIFICATE REQUEST", new PKCS10CertificationRequestParser());
+            //			Parsers.Add("NEW CERTIFICATE REQUEST", new PKCS10CertificationRequestParser());
+            //			Parsers.Add("CERTIFICATE", new X509CertificateParser(provider));
+            //			Parsers.Add("X509 CERTIFICATE", new X509CertificateParser(provider));
+            //			Parsers.Add("X509 CRL", new X509CRLParser(provider));
+            //			Parsers.Add("PKCS7", new PKCS7Parser());
+            //			Parsers.Add("ATTRIBUTE CERTIFICATE", new X509AttributeCertificateParser());
+            //			Parsers.Add("EC PARAMETERS", new ECNamedCurveSpecParser());
+            //			Parsers.Add("PUBLIC KEY", new PublicKeyParser(provider));
+            //			Parsers.Add("RSA PUBLIC KEY", new RSAPublicKeyParser(provider));
+            //			Parsers.Add("RSA PRIVATE KEY", new RSAKeyPairParser(provider));
+            //			Parsers.Add("DSA PRIVATE KEY", new DSAKeyPairParser(provider));
+            //			Parsers.Add("EC PRIVATE KEY", new ECDSAKeyPairParser(provider));
+            //			Parsers.Add("ENCRYPTED PRIVATE KEY", new EncryptedPrivateKeyParser(provider));
+            //			Parsers.Add("PRIVATE KEY", new PrivateKeyParser(provider));
         }
 
         private readonly IPasswordFinder pFinder;
@@ -72,8 +71,8 @@ namespace Org.BouncyCastle.OpenSsl
         * @param pFinder the password finder
         */
         public PemReader(
-            TextReader		reader,
-            IPasswordFinder	pFinder)
+            TextReader reader,
+            IPasswordFinder pFinder)
             : base(reader)
         {
             this.pFinder = pFinder;
@@ -87,8 +86,8 @@ namespace Org.BouncyCastle.OpenSsl
                 return null;
 
             // TODO Follow Java build and map to parser objects?
-//			if (parsers.Contains(obj.Type))
-//				return ((PemObjectParser)parsers[obj.Type]).ParseObject(obj);
+            //			if (parsers.Contains(obj.Type))
+            //				return ((PemObjectParser)parsers[obj.Type]).ParseObject(obj);
 
             if (Platform.EndsWith(obj.Type, "PRIVATE KEY"))
                 return ReadPrivateKey(obj);
@@ -99,19 +98,19 @@ namespace Org.BouncyCastle.OpenSsl
                     return ReadPublicKey(obj);
                 case "RSA PUBLIC KEY":
                     return ReadRsaPublicKey(obj);
-                case "CERTIFICATE REQUEST":
-                case "NEW CERTIFICATE REQUEST":
-                    return ReadCertificateRequest(obj);
-                case "CERTIFICATE":
-                case "X509 CERTIFICATE":
-                    return ReadCertificate(obj);
-                case "PKCS7":
-                // case "CMS":
-                //     return ReadPkcs7(obj);
-                case "X509 CRL":
-                    return ReadCrl(obj);
-                case "ATTRIBUTE CERTIFICATE":
-                    return ReadAttributeCertificate(obj);
+                // case "CERTIFICATE REQUEST":
+                // case "NEW CERTIFICATE REQUEST":
+                //     return ReadCertificateRequest(obj);
+                // case "CERTIFICATE":
+                // case "X509 CERTIFICATE":
+                //     return ReadCertificate(obj);
+                // case "PKCS7":
+                // // case "CMS":
+                // //     return ReadPkcs7(obj);
+                // case "X509 CRL":
+                //     return ReadCrl(obj);
+                // case "ATTRIBUTE CERTIFICATE":
+                //     return ReadAttributeCertificate(obj);
                 // TODO Add back in when tests done, and return type issue resolved
                 //case "EC PARAMETERS":
                 //	return ReadECParameters(obj);
@@ -127,7 +126,7 @@ namespace Org.BouncyCastle.OpenSsl
 
             return new RsaKeyParameters(
                 false, // not private
-                rsaPubStructure.Modulus, 
+                rsaPubStructure.Modulus,
                 rsaPubStructure.PublicExponent);
         }
 
@@ -142,17 +141,17 @@ namespace Org.BouncyCastle.OpenSsl
         * @return the X509Certificate
         * @throws IOException if an I/O error occured
         */
-        private X509Certificate ReadCertificate(PemObject pemObject)
-        {
-            try
-            {
-                return new X509CertificateParser().ReadCertificate(pemObject.Content);
-            }
-            catch (Exception e)
-            {
-                throw new PemException("problem parsing cert: " + e.ToString());
-            }
-        }
+        // private X509Certificate ReadCertificate(PemObject pemObject)
+        // {
+        //     try
+        //     {
+        //         return new X509CertificateParser().ReadCertificate(pemObject.Content);
+        //     }
+        //     catch (Exception e)
+        //     {
+        //         throw new PemException("problem parsing cert: " + e.ToString());
+        //     }
+        // }
 
         /**
         * Reads in a X509CRL.
@@ -160,17 +159,17 @@ namespace Org.BouncyCastle.OpenSsl
         * @return the X509Certificate
         * @throws IOException if an I/O error occured
         */
-        private X509Crl ReadCrl(PemObject pemObject)
-        {
-            try
-            {
-                return new X509CrlParser().ReadCrl(pemObject.Content);
-            }
-            catch (Exception e)
-            {
-                throw new PemException("problem parsing cert: " + e.ToString());
-            }
-        }
+        // private X509Crl ReadCrl(PemObject pemObject)
+        // {
+        //     try
+        //     {
+        //         return new X509CrlParser().ReadCrl(pemObject.Content);
+        //     }
+        //     catch (Exception e)
+        //     {
+        //         throw new PemException("problem parsing cert: " + e.ToString());
+        //     }
+        // }
 
         /**
         * Reads in a PKCS10 certification request.
@@ -178,17 +177,17 @@ namespace Org.BouncyCastle.OpenSsl
         * @return the certificate request.
         * @throws IOException if an I/O error occured
         */
-        private Pkcs10CertificationRequest ReadCertificateRequest(PemObject pemObject)
-        {
-            try
-            {
-                return new Pkcs10CertificationRequest(pemObject.Content);
-            }
-            catch (Exception e)
-            {
-                throw new PemException("problem parsing cert: " + e.ToString());
-            }
-        }
+        // private Pkcs10CertificationRequest ReadCertificateRequest(PemObject pemObject)
+        // {
+        //     try
+        //     {
+        //         return new Pkcs10CertificationRequest(pemObject.Content);
+        //     }
+        //     catch (Exception e)
+        //     {
+        //         throw new PemException("problem parsing cert: " + e.ToString());
+        //     }
+        // }
 
         /**
         * Reads in a X509 Attribute Certificate.
@@ -196,10 +195,10 @@ namespace Org.BouncyCastle.OpenSsl
         * @return the X509 Attribute Certificate
         * @throws IOException if an I/O error occured
         */
-        private X509V2AttributeCertificate ReadAttributeCertificate(PemObject pemObject)
-        {
-            return new X509V2AttributeCertificate(pemObject.Content);
-        }
+        // private X509V2AttributeCertificate ReadAttributeCertificate(PemObject pemObject)
+        // {
+        //     return new X509V2AttributeCertificate(pemObject.Content);
+        // }
 
         /**
         * Reads in a PKCS7 object. This returns a ContentInfo object suitable for use with the CMS
@@ -271,84 +270,84 @@ namespace Org.BouncyCastle.OpenSsl
                 switch (type)
                 {
                     case "RSA":
-                    {
-                        if (seq.Count != 9)
-                            throw new PemException("malformed sequence in RSA private key");
+                        {
+                            if (seq.Count != 9)
+                                throw new PemException("malformed sequence in RSA private key");
 
-                        RsaPrivateKeyStructure rsa = RsaPrivateKeyStructure.GetInstance(seq);
+                            RsaPrivateKeyStructure rsa = RsaPrivateKeyStructure.GetInstance(seq);
 
-                        pubSpec = new RsaKeyParameters(false, rsa.Modulus, rsa.PublicExponent);
-                        privSpec = new RsaPrivateCrtKeyParameters(
-                            rsa.Modulus, rsa.PublicExponent, rsa.PrivateExponent,
-                            rsa.Prime1, rsa.Prime2, rsa.Exponent1, rsa.Exponent2,
-                            rsa.Coefficient);
+                            pubSpec = new RsaKeyParameters(false, rsa.Modulus, rsa.PublicExponent);
+                            privSpec = new RsaPrivateCrtKeyParameters(
+                                rsa.Modulus, rsa.PublicExponent, rsa.PrivateExponent,
+                                rsa.Prime1, rsa.Prime2, rsa.Exponent1, rsa.Exponent2,
+                                rsa.Coefficient);
 
-                        break;
-                    }
+                            break;
+                        }
 
                     case "DSA":
-                    {
-                        if (seq.Count != 6)
-                            throw new PemException("malformed sequence in DSA private key");
+                        {
+                            if (seq.Count != 6)
+                                throw new PemException("malformed sequence in DSA private key");
 
-                        // TODO Create an ASN1 object somewhere for this?
-                        //DerInteger v = (DerInteger)seq[0];
-                        DerInteger p = (DerInteger)seq[1];
-                        DerInteger q = (DerInteger)seq[2];
-                        DerInteger g = (DerInteger)seq[3];
-                        DerInteger y = (DerInteger)seq[4];
-                        DerInteger x = (DerInteger)seq[5];
+                            // TODO Create an ASN1 object somewhere for this?
+                            //DerInteger v = (DerInteger)seq[0];
+                            DerInteger p = (DerInteger)seq[1];
+                            DerInteger q = (DerInteger)seq[2];
+                            DerInteger g = (DerInteger)seq[3];
+                            DerInteger y = (DerInteger)seq[4];
+                            DerInteger x = (DerInteger)seq[5];
 
-                        DsaParameters parameters = new DsaParameters(p.Value, q.Value, g.Value);
+                            DsaParameters parameters = new DsaParameters(p.Value, q.Value, g.Value);
 
-                        privSpec = new DsaPrivateKeyParameters(x.Value, parameters);
-                        pubSpec = new DsaPublicKeyParameters(y.Value, parameters);
+                            privSpec = new DsaPrivateKeyParameters(x.Value, parameters);
+                            pubSpec = new DsaPublicKeyParameters(y.Value, parameters);
 
-                        break;
-                    }
+                            break;
+                        }
 
                     case "EC":
-                    {
-                        ECPrivateKeyStructure pKey = ECPrivateKeyStructure.GetInstance(seq);
-                        AlgorithmIdentifier algId = new AlgorithmIdentifier(
-                            X9ObjectIdentifiers.IdECPublicKey, pKey.GetParameters());
-
-                        PrivateKeyInfo privInfo = new PrivateKeyInfo(algId, pKey.ToAsn1Object());
-
-                        // TODO Are the keys returned here ECDSA, as Java version forces?
-                        privSpec = PrivateKeyFactory.CreateKey(privInfo);
-
-                        DerBitString pubKey = pKey.GetPublicKey();
-                        if (pubKey != null)
                         {
-                            SubjectPublicKeyInfo pubInfo = new SubjectPublicKeyInfo(algId, pubKey.GetBytes());
+                            ECPrivateKeyStructure pKey = ECPrivateKeyStructure.GetInstance(seq);
+                            AlgorithmIdentifier algId = new AlgorithmIdentifier(
+                                X9ObjectIdentifiers.IdECPublicKey, pKey.GetParameters());
+
+                            PrivateKeyInfo privInfo = new PrivateKeyInfo(algId, pKey.ToAsn1Object());
 
                             // TODO Are the keys returned here ECDSA, as Java version forces?
-                            pubSpec = PublicKeyFactory.CreateKey(pubInfo);
-                        }
-                        else
-                        {
-                            pubSpec = ECKeyPairGenerator.GetCorrespondingPublicKey(
-                                (ECPrivateKeyParameters)privSpec);
-                        }
+                            privSpec = PrivateKeyFactory.CreateKey(privInfo);
 
-                        break;
-                    }
+                            DerBitString pubKey = pKey.GetPublicKey();
+                            if (pubKey != null)
+                            {
+                                SubjectPublicKeyInfo pubInfo = new SubjectPublicKeyInfo(algId, pubKey.GetBytes());
+
+                                // TODO Are the keys returned here ECDSA, as Java version forces?
+                                pubSpec = PublicKeyFactory.CreateKey(pubInfo);
+                            }
+                            else
+                            {
+                                pubSpec = ECKeyPairGenerator.GetCorrespondingPublicKey(
+                                    (ECPrivateKeyParameters)privSpec);
+                            }
+
+                            break;
+                        }
 
                     case "ENCRYPTED":
-                    {
-                        char[] password = pFinder.GetPassword();
+                        {
+                            char[] password = pFinder.GetPassword();
 
-                        if (password == null)
-                            throw new PasswordException("Password is null, but a password is required");
+                            if (password == null)
+                                throw new PasswordException("Password is null, but a password is required");
 
-                        return PrivateKeyFactory.DecryptKey(password, EncryptedPrivateKeyInfo.GetInstance(seq));
-                    }
+                            return PrivateKeyFactory.DecryptKey(password, EncryptedPrivateKeyInfo.GetInstance(seq));
+                        }
 
                     case "":
-                    {
-                        return PrivateKeyFactory.CreateKey(PrivateKeyInfo.GetInstance(seq));
-                    }
+                        {
+                            return PrivateKeyFactory.CreateKey(PrivateKeyInfo.GetInstance(seq));
+                        }
 
                     default:
                         throw new ArgumentException("Unknown key type: " + type, "type");
@@ -369,13 +368,13 @@ namespace Org.BouncyCastle.OpenSsl
 
         // TODO Add an equivalent class for ECNamedCurveParameterSpec?
         //private ECNamedCurveParameterSpec ReadECParameters(
-//		private X9ECParameters ReadECParameters(PemObject pemObject)
-//		{
-//			DerObjectIdentifier oid = (DerObjectIdentifier)Asn1Object.FromByteArray(pemObject.Content);
-//
-//			//return ECNamedCurveTable.getParameterSpec(oid.Id);
-//			return GetCurveParameters(oid.Id);
-//		}
+        //		private X9ECParameters ReadECParameters(PemObject pemObject)
+        //		{
+        //			DerObjectIdentifier oid = (DerObjectIdentifier)Asn1Object.FromByteArray(pemObject.Content);
+        //
+        //			//return ECNamedCurveTable.getParameterSpec(oid.Id);
+        //			return GetCurveParameters(oid.Id);
+        //		}
 
         private static X9ECParameters GetCurveParameters(string name)
         {

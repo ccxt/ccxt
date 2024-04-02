@@ -11,7 +11,7 @@ using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Utilities;
-using Org.BouncyCastle.X509;
+// using Org.BouncyCastle.X509;
 
 namespace Org.BouncyCastle.Security
 {
@@ -28,23 +28,23 @@ namespace Org.BouncyCastle.Security
         /// </summary>
         /// <param name="x509Struct"></param>
         /// <returns>A System.Security.Cryptography.X509Certificate.</returns>
-        public static SystemX509.X509Certificate ToX509Certificate(
-            X509CertificateStructure x509Struct)
-        {
-            return new SystemX509.X509Certificate(x509Struct.GetDerEncoded());
-        }
+        // public static SystemX509.X509Certificate ToX509Certificate(
+        //     X509CertificateStructure x509Struct)
+        // {
+        //     return new SystemX509.X509Certificate(x509Struct.GetDerEncoded());
+        // }
 
-        public static SystemX509.X509Certificate ToX509Certificate(
-            X509Certificate x509Cert)
-        {
-            return new SystemX509.X509Certificate(x509Cert.GetEncoded());
-        }
+        // public static SystemX509.X509Certificate ToX509Certificate(
+        //     X509Certificate x509Cert)
+        // {
+        //     return new SystemX509.X509Certificate(x509Cert.GetEncoded());
+        // }
 
-        public static X509Certificate FromX509Certificate(
-            SystemX509.X509Certificate x509Cert)
-        {
-            return new X509CertificateParser().ReadCertificate(x509Cert.GetRawCertData());
-        }
+        // public static X509Certificate FromX509Certificate(
+        //     SystemX509.X509Certificate x509Cert)
+        // {
+        //     return new X509CertificateParser().ReadCertificate(x509Cert.GetRawCertData());
+        // }
 
         public static AsymmetricCipherKeyPair GetDsaKeyPair(DSA dsa)
         {

@@ -9,7 +9,6 @@ using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto.Encodings;
 using Org.BouncyCastle.Crypto.Engines;
 using Org.BouncyCastle.Security;
-using Org.BouncyCastle.X509;
 
 namespace Org.BouncyCastle.Crypto.Operators
 {
@@ -19,26 +18,26 @@ namespace Org.BouncyCastle.Crypto.Operators
         private string algorithm;
         private IKeyWrapper wrapper;
 
-        public Asn1KeyWrapper(string algorithm, X509Certificate cert)
-        {
-            this.algorithm = algorithm;
-            wrapper = KeyWrapperUtil.WrapperForName(algorithm, cert.GetPublicKey());
-        }
+        // public Asn1KeyWrapper(string algorithm, X509Certificate cert)
+        // {
+        //     this.algorithm = algorithm;
+        //     wrapper = KeyWrapperUtil.WrapperForName(algorithm, cert.GetPublicKey());
+        // }
 
-        public Asn1KeyWrapper(DerObjectIdentifier algorithm, X509Certificate cert)
-             : this(algorithm, cert.GetPublicKey())
-        {
-        }
+        // public Asn1KeyWrapper(DerObjectIdentifier algorithm, X509Certificate cert)
+        //      : this(algorithm, cert.GetPublicKey())
+        // {
+        // }
 
         public Asn1KeyWrapper(DerObjectIdentifier algorithm, ICipherParameters key)
             : this(algorithm, null, key)
         {
         }
 
-        public Asn1KeyWrapper(DerObjectIdentifier algorithm, Asn1Encodable parameters, X509Certificate cert)
-            :this(algorithm, parameters, cert.GetPublicKey())
-        {
-        }
+        // public Asn1KeyWrapper(DerObjectIdentifier algorithm, Asn1Encodable parameters, X509Certificate cert)
+        //     : this(algorithm, parameters, cert.GetPublicKey())
+        // {
+        // }
 
         public Asn1KeyWrapper(DerObjectIdentifier algorithm, Asn1Encodable parameters, ICipherParameters key)
         {
