@@ -665,19 +665,23 @@
             "impactMidSize": "125000000.00",
             "maxPositionSize": "1000000000000.00000000000",
             "openingDate": "2023-05-25T10:52:25.000Z",
-            "marginLevels": [{
+            "marginLevels": [
+                {
                     "numNonContractUnits": "0E-20",
                     "initialMargin": "0.05",
                     "maintenanceMargin": "0.025"
-                }, {
+                },
+                {
                     "numNonContractUnits": "10000.00000000000000000000",
                     "initialMargin": "0.1",
                     "maintenanceMargin": "0.05"
-                }, {
+                },
+                {
                     "numNonContractUnits": "250000.00000000000000000000",
                     "initialMargin": "0.3",
                     "maintenanceMargin": "0.15"
-                }, {
+                },
+                {
                     "numNonContractUnits": "1250000.00000000000000000000",
                     "initialMargin": "0.5",
                     "maintenanceMargin": "0.25"
@@ -688,19 +692,23 @@
             "contractValueTradePrecision": "-3",
             "postOnly": false,
             "feeScheduleUid": "97ae0cc8-2964-43ea-91e9-d8e720b02b19",
-            "retailMarginLevels": [{
+            "retailMarginLevels": [
+                {
                     "numNonContractUnits": "0E-20",
                     "initialMargin": "0.05",
                     "maintenanceMargin": "0.025"
-                }, {
+                },
+                {
                     "numNonContractUnits": "10000.00000000000000000000",
                     "initialMargin": "0.1",
                     "maintenanceMargin": "0.05"
-                }, {
+                },
+                {
                     "numNonContractUnits": "250000.00000000000000000000",
                     "initialMargin": "0.3",
                     "maintenanceMargin": "0.15"
-                }, {
+                },
+                {
                     "numNonContractUnits": "1250000.00000000000000000000",
                     "initialMargin": "0.5",
                     "maintenanceMargin": "0.25"
@@ -712,8 +720,262 @@
         "tierBased": true,
         "percentage": true,
         "tiers": {
-            "taker": [[0, 0.0005], [100000, 0.0004], [1000000, 0.0003], [5000000, 0.00025], [10000000, 0.0002], [20000000, 0.00015], [50000000, 0.000125], [100000000, 0.0001]],
-            "maker": [[0, 0.0002], [100000, 0.0015], [1000000, 0.000125], [5000000, 0.0001], [10000000, 0.000075], [20000000, 0.00005], [50000000, 0.000025], [100000000, 0]]
+            "taker": [
+                [
+                    0,
+                    0.0005
+                ],
+                [
+                    100000,
+                    0.0004
+                ],
+                [
+                    1000000,
+                    0.0003
+                ],
+                [
+                    5000000,
+                    0.00025
+                ],
+                [
+                    10000000,
+                    0.0002
+                ],
+                [
+                    20000000,
+                    0.00015
+                ],
+                [
+                    50000000,
+                    0.000125
+                ],
+                [
+                    100000000,
+                    0.0001
+                ]
+            ],
+            "maker": [
+                [
+                    0,
+                    0.0002
+                ],
+                [
+                    100000,
+                    0.0015
+                ],
+                [
+                    1000000,
+                    0.000125
+                ],
+                [
+                    5000000,
+                    0.0001
+                ],
+                [
+                    10000000,
+                    0.000075
+                ],
+                [
+                    20000000,
+                    0.00005
+                ],
+                [
+                    50000000,
+                    0.000025
+                ],
+                [
+                    100000000,
+                    0
+                ]
+            ]
+        }
+    },
+    "DOGE/USD:USD": {
+        "id": "PF_DOGEUSD",
+        "symbol": "DOGE/USD:USD",
+        "base": "DOGE",
+        "quote": "USD",
+        "settle": "USD",
+        "baseId": "DOGE",
+        "quoteId": "usd",
+        "settleId": "usd",
+        "type": "swap",
+        "spot": false,
+        "margin": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "index": false,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0.0005,
+        "maker": 0.0002,
+        "contractSize": 1,
+        "precision": {
+            "amount": 1,
+            "price": 0.000001
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {},
+            "price": {},
+            "cost": {}
+        },
+        "created": 1655729850000,
+        "info": {
+            "symbol": "PF_DOGEUSD",
+            "type": "flexible_futures",
+            "tickSize": "0.000001",
+            "contractSize": "1",
+            "tradeable": true,
+            "impactMidSize": "2000.00",
+            "maxPositionSize": "150000000.00000000000",
+            "openingDate": "2022-06-20T12:57:30.000Z",
+            "marginLevels": [
+                {
+                    "numNonContractUnits": "0E-20",
+                    "initialMargin": "0.02",
+                    "maintenanceMargin": "0.01"
+                },
+                {
+                    "numNonContractUnits": "250000.00000000000000000000",
+                    "initialMargin": "0.04",
+                    "maintenanceMargin": "0.02"
+                },
+                {
+                    "numNonContractUnits": "500000.00000000000000000000",
+                    "initialMargin": "0.1",
+                    "maintenanceMargin": "0.05"
+                },
+                {
+                    "numNonContractUnits": "2000000.00000000000000000000",
+                    "initialMargin": "0.2",
+                    "maintenanceMargin": "0.1"
+                },
+                {
+                    "numNonContractUnits": "5000000.00000000000000000000",
+                    "initialMargin": "0.3",
+                    "maintenanceMargin": "0.15"
+                },
+                {
+                    "numNonContractUnits": "10000000.00000000000000000000",
+                    "initialMargin": "0.5",
+                    "maintenanceMargin": "0.25"
+                }
+            ],
+            "fundingRateCoefficient": "24",
+            "maxRelativeFundingRate": "0.0025",
+            "contractValueTradePrecision": "0",
+            "postOnly": false,
+            "feeScheduleUid": "97ae0cc8-2964-43ea-91e9-d8e720b02b19",
+            "retailMarginLevels": [
+                {
+                    "numNonContractUnits": "0E-20",
+                    "initialMargin": "0.02",
+                    "maintenanceMargin": "0.01"
+                },
+                {
+                    "numNonContractUnits": "250000.00000000000000000000",
+                    "initialMargin": "0.04",
+                    "maintenanceMargin": "0.02"
+                },
+                {
+                    "numNonContractUnits": "500000.00000000000000000000",
+                    "initialMargin": "0.1",
+                    "maintenanceMargin": "0.05"
+                },
+                {
+                    "numNonContractUnits": "2000000.00000000000000000000",
+                    "initialMargin": "0.2",
+                    "maintenanceMargin": "0.1"
+                },
+                {
+                    "numNonContractUnits": "5000000.00000000000000000000",
+                    "initialMargin": "0.3",
+                    "maintenanceMargin": "0.15"
+                },
+                {
+                    "numNonContractUnits": "10000000.00000000000000000000",
+                    "initialMargin": "0.5",
+                    "maintenanceMargin": "0.25"
+                }
+            ],
+            "category": "Community",
+            "tags": []
+        },
+        "tierBased": true,
+        "percentage": true,
+        "tiers": {
+            "taker": [
+                [
+                    0,
+                    0.0005
+                ],
+                [
+                    100000,
+                    0.0004
+                ],
+                [
+                    1000000,
+                    0.0003
+                ],
+                [
+                    5000000,
+                    0.00025
+                ],
+                [
+                    10000000,
+                    0.0002
+                ],
+                [
+                    20000000,
+                    0.00015
+                ],
+                [
+                    50000000,
+                    0.000125
+                ],
+                [
+                    100000000,
+                    0.0001
+                ]
+            ],
+            "maker": [
+                [
+                    0,
+                    0.0002
+                ],
+                [
+                    100000,
+                    0.0015
+                ],
+                [
+                    1000000,
+                    0.000125
+                ],
+                [
+                    5000000,
+                    0.0001
+                ],
+                [
+                    10000000,
+                    0.000075
+                ],
+                [
+                    20000000,
+                    0.00005
+                ],
+                [
+                    50000000,
+                    0.000025
+                ],
+                [
+                    100000000,
+                    0
+                ]
+            ]
         }
     }
 }

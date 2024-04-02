@@ -108,6 +108,32 @@
                     0.1000000000000001,
                     55.000001
                 ]
+            },
+            {
+                "description": "doge order",
+                "method": "createOrder",
+                "url": "https://futures.kraken.com/derivatives/api/v3/sendorder?symbol=PF_DOGEUSD&side=buy&size=100&orderType=mkt",
+                "input": [
+                  "DOGE/USD:USD",
+                  "market",
+                  "buy",
+                  100
+                ]
+            },
+            {
+                "description": "swap reduceOnly with weird amount",
+                "method": "createOrder",
+                "url": "https://futures.kraken.com/derivatives/api/v3/sendorder?symbol=PF_DOGEUSD&side=sell&size=200&reduceOnly=true&orderType=mkt",
+                "input": [
+                  "DOGE/USD:USD",
+                  "market",
+                  "sell",
+                  200.4234234,
+                  null,
+                  {
+                    "reduceOnly": true
+                  }
+                ]
             }
         ],
         "transfer": [
