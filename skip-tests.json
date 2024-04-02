@@ -456,15 +456,8 @@
                 "precision":"not provided"
             },
             "orderBook": {
-                "bid": "messed bid-ask sequence"
-            },
-            "watchOrderBook": {
-                "bid": "same",
+                "bid": "messed bid-ask sequence",
                 "nonce": "missing https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L4517 and https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L4562"
-            },
-            "watchOrderBookForSymbols": {
-                "bid": "same",
-                "nonce": "same"
             }
         }
     },
