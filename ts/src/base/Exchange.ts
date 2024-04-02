@@ -2094,7 +2094,7 @@ export default class Exchange {
         return array;
     }
 
-    filterBySinceLimit (array, since: Int = undefined, limit: Int = undefined, key: IndexType = 'timestamp', tail = false): any {
+    filterBySinceLimit (array: object[], since: Int = undefined, limit: Int = undefined, key: IndexType = 'timestamp', tail = false): any {
         const sinceIsDefined = this.valueIsDefined (since);
         const parsedArray = this.toArray (array) as any;
         let result = parsedArray;
@@ -2117,7 +2117,7 @@ export default class Exchange {
         return this.filterByLimit (result, limit, key, shouldFilterFromStart);
     }
 
-    filterByValueSinceLimit (array, field: IndexType, value = undefined, since: Int = undefined, limit: Int = undefined, key = 'timestamp', tail = false): any {
+    filterByValueSinceLimit (array: object[], field: IndexType, value = undefined, since: Int = undefined, limit: Int = undefined, key = 'timestamp', tail = false): any {
         const valueIsDefined = this.valueIsDefined (value);
         const sinceIsDefined = this.valueIsDefined (since);
         const parsedArray = this.toArray (array) as any;
