@@ -2623,7 +2623,7 @@ export default class bitget extends Exchange {
         //
         const marketId = this.safeString (ticker, 'symbol');
         const close = this.safeString (ticker, 'lastPr');
-        const timestamp = this.safeInteger (ticker, 'ts');
+        const timestamp = this.omitZero (this.safeInteger (ticker, 'ts'));
         const change = this.safeString (ticker, 'change24h');
         const open24 = this.safeString (ticker, 'open24');
         const open = this.safeString (ticker, 'open');
