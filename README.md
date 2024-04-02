@@ -20,7 +20,6 @@ Current feature list:
 
 
 ## Sponsored Promotion
-[![bitget](https://github.com/ccxt/ccxt/assets/43336371/71359af3-c78f-4077-a64c-ac0bfe1fa01c)](https://www.bitget.com/events/competition/86c98f96df155e6bb397e866dcd86afc?channelCode=ccxt&vipCode=tg9j)
 
 ## See Also
 
