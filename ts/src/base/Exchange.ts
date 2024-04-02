@@ -5724,8 +5724,8 @@ export default class Exchange {
             const entry = responseKeys[i];
             const dictionary = isArray ? entry : response[entry];
             const currencyId = isArray ? this.safeString (dictionary, currencyIdKey) : entry;
-            const currency = this.safeValue (this.currencies_by_id, currencyId);
-            const code = this.safeString (currency, 'code', currencyId);
+            const currency = this.safeCurrency (currencyId);
+            const code = this.safeString (currency, 'code');
             if ((codes === undefined) || (this.inArray (code, codes))) {
                 depositWithdrawFees[code] = this.parseDepositWithdrawFee (dictionary, currency);
             }
