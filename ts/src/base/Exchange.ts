@@ -5223,6 +5223,30 @@ export default class Exchange {
         return parsedPrecision + '1';
     }
 
+    integerPrecisionToAmount (precision: Str) {
+        /**
+         * @ignore
+         * @method
+         * @description handles positive & negative numbers too. parsePrecision() does not handle negative numbers, but this method handles
+         * @param {string} precision The number of digits to the right of the decimal
+         * @returns {string} a string number equal to 1e-precision
+         */
+        if (precision === undefined) {
+            return undefined;
+        }
+        if (Precise.stringGe (precision, '0')) {
+            return this.parsePrecision (precision);
+        } else {
+            const positivePrecisionString = Precise.stringAbs (precision);
+            const positivePrecision = parseInt (positivePrecisionString);
+            let parsedPrecision = '1';
+            for (let i = 0; i < positivePrecision - 1; i++) {
+                parsedPrecision = parsedPrecision + '0';
+            }
+            return parsedPrecision + '0';
+        }
+    }
+
     async loadTimeDifference (params = {}) {
         const serverTime = await this.fetchTime (params);
         const after = this.milliseconds ();
