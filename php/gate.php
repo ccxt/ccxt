@@ -870,15 +870,6 @@ class gate extends Exchange {
         $this->options['sandboxMode'] = $enable;
     }
 
-    public function convert_expire_date($date) {
-        // parse YYMMDD to timestamp
-        $year = mb_substr($date, 0, 2 - 0);
-        $month = mb_substr($date, 2, 4 - 2);
-        $day = mb_substr($date, 4, 6 - 4);
-        $reconstructedDate = '20' . $year . '-' . $month . '-' . $day . 'T00:00:00Z';
-        return $reconstructedDate;
-    }
-
     public function create_expired_option_market(string $symbol) {
         // support expired option contracts
         $quote = 'USDT';
@@ -5961,7 +5952,7 @@ class gate extends Exchange {
         return $this->parse_margin_modification($response, $market);
     }
 
-    public function parse_margin_modification($data, ?array $market = null) {
+    public function parse_margin_modification($data, ?array $market = null): array {
         //
         //     {
         //         "value" => "11.9257",
@@ -5994,15 +5985,18 @@ class gate extends Exchange {
         $total = $this->safe_number($data, 'margin');
         return array(
             'info' => $data,
-            'amount' => null,
-            'code' => $this->safe_value($market, 'quote'),
             'symbol' => $market['symbol'],
+            'type' => null,
+            'amount' => null,
             'total' => $total,
+            'code' => $this->safe_value($market, 'quote'),
             'status' => 'ok',
+            'timestamp' => null,
+            'datetime' => null,
         );
     }
 
-    public function reduce_margin(string $symbol, $amount, $params = array ()) {
+    public function reduce_margin(string $symbol, $amount, $params = array ()): array {
         /**
          * remove margin from a position
          * @see https://www.gate.io/docs/developers/apiv4/en/#update-position-margin
@@ -6015,7 +6009,7 @@ class gate extends Exchange {
         return $this->modify_margin_helper($symbol, -$amount, $params);
     }
 
-    public function add_margin(string $symbol, $amount, $params = array ()) {
+    public function add_margin(string $symbol, $amount, $params = array ()): array {
         /**
          * add margin
          * @see https://www.gate.io/docs/developers/apiv4/en/#update-position-margin

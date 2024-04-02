@@ -879,7 +879,7 @@ class wavesexchange extends Exchange {
         //
         $data = $this->safe_value($response, 'data', array());
         $ticker = $this->safe_value($data, 0, array());
-        $dataTicker = $this->safe_value($ticker, 'data', array());
+        $dataTicker = $this->safe_dict($ticker, 'data', array());
         return $this->parse_ticker($dataTicker, $market);
     }
 
@@ -1453,11 +1453,11 @@ class wavesexchange extends Exchange {
         //
         if ($isMarketOrder) {
             $response = $this->matcherPostMatcherOrderbookMarket ($body);
-            $value = $this->safe_value($response, 'message');
+            $value = $this->safe_dict($response, 'message');
             return $this->parse_order($value, $market);
         } else {
             $response = $this->matcherPostMatcherOrderbook ($body);
-            $value = $this->safe_value($response, 'message');
+            $value = $this->safe_dict($response, 'message');
             return $this->parse_order($value, $market);
         }
     }

@@ -1,12 +1,13 @@
 /* eslint no-restricted-syntax: ["error", "FunctionExpression", "WithStatement"] */
 
 import assert from 'assert';
+import { Exchange } from "../../../../ccxt";
 import Precise from '../../../base/Precise.js';
 import { TICK_SIZE } from '../../../base/functions/number.js';
 import testOrder from './test.order.js';
 import { OperationFailed, OnMaintenance, ArgumentsRequired } from '../../../base/errors.js';
 
-function logTemplate (exchange, method, entry) {
+function logTemplate (exchange: Exchange, method: string, entry: object) {
     return ' <<< ' + exchange.id + ' ' + method + ' ::: ' + exchange.json (entry) + ' >>> ';
 }
 
@@ -26,7 +27,7 @@ function stringValue (value) {
     return stringVal;
 }
 
-function assertType (exchange, skippedProperties, entry, key, format) {
+function assertType (exchange: Exchange, skippedProperties: object, entry: object, key, format) {
     if (key in skippedProperties) {
         return undefined;
     }
@@ -42,7 +43,7 @@ function assertType (exchange, skippedProperties, entry, key, format) {
     return result;
 }
 
-function assertStructure (exchange, skippedProperties, method, entry, format, emptyAllowedFor = []) {
+function assertStructure (exchange: Exchange, skippedProperties: object, method: string, entry: object, format, emptyAllowedFor = []) {
     const logText = logTemplate (exchange, method, entry);
     assert (entry, 'item is null/undefined' + logText);
     // get all expected & predefined keys for this specific item and ensure thos ekeys exist in parsed structure
@@ -99,7 +100,7 @@ function assertStructure (exchange, skippedProperties, method, entry, format, em
     }
 }
 
-function assertTimestamp (exchange, skippedProperties, method, entry, nowToCheck = undefined, keyNameOrIndex : any = 'timestamp') {
+function assertTimestamp (exchange: Exchange, skippedProperties: object, method: string, entry: object, nowToCheck: any = undefined, keyNameOrIndex : any = 'timestamp') {
     const logText = logTemplate (exchange, method, entry);
     const skipValue = exchange.safeValue (skippedProperties, keyNameOrIndex);
     if (skipValue !== undefined) {
@@ -127,7 +128,7 @@ function assertTimestamp (exchange, skippedProperties, method, entry, nowToCheck
     }
 }
 
-function assertTimestampAndDatetime (exchange, skippedProperties, method, entry, nowToCheck = undefined, keyNameOrIndex : any = 'timestamp') {
+function assertTimestampAndDatetime (exchange: Exchange, skippedProperties: object, method: string, entry: object, nowToCheck: any = undefined, keyNameOrIndex : any = 'timestamp') {
     const logText = logTemplate (exchange, method, entry);
     const skipValue = exchange.safeValue (skippedProperties, keyNameOrIndex);
     if (skipValue !== undefined) {
@@ -151,7 +152,7 @@ function assertTimestampAndDatetime (exchange, skippedProperties, method, entry,
     }
 }
 
-function assertCurrencyCode (exchange, skippedProperties, method, entry, actualCode, expectedCode = undefined) {
+function assertCurrencyCode (exchange: Exchange, skippedProperties: object, method: string, entry: object, actualCode, expectedCode = undefined) {
     if (('currency' in skippedProperties) || ('currencyIdAndCode' in skippedProperties)) {
         return;
     }
@@ -165,7 +166,7 @@ function assertCurrencyCode (exchange, skippedProperties, method, entry, actualC
     }
 }
 
-function assertValidCurrencyIdAndCode (exchange, skippedProperties, method, entry, currencyId, currencyCode) {
+function assertValidCurrencyIdAndCode (exchange: Exchange, skippedProperties: object, method: string, entry: object, currencyId, currencyCode) {
     // this is exclusive exceptional key name to be used in `skip-tests.json`, to skip check for currency id and code
     if (('currency' in skippedProperties) || ('currencyIdAndCode' in skippedProperties)) {
         return;
@@ -184,7 +185,7 @@ function assertValidCurrencyIdAndCode (exchange, skippedProperties, method, entr
     }
 }
 
-function assertSymbol (exchange, skippedProperties, method, entry, key, expectedSymbol = undefined) {
+function assertSymbol (exchange: Exchange, skippedProperties: object, method: string, entry: object, key, expectedSymbol = undefined) {
     if (key in skippedProperties) {
         return;
     }
@@ -200,13 +201,13 @@ function assertSymbol (exchange, skippedProperties, method, entry, key, expected
     }
 }
 
-function assertSymbolInMarkets (exchange, skippedProperties, method, symbol) {
+function assertSymbolInMarkets (exchange: Exchange, skippedProperties: object, method: string, symbol: string) {
     const logText = logTemplate (exchange, method, {});
     assert ((symbol in exchange.markets), 'symbol should be present in exchange.symbols' + logText);
 }
 
 
-function assertGreater (exchange, skippedProperties, method, entry, key, compareTo) {
+function assertGreater (exchange: Exchange, skippedProperties: object, method: string, entry: object, key, compareTo) {
     if (key in skippedProperties) {
         return;
     }
@@ -217,7 +218,7 @@ function assertGreater (exchange, skippedProperties, method, entry, key, compare
     }
 }
 
-function assertGreaterOrEqual (exchange, skippedProperties, method, entry, key, compareTo) {
+function assertGreaterOrEqual (exchange: Exchange, skippedProperties: object, method: string, entry: object, key, compareTo) {
     if (key in skippedProperties) {
         return;
     }
@@ -228,7 +229,7 @@ function assertGreaterOrEqual (exchange, skippedProperties, method, entry, key, 
     }
 }
 
-function assertLess (exchange, skippedProperties, method, entry, key, compareTo) {
+function assertLess (exchange: Exchange, skippedProperties: object, method: string, entry: object, key, compareTo) {
     if (key in skippedProperties) {
         return;
     }
@@ -239,7 +240,7 @@ function assertLess (exchange, skippedProperties, method, entry, key, compareTo)
     }
 }
 
-function assertLessOrEqual (exchange, skippedProperties, method, entry, key, compareTo) {
+function assertLessOrEqual (exchange: Exchange, skippedProperties: object, method: string, entry: object, key, compareTo) {
     if (key in skippedProperties) {
         return;
     }
@@ -250,7 +251,7 @@ function assertLessOrEqual (exchange, skippedProperties, method, entry, key, com
     }
 }
 
-function assertEqual (exchange, skippedProperties, method, entry, key, compareTo) {
+function assertEqual (exchange: Exchange, skippedProperties: object, method: string, entry: object, key, compareTo) {
     if (key in skippedProperties) {
         return;
     }
@@ -261,7 +262,7 @@ function assertEqual (exchange, skippedProperties, method, entry, key, compareTo
     }
 }
 
-function assertNonEqual (exchange, skippedProperties, method, entry, key, compareTo) {
+function assertNonEqual (exchange: Exchange, skippedProperties: object, method: string, entry: object, key, compareTo) {
     if (key in skippedProperties) {
         return;
     }
@@ -272,7 +273,7 @@ function assertNonEqual (exchange, skippedProperties, method, entry, key, compar
     }
 }
 
-function assertInArray (exchange, skippedProperties, method, entry, key, expectedArray) {
+function assertInArray (exchange: Exchange, skippedProperties: object, method: string, entry: object, key, expectedArray) {
     if (key in skippedProperties) {
         return;
     }
@@ -285,7 +286,7 @@ function assertInArray (exchange, skippedProperties, method, entry, key, expecte
     }
 }
 
-function assertFeeStructure (exchange, skippedProperties, method, entry, key) {
+function assertFeeStructure (exchange: Exchange, skippedProperties: object, method: string, entry: object, key) {
     const logText = logTemplate (exchange, method, entry);
     const keyString = stringValue (key);
     if (Number.isInteger (key)) {
@@ -305,7 +306,7 @@ function assertFeeStructure (exchange, skippedProperties, method, entry, key) {
     }
 }
 
-function assertTimestampOrder (exchange, method, codeOrSymbol, items, ascending = true) {
+function assertTimestampOrder (exchange: Exchange, method: string, codeOrSymbol: string, items, ascending = true) {
     for (let i = 0; i < items.length; i++) {
         if (i > 0) {
             const currentTs = items[i - 1]['timestamp'];
@@ -319,7 +320,7 @@ function assertTimestampOrder (exchange, method, codeOrSymbol, items, ascending 
     }
 }
 
-function assertInteger (exchange, skippedProperties, method, entry, key) {
+function assertInteger (exchange: Exchange, skippedProperties: object, method: string, entry: object, key) {
     if (key in skippedProperties) {
         return;
     }
@@ -333,7 +334,7 @@ function assertInteger (exchange, skippedProperties, method, entry, key) {
     }
 }
 
-function checkPrecisionAccuracy (exchange, skippedProperties, method, entry, key) {
+function checkPrecisionAccuracy (exchange: Exchange, skippedProperties: object, method: string, entry: object, key) {
     if (key in skippedProperties) {
         return;
     }
@@ -504,7 +505,7 @@ function assertOrderState (exchange, skippedProperties, method, order, assertedS
     }
 }
 
-function removeProxyOptions (exchange, skippedProperties) {
+function removeProxyOptions (exchange: Exchange, skippedProperties: object) {
     const proxyUrl = exchange.checkProxyUrlSettings ();
     const [ httpProxy, httpsProxy, socksProxy ] = exchange.checkProxySettings ();
     // because of bug in transpiled, about `.proxyUrl` being transpiled into `.proxy_url`, we have to use this workaround
@@ -519,7 +520,7 @@ function removeProxyOptions (exchange, skippedProperties) {
     return [ proxyUrl, httpProxy, httpsProxy, socksProxy ];
 }
 
-function setProxyOptions (exchange, skippedProperties, proxyUrl, httpProxy, httpsProxy, socksProxy) {
+function setProxyOptions (exchange: Exchange, skippedProperties: object, proxyUrl, httpProxy, httpsProxy, socksProxy) {
     exchange.proxyUrl = proxyUrl;
     exchange.httpProxy = httpProxy;
     exchange.httpsProxy = httpsProxy;

@@ -1430,7 +1430,7 @@ class latoken extends Exchange {
         if ($code !== null) {
             $currency = $this->currency($code);
         }
-        $content = $this->safe_value($response, 'content', array());
+        $content = $this->safe_list($response, 'content', array());
         return $this->parse_transactions($content, $currency, $since, $limit);
     }
 
@@ -1559,7 +1559,7 @@ class latoken extends Exchange {
         //         "hasContent" => true
         //     }
         //
-        $transfers = $this->safe_value($response, 'content', array());
+        $transfers = $this->safe_list($response, 'content', array());
         return $this->parse_transfers($transfers, $currency, $since, $limit);
     }
 

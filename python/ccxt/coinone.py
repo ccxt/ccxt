@@ -503,7 +503,7 @@ class coinone(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        data = self.safe_value(response, 'tickers', [])
+        data = self.safe_list(response, 'tickers', [])
         return self.parse_tickers(data, symbols)
 
     def fetch_ticker(self, symbol: str, params={}) -> Ticker:
@@ -555,7 +555,7 @@ class coinone(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_value(response, 'tickers', [])
-        ticker = self.safe_value(data, 0, {})
+        ticker = self.safe_dict(data, 0, {})
         return self.parse_ticker(ticker, market)
 
     def parse_ticker(self, ticker, market: Market = None) -> Ticker:
@@ -714,7 +714,7 @@ class coinone(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        data = self.safe_value(response, 'transactions', [])
+        data = self.safe_list(response, 'transactions', [])
         return self.parse_trades(data, market, since, limit)
 
     def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
@@ -942,7 +942,7 @@ class coinone(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        limitOrders = self.safe_value(response, 'limitOrders', [])
+        limitOrders = self.safe_list(response, 'limitOrders', [])
         return self.parse_orders(limitOrders, market, since, limit)
 
     def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
@@ -982,7 +982,7 @@ class coinone(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        completeOrders = self.safe_value(response, 'completeOrders', [])
+        completeOrders = self.safe_list(response, 'completeOrders', [])
         return self.parse_trades(completeOrders, market, since, limit)
 
     def cancel_order(self, id: str, symbol: Str = None, params={}):

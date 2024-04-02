@@ -280,7 +280,7 @@ export interface Position {
     liquidationPrice?: number;
     marginMode?: Str;
     hedged?: boolean;
-    maintenenceMargin?: number;
+    maintenanceMargin?: number;
     maintenanceMarginPercentage?: number;
     initialMargin?: number;
     initialMarginPercentage?: number;
@@ -476,6 +476,18 @@ export interface Leverage {
     marginMode: 'isolated' | 'cross' | Str;
     longLeverage: number;
     shortLeverage: number;
+}
+
+export interface MarginModification {
+    'info': any,
+    'symbol': string,
+    'type': 'add' | 'reduce' | 'set' | undefined,
+    'amount': Num,
+    'total': Num,
+    'code': Str,
+    'status': Str,
+    'timestamp': Int,
+    'datetime': Str,
 }
 
 export interface Leverages extends Dictionary<Leverage> {

@@ -481,7 +481,7 @@ public partial class krakenfutures : Exchange
         //        "serverTime": "2022-02-18T14:16:29.440Z"
         //    }
         //
-        object tickers = this.safeValue(response, "tickers");
+        object tickers = this.safeList(response, "tickers");
         return this.parseTickers(tickers, symbols);
     }
 
@@ -600,19 +600,14 @@ public partial class krakenfutures : Exchange
             if (isTrue(isEqual(limit, null)))
             {
                 limit = 5000;
-            } else if (isTrue(isGreaterThan(limit, 5000)))
-            {
-                throw new BadRequest ((string)add(this.id, " fetchOHLCV() limit cannot exceed 5000")) ;
             }
+            limit = mathMin(limit, 5000);
             object toTimestamp = this.sum(getValue(request, "from"), subtract(multiply(limit, duration), 1));
             object currentTimestamp = this.seconds();
             ((IDictionary<string,object>)request)["to"] = mathMin(toTimestamp, currentTimestamp);
         } else if (isTrue(!isEqual(limit, null)))
         {
-            if (isTrue(isGreaterThan(limit, 5000)))
-            {
-                throw new BadRequest ((string)add(this.id, " fetchOHLCV() limit cannot exceed 5000")) ;
-            }
+            limit = mathMin(limit, 5000);
             object duration = this.parseTimeframe(timeframe);
             ((IDictionary<string,object>)request)["to"] = this.seconds();
             ((IDictionary<string,object>)request)["from"] = this.parseToInt(subtract(getValue(request, "to"), (multiply(duration, limit))));
@@ -633,7 +628,7 @@ public partial class krakenfutures : Exchange
         //        "more_candles": true
         //    }
         //
-        object candles = this.safeValue(response, "candles");
+        object candles = this.safeList(response, "candles");
         return this.parseOHLCVs(candles, market, timeframe, since, limit);
     }
 
@@ -1138,7 +1133,7 @@ public partial class krakenfutures : Exchange
         //     ]
         // }
         //
-        object data = this.safeValue(response, "batchStatus", new List<object>() {});
+        object data = this.safeList(response, "batchStatus", new List<object>() {});
         return this.parseOrders(data);
     }
 
@@ -1280,7 +1275,7 @@ public partial class krakenfutures : Exchange
         //       }
         //     ]
         // }
-        object batchStatus = this.safeValue(response, "batchStatus", new List<object>() {});
+        object batchStatus = this.safeList(response, "batchStatus", new List<object>() {});
         return this.parseOrders(batchStatus);
     }
 
@@ -1326,7 +1321,7 @@ public partial class krakenfutures : Exchange
             market = this.market(symbol);
         }
         object response = await this.privateGetOpenorders(parameters);
-        object orders = this.safeValue(response, "openOrders", new List<object>() {});
+        object orders = this.safeList(response, "openOrders", new List<object>() {});
         return this.parseOrders(orders, market, since, limit);
     }
 
@@ -2492,7 +2487,7 @@ public partial class krakenfutures : Exchange
         //        "serverTime": "2018-07-19T11:32:39.433Z"
         //    }
         //
-        object data = this.safeValue(response, "instruments");
+        object data = this.safeList(response, "instruments");
         return this.parseLeverageTiers(data, symbols, "symbol");
     }
 

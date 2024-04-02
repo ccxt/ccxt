@@ -395,7 +395,7 @@ class coinmate(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        data = self.safe_value(response, 'data')
+        data = self.safe_dict(response, 'data')
         return self.parse_ticker(data, market)
 
     def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
@@ -660,7 +660,7 @@ class coinmate(Exchange, ImplicitAPI):
         if since is not None:
             request['timestampFrom'] = since
         response = self.privatePostTradeHistory(self.extend(request, params))
-        data = self.safe_value(response, 'data', [])
+        data = self.safe_list(response, 'data', [])
         return self.parse_trades(data, None, since, limit)
 
     def parse_trade(self, trade, market: Market = None) -> Trade:
@@ -758,7 +758,7 @@ class coinmate(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        data = self.safe_value(response, 'data', [])
+        data = self.safe_list(response, 'data', [])
         return self.parse_trades(data, market, since, limit)
 
     def fetch_trading_fee(self, symbol: str, params={}):
@@ -985,7 +985,7 @@ class coinmate(Exchange, ImplicitAPI):
         if symbol:
             market = self.market(symbol)
         response = self.privatePostOrderById(self.extend(request, params))
-        data = self.safe_value(response, 'data')
+        data = self.safe_dict(response, 'data')
         return self.parse_order(data, market)
 
     def cancel_order(self, id: str, symbol: Str = None, params={}):

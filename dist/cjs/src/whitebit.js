@@ -738,7 +738,7 @@ class whitebit extends whitebit$1 {
         //         },
         //     }
         //
-        const ticker = this.safeValue(response, 'result', {});
+        const ticker = this.safeDict(response, 'result', {});
         return this.parseTicker(ticker, market);
     }
     parseTicker(ticker, market = undefined) {
@@ -1100,7 +1100,7 @@ class whitebit extends whitebit$1 {
         //         ]
         //     }
         //
-        const result = this.safeValue(response, 'result', []);
+        const result = this.safeList(response, 'result', []);
         return this.parseOHLCVs(result, market, timeframe, since, limit);
     }
     parseOHLCV(ohlcv, market = undefined) {
@@ -1606,7 +1606,7 @@ class whitebit extends whitebit$1 {
         //         "limit": 100
         //     }
         //
-        const data = this.safeValue(response, 'records', []);
+        const data = this.safeList(response, 'records', []);
         return this.parseTrades(data, market);
     }
     async fetchDepositAddress(code, params = {}) {
@@ -1947,7 +1947,7 @@ class whitebit extends whitebit$1 {
         //     }
         //
         const records = this.safeValue(response, 'records', []);
-        const first = this.safeValue(records, 0, {});
+        const first = this.safeDict(records, 0, {});
         return this.parseTransaction(first, currency);
     }
     async fetchDeposits(code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -2014,7 +2014,7 @@ class whitebit extends whitebit$1 {
         //         "total": 300                                                                                             // total number of  transactions, use this for calculating ‘limit’ and ‘offset'
         //     }
         //
-        const records = this.safeValue(response, 'records', []);
+        const records = this.safeList(response, 'records', []);
         return this.parseTransactions(records, currency, since, limit);
     }
     async fetchBorrowInterest(code = undefined, symbol = undefined, since = undefined, limit = undefined, params = {}) {

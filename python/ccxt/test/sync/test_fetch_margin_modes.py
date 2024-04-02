@@ -17,12 +17,11 @@ from ccxt.test.base import test_shared_methods  # noqa E402
 
 def test_fetch_margin_modes(exchange, skipped_properties, symbol):
     method = 'fetchMarginModes'
-    margin_modes = exchange.fetch_margin_modes(symbol)
+    margin_modes = exchange.fetch_margin_modes(['symbol'])
     assert isinstance(margin_modes, dict), exchange.id + ' ' + method + ' ' + symbol + ' must return an object. ' + exchange.json(margin_modes)
     margin_mode_keys = list(margin_modes.keys())
     test_shared_methods.assert_non_emtpy_array(exchange, skipped_properties, method, margin_modes, symbol)
     for i in range(0, len(margin_mode_keys)):
-        margin_modes_for_symbol = margin_modes[margin_mode_keys[i]]
-        test_shared_methods.assert_non_emtpy_array(exchange, skipped_properties, method, margin_modes_for_symbol, symbol)
-        for j in range(0, len(margin_modes_for_symbol)):
-            test_margin_mode(exchange, skipped_properties, method, margin_modes_for_symbol[j])
+        margin_mode = margin_modes[margin_mode_keys[i]]
+        test_shared_methods.assert_non_emtpy_array(exchange, skipped_properties, method, margin_mode, symbol)
+        test_margin_mode(exchange, skipped_properties, method, margin_mode)

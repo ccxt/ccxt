@@ -725,7 +725,7 @@ export default class bitbns extends Exchange {
         //     }
         //
         const data = this.safeValue(response, 'data', []);
-        const first = this.safeValue(data, 0);
+        const first = this.safeDict(data, 0);
         return this.parseOrder(first, market);
     }
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -776,7 +776,7 @@ export default class bitbns extends Exchange {
         //         "code":200
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseOrders(data, market, since, limit);
     }
     parseTrade(trade, market = undefined) {
@@ -926,7 +926,7 @@ export default class bitbns extends Exchange {
         //         "code": 200
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseTrades(data, market, since, limit);
     }
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
@@ -1003,7 +1003,7 @@ export default class bitbns extends Exchange {
         //         "code":200
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseTransactions(data, currency, since, limit);
     }
     async fetchWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1030,7 +1030,7 @@ export default class bitbns extends Exchange {
         //
         //     ...
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseTransactions(data, currency, since, limit);
     }
     parseTransactionStatusByType(status, type = undefined) {

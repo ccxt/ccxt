@@ -4,7 +4,7 @@
 import Exchange from './abstract/binance.js';
 import { ExchangeError, ArgumentsRequired, OperationFailed, OperationRejected, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, InvalidNonce, AuthenticationError, RateLimitExceeded, PermissionDenied, NotSupported, BadRequest, BadSymbol, AccountSuspended, OrderImmediatelyFillable, OnMaintenance, BadResponse, RequestTimeout, OrderNotFillable, MarginModeAlreadySet } from './base/errors.js';
 import { Precise } from './base/Precise.js';
-import type { TransferEntry, Int, OrderSide, Balances, OrderType, Trade, OHLCV, Order, FundingRateHistory, OpenInterest, Liquidation, OrderRequest, Str, Transaction, Ticker, OrderBook, Tickers, Market, Greeks, Strings, Currency, MarketInterface, MarginMode, MarginModes, Leverage, Leverages, Num, Option } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, Balances, OrderType, Trade, OHLCV, Order, FundingRateHistory, OpenInterest, Liquidation, OrderRequest, Str, Transaction, Ticker, OrderBook, Tickers, Market, Greeks, Strings, Currency, MarketInterface, MarginMode, MarginModes, Leverage, Leverages, Num, Option, MarginModification } from './base/types.js';
 import { TRUNCATE, DECIMAL_PLACES } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { rsa } from './base/functions/rsa.js';
@@ -1862,7 +1862,7 @@ export default class binance extends Exchange {
                         '-4140': BadRequest, // Invalid symbol status for opening position
                         '-4141': OperationRejected, // Symbol is closed
                         '-4144': BadSymbol, // Invalid pair
-                        '-4164': OperationRejected, // Leverage reduction is not supported in Isolated Margin Mode with open positions
+                        '-4164': InvalidOrder, // {"code":-4164,"msg":"Order's notional must be no smaller than 20 (unless you choose reduce only)."}
                         '-4165': BadRequest, // Invalid time interval
                         '-4167': BadRequest, // Unable to adjust to Multi-Assets mode with symbols of USDⓈ-M Futures under isolated-margin mode.
                         '-4168': BadRequest, // Unable to adjust to isolated-margin mode under the Multi-Assets mode.
@@ -9009,7 +9009,7 @@ export default class binance extends Exchange {
         };
     }
 
-    parseAccountPositions (account) {
+    parseAccountPositions (account, filterClosed = false) {
         const positions = this.safeList (account, 'positions');
         const assets = this.safeList (account, 'assets', []);
         const balances = {};
@@ -9032,7 +9032,8 @@ export default class binance extends Exchange {
             const code = market['linear'] ? market['quote'] : market['base'];
             const maintenanceMargin = this.safeString (position, 'maintMargin');
             // check for maintenance margin so empty positions are not returned
-            if ((maintenanceMargin !== '0') && (maintenanceMargin !== '0.00000000')) {
+            const isPositionOpen = (maintenanceMargin !== '0') && (maintenanceMargin !== '0.00000000');
+            if (!filterClosed || isPositionOpen) {
                 // sometimes not all the codes are correctly returned...
                 if (code in balances) {
                     const parsed = this.parseAccountPosition (this.extend (position, {
@@ -9862,10 +9863,11 @@ export default class binance extends Exchange {
          * @see https://binance-docs.github.io/apidocs/delivery/en/#account-information-user_data
          * @see https://binance-docs.github.io/apidocs/pm/en/#get-um-account-detail-user_data
          * @see https://binance-docs.github.io/apidocs/pm/en/#get-cm-account-detail-user_data
-         * @param {string[]|undefined} symbols list of unified market symbols
+         * @param {string[]} [symbols] list of unified market symbols
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch positions in a portfolio margin account
          * @param {string} [params.subType] "linear" or "inverse"
+         * @param {boolean} [params.filterClosed] set to true if you would like to filter out closed positions, default is false
          * @returns {object} data on account positions
          */
         if (symbols !== undefined) {
@@ -9898,7 +9900,9 @@ export default class binance extends Exchange {
         } else {
             throw new NotSupported (this.id + ' fetchPositions() supports linear and inverse contracts only');
         }
-        const result = this.parseAccountPositions (response);
+        let filterClosed = undefined;
+        [ filterClosed, params ] = this.handleOptionAndParams (params, 'fetchAccountPositions', 'filterClosed', false);
+        const result = this.parseAccountPositions (response, filterClosed);
         symbols = this.marketSymbols (symbols);
         return this.filterByArrayPositions (result, 'symbol', symbols, false);
     }
@@ -11005,7 +11009,7 @@ export default class binance extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        amount = this.costToPrecision (symbol, amount);
+        amount = this.amountToPrecision (symbol, amount);
         const request = {
             'type': addOrReduce,
             'symbol': market['id'],
@@ -11033,7 +11037,17 @@ export default class binance extends Exchange {
         });
     }
 
-    parseMarginModification (data, market: Market = undefined) {
+    parseMarginModification (data, market: Market = undefined): MarginModification {
+        //
+        // add/reduce margin
+        //
+        //     {
+        //         "code": 200,
+        //         "msg": "Successfully modify position margin.",
+        //         "amount": 0.001,
+        //         "type": 1
+        //     }
+        //
         const rawType = this.safeInteger (data, 'type');
         const resultType = (rawType === 1) ? 'add' : 'reduce';
         const resultAmount = this.safeNumber (data, 'amount');
@@ -11041,15 +11055,18 @@ export default class binance extends Exchange {
         const status = (errorCode === '200') ? 'ok' : 'failed';
         return {
             'info': data,
+            'symbol': market['symbol'],
             'type': resultType,
             'amount': resultAmount,
+            'total': undefined,
             'code': undefined,
-            'symbol': market['symbol'],
             'status': status,
+            'timestamp': undefined,
+            'datetime': undefined,
         };
     }
 
-    async reduceMargin (symbol: string, amount, params = {}) {
+    async reduceMargin (symbol: string, amount, params = {}): Promise<MarginModification> {
         /**
          * @method
          * @name binance#reduceMargin
@@ -11064,7 +11081,7 @@ export default class binance extends Exchange {
         return await this.modifyMarginHelper (symbol, amount, 2, params);
     }
 
-    async addMargin (symbol: string, amount, params = {}) {
+    async addMargin (symbol: string, amount, params = {}): Promise<MarginModification> {
         /**
          * @method
          * @name binance#addMargin

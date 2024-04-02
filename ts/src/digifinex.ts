@@ -6,7 +6,7 @@ import { AccountSuspended, BadRequest, BadResponse, NetworkError, DDoSProtection
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { FundingRateHistory, Int, OHLCV, Order, OrderSide, OrderType, OrderRequest, Trade, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Strings, Market, Currency, TransferEntry, Num } from './base/types.js';
+import type { FundingRateHistory, Int, OHLCV, Order, OrderSide, OrderType, OrderRequest, Trade, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Strings, Market, Currency, TransferEntry, Num, MarginModification } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1504,7 +1504,7 @@ export default class digifinex extends Exchange {
             request['instrument_id'] = market['id'];
             request['granularity'] = timeframe;
             if (limit !== undefined) {
-                request['limit'] = limit;
+                request['limit'] = Math.min (limit, 100);
             }
             response = await this.publicSwapGetPublicCandles (this.extend (request, params));
         } else {
@@ -4067,7 +4067,7 @@ export default class digifinex extends Exchange {
         return depositWithdrawFees;
     }
 
-    async addMargin (symbol: string, amount, params = {}) {
+    async addMargin (symbol: string, amount, params = {}): Promise<MarginModification> {
         /**
          * @method
          * @name digifinex#addMargin
@@ -4084,7 +4084,7 @@ export default class digifinex extends Exchange {
         return await this.modifyMarginHelper (symbol, amount, 1, params);
     }
 
-    async reduceMargin (symbol: string, amount, params = {}) {
+    async reduceMargin (symbol: string, amount, params = {}): Promise<MarginModification> {
         /**
          * @method
          * @name digifinex#reduceMargin
@@ -4101,7 +4101,7 @@ export default class digifinex extends Exchange {
         return await this.modifyMarginHelper (symbol, amount, 2, params);
     }
 
-    async modifyMarginHelper (symbol: string, amount, type, params = {}) {
+    async modifyMarginHelper (symbol: string, amount, type, params = {}): Promise<MarginModification> {
         await this.loadMarkets ();
         const side = this.safeString (params, 'side');
         const market = this.market (symbol);
@@ -4131,7 +4131,7 @@ export default class digifinex extends Exchange {
         });
     }
 
-    parseMarginModification (data, market: Market = undefined) {
+    parseMarginModification (data, market: Market = undefined): MarginModification {
         //
         //     {
         //         "instrument_id": "BTCUSDTPERP",
@@ -4144,12 +4144,14 @@ export default class digifinex extends Exchange {
         const rawType = this.safeInteger (data, 'type');
         return {
             'info': data,
+            'symbol': this.safeSymbol (marketId, market, undefined, 'swap'),
             'type': (rawType === 1) ? 'add' : 'reduce',
             'amount': this.safeNumber (data, 'amount'),
             'total': undefined,
             'code': market['settle'],
-            'symbol': this.safeSymbol (marketId, market, undefined, 'swap'),
             'status': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
         };
     }
 

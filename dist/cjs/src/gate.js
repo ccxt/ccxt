@@ -870,14 +870,6 @@ class gate extends gate$1 {
         super.setSandboxMode(enable);
         this.options['sandboxMode'] = enable;
     }
-    convertExpireDate(date) {
-        // parse YYMMDD to timestamp
-        const year = date.slice(0, 2);
-        const month = date.slice(2, 4);
-        const day = date.slice(4, 6);
-        const reconstructedDate = '20' + year + '-' + month + '-' + day + 'T00:00:00Z';
-        return reconstructedDate;
-    }
     createExpiredOptionMarket(symbol) {
         // support expired option contracts
         const quote = 'USDT';
@@ -6123,11 +6115,14 @@ class gate extends gate$1 {
         const total = this.safeNumber(data, 'margin');
         return {
             'info': data,
-            'amount': undefined,
-            'code': this.safeValue(market, 'quote'),
             'symbol': market['symbol'],
+            'type': undefined,
+            'amount': undefined,
             'total': total,
+            'code': this.safeValue(market, 'quote'),
             'status': 'ok',
+            'timestamp': undefined,
+            'datetime': undefined,
         };
     }
     async reduceMargin(symbol, amount, params = {}) {

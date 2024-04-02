@@ -1181,6 +1181,7 @@ public partial class bitget : Exchange
                     { "40768", typeof(OrderNotFound) },
                     { "41114", typeof(OnMaintenance) },
                     { "43011", typeof(InvalidOrder) },
+                    { "43012", typeof(InsufficientFunds) },
                     { "43025", typeof(InvalidOrder) },
                     { "43115", typeof(OnMaintenance) },
                     { "45110", typeof(InvalidOrder) },
@@ -2223,7 +2224,7 @@ public partial class bitget : Exchange
         //         ]
         //     }
         //
-        object rawTransactions = this.safeValue(response, "data", new List<object>() {});
+        object rawTransactions = this.safeList(response, "data", new List<object>() {});
         return this.parseTransactions(rawTransactions, currency, since, limit);
     }
 
@@ -2388,7 +2389,7 @@ public partial class bitget : Exchange
         //         ]
         //     }
         //
-        object rawTransactions = this.safeValue(response, "data", new List<object>() {});
+        object rawTransactions = this.safeList(response, "data", new List<object>() {});
         return this.parseTransactions(rawTransactions, currency, since, limit);
     }
 
@@ -2529,7 +2530,7 @@ public partial class bitget : Exchange
         //         }
         //     }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return this.parseDepositAddress(data, currency);
     }
 
@@ -2839,7 +2840,7 @@ public partial class bitget : Exchange
         //         ]
         //     }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseTicker(getValue(data, 0), market);
     }
 
@@ -2953,7 +2954,7 @@ public partial class bitget : Exchange
         //         ]
         //     }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseTickers(data, symbols);
     }
 
@@ -3217,7 +3218,7 @@ public partial class bitget : Exchange
         //         ]
         //     }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseTrades(data, market, since, limit);
     }
 
@@ -4385,7 +4386,7 @@ public partial class bitget : Exchange
         //         }
         //     }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return this.parseOrder(data, market);
     }
 
@@ -4977,7 +4978,7 @@ public partial class bitget : Exchange
         //         }
         //     }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return this.parseOrder(data, market);
     }
 
@@ -5249,7 +5250,7 @@ public partial class bitget : Exchange
         //     }
         //
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object orders = this.safeValue(data, "successList", new List<object>() {});
+        object orders = this.safeList(data, "successList", new List<object>() {});
         return this.parseOrders(orders, market);
     }
 
@@ -5503,8 +5504,13 @@ public partial class bitget : Exchange
         {
             response = parseJson(response);
         }
-        object data = this.safeValue(response, "data");
-        object first = this.safeValue(data, 0, data);
+        object data = this.safeDict(response, "data");
+        if (isTrue(isTrue((!isEqual(data, null))) && !isTrue(((data is IList<object>) || (data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))))
+        {
+            return this.parseOrder(data, market);
+        }
+        object dataList = this.safeList(response, "data", new List<object>() {});
+        object first = this.safeDict(dataList, 0, new Dictionary<string, object>() {});
         return this.parseOrder(first, market);
     }
 
@@ -5836,12 +5842,12 @@ public partial class bitget : Exchange
         {
             if (isTrue(isTrue((!isEqual(marginMode, null))) || isTrue(stop)))
             {
-                object resultList = this.safeValue(data, "orderList", new List<object>() {});
+                object resultList = this.safeList(data, "orderList", new List<object>() {});
                 return this.parseOrders(resultList, market, since, limit);
             }
         } else
         {
-            object result = this.safeValue(data, "entrustedList", new List<object>() {});
+            object result = this.safeList(data, "entrustedList", new List<object>() {});
             return this.parseOrders(result, market, since, limit);
         }
         return this.parseOrders(data, market, since, limit);
@@ -6249,7 +6255,7 @@ public partial class bitget : Exchange
         {
             response = parseJson(response);
         }
-        object orders = this.safeValue(response, "data", new List<object>() {});
+        object orders = this.safeList(response, "data", new List<object>() {});
         return this.parseOrders(orders, market, since, limit);
     }
 
@@ -6702,11 +6708,11 @@ public partial class bitget : Exchange
         object data = this.safeValue(response, "data");
         if (isTrue(isTrue((getValue(market, "swap"))) || isTrue((getValue(market, "future")))))
         {
-            object fillList = this.safeValue(data, "fillList", new List<object>() {});
+            object fillList = this.safeList(data, "fillList", new List<object>() {});
             return this.parseTrades(fillList, market, since, limit);
         } else if (isTrue(!isEqual(marginMode, null)))
         {
-            object fills = this.safeValue(data, "fills", new List<object>() {});
+            object fills = this.safeList(data, "fills", new List<object>() {});
             return this.parseTrades(fills, market, since, limit);
         }
         return this.parseTrades(data, market, since, limit);
@@ -6775,8 +6781,8 @@ public partial class bitget : Exchange
         //         ]
         //     }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
-        object first = this.safeValue(data, 0, new Dictionary<string, object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
+        object first = this.safeDict(data, 0, new Dictionary<string, object>() {});
         return this.parsePosition(first, market);
     }
 
@@ -7489,15 +7495,28 @@ public partial class bitget : Exchange
 
     public virtual object parseMarginModification(object data, object market = null)
     {
+        //
+        // addMargin/reduceMargin
+        //
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1700813444618,
+        //         "data": ""
+        //     }
+        //
         object errorCode = this.safeString(data, "code");
         object status = ((bool) isTrue((isEqual(errorCode, "00000")))) ? "ok" : "failed";
         return new Dictionary<string, object>() {
             { "info", data },
+            { "symbol", getValue(market, "symbol") },
             { "type", null },
             { "amount", null },
+            { "total", null },
             { "code", getValue(market, "settle") },
-            { "symbol", getValue(market, "symbol") },
             { "status", status },
+            { "timestamp", null },
+            { "datetime", null },
         };
     }
 
@@ -7849,7 +7868,7 @@ public partial class bitget : Exchange
         //         }
         //     }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return this.parseOpenInterest(data, market);
     }
 
@@ -7945,7 +7964,7 @@ public partial class bitget : Exchange
         //         ]
         //     }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseTransfers(data, currency, since, limit);
     }
 
@@ -8163,7 +8182,7 @@ public partial class bitget : Exchange
         //         "requestTime": "1700120731773"
         //     }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseDepositWithdrawFees(data, codes, "coin");
     }
 
@@ -8503,7 +8522,7 @@ public partial class bitget : Exchange
         //     }
         //
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object liquidations = this.safeValue(data, "resultList", new List<object>() {});
+        object liquidations = this.safeList(data, "resultList", new List<object>() {});
         return this.parseLiquidations(liquidations, market, since, limit);
     }
 
@@ -8986,7 +9005,7 @@ public partial class bitget : Exchange
         //     }
         //
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object order = this.safeValue(data, "successList", new List<object>() {});
+        object order = this.safeList(data, "successList", new List<object>() {});
         return this.parseOrder(getValue(order, 0), market);
     }
 
@@ -9029,7 +9048,7 @@ public partial class bitget : Exchange
         //     }
         //
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object orderInfo = this.safeValue(data, "successList", new List<object>() {});
+        object orderInfo = this.safeList(data, "successList", new List<object>() {});
         return this.parsePositions(orderInfo, null, parameters);
     }
 

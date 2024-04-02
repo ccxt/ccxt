@@ -1,5 +1,5 @@
 import Exchange from './abstract/bingx.js';
-import type { TransferEntry, Int, OrderSide, OHLCV, FundingRateHistory, Order, OrderType, OrderRequest, Str, Trade, Balances, Transaction, Ticker, OrderBook, Tickers, Market, Strings, Currency, Position, Dict, Leverage, MarginMode, Num } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OHLCV, FundingRateHistory, Order, OrderType, OrderRequest, Str, Trade, Balances, Transaction, Ticker, OrderBook, Tickers, Market, Strings, Currency, Position, Dict, Leverage, MarginMode, Num, MarginModification } from './base/types.js';
 /**
  * @class bingx
  * @augments Exchange
@@ -109,7 +109,10 @@ export default class bingx extends Exchange {
     parseTransaction(transaction: any, currency?: Currency): Transaction;
     parseTransactionStatus(status: string): string;
     setMarginMode(marginMode: string, symbol?: Str, params?: {}): Promise<any>;
-    setMargin(symbol: string, amount: number, params?: {}): Promise<any>;
+    addMargin(symbol: string, amount: number, params?: {}): Promise<MarginModification>;
+    reduceMargin(symbol: string, amount: number, params?: {}): Promise<MarginModification>;
+    setMargin(symbol: string, amount: number, params?: {}): Promise<MarginModification>;
+    parseMarginModification(data: any, market?: Market): MarginModification;
     fetchLeverage(symbol: string, params?: {}): Promise<Leverage>;
     parseLeverage(leverage: any, market?: any): Leverage;
     setLeverage(leverage: Int, symbol?: Str, params?: {}): Promise<any>;

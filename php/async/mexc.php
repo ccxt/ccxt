@@ -2836,7 +2836,7 @@ class mexc extends Exchange {
                 //         )
                 //     }
                 //
-                $data = $this->safe_value($response, 'data');
+                $data = $this->safe_list($response, 'data');
                 return $this->parse_orders($data, $market);
             }
         }) ();
@@ -3120,7 +3120,7 @@ class mexc extends Exchange {
                 //         )
                 //     }
                 //
-                $data = $this->safe_value($response, 'data');
+                $data = $this->safe_list($response, 'data');
                 return $this->parse_orders($data, $market);
             }
         }) ();
@@ -3212,7 +3212,7 @@ class mexc extends Exchange {
                 //         "code" => "0"
                 //     }
                 //
-                $data = $this->safe_value($response, 'data', array());
+                $data = $this->safe_list($response, 'data', array());
                 return $this->parse_orders($data, $market);
             }
         }) ();
@@ -4033,7 +4033,7 @@ class mexc extends Exchange {
         }) ();
     }
 
-    public function reduce_margin(string $symbol, $amount, $params = array ()) {
+    public function reduce_margin(string $symbol, $amount, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $amount, $params) {
             /**
              * remove margin from a position
@@ -4046,7 +4046,7 @@ class mexc extends Exchange {
         }) ();
     }
 
-    public function add_margin(string $symbol, $amount, $params = array ()) {
+    public function add_margin(string $symbol, $amount, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $amount, $params) {
             /**
              * add margin
@@ -4367,7 +4367,7 @@ class mexc extends Exchange {
             //         ]
             //     }
             //
-            $data = $this->safe_value($response, 'data');
+            $data = $this->safe_list($response, 'data');
             return $this->parse_leverage_tiers($data, $symbols, 'symbol');
         }) ();
     }
@@ -4834,7 +4834,7 @@ class mexc extends Exchange {
             //         )
             //     }
             //
-            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_list($response, 'data', array());
             return $this->parse_positions($data, $symbols);
         }) ();
     }
@@ -4929,7 +4929,7 @@ class mexc extends Exchange {
                 //         }
                 //     }
                 //
-                $data = $this->safe_value($response, 'data', array());
+                $data = $this->safe_dict($response, 'data', array());
                 return $this->parse_transfer($data);
             } elseif ($marketType === 'swap') {
                 throw new BadRequest($this->id . ' fetchTransfer() is not supported for ' . $marketType);

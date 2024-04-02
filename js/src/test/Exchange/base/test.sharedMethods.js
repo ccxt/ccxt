@@ -6,7 +6,7 @@
 
 import assert from 'assert';
 import Precise from '../../../base/Precise.js';
-import { OperationFailed, OnMaintenance } from '../../../base/errors.js';
+import { OnMaintenance, OperationFailed } from '../../../base/errors.js';
 function logTemplate(exchange, method, entry) {
     return ' <<< ' + exchange.id + ' ' + method + ' ::: ' + exchange.json(entry) + ' >>> ';
 }

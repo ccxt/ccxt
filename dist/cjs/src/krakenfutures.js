@@ -534,7 +534,7 @@ class krakenfutures extends krakenfutures$1 {
         //        "serverTime": "2022-02-18T14:16:29.440Z"
         //    }
         //
-        const tickers = this.safeValue(response, 'tickers');
+        const tickers = this.safeList(response, 'tickers');
         return this.parseTickers(tickers, symbols);
     }
     parseTicker(ticker, market = undefined) {
@@ -641,17 +641,13 @@ class krakenfutures extends krakenfutures$1 {
             if (limit === undefined) {
                 limit = 5000;
             }
-            else if (limit > 5000) {
-                throw new errors.BadRequest(this.id + ' fetchOHLCV() limit cannot exceed 5000');
-            }
+            limit = Math.min(limit, 5000);
             const toTimestamp = this.sum(request['from'], limit * duration - 1);
             const currentTimestamp = this.seconds();
             request['to'] = Math.min(toTimestamp, currentTimestamp);
         }
         else if (limit !== undefined) {
-            if (limit > 5000) {
-                throw new errors.BadRequest(this.id + ' fetchOHLCV() limit cannot exceed 5000');
-            }
+            limit = Math.min(limit, 5000);
             const duration = this.parseTimeframe(timeframe);
             request['to'] = this.seconds();
             request['from'] = this.parseToInt(request['to'] - (duration * limit));
@@ -672,7 +668,7 @@ class krakenfutures extends krakenfutures$1 {
         //        "more_candles": true
         //    }
         //
-        const candles = this.safeValue(response, 'candles');
+        const candles = this.safeList(response, 'candles');
         return this.parseOHLCVs(candles, market, timeframe, since, limit);
     }
     parseOHLCV(ohlcv, market = undefined) {
@@ -1135,7 +1131,7 @@ class krakenfutures extends krakenfutures$1 {
         //     ]
         // }
         //
-        const data = this.safeValue(response, 'batchStatus', []);
+        const data = this.safeList(response, 'batchStatus', []);
         return this.parseOrders(data);
     }
     async editOrder(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
@@ -1252,7 +1248,7 @@ class krakenfutures extends krakenfutures$1 {
         //       }
         //     ]
         // }
-        const batchStatus = this.safeValue(response, 'batchStatus', []);
+        const batchStatus = this.safeList(response, 'batchStatus', []);
         return this.parseOrders(batchStatus);
     }
     async cancelAllOrders(symbol = undefined, params = {}) {
@@ -1290,7 +1286,7 @@ class krakenfutures extends krakenfutures$1 {
             market = this.market(symbol);
         }
         const response = await this.privateGetOpenorders(params);
-        const orders = this.safeValue(response, 'openOrders', []);
+        const orders = this.safeList(response, 'openOrders', []);
         return this.parseOrders(orders, market, since, limit);
     }
     async fetchClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -2359,7 +2355,7 @@ class krakenfutures extends krakenfutures$1 {
         //        "serverTime": "2018-07-19T11:32:39.433Z"
         //    }
         //
-        const data = this.safeValue(response, 'instruments');
+        const data = this.safeList(response, 'instruments');
         return this.parseLeverageTiers(data, symbols, 'symbol');
     }
     parseMarketLeverageTiers(info, market = undefined) {

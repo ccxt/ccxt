@@ -600,7 +600,7 @@ class zaif(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        returnData = self.safe_value(result, 'return')
+        returnData = self.safe_dict(result, 'return')
         return self.parse_transaction(returnData, currency)
 
     def parse_transaction(self, transaction, currency: Currency = None) -> Transaction:

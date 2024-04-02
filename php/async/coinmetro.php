@@ -546,7 +546,7 @@ class coinmetro extends Exchange {
             //         )
             //     }
             //
-            $candleHistory = $this->safe_value($response, 'candleHistory', array());
+            $candleHistory = $this->safe_list($response, 'candleHistory', array());
             return $this->parse_ohlcvs($candleHistory, $market, $timeframe, $since, $limit);
         }) ();
     }
@@ -613,7 +613,7 @@ class coinmetro extends Exchange {
             //         )
             //     }
             //
-            $tickHistory = $this->safe_value($response, 'tickHistory', array());
+            $tickHistory = $this->safe_list($response, 'tickHistory', array());
             return $this->parse_trades($tickHistory, $market, $since, $limit);
         }) ();
     }
@@ -891,7 +891,7 @@ class coinmetro extends Exchange {
              */
             Async\await($this->load_markets());
             $response = Async\await($this->publicGetExchangePrices ($params));
-            $latestPrices = $this->safe_value($response, 'latestPrices', array());
+            $latestPrices = $this->safe_list($response, 'latestPrices', array());
             return $this->parse_tickers($latestPrices, $symbols);
         }) ();
     }

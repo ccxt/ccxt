@@ -1115,7 +1115,7 @@ public partial class bitstamp : Exchange
         //     }
         //
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object ohlc = this.safeValue(data, "ohlc", new List<object>() {});
+        object ohlc = this.safeList(data, "ohlc", new List<object>() {});
         return this.parseOHLCVs(ohlc, market, timeframe, since, limit);
     }
 

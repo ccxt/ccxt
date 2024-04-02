@@ -1143,7 +1143,7 @@ class onetrading extends Exchange {
         //         "cursor" => "eyJhY2NvdW50X2lkIjp7InMiOiJlMzY5YWM4MC00NTc3LTExZTktYWUwOC05YmVkYzQ3OTBiODQiLCJzcyI6W10sIm5zIjpbXSwiYnMiOltdLCJtIjp7fSwibCI6W119LCJpdGVtX2tleSI6eyJzIjoiV0lUSERSQVdBTDo6MmFlMjYwY2ItOTk3MC00YmNiLTgxNmEtZGY4MDVmY2VhZTY1Iiwic3MiOltdLCJucyI6W10sImJzIjpbXSwibSI6e30sImwiOltdfSwiZ2xvYmFsX3dpdGhkcmF3YWxfaW5kZXhfaGFzaF9rZXkiOnsicyI6ImUzNjlhYzgwLTQ1NzctMTFlOS1hZTA4LTliZWRjNDc5MGI4NCIsInNzIjpbXSwibnMiOltdLCJicyI6W10sIm0iOnt9LCJsIjpbXX0sInRpbWVzdGFtcCI6eyJuIjoiMTU4ODA1ODc2Nzk0OCIsInNzIjpbXSwibnMiOltdLCJicyI6W10sIm0iOnt9LCJsIjpbXX19"
         //     }
         //
-        $depositHistory = $this->safe_value($response, 'deposit_history', array());
+        $depositHistory = $this->safe_list($response, 'deposit_history', array());
         return $this->parse_transactions($depositHistory, $currency, $since, $limit, array( 'type' => 'deposit' ));
     }
 
@@ -1207,7 +1207,7 @@ class onetrading extends Exchange {
         //         "max_page_size" => 2
         //     }
         //
-        $withdrawalHistory = $this->safe_value($response, 'withdrawal_history', array());
+        $withdrawalHistory = $this->safe_list($response, 'withdrawal_history', array());
         return $this->parse_transactions($withdrawalHistory, $currency, $since, $limit, array( 'type' => 'withdrawal' ));
     }
 
@@ -1794,7 +1794,7 @@ class onetrading extends Exchange {
         //         "max_page_size" => 100
         //     }
         //
-        $orderHistory = $this->safe_value($response, 'order_history', array());
+        $orderHistory = $this->safe_list($response, 'order_history', array());
         return $this->parse_orders($orderHistory, $market, $since, $limit);
     }
 
@@ -1934,7 +1934,7 @@ class onetrading extends Exchange {
         //         "cursor" => "string"
         //     }
         //
-        $tradeHistory = $this->safe_value($response, 'trade_history', array());
+        $tradeHistory = $this->safe_list($response, 'trade_history', array());
         return $this->parse_trades($tradeHistory, $market, $since, $limit);
     }
 
