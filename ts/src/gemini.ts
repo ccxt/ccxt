@@ -651,7 +651,7 @@ export default class gemini extends Exchange {
         let quoteId = undefined;
         let settleId = undefined;
         let tickSize = undefined;
-        let increment = undefined;
+        let amountPrecision = undefined;
         let minSize = undefined;
         let status = undefined;
         let swap = false;
@@ -662,9 +662,9 @@ export default class gemini extends Exchange {
         const isArray = (Array.isArray (response));
         if (!isString && !isArray) {
             marketId = this.safeStringLower (response, 'symbol');
+            amountPrecision = this.safeNumber (response, 'tick_size'); // right, exchange has an imperfect naming and this turns out to be an amount-precision
+            tickSize = this.safeNumber (response, 'quote_increment'); // this is tick-size actually
             minSize = this.safeNumber (response, 'min_order_size');
-            tickSize = this.safeNumber (response, 'tick_size');
-            increment = this.safeNumber (response, 'quote_increment');
             status = this.parseMarketActive (this.safeString (response, 'status'));
             baseId = this.safeString (response, 'base_currency');
             quoteId = this.safeString (response, 'quote_currency');
@@ -675,9 +675,9 @@ export default class gemini extends Exchange {
                 marketId = response;
             } else {
                 marketId = this.safeStringLower (response, 0);
-                minSize = this.safeNumber (response, 3);
-                tickSize = this.parseNumber (this.parsePrecision (this.safeString (response, 1)));
-                increment = this.parseNumber (this.parsePrecision (this.safeString (response, 2)));
+                tickSize = this.parseNumber (this.parsePrecision (this.safeString (response, 1))); // priceTickDecimalPlaces
+                amountPrecision = this.parseNumber (this.parsePrecision (this.safeString (response, 2))); // quantityTickDecimalPlaces
+                minSize = this.safeNumber (response, 3); // quantityMinimum
             }
             const marketIdUpper = marketId.toUpperCase ();
             const isPerp = (marketIdUpper.indexOf ('PERP') >= 0);
@@ -732,8 +732,8 @@ export default class gemini extends Exchange {
             'strike': undefined,
             'optionType': undefined,
             'precision': {
-                'price': increment,
-                'amount': tickSize,
+                'price': tickSize,
+                'amount': amountPrecision,
             },
             'limits': {
                 'leverage': {
