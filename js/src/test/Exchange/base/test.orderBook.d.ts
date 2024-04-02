@@ -1,2 +1,3 @@
-declare function testOrderBook(exchange: any, skippedProperties: any, method: any, orderbook: any, symbol: any): void;
+import { Exchange, OrderBook } from "../../../../ccxt";
+declare function testOrderBook(exchange: Exchange, skippedProperties: object, method: string, orderbook: OrderBook, symbol: string): void;
 export default testOrderBook;

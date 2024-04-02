@@ -15,7 +15,7 @@ export default class kucoin extends Exchange {
         url: any;
         info: any;
     }>;
-    fetchMarkets(params?: {}): Promise<any[]>;
+    fetchMarkets(params?: {}): Promise<Market[]>;
     fetchCurrencies(params?: {}): Promise<{}>;
     fetchAccounts(params?: {}): Promise<Account[]>;
     fetchTransactionFee(code: string, params?: {}): Promise<{
@@ -71,6 +71,7 @@ export default class kucoin extends Exchange {
     createMarketBuyOrderWithCost(symbol: string, cost: number, params?: {}): Promise<Order>;
     createMarketSellOrderWithCost(symbol: string, cost: number, params?: {}): Promise<Order>;
     createOrders(orders: OrderRequest[], params?: {}): Promise<Order[]>;
+    marketOrderAmountToPrecision(symbol: string, amount: any): any;
     createOrderRequest(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): any;
     editOrder(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: Num, price?: Num, params?: {}): Promise<Order>;
     cancelOrder(id: string, symbol?: Str, params?: {}): Promise<any>;

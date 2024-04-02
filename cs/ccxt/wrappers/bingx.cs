@@ -52,10 +52,10 @@ public partial class bingx
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> an array of objects representing market data.</returns>
-    public async Task<Dictionary<string, object>> FetchMarkets(Dictionary<string, object> parameters = null)
+    public async Task<List<MarketInterface>> FetchMarkets(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchMarkets(parameters);
-        return ((Dictionary<string, object>)res);
+        return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
     }
     /// <summary>
     /// fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
@@ -972,10 +972,10 @@ public partial class bingx
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> A [margin structure]{@link https://docs.ccxt.com/#/?id=add-margin-structure}.</returns>
-    public async Task<Dictionary<string, object>> SetMargin(string symbol, double amount, Dictionary<string, object> parameters = null)
+    public async Task<MarginModification> SetMargin(string symbol, double amount, Dictionary<string, object> parameters = null)
     {
         var res = await this.setMargin(symbol, amount, parameters);
-        return ((Dictionary<string, object>)res);
+        return new MarginModification(res);
     }
     /// <summary>
     /// fetch the set leverage for a market

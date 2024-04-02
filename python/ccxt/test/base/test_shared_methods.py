@@ -15,9 +15,8 @@ sys.path.append(root)
 from ccxt.base.decimal_to_precision import TICK_SIZE  # noqa E402
 import numbers  # noqa E402
 from ccxt.base.precise import Precise  # noqa E402
-from ccxt.base.errors import OperationFailed  # noqa E402
 from ccxt.base.errors import OnMaintenance  # noqa E402
-from ccxt.base.errors import ArgumentsRequired  # noqa E402
+from ccxt.base.errors import OperationFailed  # noqa E402
 
 def log_template(exchange, method, entry):
     return ' <<< ' + exchange.id + ' ' + method + ' ::: ' + exchange.json(entry) + ' >>> '
@@ -343,3 +342,11 @@ def assert_non_emtpy_array(exchange, skipped_properties, method, entry, hint=Non
     if not ('emptyResponse' in skipped_properties):
         return
     assert len(entry) > 0, 'response is expected to be a non-empty array' + log_text + ' (add \"emptyResponse\" in skip-tests.json to skip this check)'
+
+
+def assert_round_minute_timestamp(exchange, skipped_properties, method, entry, key):
+    if key in skipped_properties:
+        return
+    log_text = log_template(exchange, method, entry)
+    ts = exchange.safe_string(entry, key)
+    assert Precise.string_mod(ts, '60000') == '0', 'timestamp should be a multiple of 60 seconds (1 minute)' + log_text

@@ -244,7 +244,7 @@ class bitteam extends Exchange {
         ));
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * retrieves data on all $markets for bitteam
@@ -678,7 +678,7 @@ class bitteam extends Exchange {
             //     }
             //
             $result = $this->safe_value($response, 'result', array());
-            $data = $this->safe_value($result, 'data', array());
+            $data = $this->safe_list($result, 'data', array());
             return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
         }) ();
     }
@@ -862,7 +862,7 @@ class bitteam extends Exchange {
             //     }
             //
             $result = $this->safe_value($response, 'result', array());
-            $orders = $this->safe_value($result, 'orders', array());
+            $orders = $this->safe_list($result, 'orders', array());
             return $this->parse_orders($orders, $market, $since, $limit);
         }) ();
     }
@@ -923,7 +923,7 @@ class bitteam extends Exchange {
             //         }
             //     }
             //
-            $result = $this->safe_value($response, 'result');
+            $result = $this->safe_dict($response, 'result');
             return $this->parse_order($result, $market);
         }) ();
     }
@@ -1037,7 +1037,7 @@ class bitteam extends Exchange {
             //         }
             //     }
             //
-            $order = $this->safe_value($response, 'result', array());
+            $order = $this->safe_dict($response, 'result', array());
             return $this->parse_order($order, $market);
         }) ();
     }
@@ -1065,7 +1065,7 @@ class bitteam extends Exchange {
             //         }
             //     }
             //
-            $result = $this->safe_value($response, 'result', array());
+            $result = $this->safe_dict($response, 'result', array());
             return $this->parse_order($result);
         }) ();
     }
@@ -1533,7 +1533,7 @@ class bitteam extends Exchange {
             //     }
             //
             $result = $this->safe_value($response, 'result', array());
-            $pair = $this->safe_value($result, 'pair', array());
+            $pair = $this->safe_dict($result, 'pair', array());
             return $this->parse_ticker($pair, $market);
         }) ();
     }
@@ -1864,7 +1864,7 @@ class bitteam extends Exchange {
             //     }
             //
             $result = $this->safe_value($response, 'result', array());
-            $trades = $this->safe_value($result, 'trades', array());
+            $trades = $this->safe_list($result, 'trades', array());
             return $this->parse_trades($trades, $market, $since, $limit);
         }) ();
     }
@@ -2169,7 +2169,7 @@ class bitteam extends Exchange {
             //     }
             //
             $result = $this->safe_value($response, 'result', array());
-            $transactions = $this->safe_value($result, 'transactions', array());
+            $transactions = $this->safe_list($result, 'transactions', array());
             return $this->parse_transactions($transactions, $currency, $since, $limit);
         }) ();
     }

@@ -1606,7 +1606,7 @@ export default class htx extends Exchange {
         return this.decimalToPrecision (cost, TRUNCATE, this.markets[symbol]['precision']['cost'], this.precisionMode);
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name huobi#fetchMarkets
@@ -2188,7 +2188,7 @@ export default class htx extends Exchange {
         //         "ts":1639547261293
         //     }
         //
-        // inverse swaps, linear swaps, inverse futures
+        // linear swap, linear future, inverse swap, inverse future
         //
         //     {
         //         "status":"ok",
@@ -2205,35 +2205,13 @@ export default class htx extends Exchange {
         //                 "high":"0.10725",
         //                 "amount":"2340267.415144052378486261756692535687481566",
         //                 "count":882,
-        //                 "vol":"24706"
+        //                 "vol":"24706",
+        //                 "trade_turnover":"840726.5048", // only in linear futures
+        //                 "business_type":"futures", // only in linear futures
+        //                 "contract_code":"BTC-USDT-CW", // only in linear futures, instead of 'symbol'
         //             }
         //         ],
         //         "ts":1637504679376
-        //     }
-        //
-        // linear futures
-        //
-        //     {
-        //         "status":"ok",
-        //         "ticks":[
-        //             {
-        //                 "id":1640745627,
-        //                 "ts":1640745627957,
-        //                 "ask":[48079.1,20],
-        //                 "bid":[47713.8,125],
-        //                 "business_type":"futures",
-        //                 "contract_code":"BTC-USDT-CW",
-        //                 "open":"49011.8",
-        //                 "close":"47934",
-        //                 "low":"47292.3",
-        //                 "high":"49011.8",
-        //                 "amount":"17.398",
-        //                 "count":1515,
-        //                 "vol":"17398",
-        //                 "trade_turnover":"840726.5048"
-        //             }
-        //         ],
-        //         "ts":1640745627988
         //     }
         //
         const tickers = this.safeValue2 (response, 'data', 'ticks', []);
@@ -2370,7 +2348,7 @@ export default class htx extends Exchange {
             throw new NotSupported (this.id + ' fetchLastPrices() does not support ' + type + ' markets yet');
         }
         const tick = this.safeValue (response, 'tick', {});
-        const data = this.safeValue (tick, 'data', []);
+        const data = this.safeList (tick, 'data', []);
         return this.parseLastPrices (data, symbols);
     }
 
@@ -2958,48 +2936,53 @@ export default class htx extends Exchange {
             // 'from': parseInt ((since / 1000).toString ()), spot only
             // 'to': this.seconds (), spot only
         };
-        const price = this.safeString (params, 'price');
-        params = this.omit (params, 'price');
+        const priceType = this.safeStringN (params, [ 'priceType', 'price' ]);
+        params = this.omit (params, [ 'priceType', 'price' ]);
+        let until = undefined;
+        [ until, params ] = this.handleParamInteger (params, 'until');
+        const untilSeconds = (until !== undefined) ? this.parseToInt (until / 1000) : undefined;
         if (market['contract']) {
             if (limit !== undefined) {
-                request['size'] = limit; // when using limit from and to are ignored
+                request['size'] = Math.min (limit, 2000); // when using limit: from & to are ignored
                 // https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-get-kline-data
             } else {
                 limit = 2000; // only used for from/to calculation
             }
-            if (price === undefined) {
+            if (priceType === undefined) {
                 const duration = this.parseTimeframe (timeframe);
+                let calcualtedEnd = undefined;
                 if (since === undefined) {
                     const now = this.seconds ();
                     request['from'] = now - duration * (limit - 1);
-                    request['to'] = now;
+                    calcualtedEnd = now;
                 } else {
                     const start = this.parseToInt (since / 1000);
                     request['from'] = start;
-                    request['to'] = this.sum (start, duration * (limit - 1));
+                    calcualtedEnd = this.sum (start, duration * (limit - 1));
                 }
+                request['to'] = (untilSeconds !== undefined) ? untilSeconds : calcualtedEnd;
             }
         }
         let response = undefined;
         if (market['future']) {
             if (market['inverse']) {
                 request['symbol'] = market['id'];
-                if (price === 'mark') {
+                if (priceType === 'mark') {
                     response = await this.contractPublicGetIndexMarketHistoryMarkPriceKline (this.extend (request, params));
-                } else if (price === 'index') {
+                } else if (priceType === 'index') {
                     response = await this.contractPublicGetIndexMarketHistoryIndex (this.extend (request, params));
-                } else if (price === 'premiumIndex') {
-                    throw new BadRequest (this.id + ' ' + market['type'] + ' has no api endpoint for ' + price + ' kline data');
+                } else if (priceType === 'premiumIndex') {
+                    throw new BadRequest (this.id + ' ' + market['type'] + ' has no api endpoint for ' + priceType + ' kline data');
                 } else {
                     response = await this.contractPublicGetMarketHistoryKline (this.extend (request, params));
                 }
             } else if (market['linear']) {
                 request['contract_code'] = market['id'];
-                if (price === 'mark') {
+                if (priceType === 'mark') {
                     response = await this.contractPublicGetIndexMarketHistoryLinearSwapMarkPriceKline (this.extend (request, params));
-                } else if (price === 'index') {
-                    throw new BadRequest (this.id + ' ' + market['type'] + ' has no api endpoint for ' + price + ' kline data');
-                } else if (price === 'premiumIndex') {
+                } else if (priceType === 'index') {
+                    throw new BadRequest (this.id + ' ' + market['type'] + ' has no api endpoint for ' + priceType + ' kline data');
+                } else if (priceType === 'premiumIndex') {
                     response = await this.contractPublicGetIndexMarketHistoryLinearSwapPremiumIndexKline (this.extend (request, params));
                 } else {
                     response = await this.contractPublicGetLinearSwapExMarketHistoryKline (this.extend (request, params));
@@ -3008,21 +2991,21 @@ export default class htx extends Exchange {
         } else if (market['swap']) {
             request['contract_code'] = market['id'];
             if (market['inverse']) {
-                if (price === 'mark') {
+                if (priceType === 'mark') {
                     response = await this.contractPublicGetIndexMarketHistorySwapMarkPriceKline (this.extend (request, params));
-                } else if (price === 'index') {
-                    throw new BadRequest (this.id + ' ' + market['type'] + ' has no api endpoint for ' + price + ' kline data');
-                } else if (price === 'premiumIndex') {
+                } else if (priceType === 'index') {
+                    throw new BadRequest (this.id + ' ' + market['type'] + ' has no api endpoint for ' + priceType + ' kline data');
+                } else if (priceType === 'premiumIndex') {
                     response = await this.contractPublicGetIndexMarketHistorySwapPremiumIndexKline (this.extend (request, params));
                 } else {
                     response = await this.contractPublicGetSwapExMarketHistoryKline (this.extend (request, params));
                 }
             } else if (market['linear']) {
-                if (price === 'mark') {
+                if (priceType === 'mark') {
                     response = await this.contractPublicGetIndexMarketHistoryLinearSwapMarkPriceKline (this.extend (request, params));
-                } else if (price === 'index') {
-                    throw new BadRequest (this.id + ' ' + market['type'] + ' has no api endpoint for ' + price + ' kline data');
-                } else if (price === 'premiumIndex') {
+                } else if (priceType === 'index') {
+                    throw new BadRequest (this.id + ' ' + market['type'] + ' has no api endpoint for ' + priceType + ' kline data');
+                } else if (priceType === 'premiumIndex') {
                     response = await this.contractPublicGetIndexMarketHistoryLinearSwapPremiumIndexKline (this.extend (request, params));
                 } else {
                     response = await this.contractPublicGetLinearSwapExMarketHistoryKline (this.extend (request, params));
@@ -3033,16 +3016,20 @@ export default class htx extends Exchange {
             let useHistorical = undefined;
             [ useHistorical, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'useHistoricalEndpointForSpot', true);
             if (!useHistorical) {
-                // `limit` only available for the this endpoint
                 if (limit !== undefined) {
-                    request['size'] = limit; // max 2000
+                    request['size'] = Math.min (limit, 2000); // max 2000
                 }
                 response = await this.spotPublicGetMarketHistoryKline (this.extend (request, params));
             } else {
-                // `since` only available for the this endpoint
+                // "from & to" only available for the this endpoint
                 if (since !== undefined) {
-                    // default 150 bars
                     request['from'] = this.parseToInt (since / 1000);
+                }
+                if (untilSeconds !== undefined) {
+                    request['to'] = untilSeconds;
+                }
+                if (limit !== undefined) {
+                    request['size'] = Math.min (1000, limit); // max 1000, otherwise default returns 150
                 }
                 response = await this.spotPublicGetMarketHistoryCandles (this.extend (request, params));
             }
@@ -3059,7 +3046,7 @@ export default class htx extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
@@ -3917,7 +3904,7 @@ export default class htx extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         return this.parseOrders (data, market, since, limit);
     }
 
@@ -7196,7 +7183,7 @@ export default class htx extends Exchange {
             request['symbol'] = market['id'];
             response = await this.contractPrivatePostApiV3ContractFinancialRecordExact (this.extend (request, query));
         }
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         return this.parseIncomes (data, market, since, limit);
     }
 
@@ -7969,7 +7956,7 @@ export default class htx extends Exchange {
         //        ]
         //    }
         //
-        const data = this.safeValue (response, 'data');
+        const data = this.safeList (response, 'data');
         return this.parseLeverageTiers (data, symbols, 'contract_code');
     }
 
@@ -8174,7 +8161,7 @@ export default class htx extends Exchange {
         //    }
         //
         const data = this.safeValue (response, 'data');
-        const tick = this.safeValue (data, 'tick');
+        const tick = this.safeList (data, 'tick');
         return this.parseOpenInterests (tick, market, since, limit);
     }
 
@@ -8686,7 +8673,7 @@ export default class htx extends Exchange {
         //        ]
         //    }
         //
-        const data = this.safeValue (response, 'data');
+        const data = this.safeList (response, 'data');
         return this.parseDepositWithdrawFees (data, codes, 'currency');
     }
 
@@ -8913,7 +8900,7 @@ export default class htx extends Exchange {
         //         "ts": 1604312615051
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         return this.parseLiquidations (data, market, since, limit);
     }
 

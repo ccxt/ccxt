@@ -49,7 +49,7 @@ public partial class woo : Exchange
                 { "fetchBalance", true },
                 { "fetchCanceledOrders", false },
                 { "fetchClosedOrder", false },
-                { "fetchClosedOrders", false },
+                { "fetchClosedOrders", true },
                 { "fetchCurrencies", true },
                 { "fetchDepositAddress", true },
                 { "fetchDeposits", true },
@@ -68,7 +68,7 @@ public partial class woo : Exchange
                 { "fetchOHLCV", true },
                 { "fetchOpenInterestHistory", false },
                 { "fetchOpenOrder", false },
-                { "fetchOpenOrders", false },
+                { "fetchOpenOrders", true },
                 { "fetchOrder", true },
                 { "fetchOrderBook", true },
                 { "fetchOrders", true },
@@ -1431,7 +1431,7 @@ public partial class woo : Exchange
         //     ]
         // }
         //
-        object orders = this.safeValue(response, "data", response);
+        object orders = this.safeDict(response, "data", response);
         return this.parseOrder(orders, market);
     }
 
@@ -1539,7 +1539,61 @@ public partial class woo : Exchange
         //
         object data = this.safeValue(response, "data", response);
         object orders = this.safeList(data, "rows");
-        return this.parseOrders(orders, market, since, limit, parameters);
+        return this.parseOrders(orders, market, since, limit);
+    }
+
+    public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name woo#fetchOpenOrders
+        * @description fetches information on multiple orders made by the user
+        * @see https://docs.woo.org/#get-orders
+        * @see https://docs.woo.org/#get-algo-orders
+        * @param {string} symbol unified market symbol of the market orders were made in
+        * @param {int} [since] the earliest time in ms to fetch orders for
+        * @param {int} [limit] the maximum number of order structures to retrieve
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {boolean} [params.stop] whether the order is a stop/algo order
+        * @param {boolean} [params.isTriggered] whether the order has been triggered (false by default)
+        * @param {string} [params.side] 'buy' or 'sell'
+        * @param {boolean} [params.trailing] set to true if you want to fetch trailing orders
+        * @param {boolean} [params.paginate] set to true if you want to fetch orders with pagination
+        * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object extendedParams = this.extend(parameters, new Dictionary<string, object>() {
+            { "status", "INCOMPLETE" },
+        });
+        return await this.fetchOrders(symbol, since, limit, extendedParams);
+    }
+
+    public async override Task<object> fetchClosedOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name woo#fetchClosedOrders
+        * @description fetches information on multiple orders made by the user
+        * @see https://docs.woo.org/#get-orders
+        * @see https://docs.woo.org/#get-algo-orders
+        * @param {string} symbol unified market symbol of the market orders were made in
+        * @param {int} [since] the earliest time in ms to fetch orders for
+        * @param {int} [limit] the maximum number of order structures to retrieve
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {boolean} [params.stop] whether the order is a stop/algo order
+        * @param {boolean} [params.isTriggered] whether the order has been triggered (false by default)
+        * @param {string} [params.side] 'buy' or 'sell'
+        * @param {boolean} [params.trailing] set to true if you want to fetch trailing orders
+        * @param {boolean} [params.paginate] set to true if you want to fetch orders with pagination
+        * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object extendedParams = this.extend(parameters, new Dictionary<string, object>() {
+            { "status", "COMPLETED" },
+        });
+        return await this.fetchOrders(symbol, since, limit, extendedParams);
     }
 
     public virtual object parseTimeInForce(object timeInForce)

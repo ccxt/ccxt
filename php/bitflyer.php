@@ -111,6 +111,11 @@ class bitflyer extends Exchange {
                 ),
             ),
             'precisionMode' => TICK_SIZE,
+            'exceptions' => array(
+                'exact' => array(
+                    '-2' => '\\ccxt\\OnMaintenance', // array("status":-2,"error_message":"Under maintenance","data":null)
+                ),
+            ),
         ));
     }
 
@@ -143,7 +148,7 @@ class bitflyer extends Exchange {
         return parent::safe_market($marketId, $market, $delimiter, 'spot');
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): array {
         /**
          * retrieves data on all $markets for bitflyer
          * @see https://lightning.bitflyer.com/docs?lang=en#$market-list
@@ -1027,5 +1032,20 @@ class bitflyer extends Exchange {
             );
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+    }
+
+    public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+        if ($response === null) {
+            return null; // fallback to the default error handler
+        }
+        $feedback = $this->id . ' ' . $body;
+        // i.e. array("status":-2,"error_message":"Under maintenance","data":null)
+        $errorMessage = $this->safe_string($response, 'error_message');
+        $statusCode = $this->safe_number($response, 'status');
+        if ($errorMessage !== null) {
+            $this->throw_exactly_matched_exception($this->exceptions['exact'], $statusCode, $feedback);
+            $this->throw_broadly_matched_exception($this->exceptions['broad'], $errorMessage, $feedback);
+        }
+        return null;
     }
 }

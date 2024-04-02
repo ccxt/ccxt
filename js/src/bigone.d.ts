@@ -7,7 +7,7 @@ import type { TransferEntry, Balances, Currency, Int, Market, OHLCV, Order, Orde
 export default class bigone extends Exchange {
     describe(): any;
     fetchCurrencies(params?: {}): Promise<{}>;
-    fetchMarkets(params?: {}): Promise<any[]>;
+    fetchMarkets(params?: {}): Promise<Market[]>;
     parseTicker(ticker: any, market?: Market): Ticker;
     fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
     fetchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;

@@ -597,15 +597,20 @@ class kucoin extends \ccxt\async\kucoin {
         $marketId = $this->safe_string($data, 'symbol', $topicSymbol);
         $symbol = $this->safe_symbol($marketId, null, '-');
         $messageHash = 'orderbook:' . $symbol;
-        $orderbook = $this->safe_dict($this->orderbooks, $symbol);
+        // $orderbook = $this->safe_dict($this->orderbooks, $symbol);
         if ($subject === 'level2') {
-            if ($orderbook === null) {
-                $orderbook = $this->order_book();
+            if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
+                $this->orderbooks[$symbol] = $this->order_book();
             } else {
+                $orderbook = $this->orderbooks[$symbol];
                 $orderbook->reset ();
             }
-            $orderbook['symbol'] = $symbol;
+            $this->orderbooks[$symbol]['symbol'] = $symbol;
         } else {
+            if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
+                $this->orderbooks[$symbol] = $this->order_book();
+            }
+            $orderbook = $this->orderbooks[$symbol];
             $nonce = $this->safe_integer($orderbook, 'nonce');
             $deltaEnd = $this->safe_integer_2($data, 'sequenceEnd', 'timestamp');
             if ($nonce === null) {
@@ -630,8 +635,8 @@ class kucoin extends \ccxt\async\kucoin {
                 return;
             }
         }
-        $this->handle_delta($orderbook, $data);
-        $client->resolve ($orderbook, $messageHash);
+        $this->handle_delta($this->orderbooks[$symbol], $data);
+        $client->resolve ($this->orderbooks[$symbol], $messageHash);
     }
 
     public function get_cache_index($orderbook, $cache) {
@@ -922,18 +927,17 @@ class kucoin extends \ccxt\async\kucoin {
     }
 
     public function handle_my_trade(Client $client, $message) {
-        $trades = $this->myTrades;
-        if ($trades === null) {
+        if ($this->myTrades === null) {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
-            $trades = new ArrayCacheBySymbolById ($limit);
+            $this->myTrades = new ArrayCacheBySymbolById ($limit);
         }
-        $data = $this->safe_value($message, 'data');
+        $data = $this->safe_dict($message, 'data');
         $parsed = $this->parse_ws_trade($data);
-        $trades->append ($parsed);
+        $this->myTrades.append ($parsed);
         $messageHash = 'myTrades';
-        $client->resolve ($trades, $messageHash);
+        $client->resolve ($this->myTrades, $messageHash);
         $symbolSpecificMessageHash = $messageHash . ':' . $parsed['symbol'];
-        $client->resolve ($trades, $symbolSpecificMessageHash);
+        $client->resolve ($this->myTrades, $symbolSpecificMessageHash);
     }
 
     public function parse_ws_trade($trade, $market = null) {

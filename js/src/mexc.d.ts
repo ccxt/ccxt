@@ -1,5 +1,5 @@
 import Exchange from './abstract/mexc.js';
-import type { TransferEntry, IndexType, Int, OrderSide, Balances, OrderType, OHLCV, FundingRateHistory, Position, OrderBook, OrderRequest, FundingHistory, Order, Str, Trade, Transaction, Ticker, Tickers, Strings, Market, Currency, Leverage, Num, Account } from './base/types.js';
+import type { TransferEntry, IndexType, Int, OrderSide, Balances, OrderType, OHLCV, FundingRateHistory, Position, OrderBook, OrderRequest, FundingHistory, Order, Str, Trade, Transaction, Ticker, Tickers, Strings, Market, Currency, Leverage, Num, Account, MarginModification } from './base/types.js';
 /**
  * @class mexc
  * @augments Exchange
@@ -15,7 +15,7 @@ export default class mexc extends Exchange {
     }>;
     fetchTime(params?: {}): Promise<number>;
     fetchCurrencies(params?: {}): Promise<{}>;
-    fetchMarkets(params?: {}): Promise<any>;
+    fetchMarkets(params?: {}): Promise<Market[]>;
     fetchSpotMarkets(params?: {}): Promise<any[]>;
     fetchSwapMarkets(params?: {}): Promise<any[]>;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
@@ -59,8 +59,8 @@ export default class mexc extends Exchange {
     fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     fetchOrderTrades(id: string, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     modifyMarginHelper(symbol: string, amount: any, addOrReduce: any, params?: {}): Promise<any>;
-    reduceMargin(symbol: string, amount: any, params?: {}): Promise<any>;
-    addMargin(symbol: string, amount: any, params?: {}): Promise<any>;
+    reduceMargin(symbol: string, amount: any, params?: {}): Promise<MarginModification>;
+    addMargin(symbol: string, amount: any, params?: {}): Promise<MarginModification>;
     setLeverage(leverage: Int, symbol?: Str, params?: {}): Promise<any>;
     fetchFundingHistory(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<FundingHistory[]>;
     parseFundingRate(contract: any, market?: Market): {

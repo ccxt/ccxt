@@ -291,7 +291,7 @@ export default class alpaca extends Exchange {
         return iso;
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name alpaca#fetchMarkets

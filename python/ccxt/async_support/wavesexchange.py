@@ -495,7 +495,7 @@ class wavesexchange(Exchange, ImplicitAPI):
             self.options['quotes'] = quotes
             return quotes
 
-    async def fetch_markets(self, params={}):
+    async def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for wavesexchange
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -861,7 +861,7 @@ class wavesexchange(Exchange, ImplicitAPI):
         #
         data = self.safe_value(response, 'data', [])
         ticker = self.safe_value(data, 0, {})
-        dataTicker = self.safe_value(ticker, 'data', {})
+        dataTicker = self.safe_dict(ticker, 'data', {})
         return self.parse_ticker(dataTicker, market)
 
     async def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
@@ -1386,11 +1386,11 @@ class wavesexchange(Exchange, ImplicitAPI):
         #
         if isMarketOrder:
             response = await self.matcherPostMatcherOrderbookMarket(body)
-            value = self.safe_value(response, 'message')
+            value = self.safe_dict(response, 'message')
             return self.parse_order(value, market)
         else:
             response = await self.matcherPostMatcherOrderbook(body)
-            value = self.safe_value(response, 'message')
+            value = self.safe_dict(response, 'message')
             return self.parse_order(value, market)
 
     async def cancel_order(self, id: str, symbol: Str = None, params={}):

@@ -199,7 +199,7 @@ class bybit extends bybit$1 {
         /**
          * @method
          * @name bybit#watchTickers
-         * @description n watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
          * @see https://bybit-exchange.github.io/docs/v5/websocket/public/ticker
          * @see https://bybit-exchange.github.io/docs/v5/websocket/public/etp-ticker
          * @param {string[]} symbols unified symbol of the market to fetch the ticker for
@@ -1037,8 +1037,23 @@ class bybit extends bybit$1 {
         for (let i = 0; i < rawPositions.length; i++) {
             const rawPosition = rawPositions[i];
             const position = this.parsePosition(rawPosition);
+            const side = this.safeString(position, 'side');
+            // hacky solution to handle closing positions
+            // without crashing, we should handle this properly later
             newPositions.push(position);
-            cache.append(position);
+            if (side === undefined || side === '') {
+                // closing update, adding both sides to "reset" both sides
+                // since we don't know which side is being closed
+                position['side'] = 'long';
+                cache.append(position);
+                position['side'] = 'short';
+                cache.append(position);
+                position['side'] = undefined;
+            }
+            else {
+                // regular update
+                cache.append(position);
+            }
         }
         const messageHashes = this.findMessageHashes(client, 'positions::');
         for (let i = 0; i < messageHashes.length; i++) {

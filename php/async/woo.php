@@ -60,7 +60,7 @@ class woo extends Exchange {
                 'fetchBalance' => true,
                 'fetchCanceledOrders' => false,
                 'fetchClosedOrder' => false,
-                'fetchClosedOrders' => false,
+                'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => true,
@@ -79,7 +79,7 @@ class woo extends Exchange {
                 'fetchOHLCV' => true,
                 'fetchOpenInterestHistory' => false,
                 'fetchOpenOrder' => false,
-                'fetchOpenOrders' => false,
+                'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
@@ -390,7 +390,7 @@ class woo extends Exchange {
         }) ();
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * retrieves $data on all markets for woo
@@ -1345,7 +1345,7 @@ class woo extends Exchange {
             //     )
             // }
             //
-            $orders = $this->safe_value($response, 'data', $response);
+            $orders = $this->safe_dict($response, 'data', $response);
             return $this->parse_order($orders, $market);
         }) ();
     }
@@ -1438,7 +1438,53 @@ class woo extends Exchange {
             //
             $data = $this->safe_value($response, 'data', $response);
             $orders = $this->safe_list($data, 'rows');
-            return $this->parse_orders($orders, $market, $since, $limit, $params);
+            return $this->parse_orders($orders, $market, $since, $limit);
+        }) ();
+    }
+
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * fetches information on multiple orders made by the user
+             * @see https://docs.woo.org/#get-orders
+             * @see https://docs.woo.org/#get-algo-orders
+             * @param {string} $symbol unified market $symbol of the market orders were made in
+             * @param {int} [$since] the earliest time in ms to fetch orders for
+             * @param {int} [$limit] the maximum number of order structures to retrieve
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {boolean} [$params->stop] whether the order is a stop/algo order
+             * @param {boolean} [$params->isTriggered] whether the order has been triggered (false by default)
+             * @param {string} [$params->side] 'buy' or 'sell'
+             * @param {boolean} [$params->trailing] set to true if you want to fetch trailing orders
+             * @param {boolean} [$params->paginate] set to true if you want to fetch orders with pagination
+             * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             */
+            Async\await($this->load_markets());
+            $extendedParams = array_merge($params, array( 'status' => 'INCOMPLETE' ));
+            return Async\await($this->fetch_orders($symbol, $since, $limit, $extendedParams));
+        }) ();
+    }
+
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * fetches information on multiple orders made by the user
+             * @see https://docs.woo.org/#get-orders
+             * @see https://docs.woo.org/#get-algo-orders
+             * @param {string} $symbol unified market $symbol of the market orders were made in
+             * @param {int} [$since] the earliest time in ms to fetch orders for
+             * @param {int} [$limit] the maximum number of order structures to retrieve
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {boolean} [$params->stop] whether the order is a stop/algo order
+             * @param {boolean} [$params->isTriggered] whether the order has been triggered (false by default)
+             * @param {string} [$params->side] 'buy' or 'sell'
+             * @param {boolean} [$params->trailing] set to true if you want to fetch trailing orders
+             * @param {boolean} [$params->paginate] set to true if you want to fetch orders with pagination
+             * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             */
+            Async\await($this->load_markets());
+            $extendedParams = array_merge($params, array( 'status' => 'COMPLETED' ));
+            return Async\await($this->fetch_orders($symbol, $since, $limit, $extendedParams));
         }) ();
     }
 

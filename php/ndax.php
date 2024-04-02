@@ -394,7 +394,7 @@ class ndax extends Exchange {
         return $result;
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): array {
         /**
          * retrieves data on all markets for ndax
          * @see https://apidoc.ndax.io/#getinstruments
@@ -1919,7 +1919,7 @@ class ndax extends Exchange {
         //     )
         //
         $grouped = $this->group_by($response, 'ChangeReason');
-        $trades = $this->safe_value($grouped, 'Trade', array());
+        $trades = $this->safe_list($grouped, 'Trade', array());
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 

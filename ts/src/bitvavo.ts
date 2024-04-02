@@ -313,7 +313,7 @@ export default class bitvavo extends Exchange {
         return this.safeInteger (response, 'time');
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name bitvavo#fetchMarkets
@@ -951,6 +951,8 @@ export default class bitvavo extends Exchange {
             request['start'] = since;
             if (limit === undefined) {
                 limit = 1440;
+            } else {
+                limit = Math.min (limit, 1440);
             }
             request['end'] = this.sum (since, limit * duration * 1000);
         }

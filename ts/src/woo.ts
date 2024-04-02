@@ -58,7 +58,7 @@ export default class woo extends Exchange {
                 'fetchBalance': true,
                 'fetchCanceledOrders': false,
                 'fetchClosedOrder': false,
-                'fetchClosedOrders': false,
+                'fetchClosedOrders': true,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
@@ -77,7 +77,7 @@ export default class woo extends Exchange {
                 'fetchOHLCV': true,
                 'fetchOpenInterestHistory': false,
                 'fetchOpenOrder': false,
-                'fetchOpenOrders': false,
+                'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': true,
@@ -388,7 +388,7 @@ export default class woo extends Exchange {
         return this.safeInteger (response, 'timestamp');
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name woo#fetchMarkets
@@ -1345,7 +1345,7 @@ export default class woo extends Exchange {
         //     ]
         // }
         //
-        const orders = this.safeValue (response, 'data', response);
+        const orders = this.safeDict (response, 'data', response);
         return this.parseOrder (orders, market);
     }
 
@@ -1438,7 +1438,53 @@ export default class woo extends Exchange {
         //
         const data = this.safeValue (response, 'data', response);
         const orders = this.safeList (data, 'rows');
-        return this.parseOrders (orders, market, since, limit, params);
+        return this.parseOrders (orders, market, since, limit);
+    }
+
+    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        /**
+         * @method
+         * @name woo#fetchOpenOrders
+         * @description fetches information on multiple orders made by the user
+         * @see https://docs.woo.org/#get-orders
+         * @see https://docs.woo.org/#get-algo-orders
+         * @param {string} symbol unified market symbol of the market orders were made in
+         * @param {int} [since] the earliest time in ms to fetch orders for
+         * @param {int} [limit] the maximum number of order structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [params.stop] whether the order is a stop/algo order
+         * @param {boolean} [params.isTriggered] whether the order has been triggered (false by default)
+         * @param {string} [params.side] 'buy' or 'sell'
+         * @param {boolean} [params.trailing] set to true if you want to fetch trailing orders
+         * @param {boolean} [params.paginate] set to true if you want to fetch orders with pagination
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        const extendedParams = this.extend (params, { 'status': 'INCOMPLETE' });
+        return await this.fetchOrders (symbol, since, limit, extendedParams);
+    }
+
+    async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        /**
+         * @method
+         * @name woo#fetchClosedOrders
+         * @description fetches information on multiple orders made by the user
+         * @see https://docs.woo.org/#get-orders
+         * @see https://docs.woo.org/#get-algo-orders
+         * @param {string} symbol unified market symbol of the market orders were made in
+         * @param {int} [since] the earliest time in ms to fetch orders for
+         * @param {int} [limit] the maximum number of order structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [params.stop] whether the order is a stop/algo order
+         * @param {boolean} [params.isTriggered] whether the order has been triggered (false by default)
+         * @param {string} [params.side] 'buy' or 'sell'
+         * @param {boolean} [params.trailing] set to true if you want to fetch trailing orders
+         * @param {boolean} [params.paginate] set to true if you want to fetch orders with pagination
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        const extendedParams = this.extend (params, { 'status': 'COMPLETED' });
+        return await this.fetchOrders (symbol, since, limit, extendedParams);
     }
 
     parseTimeInForce (timeInForce) {

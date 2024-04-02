@@ -6,7 +6,7 @@ import type { TransferEntry, Balances, Currency, Int, Market, OHLCV, Order, Orde
  */
 export default class whitebit extends Exchange {
     describe(): any;
-    fetchMarkets(params?: {}): Promise<import("./base/types.js").MarketInterface[]>;
+    fetchMarkets(params?: {}): Promise<Market[]>;
     parseMarket(market: any): Market;
     fetchCurrencies(params?: {}): Promise<{}>;
     fetchTransactionFees(codes?: string[], params?: {}): Promise<{

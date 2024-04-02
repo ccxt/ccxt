@@ -16,7 +16,7 @@ export default class bitmart extends Exchange {
     }>;
     fetchSpotMarkets(params?: {}): Promise<any[]>;
     fetchContractMarkets(params?: {}): Promise<any[]>;
-    fetchMarkets(params?: {}): Promise<any>;
+    fetchMarkets(params?: {}): Promise<Market[]>;
     fetchCurrencies(params?: {}): Promise<{}>;
     fetchTransactionFee(code: string, params?: {}): Promise<{
         info: any;

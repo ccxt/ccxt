@@ -11,6 +11,7 @@ from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import OrderNotFound
+from ccxt.base.errors import OnMaintenance
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -118,6 +119,11 @@ class bitflyer(Exchange, ImplicitAPI):
                 },
             },
             'precisionMode': TICK_SIZE,
+            'exceptions': {
+                'exact': {
+                    '-2': OnMaintenance,  # {"status":-2,"error_message":"Under maintenance","data":null}
+                },
+            },
         })
 
     def parse_expiry_date(self, expiry):
@@ -147,7 +153,7 @@ class bitflyer(Exchange, ImplicitAPI):
         # Since they're the same we just need to return one
         return super(bitflyer, self).safe_market(marketId, market, delimiter, 'spot')
 
-    def fetch_markets(self, params={}):
+    def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for bitflyer
         :see: https://lightning.bitflyer.com/docs?lang=en#market-list
@@ -973,3 +979,15 @@ class bitflyer(Exchange, ImplicitAPI):
                 'Content-Type': 'application/json',
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
+
+    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
+        if response is None:
+            return None  # fallback to the default error handler
+        feedback = self.id + ' ' + body
+        # i.e. {"status":-2,"error_message":"Under maintenance","data":null}
+        errorMessage = self.safe_string(response, 'error_message')
+        statusCode = self.safe_number(response, 'status')
+        if errorMessage is not None:
+            self.throw_exactly_matched_exception(self.exceptions['exact'], statusCode, feedback)
+            self.throw_broadly_matched_exception(self.exceptions['broad'], errorMessage, feedback)
+        return None

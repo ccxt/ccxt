@@ -339,7 +339,7 @@ export default class lbank extends Exchange {
         return this.safeInteger (response, 'data');
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name lbank#fetchMarkets
@@ -639,7 +639,7 @@ export default class lbank extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', []);
-        const first = this.safeValue (data, 0, {});
+        const first = this.safeDict (data, 0, {});
         return this.parseTicker (first, market);
     }
 
@@ -719,7 +719,7 @@ export default class lbank extends Exchange {
         //         "success": true
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         return this.parseTickers (data, symbols);
     }
 
@@ -964,7 +964,7 @@ export default class lbank extends Exchange {
         //           "ts":1647021999308
         //      }
         //
-        const trades = this.safeValue (response, 'data', []);
+        const trades = this.safeList (response, 'data', []);
         return this.parseTrades (trades, market, since, limit);
     }
 
@@ -1007,6 +1007,8 @@ export default class lbank extends Exchange {
         const market = this.market (symbol);
         if (limit === undefined) {
             limit = 100;
+        } else {
+            limit = Math.min (limit, 2000);
         }
         if (since === undefined) {
             const duration = this.parseTimeframe (timeframe);
@@ -1602,7 +1604,7 @@ export default class lbank extends Exchange {
         //          "ts":1648164471827
         //      }
         //
-        const result = this.safeValue (response, 'data', {});
+        const result = this.safeDict (response, 'data', {});
         return this.parseOrder (result);
     }
 
@@ -1709,7 +1711,7 @@ export default class lbank extends Exchange {
         //          "ts":1648509742164
         //      }
         //
-        const trades = this.safeValue (response, 'data', []);
+        const trades = this.safeList (response, 'data', []);
         return this.parseTrades (trades, market, since, limit);
     }
 
@@ -1770,7 +1772,7 @@ export default class lbank extends Exchange {
         //      }
         //
         const result = this.safeValue (response, 'data', {});
-        const orders = this.safeValue (result, 'orders', []);
+        const orders = this.safeList (result, 'orders', []);
         return this.parseOrders (orders, market, since, limit);
     }
 
@@ -1828,7 +1830,7 @@ export default class lbank extends Exchange {
         //     }
         //
         const result = this.safeValue (response, 'data', {});
-        const orders = this.safeValue (result, 'orders', []);
+        const orders = this.safeList (result, 'orders', []);
         return this.parseOrders (orders, market, since, limit);
     }
 
@@ -2247,7 +2249,7 @@ export default class lbank extends Exchange {
         //      }
         //
         const data = this.safeValue (response, 'data', {});
-        const deposits = this.safeValue (data, 'depositOrders', []);
+        const deposits = this.safeList (data, 'depositOrders', []);
         return this.parseTransactions (deposits, currency, since, limit);
     }
 
@@ -2305,7 +2307,7 @@ export default class lbank extends Exchange {
         //      }
         //
         const data = this.safeValue (response, 'data', {});
-        const withdraws = this.safeValue (data, 'withdraws', []);
+        const withdraws = this.safeList (data, 'withdraws', []);
         return this.parseTransactions (withdraws, currency, since, limit);
     }
 
@@ -2524,7 +2526,7 @@ export default class lbank extends Exchange {
         //        "code": 0
         //    }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         return this.parseDepositWithdrawFees (data, codes, 'coin');
     }
 

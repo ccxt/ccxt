@@ -1263,7 +1263,7 @@ public partial class tokocrypto : Exchange
         object response = await this.binanceGetTicker24hr(this.extend(request, parameters));
         if (isTrue(((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
-            object firstTicker = this.safeValue(response, 0, new Dictionary<string, object>() {});
+            object firstTicker = this.safeDict(response, 0, new Dictionary<string, object>() {});
             return this.parseTicker(firstTicker, market);
         }
         return this.parseTicker(response, market);
@@ -1388,7 +1388,7 @@ public partial class tokocrypto : Exchange
         //         [1591478640000,"0.02500800","0.02501100","0.02500300","0.02500800","154.14200000",1591478699999,"3.85405839",97,"5.32300000","0.13312641","0"],
         //     ]
         //
-        object data = this.safeValue(response, "data", response);
+        object data = this.safeList(response, "data", response);
         return this.parseOHLCVs(data, market, timeframe, since, limit);
     }
 
@@ -1867,7 +1867,7 @@ public partial class tokocrypto : Exchange
         //         "timestamp": 1662710994975
         //     }
         //
-        object rawOrder = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        object rawOrder = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return this.parseOrder(rawOrder, market);
     }
 
@@ -1919,7 +1919,7 @@ public partial class tokocrypto : Exchange
         //
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
         object list = this.safeValue(data, "list", new List<object>() {});
-        object rawOrder = this.safeValue(list, 0, new Dictionary<string, object>() {});
+        object rawOrder = this.safeDict(list, 0, new Dictionary<string, object>() {});
         return this.parseOrder(rawOrder);
     }
 
@@ -1989,7 +1989,7 @@ public partial class tokocrypto : Exchange
         //     }
         //
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object orders = this.safeValue(data, "list", new List<object>() {});
+        object orders = this.safeList(data, "list", new List<object>() {});
         return this.parseOrders(orders, market, since, limit);
     }
 
@@ -2077,7 +2077,7 @@ public partial class tokocrypto : Exchange
         //         "timestamp": 1662710683634
         //     }
         //
-        object rawOrder = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        object rawOrder = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return this.parseOrder(rawOrder);
     }
 
@@ -2145,7 +2145,7 @@ public partial class tokocrypto : Exchange
         //     }
         //
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object trades = this.safeValue(data, "list", new List<object>() {});
+        object trades = this.safeList(data, "list", new List<object>() {});
         return this.parseTrades(trades, market, since, limit);
     }
 
@@ -2273,7 +2273,7 @@ public partial class tokocrypto : Exchange
         //     }
         //
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object deposits = this.safeValue(data, "list", new List<object>() {});
+        object deposits = this.safeList(data, "list", new List<object>() {});
         return this.parseTransactions(deposits, currency, since, limit);
     }
 
@@ -2336,7 +2336,7 @@ public partial class tokocrypto : Exchange
         //     }
         //
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object withdrawals = this.safeValue(data, "list", new List<object>() {});
+        object withdrawals = this.safeList(data, "list", new List<object>() {});
         return this.parseTransactions(withdrawals, currency, since, limit);
     }
 

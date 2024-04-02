@@ -7,7 +7,7 @@ import type { Int, Num, Order, OrderSide, OrderType, Str, Ticker, IndexType } fr
  */
 export default class tradeogre extends Exchange {
     describe(): any;
-    fetchMarkets(params?: {}): Promise<any[]>;
+    fetchMarkets(params?: {}): Promise<Market[]>;
     fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
     parseTicker(ticker: any, market?: Market): Ticker;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<import("./base/types.js").OrderBook>;

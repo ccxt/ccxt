@@ -8,7 +8,7 @@
 import Exchange from './abstract/kucoin.js';
 import { ExchangeError, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, AccountSuspended, InvalidNonce, NotSupported, BadRequest, AuthenticationError, BadSymbol, RateLimitExceeded, PermissionDenied, InvalidAddress, ArgumentsRequired } from './base/errors.js';
 import { Precise } from './base/Precise.js';
-import { TICK_SIZE } from './base/functions/number.js';
+import { TICK_SIZE, TRUNCATE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
 /**
@@ -426,6 +426,7 @@ export default class kucoin extends Exchange {
                     'Order size below the minimum requirement.': InvalidOrder,
                     'The withdrawal amount is below the minimum requirement.': ExchangeError,
                     'Unsuccessful! Exceeded the max. funds out-transfer limit': InsufficientFunds,
+                    'The amount increment is invalid.': BadRequest,
                     '400': BadRequest,
                     '401': AuthenticationError,
                     '403': NotSupported,
@@ -449,6 +450,56 @@ export default class kucoin extends Exchange {
                     '130202': ExchangeError,
                     '130203': InsufficientFunds,
                     '130204': BadRequest,
+                    '130301': InsufficientFunds,
+                    '130302': PermissionDenied,
+                    '130303': NotSupported,
+                    '130304': NotSupported,
+                    '130305': NotSupported,
+                    '130306': NotSupported,
+                    '130307': NotSupported,
+                    '130308': InvalidOrder,
+                    '130309': InvalidOrder,
+                    '130310': ExchangeError,
+                    '130311': InvalidOrder,
+                    '130312': InvalidOrder,
+                    '130313': InvalidOrder,
+                    '130314': InvalidOrder,
+                    '130315': NotSupported,
+                    '126000': ExchangeError,
+                    '126001': NotSupported,
+                    '126002': ExchangeError,
+                    '126003': InvalidOrder,
+                    '126004': ExchangeError,
+                    '126005': PermissionDenied,
+                    '126006': ExchangeError,
+                    '126007': ExchangeError,
+                    '126009': ExchangeError,
+                    '126010': ExchangeError,
+                    '126011': ExchangeError,
+                    '126013': InsufficientFunds,
+                    '126015': ExchangeError,
+                    '126021': NotSupported,
+                    '126022': InvalidOrder,
+                    '126027': InvalidOrder,
+                    '126028': InvalidOrder,
+                    '126029': InvalidOrder,
+                    '126030': InvalidOrder,
+                    '126033': InvalidOrder,
+                    '126034': InvalidOrder,
+                    '126036': InvalidOrder,
+                    '126037': ExchangeError,
+                    '126038': ExchangeError,
+                    '126039': ExchangeError,
+                    '126041': ExchangeError,
+                    '126042': ExchangeError,
+                    '126043': OrderNotFound,
+                    '126044': InvalidOrder,
+                    '126045': NotSupported,
+                    '126046': NotSupported,
+                    '126047': PermissionDenied,
+                    '126048': PermissionDenied,
+                    '135005': ExchangeError,
+                    '135018': ExchangeError,
                     '200004': InsufficientFunds,
                     '210014': InvalidOrder,
                     '210021': InsufficientFunds,
@@ -470,10 +521,12 @@ export default class kucoin extends Exchange {
                     '400350': InvalidOrder,
                     '400370': InvalidOrder,
                     '400400': BadRequest,
+                    '400401': AuthenticationError,
                     '400500': InvalidOrder,
                     '400600': BadSymbol,
                     '400760': InvalidOrder,
                     '401000': BadRequest,
+                    '408000': BadRequest,
                     '411100': AccountSuspended,
                     '415000': BadRequest,
                     '400303': PermissionDenied,
@@ -2111,6 +2164,14 @@ export default class kucoin extends Exchange {
         data = this.safeList(data, 'data', []);
         return this.parseOrders(data);
     }
+    marketOrderAmountToPrecision(symbol, amount) {
+        const market = this.market(symbol);
+        const result = this.decimalToPrecision(amount, TRUNCATE, market['info']['quoteIncrement'], this.precisionMode, this.paddingMode);
+        if (result === '0') {
+            throw new InvalidOrder(this.id + ' amount of ' + market['symbol'] + ' must be greater than minimum amount precision of ' + this.numberToString(market['precision']['amount']));
+        }
+        return result;
+    }
     createOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
         const market = this.market(symbol);
         // required param, cannot be used twice
@@ -2131,7 +2192,7 @@ export default class kucoin extends Exchange {
             if (quoteAmount !== undefined) {
                 params = this.omit(params, ['cost', 'funds']);
                 // kucoin uses base precision even for quote values
-                costString = this.amountToPrecision(symbol, quoteAmount);
+                costString = this.marketOrderAmountToPrecision(symbol, quoteAmount);
                 request['funds'] = costString;
             }
             else {
@@ -2449,8 +2510,12 @@ export default class kucoin extends Exchange {
         //             ]
         //         }
         //    }
+        const listData = this.safeList(response, 'data');
+        if (listData !== undefined) {
+            return this.parseOrders(listData, market, since, limit);
+        }
         const responseData = this.safeDict(response, 'data', {});
-        const orders = this.safeValue(responseData, 'items', responseData);
+        const orders = this.safeList(responseData, 'items', []);
         return this.parseOrders(orders, market, since, limit);
     }
     async fetchClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {

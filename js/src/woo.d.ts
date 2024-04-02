@@ -14,7 +14,7 @@ export default class woo extends Exchange {
         info: any;
     }>;
     fetchTime(params?: {}): Promise<number>;
-    fetchMarkets(params?: {}): Promise<import("./base/types.js").MarketInterface[]>;
+    fetchMarkets(params?: {}): Promise<Market[]>;
     parseMarket(market: any): Market;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     parseTrade(trade: any, market?: Market): Trade;
@@ -30,6 +30,8 @@ export default class woo extends Exchange {
     cancelAllOrders(symbol?: Str, params?: {}): Promise<any>;
     fetchOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
     fetchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    fetchClosedOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     parseTimeInForce(timeInForce: any): string;
     parseOrder(order: any, market?: Market): Order;
     parseOrderStatus(status: any): any;

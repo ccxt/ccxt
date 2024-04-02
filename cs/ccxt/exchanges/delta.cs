@@ -53,6 +53,8 @@ public partial class delta : Exchange
                 { "fetchOHLCV", true },
                 { "fetchOpenInterest", true },
                 { "fetchOpenOrders", true },
+                { "fetchOption", true },
+                { "fetchOptionChain", false },
                 { "fetchOrderBook", true },
                 { "fetchPosition", true },
                 { "fetchPositionMode", false },
@@ -162,16 +164,6 @@ public partial class delta : Exchange
                 { "broad", new Dictionary<string, object>() {} },
             } },
         });
-    }
-
-    public virtual object convertExpireDate(object date)
-    {
-        // parse YYMMDD to timestamp
-        object year = slice(date, 0, 2);
-        object month = slice(date, 2, 4);
-        object day = slice(date, 4, 6);
-        object reconstructedDate = add(add(add(add(add(add("20", year), "-"), month), "-"), day), "T00:00:00Z");
-        return reconstructedDate;
     }
 
     public override object createExpiredOptionMarket(object symbol)
@@ -2720,12 +2712,14 @@ public partial class delta : Exchange
         market = this.safeMarket(marketId, market);
         return new Dictionary<string, object>() {
             { "info", data },
+            { "symbol", getValue(market, "symbol") },
             { "type", null },
             { "amount", null },
             { "total", this.safeNumber(data, "margin") },
             { "code", null },
-            { "symbol", getValue(market, "symbol") },
             { "status", null },
+            { "timestamp", null },
+            { "datetime", null },
         };
     }
 
@@ -3400,6 +3394,156 @@ public partial class delta : Exchange
             { "info", marginMode },
             { "symbol", symbol },
             { "marginMode", this.safeString(marginMode, "margin_mode") },
+        };
+    }
+
+    public async override Task<object> fetchOption(object symbol, object parameters = null)
+    {
+        /**
+        * @method
+        * @name delta#fetchOption
+        * @description fetches option data that is commonly found in an option chain
+        * @see https://docs.delta.exchange/#get-ticker-for-a-product-by-symbol
+        * @param {string} symbol unified market symbol
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} an [option chain structure]{@link https://docs.ccxt.com/#/?id=option-chain-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        object request = new Dictionary<string, object>() {
+            { "symbol", getValue(market, "id") },
+        };
+        object response = await this.publicGetTickersSymbol(this.extend(request, parameters));
+        //
+        //     {
+        //         "result": {
+        //             "close": 6793.0,
+        //             "contract_type": "call_options",
+        //             "greeks": {
+        //                 "delta": "0.94739174",
+        //                 "gamma": "0.00002206",
+        //                 "rho": "11.00890725",
+        //                 "spot": "36839.58124652",
+        //                 "theta": "-18.18365310",
+        //                 "vega": "7.85209698"
+        //             },
+        //             "high": 7556.0,
+        //             "low": 6793.0,
+        //             "mark_price": "6955.70698909",
+        //             "mark_vol": "0.66916863",
+        //             "oi": "1.8980",
+        //             "oi_change_usd_6h": "110.4600",
+        //             "oi_contracts": "1898",
+        //             "oi_value": "1.8980",
+        //             "oi_value_symbol": "BTC",
+        //             "oi_value_usd": "69940.7319",
+        //             "open": 7.2e3,
+        //             "price_band": {
+        //                 "lower_limit": "5533.89814767",
+        //                 "upper_limit": "11691.37688371"
+        //             },
+        //             "product_id": 129508,
+        //             "quotes": {
+        //                 "ask_iv": "0.90180438",
+        //                 "ask_size": "1898",
+        //                 "best_ask": "7210",
+        //                 "best_bid": "6913",
+        //                 "bid_iv": "0.60881706",
+        //                 "bid_size": "3163",
+        //                 "impact_mid_price": null,
+        //                 "mark_iv": "0.66973549"
+        //             },
+        //             "size": 5,
+        //             "spot_price": "36839.58153868",
+        //             "strike_price": "30000",
+        //             "symbol": "C-BTC-30000-241123",
+        //             "timestamp": 1699584998504530,
+        //             "turnover": 184.41206804,
+        //             "turnover_symbol": "USDT",
+        //             "turnover_usd": 184.41206804,
+        //             "volume": 0.005
+        //         },
+        //         "success": true
+        //     }
+        //
+        object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
+        return this.parseOption(result, null, market);
+    }
+
+    public override object parseOption(object chain, object currency = null, object market = null)
+    {
+        //
+        //     {
+        //         "close": 6793.0,
+        //         "contract_type": "call_options",
+        //         "greeks": {
+        //             "delta": "0.94739174",
+        //             "gamma": "0.00002206",
+        //             "rho": "11.00890725",
+        //             "spot": "36839.58124652",
+        //             "theta": "-18.18365310",
+        //             "vega": "7.85209698"
+        //         },
+        //         "high": 7556.0,
+        //         "low": 6793.0,
+        //         "mark_price": "6955.70698909",
+        //         "mark_vol": "0.66916863",
+        //         "oi": "1.8980",
+        //         "oi_change_usd_6h": "110.4600",
+        //         "oi_contracts": "1898",
+        //         "oi_value": "1.8980",
+        //         "oi_value_symbol": "BTC",
+        //         "oi_value_usd": "69940.7319",
+        //         "open": 7.2e3,
+        //         "price_band": {
+        //             "lower_limit": "5533.89814767",
+        //             "upper_limit": "11691.37688371"
+        //         },
+        //         "product_id": 129508,
+        //         "quotes": {
+        //             "ask_iv": "0.90180438",
+        //             "ask_size": "1898",
+        //             "best_ask": "7210",
+        //             "best_bid": "6913",
+        //             "bid_iv": "0.60881706",
+        //             "bid_size": "3163",
+        //             "impact_mid_price": null,
+        //             "mark_iv": "0.66973549"
+        //         },
+        //         "size": 5,
+        //         "spot_price": "36839.58153868",
+        //         "strike_price": "30000",
+        //         "symbol": "C-BTC-30000-241123",
+        //         "timestamp": 1699584998504530,
+        //         "turnover": 184.41206804,
+        //         "turnover_symbol": "USDT",
+        //         "turnover_usd": 184.41206804,
+        //         "volume": 0.005
+        //     }
+        //
+        object marketId = this.safeString(chain, "symbol");
+        market = this.safeMarket(marketId, market);
+        object quotes = this.safeDict(chain, "quotes", new Dictionary<string, object>() {});
+        object timestamp = this.safeIntegerProduct(chain, "timestamp", 0.001);
+        return new Dictionary<string, object>() {
+            { "info", chain },
+            { "currency", null },
+            { "symbol", getValue(market, "symbol") },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
+            { "impliedVolatility", this.safeNumber(quotes, "mark_iv") },
+            { "openInterest", this.safeNumber(chain, "oi") },
+            { "bidPrice", this.safeNumber(quotes, "best_bid") },
+            { "askPrice", this.safeNumber(quotes, "best_ask") },
+            { "midPrice", this.safeNumber(quotes, "impact_mid_price") },
+            { "markPrice", this.safeNumber(chain, "mark_price") },
+            { "lastPrice", null },
+            { "underlyingPrice", this.safeNumber(chain, "spot_price") },
+            { "change", null },
+            { "percentage", null },
+            { "baseVolume", this.safeNumber(chain, "volume") },
+            { "quoteVolume", null },
         };
     }
 

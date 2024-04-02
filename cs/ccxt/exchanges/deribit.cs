@@ -60,6 +60,8 @@ public partial class deribit : Exchange
                 { "fetchMyTrades", true },
                 { "fetchOHLCV", true },
                 { "fetchOpenOrders", true },
+                { "fetchOption", true },
+                { "fetchOptionChain", true },
                 { "fetchOrder", true },
                 { "fetchOrderBook", true },
                 { "fetchOrders", false },
@@ -374,89 +376,6 @@ public partial class deribit : Exchange
                 } },
             } },
         });
-    }
-
-    public virtual object convertExpireDate(object date)
-    {
-        // parse YYMMDD to timestamp
-        object year = slice(date, 0, 2);
-        object month = slice(date, 2, 4);
-        object day = slice(date, 4, 6);
-        object reconstructedDate = add(add(add(add(add(add("20", year), "-"), month), "-"), day), "T00:00:00Z");
-        return reconstructedDate;
-    }
-
-    public virtual object convertMarketIdExpireDate(object date)
-    {
-        // parse 19JAN24 to 240119
-        object monthMappping = new Dictionary<string, object>() {
-            { "JAN", "01" },
-            { "FEB", "02" },
-            { "MAR", "03" },
-            { "APR", "04" },
-            { "MAY", "05" },
-            { "JUN", "06" },
-            { "JUL", "07" },
-            { "AUG", "08" },
-            { "SEP", "09" },
-            { "OCT", "10" },
-            { "NOV", "11" },
-            { "DEC", "12" },
-        };
-        object year = slice(date, 0, 2);
-        object monthName = slice(date, 2, 5);
-        object month = this.safeString(monthMappping, monthName);
-        object day = slice(date, 5, 7);
-        object reconstructedDate = add(add(day, month), year);
-        return reconstructedDate;
-    }
-
-    public virtual object convertExpireDateToMarketIdDate(object date)
-    {
-        // parse 240119 to 19JAN24
-        object year = slice(date, 0, 2);
-        object monthRaw = slice(date, 2, 4);
-        object month = null;
-        object day = slice(date, 4, 6);
-        if (isTrue(isEqual(monthRaw, "01")))
-        {
-            month = "JAN";
-        } else if (isTrue(isEqual(monthRaw, "02")))
-        {
-            month = "FEB";
-        } else if (isTrue(isEqual(monthRaw, "03")))
-        {
-            month = "MAR";
-        } else if (isTrue(isEqual(monthRaw, "04")))
-        {
-            month = "APR";
-        } else if (isTrue(isEqual(monthRaw, "05")))
-        {
-            month = "MAY";
-        } else if (isTrue(isEqual(monthRaw, "06")))
-        {
-            month = "JUN";
-        } else if (isTrue(isEqual(monthRaw, "07")))
-        {
-            month = "JUL";
-        } else if (isTrue(isEqual(monthRaw, "08")))
-        {
-            month = "AUG";
-        } else if (isTrue(isEqual(monthRaw, "09")))
-        {
-            month = "SEP";
-        } else if (isTrue(isEqual(monthRaw, "10")))
-        {
-            month = "OCT";
-        } else if (isTrue(isEqual(monthRaw, "11")))
-        {
-            month = "NOV";
-        } else if (isTrue(isEqual(monthRaw, "12")))
-        {
-            month = "DEC";
-        }
-        object reconstructedDate = add(add(day, month), year);
-        return reconstructedDate;
     }
 
     public override object createExpiredOptionMarket(object symbol)
@@ -1297,7 +1216,7 @@ public partial class deribit : Exchange
         //         "testnet": false
         //     }
         //
-        object result = this.safeValue(response, "result");
+        object result = this.safeDict(response, "result");
         return this.parseTicker(result, market);
     }
 
@@ -1374,11 +1293,21 @@ public partial class deribit : Exchange
         * @param {int} [since] timestamp in ms of the earliest candle to fetch
         * @param {int} [limit] the maximum amount of candles to fetch
         * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {boolean} [params.paginate] whether to paginate the results, set to false by default
+        * @param {int} [params.until] the latest time in ms to fetch ohlcv for
         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
         */
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
+        object paginate = false;
+        var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate");
+        paginate = ((IList<object>)paginateparametersVariable)[0];
+        parameters = ((IList<object>)paginateparametersVariable)[1];
+        if (isTrue(paginate))
+        {
+            return await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, parameters, 5000);
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "instrument_name", getValue(market, "id") },
@@ -1405,6 +1334,12 @@ public partial class deribit : Exchange
             {
                 ((IDictionary<string,object>)request)["end_timestamp"] = this.sum(since, multiply(multiply(limit, duration), 1000));
             }
+        }
+        object until = this.safeInteger(parameters, "until");
+        if (isTrue(!isEqual(until, null)))
+        {
+            parameters = this.omit(parameters, "until");
+            ((IDictionary<string,object>)request)["end_timestamp"] = until;
         }
         object response = await this.publicGetGetTradingviewChartData(this.extend(request, parameters));
         //
@@ -1537,6 +1472,7 @@ public partial class deribit : Exchange
         * @param {int} [since] timestamp in ms of the earliest trade to fetch
         * @param {int} [limit] the maximum amount of trades to fetch
         * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {int} [params.until] the latest time in ms to fetch trades for
         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
         */
         parameters ??= new Dictionary<string, object>();
@@ -1554,8 +1490,14 @@ public partial class deribit : Exchange
         {
             ((IDictionary<string,object>)request)["count"] = mathMin(limit, 1000); // default 10
         }
+        object until = this.safeInteger2(parameters, "until", "end_timestamp");
+        if (isTrue(!isEqual(until, null)))
+        {
+            parameters = this.omit(parameters, new List<object>() {"until"});
+            ((IDictionary<string,object>)request)["end_timestamp"] = until;
+        }
         object response = null;
-        if (isTrue(isEqual(since, null)))
+        if (isTrue(isTrue((isEqual(since, null))) && !isTrue((inOp(request, "end_timestamp")))))
         {
             response = await this.publicGetGetLastTradesByInstrument(this.extend(request, parameters));
         } else
@@ -1588,7 +1530,7 @@ public partial class deribit : Exchange
         //      }
         //
         object result = this.safeValue(response, "result", new Dictionary<string, object>() {});
-        object trades = this.safeValue(result, "trades", new List<object>() {});
+        object trades = this.safeList(result, "trades", new List<object>() {});
         return this.parseTrades(trades, market, since, limit);
     }
 
@@ -1979,7 +1921,7 @@ public partial class deribit : Exchange
         //         }
         //     }
         //
-        object result = this.safeValue(response, "result");
+        object result = this.safeDict(response, "result");
         return this.parseOrder(result, market);
     }
 
@@ -2231,7 +2173,7 @@ public partial class deribit : Exchange
             { "order_id", id },
         };
         object response = await this.privateGetCancel(this.extend(request, parameters));
-        object result = this.safeValue(response, "result", new Dictionary<string, object>() {});
+        object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         return this.parseOrder(result);
     }
 
@@ -2294,7 +2236,7 @@ public partial class deribit : Exchange
             ((IDictionary<string,object>)request)["instrument_name"] = getValue(market, "id");
             response = await this.privateGetGetOpenOrdersByInstrument(this.extend(request, parameters));
         }
-        object result = this.safeValue(response, "result", new List<object>() {});
+        object result = this.safeList(response, "result", new List<object>() {});
         return this.parseOrders(result, market, since, limit);
     }
 
@@ -2329,7 +2271,7 @@ public partial class deribit : Exchange
             ((IDictionary<string,object>)request)["instrument_name"] = getValue(market, "id");
             response = await this.privateGetGetOrderHistoryByInstrument(this.extend(request, parameters));
         }
-        object result = this.safeValue(response, "result", new List<object>() {});
+        object result = this.safeList(response, "result", new List<object>() {});
         return this.parseOrders(result, market, since, limit);
     }
 
@@ -2386,7 +2328,7 @@ public partial class deribit : Exchange
         //         }
         //     }
         //
-        object result = this.safeValue(response, "result", new Dictionary<string, object>() {});
+        object result = this.safeList(response, "result", new List<object>() {});
         return this.parseTrades(result, null, since, limit);
     }
 
@@ -2477,7 +2419,7 @@ public partial class deribit : Exchange
         //     }
         //
         object result = this.safeValue(response, "result", new Dictionary<string, object>() {});
-        object trades = this.safeValue(result, "trades", new List<object>() {});
+        object trades = this.safeList(result, "trades", new List<object>() {});
         return this.parseTrades(trades, market, since, limit);
     }
 
@@ -2530,7 +2472,7 @@ public partial class deribit : Exchange
         //     }
         //
         object result = this.safeValue(response, "result", new Dictionary<string, object>() {});
-        object data = this.safeValue(result, "data", new List<object>() {});
+        object data = this.safeList(result, "data", new List<object>() {});
         return this.parseTransactions(data, currency, since, limit, parameters);
     }
 
@@ -2587,7 +2529,7 @@ public partial class deribit : Exchange
         //     }
         //
         object result = this.safeValue(response, "result", new Dictionary<string, object>() {});
-        object data = this.safeValue(result, "data", new List<object>() {});
+        object data = this.safeList(result, "data", new List<object>() {});
         return this.parseTransactions(data, currency, since, limit, parameters);
     }
 
@@ -2784,7 +2726,7 @@ public partial class deribit : Exchange
         //         }
         //     }
         //
-        object result = this.safeValue(response, "result");
+        object result = this.safeDict(response, "result");
         return this.parsePosition(result);
     }
 
@@ -2864,7 +2806,7 @@ public partial class deribit : Exchange
         //         ]
         //     }
         //
-        object result = this.safeValue(response, "result");
+        object result = this.safeList(response, "result");
         return this.parsePositions(result, symbols);
     }
 
@@ -2997,7 +2939,7 @@ public partial class deribit : Exchange
         //     }
         //
         object result = this.safeValue(response, "result", new Dictionary<string, object>() {});
-        object transfers = this.safeValue(result, "data", new List<object>() {});
+        object transfers = this.safeList(result, "data", new List<object>() {});
         return this.parseTransfers(transfers, currency, since, limit, parameters);
     }
 
@@ -3056,7 +2998,7 @@ public partial class deribit : Exchange
         //         }
         //     }
         //
-        object result = this.safeValue(response, "result", new Dictionary<string, object>() {});
+        object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         return this.parseTransfer(result, currency);
     }
 
@@ -3202,7 +3144,7 @@ public partial class deribit : Exchange
         //      "testnet": true
         //    }
         //
-        object data = this.safeValue(response, "result", new Dictionary<string, object>() {});
+        object data = this.safeList(response, "result", new List<object>() {});
         return this.parseDepositWithdrawFees(data, codes, "currency");
     }
 
@@ -3501,7 +3443,7 @@ public partial class deribit : Exchange
         //     }
         //
         object result = this.safeValue(response, "result", new Dictionary<string, object>() {});
-        object settlements = this.safeValue(result, "settlements", new List<object>() {});
+        object settlements = this.safeList(result, "settlements", new List<object>() {});
         return this.parseLiquidations(settlements, market, since, limit);
     }
 
@@ -3666,6 +3608,167 @@ public partial class deribit : Exchange
             { "lastPrice", this.safeNumber(greeks, "last_price") },
             { "underlyingPrice", this.safeNumber(greeks, "underlying_price") },
             { "info", greeks },
+        };
+    }
+
+    public async override Task<object> fetchOption(object symbol, object parameters = null)
+    {
+        /**
+        * @method
+        * @name deribit#fetchOption
+        * @description fetches option data that is commonly found in an option chain
+        * @see https://docs.deribit.com/#public-get_book_summary_by_instrument
+        * @param {string} symbol unified market symbol
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} an [option chain structure]{@link https://docs.ccxt.com/#/?id=option-chain-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        object request = new Dictionary<string, object>() {
+            { "instrument_name", getValue(market, "id") },
+        };
+        object response = await this.publicGetGetBookSummaryByInstrument(this.extend(request, parameters));
+        //
+        //     {
+        //         "jsonrpc": "2.0",
+        //         "result": [
+        //             {
+        //                 "mid_price": 0.04025,
+        //                 "volume_usd": 11045.12,
+        //                 "quote_currency": "BTC",
+        //                 "estimated_delivery_price": 65444.72,
+        //                 "creation_timestamp": 1711100949273,
+        //                 "base_currency": "BTC",
+        //                 "underlying_index": "BTC-27DEC24",
+        //                 "underlying_price": 73742.14,
+        //                 "volume": 4.0,
+        //                 "interest_rate": 0.0,
+        //                 "price_change": -6.9767,
+        //                 "open_interest": 274.2,
+        //                 "ask_price": 0.042,
+        //                 "bid_price": 0.0385,
+        //                 "instrument_name": "BTC-27DEC24-240000-C",
+        //                 "mark_price": 0.04007735,
+        //                 "last": 0.04,
+        //                 "low": 0.04,
+        //                 "high": 0.043
+        //             }
+        //         ],
+        //         "usIn": 1711100949273223,
+        //         "usOut": 1711100949273580,
+        //         "usDiff": 357,
+        //         "testnet": false
+        //     }
+        //
+        object result = this.safeList(response, "result", new List<object>() {});
+        object chain = this.safeDict(result, 0, new Dictionary<string, object>() {});
+        return this.parseOption(chain, null, market);
+    }
+
+    public async override Task<object> fetchOptionChain(object code, object parameters = null)
+    {
+        /**
+        * @method
+        * @name deribit#fetchOptionChain
+        * @description fetches data for an underlying asset that is commonly found in an option chain
+        * @see https://docs.deribit.com/#public-get_book_summary_by_currency
+        * @param {string} currency base currency to fetch an option chain for
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a list of [option chain structures]{@link https://docs.ccxt.com/#/?id=option-chain-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object currency = this.currency(code);
+        object request = new Dictionary<string, object>() {
+            { "currency", getValue(currency, "id") },
+            { "kind", "option" },
+        };
+        object response = await this.publicGetGetBookSummaryByCurrency(this.extend(request, parameters));
+        //
+        //     {
+        //         "jsonrpc": "2.0",
+        //         "result": [
+        //             {
+        //                 "mid_price": 0.4075,
+        //                 "volume_usd": 2836.83,
+        //                 "quote_currency": "BTC",
+        //                 "estimated_delivery_price": 65479.26,
+        //                 "creation_timestamp": 1711101594477,
+        //                 "base_currency": "BTC",
+        //                 "underlying_index": "BTC-28JUN24",
+        //                 "underlying_price": 68827.27,
+        //                 "volume": 0.1,
+        //                 "interest_rate": 0.0,
+        //                 "price_change": 0.0,
+        //                 "open_interest": 364.1,
+        //                 "ask_price": 0.411,
+        //                 "bid_price": 0.404,
+        //                 "instrument_name": "BTC-28JUN24-42000-C",
+        //                 "mark_price": 0.40752052,
+        //                 "last": 0.423,
+        //                 "low": 0.423,
+        //                 "high": 0.423
+        //             }
+        //         ],
+        //         "usIn": 1711101594456388,
+        //         "usOut": 1711101594484065,
+        //         "usDiff": 27677,
+        //         "testnet": false
+        //     }
+        //
+        object result = this.safeList(response, "result", new List<object>() {});
+        return this.parseOptionChain(result, "base_currency", "instrument_name");
+    }
+
+    public override object parseOption(object chain, object currency = null, object market = null)
+    {
+        //
+        //     {
+        //         "mid_price": 0.04025,
+        //         "volume_usd": 11045.12,
+        //         "quote_currency": "BTC",
+        //         "estimated_delivery_price": 65444.72,
+        //         "creation_timestamp": 1711100949273,
+        //         "base_currency": "BTC",
+        //         "underlying_index": "BTC-27DEC24",
+        //         "underlying_price": 73742.14,
+        //         "volume": 4.0,
+        //         "interest_rate": 0.0,
+        //         "price_change": -6.9767,
+        //         "open_interest": 274.2,
+        //         "ask_price": 0.042,
+        //         "bid_price": 0.0385,
+        //         "instrument_name": "BTC-27DEC24-240000-C",
+        //         "mark_price": 0.04007735,
+        //         "last": 0.04,
+        //         "low": 0.04,
+        //         "high": 0.043
+        //     }
+        //
+        object marketId = this.safeString(chain, "instrument_name");
+        market = this.safeMarket(marketId, market);
+        object currencyId = this.safeString(chain, "base_currency");
+        object code = this.safeCurrencyCode(currencyId, currency);
+        object timestamp = this.safeInteger(chain, "timestamp");
+        return new Dictionary<string, object>() {
+            { "info", chain },
+            { "currency", code },
+            { "symbol", getValue(market, "symbol") },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
+            { "impliedVolatility", null },
+            { "openInterest", this.safeNumber(chain, "open_interest") },
+            { "bidPrice", this.safeNumber(chain, "bid_price") },
+            { "askPrice", this.safeNumber(chain, "ask_price") },
+            { "midPrice", this.safeNumber(chain, "mid_price") },
+            { "markPrice", this.safeNumber(chain, "mark_price") },
+            { "lastPrice", this.safeNumber(chain, "last") },
+            { "underlyingPrice", this.safeNumber(chain, "underlying_price") },
+            { "change", null },
+            { "percentage", this.safeNumber(chain, "price_change") },
+            { "baseVolume", this.safeNumber(chain, "volume") },
+            { "quoteVolume", this.safeNumber(chain, "volume_usd") },
         };
     }
 

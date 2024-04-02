@@ -144,7 +144,7 @@ export default class independentreserve extends Exchange {
         });
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name independentreserve#fetchMarkets
@@ -514,7 +514,7 @@ export default class independentreserve extends Exchange {
         request['pageIndex'] = 1;
         request['pageSize'] = limit;
         const response = await this.privatePostGetOpenOrders (this.extend (request, params));
-        const data = this.safeValue (response, 'Data', []);
+        const data = this.safeList (response, 'Data', []);
         return this.parseOrders (data, market, since, limit);
     }
 
@@ -543,7 +543,7 @@ export default class independentreserve extends Exchange {
         request['pageIndex'] = 1;
         request['pageSize'] = limit;
         const response = await this.privatePostGetClosedOrders (this.extend (request, params));
-        const data = this.safeValue (response, 'Data', []);
+        const data = this.safeList (response, 'Data', []);
         return this.parseOrders (data, market, since, limit);
     }
 

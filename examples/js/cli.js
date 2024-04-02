@@ -4,8 +4,6 @@ import path from 'path'
 import ansi from 'ansicolor'
 import asTable from 'as-table'
 import ololog from 'ololog'
-import util from 'util'
-import { execSync } from 'child_process'
 import ccxt from '../../js/ccxt.js'
 import { Agent } from 'https'
 
@@ -321,7 +319,6 @@ async function run () {
                     headers,
                     body,
                 })
-                process.exit ()
             }
         }
 

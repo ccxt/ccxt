@@ -797,7 +797,7 @@ abstract class bybit extends \ccxt\Exchange {
         return $this->request('v5/account/mmp-reset', 'private', 'POST', $params, null, null, array("cost" => 5));
     }
     public function private_post_v5_asset_transfer_inter_transfer($params = array()) {
-        return $this->request('v5/asset/transfer/inter-transfer', 'private', 'POST', $params, null, null, array("cost" => 150));
+        return $this->request('v5/asset/transfer/inter-transfer', 'private', 'POST', $params, null, null, array("cost" => 50));
     }
     public function private_post_v5_asset_transfer_save_transfer_sub_member($params = array()) {
         return $this->request('v5/asset/transfer/save-transfer-sub-member', 'private', 'POST', $params, null, null, array("cost" => 150));
@@ -1664,7 +1664,7 @@ abstract class bybit extends \ccxt\Exchange {
         return $this->request('v5/account/mmp-reset', 'private', 'POST', $params, null, null, array("cost" => 5));
     }
     public function privatePostV5AssetTransferInterTransfer($params = array()) {
-        return $this->request('v5/asset/transfer/inter-transfer', 'private', 'POST', $params, null, null, array("cost" => 150));
+        return $this->request('v5/asset/transfer/inter-transfer', 'private', 'POST', $params, null, null, array("cost" => 50));
     }
     public function privatePostV5AssetTransferSaveTransferSubMember($params = array()) {
         return $this->request('v5/asset/transfer/save-transfer-sub-member', 'private', 'POST', $params, null, null, array("cost" => 150));

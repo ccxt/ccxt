@@ -322,7 +322,7 @@ class bitvavo(Exchange, ImplicitAPI):
         #
         return self.safe_integer(response, 'time')
 
-    async def fetch_markets(self, params={}):
+    async def fetch_markets(self, params={}) -> List[Market]:
         """
         :see: https://docs.bitvavo.com/#tag/General/paths/~1markets/get
         retrieves data on all markets for bitvavo
@@ -923,6 +923,8 @@ class bitvavo(Exchange, ImplicitAPI):
             request['start'] = since
             if limit is None:
                 limit = 1440
+            else:
+                limit = min(limit, 1440)
             request['end'] = self.sum(since, limit * duration * 1000)
         request, params = self.handle_until_option('end', request, params)
         if limit is not None:

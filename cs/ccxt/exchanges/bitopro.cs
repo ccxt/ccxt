@@ -767,6 +767,9 @@ public partial class bitopro : Exchange
         if (isTrue(isEqual(limit, null)))
         {
             limit = 500;
+        } else
+        {
+            limit = mathMin(limit, 75000); // supports slightly more than 75k candles atm, but limit here to avoid errors
         }
         object timeframeInSeconds = this.parseTimeframe(timeframe);
         object alignedSince = null;
@@ -1760,7 +1763,7 @@ public partial class bitopro : Exchange
         //         ]
         //     }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseDepositWithdrawFees(data, codes, "currency");
     }
 

@@ -65,7 +65,7 @@ class woo(Exchange, ImplicitAPI):
                 'fetchBalance': True,
                 'fetchCanceledOrders': False,
                 'fetchClosedOrder': False,
-                'fetchClosedOrders': False,
+                'fetchClosedOrders': True,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
@@ -84,7 +84,7 @@ class woo(Exchange, ImplicitAPI):
                 'fetchOHLCV': True,
                 'fetchOpenInterestHistory': False,
                 'fetchOpenOrder': False,
-                'fetchOpenOrders': False,
+                'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrders': True,
@@ -387,7 +387,7 @@ class woo(Exchange, ImplicitAPI):
         #
         return self.safe_integer(response, 'timestamp')
 
-    async def fetch_markets(self, params={}):
+    async def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for woo
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -1258,7 +1258,7 @@ class woo(Exchange, ImplicitAPI):
         #     ]
         # }
         #
-        orders = self.safe_value(response, 'data', response)
+        orders = self.safe_dict(response, 'data', response)
         return self.parse_order(orders, market)
 
     async def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
@@ -1341,7 +1341,47 @@ class woo(Exchange, ImplicitAPI):
         #
         data = self.safe_value(response, 'data', response)
         orders = self.safe_list(data, 'rows')
-        return self.parse_orders(orders, market, since, limit, params)
+        return self.parse_orders(orders, market, since, limit)
+
+    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+        """
+        fetches information on multiple orders made by the user
+        :see: https://docs.woo.org/#get-orders
+        :see: https://docs.woo.org/#get-algo-orders
+        :param str symbol: unified market symbol of the market orders were made in
+        :param int [since]: the earliest time in ms to fetch orders for
+        :param int [limit]: the maximum number of order structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param boolean [params.stop]: whether the order is a stop/algo order
+        :param boolean [params.isTriggered]: whether the order has been triggered(False by default)
+        :param str [params.side]: 'buy' or 'sell'
+        :param boolean [params.trailing]: set to True if you want to fetch trailing orders
+        :param boolean [params.paginate]: set to True if you want to fetch orders with pagination
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        await self.load_markets()
+        extendedParams = self.extend(params, {'status': 'INCOMPLETE'})
+        return await self.fetch_orders(symbol, since, limit, extendedParams)
+
+    async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+        """
+        fetches information on multiple orders made by the user
+        :see: https://docs.woo.org/#get-orders
+        :see: https://docs.woo.org/#get-algo-orders
+        :param str symbol: unified market symbol of the market orders were made in
+        :param int [since]: the earliest time in ms to fetch orders for
+        :param int [limit]: the maximum number of order structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param boolean [params.stop]: whether the order is a stop/algo order
+        :param boolean [params.isTriggered]: whether the order has been triggered(False by default)
+        :param str [params.side]: 'buy' or 'sell'
+        :param boolean [params.trailing]: set to True if you want to fetch trailing orders
+        :param boolean [params.paginate]: set to True if you want to fetch orders with pagination
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        await self.load_markets()
+        extendedParams = self.extend(params, {'status': 'COMPLETED'})
+        return await self.fetch_orders(symbol, since, limit, extendedParams)
 
     def parse_time_in_force(self, timeInForce):
         timeInForces = {

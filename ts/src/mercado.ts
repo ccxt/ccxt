@@ -160,7 +160,7 @@ export default class mercado extends Exchange {
         });
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name mercado#fetchMarkets
@@ -524,7 +524,7 @@ export default class mercado extends Exchange {
         //     }
         //
         const responseData = this.safeValue (response, 'response_data', {});
-        const order = this.safeValue (responseData, 'order', {});
+        const order = this.safeDict (responseData, 'order', {});
         return this.parseOrder (order, market);
     }
 
@@ -630,7 +630,7 @@ export default class mercado extends Exchange {
         };
         const response = await this.privatePostGetOrder (this.extend (request, params));
         const responseData = this.safeValue (response, 'response_data', {});
-        const order = this.safeValue (responseData, 'order');
+        const order = this.safeDict (responseData, 'order');
         return this.parseOrder (order, market);
     }
 
@@ -696,7 +696,7 @@ export default class mercado extends Exchange {
         //     }
         //
         const responseData = this.safeValue (response, 'response_data', {});
-        const withdrawal = this.safeValue (responseData, 'withdrawal');
+        const withdrawal = this.safeDict (responseData, 'withdrawal');
         return this.parseTransaction (withdrawal, currency);
     }
 
@@ -804,7 +804,7 @@ export default class mercado extends Exchange {
         };
         const response = await this.privatePostListOrders (this.extend (request, params));
         const responseData = this.safeValue (response, 'response_data', {});
-        const orders = this.safeValue (responseData, 'orders', []);
+        const orders = this.safeList (responseData, 'orders', []);
         return this.parseOrders (orders, market, since, limit);
     }
 
@@ -830,7 +830,7 @@ export default class mercado extends Exchange {
         };
         const response = await this.privatePostListOrders (this.extend (request, params));
         const responseData = this.safeValue (response, 'response_data', {});
-        const orders = this.safeValue (responseData, 'orders', []);
+        const orders = this.safeList (responseData, 'orders', []);
         return this.parseOrders (orders, market, since, limit);
     }
 

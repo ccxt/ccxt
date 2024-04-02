@@ -155,7 +155,7 @@ public partial class bitstamp : Exchange
                         { "transfer-from-main/", 1 },
                         { "my_trading_pairs/", 1 },
                         { "fees/trading/", 1 },
-                        { "fees/trading/{pair}", 1 },
+                        { "fees/trading/{market_symbol}", 1 },
                         { "fees/withdrawal/", 1 },
                         { "fees/withdrawal/{currency}/", 1 },
                         { "withdrawal-requests/", 1 },
@@ -1115,7 +1115,7 @@ public partial class bitstamp : Exchange
         //     }
         //
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object ohlc = this.safeValue(data, "ohlc", new List<object>() {});
+        object ohlc = this.safeList(data, "ohlc", new List<object>() {});
         return this.parseOHLCVs(ohlc, market, timeframe, since, limit);
     }
 
@@ -1126,17 +1126,20 @@ public partial class bitstamp : Exchange
             { "timestamp", null },
             { "datetime", null },
         };
-        object codes = new List<object>(((IDictionary<string,object>)this.currencies).Keys);
-        for (object i = 0; isLessThan(i, getArrayLength(codes)); postFixIncrement(ref i))
+        if (isTrue(isEqual(response, null)))
         {
-            object code = getValue(codes, i);
-            object currency = this.currency(code);
-            object currencyId = getValue(currency, "id");
+            response = new List<object>() {};
+        }
+        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        {
+            object currencyBalance = getValue(response, i);
+            object currencyId = this.safeString(currencyBalance, "currency");
+            object currencyCode = this.safeCurrencyCode(currencyId);
             object account = this.account();
-            ((IDictionary<string,object>)account)["free"] = this.safeString(response, add(currencyId, "_available"));
-            ((IDictionary<string,object>)account)["used"] = this.safeString(response, add(currencyId, "_reserved"));
-            ((IDictionary<string,object>)account)["total"] = this.safeString(response, add(currencyId, "_balance"));
-            ((IDictionary<string,object>)result)[(string)code] = account;
+            ((IDictionary<string,object>)account)["free"] = this.safeString(currencyBalance, "available");
+            ((IDictionary<string,object>)account)["used"] = this.safeString(currencyBalance, "reserved");
+            ((IDictionary<string,object>)account)["total"] = this.safeString(currencyBalance, "total");
+            ((IDictionary<string,object>)result)[(string)currencyCode] = account;
         }
         return this.safeBalance(result);
     }
@@ -1153,24 +1156,17 @@ public partial class bitstamp : Exchange
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object response = await this.privatePostBalance(parameters);
+        object response = await this.privatePostAccountBalances(parameters);
         //
-        //     {
-        //         "aave_available": "0.00000000",
-        //         "aave_balance": "0.00000000",
-        //         "aave_reserved": "0.00000000",
-        //         "aave_withdrawal_fee": "0.07000000",
-        //         "aavebtc_fee": "0.000",
-        //         "aaveeur_fee": "0.000",
-        //         "aaveusd_fee": "0.000",
-        //         "bat_available": "0.00000000",
-        //         "bat_balance": "0.00000000",
-        //         "bat_reserved": "0.00000000",
-        //         "bat_withdrawal_fee": "5.00000000",
-        //         "batbtc_fee": "0.000",
-        //         "bateur_fee": "0.000",
-        //         "batusd_fee": "0.000",
-        //     }
+        //     [
+        //         {
+        //             "currency": "usdt",
+        //             "total": "7.00000",
+        //             "available": "7.00000",
+        //             "reserved": "0.00000"
+        //         },
+        //         ...
+        //     ]
         //
         return this.parseBalance(response);
     }
@@ -1181,7 +1177,7 @@ public partial class bitstamp : Exchange
         * @method
         * @name bitstamp#fetchTradingFee
         * @description fetch the trading fees for a market
-        * @see https://www.bitstamp.net/api/#tag/Fees/operation/GetAllTradingFees
+        * @see https://www.bitstamp.net/api/#tag/Fees/operation/GetTradingFeesForCurrency
         * @param {string} symbol unified market symbol
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
@@ -1190,23 +1186,37 @@ public partial class bitstamp : Exchange
         await this.loadMarkets();
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
-            { "pair", getValue(market, "id") },
+            { "market_symbol", getValue(market, "id") },
         };
-        object response = await this.privatePostBalancePair(this.extend(request, parameters));
-        return this.parseTradingFee(response, market);
+        object response = await this.privatePostFeesTrading(this.extend(request, parameters));
+        //
+        //     [
+        //         {
+        //             "currency_pair": "btcusd",
+        //             "fees":
+        //                 {
+        //                     "maker": "0.15000",
+        //                     "taker": "0.16000"
+        //                 },
+        //             "market": "btcusd"
+        //         }
+        //         ...
+        //     ]
+        //
+        object tradingFeesByMarketId = this.indexBy(response, "currency_pair");
+        object tradingFee = this.safeDict(tradingFeesByMarketId, getValue(market, "id"));
+        return this.parseTradingFee(tradingFee, market);
     }
 
     public virtual object parseTradingFee(object fee, object market = null)
     {
-        market = this.safeMarket(null, market);
-        object feeString = this.safeString(fee, add(getValue(market, "id"), "_fee"));
-        object dividedFeeString = Precise.stringDiv(feeString, "100");
-        object tradeFee = this.parseNumber(dividedFeeString);
+        object marketId = this.safeString(fee, "market");
+        object fees = this.safeDict(fee, "fees", new Dictionary<string, object>() {});
         return new Dictionary<string, object>() {
             { "info", fee },
-            { "symbol", getValue(market, "symbol") },
-            { "maker", tradeFee },
-            { "taker", tradeFee },
+            { "symbol", this.safeSymbol(marketId, market) },
+            { "maker", this.safeNumber(fees, "maker") },
+            { "taker", this.safeNumber(fees, "taker") },
         };
     }
 
@@ -1219,8 +1229,7 @@ public partial class bitstamp : Exchange
         for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);
-            object market = this.market(symbol);
-            object fee = this.parseTradingFee(fees, market);
+            object fee = this.parseTradingFee(getValue(fees, i));
             ((IDictionary<string,object>)result)[(string)symbol] = fee;
         }
         return result;
@@ -1238,7 +1247,21 @@ public partial class bitstamp : Exchange
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object response = await this.privatePostBalance(parameters);
+        object response = await this.privatePostFeesTrading(parameters);
+        //
+        //     [
+        //         {
+        //             "currency_pair": "btcusd",
+        //             "fees":
+        //                 {
+        //                     "maker": "0.15000",
+        //                     "taker": "0.16000"
+        //                 },
+        //             "market": "btcusd"
+        //         }
+        //         ...
+        //     ]
+        //
         return this.parseTradingFees(response);
     }
 

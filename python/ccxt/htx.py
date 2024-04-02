@@ -1600,7 +1600,7 @@ class htx(Exchange, ImplicitAPI):
     def cost_to_precision(self, symbol, cost):
         return self.decimal_to_precision(cost, TRUNCATE, self.markets[symbol]['precision']['cost'], self.precisionMode)
 
-    def fetch_markets(self, params={}):
+    def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for huobi
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -2140,7 +2140,7 @@ class htx(Exchange, ImplicitAPI):
         #         "ts":1639547261293
         #     }
         #
-        # inverse swaps, linear swaps, inverse futures
+        # linear swap, linear future, inverse swap, inverse future
         #
         #     {
         #         "status":"ok",
@@ -2157,35 +2157,13 @@ class htx(Exchange, ImplicitAPI):
         #                 "high":"0.10725",
         #                 "amount":"2340267.415144052378486261756692535687481566",
         #                 "count":882,
-        #                 "vol":"24706"
+        #                 "vol":"24706",
+        #                 "trade_turnover":"840726.5048",  # only in linear futures
+        #                 "business_type":"futures",  # only in linear futures
+        #                 "contract_code":"BTC-USDT-CW",  # only in linear futures, instead of 'symbol'
         #             }
         #         ],
         #         "ts":1637504679376
-        #     }
-        #
-        # linear futures
-        #
-        #     {
-        #         "status":"ok",
-        #         "ticks":[
-        #             {
-        #                 "id":1640745627,
-        #                 "ts":1640745627957,
-        #                 "ask":[48079.1,20],
-        #                 "bid":[47713.8,125],
-        #                 "business_type":"futures",
-        #                 "contract_code":"BTC-USDT-CW",
-        #                 "open":"49011.8",
-        #                 "close":"47934",
-        #                 "low":"47292.3",
-        #                 "high":"49011.8",
-        #                 "amount":"17.398",
-        #                 "count":1515,
-        #                 "vol":"17398",
-        #                 "trade_turnover":"840726.5048"
-        #             }
-        #         ],
-        #         "ts":1640745627988
         #     }
         #
         tickers = self.safe_value_2(response, 'data', 'ticks', [])
@@ -2314,7 +2292,7 @@ class htx(Exchange, ImplicitAPI):
         else:
             raise NotSupported(self.id + ' fetchLastPrices() does not support ' + type + ' markets yet')
         tick = self.safe_value(response, 'tick', {})
-        data = self.safe_value(tick, 'data', [])
+        data = self.safe_list(tick, 'data', [])
         return self.parse_last_prices(data, symbols)
 
     def parse_last_price(self, entry, market: Market = None):
@@ -2848,63 +2826,68 @@ class htx(Exchange, ImplicitAPI):
             # 'from': int((since / str(1000))), spot only
             # 'to': self.seconds(), spot only
         }
-        price = self.safe_string(params, 'price')
-        params = self.omit(params, 'price')
+        priceType = self.safe_string_n(params, ['priceType', 'price'])
+        params = self.omit(params, ['priceType', 'price'])
+        until = None
+        until, params = self.handle_param_integer(params, 'until')
+        untilSeconds = self.parse_to_int(until / 1000) if (until is not None) else None
         if market['contract']:
             if limit is not None:
-                request['size'] = limit  # when using limit from and to are ignored
+                request['size'] = min(limit, 2000)  # when using limit: from & to are ignored
                 # https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-get-kline-data
             else:
                 limit = 2000  # only used for from/to calculation
-            if price is None:
+            if priceType is None:
                 duration = self.parse_timeframe(timeframe)
+                calcualtedEnd = None
                 if since is None:
                     now = self.seconds()
                     request['from'] = now - duration * (limit - 1)
-                    request['to'] = now
+                    calcualtedEnd = now
                 else:
                     start = self.parse_to_int(since / 1000)
                     request['from'] = start
-                    request['to'] = self.sum(start, duration * (limit - 1))
+                    calcualtedEnd = self.sum(start, duration * (limit - 1))
+                request['to'] = untilSeconds if (untilSeconds is not None) else calcualtedEnd
         response = None
         if market['future']:
             if market['inverse']:
                 request['symbol'] = market['id']
-                if price == 'mark':
+                if priceType == 'mark':
                     response = self.contractPublicGetIndexMarketHistoryMarkPriceKline(self.extend(request, params))
-                elif price == 'index':
+                elif priceType == 'index':
                     response = self.contractPublicGetIndexMarketHistoryIndex(self.extend(request, params))
-                elif price == 'premiumIndex':
-                    raise BadRequest(self.id + ' ' + market['type'] + ' has no api endpoint for ' + price + ' kline data')
+                elif priceType == 'premiumIndex':
+                    raise BadRequest(self.id + ' ' + market['type'] + ' has no api endpoint for ' + priceType + ' kline data')
                 else:
                     response = self.contractPublicGetMarketHistoryKline(self.extend(request, params))
             elif market['linear']:
                 request['contract_code'] = market['id']
-                if price == 'mark':
+                if priceType == 'mark':
                     response = self.contractPublicGetIndexMarketHistoryLinearSwapMarkPriceKline(self.extend(request, params))
-                elif price == 'index':
-                    raise BadRequest(self.id + ' ' + market['type'] + ' has no api endpoint for ' + price + ' kline data')
-                elif price == 'premiumIndex':
+                elif priceType == 'index':
+                    raise BadRequest(self.id + ' ' + market['type'] + ' has no api endpoint for ' + priceType + ' kline data')
+                elif priceType == 'premiumIndex':
                     response = self.contractPublicGetIndexMarketHistoryLinearSwapPremiumIndexKline(self.extend(request, params))
                 else:
                     response = self.contractPublicGetLinearSwapExMarketHistoryKline(self.extend(request, params))
         elif market['swap']:
             request['contract_code'] = market['id']
             if market['inverse']:
-                if price == 'mark':
+                if priceType == 'mark':
                     response = self.contractPublicGetIndexMarketHistorySwapMarkPriceKline(self.extend(request, params))
-                elif price == 'index':
-                    raise BadRequest(self.id + ' ' + market['type'] + ' has no api endpoint for ' + price + ' kline data')
-                elif price == 'premiumIndex':
+                elif priceType == 'index':
+                    raise BadRequest(self.id + ' ' + market['type'] + ' has no api endpoint for ' + priceType + ' kline data')
+                elif priceType == 'premiumIndex':
                     response = self.contractPublicGetIndexMarketHistorySwapPremiumIndexKline(self.extend(request, params))
                 else:
                     response = self.contractPublicGetSwapExMarketHistoryKline(self.extend(request, params))
             elif market['linear']:
-                if price == 'mark':
+                if priceType == 'mark':
                     response = self.contractPublicGetIndexMarketHistoryLinearSwapMarkPriceKline(self.extend(request, params))
-                elif price == 'index':
-                    raise BadRequest(self.id + ' ' + market['type'] + ' has no api endpoint for ' + price + ' kline data')
-                elif price == 'premiumIndex':
+                elif priceType == 'index':
+                    raise BadRequest(self.id + ' ' + market['type'] + ' has no api endpoint for ' + priceType + ' kline data')
+                elif priceType == 'premiumIndex':
                     response = self.contractPublicGetIndexMarketHistoryLinearSwapPremiumIndexKline(self.extend(request, params))
                 else:
                     response = self.contractPublicGetLinearSwapExMarketHistoryKline(self.extend(request, params))
@@ -2913,15 +2896,17 @@ class htx(Exchange, ImplicitAPI):
             useHistorical = None
             useHistorical, params = self.handle_option_and_params(params, 'fetchOHLCV', 'useHistoricalEndpointForSpot', True)
             if not useHistorical:
-                # `limit` only available for the self endpoint
                 if limit is not None:
-                    request['size'] = limit  # max 2000
+                    request['size'] = min(limit, 2000)  # max 2000
                 response = self.spotPublicGetMarketHistoryKline(self.extend(request, params))
             else:
-                # `since` only available for the self endpoint
+                # "from & to" only available for the self endpoint
                 if since is not None:
-                    # default 150 bars
                     request['from'] = self.parse_to_int(since / 1000)
+                if untilSeconds is not None:
+                    request['to'] = untilSeconds
+                if limit is not None:
+                    request['size'] = min(1000, limit)  # max 1000, otherwise default returns 150
                 response = self.spotPublicGetMarketHistoryCandles(self.extend(request, params))
         #
         #     {
@@ -2935,7 +2920,7 @@ class htx(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        data = self.safe_value(response, 'data', [])
+        data = self.safe_list(response, 'data', [])
         return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
     def fetch_accounts(self, params={}) -> List[Account]:
@@ -3727,7 +3712,7 @@ class htx(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        data = self.safe_value(response, 'data', [])
+        data = self.safe_list(response, 'data', [])
         return self.parse_orders(data, market, since, limit)
 
     def fetch_spot_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
@@ -6727,7 +6712,7 @@ class htx(Exchange, ImplicitAPI):
         else:
             request['symbol'] = market['id']
             response = self.contractPrivatePostApiV3ContractFinancialRecordExact(self.extend(request, query))
-        data = self.safe_value(response, 'data', [])
+        data = self.safe_list(response, 'data', [])
         return self.parse_incomes(data, market, since, limit)
 
     def set_leverage(self, leverage: Int, symbol: Str = None, params={}):
@@ -7456,7 +7441,7 @@ class htx(Exchange, ImplicitAPI):
         #        ]
         #    }
         #
-        data = self.safe_value(response, 'data')
+        data = self.safe_list(response, 'data')
         return self.parse_leverage_tiers(data, symbols, 'contract_code')
 
     def fetch_market_leverage_tiers(self, symbol: str, params={}):
@@ -7645,7 +7630,7 @@ class htx(Exchange, ImplicitAPI):
         #    }
         #
         data = self.safe_value(response, 'data')
-        tick = self.safe_value(data, 'tick')
+        tick = self.safe_list(data, 'tick')
         return self.parse_open_interests(tick, market, since, limit)
 
     def fetch_open_interest(self, symbol: str, params={}):
@@ -8124,7 +8109,7 @@ class htx(Exchange, ImplicitAPI):
         #        ]
         #    }
         #
-        data = self.safe_value(response, 'data')
+        data = self.safe_list(response, 'data')
         return self.parse_deposit_withdraw_fees(data, codes, 'currency')
 
     def parse_deposit_withdraw_fee(self, fee, currency: Currency = None):
@@ -8337,7 +8322,7 @@ class htx(Exchange, ImplicitAPI):
         #         "ts": 1604312615051
         #     }
         #
-        data = self.safe_value(response, 'data', [])
+        data = self.safe_list(response, 'data', [])
         return self.parse_liquidations(data, market, since, limit)
 
     def parse_liquidation(self, liquidation, market: Market = None):

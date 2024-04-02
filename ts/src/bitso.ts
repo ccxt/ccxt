@@ -341,7 +341,7 @@ export default class bitso extends Exchange {
         }, currency);
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name bitso#fetchMarkets
@@ -695,7 +695,7 @@ export default class bitso extends Exchange {
         //         ]
         //     }
         //
-        const payload = this.safeValue (response, 'payload', []);
+        const payload = this.safeList (response, 'payload', []);
         return this.parseOHLCVs (payload, market, timeframe, since, limit);
     }
 
@@ -1265,7 +1265,7 @@ export default class bitso extends Exchange {
         //     }
         //
         const transactions = this.safeValue (response, 'payload', []);
-        const first = this.safeValue (transactions, 0, {});
+        const first = this.safeDict (transactions, 0, {});
         return this.parseTransaction (first);
     }
 
@@ -1310,7 +1310,7 @@ export default class bitso extends Exchange {
         //         }]
         //     }
         //
-        const transactions = this.safeValue (response, 'payload', []);
+        const transactions = this.safeList (response, 'payload', []);
         return this.parseTransactions (transactions, currency, since, limit, params);
     }
 
@@ -1496,7 +1496,7 @@ export default class bitso extends Exchange {
         //        }
         //    }
         //
-        const payload = this.safeValue (response, 'payload', {});
+        const payload = this.safeList (response, 'payload', []);
         return this.parseDepositWithdrawFees (payload, codes);
     }
 
@@ -1634,7 +1634,7 @@ export default class bitso extends Exchange {
         //     }
         //
         const payload = this.safeValue (response, 'payload', []);
-        const first = this.safeValue (payload, 0);
+        const first = this.safeDict (payload, 0);
         return this.parseTransaction (first, currency);
     }
 
