@@ -814,6 +814,69 @@
                         "TRX": 0
                     }
                 }
+            },
+            {
+                "description": "cross balance",
+                "method": "fetchBalance",
+                "input": [
+                  {
+                    "marginMode": "cross"
+                  }
+                ],
+                "httpResponse": {
+                  "code": "200000",
+                  "data": {
+                    "debtRatio": "0",
+                    "accounts": [
+                      {
+                        "currency": "USDT",
+                        "totalBalance": "5",
+                        "availableBalance": "5",
+                        "holdBalance": "0",
+                        "liability": "0",
+                        "maxBorrowSize": "20"
+                      }
+                    ]
+                  }
+                },
+                "parsedResponse": {
+                  "info": {
+                    "code": "200000",
+                    "data": {
+                      "debtRatio": "0",
+                      "accounts": [
+                        {
+                          "currency": "USDT",
+                          "totalBalance": "5",
+                          "availableBalance": "5",
+                          "holdBalance": "0",
+                          "liability": "0",
+                          "maxBorrowSize": "20"
+                        }
+                      ]
+                    }
+                  },
+                  "timestamp": null,
+                  "datetime": null,
+                  "USDT": {
+                    "free": 5,
+                    "used": 0,
+                    "total": 5,
+                    "debt": 0
+                  },
+                  "free": {
+                    "USDT": 5
+                  },
+                  "used": {
+                    "USDT": 0
+                  },
+                  "total": {
+                    "USDT": 5
+                  },
+                  "debt": {
+                    "USDT": 0
+                  }
+                }
             }
         ],
         "fetchOrderBook": [

@@ -1853,7 +1853,7 @@ class gate extends Exchange {
         $this->load_markets();
         $currency = $this->currency($code);
         $request = array(
-            'currency' => $currency['id'],
+            'currency' => $currency['id'], // todo => currencies have $network-junctions
         );
         $response = $this->privateWalletGetDepositAddress (array_merge($request, $params));
         $addresses = $this->safe_value($response, 'multichain_addresses');
@@ -1903,7 +1903,7 @@ class gate extends Exchange {
         $rawNetwork = $this->safe_string_upper($params, 'network');
         $params = $this->omit($params, 'network');
         $request = array(
-            'currency' => $currency['id'],
+            'currency' => $currency['id'], // todo => currencies have $network-junctions
         );
         $response = $this->privateWalletGetDepositAddress (array_merge($request, $params));
         //
@@ -3475,7 +3475,7 @@ class gate extends Exchange {
         $currency = null;
         if ($code !== null) {
             $currency = $this->currency($code);
-            $request['currency'] = $currency['id'];
+            $request['currency'] = $currency['id']; // todo => currencies have network-junctions
         }
         if ($limit !== null) {
             $request['limit'] = $limit;
@@ -3512,7 +3512,7 @@ class gate extends Exchange {
         $currency = null;
         if ($code !== null) {
             $currency = $this->currency($code);
-            $request['currency'] = $currency['id'];
+            $request['currency'] = $currency['id']; // todo => currencies have network-junctions
         }
         if ($limit !== null) {
             $request['limit'] = $limit;
@@ -3543,7 +3543,7 @@ class gate extends Exchange {
         $this->load_markets();
         $currency = $this->currency($code);
         $request = array(
-            'currency' => $currency['id'],
+            'currency' => $currency['id'], // todo => currencies have $network-junctions
             'address' => $address,
             'amount' => $this->currency_to_precision($code, $amount),
         );
@@ -3557,7 +3557,7 @@ class gate extends Exchange {
             $request['chain'] = $network;
             $params = $this->omit($params, 'network');
         } else {
-            $request['chain'] = $currency['id'];
+            $request['chain'] = $currency['id']; // todo => currencies have $network-junctions
         }
         $response = $this->privateWithdrawalsPostWithdrawals (array_merge($request, $params));
         //
@@ -5008,7 +5008,7 @@ class gate extends Exchange {
         $toId = $this->convert_type_to_account($toAccount);
         $truncated = $this->currency_to_precision($code, $amount);
         $request = array(
-            'currency' => $currency['id'],
+            'currency' => $currency['id'], // todo => currencies have network-junctions
             'amount' => $truncated,
         );
         if (!(is_array($this->options['accountsByType']) && array_key_exists($fromId, $this->options['accountsByType']))) {
@@ -5033,7 +5033,7 @@ class gate extends Exchange {
             $params = $this->omit($params, 'symbol');
         }
         if (($toId === 'futures') || ($toId === 'delivery') || ($fromId === 'futures') || ($fromId === 'delivery')) {
-            $request['settle'] = $currency['id'];
+            $request['settle'] = $currency['id']; // todo => currencies have network-junctions
         }
         $response = $this->privateWalletPostTransfers (array_merge($request, $params));
         //
@@ -5678,7 +5678,7 @@ class gate extends Exchange {
         $this->load_markets();
         $currency = $this->currency($code);
         $request = array(
-            'currency' => strtoupper($currency['id']),
+            'currency' => strtoupper($currency['id']), // todo => currencies have network-junctions
             'amount' => $this->currency_to_precision($code, $amount),
         );
         $market = $this->market($symbol);
@@ -5706,7 +5706,7 @@ class gate extends Exchange {
         $this->load_markets();
         $currency = $this->currency($code);
         $request = array(
-            'currency' => strtoupper($currency['id']),
+            'currency' => strtoupper($currency['id']), // todo => currencies have network-junctions
             'amount' => $this->currency_to_precision($code, $amount),
         );
         $response = $this->privateMarginPostCrossRepayments (array_merge($request, $params));
@@ -5744,7 +5744,7 @@ class gate extends Exchange {
         $this->load_markets();
         $currency = $this->currency($code);
         $request = array(
-            'currency' => strtoupper($currency['id']),
+            'currency' => strtoupper($currency['id']), // todo => currencies have network-junctions
             'amount' => $this->currency_to_precision($code, $amount),
         );
         $response = null;
@@ -5788,7 +5788,7 @@ class gate extends Exchange {
         $this->load_markets();
         $currency = $this->currency($code);
         $request = array(
-            'currency' => strtoupper($currency['id']),
+            'currency' => strtoupper($currency['id']), // todo => currencies have network-junctions
             'amount' => $this->currency_to_precision($code, $amount),
         );
         $response = $this->privateMarginPostCrossLoans (array_merge($request, $params));
@@ -6320,7 +6320,7 @@ class gate extends Exchange {
         if (($type === 'spot') || ($type === 'margin')) {
             if ($code !== null) {
                 $currency = $this->currency($code);
-                $request['currency'] = $currency['id'];
+                $request['currency'] = $currency['id']; // todo => currencies have network-junctions
             }
         }
         if (($type === 'swap') || ($type === 'future')) {
@@ -7120,7 +7120,7 @@ class gate extends Exchange {
         $this->load_markets();
         $currency = $this->currency($code);
         $request = array(
-            'underlying' => $currency['code'] . '_USDT',
+            'underlying' => $currency['code'] . '_USDT', // todo => strtoupper($currency['id']) &  network junctions
         );
         $response = $this->publicOptionsGetContracts (array_merge($request, $params));
         //

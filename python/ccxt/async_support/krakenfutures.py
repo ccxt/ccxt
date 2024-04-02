@@ -363,7 +363,8 @@ class krakenfutures(Exchange, ImplicitAPI):
             # swap == perpetual
             settle = None
             settleId = None
-            amountPrecision = self.parse_number(self.parse_precision(self.safe_string(market, 'contractValueTradePrecision', '0')))
+            cvtp = self.safe_string(market, 'contractValueTradePrecision')
+            amountPrecision = self.parse_number(self.integer_precision_to_amount(cvtp))
             pricePrecision = self.safe_number(market, 'tickSize')
             contract = (swap or future or index)
             swapOrFutures = (swap or future)
