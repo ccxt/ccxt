@@ -156,7 +156,7 @@ class oceanex(Exchange, ImplicitAPI):
             },
         })
 
-    def fetch_markets(self, params={}):
+    def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for oceanex
         :see: https://api.oceanex.pro/doc/v1/#markets-post
@@ -271,7 +271,7 @@ class oceanex(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        data = self.safe_value(response, 'data', {})
+        data = self.safe_dict(response, 'data', {})
         return self.parse_ticker(data, market)
 
     def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
@@ -484,7 +484,7 @@ class oceanex(Exchange, ImplicitAPI):
         #          ]
         #      }
         #
-        data = self.safe_value(response, 'data')
+        data = self.safe_list(response, 'data')
         return self.parse_trades(data, market, since, limit)
 
     def parse_trade(self, trade, market: Market = None) -> Trade:
@@ -620,7 +620,7 @@ class oceanex(Exchange, ImplicitAPI):
         if type == 'limit':
             request['price'] = self.price_to_precision(symbol, price)
         response = self.privatePostOrders(self.extend(request, params))
-        data = self.safe_value(response, 'data')
+        data = self.safe_dict(response, 'data')
         return self.parse_order(data, market)
 
     def fetch_order(self, id: str, symbol: Str = None, params={}):
@@ -750,9 +750,9 @@ class oceanex(Exchange, ImplicitAPI):
         if since is not None:
             request['timestamp'] = since
         if limit is not None:
-            request['limit'] = limit
+            request['limit'] = min(limit, 10000)
         response = self.publicPostK(self.extend(request, params))
-        ohlcvs = self.safe_value(response, 'data', [])
+        ohlcvs = self.safe_list(response, 'data', [])
         return self.parse_ohlcvs(ohlcvs, market, timeframe, since, limit)
 
     def parse_order(self, order, market: Market = None) -> Order:
@@ -828,7 +828,7 @@ class oceanex(Exchange, ImplicitAPI):
         """
         self.load_markets()
         response = self.privatePostOrderDelete(self.extend({'id': id}, params))
-        data = self.safe_value(response, 'data')
+        data = self.safe_dict(response, 'data')
         return self.parse_order(data)
 
     def cancel_orders(self, ids, symbol: Str = None, params={}):
@@ -842,7 +842,7 @@ class oceanex(Exchange, ImplicitAPI):
         """
         self.load_markets()
         response = self.privatePostOrderDeleteMulti(self.extend({'ids': ids}, params))
-        data = self.safe_value(response, 'data')
+        data = self.safe_list(response, 'data')
         return self.parse_orders(data)
 
     def cancel_all_orders(self, symbol: Str = None, params={}):
@@ -855,7 +855,7 @@ class oceanex(Exchange, ImplicitAPI):
         """
         self.load_markets()
         response = self.privatePostOrdersClear(params)
-        data = self.safe_value(response, 'data')
+        data = self.safe_list(response, 'data')
         return self.parse_orders(data)
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):

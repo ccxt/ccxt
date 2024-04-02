@@ -8,7 +8,7 @@
 import Exchange from './abstract/kucoin.js';
 import { ExchangeError, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, AccountSuspended, InvalidNonce, NotSupported, BadRequest, AuthenticationError, BadSymbol, RateLimitExceeded, PermissionDenied, InvalidAddress, ArgumentsRequired } from './base/errors.js';
 import { Precise } from './base/Precise.js';
-import { TICK_SIZE } from './base/functions/number.js';
+import { TICK_SIZE, TRUNCATE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
 /**
@@ -55,8 +55,8 @@ export default class kucoin extends Exchange {
                 'fetchAccounts': true,
                 'fetchBalance': true,
                 'fetchBorrowInterest': true,
-                'fetchBorrowRateHistories': false,
-                'fetchBorrowRateHistory': false,
+                'fetchBorrowRateHistories': true,
+                'fetchBorrowRateHistory': true,
                 'fetchClosedOrders': true,
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
@@ -230,6 +230,7 @@ export default class kucoin extends Exchange {
                         'isolated/account/{symbol}': 50,
                         'margin/borrow': 15,
                         'margin/repay': 15,
+                        'margin/interest': 20,
                         'project/list': 10,
                         'project/marketInterestRate': 7.5,
                         'redeem/orders': 10,
@@ -425,6 +426,7 @@ export default class kucoin extends Exchange {
                     'Order size below the minimum requirement.': InvalidOrder,
                     'The withdrawal amount is below the minimum requirement.': ExchangeError,
                     'Unsuccessful! Exceeded the max. funds out-transfer limit': InsufficientFunds,
+                    'The amount increment is invalid.': BadRequest,
                     '400': BadRequest,
                     '401': AuthenticationError,
                     '403': NotSupported,
@@ -448,6 +450,56 @@ export default class kucoin extends Exchange {
                     '130202': ExchangeError,
                     '130203': InsufficientFunds,
                     '130204': BadRequest,
+                    '130301': InsufficientFunds,
+                    '130302': PermissionDenied,
+                    '130303': NotSupported,
+                    '130304': NotSupported,
+                    '130305': NotSupported,
+                    '130306': NotSupported,
+                    '130307': NotSupported,
+                    '130308': InvalidOrder,
+                    '130309': InvalidOrder,
+                    '130310': ExchangeError,
+                    '130311': InvalidOrder,
+                    '130312': InvalidOrder,
+                    '130313': InvalidOrder,
+                    '130314': InvalidOrder,
+                    '130315': NotSupported,
+                    '126000': ExchangeError,
+                    '126001': NotSupported,
+                    '126002': ExchangeError,
+                    '126003': InvalidOrder,
+                    '126004': ExchangeError,
+                    '126005': PermissionDenied,
+                    '126006': ExchangeError,
+                    '126007': ExchangeError,
+                    '126009': ExchangeError,
+                    '126010': ExchangeError,
+                    '126011': ExchangeError,
+                    '126013': InsufficientFunds,
+                    '126015': ExchangeError,
+                    '126021': NotSupported,
+                    '126022': InvalidOrder,
+                    '126027': InvalidOrder,
+                    '126028': InvalidOrder,
+                    '126029': InvalidOrder,
+                    '126030': InvalidOrder,
+                    '126033': InvalidOrder,
+                    '126034': InvalidOrder,
+                    '126036': InvalidOrder,
+                    '126037': ExchangeError,
+                    '126038': ExchangeError,
+                    '126039': ExchangeError,
+                    '126041': ExchangeError,
+                    '126042': ExchangeError,
+                    '126043': OrderNotFound,
+                    '126044': InvalidOrder,
+                    '126045': NotSupported,
+                    '126046': NotSupported,
+                    '126047': PermissionDenied,
+                    '126048': PermissionDenied,
+                    '135005': ExchangeError,
+                    '135018': ExchangeError,
                     '200004': InsufficientFunds,
                     '210014': InvalidOrder,
                     '210021': InsufficientFunds,
@@ -469,10 +521,12 @@ export default class kucoin extends Exchange {
                     '400350': InvalidOrder,
                     '400370': InvalidOrder,
                     '400400': BadRequest,
+                    '400401': AuthenticationError,
                     '400500': InvalidOrder,
                     '400600': BadSymbol,
                     '400760': InvalidOrder,
                     '401000': BadRequest,
+                    '408000': BadRequest,
                     '411100': AccountSuspended,
                     '415000': BadRequest,
                     '400303': PermissionDenied,
@@ -591,6 +645,7 @@ export default class kucoin extends Exchange {
                             'margin/currencies': 'v3',
                             'margin/borrow': 'v3',
                             'margin/repay': 'v3',
+                            'margin/interest': 'v3',
                             'project/list': 'v3',
                             'project/marketInterestRate': 'v3',
                             'redeem/orders': 'v3',
@@ -2109,6 +2164,14 @@ export default class kucoin extends Exchange {
         data = this.safeList(data, 'data', []);
         return this.parseOrders(data);
     }
+    marketOrderAmountToPrecision(symbol, amount) {
+        const market = this.market(symbol);
+        const result = this.decimalToPrecision(amount, TRUNCATE, market['info']['quoteIncrement'], this.precisionMode, this.paddingMode);
+        if (result === '0') {
+            throw new InvalidOrder(this.id + ' amount of ' + market['symbol'] + ' must be greater than minimum amount precision of ' + this.numberToString(market['precision']['amount']));
+        }
+        return result;
+    }
     createOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
         const market = this.market(symbol);
         // required param, cannot be used twice
@@ -2129,7 +2192,7 @@ export default class kucoin extends Exchange {
             if (quoteAmount !== undefined) {
                 params = this.omit(params, ['cost', 'funds']);
                 // kucoin uses base precision even for quote values
-                costString = this.amountToPrecision(symbol, quoteAmount);
+                costString = this.marketOrderAmountToPrecision(symbol, quoteAmount);
                 request['funds'] = costString;
             }
             else {
@@ -2447,8 +2510,12 @@ export default class kucoin extends Exchange {
         //             ]
         //         }
         //    }
+        const listData = this.safeList(response, 'data');
+        if (listData !== undefined) {
+            return this.parseOrders(listData, market, since, limit);
+        }
         const responseData = this.safeDict(response, 'data', {});
-        const orders = this.safeValue(responseData, 'items', responseData);
+        const orders = this.safeList(responseData, 'items', []);
         return this.parseOrders(orders, market, since, limit);
     }
     async fetchClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -4045,12 +4112,19 @@ export default class kucoin extends Exchange {
         //         "timestamp": 1658531274508488480
         //     },
         //
-        const timestampId = this.safeString(info, 'timestamp');
-        const timestamp = Precise.stringMul(timestampId, '0.000001');
+        //     {
+        //         "createdAt": 1697783812257,
+        //         "currency": "XMR",
+        //         "interestAmount": "0.1",
+        //         "dayRatio": "0.001"
+        //     }
+        //
+        const timestampId = this.safeString2(info, 'createdAt', 'timestamp');
+        const timestamp = this.parseToInt(timestampId.slice(0, 13));
         const currencyId = this.safeString(info, 'currency');
         return {
             'currency': this.safeCurrencyCode(currencyId, currency),
-            'rate': this.safeNumber(info, 'dailyIntRate'),
+            'rate': this.safeNumber2(info, 'dailyIntRate', 'dayRatio'),
             'period': 86400000,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
@@ -4233,6 +4307,144 @@ export default class kucoin extends Exchange {
             'datetime': this.iso8601(timestamp),
             'info': info,
         };
+    }
+    async fetchBorrowRateHistories(codes = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name kucoin#fetchBorrowRateHistories
+         * @description retrieves a history of a multiple currencies borrow interest rate at specific time slots, returns all currencies if no symbols passed, default is undefined
+         * @see https://www.kucoin.com/docs/rest/margin-trading/margin-trading-v3-/get-cross-isolated-margin-interest-records
+         * @param {string[]|undefined} codes list of unified currency codes, default is undefined
+         * @param {int} [since] timestamp in ms of the earliest borrowRate, default is undefined
+         * @param {int} [limit] max number of borrow rate prices to return, default is undefined
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.marginMode] 'cross' or 'isolated' default is 'cross'
+         * @param {int} [params.until] the latest time in ms to fetch entries for
+         * @returns {object} a dictionary of [borrow rate structures]{@link https://docs.ccxt.com/#/?id=borrow-rate-structure} indexed by the market symbol
+         */
+        await this.loadMarkets();
+        const marginResult = this.handleMarginModeAndParams('fetchBorrowRateHistories', params);
+        const marginMode = this.safeString(marginResult, 0, 'cross');
+        const isIsolated = (marginMode === 'isolated'); // true-isolated, false-cross
+        let request = {
+            'isIsolated': isIsolated,
+        };
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        [request, params] = this.handleUntilOption('endTime', request, params);
+        if (limit !== undefined) {
+            request['pageSize'] = limit; // default:50, min:10, max:500
+        }
+        const response = await this.privateGetMarginInterest(this.extend(request, params));
+        //
+        //     {
+        //         "code": "200000",
+        //         "data": {
+        //             "timestamp": 1710829939673,
+        //             "currentPage": 1,
+        //             "pageSize": 50,
+        //             "totalNum": 0,
+        //             "totalPage": 0,
+        //             "items": [
+        //                 {
+        //                     "createdAt": 1697783812257,
+        //                     "currency": "XMR",
+        //                     "interestAmount": "0.1",
+        //                     "dayRatio": "0.001"
+        //                 }
+        //             ]
+        //         }
+        //     }
+        //
+        const data = this.safeDict(response, 'data');
+        const rows = this.safeList(data, 'items');
+        return this.parseBorrowRateHistories(rows, codes, since, limit);
+    }
+    async fetchBorrowRateHistory(code, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name kucoin#fetchBorrowRateHistory
+         * @description retrieves a history of a currencies borrow interest rate at specific time slots
+         * @see https://www.kucoin.com/docs/rest/margin-trading/margin-trading-v3-/get-cross-isolated-margin-interest-records
+         * @param {string} code unified currency code
+         * @param {int} [since] timestamp for the earliest borrow rate
+         * @param {int} [limit] the maximum number of [borrow rate structures]{@link https://docs.ccxt.com/#/?id=borrow-rate-structure} to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.marginMode] 'cross' or 'isolated' default is 'cross'
+         * @param {int} [params.until] the latest time in ms to fetch entries for
+         * @returns {object[]} an array of [borrow rate structures]{@link https://docs.ccxt.com/#/?id=borrow-rate-structure}
+         */
+        await this.loadMarkets();
+        const marginResult = this.handleMarginModeAndParams('fetchBorrowRateHistories', params);
+        const marginMode = this.safeString(marginResult, 0, 'cross');
+        const isIsolated = (marginMode === 'isolated'); // true-isolated, false-cross
+        const currency = this.currency(code);
+        let request = {
+            'isIsolated': isIsolated,
+            'currency': currency['id'],
+        };
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        [request, params] = this.handleUntilOption('endTime', request, params);
+        if (limit !== undefined) {
+            request['pageSize'] = limit; // default:50, min:10, max:500
+        }
+        const response = await this.privateGetMarginInterest(this.extend(request, params));
+        //
+        //     {
+        //         "code": "200000",
+        //         "data": {
+        //             "timestamp": 1710829939673,
+        //             "currentPage": 1,
+        //             "pageSize": 50,
+        //             "totalNum": 0,
+        //             "totalPage": 0,
+        //             "items": [
+        //                 {
+        //                     "createdAt": 1697783812257,
+        //                     "currency": "XMR",
+        //                     "interestAmount": "0.1",
+        //                     "dayRatio": "0.001"
+        //                 }
+        //             ]
+        //         }
+        //     }
+        //
+        const data = this.safeDict(response, 'data');
+        const rows = this.safeList(data, 'items');
+        return this.parseBorrowRateHistory(rows, code, since, limit);
+    }
+    parseBorrowRateHistories(response, codes, since, limit) {
+        //
+        //     [
+        //         {
+        //             "createdAt": 1697783812257,
+        //             "currency": "XMR",
+        //             "interestAmount": "0.1",
+        //             "dayRatio": "0.001"
+        //         }
+        //     ]
+        //
+        const borrowRateHistories = {};
+        for (let i = 0; i < response.length; i++) {
+            const item = response[i];
+            const code = this.safeCurrencyCode(this.safeString(item, 'currency'));
+            if (codes === undefined || this.inArray(code, codes)) {
+                if (!(code in borrowRateHistories)) {
+                    borrowRateHistories[code] = [];
+                }
+                const borrowRateStructure = this.parseBorrowRate(item);
+                borrowRateHistories[code].push(borrowRateStructure);
+            }
+        }
+        const keys = Object.keys(borrowRateHistories);
+        for (let i = 0; i < keys.length; i++) {
+            const code = keys[i];
+            borrowRateHistories[code] = this.filterByCurrencySinceLimit(borrowRateHistories[code], code, since, limit);
+        }
+        return borrowRateHistories;
     }
     async borrowCrossMargin(code, amount, params = {}) {
         /**

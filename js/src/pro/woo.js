@@ -58,6 +58,13 @@ export default class woo extends wooRest {
                 'ping': this.ping,
                 'keepAlive': 10000,
             },
+            'exceptions': {
+                'ws': {
+                    'exact': {
+                        'Auth is needed.': AuthenticationError,
+                    },
+                },
+            },
         });
     }
     requestId(url) {
@@ -78,6 +85,15 @@ export default class woo extends wooRest {
         return await this.watch(url, messageHash, request, messageHash, subscribe);
     }
     async watchOrderBook(symbol, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name woo#watchOrderBook
+         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {string} symbol unified symbol of the market to fetch the order book for
+         * @param {int} [limit] the maximum amount of order book entries to return.
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+         */
         await this.loadMarkets();
         const name = 'orderbook';
         const market = this.market(symbol);
@@ -127,9 +143,18 @@ export default class woo extends wooRest {
         client.resolve(orderbook, topic);
     }
     async watchTicker(symbol, params = {}) {
+        /**
+         * @method
+         * @name woo#watchTicker
+         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @param {string} symbol unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
         await this.loadMarkets();
         const name = 'ticker';
         const market = this.market(symbol);
+        symbol = market['symbol'];
         const topic = market['id'] + '@' + name;
         const request = {
             'event': 'subscribe',
@@ -204,7 +229,16 @@ export default class woo extends wooRest {
         return message;
     }
     async watchTickers(symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name woo#watchTickers
+         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+         * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
         await this.loadMarkets();
+        symbols = this.marketSymbols(symbols);
         const name = 'tickers';
         const topic = name;
         const request = {
@@ -323,8 +357,19 @@ export default class woo extends wooRest {
         client.resolve(stored, topic);
     }
     async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name woo#watchTrades
+         * @description watches information on multiple trades made in a market
+         * @param {string} symbol unified market symbol of the market trades were made in
+         * @param {int} [since] the earliest time in ms to fetch trades for
+         * @param {int} [limit] the maximum number of trade structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+         */
         await this.loadMarkets();
         const market = this.market(symbol);
+        symbol = market['symbol'];
         const topic = market['id'] + '@trade';
         const request = {
             'event': 'subscribe',
@@ -419,8 +464,9 @@ export default class woo extends wooRest {
         const client = this.client(url);
         const messageHash = 'authenticated';
         const event = 'auth';
-        let future = this.safeValue(client.subscriptions, messageHash);
-        if (future === undefined) {
+        const future = client.future(messageHash);
+        const authenticated = this.safeValue(client.subscriptions, messageHash);
+        if (authenticated === undefined) {
             const ts = this.nonce().toString();
             const auth = '|' + ts;
             const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
@@ -433,10 +479,9 @@ export default class woo extends wooRest {
                 },
             };
             const message = this.extend(request, params);
-            future = this.watch(url, messageHash, message);
-            client.subscriptions[messageHash] = future;
+            this.watch(url, messageHash, message, messageHash);
         }
-        return future;
+        return await future;
     }
     async watchPrivate(messageHash, message, params = {}) {
         await this.authenticate(params);
@@ -449,6 +494,16 @@ export default class woo extends wooRest {
         return await this.watch(url, messageHash, request, messageHash, subscribe);
     }
     async watchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name woo#watchOrders
+         * @description watches information on multiple orders made by the user
+         * @param {string} symbol unified market symbol of the market orders were made in
+         * @param {int} [since] the earliest time in ms to fetch orders for
+         * @param {int} [limit] the maximum number of order structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
         await this.loadMarkets();
         const topic = 'executionreport';
         let messageHash = topic;
@@ -801,7 +856,43 @@ export default class woo extends wooRest {
         this.balance = this.safeBalance(this.balance);
         client.resolve(this.balance, 'balance');
     }
+    handleErrorMessage(client, message) {
+        //
+        // {"id":"1","event":"subscribe","success":false,"ts":1710780997216,"errorMsg":"Auth is needed."}
+        //
+        if (!('success' in message)) {
+            return false;
+        }
+        const success = this.safeBool(message, 'success');
+        if (success) {
+            return false;
+        }
+        const errorMessage = this.safeString(message, 'errorMsg');
+        try {
+            if (errorMessage !== undefined) {
+                const feedback = this.id + ' ' + this.json(message);
+                this.throwExactlyMatchedException(this.exceptions['exact'], errorMessage, feedback);
+            }
+            return false;
+        }
+        catch (error) {
+            if (error instanceof AuthenticationError) {
+                const messageHash = 'authenticated';
+                client.reject(error, messageHash);
+                if (messageHash in client.subscriptions) {
+                    delete client.subscriptions[messageHash];
+                }
+            }
+            else {
+                client.reject(error);
+            }
+            return true;
+        }
+    }
     handleMessage(client, message) {
+        if (this.handleErrorMessage(client, message)) {
+            return;
+        }
         const methods = {
             'ping': this.handlePing,
             'pong': this.handlePong,
@@ -884,7 +975,9 @@ export default class woo extends wooRest {
         const messageHash = 'authenticated';
         const success = this.safeValue(message, 'success');
         if (success) {
-            client.resolve(message, messageHash);
+            // client.resolve (message, messageHash);
+            const future = this.safeValue(client.futures, 'authenticated');
+            future.resolve(true);
         }
         else {
             const error = new AuthenticationError(this.json(message));

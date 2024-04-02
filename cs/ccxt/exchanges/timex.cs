@@ -498,7 +498,7 @@ public partial class timex : Exchange
         //         }
         //     ]
         //
-        object ticker = this.safeValue(response, 0);
+        object ticker = this.safeDict(response, 0);
         return this.parseTicker(ticker, market);
     }
 
@@ -777,7 +777,7 @@ public partial class timex : Exchange
         //     }
         //
         object orders = this.safeValue(response, "orders", new List<object>() {});
-        object order = this.safeValue(orders, 0, new Dictionary<string, object>() {});
+        object order = this.safeDict(orders, 0, new Dictionary<string, object>() {});
         return this.parseOrder(order, market);
     }
 
@@ -834,7 +834,7 @@ public partial class timex : Exchange
         }
         object orders = this.safeValue(response, "changedOrders", new List<object>() {});
         object firstOrder = this.safeValue(orders, 0, new Dictionary<string, object>() {});
-        object order = this.safeValue(firstOrder, "newOrder", new Dictionary<string, object>() {});
+        object order = this.safeDict(firstOrder, "newOrder", new Dictionary<string, object>() {});
         return this.parseOrder(order, market);
     }
 
@@ -951,7 +951,7 @@ public partial class timex : Exchange
         //     }
         //
         object order = this.safeValue(response, "order", new Dictionary<string, object>() {});
-        object trades = this.safeValue(response, "trades", new List<object>() {});
+        object trades = this.safeList(response, "trades", new List<object>() {});
         return this.parseOrder(this.extend(order, new Dictionary<string, object>() {
             { "trades", trades },
         }));
@@ -1011,7 +1011,7 @@ public partial class timex : Exchange
         //         ]
         //     }
         //
-        object orders = this.safeValue(response, "orders", new List<object>() {});
+        object orders = this.safeList(response, "orders", new List<object>() {});
         return this.parseOrders(orders, market, since, limit);
     }
 
@@ -1074,7 +1074,7 @@ public partial class timex : Exchange
         //         ]
         //     }
         //
-        object orders = this.safeValue(response, "orders", new List<object>() {});
+        object orders = this.safeList(response, "orders", new List<object>() {});
         return this.parseOrders(orders, market, since, limit);
     }
 
@@ -1133,7 +1133,7 @@ public partial class timex : Exchange
         //         ]
         //     }
         //
-        object trades = this.safeValue(response, "trades", new List<object>() {});
+        object trades = this.safeList(response, "trades", new List<object>() {});
         return this.parseTrades(trades, market, since, limit);
     }
 

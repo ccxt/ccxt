@@ -185,7 +185,7 @@ export default class wazirx extends Exchange {
         });
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name wazirx#fetchMarkets
@@ -321,7 +321,7 @@ export default class wazirx extends Exchange {
             'interval': this.safeString (this.timeframes, timeframe, timeframe),
         };
         if (limit !== undefined) {
-            request['limit'] = limit;
+            request['limit'] = Math.min (limit, 2000);
         }
         const until = this.safeInteger (params, 'until');
         params = this.omit (params, [ 'until' ]);

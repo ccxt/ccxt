@@ -6,7 +6,7 @@ import type { Balances, Currency, Int, Market, Num, Order, OrderBook, OrderSide,
  */
 export default class independentreserve extends Exchange {
     describe(): any;
-    fetchMarkets(params?: {}): Promise<any[]>;
+    fetchMarkets(params?: {}): Promise<Market[]>;
     parseBalance(response: any): Balances;
     fetchBalance(params?: {}): Promise<Balances>;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;

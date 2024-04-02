@@ -460,7 +460,7 @@ class bitfinex(Exchange, ImplicitAPI):
         #        }
         #    }
         #
-        withdraw = self.safe_value(response, 'withdraw')
+        withdraw = self.safe_list(response, 'withdraw')
         return self.parse_deposit_withdraw_fees(withdraw, codes)
 
     def parse_deposit_withdraw_fee(self, fee, currency: Currency = None):
@@ -557,7 +557,7 @@ class bitfinex(Exchange, ImplicitAPI):
             result[symbol] = fee
         return result
 
-    def fetch_markets(self, params={}):
+    def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for bitfinex
         :see: https://docs.bitfinex.com/v1/reference/rest-public-symbols
@@ -1259,6 +1259,8 @@ class bitfinex(Exchange, ImplicitAPI):
         self.load_markets()
         if limit is None:
             limit = 100
+        else:
+            limit = min(limit, 10000)
         market = self.market(symbol)
         v2id = 't' + market['id']
         request = {

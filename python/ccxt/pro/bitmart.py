@@ -663,9 +663,9 @@ class bitmart(ccxt.async_support.bitmart):
         #    }
         #
         data = self.safe_value(message, 'data', [])
-        cache = self.positions
         if self.positions is None:
             self.positions = ArrayCacheBySymbolBySide()
+        cache = self.positions
         newPositions = []
         for i in range(0, len(data)):
             rawPosition = data[i]
@@ -1312,7 +1312,7 @@ class bitmart(ccxt.async_support.bitmart):
                 }
             message = self.extend(request, params)
             self.watch(url, messageHash, message, messageHash)
-        return future
+        return await future
 
     def handle_subscription_status(self, client: Client, message):
         #

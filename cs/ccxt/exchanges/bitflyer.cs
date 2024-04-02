@@ -70,6 +70,11 @@ public partial class bitflyer : Exchange
                 } },
             } },
             { "precisionMode", TICK_SIZE },
+            { "exceptions", new Dictionary<string, object>() {
+                { "exact", new Dictionary<string, object>() {
+                    { "-2", typeof(OnMaintenance) },
+                } },
+            } },
         });
     }
 
@@ -96,7 +101,7 @@ public partial class bitflyer : Exchange
         return this.parse8601(add(add(add(add(add(year, "-"), month), "-"), day), "T00:00:00Z"));
     }
 
-    public override object safeMarket(object marketId, object market = null, object delimiter = null, object marketType = null)
+    public override object safeMarket(object marketId = null, object market = null, object delimiter = null, object marketType = null)
     {
         // Bitflyer has a different type of conflict in markets, because
         // some of their ids (ETH/BTC and BTC/JPY) are duplicated in US, EU and JP.
@@ -1117,5 +1122,23 @@ public partial class bitflyer : Exchange
             { "body", body },
             { "headers", headers },
         };
+    }
+
+    public override object handleErrors(object code, object reason, object url, object method, object headers, object body, object response, object requestHeaders, object requestBody)
+    {
+        if (isTrue(isEqual(response, null)))
+        {
+            return null;  // fallback to the default error handler
+        }
+        object feedback = add(add(this.id, " "), body);
+        // i.e. {"status":-2,"error_message":"Under maintenance","data":null}
+        object errorMessage = this.safeString(response, "error_message");
+        object statusCode = this.safeNumber(response, "status");
+        if (isTrue(!isEqual(errorMessage, null)))
+        {
+            this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), statusCode, feedback);
+            this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), errorMessage, feedback);
+        }
+        return null;
     }
 }

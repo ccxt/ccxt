@@ -187,7 +187,7 @@ public partial class binance
     /// <item>
     /// <term>params.name</term>
     /// <description>
-    /// string : stream to use can be ticker or bookTicker
+    /// string : stream to use can be ticker or miniTicker
     /// </description>
     /// </item>
     /// </list>
@@ -216,6 +216,33 @@ public partial class binance
     {
         var res = await this.watchTickers(symbols, parameters);
         return new Tickers(res);
+    }
+    /// <summary>
+    /// watches best bid & ask for symbols
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://binance-docs.github.io/apidocs/spot/en/#individual-symbol-book-ticker-streams"/>  <br/>
+    /// See <see href="https://binance-docs.github.io/apidocs/futures/en/#all-book-tickers-stream"/>  <br/>
+    /// See <see href="https://binance-docs.github.io/apidocs/delivery/en/#all-book-tickers-stream"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}.</returns>
+    public async Task<Tickers> WatchBidsAsks(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.watchBidsAsks(symbols, parameters);
+        return new Tickers(res);
+    }
+    public async Task<Dictionary<string, object>> WatchMultiTickerHelper(object methodName, string channelName, List<String> symbols = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.watchMultiTickerHelper(methodName, channelName, symbols, parameters);
+        return ((Dictionary<string, object>)res);
     }
     /// <summary>
     /// fetch balance and get the amount of funds available for trading or funds locked in orders

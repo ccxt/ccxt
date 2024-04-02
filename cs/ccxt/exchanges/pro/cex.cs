@@ -136,6 +136,7 @@ public partial class cex : ccxt.cex
         object url = getValue(getValue(this.urls, "api"), "ws");
         object messageHash = "trades";
         object subscriptionHash = add("old:", symbol);
+        ((IDictionary<string,object>)this.options)["currentWatchTradeSymbol"] = symbol; // exchange supports only 1 symbol for this watchTrades channel
         var client = this.safeValue(this.clients, url);
         if (isTrue(!isEqual(client as WebSocketClient, null)))
         {
@@ -174,18 +175,28 @@ public partial class cex : ccxt.cex
         //     {
         //         "e": "history",
         //         "data": [
-        //             "sell:1665467367741:3888551:19058.8:14541219",
-        //             "buy:1665467367741:1059339:19071.5:14541218",
+        //            'buy:1710255706095:444444:71222.2:14892622'
+        //            'sell:1710255658251:42530:71300:14892621'
+        //            'buy:1710252424241:87913:72800:14892620'
+        //            ... timestamp descending
         //         ]
         //     }
         //
-        object data = this.safeValue(message, "data", new List<object>() {});
+        object data = this.safeList(message, "data", new List<object>() {});
         object limit = this.safeInteger(this.options, "tradesLimit", 1000);
         var stored = new ArrayCache(limit);
-        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+        object symbol = this.safeString(this.options, "currentWatchTradeSymbol");
+        if (isTrue(isEqual(symbol, null)))
         {
-            object rawTrade = getValue(data, i);
-            object parsed = this.parseWsOldTrade(rawTrade);
+            return;
+        }
+        object market = this.market(symbol);
+        object dataLength = getArrayLength(data);
+        for (object i = 0; isLessThan(i, dataLength); postFixIncrement(ref i))
+        {
+            object index = subtract(subtract(dataLength, 1), i);
+            object rawTrade = getValue(data, index);
+            object parsed = this.parseWsOldTrade(rawTrade, market);
             callDynamically(stored, "append", new object[] {parsed});
         }
         object messageHash = "trades";
@@ -215,7 +226,7 @@ public partial class cex : ccxt.cex
             { "id", id },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "symbol", null },
+            { "symbol", this.safeString(market, "symbol") },
             { "type", null },
             { "side", side },
             { "order", null },
@@ -239,9 +250,11 @@ public partial class cex : ccxt.cex
         //
         object data = this.safeValue(message, "data", new List<object>() {});
         object stored = ((object)this.trades); // to do fix this, this.trades is not meant to be used like this
-        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+        object dataLength = getArrayLength(data);
+        for (object i = 0; isLessThan(i, dataLength); postFixIncrement(ref i))
         {
-            object rawTrade = getValue(data, i);
+            object index = subtract(subtract(dataLength, 1), i);
+            object rawTrade = getValue(data, index);
             object parsed = this.parseWsOldTrade(rawTrade);
             callDynamically(stored, "append", new object[] {parsed});
         }
@@ -365,12 +378,19 @@ public partial class cex : ccxt.cex
         object data = this.safeValue(message, "data", new Dictionary<string, object>() {});
         object ticker = this.parseWsTicker(data);
         object symbol = getValue(ticker, "symbol");
+        if (isTrue(isEqual(symbol, null)))
+        {
+            return;
+        }
         ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
         object messageHash = add("ticker:", symbol);
         callDynamically(client as WebSocketClient, "resolve", new object[] {ticker, messageHash});
         callDynamically(client as WebSocketClient, "resolve", new object[] {ticker, "tickers"});
         messageHash = this.safeString(message, "oid");
-        callDynamically(client as WebSocketClient, "resolve", new object[] {ticker, messageHash});
+        if (isTrue(!isEqual(messageHash, null)))
+        {
+            callDynamically(client as WebSocketClient, "resolve", new object[] {ticker, messageHash});
+        }
     }
 
     public virtual object parseWsTicker(object ticker, object market = null)

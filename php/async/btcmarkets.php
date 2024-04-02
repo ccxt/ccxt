@@ -367,7 +367,7 @@ class btcmarkets extends Exchange {
         );
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * retrieves data on all markets for btcmarkets
@@ -555,7 +555,7 @@ class btcmarkets extends Exchange {
                 $request['from'] = $this->iso8601($since);
             }
             if ($limit !== null) {
-                $request['limit'] = $limit; // default is 10, max 200
+                $request['limit'] = min ($limit, 200); // default is 10, max 200
             }
             $response = Async\await($this->publicGetMarketsMarketIdCandles (array_merge($request, $params)));
             //

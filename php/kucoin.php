@@ -49,8 +49,8 @@ class kucoin extends Exchange {
                 'fetchAccounts' => true,
                 'fetchBalance' => true,
                 'fetchBorrowInterest' => true,
-                'fetchBorrowRateHistories' => false,
-                'fetchBorrowRateHistory' => false,
+                'fetchBorrowRateHistories' => true,
+                'fetchBorrowRateHistory' => true,
                 'fetchClosedOrders' => true,
                 'fetchCrossBorrowRate' => false,
                 'fetchCrossBorrowRates' => false,
@@ -224,6 +224,7 @@ class kucoin extends Exchange {
                         'isolated/account/{symbol}' => 50, // 50SW
                         'margin/borrow' => 15, // 15SW
                         'margin/repay' => 15, // 15SW
+                        'margin/interest' => 20, // 20SW
                         'project/list' => 10, // 10SW
                         'project/marketInterestRate' => 7.5, // 5PW
                         'redeem/orders' => 10, // 10SW
@@ -419,6 +420,7 @@ class kucoin extends Exchange {
                     'Order size below the minimum requirement.' => '\\ccxt\\InvalidOrder', // array("code":"400100","msg":"Order size below the minimum requirement.")
                     'The withdrawal amount is below the minimum requirement.' => '\\ccxt\\ExchangeError', // array("code":"400100","msg":"The withdrawal amount is below the minimum requirement.")
                     'Unsuccessful! Exceeded the max. funds out-transfer limit' => '\\ccxt\\InsufficientFunds', // array("code":"200000","msg":"Unsuccessful! Exceeded the max. funds out-transfer limit")
+                    'The amount increment is invalid.' => '\\ccxt\\BadRequest',
                     '400' => '\\ccxt\\BadRequest',
                     '401' => '\\ccxt\\AuthenticationError',
                     '403' => '\\ccxt\\NotSupported',
@@ -442,6 +444,56 @@ class kucoin extends Exchange {
                     '130202' => '\\ccxt\\ExchangeError', // The system is renewing the loan automatically. Please try again later
                     '130203' => '\\ccxt\\InsufficientFunds', // Insufficient account balance
                     '130204' => '\\ccxt\\BadRequest', // As the total lending amount for platform leverage reaches the platform's maximum position limit, the system suspends the borrowing function of leverage
+                    '130301' => '\\ccxt\\InsufficientFunds', // Insufficient account balance
+                    '130302' => '\\ccxt\\PermissionDenied', // Your relevant permission rights have been restricted, you can contact customer service for processing
+                    '130303' => '\\ccxt\\NotSupported', // The current trading pair does not support isolated positions
+                    '130304' => '\\ccxt\\NotSupported', // The trading function of the current trading pair is not enabled
+                    '130305' => '\\ccxt\\NotSupported', // The current trading pair does not support cross position
+                    '130306' => '\\ccxt\\NotSupported', // The account has not opened leveraged trading
+                    '130307' => '\\ccxt\\NotSupported', // Please reopen the leverage agreement
+                    '130308' => '\\ccxt\\InvalidOrder', // Position renewal freeze
+                    '130309' => '\\ccxt\\InvalidOrder', // Position forced liquidation freeze
+                    '130310' => '\\ccxt\\ExchangeError', // Abnormal leverage account status
+                    '130311' => '\\ccxt\\InvalidOrder', // Failed to place an order, triggering buy limit
+                    '130312' => '\\ccxt\\InvalidOrder', // Trigger global position limit, suspend buying
+                    '130313' => '\\ccxt\\InvalidOrder', // Trigger global position limit, suspend selling
+                    '130314' => '\\ccxt\\InvalidOrder', // Trigger the global position limit and prompt the remaining quantity available for purchase
+                    '130315' => '\\ccxt\\NotSupported', // This feature has been suspended due to country restrictions
+                    '126000' => '\\ccxt\\ExchangeError', // Abnormal margin trading
+                    '126001' => '\\ccxt\\NotSupported', // Users currently do not support high frequency
+                    '126002' => '\\ccxt\\ExchangeError', // There is a risk problem in your account and transactions are temporarily not allowed!
+                    '126003' => '\\ccxt\\InvalidOrder', // The commission amount is less than the minimum transaction amount for a single commission
+                    '126004' => '\\ccxt\\ExchangeError', // Trading pair does not exist or is prohibited
+                    '126005' => '\\ccxt\\PermissionDenied', // This trading pair requires advanced KYC certification before trading
+                    '126006' => '\\ccxt\\ExchangeError', // Trading pair is not available
+                    '126007' => '\\ccxt\\ExchangeError', // Trading pair suspended
+                    '126009' => '\\ccxt\\ExchangeError', // Trading pair is suspended from creating orders
+                    '126010' => '\\ccxt\\ExchangeError', // Trading pair suspended order cancellation
+                    '126011' => '\\ccxt\\ExchangeError', // There are too many orders in the order
+                    '126013' => '\\ccxt\\InsufficientFunds', // Insufficient account balance
+                    '126015' => '\\ccxt\\ExchangeError', // It is prohibited to place orders on this trading pair
+                    '126021' => '\\ccxt\\NotSupported', // This digital asset does not support user participation in your region, thank you for your understanding!
+                    '126022' => '\\ccxt\\InvalidOrder', // The final transaction price of your order will trigger the price protection strategy. To protect the price from deviating too much, please place an order again.
+                    '126027' => '\\ccxt\\InvalidOrder', // Only limit orders are supported
+                    '126028' => '\\ccxt\\InvalidOrder', // Only limit orders are supported before the specified time
+                    '126029' => '\\ccxt\\InvalidOrder', // The maximum order price is => xxx
+                    '126030' => '\\ccxt\\InvalidOrder', // The minimum order price is => xxx
+                    '126033' => '\\ccxt\\InvalidOrder', // Duplicate order
+                    '126034' => '\\ccxt\\InvalidOrder', // Failed to create take profit and stop loss order
+                    '126036' => '\\ccxt\\InvalidOrder', // Failed to create margin order
+                    '126037' => '\\ccxt\\ExchangeError', // Due to country and region restrictions, this function has been suspended!
+                    '126038' => '\\ccxt\\ExchangeError', // Third-party service call failed (internal exception)
+                    '126039' => '\\ccxt\\ExchangeError', // Third-party service call failed, reason => xxx
+                    '126041' => '\\ccxt\\ExchangeError', // clientTimestamp parameter error
+                    '126042' => '\\ccxt\\ExchangeError', // Exceeded maximum position limit
+                    '126043' => '\\ccxt\\OrderNotFound', // Order does not exist
+                    '126044' => '\\ccxt\\InvalidOrder', // clientOid duplicate
+                    '126045' => '\\ccxt\\NotSupported', // This digital asset does not support user participation in your region, thank you for your understanding!
+                    '126046' => '\\ccxt\\NotSupported', // This digital asset does not support your IP region, thank you for your understanding!
+                    '126047' => '\\ccxt\\PermissionDenied', // Please complete identity verification
+                    '126048' => '\\ccxt\\PermissionDenied', // Please complete authentication for the master account
+                    '135005' => '\\ccxt\\ExchangeError', // Margin order query business abnormality
+                    '135018' => '\\ccxt\\ExchangeError', // Margin order query service abnormality
                     '200004' => '\\ccxt\\InsufficientFunds',
                     '210014' => '\\ccxt\\InvalidOrder', // array("code":"210014","msg":"Exceeds the max. borrowing amount, the remaining amount you can borrow => 0USDT")
                     '210021' => '\\ccxt\\InsufficientFunds', // array("code":"210021","msg":"Balance not enough")
@@ -463,10 +515,12 @@ class kucoin extends Exchange {
                     '400350' => '\\ccxt\\InvalidOrder', // array("code":"400350","msg":"Upper limit for holding => 10,000USDT, you can still buy 10,000USDT worth of coin.")
                     '400370' => '\\ccxt\\InvalidOrder', // array("code":"400370","msg":"Max. price => 0.02500000000000000000")
                     '400400' => '\\ccxt\\BadRequest', // Parameter error
+                    '400401' => '\\ccxt\\AuthenticationError', // User is not logged in
                     '400500' => '\\ccxt\\InvalidOrder', // array("code":"400500","msg":"Your located country/region is currently not supported for the trading of this token")
                     '400600' => '\\ccxt\\BadSymbol', // array("code":"400600","msg":"validation.createOrder.symbolNotAvailable")
                     '400760' => '\\ccxt\\InvalidOrder', // array("code":"400760","msg":"order price should be more than XX")
                     '401000' => '\\ccxt\\BadRequest', // array("code":"401000","msg":"The interface has been deprecated")
+                    '408000' => '\\ccxt\\BadRequest', // Network timeout, please try again later
                     '411100' => '\\ccxt\\AccountSuspended',
                     '415000' => '\\ccxt\\BadRequest', // array("code":"415000","msg":"Unsupported Media Type")
                     '400303' => '\\ccxt\\PermissionDenied', // array("msg":"To enjoy the full range of our products and services, we kindly request you complete the identity verification process.","code":"400303")
@@ -585,6 +639,7 @@ class kucoin extends Exchange {
                             'margin/currencies' => 'v3',
                             'margin/borrow' => 'v3',
                             'margin/repay' => 'v3',
+                            'margin/interest' => 'v3',
                             'project/list' => 'v3',
                             'project/marketInterestRate' => 'v3',
                             'redeem/orders' => 'v3',
@@ -920,7 +975,7 @@ class kucoin extends Exchange {
         );
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): array {
         /**
          * retrieves $data on all markets for kucoin
          * @see https://docs.kucoin.com/#get-symbols-list-deprecated
@@ -2080,6 +2135,15 @@ class kucoin extends Exchange {
         return $this->parse_orders($data);
     }
 
+    public function market_order_amount_to_precision(string $symbol, $amount) {
+        $market = $this->market($symbol);
+        $result = $this->decimal_to_precision($amount, TRUNCATE, $market['info']['quoteIncrement'], $this->precisionMode, $this->paddingMode);
+        if ($result === '0') {
+            throw new InvalidOrder($this->id . ' $amount of ' . $market['symbol'] . ' must be greater than minimum $amount precision of ' . $this->number_to_string($market['precision']['amount']));
+        }
+        return $result;
+    }
+
     public function create_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         $market = $this->market($symbol);
         // required param, cannot be used twice
@@ -2100,7 +2164,7 @@ class kucoin extends Exchange {
             if ($quoteAmount !== null) {
                 $params = $this->omit($params, array( 'cost', 'funds' ));
                 // kucoin uses base precision even for quote values
-                $costString = $this->amount_to_precision($symbol, $quoteAmount);
+                $costString = $this->market_order_amount_to_precision($symbol, $quoteAmount);
                 $request['funds'] = $costString;
             } else {
                 $amountString = $this->amount_to_precision($symbol, $amount);
@@ -2395,8 +2459,12 @@ class kucoin extends Exchange {
         //             )
         //         }
         //    }
+        $listData = $this->safe_list($response, 'data');
+        if ($listData !== null) {
+            return $this->parse_orders($listData, $market, $since, $limit);
+        }
         $responseData = $this->safe_dict($response, 'data', array());
-        $orders = $this->safe_value($responseData, 'items', $responseData);
+        $orders = $this->safe_list($responseData, 'items', array());
         return $this->parse_orders($orders, $market, $since, $limit);
     }
 
@@ -3967,12 +4035,19 @@ class kucoin extends Exchange {
         //         "timestamp" => 1658531274508488480
         //     ),
         //
-        $timestampId = $this->safe_string($info, 'timestamp');
-        $timestamp = Precise::string_mul($timestampId, '0.000001');
+        //     {
+        //         "createdAt" => 1697783812257,
+        //         "currency" => "XMR",
+        //         "interestAmount" => "0.1",
+        //         "dayRatio" => "0.001"
+        //     }
+        //
+        $timestampId = $this->safe_string_2($info, 'createdAt', 'timestamp');
+        $timestamp = $this->parse_to_int(mb_substr($timestampId, 0, 13 - 0));
         $currencyId = $this->safe_string($info, 'currency');
         return array(
             'currency' => $this->safe_currency_code($currencyId, $currency),
-            'rate' => $this->safe_number($info, 'dailyIntRate'),
+            'rate' => $this->safe_number_2($info, 'dailyIntRate', 'dayRatio'),
             'period' => 86400000,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -4153,6 +4228,143 @@ class kucoin extends Exchange {
             'datetime' => $this->iso8601($timestamp),
             'info' => $info,
         );
+    }
+
+    public function fetch_borrow_rate_histories($codes = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        /**
+         * retrieves a history of a multiple currencies borrow interest rate at specific time slots, returns all currencies if no symbols passed, default is null
+         * @see https://www.kucoin.com/docs/rest/margin-trading/margin-trading-v3-/get-cross-isolated-margin-interest-records
+         * @param {string[]|null} $codes list of unified currency $codes, default is null
+         * @param {int} [$since] timestamp in ms of the earliest borrowRate, default is null
+         * @param {int} [$limit] max number of borrow rate prices to return, default is null
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->marginMode] 'cross' or 'isolated' default is 'cross'
+         * @param {int} [$params->until] the latest time in ms to fetch entries for
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=borrow-rate-structure borrow rate structures~ indexed by the market symbol
+         */
+        $this->load_markets();
+        $marginResult = $this->handle_margin_mode_and_params('fetchBorrowRateHistories', $params);
+        $marginMode = $this->safe_string($marginResult, 0, 'cross');
+        $isIsolated = ($marginMode === 'isolated'); // true-isolated, false-cross
+        $request = array(
+            'isIsolated' => $isIsolated,
+        );
+        if ($since !== null) {
+            $request['startTime'] = $since;
+        }
+        list($request, $params) = $this->handle_until_option('endTime', $request, $params);
+        if ($limit !== null) {
+            $request['pageSize'] = $limit; // default:50, min:10, max:500
+        }
+        $response = $this->privateGetMarginInterest (array_merge($request, $params));
+        //
+        //     {
+        //         "code" => "200000",
+        //         "data" => {
+        //             "timestamp" => 1710829939673,
+        //             "currentPage" => 1,
+        //             "pageSize" => 50,
+        //             "totalNum" => 0,
+        //             "totalPage" => 0,
+        //             "items" => array(
+        //                 {
+        //                     "createdAt" => 1697783812257,
+        //                     "currency" => "XMR",
+        //                     "interestAmount" => "0.1",
+        //                     "dayRatio" => "0.001"
+        //                 }
+        //             )
+        //         }
+        //     }
+        //
+        $data = $this->safe_dict($response, 'data');
+        $rows = $this->safe_list($data, 'items');
+        return $this->parse_borrow_rate_histories($rows, $codes, $since, $limit);
+    }
+
+    public function fetch_borrow_rate_history(string $code, ?int $since = null, ?int $limit = null, $params = array ()) {
+        /**
+         * retrieves a history of a currencies borrow interest rate at specific time slots
+         * @see https://www.kucoin.com/docs/rest/margin-trading/margin-trading-v3-/get-cross-isolated-margin-interest-records
+         * @param {string} $code unified $currency $code
+         * @param {int} [$since] timestamp for the earliest borrow rate
+         * @param {int} [$limit] the maximum number of ~@link https://docs.ccxt.com/#/?id=borrow-rate-structure borrow rate structures~ to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->marginMode] 'cross' or 'isolated' default is 'cross'
+         * @param {int} [$params->until] the latest time in ms to fetch entries for
+         * @return {array[]} an array of ~@link https://docs.ccxt.com/#/?id=borrow-rate-structure borrow rate structures~
+         */
+        $this->load_markets();
+        $marginResult = $this->handle_margin_mode_and_params('fetchBorrowRateHistories', $params);
+        $marginMode = $this->safe_string($marginResult, 0, 'cross');
+        $isIsolated = ($marginMode === 'isolated'); // true-isolated, false-cross
+        $currency = $this->currency($code);
+        $request = array(
+            'isIsolated' => $isIsolated,
+            'currency' => $currency['id'],
+        );
+        if ($since !== null) {
+            $request['startTime'] = $since;
+        }
+        list($request, $params) = $this->handle_until_option('endTime', $request, $params);
+        if ($limit !== null) {
+            $request['pageSize'] = $limit; // default:50, min:10, max:500
+        }
+        $response = $this->privateGetMarginInterest (array_merge($request, $params));
+        //
+        //     {
+        //         "code" => "200000",
+        //         "data" => {
+        //             "timestamp" => 1710829939673,
+        //             "currentPage" => 1,
+        //             "pageSize" => 50,
+        //             "totalNum" => 0,
+        //             "totalPage" => 0,
+        //             "items" => array(
+        //                 {
+        //                     "createdAt" => 1697783812257,
+        //                     "currency" => "XMR",
+        //                     "interestAmount" => "0.1",
+        //                     "dayRatio" => "0.001"
+        //                 }
+        //             )
+        //         }
+        //     }
+        //
+        $data = $this->safe_dict($response, 'data');
+        $rows = $this->safe_list($data, 'items');
+        return $this->parse_borrow_rate_history($rows, $code, $since, $limit);
+    }
+
+    public function parse_borrow_rate_histories($response, $codes, $since, $limit) {
+        //
+        //     array(
+        //         {
+        //             "createdAt" => 1697783812257,
+        //             "currency" => "XMR",
+        //             "interestAmount" => "0.1",
+        //             "dayRatio" => "0.001"
+        //         }
+        //     )
+        //
+        $borrowRateHistories = array();
+        for ($i = 0; $i < count($response); $i++) {
+            $item = $response[$i];
+            $code = $this->safe_currency_code($this->safe_string($item, 'currency'));
+            if ($codes === null || $this->in_array($code, $codes)) {
+                if (!(is_array($borrowRateHistories) && array_key_exists($code, $borrowRateHistories))) {
+                    $borrowRateHistories[$code] = array();
+                }
+                $borrowRateStructure = $this->parse_borrow_rate($item);
+                $borrowRateHistories[$code][] = $borrowRateStructure;
+            }
+        }
+        $keys = is_array($borrowRateHistories) ? array_keys($borrowRateHistories) : array();
+        for ($i = 0; $i < count($keys); $i++) {
+            $code = $keys[$i];
+            $borrowRateHistories[$code] = $this->filter_by_currency_since_limit($borrowRateHistories[$code], $code, $since, $limit);
+        }
+        return $borrowRateHistories;
     }
 
     public function borrow_cross_margin(string $code, float $amount, $params = array ()) {

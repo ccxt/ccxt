@@ -454,7 +454,7 @@ class bitfinex extends Exchange {
             //        }
             //    }
             //
-            $withdraw = $this->safe_value($response, 'withdraw');
+            $withdraw = $this->safe_list($response, 'withdraw');
             return $this->parse_deposit_withdraw_fees($withdraw, $codes);
         }) ();
     }
@@ -559,7 +559,7 @@ class bitfinex extends Exchange {
         }) ();
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * retrieves data on all markets for bitfinex
@@ -1348,6 +1348,8 @@ class bitfinex extends Exchange {
             Async\await($this->load_markets());
             if ($limit === null) {
                 $limit = 100;
+            } else {
+                $limit = min ($limit, 10000);
             }
             $market = $this->market($symbol);
             $v2id = 't' . $market['id'];

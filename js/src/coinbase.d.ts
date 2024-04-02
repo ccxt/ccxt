@@ -30,7 +30,7 @@ export default class coinbase extends Exchange {
     parseTransactionStatus(status: any): string;
     parseTransaction(transaction: any, currency?: Currency): Transaction;
     parseTrade(trade: any, market?: Market): Trade;
-    fetchMarkets(params?: {}): Promise<any>;
+    fetchMarkets(params?: {}): Promise<Market[]>;
     fetchMarketsV2(params?: {}): Promise<any[]>;
     fetchMarketsV3(params?: {}): Promise<any[]>;
     fetchCurrenciesFromCache(params?: {}): Promise<import("./base/types.js").Dictionary<any>>;
@@ -64,7 +64,7 @@ export default class coinbase extends Exchange {
         status: string;
         fee: any;
     };
-    findAccountId(code: any): Promise<any>;
+    findAccountId(code: any, params?: {}): Promise<any>;
     prepareAccountRequest(limit?: Int, params?: {}): {
         account_id: string;
     };

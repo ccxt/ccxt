@@ -386,7 +386,7 @@ class coinlist extends Exchange {
         return $result;
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): array {
         /**
          * retrieves data on all $markets for coinlist
          * @see https://trade-docs.coinlist.co/?javascript--nodejs#list-symbols
@@ -706,7 +706,7 @@ class coinlist extends Exchange {
         //         )
         //     }
         //
-        $candles = $this->safe_value($response, 'candles', array());
+        $candles = $this->safe_list($response, 'candles', array());
         return $this->parse_ohlcvs($candles, $market, $timeframe, $since, $limit);
     }
 
@@ -784,7 +784,7 @@ class coinlist extends Exchange {
         //         )
         //     }
         //
-        $auctions = $this->safe_value($response, 'auctions', array());
+        $auctions = $this->safe_list($response, 'auctions', array());
         return $this->parse_trades($auctions, $market, $since, $limit);
     }
 
@@ -1188,7 +1188,7 @@ class coinlist extends Exchange {
         //         )
         //     }
         //
-        $fills = $this->safe_value($response, 'fills', array());
+        $fills = $this->safe_list($response, 'fills', array());
         return $this->parse_trades($fills, $market, $since, $limit);
     }
 
@@ -1272,7 +1272,7 @@ class coinlist extends Exchange {
         //         )
         //     }
         //
-        $orders = $this->safe_value($response, 'orders', array());
+        $orders = $this->safe_list($response, 'orders', array());
         return $this->parse_orders($orders, $market, $since, $limit);
     }
 
@@ -1505,7 +1505,7 @@ class coinlist extends Exchange {
         //         "timestamp" => "2023-10-26T11:30:55.376Z"
         //     }
         //
-        $order = $this->safe_value($response, 'order', array());
+        $order = $this->safe_dict($response, 'order', array());
         return $this->parse_order($order, $market);
     }
 
@@ -1791,7 +1791,7 @@ class coinlist extends Exchange {
         //         )
         //     }
         //
-        $transfers = $this->safe_value($response, 'transfers', array());
+        $transfers = $this->safe_list($response, 'transfers', array());
         return $this->parse_transfers($transfers, $currency, $since, $limit);
     }
 
@@ -1960,7 +1960,7 @@ class coinlist extends Exchange {
         //         "transfer_id" => "d4a2d8dd-7def-4545-a062-761683b9aa05"
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_dict($response, 'data', array());
         return $this->parse_transaction($data, $currency);
     }
 

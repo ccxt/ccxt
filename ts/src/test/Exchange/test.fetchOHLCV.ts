@@ -1,9 +1,9 @@
-
 import assert from 'assert';
+import { Exchange } from "../../../ccxt";
 import testOHLCV from './base/test.ohlcv.js';
 import testSharedMethods from './base/test.sharedMethods.js';
 
-async function testFetchOHLCV (exchange, skippedProperties, symbol) {
+async function testFetchOHLCV (exchange: Exchange, skippedProperties: object, symbol: string) {
     const method = 'fetchOHLCV';
     const timeframeKeys = Object.keys (exchange.timeframes);
     assert (timeframeKeys.length, exchange.id + ' ' + method + ' - no timeframes found');

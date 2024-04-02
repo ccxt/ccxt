@@ -792,11 +792,11 @@ public partial class bitmart : ccxt.bitmart
         //    }
         //
         object data = this.safeValue(message, "data", new List<object>() {});
-        object cache = this.positions;
         if (isTrue(isEqual(this.positions, null)))
         {
             this.positions = new ArrayCacheBySymbolBySide();
         }
+        object cache = this.positions;
         object newPositions = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
@@ -1568,7 +1568,7 @@ public partial class bitmart : ccxt.bitmart
             object message = this.extend(request, parameters);
             this.watch(url, messageHash, message, messageHash);
         }
-        return future;
+        return await (future as Exchange.Future);
     }
 
     public virtual object handleSubscriptionStatus(WebSocketClient client, object message)

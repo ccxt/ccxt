@@ -280,7 +280,7 @@ class krakenfutures(Exchange, ImplicitAPI):
             },
         })
 
-    def fetch_markets(self, params={}):
+    def fetch_markets(self, params={}) -> List[Market]:
         """
         Fetches the available trading markets from the exchange, Multi-collateral markets are returned markets, but can be settled in multiple currencies
         :see: https://docs.futures.kraken.com/#http-api-trading-v3-api-instrument-details-get-instruments
@@ -535,7 +535,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         #        "serverTime": "2022-02-18T14:16:29.440Z"
         #    }
         #
-        tickers = self.safe_value(response, 'tickers')
+        tickers = self.safe_list(response, 'tickers')
         return self.parse_tickers(tickers, symbols)
 
     def parse_ticker(self, ticker, market: Market = None) -> Ticker:
@@ -635,14 +635,12 @@ class krakenfutures(Exchange, ImplicitAPI):
             request['from'] = self.parse_to_int(since / 1000)
             if limit is None:
                 limit = 5000
-            elif limit > 5000:
-                raise BadRequest(self.id + ' fetchOHLCV() limit cannot exceed 5000')
+            limit = min(limit, 5000)
             toTimestamp = self.sum(request['from'], limit * duration - 1)
             currentTimestamp = self.seconds()
             request['to'] = min(toTimestamp, currentTimestamp)
         elif limit is not None:
-            if limit > 5000:
-                raise BadRequest(self.id + ' fetchOHLCV() limit cannot exceed 5000')
+            limit = min(limit, 5000)
             duration = self.parse_timeframe(timeframe)
             request['to'] = self.seconds()
             request['from'] = self.parse_to_int(request['to'] - (duration * limit))
@@ -662,7 +660,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         #        "more_candles": True
         #    }
         #
-        candles = self.safe_value(response, 'candles')
+        candles = self.safe_list(response, 'candles')
         return self.parse_ohlcvs(candles, market, timeframe, since, limit)
 
     def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
@@ -1087,7 +1085,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         #     ]
         # }
         #
-        data = self.safe_value(response, 'batchStatus', [])
+        data = self.safe_list(response, 'batchStatus', [])
         return self.parse_orders(data)
 
     def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}):
@@ -1191,7 +1189,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         #       }
         #     ]
         # }
-        batchStatus = self.safe_value(response, 'batchStatus', [])
+        batchStatus = self.safe_list(response, 'batchStatus', [])
         return self.parse_orders(batchStatus)
 
     def cancel_all_orders(self, symbol: Str = None, params={}):
@@ -1223,7 +1221,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         if symbol is not None:
             market = self.market(symbol)
         response = self.privateGetOpenorders(params)
-        orders = self.safe_value(response, 'openOrders', [])
+        orders = self.safe_list(response, 'openOrders', [])
         return self.parse_orders(orders, market, since, limit)
 
     def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
@@ -2217,7 +2215,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         #        "serverTime": "2018-07-19T11:32:39.433Z"
         #    }
         #
-        data = self.safe_value(response, 'instruments')
+        data = self.safe_list(response, 'instruments')
         return self.parse_leverage_tiers(data, symbols, 'symbol')
 
     def parse_market_leverage_tiers(self, info, market: Market = None):
