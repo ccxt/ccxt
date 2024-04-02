@@ -1,12 +1,12 @@
 import Exchange from './abstract/blofin.js';
-import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, Str, Transaction, Ticker, OrderBook, Balances, Tickers, Market, Strings, Currency, Position, TransferEntry, Leverage, Leverages } from './base/types.js';
+import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, Str, Transaction, Ticker, OrderBook, Balances, Tickers, Market, Strings, Currency, Position, TransferEntry, Leverage, Leverages, MarginMode, Num } from './base/types.js';
 /**
  * @class blofin
  * @augments Exchange
  */
 export default class blofin extends Exchange {
     describe(): any;
-    fetchMarkets(params?: {}): Promise<import("./base/types.js").MarketInterface[]>;
+    fetchMarkets(params?: {}): Promise<Market[]>;
     parseMarket(market: any): Market;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     parseTicker(ticker: any, market?: Market): Ticker;
@@ -65,11 +65,11 @@ export default class blofin extends Exchange {
         taker: number;
     };
     fetchBalance(params?: {}): Promise<Balances>;
-    createOrderRequest(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: number, params?: {}): any;
+    createOrderRequest(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): any;
     parseOrderStatus(status: any): string;
     parseOrder(order: any, market?: Market): Order;
-    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: number, params?: {}): Promise<Order>;
-    createTpslOrderRequest(symbol: string, type: OrderType, side: OrderSide, amount?: number, price?: number, params?: {}): any;
+    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
+    createTpslOrderRequest(symbol: string, type: OrderType, side: OrderSide, amount?: Num, price?: Num, params?: {}): any;
     cancelOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
     createOrders(orders: OrderRequest[], params?: {}): Promise<Order[]>;
     fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
@@ -116,6 +116,8 @@ export default class blofin extends Exchange {
     setLeverage(leverage: Int, symbol?: Str, params?: {}): Promise<any>;
     closePosition(symbol: string, side?: OrderSide, params?: {}): Promise<Order>;
     fetchClosedOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    fetchMarginMode(symbol: string, params?: {}): Promise<MarginMode>;
+    parseMarginMode(marginMode: any, market?: any): MarginMode;
     handleErrors(httpCode: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): any;
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;

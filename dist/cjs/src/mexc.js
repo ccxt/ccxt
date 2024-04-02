@@ -41,6 +41,7 @@ class mexc extends mexc$1 {
                 'createMarketSellOrderWithCost': false,
                 'createOrder': true,
                 'createOrders': true,
+                'createPostOnlyOrder': true,
                 'createReduceOnlyOrder': true,
                 'deposit': undefined,
                 'editOrder': undefined,
@@ -917,7 +918,7 @@ class mexc extends mexc$1 {
                     'Combination of optional parameters invalid': errors.BadRequest,
                     'api market order is disabled': errors.BadRequest,
                     'Contract not allow place order!': errors.InvalidOrder,
-                    'Oversold': errors.InvalidOrder,
+                    'Oversold': errors.InsufficientFunds,
                     'Insufficient position': errors.InsufficientFunds,
                     'Insufficient balance!': errors.InsufficientFunds,
                     'Bid price is great than max allow price': errors.InvalidOrder,
@@ -2207,6 +2208,14 @@ class mexc extends mexc$1 {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.marginMode] only 'isolated' is supported for spot-margin trading
          * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
+         * @param {bool} [params.postOnly] if true, the order will only be posted if it will be a maker order
+         * @param {bool} [params.reduceOnly] *contract only* indicates if this order is to reduce the size of a position
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+         * @param {int} [params.leverage] *contract only* leverage is necessary on isolated margin
+         * @param {long} [params.positionId] *contract only* it is recommended to fill in this parameter when closing a position
+         * @param {string} [params.externalOid] *contract only* external order ID
+         * @param {int} [params.positionMode] *contract only*  1:hedge, 2:one-way, default: the user's current config
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
@@ -2822,7 +2831,7 @@ class mexc extends mexc$1 {
             //         ]
             //     }
             //
-            const data = this.safeValue(response, 'data');
+            const data = this.safeList(response, 'data');
             return this.parseOrders(data, market);
         }
     }
@@ -3106,7 +3115,7 @@ class mexc extends mexc$1 {
             //         ]
             //     }
             //
-            const data = this.safeValue(response, 'data');
+            const data = this.safeList(response, 'data');
             return this.parseOrders(data, market);
         }
     }
@@ -3200,7 +3209,7 @@ class mexc extends mexc$1 {
             //         "code": "0"
             //     }
             //
-            const data = this.safeValue(response, 'data', []);
+            const data = this.safeList(response, 'data', []);
             return this.parseOrders(data, market);
         }
     }
@@ -4343,7 +4352,7 @@ class mexc extends mexc$1 {
         //         ]
         //     }
         //
-        const data = this.safeValue(response, 'data');
+        const data = this.safeList(response, 'data');
         return this.parseLeverageTiers(data, symbols, 'symbol');
     }
     parseMarketLeverageTiers(info, market = undefined) {
@@ -4801,7 +4810,7 @@ class mexc extends mexc$1 {
         //         ]
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parsePositions(data, symbols);
     }
     parsePosition(position, market = undefined) {
@@ -4892,7 +4901,7 @@ class mexc extends mexc$1 {
             //         }
             //     }
             //
-            const data = this.safeValue(response, 'data', {});
+            const data = this.safeDict(response, 'data', {});
             return this.parseTransfer(data);
         }
         else if (marketType === 'swap') {

@@ -86,6 +86,7 @@ class bitget extends \ccxt\async\bitget {
                         '30015' => '\\ccxt\\AuthenticationError', // array( event => 'error', code => 30015, msg => 'Invalid sign' )
                         '30016' => '\\ccxt\\BadRequest', // array( event => 'error', code => 30016, msg => 'Param error' )
                     ),
+                    'broad' => array(),
                 ),
             ),
         ));
@@ -686,10 +687,10 @@ class bitget extends \ccxt\async\bitget {
         }
         $data = $this->safe_list($message, 'data', array());
         $length = count($data);
-        $maxLength = max ($length - 1, 0);
         // fix chronological order by reversing
-        for ($i = $maxLength; $i >= 0; $i--) {
-            $rawTrade = $data[$i];
+        for ($i = 0; $i < $length; $i++) {
+            $index = $length - $i - 1;
+            $rawTrade = $data[$index];
             $parsed = $this->parse_ws_trade($rawTrade, $market);
             $stored->append ($parsed);
         }
@@ -1310,7 +1311,7 @@ class bitget extends \ccxt\async\bitget {
         if ($feeAmount !== null) {
             $feeCurrency = $this->safe_string($fee, 'feeCoin');
             $feeObject = array(
-                'cost' => Precise::string_abs($feeAmount),
+                'cost' => $this->parse_number(Precise::string_abs($feeAmount)),
                 'currency' => $this->safe_currency_code($feeCurrency),
             );
         }
@@ -1324,9 +1325,9 @@ class bitget extends \ccxt\async\bitget {
             $cost = $this->safe_string($order, 'newSize', $cost);
         }
         $filled = $this->safe_string_2($order, 'accBaseVolume', 'baseVolume');
-        if ($market['spot'] && ($rawStatus !== 'live')) {
-            $filled = Precise::string_div($cost, $avgPrice);
-        }
+        // if ($market['spot'] && ($rawStatus !== 'live')) {
+        //     $filled = Precise::string_div($cost, $avgPrice);
+        // }
         $amount = $this->safe_string($order, 'baseVolume');
         if (!$market['spot'] || !($side === 'buy' && $type === 'market')) {
             $amount = $this->safe_string($order, 'newSize', $amount);
@@ -1610,32 +1611,34 @@ class bitget extends \ccxt\async\bitget {
     }
 
     public function authenticate($params = array ()) {
-        $this->check_required_credentials();
-        $url = $this->urls['api']['ws']['private'];
-        $client = $this->client($url);
-        $messageHash = 'authenticated';
-        $future = $client->future ($messageHash);
-        $authenticated = $this->safe_value($client->subscriptions, $messageHash);
-        if ($authenticated === null) {
-            $timestamp = (string) $this->seconds();
-            $auth = $timestamp . 'GET' . '/user/verify';
-            $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256', 'base64');
-            $operation = 'login';
-            $request = array(
-                'op' => $operation,
-                'args' => array(
-                    array(
-                        'apiKey' => $this->apiKey,
-                        'passphrase' => $this->password,
-                        'timestamp' => $timestamp,
-                        'sign' => $signature,
+        return Async\async(function () use ($params) {
+            $this->check_required_credentials();
+            $url = $this->urls['api']['ws']['private'];
+            $client = $this->client($url);
+            $messageHash = 'authenticated';
+            $future = $client->future ($messageHash);
+            $authenticated = $this->safe_value($client->subscriptions, $messageHash);
+            if ($authenticated === null) {
+                $timestamp = (string) $this->seconds();
+                $auth = $timestamp . 'GET' . '/user/verify';
+                $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256', 'base64');
+                $operation = 'login';
+                $request = array(
+                    'op' => $operation,
+                    'args' => array(
+                        array(
+                            'apiKey' => $this->apiKey,
+                            'passphrase' => $this->password,
+                            'timestamp' => $timestamp,
+                            'sign' => $signature,
+                        ),
                     ),
-                ),
-            );
-            $message = array_merge($request, $params);
-            $this->watch($url, $messageHash, $message, $messageHash);
-        }
-        return $future;
+                );
+                $message = array_merge($request, $params);
+                $this->watch($url, $messageHash, $message, $messageHash);
+            }
+            return Async\await($future);
+        }) ();
     }
 
     public function watch_private($messageHash, $subscriptionHash, $args, $params = array ()) {

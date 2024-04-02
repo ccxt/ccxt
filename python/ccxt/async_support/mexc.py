@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.mexc import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, Int, Leverage, Market, Order, TransferEntry, OrderBook, OrderRequest, OrderSide, OrderType, IndexType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Account, Balances, Currency, IndexType, Int, Leverage, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -55,6 +55,7 @@ class mexc(Exchange, ImplicitAPI):
                 'createMarketSellOrderWithCost': False,
                 'createOrder': True,
                 'createOrders': True,
+                'createPostOnlyOrder': True,
                 'createReduceOnlyOrder': True,
                 'deposit': None,
                 'editOrder': None,
@@ -898,8 +899,8 @@ class mexc(Exchange, ImplicitAPI):
                     '30032': InvalidOrder,  # Cannot exceed the maximum position
                     '30041': InvalidOrder,  # current order type can not place order
                     '60005': ExchangeError,  # your account is abnormal
-                    '700001': AuthenticationError,  # API-key format invalid
-                    '700002': AuthenticationError,  # Signature for self request is not valid
+                    '700001': AuthenticationError,  # {"code":700002,"msg":"Signature for self request is not valid."}  # same message for expired API keys
+                    '700002': AuthenticationError,  # Signature for self request is not valid  # or the API secret is incorrect
                     '700004': BadRequest,  # Param 'origClientOrderId' or 'orderId' must be sent, but both were empty/null
                     '700005': InvalidNonce,  # recvWindow must less than 60000
                     '700006': BadRequest,  # IP non white list
@@ -931,7 +932,7 @@ class mexc(Exchange, ImplicitAPI):
                     'Combination of optional parameters invalid': BadRequest,  # code:-2011
                     'api market order is disabled': BadRequest,  #
                     'Contract not allow place order!': InvalidOrder,  # code:1002
-                    'Oversold': InvalidOrder,  # code:30005
+                    'Oversold': InsufficientFunds,  # code:30005
                     'Insufficient position': InsufficientFunds,  # code:30004
                     'Insufficient balance!': InsufficientFunds,  # code:2005
                     'Bid price is great than max allow price': InvalidOrder,  # code:2003
@@ -1131,7 +1132,7 @@ class mexc(Exchange, ImplicitAPI):
             }
         return result
 
-    async def fetch_markets(self, params={}):
+    async def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for mexc
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -2108,7 +2109,7 @@ class mexc(Exchange, ImplicitAPI):
         params['createMarketBuyOrderRequiresPrice'] = False
         return await self.create_order(symbol, 'market', 'buy', cost, None, params)
 
-    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create a trade order
         :see: https://mexcdevelop.github.io/apidocs/spot_v3_en/#new-order
@@ -2122,6 +2123,14 @@ class mexc(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.marginMode]: only 'isolated' is supported for spot-margin trading
         :param float [params.triggerPrice]: The price at which a trigger order is triggered at
+        :param bool [params.postOnly]: if True, the order will only be posted if it will be a maker order
+        :param bool [params.reduceOnly]: *contract only* indicates if self order is to reduce the size of a position
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+        :param int [params.leverage]: *contract only* leverage is necessary on isolated margin
+        :param long [params.positionId]: *contract only* it is recommended to hasattr(self, fill) parameter when closing a position
+        :param str [params.externalOid]: *contract only* external order ID
+        :param int [params.positionMode]: *contract only*  1:hedge, 2:one-way, default: the user's current config
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
@@ -2671,7 +2680,7 @@ class mexc(Exchange, ImplicitAPI):
             #         ]
             #     }
             #
-            data = self.safe_value(response, 'data')
+            data = self.safe_list(response, 'data')
             return self.parse_orders(data, market)
 
     async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
@@ -2921,7 +2930,7 @@ class mexc(Exchange, ImplicitAPI):
             #         ]
             #     }
             #
-            data = self.safe_value(response, 'data')
+            data = self.safe_list(response, 'data')
             return self.parse_orders(data, market)
 
     async def cancel_all_orders(self, symbol: Str = None, params={}):
@@ -3004,7 +3013,7 @@ class mexc(Exchange, ImplicitAPI):
             #         "code": "0"
             #     }
             #
-            data = self.safe_value(response, 'data', [])
+            data = self.safe_list(response, 'data', [])
             return self.parse_orders(data, market)
 
     def parse_order(self, order, market: Market = None) -> Order:
@@ -3310,7 +3319,7 @@ class mexc(Exchange, ImplicitAPI):
             return self.safe_value(response, 'data')
         return None
 
-    async def fetch_accounts(self, params={}):
+    async def fetch_accounts(self, params={}) -> List[Account]:
         """
         fetch all the accounts associated with a profile
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -3769,7 +3778,7 @@ class mexc(Exchange, ImplicitAPI):
         #     }
         return response
 
-    async def reduce_margin(self, symbol: str, amount, params={}):
+    async def reduce_margin(self, symbol: str, amount, params={}) -> MarginModification:
         """
         remove margin from a position
         :param str symbol: unified market symbol
@@ -3779,7 +3788,7 @@ class mexc(Exchange, ImplicitAPI):
         """
         return await self.modify_margin_helper(symbol, amount, 'SUB', params)
 
-    async def add_margin(self, symbol: str, amount, params={}):
+    async def add_margin(self, symbol: str, amount, params={}) -> MarginModification:
         """
         add margin
         :param str symbol: unified market symbol
@@ -4075,7 +4084,7 @@ class mexc(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        data = self.safe_value(response, 'data')
+        data = self.safe_list(response, 'data')
         return self.parse_leverage_tiers(data, symbols, 'symbol')
 
     def parse_market_leverage_tiers(self, info, market: Market = None):
@@ -4496,7 +4505,7 @@ class mexc(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        data = self.safe_value(response, 'data', [])
+        data = self.safe_list(response, 'data', [])
         return self.parse_positions(data, symbols)
 
     def parse_position(self, position, market: Market = None):
@@ -4587,7 +4596,7 @@ class mexc(Exchange, ImplicitAPI):
             #         }
             #     }
             #
-            data = self.safe_value(response, 'data', {})
+            data = self.safe_dict(response, 'data', {})
             return self.parse_transfer(data)
         elif marketType == 'swap':
             raise BadRequest(self.id + ' fetchTransfer() is not supported for ' + marketType)

@@ -6,7 +6,7 @@ import { ExchangeError, ExchangeNotAvailable, NotSupported, OnMaintenance, Argum
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Market, Strings, Currency, Position, Liquidation, TransferEntry, Leverage, MarginMode } from './base/types.js';
+import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Market, Strings, Currency, Position, Liquidation, TransferEntry, Leverage, MarginMode, Num, MarginModification } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -373,6 +373,8 @@ export default class bitget extends Exchange {
                             'v2/spot/wallet/transfer': 2,
                             'v2/spot/wallet/subaccount-transfer': 2,
                             'v2/spot/wallet/withdrawal': 2,
+                            'v2/spot/wallet/cancel-withdrawal': 2,
+                            'v2/spot/wallet/modify-deposit-account': 2,
                         },
                     },
                     'mix': {
@@ -717,9 +719,12 @@ export default class bitget extends Exchange {
                             'v2/convert/currencies': 2,
                             'v2/convert/quoted-price': 2,
                             'v2/convert/convert-record': 2,
+                            'v2/convert/bgb-convert-coin-list': 2,
+                            'v2/convert/bgb-convert-records': 2,
                         },
                         'post': {
                             'v2/convert/trade': 2,
+                            'v2/convert/bgb-convert': 2,
                         },
                     },
                     'earn': {
@@ -1216,6 +1221,7 @@ export default class bitget extends Exchange {
                     '40768': OrderNotFound, // Order does not exist"
                     '41114': OnMaintenance, // {"code":"41114","msg":"The current trading pair is under maintenance, please refer to the official announcement for the opening time","requestTime":1679196062544,"data":null}
                     '43011': InvalidOrder, // The parameter does not meet the specification executePrice <= 0
+                    '43012': InsufficientFunds, // {"code":"43012","msg":"Insufficient balance","requestTime":1711648951774,"data":null}
                     '43025': InvalidOrder, // Plan order does not exist
                     '43115': OnMaintenance, // {"code":"43115","msg":"The current trading pair is opening soon, please refer to the official announcement for the opening time","requestTime":1688907202434,"data":null}
                     '45110': InvalidOrder, // {"code":"45110","msg":"less than the minimum amount 5 USDT","requestTime":1669911118932,"data":null}
@@ -1290,6 +1296,7 @@ export default class bitget extends Exchange {
             'precisionMode': TICK_SIZE,
             'commonCurrencies': {
                 'JADE': 'Jade Protocol',
+                'DEGEN': 'DegenReborn',
             },
             'options': {
                 'timeframes': {
@@ -1337,10 +1344,10 @@ export default class bitget extends Exchange {
                 },
                 'fetchOHLCV': {
                     'spot': {
-                        'method': 'publicSpotGetV2SpotMarketCandles', // or publicSpotGetV2SpotMarketHistoryCandles
+                        'method': 'publicSpotGetV2SpotMarketCandles', // publicSpotGetV2SpotMarketCandles or publicSpotGetV2SpotMarketHistoryCandles
                     },
                     'swap': {
-                        'method': 'publicMixGetV2MixMarketCandles', // or publicMixGetV2MixMarketHistoryCandles or publicMixGetV2MixMarketHistoryIndexCandles or publicMixGetV2MixMarketHistoryMarkCandles
+                        'method': 'publicMixGetV2MixMarketCandles', // publicMixGetV2MixMarketCandles or publicMixGetV2MixMarketHistoryCandles or publicMixGetV2MixMarketHistoryIndexCandles or publicMixGetV2MixMarketHistoryMarkCandles
                     },
                     'maxDaysPerTimeframe': {
                         '1m': 30,
@@ -1501,7 +1508,7 @@ export default class bitget extends Exchange {
         return this.safeInteger (data, 'serverTime');
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name bitget#fetchMarkets
@@ -2179,7 +2186,7 @@ export default class bitget extends Exchange {
         //         ]
         //     }
         //
-        const rawTransactions = this.safeValue (response, 'data', []);
+        const rawTransactions = this.safeList (response, 'data', []);
         return this.parseTransactions (rawTransactions, currency, since, limit);
     }
 
@@ -2329,7 +2336,7 @@ export default class bitget extends Exchange {
         //         ]
         //     }
         //
-        const rawTransactions = this.safeValue (response, 'data', []);
+        const rawTransactions = this.safeList (response, 'data', []);
         return this.parseTransactions (rawTransactions, currency, since, limit);
     }
 
@@ -2460,7 +2467,7 @@ export default class bitget extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         return this.parseDepositAddress (data, currency);
     }
 
@@ -2748,7 +2755,7 @@ export default class bitget extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         return this.parseTicker (data[0], market);
     }
 
@@ -2761,6 +2768,7 @@ export default class bitget extends Exchange {
          * @see https://www.bitget.com/api-doc/contract/market/Get-All-Symbol-Ticker
          * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.subType] *contract only* 'linear', 'inverse'
          * @param {string} [params.productType] *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
@@ -2776,15 +2784,20 @@ export default class bitget extends Exchange {
                 market = this.market (symbol);
             }
         }
+        let response = undefined;
         const request = {};
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
-        let response = undefined;
-        if (type === 'spot') {
+        // Calls like `.fetchTickers (undefined, {subType:'inverse'})` should be supported for this exchange, so
+        // as "options.defaultSubType" is also set in exchange options, we should consider `params.subType`
+        // with higher priority and only default to spot, if `subType` is not set in params
+        const passedSubType = this.safeString (params, 'subType');
+        let productType = undefined;
+        [ productType, params ] = this.handleProductTypeAndParams (market, params);
+        // only if passedSubType && productType is undefined, then use spot
+        if (type === 'spot' && passedSubType === undefined) {
             response = await this.publicSpotGetV2SpotMarketTickers (this.extend (request, params));
         } else {
-            let productType = undefined;
-            [ productType, params ] = this.handleProductTypeAndParams (market, params);
             request['productType'] = productType;
             response = await this.publicMixGetV2MixMarketTickers (this.extend (request, params));
         }
@@ -2845,7 +2858,7 @@ export default class bitget extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         return this.parseTickers (data, symbols);
     }
 
@@ -3081,7 +3094,7 @@ export default class bitget extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         return this.parseTrades (data, market, since, limit);
     }
 
@@ -3301,11 +3314,13 @@ export default class bitget extends Exchange {
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets ();
-        const maxLimit = 1000; // max 1000
+        const defaultLimit = 100; // default 100, max 1000
+        const maxLimitForRecentEndpoint = 1000;
+        const maxLimitForHistoryEndpoint = 200; // note, max 1000 bars are supported for "recent-candles" endpoint, but "historical-candles" support only max 200
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, maxLimit) as OHLCV[];
+            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, maxLimitForHistoryEndpoint);
         }
         const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);
         let market = undefined;
@@ -3317,32 +3332,17 @@ export default class bitget extends Exchange {
         }
         const marketType = market['spot'] ? 'spot' : 'swap';
         const timeframes = this.options['timeframes'][marketType];
-        const selectedTimeframe = this.safeString (timeframes, timeframe, timeframe);
+        const msInDay = 86400000;
         const duration = this.parseTimeframe (timeframe) * 1000;
         const request = {
             'symbol': market['id'],
-            'granularity': selectedTimeframe,
+            'granularity': this.safeString (timeframes, timeframe, timeframe),
         };
-        const defaultLimit = 100; // by default, exchange returns 100 items
-        const msInDay = 1000 * 60 * 60 * 24;
-        if (limit !== undefined) {
-            limit = Math.min (limit, maxLimit);
-            request['limit'] = limit;
-        }
         const until = this.safeInteger2 (params, 'until', 'till');
+        const limitDefined = limit !== undefined;
+        const sinceDefined = since !== undefined;
+        const untilDefined = until !== undefined;
         params = this.omit (params, [ 'until', 'till' ]);
-        if (until !== undefined) {
-            request['endTime'] = until;
-        }
-        if (since !== undefined) {
-            request['startTime'] = since;
-            if (market['spot'] && (until === undefined)) {
-                // for spot we need to send "entTime" too
-                const limitForEnd = (limit !== undefined) ? limit : defaultLimit;
-                const calculatedEnd = this.sum (since, duration * limitForEnd);
-                request['endTime'] = calculatedEnd;
-            }
-        }
         let response = undefined;
         const now = this.milliseconds ();
         // retrievable periods listed here:
@@ -3350,37 +3350,62 @@ export default class bitget extends Exchange {
         // - https://www.bitget.com/api-doc/contract/market/Get-Candle-Data#description
         const ohlcOptions = this.safeDict (this.options, 'fetchOHLCV', {});
         const retrievableDaysMap = this.safeDict (ohlcOptions, 'maxDaysPerTimeframe', {});
-        const maxRetrievableDaysForNonHistory = this.safeInteger (retrievableDaysMap, timeframe, 30); // default to safe minimum
-        const endpointTsBoundary = now - maxRetrievableDaysForNonHistory * msInDay;
-        // checks if we need history endpoint
-        let needsHistoryEndpoint = false;
-        const displaceByLimit = (limit === undefined) ? 0 : limit * duration;
-        if (since !== undefined && since < endpointTsBoundary) {
-            // if since it earlier than the allowed diapason
-            needsHistoryEndpoint = true;
-        } else if (until !== undefined && until - displaceByLimit < endpointTsBoundary) {
-            // if until is earlier than the allowed diapason
-            needsHistoryEndpoint = true;
+        const maxRetrievableDaysForRecent = this.safeInteger (retrievableDaysMap, timeframe, 30); // default to safe minimum
+        const endpointTsBoundary = now - maxRetrievableDaysForRecent * msInDay;
+        if (limitDefined) {
+            limit = Math.min (limit, maxLimitForRecentEndpoint);
+            request['limit'] = limit;
+        } else {
+            limit = defaultLimit;
         }
+        const limitMultipliedDuration = limit * duration;
+        // exchange aligns from endTime, so it's important, not startTime
+        // startTime is supported only on "recent" endpoint, not on "historical" endpoint
+        let calculatedStartTime = undefined;
+        let calculatedEndTime = undefined;
+        if (sinceDefined) {
+            calculatedStartTime = since;
+            request['startTime'] = since;
+            if (!untilDefined) {
+                calculatedEndTime = this.sum (calculatedStartTime, limitMultipliedDuration);
+                request['endTime'] = calculatedEndTime;
+            }
+        }
+        if (untilDefined) {
+            calculatedEndTime = until;
+            request['endTime'] = calculatedEndTime;
+            if (!sinceDefined) {
+                calculatedStartTime = calculatedEndTime - limitMultipliedDuration;
+                // we do not need to set "startTime" here
+            }
+        }
+        const historicalEndpointNeeded = (calculatedStartTime !== undefined) && (calculatedStartTime <= endpointTsBoundary);
+        if (historicalEndpointNeeded) {
+            // only for "historical-candles" - ensure we use correct max limit
+            if (limitDefined) {
+                request['limit'] = Math.min (limit, maxLimitForHistoryEndpoint);
+            }
+        }
+        // make request
         if (market['spot']) {
-            if (needsHistoryEndpoint) {
+            // checks if we need history endpoint
+            if (historicalEndpointNeeded) {
                 response = await this.publicSpotGetV2SpotMarketHistoryCandles (this.extend (request, params));
             } else {
                 response = await this.publicSpotGetV2SpotMarketCandles (this.extend (request, params));
             }
         } else {
-            const maxDistanceDaysForContracts = 90; // maximum 90 days allowed between start-end times
-            let distanceError = false;
-            if (limit !== undefined && limit * duration > maxDistanceDaysForContracts * msInDay) {
-                distanceError = true;
-            } else if (since !== undefined && until !== undefined && until - since > maxDistanceDaysForContracts * msInDay) {
-                distanceError = true;
+            const maxDistanceDaysForContracts = 90; // for contract, maximum 90 days allowed between start-end times
+            // only correct the request to fix 90 days if until was auto-calculated
+            if (sinceDefined) {
+                if (!untilDefined) {
+                    request['endTime'] = Math.min (calculatedEndTime, this.sum (since, maxDistanceDaysForContracts * msInDay));
+                } else if (calculatedEndTime - calculatedStartTime > maxDistanceDaysForContracts * msInDay) {
+                    throw new BadRequest (this.id + ' fetchOHLCV() between start and end must be less than ' + maxDistanceDaysForContracts.toString () + ' days');
+                }
             }
-            if (distanceError) {
-                throw new BadRequest (this.id + ' fetchOHLCV() between start and end must be less than ' + maxDistanceDaysForContracts.toString () + ' days');
-            }
-            const priceType = this.safeString (params, 'price');
-            params = this.omit (params, [ 'price' ]);
+            let priceType = undefined;
+            [ priceType, params ] = this.handleParamString (params, 'price');
             let productType = undefined;
             [ productType, params ] = this.handleProductTypeAndParams (market, params);
             request['productType'] = productType;
@@ -3391,7 +3416,7 @@ export default class bitget extends Exchange {
             } else if (priceType === 'index') {
                 response = await this.publicMixGetV2MixMarketHistoryIndexCandles (extended);
             } else {
-                if (needsHistoryEndpoint) {
+                if (historicalEndpointNeeded) {
                     response = await this.publicMixGetV2MixMarketHistoryCandles (extended);
                 } else {
                     response = await this.publicMixGetV2MixMarketCandles (extended);
@@ -4055,7 +4080,7 @@ export default class bitget extends Exchange {
         return await this.createOrder (symbol, 'market', 'buy', cost, undefined, params);
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         /**
          * @method
          * @name bitget#createOrder
@@ -4140,11 +4165,11 @@ export default class bitget extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         return this.parseOrder (data, market);
     }
 
-    createOrderRequest (symbol, type, side, amount: number, price: number = undefined, params = {}) {
+    createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);
         let market = undefined;
         if (sandboxMode) {
@@ -4458,7 +4483,7 @@ export default class bitget extends Exchange {
         return this.parseOrders (both, market);
     }
 
-    async editOrder (id: string, symbol: string, type:OrderType, side: OrderSide, amount: number = undefined, price: number = undefined, params = {}) {
+    async editOrder (id: string, symbol: string, type:OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) {
         /**
          * @method
          * @name bitget#editOrder
@@ -4622,7 +4647,7 @@ export default class bitget extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         return this.parseOrder (data, market);
     }
 
@@ -4848,7 +4873,7 @@ export default class bitget extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', {});
-        const orders = this.safeValue (data, 'successList', []);
+        const orders = this.safeList (data, 'successList', []);
         return this.parseOrders (orders, market);
     }
 
@@ -4858,6 +4883,7 @@ export default class bitget extends Exchange {
          * @name bitget#cancelAllOrders
          * @description cancel all open orders
          * @see https://www.bitget.com/api-doc/spot/trade/Cancel-Symbol-Orders
+         * @see https://www.bitget.com/api-doc/spot/plan/Batch-Cancel-Plan-Order
          * @see https://www.bitget.com/api-doc/contract/trade/Batch-Cancel-Orders
          * @see https://bitgetlimited.github.io/apidoc/en/margin/#isolated-batch-cancel-orders
          * @see https://bitgetlimited.github.io/apidoc/en/margin/#cross-batch-cancel-order
@@ -4884,7 +4910,7 @@ export default class bitget extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const stop = this.safeValue2 (params, 'stop', 'trigger');
+        const stop = this.safeBool2 (params, 'stop', 'trigger');
         params = this.omit (params, [ 'stop', 'trigger' ]);
         let response = undefined;
         if (market['spot']) {
@@ -4895,7 +4921,14 @@ export default class bitget extends Exchange {
                     response = await this.privateMarginPostMarginV1IsolatedOrderBatchCancelOrder (this.extend (request, params));
                 }
             } else {
-                response = await this.privateSpotPostV2SpotTradeCancelSymbolOrder (this.extend (request, params));
+                if (stop) {
+                    const stopRequest = {
+                        'symbolList': [ market['id'] ],
+                    };
+                    response = await this.privateSpotPostV2SpotTradeBatchCancelPlanOrder (this.extend (stopRequest, params));
+                } else {
+                    response = await this.privateSpotPostV2SpotTradeCancelSymbolOrder (this.extend (request, params));
+                }
             }
         } else {
             let productType = undefined;
@@ -5064,9 +5097,15 @@ export default class bitget extends Exchange {
         if (typeof response === 'string') {
             response = JSON.parse (response);
         }
-        const data = this.safeValue (response, 'data');
-        const first = this.safeValue (data, 0, data);
+        const data = this.safeDict (response, 'data');
+        if ((data !== undefined) && !Array.isArray (data)) {
+            return this.parseOrder (data, market);
+        }
+        const dataList = this.safeList (response, 'data', []);
+        const first = this.safeDict (dataList, 0, {});
         return this.parseOrder (first, market);
+        // const first = this.safeDict (data, 0, data);
+        // return this.parseOrder (first, market);
     }
 
     async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
@@ -5361,11 +5400,11 @@ export default class bitget extends Exchange {
         const data = this.safeValue (response, 'data');
         if (type === 'spot') {
             if ((marginMode !== undefined) || stop) {
-                const resultList = this.safeValue (data, 'orderList', []);
+                const resultList = this.safeList (data, 'orderList', []);
                 return this.parseOrders (resultList, market, since, limit);
             }
         } else {
-            const result = this.safeValue (data, 'entrustedList', []);
+            const result = this.safeList (data, 'entrustedList', []);
             return this.parseOrders (result, market, since, limit);
         }
         return this.parseOrders (data, market, since, limit);
@@ -5727,7 +5766,7 @@ export default class bitget extends Exchange {
         if (typeof response === 'string') {
             response = JSON.parse (response);
         }
-        const orders = this.safeValue (response, 'data', []);
+        const orders = this.safeList (response, 'data', []);
         return this.parseOrders (orders, market, since, limit);
     }
 
@@ -6128,10 +6167,10 @@ export default class bitget extends Exchange {
         //
         const data = this.safeValue (response, 'data');
         if ((market['swap']) || (market['future'])) {
-            const fillList = this.safeValue (data, 'fillList', []);
+            const fillList = this.safeList (data, 'fillList', []);
             return this.parseTrades (fillList, market, since, limit);
         } else if (marginMode !== undefined) {
-            const fills = this.safeValue (data, 'fills', []);
+            const fills = this.safeList (data, 'fills', []);
             return this.parseTrades (fills, market, since, limit);
         }
         return this.parseTrades (data, market, since, limit);
@@ -6194,8 +6233,8 @@ export default class bitget extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
-        const first = this.safeValue (data, 0, {});
+        const data = this.safeList (response, 'data', []);
+        const first = this.safeDict (data, 0, {});
         return this.parsePosition (first, market);
     }
 
@@ -6206,11 +6245,13 @@ export default class bitget extends Exchange {
          * @description fetch all open positions
          * @see https://www.bitget.com/api-doc/contract/position/get-all-position
          * @see https://www.bitget.com/api-doc/contract/position/Get-History-Position
-         * @param {string[]|undefined} symbols list of unified market symbols
+         * @param {string[]} [symbols] list of unified market symbols
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.marginCoin] the settle currency of the positions, needs to match the productType
          * @param {string} [params.productType] 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
          * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+         * @param {boolean} [params.useHistoryEndpoint] default false, when true  will use the historic endpoint to fetch positions
+         * @param {string} [params.method] either (default) 'privateMixGetV2MixPositionAllPosition' or 'privateMixGetV2MixPositionHistoryPosition'
          * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
          */
         await this.loadMarkets ();
@@ -6219,8 +6260,13 @@ export default class bitget extends Exchange {
         if (paginate) {
             return await this.fetchPaginatedCallCursor ('fetchPositions', undefined, undefined, undefined, params, 'endId', 'idLessThan') as Position[];
         }
-        const fetchPositionsOptions = this.safeValue (this.options, 'fetchPositions', {});
-        const method = this.safeString (fetchPositionsOptions, 'method', 'privateMixGetV2MixPositionAllPosition');
+        let method = undefined;
+        const useHistoryEndpoint = this.safeBool (params, 'useHistoryEndpoint', false);
+        if (useHistoryEndpoint) {
+            method = 'privateMixGetV2MixPositionHistoryPosition';
+        } else {
+            [ method, params ] = this.handleOptionAndParams (params, 'fetchPositions', 'method', 'privateMixGetV2MixPositionAllPosition');
+        }
         let market = undefined;
         if (symbols !== undefined) {
             const first = this.safeString (symbols, 0);
@@ -6329,10 +6375,10 @@ export default class bitget extends Exchange {
         //
         let position = [];
         if (!isHistory) {
-            position = this.safeValue (response, 'data', []);
+            position = this.safeList (response, 'data', []);
         } else {
-            const data = this.safeValue (response, 'data', {});
-            position = this.safeValue (data, 'list', []);
+            const data = this.safeDict (response, 'data', {});
+            position = this.safeList (data, 'list', []);
         }
         const result = [];
         for (let i = 0; i < position.length; i++) {
@@ -6782,7 +6828,7 @@ export default class bitget extends Exchange {
         return this.filterBySinceLimit (sorted, since, limit);
     }
 
-    async modifyMarginHelper (symbol: string, amount, type, params = {}) {
+    async modifyMarginHelper (symbol: string, amount, type, params = {}): Promise<MarginModification> {
         await this.loadMarkets ();
         const holdSide = this.safeString (params, 'holdSide');
         const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);
@@ -6818,20 +6864,33 @@ export default class bitget extends Exchange {
         });
     }
 
-    parseMarginModification (data, market: Market = undefined) {
+    parseMarginModification (data, market: Market = undefined): MarginModification {
+        //
+        // addMargin/reduceMargin
+        //
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1700813444618,
+        //         "data": ""
+        //     }
+        //
         const errorCode = this.safeString (data, 'code');
         const status = (errorCode === '00000') ? 'ok' : 'failed';
         return {
             'info': data,
+            'symbol': market['symbol'],
             'type': undefined,
             'amount': undefined,
+            'total': undefined,
             'code': market['settle'],
-            'symbol': market['symbol'],
             'status': status,
+            'timestamp': undefined,
+            'datetime': undefined,
         };
     }
 
-    async reduceMargin (symbol: string, amount, params = {}) {
+    async reduceMargin (symbol: string, amount, params = {}): Promise<MarginModification> {
         /**
          * @method
          * @name bitget#reduceMargin
@@ -6852,7 +6911,7 @@ export default class bitget extends Exchange {
         return await this.modifyMarginHelper (symbol, amount, 'reduce', params);
     }
 
-    async addMargin (symbol: string, amount, params = {}) {
+    async addMargin (symbol: string, amount, params = {}): Promise<MarginModification> {
         /**
          * @method
          * @name bitget#addMargin
@@ -7136,7 +7195,7 @@ export default class bitget extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         return this.parseOpenInterest (data, market);
     }
 
@@ -7222,7 +7281,7 @@ export default class bitget extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         return this.parseTransfers (data, currency, since, limit);
     }
 
@@ -7424,7 +7483,7 @@ export default class bitget extends Exchange {
         //         "requestTime": "1700120731773"
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         return this.parseDepositWithdrawFees (data, codes, 'coin');
     }
 
@@ -7735,7 +7794,7 @@ export default class bitget extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', {});
-        const liquidations = this.safeValue (data, 'resultList', []);
+        const liquidations = this.safeList (data, 'resultList', []);
         return this.parseLiquidations (liquidations, market, since, limit);
     }
 
@@ -8188,7 +8247,7 @@ export default class bitget extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', {});
-        const order = this.safeValue (data, 'successList', []);
+        const order = this.safeList (data, 'successList', []);
         return this.parseOrder (order[0], market);
     }
 
@@ -8227,7 +8286,7 @@ export default class bitget extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', {});
-        const orderInfo = this.safeValue (data, 'successList', []);
+        const orderInfo = this.safeList (data, 'successList', []);
         return this.parsePositions (orderInfo, undefined, params);
     }
 

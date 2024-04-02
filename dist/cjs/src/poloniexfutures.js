@@ -676,7 +676,7 @@ class poloniexfutures extends poloniexfutures$1 {
         //        },
         //    }
         //
-        const trades = this.safeValue(response, 'data', []);
+        const trades = this.safeList(response, 'data', []);
         return this.parseTrades(trades, market, since, limit);
     }
     async fetchTime(params = {}) {
@@ -749,7 +749,7 @@ class poloniexfutures extends poloniexfutures$1 {
         //        ]
         //    }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseOHLCVs(data, market, timeframe, since, limit);
     }
     parseBalance(response) {
@@ -1009,7 +1009,7 @@ class poloniexfutures extends poloniexfutures$1 {
         //        ]
         //    }
         //
-        const data = this.safeValue(response, 'data');
+        const data = this.safeList(response, 'data');
         return this.parsePositions(data, symbols);
     }
     parsePosition(position, market = undefined) {
@@ -1463,7 +1463,7 @@ class poloniexfutures extends poloniexfutures$1 {
         //    }
         //
         const market = (symbol !== undefined) ? this.market(symbol) : undefined;
-        const responseData = this.safeValue(response, 'data');
+        const responseData = this.safeDict(response, 'data');
         return this.parseOrder(responseData, market);
     }
     parseOrder(order, market = undefined) {
@@ -1699,7 +1699,7 @@ class poloniexfutures extends poloniexfutures$1 {
         //    }
         //
         const data = this.safeValue(response, 'data', {});
-        const trades = this.safeValue(data, 'items', {});
+        const trades = this.safeList(data, 'items', []);
         return this.parseTrades(trades, market, since, limit);
     }
     async setMarginMode(marginMode, symbol = undefined, params = {}) {

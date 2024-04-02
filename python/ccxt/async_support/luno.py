@@ -5,7 +5,7 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.luno import ImplicitAPI
-from ccxt.base.types import Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Account, Balances, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
@@ -180,7 +180,7 @@ class luno(Exchange, ImplicitAPI):
             'precisionMode': TICK_SIZE,
         })
 
-    async def fetch_markets(self, params={}):
+    async def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for luno
         :see: https://www.luno.com/en/developers/api#tag/Market/operation/Markets
@@ -268,7 +268,7 @@ class luno(Exchange, ImplicitAPI):
             })
         return result
 
-    async def fetch_accounts(self, params={}):
+    async def fetch_accounts(self, params={}) -> List[Account]:
         """
         fetch all the accounts associated with a profile
         :see: https://www.luno.com/en/developers/api#tag/Accounts/operation/getBalances
@@ -465,7 +465,7 @@ class luno(Exchange, ImplicitAPI):
             market = self.market(symbol)
             request['pair'] = market['id']
         response = await self.privateGetListorders(self.extend(request, params))
-        orders = self.safe_value(response, 'orders', [])
+        orders = self.safe_list(response, 'orders', [])
         return self.parse_orders(orders, market, since, limit)
 
     async def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
@@ -703,7 +703,7 @@ class luno(Exchange, ImplicitAPI):
         #          ]
         #      }
         #
-        trades = self.safe_value(response, 'trades', [])
+        trades = self.safe_list(response, 'trades', [])
         return self.parse_trades(trades, market, since, limit)
 
     async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}):
@@ -745,7 +745,7 @@ class luno(Exchange, ImplicitAPI):
         #          "pair": "XBTEUR"
         #     }
         #
-        ohlcvs = self.safe_value(response, 'candles', [])
+        ohlcvs = self.safe_list(response, 'candles', [])
         return self.parse_ohlcvs(ohlcvs, market, timeframe, since, limit)
 
     def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
@@ -809,7 +809,7 @@ class luno(Exchange, ImplicitAPI):
         #          ]
         #      }
         #
-        trades = self.safe_value(response, 'trades', [])
+        trades = self.safe_list(response, 'trades', [])
         return self.parse_trades(trades, market, since, limit)
 
     async def fetch_trading_fee(self, symbol: str, params={}):
@@ -840,7 +840,7 @@ class luno(Exchange, ImplicitAPI):
             'taker': self.safe_number(response, 'taker_fee'),
         }
 
-    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create a trade order
         :see: https://www.luno.com/en/developers/api#tag/Orders/operation/PostMarketOrder

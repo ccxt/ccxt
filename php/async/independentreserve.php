@@ -143,7 +143,7 @@ class independentreserve extends Exchange {
         ));
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * retrieves data on all markets for independentreserve
@@ -512,7 +512,7 @@ class independentreserve extends Exchange {
             $request['pageIndex'] = 1;
             $request['pageSize'] = $limit;
             $response = Async\await($this->privatePostGetOpenOrders (array_merge($request, $params)));
-            $data = $this->safe_value($response, 'Data', array());
+            $data = $this->safe_list($response, 'Data', array());
             return $this->parse_orders($data, $market, $since, $limit);
         }) ();
     }
@@ -541,7 +541,7 @@ class independentreserve extends Exchange {
             $request['pageIndex'] = 1;
             $request['pageSize'] = $limit;
             $response = Async\await($this->privatePostGetClosedOrders (array_merge($request, $params)));
-            $data = $this->safe_value($response, 'Data', array());
+            $data = $this->safe_list($response, 'Data', array());
             return $this->parse_orders($data, $market, $since, $limit);
         }) ();
     }

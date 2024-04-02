@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.htx import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, Int, Market, Order, TransferEntry, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Account, Balances, Currency, Int, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -485,6 +485,7 @@ class htx(Exchange, ImplicitAPI):
                             'v2/sub-user/api-key-modification': 1,
                             'v2/sub-user/api-key-deletion': 1,
                             'v1/subuser/transfer': 10,
+                            'v1/trust/user/active/credit': 10,
                             # Trading
                             'v1/order/orders/place': 0.2,
                             'v1/order/batch-orders': 0.4,
@@ -965,6 +966,9 @@ class htx(Exchange, ImplicitAPI):
                             'inverse': True,
                         },
                     },
+                },
+                'fetchOHLCV': {
+                    'useHistoricalEndpointForSpot': True,
                 },
                 'withdraw': {
                     'includeFee': False,
@@ -1596,7 +1600,7 @@ class htx(Exchange, ImplicitAPI):
     def cost_to_precision(self, symbol, cost):
         return self.decimal_to_precision(cost, TRUNCATE, self.markets[symbol]['precision']['cost'], self.precisionMode)
 
-    def fetch_markets(self, params={}):
+    def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for huobi
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -2136,7 +2140,7 @@ class htx(Exchange, ImplicitAPI):
         #         "ts":1639547261293
         #     }
         #
-        # inverse swaps, linear swaps, inverse futures
+        # linear swap, linear future, inverse swap, inverse future
         #
         #     {
         #         "status":"ok",
@@ -2153,35 +2157,13 @@ class htx(Exchange, ImplicitAPI):
         #                 "high":"0.10725",
         #                 "amount":"2340267.415144052378486261756692535687481566",
         #                 "count":882,
-        #                 "vol":"24706"
+        #                 "vol":"24706",
+        #                 "trade_turnover":"840726.5048",  # only in linear futures
+        #                 "business_type":"futures",  # only in linear futures
+        #                 "contract_code":"BTC-USDT-CW",  # only in linear futures, instead of 'symbol'
         #             }
         #         ],
         #         "ts":1637504679376
-        #     }
-        #
-        # linear futures
-        #
-        #     {
-        #         "status":"ok",
-        #         "ticks":[
-        #             {
-        #                 "id":1640745627,
-        #                 "ts":1640745627957,
-        #                 "ask":[48079.1,20],
-        #                 "bid":[47713.8,125],
-        #                 "business_type":"futures",
-        #                 "contract_code":"BTC-USDT-CW",
-        #                 "open":"49011.8",
-        #                 "close":"47934",
-        #                 "low":"47292.3",
-        #                 "high":"49011.8",
-        #                 "amount":"17.398",
-        #                 "count":1515,
-        #                 "vol":"17398",
-        #                 "trade_turnover":"840726.5048"
-        #             }
-        #         ],
-        #         "ts":1640745627988
         #     }
         #
         tickers = self.safe_value_2(response, 'data', 'ticks', [])
@@ -2310,7 +2292,7 @@ class htx(Exchange, ImplicitAPI):
         else:
             raise NotSupported(self.id + ' fetchLastPrices() does not support ' + type + ' markets yet')
         tick = self.safe_value(response, 'tick', {})
-        data = self.safe_value(tick, 'data', [])
+        data = self.safe_list(tick, 'data', [])
         return self.parse_last_prices(data, symbols)
 
     def parse_last_price(self, entry, market: Market = None):
@@ -2827,6 +2809,7 @@ class htx(Exchange, ImplicitAPI):
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        :param str [params.useHistoricalEndpointForSpot]: True/false - whether use the historical candles endpoint for spot markets or default klines endpoint
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         self.load_markets()
@@ -2843,77 +2826,87 @@ class htx(Exchange, ImplicitAPI):
             # 'from': int((since / str(1000))), spot only
             # 'to': self.seconds(), spot only
         }
-        price = self.safe_string(params, 'price')
-        params = self.omit(params, 'price')
+        priceType = self.safe_string_n(params, ['priceType', 'price'])
+        params = self.omit(params, ['priceType', 'price'])
+        until = None
+        until, params = self.handle_param_integer(params, 'until')
+        untilSeconds = self.parse_to_int(until / 1000) if (until is not None) else None
         if market['contract']:
             if limit is not None:
-                request['size'] = limit  # when using limit from and to are ignored
+                request['size'] = min(limit, 2000)  # when using limit: from & to are ignored
                 # https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-get-kline-data
             else:
                 limit = 2000  # only used for from/to calculation
-            if price is None:
+            if priceType is None:
                 duration = self.parse_timeframe(timeframe)
+                calcualtedEnd = None
                 if since is None:
                     now = self.seconds()
                     request['from'] = now - duration * (limit - 1)
-                    request['to'] = now
+                    calcualtedEnd = now
                 else:
                     start = self.parse_to_int(since / 1000)
                     request['from'] = start
-                    request['to'] = self.sum(start, duration * (limit - 1))
+                    calcualtedEnd = self.sum(start, duration * (limit - 1))
+                request['to'] = untilSeconds if (untilSeconds is not None) else calcualtedEnd
         response = None
         if market['future']:
             if market['inverse']:
                 request['symbol'] = market['id']
-                if price == 'mark':
+                if priceType == 'mark':
                     response = self.contractPublicGetIndexMarketHistoryMarkPriceKline(self.extend(request, params))
-                elif price == 'index':
+                elif priceType == 'index':
                     response = self.contractPublicGetIndexMarketHistoryIndex(self.extend(request, params))
-                elif price == 'premiumIndex':
-                    raise BadRequest(self.id + ' ' + market['type'] + ' has no api endpoint for ' + price + ' kline data')
+                elif priceType == 'premiumIndex':
+                    raise BadRequest(self.id + ' ' + market['type'] + ' has no api endpoint for ' + priceType + ' kline data')
                 else:
                     response = self.contractPublicGetMarketHistoryKline(self.extend(request, params))
             elif market['linear']:
                 request['contract_code'] = market['id']
-                if price == 'mark':
+                if priceType == 'mark':
                     response = self.contractPublicGetIndexMarketHistoryLinearSwapMarkPriceKline(self.extend(request, params))
-                elif price == 'index':
-                    raise BadRequest(self.id + ' ' + market['type'] + ' has no api endpoint for ' + price + ' kline data')
-                elif price == 'premiumIndex':
+                elif priceType == 'index':
+                    raise BadRequest(self.id + ' ' + market['type'] + ' has no api endpoint for ' + priceType + ' kline data')
+                elif priceType == 'premiumIndex':
                     response = self.contractPublicGetIndexMarketHistoryLinearSwapPremiumIndexKline(self.extend(request, params))
                 else:
                     response = self.contractPublicGetLinearSwapExMarketHistoryKline(self.extend(request, params))
         elif market['swap']:
             request['contract_code'] = market['id']
             if market['inverse']:
-                if price == 'mark':
+                if priceType == 'mark':
                     response = self.contractPublicGetIndexMarketHistorySwapMarkPriceKline(self.extend(request, params))
-                elif price == 'index':
-                    raise BadRequest(self.id + ' ' + market['type'] + ' has no api endpoint for ' + price + ' kline data')
-                elif price == 'premiumIndex':
+                elif priceType == 'index':
+                    raise BadRequest(self.id + ' ' + market['type'] + ' has no api endpoint for ' + priceType + ' kline data')
+                elif priceType == 'premiumIndex':
                     response = self.contractPublicGetIndexMarketHistorySwapPremiumIndexKline(self.extend(request, params))
                 else:
                     response = self.contractPublicGetSwapExMarketHistoryKline(self.extend(request, params))
             elif market['linear']:
-                if price == 'mark':
+                if priceType == 'mark':
                     response = self.contractPublicGetIndexMarketHistoryLinearSwapMarkPriceKline(self.extend(request, params))
-                elif price == 'index':
-                    raise BadRequest(self.id + ' ' + market['type'] + ' has no api endpoint for ' + price + ' kline data')
-                elif price == 'premiumIndex':
+                elif priceType == 'index':
+                    raise BadRequest(self.id + ' ' + market['type'] + ' has no api endpoint for ' + priceType + ' kline data')
+                elif priceType == 'premiumIndex':
                     response = self.contractPublicGetIndexMarketHistoryLinearSwapPremiumIndexKline(self.extend(request, params))
                 else:
                     response = self.contractPublicGetLinearSwapExMarketHistoryKline(self.extend(request, params))
         else:
-            if since is not None:
-                request['from'] = self.parse_to_int(since / 1000)
-            if limit is not None:
-                request['size'] = limit  # max 2000
             request['symbol'] = market['id']
-            if timeframe == '1M' or timeframe == '1y':
-                # for some reason 1M and 1Y does not work with the regular endpoint
-                # https://github.com/ccxt/ccxt/issues/18006
+            useHistorical = None
+            useHistorical, params = self.handle_option_and_params(params, 'fetchOHLCV', 'useHistoricalEndpointForSpot', True)
+            if not useHistorical:
+                if limit is not None:
+                    request['size'] = min(limit, 2000)  # max 2000
                 response = self.spotPublicGetMarketHistoryKline(self.extend(request, params))
             else:
+                # "from & to" only available for the self endpoint
+                if since is not None:
+                    request['from'] = self.parse_to_int(since / 1000)
+                if untilSeconds is not None:
+                    request['to'] = untilSeconds
+                if limit is not None:
+                    request['size'] = min(1000, limit)  # max 1000, otherwise default returns 150
                 response = self.spotPublicGetMarketHistoryCandles(self.extend(request, params))
         #
         #     {
@@ -2927,10 +2920,10 @@ class htx(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        data = self.safe_value(response, 'data', [])
+        data = self.safe_list(response, 'data', [])
         return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
-    def fetch_accounts(self, params={}):
+    def fetch_accounts(self, params={}) -> List[Account]:
         """
         fetch all the accounts associated with a profile
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -3719,7 +3712,7 @@ class htx(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        data = self.safe_value(response, 'data', [])
+        data = self.safe_list(response, 'data', [])
         return self.parse_orders(data, market, since, limit)
 
     def fetch_spot_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
@@ -4774,7 +4767,7 @@ class htx(Exchange, ImplicitAPI):
         params['createMarketBuyOrderRequiresPrice'] = False
         return self.create_order(symbol, 'market', 'buy', cost, None, params)
 
-    def create_trailing_percent_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, trailingPercent=None, trailingTriggerPrice=None, params={}) -> Order:
+    def create_trailing_percent_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, trailingPercent=None, trailingTriggerPrice=None, params={}) -> Order:
         """
         create a trailing order by providing the symbol, type, side, amount, price and trailingPercent
         :param str symbol: unified symbol of the market to create an order in
@@ -4795,7 +4788,7 @@ class htx(Exchange, ImplicitAPI):
         params['trailingTriggerPrice'] = trailingTriggerPrice
         return self.create_order(symbol, type, side, amount, price, params)
 
-    def create_spot_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
+    def create_spot_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
          * @ignore
         helper function to build request
@@ -4899,7 +4892,7 @@ class htx(Exchange, ImplicitAPI):
         params = self.omit(params, ['stopPrice', 'stop-price', 'clientOrderId', 'client-order-id', 'operator', 'timeInForce'])
         return self.extend(request, params)
 
-    def create_contract_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
+    def create_contract_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
          * @ignore
         helper function to build request
@@ -4980,7 +4973,7 @@ class htx(Exchange, ImplicitAPI):
         params = self.omit(params, ['reduceOnly', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'triggerType', 'leverRate', 'timeInForce', 'leverage', 'trailingPercent', 'trailingTriggerPrice'])
         return self.extend(request, params)
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create a trade order
         :see: https://huobiapi.github.io/docs/spot/v1/en/#place-a-new-order                   # spot, margin
@@ -6205,6 +6198,7 @@ class htx(Exchange, ImplicitAPI):
         :param int [since]: not used by huobi, but filtered internally by ccxt
         :param int [limit]: not used by huobi, but filtered internally by ccxt
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns dict[]: a list of `funding rate structures <https://docs.ccxt.com/#/?id=funding-rate-history-structure>`
         """
         if symbol is None:
@@ -6718,7 +6712,7 @@ class htx(Exchange, ImplicitAPI):
         else:
             request['symbol'] = market['id']
             response = self.contractPrivatePostApiV3ContractFinancialRecordExact(self.extend(request, query))
-        data = self.safe_value(response, 'data', [])
+        data = self.safe_list(response, 'data', [])
         return self.parse_incomes(data, market, since, limit)
 
     def set_leverage(self, leverage: Int, symbol: Str = None, params={}):
@@ -7447,7 +7441,7 @@ class htx(Exchange, ImplicitAPI):
         #        ]
         #    }
         #
-        data = self.safe_value(response, 'data')
+        data = self.safe_list(response, 'data')
         return self.parse_leverage_tiers(data, symbols, 'contract_code')
 
     def fetch_market_leverage_tiers(self, symbol: str, params={}):
@@ -7636,7 +7630,7 @@ class htx(Exchange, ImplicitAPI):
         #    }
         #
         data = self.safe_value(response, 'data')
-        tick = self.safe_value(data, 'tick')
+        tick = self.safe_list(data, 'tick')
         return self.parse_open_interests(tick, market, since, limit)
 
     def fetch_open_interest(self, symbol: str, params={}):
@@ -8115,7 +8109,7 @@ class htx(Exchange, ImplicitAPI):
         #        ]
         #    }
         #
-        data = self.safe_value(response, 'data')
+        data = self.safe_list(response, 'data')
         return self.parse_deposit_withdraw_fees(data, codes, 'currency')
 
     def parse_deposit_withdraw_fee(self, fee, currency: Currency = None):
@@ -8328,7 +8322,7 @@ class htx(Exchange, ImplicitAPI):
         #         "ts": 1604312615051
         #     }
         #
-        data = self.safe_value(response, 'data', [])
+        data = self.safe_list(response, 'data', [])
         return self.parse_liquidations(data, market, since, limit)
 
     def parse_liquidation(self, liquidation, market: Market = None):

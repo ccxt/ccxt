@@ -1,5 +1,5 @@
 import binanceRest from '../binance.js';
-import type { Int, OrderSide, OrderType, Str, Strings, Trade, OrderBook, Order, Ticker, Tickers, OHLCV, Position, Balances } from '../base/types.js';
+import type { Int, OrderSide, OrderType, Str, Strings, Trade, OrderBook, Order, Ticker, Tickers, OHLCV, Position, Balances, Num } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class binance extends binanceRest {
     describe(): any;
@@ -24,9 +24,13 @@ export default class binance extends binanceRest {
     handleFetchOHLCV(client: Client, message: any): void;
     watchTicker(symbol: string, params?: {}): Promise<Ticker>;
     watchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
+    watchBidsAsks(symbols?: Strings, params?: {}): Promise<Tickers>;
+    watchMultiTickerHelper(methodName: any, channelName: string, symbols?: Strings, params?: {}): Promise<any>;
     parseWsTicker(message: any, marketType: any): Ticker;
-    handleTicker(client: Client, message: any): void;
+    handleBidsAsks(client: Client, message: any): void;
     handleTickers(client: Client, message: any): void;
+    handleTickersAndBidsAsks(client: Client, message: any, methodType: any): void;
+    getMessageHash(channelName: string, symbol: Str, isBidAsk: boolean): string;
     signParams(params?: {}): any;
     authenticate(params?: {}): Promise<void>;
     keepAliveListenKey(params?: {}): Promise<void>;
@@ -37,10 +41,10 @@ export default class binance extends binanceRest {
     watchBalance(params?: {}): Promise<Balances>;
     handleBalance(client: Client, message: any): void;
     checkIsSpot(method: string, symbol: string, params?: {}): void;
-    createOrderWs(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: number, params?: {}): Promise<Order>;
+    createOrderWs(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
     handleOrderWs(client: Client, message: any): void;
     handleOrdersWs(client: Client, message: any): void;
-    editOrderWs(id: string, symbol: string, type: OrderType, side: OrderSide, amount: number, price?: number, params?: {}): Promise<Order>;
+    editOrderWs(id: string, symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
     handleEditOrderWs(client: Client, message: any): void;
     cancelOrderWs(id: string, symbol?: Str, params?: {}): Promise<Order>;
     cancelAllOrdersWs(symbol?: Str, params?: {}): Promise<any>;

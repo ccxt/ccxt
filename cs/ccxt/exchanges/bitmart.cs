@@ -302,6 +302,7 @@ public partial class bitmart : Exchange
                     { "70000", typeof(ExchangeError) },
                     { "70001", typeof(BadRequest) },
                     { "70002", typeof(BadSymbol) },
+                    { "70003", typeof(NetworkError) },
                     { "71001", typeof(BadRequest) },
                     { "71002", typeof(BadRequest) },
                     { "71003", typeof(BadRequest) },
@@ -1267,7 +1268,7 @@ public partial class bitmart : Exchange
         {
             tickersById = this.indexBy(tickers, "contract_symbol");
         }
-        object ticker = this.safeValue(tickersById, getValue(market, "id"));
+        object ticker = this.safeDict(tickersById, getValue(market, "id"));
         return this.parseTicker(ticker, market);
     }
 
@@ -1556,7 +1557,7 @@ public partial class bitmart : Exchange
         //     }
         //
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object trades = this.safeValue(data, "trades", new List<object>() {});
+        object trades = this.safeList(data, "trades", new List<object>() {});
         return this.parseTrades(trades, market, since, limit);
     }
 
@@ -1733,7 +1734,7 @@ public partial class bitmart : Exchange
         //         "trace": "96c989db-e0f5-46f5-bba6-60cfcbde699b"
         //     }
         //
-        object ohlcv = this.safeValue(response, "data", new List<object>() {});
+        object ohlcv = this.safeList(response, "data", new List<object>() {});
         return this.parseOHLCVs(ohlcv, market, timeframe, since, limit);
     }
 
@@ -1865,7 +1866,7 @@ public partial class bitmart : Exchange
         //         "trace": "4cad855074634097ac6ba5257c47305d.62.16959616054873723"
         //     }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseTrades(data, market, since, limit);
     }
 
@@ -1889,7 +1890,7 @@ public partial class bitmart : Exchange
             { "orderId", id },
         };
         object response = await this.privatePostSpotV4QueryOrderTrades(this.extend(request, parameters));
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseTrades(data, null, since, limit);
     }
 
@@ -2878,7 +2879,7 @@ public partial class bitmart : Exchange
         //     }
         //
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object orders = this.safeValue(data, "orders", new List<object>() {});
+        object orders = this.safeList(data, "orders", new List<object>() {});
         return this.parseOrders(orders, market, since, limit);
     }
 
@@ -3023,7 +3024,7 @@ public partial class bitmart : Exchange
         //         "trace": "7f9d94g10f9d4513bc08a7rfc3a5559a.71.16957022303515933"
         //     }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseOrders(data, market, since, limit);
     }
 
@@ -3091,7 +3092,7 @@ public partial class bitmart : Exchange
         {
             response = await this.privateGetContractPrivateOrderHistory(this.extend(request, parameters));
         }
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseOrders(data, market, since, limit);
     }
 
@@ -3226,7 +3227,7 @@ public partial class bitmart : Exchange
         //         "trace": "4cad855075664097af6ba5257c47605d.63.14957831547451715"
         //     }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return this.parseOrder(data, market);
     }
 
@@ -3274,7 +3275,7 @@ public partial class bitmart : Exchange
         //        }
         //    }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return this.parseDepositAddress(data, currency);
     }
 
@@ -3443,7 +3444,7 @@ public partial class bitmart : Exchange
         //     }
         //
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object records = this.safeValue(data, "records", new List<object>() {});
+        object records = this.safeList(data, "records", new List<object>() {});
         return this.parseTransactions(records, currency, since, limit);
     }
 
@@ -3487,7 +3488,7 @@ public partial class bitmart : Exchange
         //     }
         //
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object record = this.safeValue(data, "record", new Dictionary<string, object>() {});
+        object record = this.safeDict(data, "record", new Dictionary<string, object>() {});
         return this.parseTransaction(record);
     }
 
@@ -3547,7 +3548,7 @@ public partial class bitmart : Exchange
         //     }
         //
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object record = this.safeValue(data, "record", new Dictionary<string, object>() {});
+        object record = this.safeDict(data, "record", new Dictionary<string, object>() {});
         return this.parseTransaction(record);
     }
 
@@ -4146,7 +4147,7 @@ public partial class bitmart : Exchange
         //     }
         //
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object records = this.safeValue(data, "records", new List<object>() {});
+        object records = this.safeList(data, "records", new List<object>() {});
         return this.parseTransfers(records, currency, since, limit);
     }
 
@@ -4275,7 +4276,7 @@ public partial class bitmart : Exchange
         //         "trace": "7f9c94e10f9d4513bc08a7bfc2a5559a.72.16946575108274991"
         //     }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return this.parseOpenInterest(data, market);
     }
 
@@ -4458,7 +4459,7 @@ public partial class bitmart : Exchange
         //     }
         //
         object data = this.safeValue(response, "data", new List<object>() {});
-        object first = this.safeValue(data, 0, new Dictionary<string, object>() {});
+        object first = this.safeDict(data, 0, new Dictionary<string, object>() {});
         return this.parsePosition(first, market);
     }
 

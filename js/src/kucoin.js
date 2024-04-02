@@ -8,7 +8,7 @@
 import Exchange from './abstract/kucoin.js';
 import { ExchangeError, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, AccountSuspended, InvalidNonce, NotSupported, BadRequest, AuthenticationError, BadSymbol, RateLimitExceeded, PermissionDenied, InvalidAddress, ArgumentsRequired } from './base/errors.js';
 import { Precise } from './base/Precise.js';
-import { TICK_SIZE } from './base/functions/number.js';
+import { TICK_SIZE, TRUNCATE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
 /**
@@ -55,8 +55,8 @@ export default class kucoin extends Exchange {
                 'fetchAccounts': true,
                 'fetchBalance': true,
                 'fetchBorrowInterest': true,
-                'fetchBorrowRateHistories': false,
-                'fetchBorrowRateHistory': false,
+                'fetchBorrowRateHistories': true,
+                'fetchBorrowRateHistory': true,
                 'fetchClosedOrders': true,
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
@@ -120,6 +120,7 @@ export default class kucoin extends Exchange {
                     'futuresPrivate': 'https://api-futures.kucoin.com',
                     'futuresPublic': 'https://api-futures.kucoin.com',
                     'webExchange': 'https://kucoin.com/_api',
+                    'broker': 'https://api-broker.kucoin.com',
                 },
                 'www': 'https://www.kucoin.com',
                 'doc': [
@@ -229,10 +230,13 @@ export default class kucoin extends Exchange {
                         'isolated/account/{symbol}': 50,
                         'margin/borrow': 15,
                         'margin/repay': 15,
+                        'margin/interest': 20,
                         'project/list': 10,
                         'project/marketInterestRate': 7.5,
                         'redeem/orders': 10,
-                        'purchase/orders': 10, // 10SW
+                        'purchase/orders': 10,
+                        // broker
+                        'broker/api/rebase/download': 3,
                     },
                     'post': {
                         // account
@@ -378,6 +382,23 @@ export default class kucoin extends Exchange {
                         'currency/currency/chain-info': 1, // this is temporary from webApi
                     },
                 },
+                'broker': {
+                    'get': {
+                        'broker/nd/info': 2,
+                        'broker/nd/account': 2,
+                        'broker/nd/account/apikey': 2,
+                        'broker/nd/rebase/download': 3,
+                    },
+                    'post': {
+                        'broker/nd/transfer': 1,
+                        'broker/nd/account': 3,
+                        'broker/nd/account/apikey': 3,
+                        'broker/nd/account/update-apikey': 3,
+                    },
+                    'delete': {
+                        'broker/nd/account/apikey': 3,
+                    },
+                },
             },
             'timeframes': {
                 '1m': '1min',
@@ -393,6 +414,7 @@ export default class kucoin extends Exchange {
                 '12h': '12hour',
                 '1d': '1day',
                 '1w': '1week',
+                '1M': '1month',
             },
             'precisionMode': TICK_SIZE,
             'exceptions': {
@@ -404,6 +426,7 @@ export default class kucoin extends Exchange {
                     'Order size below the minimum requirement.': InvalidOrder,
                     'The withdrawal amount is below the minimum requirement.': ExchangeError,
                     'Unsuccessful! Exceeded the max. funds out-transfer limit': InsufficientFunds,
+                    'The amount increment is invalid.': BadRequest,
                     '400': BadRequest,
                     '401': AuthenticationError,
                     '403': NotSupported,
@@ -427,6 +450,56 @@ export default class kucoin extends Exchange {
                     '130202': ExchangeError,
                     '130203': InsufficientFunds,
                     '130204': BadRequest,
+                    '130301': InsufficientFunds,
+                    '130302': PermissionDenied,
+                    '130303': NotSupported,
+                    '130304': NotSupported,
+                    '130305': NotSupported,
+                    '130306': NotSupported,
+                    '130307': NotSupported,
+                    '130308': InvalidOrder,
+                    '130309': InvalidOrder,
+                    '130310': ExchangeError,
+                    '130311': InvalidOrder,
+                    '130312': InvalidOrder,
+                    '130313': InvalidOrder,
+                    '130314': InvalidOrder,
+                    '130315': NotSupported,
+                    '126000': ExchangeError,
+                    '126001': NotSupported,
+                    '126002': ExchangeError,
+                    '126003': InvalidOrder,
+                    '126004': ExchangeError,
+                    '126005': PermissionDenied,
+                    '126006': ExchangeError,
+                    '126007': ExchangeError,
+                    '126009': ExchangeError,
+                    '126010': ExchangeError,
+                    '126011': ExchangeError,
+                    '126013': InsufficientFunds,
+                    '126015': ExchangeError,
+                    '126021': NotSupported,
+                    '126022': InvalidOrder,
+                    '126027': InvalidOrder,
+                    '126028': InvalidOrder,
+                    '126029': InvalidOrder,
+                    '126030': InvalidOrder,
+                    '126033': InvalidOrder,
+                    '126034': InvalidOrder,
+                    '126036': InvalidOrder,
+                    '126037': ExchangeError,
+                    '126038': ExchangeError,
+                    '126039': ExchangeError,
+                    '126041': ExchangeError,
+                    '126042': ExchangeError,
+                    '126043': OrderNotFound,
+                    '126044': InvalidOrder,
+                    '126045': NotSupported,
+                    '126046': NotSupported,
+                    '126047': PermissionDenied,
+                    '126048': PermissionDenied,
+                    '135005': ExchangeError,
+                    '135018': ExchangeError,
                     '200004': InsufficientFunds,
                     '210014': InvalidOrder,
                     '210021': InsufficientFunds,
@@ -443,15 +516,17 @@ export default class kucoin extends Exchange {
                     '400006': AuthenticationError,
                     '400007': AuthenticationError,
                     '400008': NotSupported,
-                    '400100': BadRequest,
+                    '400100': InsufficientFunds,
                     '400200': InvalidOrder,
                     '400350': InvalidOrder,
                     '400370': InvalidOrder,
                     '400400': BadRequest,
+                    '400401': AuthenticationError,
                     '400500': InvalidOrder,
                     '400600': BadSymbol,
                     '400760': InvalidOrder,
                     '401000': BadRequest,
+                    '408000': BadRequest,
                     '411100': AccountSuspended,
                     '415000': BadRequest,
                     '400303': PermissionDenied,
@@ -570,6 +645,7 @@ export default class kucoin extends Exchange {
                             'margin/currencies': 'v3',
                             'margin/borrow': 'v3',
                             'margin/repay': 'v3',
+                            'margin/interest': 'v3',
                             'project/list': 'v3',
                             'project/marketInterestRate': 'v3',
                             'redeem/orders': 'v3',
@@ -895,7 +971,7 @@ export default class kucoin extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         const status = this.safeString(data, 'status');
         return {
             'status': (status === 'open') ? 'ok' : 'maintenance',
@@ -941,8 +1017,8 @@ export default class kucoin extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue(response, 'data');
-        const options = this.safeValue(this.options, 'fetchMarkets', {});
+        const data = this.safeList(response, 'data');
+        const options = this.safeDict(this.options, 'fetchMarkets', {});
         const fetchTickersFees = this.safeBool(options, 'fetchTickersFees', true);
         let tickersResponse = {};
         if (fetchTickersFees) {
@@ -976,8 +1052,8 @@ export default class kucoin extends Exchange {
         //         }
         //     }
         //
-        const tickersData = this.safeValue(tickersResponse, 'data', {});
-        const tickers = this.safeValue(tickersData, 'ticker', []);
+        const tickersData = this.safeDict(tickersResponse, 'data', {});
+        const tickers = this.safeList(tickersData, 'ticker', []);
         const tickersByMarketId = this.indexBy(tickers, 'symbol');
         const result = [];
         for (let i = 0; i < data.length; i++) {
@@ -987,7 +1063,7 @@ export default class kucoin extends Exchange {
             const base = this.safeCurrencyCode(baseId);
             const quote = this.safeCurrencyCode(quoteId);
             // const quoteIncrement = this.safeNumber (market, 'quoteIncrement');
-            const ticker = this.safeValue(tickersByMarketId, id, {});
+            const ticker = this.safeDict(tickersByMarketId, id, {});
             const makerFeeRate = this.safeString(ticker, 'makerFeeRate');
             const takerFeeRate = this.safeString(ticker, 'takerFeeRate');
             const makerCoefficient = this.safeString(ticker, 'makerCoefficient');
@@ -1003,11 +1079,11 @@ export default class kucoin extends Exchange {
                 'settleId': undefined,
                 'type': 'spot',
                 'spot': true,
-                'margin': this.safeValue(market, 'isMarginEnabled'),
+                'margin': this.safeBool(market, 'isMarginEnabled'),
                 'swap': false,
                 'future': false,
                 'option': false,
-                'active': this.safeValue(market, 'enableTrading'),
+                'active': this.safeBool(market, 'enableTrading'),
                 'contract': false,
                 'linear': undefined,
                 'inverse': undefined,
@@ -1137,7 +1213,7 @@ export default class kucoin extends Exchange {
             let isWithdrawEnabled = undefined;
             let isDepositEnabled = undefined;
             const networks = {};
-            const chains = this.safeValue(entry, 'chains', []);
+            const chains = this.safeList(entry, 'chains', []);
             const extraChainsData = this.indexBy(this.safeValue(additionalDataGrouped, id, []), 'chain');
             const rawPrecision = this.safeString(entry, 'precision');
             const precision = this.parseNumber(this.parsePrecision(rawPrecision));
@@ -1165,7 +1241,7 @@ export default class kucoin extends Exchange {
                 else {
                     isDepositEnabled = isDepositEnabled || chainDepositEnabled;
                 }
-                const chainExtraData = this.safeValue(extraChainsData, chainId, {});
+                const chainExtraData = this.safeDict(extraChainsData, chainId, {});
                 networks[networkCode] = {
                     'info': chain,
                     'id': chainId,
@@ -1240,7 +1316,7 @@ export default class kucoin extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         const result = [];
         for (let i = 0; i < data.length; i++) {
             const account = data[i];
@@ -1328,7 +1404,7 @@ export default class kucoin extends Exchange {
         //        }
         //    }
         //
-        const data = this.safeValue(response, 'data');
+        const data = this.safeDict(response, 'data');
         return this.parseDepositWithdrawFee(data, currency);
     }
     parseDepositWithdrawFee(fee, currency = undefined) {
@@ -1359,7 +1435,7 @@ export default class kucoin extends Exchange {
             },
             'networks': {},
         };
-        const isWithdrawEnabled = this.safeValue(fee, 'isWithdrawEnabled');
+        const isWithdrawEnabled = this.safeBool(fee, 'isWithdrawEnabled');
         if (isWithdrawEnabled) {
             result['withdraw']['fee'] = this.safeNumber2(fee, 'withdrawalMinFee', 'withdrawMinFee');
             result['withdraw']['percentage'] = false;
@@ -1386,7 +1462,7 @@ export default class kucoin extends Exchange {
         //
         const defaultType = this.safeString2(this.options, methodName, 'defaultType', 'trade');
         const requestedType = this.safeString(params, 'type', defaultType);
-        const accountsByType = this.safeValue(this.options, 'accountsByType');
+        const accountsByType = this.safeDict(this.options, 'accountsByType');
         const type = this.safeString(accountsByType, requestedType);
         if (type === undefined) {
             const keys = Object.keys(accountsByType);
@@ -1527,8 +1603,8 @@ export default class kucoin extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue(response, 'data', {});
-        const tickers = this.safeValue(data, 'ticker', []);
+        const data = this.safeDict(response, 'data', {});
+        const tickers = this.safeList(data, 'ticker', []);
         const time = this.safeInteger(data, 'time');
         const result = {};
         for (let i = 0; i < tickers.length; i++) {
@@ -1658,7 +1734,7 @@ export default class kucoin extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseOHLCVs(data, market, timeframe, since, limit);
     }
     async createDepositAddress(code, params = {}) {
@@ -1686,7 +1762,7 @@ export default class kucoin extends Exchange {
         // {"code":"260000","msg":"Deposit address already exists."}
         // BCH {"code":"200000","data":{"address":"bitcoincash:qza3m4nj9rx7l9r0cdadfqxts6f92shvhvr5ls4q7z","memo":""}}
         // BTC {"code":"200000","data":{"address":"36SjucKqQpQSvsak9A7h6qzFjrVXpRNZhE","memo":""}}
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         return this.parseDepositAddress(data, currency);
     }
     async fetchDepositAddress(code, params = {}) {
@@ -1781,7 +1857,7 @@ export default class kucoin extends Exchange {
         //     }
         //
         this.options['versions']['private']['GET']['deposit-addresses'] = version;
-        const chains = this.safeValue(response, 'data', []);
+        const chains = this.safeList(response, 'data', []);
         const parsed = this.parseDepositAddresses(chains, [currency['code']], false, {
             'currency': currency['id'],
         });
@@ -1854,7 +1930,7 @@ export default class kucoin extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         const timestamp = this.safeInteger(data, 'time');
         const orderbook = this.parseOrderBook(data, market['symbol'], timestamp, 'bids', 'asks', level - 2, level - 1);
         orderbook['nonce'] = this.safeInteger(data, 'sequence');
@@ -1956,7 +2032,7 @@ export default class kucoin extends Exchange {
         //         }
         //    }
         //
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         return this.parseOrder(data, market);
     }
     async createMarketOrderWithCost(symbol, side, cost, params = {}) {
@@ -2084,9 +2160,17 @@ export default class kucoin extends Exchange {
         //           },
         // }
         //
-        let data = this.safeValue(response, 'data', {});
-        data = this.safeValue(data, 'data', []);
+        let data = this.safeDict(response, 'data', {});
+        data = this.safeList(data, 'data', []);
         return this.parseOrders(data);
+    }
+    marketOrderAmountToPrecision(symbol, amount) {
+        const market = this.market(symbol);
+        const result = this.decimalToPrecision(amount, TRUNCATE, market['info']['quoteIncrement'], this.precisionMode, this.paddingMode);
+        if (result === '0') {
+            throw new InvalidOrder(this.id + ' amount of ' + market['symbol'] + ' must be greater than minimum amount precision of ' + this.numberToString(market['precision']['amount']));
+        }
+        return result;
     }
     createOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
         const market = this.market(symbol);
@@ -2108,7 +2192,7 @@ export default class kucoin extends Exchange {
             if (quoteAmount !== undefined) {
                 params = this.omit(params, ['cost', 'funds']);
                 // kucoin uses base precision even for quote values
-                costString = this.amountToPrecision(symbol, quoteAmount);
+                costString = this.marketOrderAmountToPrecision(symbol, quoteAmount);
                 request['funds'] = costString;
             }
             else {
@@ -2202,7 +2286,7 @@ export default class kucoin extends Exchange {
         //     }
         // }
         //
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         return this.parseOrder(data, market);
     }
     async cancelOrder(id, symbol = undefined, params = {}) {
@@ -2226,7 +2310,7 @@ export default class kucoin extends Exchange {
         await this.loadMarkets();
         const request = {};
         const clientOrderId = this.safeString2(params, 'clientOid', 'clientOrderId');
-        const stop = this.safeValue2(params, 'stop', 'trigger', false);
+        const stop = this.safeBool2(params, 'stop', 'trigger', false);
         const hf = this.safeBool(params, 'hf', false);
         if (hf) {
             if (symbol === undefined) {
@@ -2426,8 +2510,12 @@ export default class kucoin extends Exchange {
         //             ]
         //         }
         //    }
-        const responseData = this.safeValue(response, 'data', {});
-        const orders = this.safeValue(responseData, 'items', responseData);
+        const listData = this.safeList(response, 'data');
+        if (listData !== undefined) {
+            return this.parseOrders(listData, market, since, limit);
+        }
+        const responseData = this.safeDict(response, 'data', {});
+        const orders = this.safeList(responseData, 'items', []);
         return this.parseOrders(orders, market, since, limit);
     }
     async fetchClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -2562,7 +2650,7 @@ export default class kucoin extends Exchange {
                 response = await this.privateGetOrdersOrderId(this.extend(request, params));
             }
         }
-        let responseData = this.safeValue(response, 'data', {});
+        let responseData = this.safeDict(response, 'data', {});
         if (Array.isArray(responseData)) {
             responseData = this.safeValue(responseData, 0);
         }
@@ -2697,7 +2785,7 @@ export default class kucoin extends Exchange {
         const responseStop = this.safeString(order, 'stop');
         const stop = responseStop !== undefined;
         const stopTriggered = this.safeBool(order, 'stopTriggered', false);
-        const isActive = this.safeValue2(order, 'isActive', 'active');
+        const isActive = this.safeBool2(order, 'isActive', 'active');
         const responseStatus = this.safeString(order, 'status');
         let status = undefined;
         if (isActive !== undefined) {
@@ -2730,7 +2818,7 @@ export default class kucoin extends Exchange {
             'symbol': this.safeSymbol(marketId, market, '-'),
             'type': this.safeString(order, 'type'),
             'timeInForce': this.safeString(order, 'timeInForce'),
-            'postOnly': this.safeValue(order, 'postOnly'),
+            'postOnly': this.safeBool(order, 'postOnly'),
             'side': this.safeString(order, 'side'),
             'amount': this.safeString(order, 'size'),
             'price': this.safeString(order, 'price'),
@@ -2870,13 +2958,13 @@ export default class kucoin extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         let trades = undefined;
         if (parseResponseData) {
             trades = data;
         }
         else {
-            trades = this.safeValue(data, 'items', []);
+            trades = this.safeList(data, 'items', []);
         }
         return this.parseTrades(trades, market, since, limit);
     }
@@ -2919,7 +3007,7 @@ export default class kucoin extends Exchange {
         //         ]
         //     }
         //
-        const trades = this.safeValue(response, 'data', []);
+        const trades = this.safeList(response, 'data', []);
         return this.parseTrades(trades, market, since, limit);
     }
     parseTrade(trade, market = undefined) {
@@ -3081,8 +3169,8 @@ export default class kucoin extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
-        const first = this.safeValue(data, 0);
+        const data = this.safeList(response, 'data', []);
+        const first = this.safeDict(data, 0);
         const marketId = this.safeString(first, 'symbol');
         return {
             'info': response,
@@ -3143,7 +3231,7 @@ export default class kucoin extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         return this.parseTransaction(data, currency);
     }
     parseTransactionStatus(status) {
@@ -3243,7 +3331,7 @@ export default class kucoin extends Exchange {
                 updated = updated * 1000;
             }
         }
-        const internal = this.safeValue(transaction, 'isInner');
+        const internal = this.safeBool(transaction, 'isInner');
         const tag = this.safeString(transaction, 'memo');
         return {
             'info': transaction,
@@ -3469,7 +3557,7 @@ export default class kucoin extends Exchange {
         }
         const defaultType = this.safeString2(this.options, 'fetchBalance', 'defaultType', 'spot');
         const requestedType = this.safeString(params, 'type', defaultType);
-        const accountsByType = this.safeValue(this.options, 'accountsByType');
+        const accountsByType = this.safeDict(this.options, 'accountsByType');
         let type = this.safeString(accountsByType, requestedType, requestedType);
         params = this.omit(params, 'type');
         const isHf = this.safeBool(params, 'hf', false);
@@ -3551,7 +3639,7 @@ export default class kucoin extends Exchange {
         //        }
         //    }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         const result = {
             'info': response,
             'timestamp': undefined,
@@ -3563,8 +3651,8 @@ export default class kucoin extends Exchange {
                 const entry = assets[i];
                 const marketId = this.safeString(entry, 'symbol');
                 const symbol = this.safeSymbol(marketId, undefined, '_');
-                const base = this.safeValue(entry, 'baseAsset', {});
-                const quote = this.safeValue(entry, 'quoteAsset', {});
+                const base = this.safeDict(entry, 'baseAsset', {});
+                const quote = this.safeDict(entry, 'quoteAsset', {});
                 const baseCode = this.safeCurrencyCode(this.safeString(base, 'currency'));
                 const quoteCode = this.safeCurrencyCode(this.safeString(quote, 'currency'));
                 const subResult = {};
@@ -3574,7 +3662,7 @@ export default class kucoin extends Exchange {
             }
         }
         else if (cross) {
-            const accounts = this.safeValue(data, 'accounts', []);
+            const accounts = this.safeList(data, 'accounts', []);
             for (let i = 0; i < accounts.length; i++) {
                 const balance = accounts[i];
                 const currencyId = this.safeString(balance, 'currency');
@@ -3659,7 +3747,7 @@ export default class kucoin extends Exchange {
             //         }
             //     }
             //
-            const data = this.safeValue(response, 'data');
+            const data = this.safeDict(response, 'data');
             return this.parseTransfer(data, currency);
         }
         else {
@@ -3691,7 +3779,7 @@ export default class kucoin extends Exchange {
             //         }
             //     }
             //
-            const data = this.safeValue(response, 'data');
+            const data = this.safeDict(response, 'data');
             return this.parseTransfer(data, currency);
         }
     }
@@ -3735,7 +3823,7 @@ export default class kucoin extends Exchange {
         const rawStatus = this.safeString(transfer, 'status');
         const accountFromRaw = this.safeStringLower(transfer, 'payAccountType');
         const accountToRaw = this.safeStringLower(transfer, 'recAccountType');
-        const accountsByType = this.safeValue(this.options, 'accountsByType');
+        const accountsByType = this.safeDict(this.options, 'accountsByType');
         const accountFrom = this.safeString(accountsByType, accountFromRaw, accountFromRaw);
         const accountTo = this.safeString(accountsByType, accountToRaw, accountToRaw);
         return {
@@ -3905,7 +3993,7 @@ export default class kucoin extends Exchange {
         await this.loadAccounts();
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchLedger', 'paginate');
-        const isHf = this.safeValue(params, 'hf');
+        const isHf = this.safeBool(params, 'hf');
         params = this.omit(params, 'hf');
         if (paginate) {
             return await this.fetchPaginatedCallDynamic('fetchLedger', code, since, limit, params);
@@ -3987,9 +4075,9 @@ export default class kucoin extends Exchange {
         return this.parseLedger(items, currency, since, limit);
     }
     calculateRateLimiterCost(api, method, path, params, config = {}) {
-        const versions = this.safeValue(this.options, 'versions', {});
-        const apiVersions = this.safeValue(versions, api, {});
-        const methodVersions = this.safeValue(apiVersions, method, {});
+        const versions = this.safeDict(this.options, 'versions', {});
+        const apiVersions = this.safeDict(versions, api, {});
+        const methodVersions = this.safeDict(apiVersions, method, {});
         const defaultVersion = this.safeString(methodVersions, path, this.options['version']);
         const version = this.safeString(params, 'version', defaultVersion);
         if (version === 'v3' && ('v3' in config)) {
@@ -4024,12 +4112,19 @@ export default class kucoin extends Exchange {
         //         "timestamp": 1658531274508488480
         //     },
         //
-        const timestampId = this.safeString(info, 'timestamp');
-        const timestamp = Precise.stringMul(timestampId, '0.000001');
+        //     {
+        //         "createdAt": 1697783812257,
+        //         "currency": "XMR",
+        //         "interestAmount": "0.1",
+        //         "dayRatio": "0.001"
+        //     }
+        //
+        const timestampId = this.safeString2(info, 'createdAt', 'timestamp');
+        const timestamp = this.parseToInt(timestampId.slice(0, 13));
         const currencyId = this.safeString(info, 'currency');
         return {
             'currency': this.safeCurrencyCode(currencyId, currency),
-            'rate': this.safeNumber(info, 'dailyIntRate'),
+            'rate': this.safeNumber2(info, 'dailyIntRate', 'dayRatio'),
             'period': 86400000,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
@@ -4133,8 +4228,8 @@ export default class kucoin extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue(response, 'data', {});
-        const assets = (marginMode === 'isolated') ? this.safeValue(data, 'assets', []) : this.safeValue(data, 'accounts', []);
+        const data = this.safeDict(response, 'data', {});
+        const assets = (marginMode === 'isolated') ? this.safeList(data, 'assets', []) : this.safeList(data, 'accounts', []);
         return this.parseBorrowInterests(assets, undefined);
     }
     parseBorrowInterest(info, market = undefined) {
@@ -4187,7 +4282,7 @@ export default class kucoin extends Exchange {
         market = this.safeMarket(marketId, market);
         const symbol = this.safeString(market, 'symbol');
         const timestamp = this.safeInteger(info, 'createdAt');
-        const isolatedBase = this.safeValue(info, 'baseAsset', {});
+        const isolatedBase = this.safeDict(info, 'baseAsset', {});
         let amountBorrowed = undefined;
         let interest = undefined;
         let currencyId = undefined;
@@ -4212,6 +4307,144 @@ export default class kucoin extends Exchange {
             'datetime': this.iso8601(timestamp),
             'info': info,
         };
+    }
+    async fetchBorrowRateHistories(codes = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name kucoin#fetchBorrowRateHistories
+         * @description retrieves a history of a multiple currencies borrow interest rate at specific time slots, returns all currencies if no symbols passed, default is undefined
+         * @see https://www.kucoin.com/docs/rest/margin-trading/margin-trading-v3-/get-cross-isolated-margin-interest-records
+         * @param {string[]|undefined} codes list of unified currency codes, default is undefined
+         * @param {int} [since] timestamp in ms of the earliest borrowRate, default is undefined
+         * @param {int} [limit] max number of borrow rate prices to return, default is undefined
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.marginMode] 'cross' or 'isolated' default is 'cross'
+         * @param {int} [params.until] the latest time in ms to fetch entries for
+         * @returns {object} a dictionary of [borrow rate structures]{@link https://docs.ccxt.com/#/?id=borrow-rate-structure} indexed by the market symbol
+         */
+        await this.loadMarkets();
+        const marginResult = this.handleMarginModeAndParams('fetchBorrowRateHistories', params);
+        const marginMode = this.safeString(marginResult, 0, 'cross');
+        const isIsolated = (marginMode === 'isolated'); // true-isolated, false-cross
+        let request = {
+            'isIsolated': isIsolated,
+        };
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        [request, params] = this.handleUntilOption('endTime', request, params);
+        if (limit !== undefined) {
+            request['pageSize'] = limit; // default:50, min:10, max:500
+        }
+        const response = await this.privateGetMarginInterest(this.extend(request, params));
+        //
+        //     {
+        //         "code": "200000",
+        //         "data": {
+        //             "timestamp": 1710829939673,
+        //             "currentPage": 1,
+        //             "pageSize": 50,
+        //             "totalNum": 0,
+        //             "totalPage": 0,
+        //             "items": [
+        //                 {
+        //                     "createdAt": 1697783812257,
+        //                     "currency": "XMR",
+        //                     "interestAmount": "0.1",
+        //                     "dayRatio": "0.001"
+        //                 }
+        //             ]
+        //         }
+        //     }
+        //
+        const data = this.safeDict(response, 'data');
+        const rows = this.safeList(data, 'items');
+        return this.parseBorrowRateHistories(rows, codes, since, limit);
+    }
+    async fetchBorrowRateHistory(code, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name kucoin#fetchBorrowRateHistory
+         * @description retrieves a history of a currencies borrow interest rate at specific time slots
+         * @see https://www.kucoin.com/docs/rest/margin-trading/margin-trading-v3-/get-cross-isolated-margin-interest-records
+         * @param {string} code unified currency code
+         * @param {int} [since] timestamp for the earliest borrow rate
+         * @param {int} [limit] the maximum number of [borrow rate structures]{@link https://docs.ccxt.com/#/?id=borrow-rate-structure} to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.marginMode] 'cross' or 'isolated' default is 'cross'
+         * @param {int} [params.until] the latest time in ms to fetch entries for
+         * @returns {object[]} an array of [borrow rate structures]{@link https://docs.ccxt.com/#/?id=borrow-rate-structure}
+         */
+        await this.loadMarkets();
+        const marginResult = this.handleMarginModeAndParams('fetchBorrowRateHistories', params);
+        const marginMode = this.safeString(marginResult, 0, 'cross');
+        const isIsolated = (marginMode === 'isolated'); // true-isolated, false-cross
+        const currency = this.currency(code);
+        let request = {
+            'isIsolated': isIsolated,
+            'currency': currency['id'],
+        };
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        [request, params] = this.handleUntilOption('endTime', request, params);
+        if (limit !== undefined) {
+            request['pageSize'] = limit; // default:50, min:10, max:500
+        }
+        const response = await this.privateGetMarginInterest(this.extend(request, params));
+        //
+        //     {
+        //         "code": "200000",
+        //         "data": {
+        //             "timestamp": 1710829939673,
+        //             "currentPage": 1,
+        //             "pageSize": 50,
+        //             "totalNum": 0,
+        //             "totalPage": 0,
+        //             "items": [
+        //                 {
+        //                     "createdAt": 1697783812257,
+        //                     "currency": "XMR",
+        //                     "interestAmount": "0.1",
+        //                     "dayRatio": "0.001"
+        //                 }
+        //             ]
+        //         }
+        //     }
+        //
+        const data = this.safeDict(response, 'data');
+        const rows = this.safeList(data, 'items');
+        return this.parseBorrowRateHistory(rows, code, since, limit);
+    }
+    parseBorrowRateHistories(response, codes, since, limit) {
+        //
+        //     [
+        //         {
+        //             "createdAt": 1697783812257,
+        //             "currency": "XMR",
+        //             "interestAmount": "0.1",
+        //             "dayRatio": "0.001"
+        //         }
+        //     ]
+        //
+        const borrowRateHistories = {};
+        for (let i = 0; i < response.length; i++) {
+            const item = response[i];
+            const code = this.safeCurrencyCode(this.safeString(item, 'currency'));
+            if (codes === undefined || this.inArray(code, codes)) {
+                if (!(code in borrowRateHistories)) {
+                    borrowRateHistories[code] = [];
+                }
+                const borrowRateStructure = this.parseBorrowRate(item);
+                borrowRateHistories[code].push(borrowRateStructure);
+            }
+        }
+        const keys = Object.keys(borrowRateHistories);
+        for (let i = 0; i < keys.length; i++) {
+            const code = keys[i];
+            borrowRateHistories[code] = this.filterByCurrencySinceLimit(borrowRateHistories[code], code, since, limit);
+        }
+        return borrowRateHistories;
     }
     async borrowCrossMargin(code, amount, params = {}) {
         /**
@@ -4245,7 +4478,7 @@ export default class kucoin extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         return this.parseMarginLoan(data, currency);
     }
     async borrowIsolatedMargin(symbol, code, amount, params = {}) {
@@ -4284,7 +4517,7 @@ export default class kucoin extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         return this.parseMarginLoan(data, currency);
     }
     async repayCrossMargin(code, amount, params = {}) {
@@ -4317,7 +4550,7 @@ export default class kucoin extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         return this.parseMarginLoan(data, currency);
     }
     async repayIsolatedMargin(symbol, code, amount, params = {}) {
@@ -4354,7 +4587,7 @@ export default class kucoin extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         return this.parseMarginLoan(data, currency);
     }
     parseMarginLoan(info, currency = undefined) {
@@ -4406,7 +4639,7 @@ export default class kucoin extends Exchange {
         //      },
         //  ]
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseDepositWithdrawFees(data, codes, 'currency');
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
@@ -4415,9 +4648,9 @@ export default class kucoin extends Exchange {
         //                                ↑                 ↑
         //                                ↑                 ↑
         //
-        const versions = this.safeValue(this.options, 'versions', {});
-        const apiVersions = this.safeValue(versions, api, {});
-        const methodVersions = this.safeValue(apiVersions, method, {});
+        const versions = this.safeDict(this.options, 'versions', {});
+        const apiVersions = this.safeDict(versions, api, {});
+        const methodVersions = this.safeDict(apiVersions, method, {});
         const defaultVersion = this.safeString(methodVersions, path, this.options['version']);
         const version = this.safeString(params, 'version', defaultVersion);
         params = this.omit(params, 'version');
@@ -4442,7 +4675,8 @@ export default class kucoin extends Exchange {
         url = url + endpoint;
         const isFuturePrivate = (api === 'futuresPrivate');
         const isPrivate = (api === 'private');
-        if (isPrivate || isFuturePrivate) {
+        const isBroker = (api === 'broker');
+        if (isPrivate || isFuturePrivate || isBroker) {
             this.checkRequiredCredentials();
             const timestamp = this.nonce().toString();
             headers = this.extend({
@@ -4461,7 +4695,7 @@ export default class kucoin extends Exchange {
             const payload = timestamp + method + endpoint + endpart;
             const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256, 'base64');
             headers['KC-API-SIGN'] = signature;
-            let partner = this.safeValue(this.options, 'partner', {});
+            let partner = this.safeDict(this.options, 'partner', {});
             partner = isFuturePrivate ? this.safeValue(partner, 'future', partner) : this.safeValue(partner, 'spot', partner);
             const partnerId = this.safeString(partner, 'id');
             const partnerSecret = this.safeString2(partner, 'secret', 'key');
@@ -4470,6 +4704,12 @@ export default class kucoin extends Exchange {
                 const partnerSignature = this.hmac(this.encode(partnerPayload), this.encode(partnerSecret), sha256, 'base64');
                 headers['KC-API-PARTNER-SIGN'] = partnerSignature;
                 headers['KC-API-PARTNER'] = partnerId;
+            }
+            if (isBroker) {
+                const brokerName = this.safeString(partner, 'name');
+                if (brokerName !== undefined) {
+                    headers['KC-BROKER-NAME'] = brokerName;
+                }
             }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };

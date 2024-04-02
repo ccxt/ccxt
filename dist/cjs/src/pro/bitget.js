@@ -83,6 +83,7 @@ class bitget extends bitget$1 {
                         '30015': errors.AuthenticationError,
                         '30016': errors.BadRequest, // { event: 'error', code: 30016, msg: 'Param error' }
                     },
+                    'broad': {},
                 },
             },
         });
@@ -671,10 +672,10 @@ class bitget extends bitget$1 {
         }
         const data = this.safeList(message, 'data', []);
         const length = data.length;
-        const maxLength = Math.max(length - 1, 0);
         // fix chronological order by reversing
-        for (let i = maxLength; i >= 0; i--) {
-            const rawTrade = data[i];
+        for (let i = 0; i < length; i++) {
+            const index = length - i - 1;
+            const rawTrade = data[index];
             const parsed = this.parseWsTrade(rawTrade, market);
             stored.append(parsed);
         }
@@ -1291,7 +1292,7 @@ class bitget extends bitget$1 {
         if (feeAmount !== undefined) {
             const feeCurrency = this.safeString(fee, 'feeCoin');
             feeObject = {
-                'cost': Precise["default"].stringAbs(feeAmount),
+                'cost': this.parseNumber(Precise["default"].stringAbs(feeAmount)),
                 'currency': this.safeCurrencyCode(feeCurrency),
             };
         }
@@ -1304,10 +1305,10 @@ class bitget extends bitget$1 {
         if (side === 'buy' && market['spot'] && (type === 'market')) {
             cost = this.safeString(order, 'newSize', cost);
         }
-        let filled = this.safeString2(order, 'accBaseVolume', 'baseVolume');
-        if (market['spot'] && (rawStatus !== 'live')) {
-            filled = Precise["default"].stringDiv(cost, avgPrice);
-        }
+        const filled = this.safeString2(order, 'accBaseVolume', 'baseVolume');
+        // if (market['spot'] && (rawStatus !== 'live')) {
+        //     filled = Precise.stringDiv (cost, avgPrice);
+        // }
         let amount = this.safeString(order, 'baseVolume');
         if (!market['spot'] || !(side === 'buy' && type === 'market')) {
             amount = this.safeString(order, 'newSize', amount);
@@ -1607,7 +1608,7 @@ class bitget extends bitget$1 {
             const message = this.extend(request, params);
             this.watch(url, messageHash, message, messageHash);
         }
-        return future;
+        return await future;
     }
     async watchPrivate(messageHash, subscriptionHash, args, params = {}) {
         await this.authenticate();

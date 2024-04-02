@@ -5,7 +5,7 @@
 
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.coinmetro import ImplicitAPI
-from ccxt.base.types import Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, IndexType, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Balances, Currency, IndexType, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -339,7 +339,7 @@ class coinmetro(Exchange, ImplicitAPI):
             self.options['currencyIdsListForParseMarket'] = list(currenciesById.keys())
         return result
 
-    def fetch_markets(self, params={}):
+    def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for coinmetro
         :see: https://documenter.getpostman.com/view/3653795/SVfWN6KS#9fd18008-338e-4863-b07d-722878a46832
@@ -532,7 +532,7 @@ class coinmetro(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        candleHistory = self.safe_value(response, 'candleHistory', [])
+        candleHistory = self.safe_list(response, 'candleHistory', [])
         return self.parse_ohlcvs(candleHistory, market, timeframe, since, limit)
 
     def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
@@ -594,7 +594,7 @@ class coinmetro(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        tickHistory = self.safe_value(response, 'tickHistory', [])
+        tickHistory = self.safe_list(response, 'tickHistory', [])
         return self.parse_trades(tickHistory, market, since, limit)
 
     def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
@@ -851,7 +851,7 @@ class coinmetro(Exchange, ImplicitAPI):
         """
         self.load_markets()
         response = self.publicGetExchangePrices(params)
-        latestPrices = self.safe_value(response, 'latestPrices', [])
+        latestPrices = self.safe_list(response, 'latestPrices', [])
         return self.parse_tickers(latestPrices, symbols)
 
     def parse_ticker(self, ticker, market: Market = None) -> Ticker:
@@ -1140,7 +1140,7 @@ class coinmetro(Exchange, ImplicitAPI):
         }
         return self.safe_string(types, type, type)
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create a trade order
         :see: https://documenter.getpostman.com/view/3653795/SVfWN6KS#a4895a1d-3f50-40ae-8231-6962ef06c771

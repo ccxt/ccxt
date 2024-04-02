@@ -5,7 +5,7 @@ import { Market } from '../ccxt.js';
 import Exchange from './abstract/p2b.js';
 import { InsufficientFunds, AuthenticationError, BadRequest, ExchangeNotAvailable, ArgumentsRequired } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Int, OHLCV, Order, OrderSide, OrderType, Str, Strings, Ticker, Tickers } from './base/types.js';
+import type { Int, Num, OHLCV, Order, OrderSide, OrderType, Str, Strings, Ticker, Tickers } from './base/types.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
 
 // ---------------------------------------------------------------------------
@@ -234,7 +234,7 @@ export default class p2b extends Exchange {
         });
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name p2b#fetchMarkets
@@ -582,7 +582,7 @@ export default class p2b extends Exchange {
         //        current_time: '1699255571.413828'
         //    }
         //
-        const result = this.safeValue (response, 'result', []);
+        const result = this.safeList (response, 'result', []);
         return this.parseTrades (result, market, since, limit);
     }
 
@@ -700,7 +700,7 @@ export default class p2b extends Exchange {
         //        current_time: '1699256375.030494'
         //    }
         //
-        const result = this.safeValue (response, 'result', []);
+        const result = this.safeList (response, 'result', []);
         return this.parseOHLCVs (result, market, timeframe, since, limit);
     }
 
@@ -791,7 +791,7 @@ export default class p2b extends Exchange {
         return this.safeBalance (result);
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         /**
          * @method
          * @name p2b#createOrder
@@ -839,7 +839,7 @@ export default class p2b extends Exchange {
         //        }
         //    }
         //
-        const result = this.safeValue (response, 'result');
+        const result = this.safeDict (response, 'result');
         return this.parseOrder (result, market);
     }
 
@@ -886,7 +886,7 @@ export default class p2b extends Exchange {
         //        }
         //    }
         //
-        const result = this.safeValue (response, 'result');
+        const result = this.safeDict (response, 'result');
         return this.parseOrder (result);
     }
 
@@ -942,7 +942,7 @@ export default class p2b extends Exchange {
         //        ]
         //    }
         //
-        const result = this.safeValue (response, 'result', []);
+        const result = this.safeList (response, 'result', []);
         return this.parseOrders (result, market, since, limit);
     }
 
@@ -995,7 +995,7 @@ export default class p2b extends Exchange {
         //    }
         //
         const result = this.safeValue (response, 'result', {});
-        const records = this.safeValue (result, 'records', []);
+        const records = this.safeList (result, 'records', []);
         return this.parseTrades (records, market, since, limit);
     }
 
@@ -1071,7 +1071,7 @@ export default class p2b extends Exchange {
         //    }
         //
         const result = this.safeValue (response, 'result', {});
-        const deals = this.safeValue (result, 'deals', []);
+        const deals = this.safeList (result, 'deals', []);
         return this.parseTrades (deals, market, since, limit);
     }
 

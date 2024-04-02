@@ -50,6 +50,7 @@ class p2b extends p2b$1 {
                 'watchTickers': {
                     'name': 'state', // or 'price'
                 },
+                'tickerSubs': this.createSafeDictionary(),
             },
             'streaming': {
                 'ping': this.ping,
@@ -120,13 +121,14 @@ class p2b extends p2b$1 {
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets();
-        const watchTickerOptions = this.safeValue(this.options, 'watchTicker');
+        const watchTickerOptions = this.safeDict(this.options, 'watchTicker');
         let name = this.safeString(watchTickerOptions, 'name', 'state'); // or price
         [name, params] = this.handleOptionAndParams(params, 'method', 'name', name);
         const market = this.market(symbol);
-        const request = [
-            market['id'],
-        ];
+        symbol = market['symbol'];
+        this.options['tickerSubs'][market['id']] = true; // we need to re-subscribe to all tickers upon watching a new ticker
+        const tickerSubs = this.options['tickerSubs'];
+        const request = Object.keys(tickerSubs);
         const messageHash = name + '::' + market['symbol'];
         return await this.subscribe(name + '.subscribe', messageHash, request, params);
     }
@@ -428,6 +430,14 @@ class p2b extends p2b$1 {
         //
         client.lastPong = this.safeInteger(message, 'id');
         return message;
+    }
+    onError(client, error) {
+        this.options['tickerSubs'] = this.createSafeDictionary();
+        this.onError(client, error);
+    }
+    onClose(client, error) {
+        this.options['tickerSubs'] = this.createSafeDictionary();
+        this.onClose(client, error);
     }
 }
 

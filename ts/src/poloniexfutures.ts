@@ -5,7 +5,7 @@ import Exchange from './abstract/poloniexfutures.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { BadRequest, ArgumentsRequired, InvalidOrder, AuthenticationError, NotSupported, RateLimitExceeded, ExchangeNotAvailable, InvalidNonce, AccountSuspended, OrderNotFound } from './base/errors.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Balances, FundingHistory, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
+import type { Balances, FundingHistory, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -206,7 +206,7 @@ export default class poloniexfutures extends Exchange {
         });
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name poloniexfutures#fetchMarkets
@@ -684,7 +684,7 @@ export default class poloniexfutures extends Exchange {
         //        },
         //    }
         //
-        const trades = this.safeValue (response, 'data', []);
+        const trades = this.safeList (response, 'data', []);
         return this.parseTrades (trades, market, since, limit);
     }
 
@@ -757,7 +757,7 @@ export default class poloniexfutures extends Exchange {
         //        ]
         //    }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
@@ -814,7 +814,7 @@ export default class poloniexfutures extends Exchange {
         return this.parseBalance (response);
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         /**
          * @method
          * @name poloniexfutures#createOrder
@@ -1021,7 +1021,7 @@ export default class poloniexfutures extends Exchange {
         //        ]
         //    }
         //
-        const data = this.safeValue (response, 'data');
+        const data = this.safeList (response, 'data');
         return this.parsePositions (data, symbols);
     }
 
@@ -1405,7 +1405,7 @@ export default class poloniexfutures extends Exchange {
         return await this.fetchOrdersByStatus ('closed', symbol, since, limit, params);
     }
 
-    async fetchOrder (id: string = undefined, symbol: Str = undefined, params = {}) {
+    async fetchOrder (id: Str = undefined, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name poloniexfutures#fetchOrder
@@ -1477,7 +1477,7 @@ export default class poloniexfutures extends Exchange {
         //    }
         //
         const market = (symbol !== undefined) ? this.market (symbol) : undefined;
-        const responseData = this.safeValue (response, 'data');
+        const responseData = this.safeDict (response, 'data');
         return this.parseOrder (responseData, market);
     }
 
@@ -1716,11 +1716,11 @@ export default class poloniexfutures extends Exchange {
         //    }
         //
         const data = this.safeValue (response, 'data', {});
-        const trades = this.safeValue (data, 'items', {});
+        const trades = this.safeList (data, 'items', []);
         return this.parseTrades (trades, market, since, limit);
     }
 
-    async setMarginMode (marginMode: string, symbol: string = undefined, params = {}) {
+    async setMarginMode (marginMode: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name poloniexfutures#setMarginMode

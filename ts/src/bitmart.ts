@@ -2,11 +2,11 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/bitmart.js';
-import { AuthenticationError, ExchangeNotAvailable, OnMaintenance, AccountSuspended, PermissionDenied, RateLimitExceeded, InvalidNonce, InvalidAddress, ArgumentsRequired, ExchangeError, InvalidOrder, InsufficientFunds, BadRequest, OrderNotFound, BadSymbol, NotSupported } from './base/errors.js';
+import { AuthenticationError, ExchangeNotAvailable, OnMaintenance, AccountSuspended, PermissionDenied, RateLimitExceeded, InvalidNonce, InvalidAddress, ArgumentsRequired, ExchangeError, InvalidOrder, InsufficientFunds, BadRequest, OrderNotFound, BadSymbol, NotSupported, NetworkError } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE, TRUNCATE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Int, OrderSide, Balances, OrderType, OHLCV, Order, Str, Trade, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, Market, TransferEntry } from './base/types.js';
+import type { Int, OrderSide, Balances, OrderType, OHLCV, Order, Str, Trade, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, Market, TransferEntry, Num } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -349,6 +349,7 @@ export default class bitmart extends Exchange {
                     '70000': ExchangeError, // 200, no data
                     '70001': BadRequest, // 200, request param can not be null
                     '70002': BadSymbol, // 200, symbol is invalid
+                    '70003': NetworkError, // {"code":70003,"trace":"81a9d57b63be4819b65d3065e6a4682b.105.17105295323593915","message":"net error, please try later","data":null}
                     '71001': BadRequest, // 200, after is invalid
                     '71002': BadRequest, // 200, before is invalid
                     '71003': BadRequest, // 200, request after or before is invalid
@@ -972,7 +973,7 @@ export default class bitmart extends Exchange {
         return result;
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name bitmart#fetchMarkets
@@ -1323,7 +1324,7 @@ export default class bitmart extends Exchange {
         } else if (market['swap']) {
             tickersById = this.indexBy (tickers, 'contract_symbol');
         }
-        const ticker = this.safeValue (tickersById, market['id']);
+        const ticker = this.safeDict (tickersById, market['id']);
         return this.parseTicker (ticker, market);
     }
 
@@ -1589,7 +1590,7 @@ export default class bitmart extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', {});
-        const trades = this.safeValue (data, 'trades', []);
+        const trades = this.safeList (data, 'trades', []);
         return this.parseTrades (trades, market, since, limit);
     }
 
@@ -1756,7 +1757,7 @@ export default class bitmart extends Exchange {
         //         "trace": "96c989db-e0f5-46f5-bba6-60cfcbde699b"
         //     }
         //
-        const ohlcv = this.safeValue (response, 'data', []);
+        const ohlcv = this.safeList (response, 'data', []);
         return this.parseOHLCVs (ohlcv, market, timeframe, since, limit);
     }
 
@@ -1871,7 +1872,7 @@ export default class bitmart extends Exchange {
         //         "trace": "4cad855074634097ac6ba5257c47305d.62.16959616054873723"
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         return this.parseTrades (data, market, since, limit);
     }
 
@@ -1893,7 +1894,7 @@ export default class bitmart extends Exchange {
             'orderId': id,
         };
         const response = await this.privatePostSpotV4QueryOrderTrades (this.extend (request, params));
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeList (response, 'data', []);
         return this.parseTrades (data, undefined, since, limit);
     }
 
@@ -2317,7 +2318,7 @@ export default class bitmart extends Exchange {
         return await this.createOrder (symbol, 'market', 'buy', cost, undefined, params);
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         /**
          * @method
          * @name bitmart#createOrder
@@ -2391,7 +2392,7 @@ export default class bitmart extends Exchange {
         return order;
     }
 
-    createSwapOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
+    createSwapOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         /**
          * @method
          * @name bitmart#createSwapOrderRequest
@@ -2499,7 +2500,7 @@ export default class bitmart extends Exchange {
         return this.extend (request, params);
     }
 
-    createSpotOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
+    createSpotOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         /**
          * @method
          * @name bitmart#createSpotOrderRequest
@@ -2763,7 +2764,7 @@ export default class bitmart extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', {});
-        const orders = this.safeValue (data, 'orders', []);
+        const orders = this.safeList (data, 'orders', []);
         return this.parseOrders (orders, market, since, limit);
     }
 
@@ -2890,7 +2891,7 @@ export default class bitmart extends Exchange {
         //         "trace": "7f9d94g10f9d4513bc08a7rfc3a5559a.71.16957022303515933"
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         return this.parseOrders (data, market, since, limit);
     }
 
@@ -2944,7 +2945,7 @@ export default class bitmart extends Exchange {
         } else {
             response = await this.privateGetContractPrivateOrderHistory (this.extend (request, params));
         }
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         return this.parseOrders (data, market, since, limit);
     }
 
@@ -3064,7 +3065,7 @@ export default class bitmart extends Exchange {
         //         "trace": "4cad855075664097af6ba5257c47605d.63.14957831547451715"
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         return this.parseOrder (data, market);
     }
 
@@ -3108,7 +3109,7 @@ export default class bitmart extends Exchange {
         //        }
         //    }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         return this.parseDepositAddress (data, currency);
     }
 
@@ -3260,7 +3261,7 @@ export default class bitmart extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', {});
-        const records = this.safeValue (data, 'records', []);
+        const records = this.safeList (data, 'records', []);
         return this.parseTransactions (records, currency, since, limit);
     }
 
@@ -3302,7 +3303,7 @@ export default class bitmart extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', {});
-        const record = this.safeValue (data, 'record', {});
+        const record = this.safeDict (data, 'record', {});
         return this.parseTransaction (record);
     }
 
@@ -3358,7 +3359,7 @@ export default class bitmart extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', {});
-        const record = this.safeValue (data, 'record', {});
+        const record = this.safeDict (data, 'record', {});
         return this.parseTransaction (record);
     }
 
@@ -3917,7 +3918,7 @@ export default class bitmart extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', {});
-        const records = this.safeValue (data, 'records', []);
+        const records = this.safeList (data, 'records', []);
         return this.parseTransfers (records, currency, since, limit);
     }
 
@@ -4037,7 +4038,7 @@ export default class bitmart extends Exchange {
         //         "trace": "7f9c94e10f9d4513bc08a7bfc2a5559a.72.16946575108274991"
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         return this.parseOpenInterest (data, market);
     }
 
@@ -4207,7 +4208,7 @@ export default class bitmart extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', []);
-        const first = this.safeValue (data, 0, {});
+        const first = this.safeDict (data, 0, {});
         return this.parsePosition (first, market);
     }
 

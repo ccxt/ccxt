@@ -403,7 +403,7 @@ class ndax extends Exchange {
         }) ();
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * retrieves data on all markets for ndax
@@ -999,7 +999,7 @@ class ndax extends Exchange {
         }) ();
     }
 
-    public function fetch_accounts($params = array ()) {
+    public function fetch_accounts($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetch all the accounts associated with a profile
@@ -1961,7 +1961,7 @@ class ndax extends Exchange {
             //     )
             //
             $grouped = $this->group_by($response, 'ChangeReason');
-            $trades = $this->safe_value($grouped, 'Trade', array());
+            $trades = $this->safe_list($grouped, 'Trade', array());
             return $this->parse_trades($trades, $market, $since, $limit);
         }) ();
     }

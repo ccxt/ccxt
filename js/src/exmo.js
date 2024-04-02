@@ -265,12 +265,14 @@ export default class exmo extends Exchange {
         //
         return {
             'info': data,
+            'symbol': this.safeSymbol(undefined, market),
             'type': undefined,
             'amount': undefined,
-            'code': this.safeValue(market, 'quote'),
-            'symbol': this.safeSymbol(undefined, market),
             'total': undefined,
+            'code': this.safeValue(market, 'quote'),
             'status': 'ok',
+            'timestamp': undefined,
+            'datetime': undefined,
         };
     }
     async reduceMargin(symbol, amount, params = {}) {
@@ -863,16 +865,15 @@ export default class exmo extends Exchange {
             'symbol': market['id'],
             'resolution': this.safeString(this.timeframes, timeframe, timeframe),
         };
-        const options = this.safeValue(this.options, 'fetchOHLCV');
-        const maxLimit = this.safeInteger(options, 'maxLimit', 3000);
+        const maxLimit = 3000;
         const duration = this.parseTimeframe(timeframe);
         const now = this.milliseconds();
         if (since === undefined) {
             if (limit === undefined) {
                 limit = 1000; // cap default at generous amount
             }
-            if (limit > maxLimit) {
-                limit = maxLimit; // avoid exception
+            else {
+                limit = Math.min(limit, maxLimit);
             }
             request['from'] = this.parseToInt(now / 1000) - limit * duration - 1;
             request['to'] = this.parseToInt(now / 1000);
@@ -880,15 +881,13 @@ export default class exmo extends Exchange {
         else {
             request['from'] = this.parseToInt(since / 1000) - 1;
             if (limit === undefined) {
-                request['to'] = this.parseToInt(now / 1000);
+                limit = maxLimit;
             }
             else {
-                if (limit > maxLimit) {
-                    throw new BadRequest(this.id + ' fetchOHLCV() will serve ' + maxLimit.toString() + ' candles at most');
-                }
-                const to = this.sum(since, limit * duration * 1000);
-                request['to'] = this.parseToInt(to / 1000);
+                limit = Math.min(limit, maxLimit);
             }
+            const to = this.sum(since, limit * duration * 1000);
+            request['to'] = this.parseToInt(to / 1000);
         }
         const response = await this.publicGetCandlesHistory(this.extend(request, params));
         //
@@ -900,7 +899,7 @@ export default class exmo extends Exchange {
         //         ]
         //     }
         //
-        const candles = this.safeValue(response, 'candles', []);
+        const candles = this.safeList(response, 'candles', []);
         return this.parseOHLCVs(candles, market, timeframe, since, limit);
     }
     parseOHLCV(ohlcv, market = undefined) {
@@ -1027,7 +1026,7 @@ export default class exmo extends Exchange {
             request['limit'] = limit;
         }
         const response = await this.publicGetOrderBook(this.extend(request, params));
-        const result = this.safeValue(response, market['id']);
+        const result = this.safeDict(response, market['id']);
         return this.parseOrderBook(result, market['symbol'], undefined, 'bid', 'ask');
     }
     async fetchOrderBooks(symbols = undefined, limit = undefined, params = {}) {
@@ -1295,7 +1294,7 @@ export default class exmo extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue(response, market['id'], []);
+        const data = this.safeList(response, market['id'], []);
         return this.parseTrades(data, market, since, limit);
     }
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1686,7 +1685,7 @@ export default class exmo extends Exchange {
             //     }
             //
         }
-        const trades = this.safeValue(response, 'trades');
+        const trades = this.safeList(response, 'trades');
         return this.parseTrades(trades, market, since, limit);
     }
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -2428,7 +2427,7 @@ export default class exmo extends Exchange {
         //         "count": 23
         //     }
         //
-        const items = this.safeValue(response, 'items', []);
+        const items = this.safeList(response, 'items', []);
         return this.parseTransactions(items, currency, since, limit);
     }
     async fetchWithdrawal(id, code = undefined, params = {}) {
@@ -2480,7 +2479,7 @@ export default class exmo extends Exchange {
         //     }
         //
         const items = this.safeValue(response, 'items', []);
-        const first = this.safeValue(items, 0, {});
+        const first = this.safeDict(items, 0, {});
         return this.parseTransaction(first, currency);
     }
     async fetchDeposit(id = undefined, code = undefined, params = {}) {
@@ -2532,7 +2531,7 @@ export default class exmo extends Exchange {
         //     }
         //
         const items = this.safeValue(response, 'items', []);
-        const first = this.safeValue(items, 0, {});
+        const first = this.safeDict(items, 0, {});
         return this.parseTransaction(first, currency);
     }
     async fetchDeposits(code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -2586,7 +2585,7 @@ export default class exmo extends Exchange {
         //         "count": 23
         //     }
         //
-        const items = this.safeValue(response, 'items', []);
+        const items = this.safeList(response, 'items', []);
         return this.parseTransactions(items, currency, since, limit);
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

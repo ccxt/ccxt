@@ -1383,13 +1383,18 @@ export default class bitfinex2 extends Exchange {
         if (limit === undefined) {
             limit = 10000;
         }
+        else {
+            limit = Math.min(limit, 10000);
+        }
         let request = {
             'symbol': market['id'],
             'timeframe': this.safeString(this.timeframes, timeframe, timeframe),
             'sort': 1,
-            'start': since,
             'limit': limit,
         };
+        if (since !== undefined) {
+            request['start'] = since;
+        }
         [request, params] = this.handleUntilOption('end', request, params);
         const response = await this.publicGetCandlesTradeTimeframeSymbolHist(this.extend(request, params));
         //
@@ -1783,7 +1788,7 @@ export default class bitfinex2 extends Exchange {
             'all': 1,
         };
         const response = await this.privatePostAuthWOrderCancelMulti(this.extend(request, params));
-        const orders = this.safeValue(response, 4, []);
+        const orders = this.safeList(response, 4, []);
         return this.parseOrders(orders);
     }
     async cancelOrder(id, symbol = undefined, params = {}) {
@@ -2962,7 +2967,7 @@ export default class bitfinex2 extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
          */
-        return this.fetchFundingRates([symbol], params);
+        return await this.fetchFundingRates([symbol], params);
     }
     async fetchFundingRates(symbols = undefined, params = {}) {
         /**
@@ -3085,10 +3090,10 @@ export default class bitfinex2 extends Exchange {
         }
         const reversedArray = [];
         const rawRates = this.filterBySymbolSinceLimit(rates, symbol, since, limit);
-        const rawRatesLength = rawRates.length;
-        const ratesLength = Math.max(rawRatesLength - 1, 0);
-        for (let i = ratesLength; i >= 0; i--) {
-            const valueAtIndex = rawRates[i];
+        const ratesLength = rawRates.length;
+        for (let i = 0; i < ratesLength; i++) {
+            const index = ratesLength - i - 1;
+            const valueAtIndex = rawRates[index];
             reversedArray.push(valueAtIndex);
         }
         return reversedArray;
@@ -3502,15 +3507,27 @@ export default class bitfinex2 extends Exchange {
         return this.parseMarginModification(data, market);
     }
     parseMarginModification(data, market = undefined) {
+        //
+        // setMargin
+        //
+        //     [
+        //         [
+        //             1
+        //         ]
+        //     ]
+        //
         const marginStatusRaw = data[0];
         const marginStatus = (marginStatusRaw === 1) ? 'ok' : 'failed';
         return {
             'info': data,
+            'symbol': market['symbol'],
             'type': undefined,
             'amount': undefined,
+            'total': undefined,
             'code': undefined,
-            'symbol': market['symbol'],
             'status': marginStatus,
+            'timestamp': undefined,
+            'datetime': undefined,
         };
     }
     async fetchOrder(id, symbol = undefined, params = {}) {

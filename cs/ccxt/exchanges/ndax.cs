@@ -2007,7 +2007,7 @@ public partial class ndax : Exchange
         //     ]
         //
         object grouped = this.groupBy(response, "ChangeReason");
-        object trades = this.safeValue(grouped, "Trade", new List<object>() {});
+        object trades = this.safeList(grouped, "Trade", new List<object>() {});
         return this.parseTrades(trades, market, since, limit);
     }
 

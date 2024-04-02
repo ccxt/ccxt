@@ -62,6 +62,13 @@ class woo(ccxt.async_support.woo):
                 'ping': self.ping,
                 'keepAlive': 10000,
             },
+            'exceptions': {
+                'ws': {
+                    'exact': {
+                        'Auth is needed.': AuthenticationError,
+                    },
+                },
+            },
         })
 
     def request_id(self, url):
@@ -82,6 +89,13 @@ class woo(ccxt.async_support.woo):
         return await self.watch(url, messageHash, request, messageHash, subscribe)
 
     async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
+        """
+        watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        :param str symbol: unified symbol of the market to fetch the order book for
+        :param int [limit]: the maximum amount of order book entries to return.
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        """
         await self.load_markets()
         name = 'orderbook'
         market = self.market(symbol)
@@ -130,9 +144,16 @@ class woo(ccxt.async_support.woo):
         client.resolve(orderbook, topic)
 
     async def watch_ticker(self, symbol: str, params={}) -> Ticker:
+        """
+        watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        """
         await self.load_markets()
         name = 'ticker'
         market = self.market(symbol)
+        symbol = market['symbol']
         topic = market['id'] + '@' + name
         request = {
             'event': 'subscribe',
@@ -207,7 +228,14 @@ class woo(ccxt.async_support.woo):
         return message
 
     async def watch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
+        """
+        watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+        :param str[] symbols: unified symbol of the market to fetch the ticker for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        """
         await self.load_markets()
+        symbols = self.market_symbols(symbols)
         name = 'tickers'
         topic = name
         request = {
@@ -322,8 +350,17 @@ class woo(ccxt.async_support.woo):
         client.resolve(stored, topic)
 
     async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+        """
+        watches information on multiple trades made in a market
+        :param str symbol: unified market symbol of the market trades were made in
+        :param int [since]: the earliest time in ms to fetch trades for
+        :param int [limit]: the maximum number of trade structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+        """
         await self.load_markets()
         market = self.market(symbol)
+        symbol = market['symbol']
         topic = market['id'] + '@trade'
         request = {
             'event': 'subscribe',
@@ -413,8 +450,9 @@ class woo(ccxt.async_support.woo):
         client = self.client(url)
         messageHash = 'authenticated'
         event = 'auth'
-        future = self.safe_value(client.subscriptions, messageHash)
-        if future is None:
+        future = client.future(messageHash)
+        authenticated = self.safe_value(client.subscriptions, messageHash)
+        if authenticated is None:
             ts = str(self.nonce())
             auth = '|' + ts
             signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)
@@ -427,9 +465,8 @@ class woo(ccxt.async_support.woo):
                 },
             }
             message = self.extend(request, params)
-            future = self.watch(url, messageHash, message)
-            client.subscriptions[messageHash] = future
-        return future
+            self.watch(url, messageHash, message, messageHash)
+        return await future
 
     async def watch_private(self, messageHash, message, params={}):
         await self.authenticate(params)
@@ -442,6 +479,14 @@ class woo(ccxt.async_support.woo):
         return await self.watch(url, messageHash, request, messageHash, subscribe)
 
     async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+        """
+        watches information on multiple orders made by the user
+        :param str symbol: unified market symbol of the market orders were made in
+        :param int [since]: the earliest time in ms to fetch orders for
+        :param int [limit]: the maximum number of order structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        """
         await self.load_markets()
         topic = 'executionreport'
         messageHash = topic
@@ -768,7 +813,34 @@ class woo(ccxt.async_support.woo):
         self.balance = self.safe_balance(self.balance)
         client.resolve(self.balance, 'balance')
 
+    def handle_error_message(self, client: Client, message):
+        #
+        # {"id":"1","event":"subscribe","success":false,"ts":1710780997216,"errorMsg":"Auth is needed."}
+        #
+        if not ('success' in message):
+            return False
+        success = self.safe_bool(message, 'success')
+        if success:
+            return False
+        errorMessage = self.safe_string(message, 'errorMsg')
+        try:
+            if errorMessage is not None:
+                feedback = self.id + ' ' + self.json(message)
+                self.throw_exactly_matched_exception(self.exceptions['exact'], errorMessage, feedback)
+            return False
+        except Exception as error:
+            if isinstance(error, AuthenticationError):
+                messageHash = 'authenticated'
+                client.reject(error, messageHash)
+                if messageHash in client.subscriptions:
+                    del client.subscriptions[messageHash]
+            else:
+                client.reject(error)
+            return True
+
     def handle_message(self, client: Client, message):
+        if self.handle_error_message(client, message):
+            return
         methods = {
             'ping': self.handle_ping,
             'pong': self.handle_pong,
@@ -844,7 +916,9 @@ class woo(ccxt.async_support.woo):
         messageHash = 'authenticated'
         success = self.safe_value(message, 'success')
         if success:
-            client.resolve(message, messageHash)
+            # client.resolve(message, messageHash)
+            future = self.safe_value(client.futures, 'authenticated')
+            future.resolve(True)
         else:
             error = AuthenticationError(self.json(message))
             client.reject(error, messageHash)

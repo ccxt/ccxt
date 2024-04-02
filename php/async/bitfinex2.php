@@ -505,7 +505,7 @@ class bitfinex2 extends Exchange {
         }) ();
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * retrieves data on all $markets for bitfinex2
@@ -1400,14 +1400,18 @@ class bitfinex2 extends Exchange {
             $market = $this->market($symbol);
             if ($limit === null) {
                 $limit = 10000;
+            } else {
+                $limit = min ($limit, 10000);
             }
             $request = array(
                 'symbol' => $market['id'],
                 'timeframe' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
                 'sort' => 1,
-                'start' => $since,
                 'limit' => $limit,
             );
+            if ($since !== null) {
+                $request['start'] = $since;
+            }
             list($request, $params) = $this->handle_until_option('end', $request, $params);
             $response = Async\await($this->publicGetCandlesTradeTimeframeSymbolHist (array_merge($request, $params)));
             //
@@ -1805,7 +1809,7 @@ class bitfinex2 extends Exchange {
                 'all' => 1,
             );
             $response = Async\await($this->privatePostAuthWOrderCancelMulti (array_merge($request, $params)));
-            $orders = $this->safe_value($response, 4, array());
+            $orders = $this->safe_list($response, 4, array());
             return $this->parse_orders($orders);
         }) ();
     }
@@ -2981,14 +2985,16 @@ class bitfinex2 extends Exchange {
     }
 
     public function fetch_funding_rate(string $symbol, $params = array ()) {
-        /**
-         * fetch the current funding rate
-         * @see https://docs.bitfinex.com/reference/rest-public-derivatives-status
-         * @param {string} $symbol unified market $symbol
-         * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structure~
-         */
-        return $this->fetch_funding_rates(array( $symbol ), $params);
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * fetch the current funding rate
+             * @see https://docs.bitfinex.com/reference/rest-public-derivatives-status
+             * @param {string} $symbol unified market $symbol
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structure~
+             */
+            return Async\await($this->fetch_funding_rates(array( $symbol ), $params));
+        }) ();
     }
 
     public function fetch_funding_rates(?array $symbols = null, $params = array ()) {
@@ -3112,10 +3118,10 @@ class bitfinex2 extends Exchange {
             }
             $reversedArray = array();
             $rawRates = $this->filter_by_symbol_since_limit($rates, $symbol, $since, $limit);
-            $rawRatesLength = count($rawRates);
-            $ratesLength = max ($rawRatesLength - 1, 0);
-            for ($i = $ratesLength; $i >= 0; $i--) {
-                $valueAtIndex = $rawRates[$i];
+            $ratesLength = count($rawRates);
+            for ($i = 0; $i < $ratesLength; $i++) {
+                $index = $ratesLength - $i - 1;
+                $valueAtIndex = $rawRates[$index];
                 $reversedArray[] = $valueAtIndex;
             }
             return $reversedArray;
@@ -3506,7 +3512,7 @@ class bitfinex2 extends Exchange {
         ));
     }
 
-    public function set_margin(string $symbol, float $amount, $params = array ()) {
+    public function set_margin(string $symbol, float $amount, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $amount, $params) {
             /**
              * either adds or reduces margin in a swap position in order to set the margin to a specific value
@@ -3538,16 +3544,28 @@ class bitfinex2 extends Exchange {
         }) ();
     }
 
-    public function parse_margin_modification($data, $market = null) {
+    public function parse_margin_modification($data, $market = null): array {
+        //
+        // setMargin
+        //
+        //     array(
+        //         array(
+        //             1
+        //         )
+        //     )
+        //
         $marginStatusRaw = $data[0];
         $marginStatus = ($marginStatusRaw === 1) ? 'ok' : 'failed';
         return array(
             'info' => $data,
+            'symbol' => $market['symbol'],
             'type' => null,
             'amount' => null,
+            'total' => null,
             'code' => null,
-            'symbol' => $market['symbol'],
             'status' => $marginStatus,
+            'timestamp' => null,
+            'datetime' => null,
         );
     }
 

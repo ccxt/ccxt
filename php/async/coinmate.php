@@ -225,7 +225,7 @@ class coinmate extends Exchange {
         ));
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * retrieves $data on all markets for coinmate
@@ -403,7 +403,7 @@ class coinmate extends Exchange {
             //         }
             //     }
             //
-            $data = $this->safe_value($response, 'data');
+            $data = $this->safe_dict($response, 'data');
             return $this->parse_ticker($data, $market);
         }) ();
     }
@@ -693,7 +693,7 @@ class coinmate extends Exchange {
                 $request['timestampFrom'] = $since;
             }
             $response = Async\await($this->privatePostTradeHistory (array_merge($request, $params)));
-            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_list($response, 'data', array());
             return $this->parse_trades($data, null, $since, $limit);
         }) ();
     }
@@ -796,7 +796,7 @@ class coinmate extends Exchange {
             //         )
             //     }
             //
-            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_list($response, 'data', array());
             return $this->parse_trades($data, $market, $since, $limit);
         }) ();
     }
@@ -1046,7 +1046,7 @@ class coinmate extends Exchange {
                 $market = $this->market($symbol);
             }
             $response = Async\await($this->privatePostOrderById (array_merge($request, $params)));
-            $data = $this->safe_value($response, 'data');
+            $data = $this->safe_dict($response, 'data');
             return $this->parse_order($data, $market);
         }) ();
     }

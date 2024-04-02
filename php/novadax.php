@@ -222,7 +222,7 @@ class novadax extends Exchange {
         return $this->safe_integer($response, 'data');
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): array {
         /**
          * retrieves $data on all markets for novadax
          * @see https://doc.novadax.com/en-US/#get-all-supported-trading-symbol
@@ -392,7 +392,7 @@ class novadax extends Exchange {
         //         "message":"Success"
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_dict($response, 'data', array());
         return $this->parse_ticker($data, $market);
     }
 
@@ -588,7 +588,7 @@ class novadax extends Exchange {
         //         "message":"Success"
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_list($response, 'data', array());
         return $this->parse_trades($data, $market, $since, $limit);
     }
 
@@ -642,7 +642,7 @@ class novadax extends Exchange {
         //         "message" => "Success"
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_list($response, 'data', array());
         return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
     }
 
@@ -814,7 +814,7 @@ class novadax extends Exchange {
         //         "message" => "Success"
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_dict($response, 'data', array());
         return $this->parse_order($data, $market);
     }
 
@@ -841,7 +841,7 @@ class novadax extends Exchange {
         //         "message" => "Success"
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_dict($response, 'data', array());
         return $this->parse_order($data);
     }
 
@@ -879,7 +879,7 @@ class novadax extends Exchange {
         //         "message" => "Success"
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_dict($response, 'data', array());
         return $this->parse_order($data);
     }
 
@@ -938,7 +938,7 @@ class novadax extends Exchange {
         //         "message" => "Success"
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_list($response, 'data', array());
         return $this->parse_orders($data, $market, $since, $limit);
     }
 
@@ -1107,7 +1107,7 @@ class novadax extends Exchange {
         ), $market);
     }
 
-    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): TransferEntry {
+    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): array {
         /**
          * $transfer $currency internally between wallets on the same account
          * @see https://doc.novadax.com/en-US/#get-sub-account-$transfer
@@ -1216,7 +1216,7 @@ class novadax extends Exchange {
         return $this->parse_transaction($response, $currency);
     }
 
-    public function fetch_accounts($params = array ()) {
+    public function fetch_accounts($params = array ()): array {
         /**
          * fetch all the accounts associated with a profile
          * @see https://doc.novadax.com/en-US/#get-sub-$account-list
@@ -1334,7 +1334,7 @@ class novadax extends Exchange {
         //         "message" => "Success"
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_list($response, 'data', array());
         return $this->parse_transactions($data, $currency, $since, $limit);
     }
 
@@ -1479,7 +1479,7 @@ class novadax extends Exchange {
         //          "message" => "Success"
         //      }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_list($response, 'data', array());
         return $this->parse_trades($data, $market, $since, $limit);
     }
 

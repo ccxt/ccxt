@@ -64,10 +64,10 @@ public partial class delta
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> an array of objects representing market data.</returns>
-    public async Task<List<Dictionary<string, object>>> FetchMarkets(Dictionary<string, object> parameters = null)
+    public async Task<List<MarketInterface>> FetchMarkets(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchMarkets(parameters);
-        return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
+        return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
     }
     /// <summary>
     /// fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
@@ -686,5 +686,45 @@ public partial class delta
     {
         var res = await this.fetchGreeks(symbol, parameters);
         return new Greeks(res);
+    }
+    /// <summary>
+    /// fetches the margin mode of a trading pair
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.delta.exchange/#get-user"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [margin mode structure]{@link https://docs.ccxt.com/#/?id=margin-mode-structure}.</returns>
+    public async Task<MarginMode> FetchMarginMode(string symbol, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchMarginMode(symbol, parameters);
+        return new MarginMode(res);
+    }
+    /// <summary>
+    /// fetches option data that is commonly found in an option chain
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.delta.exchange/#get-ticker-for-a-product-by-symbol"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> an [option chain structure]{@link https://docs.ccxt.com/#/?id=option-chain-structure}.</returns>
+    public async Task<Option> FetchOption(string symbol, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchOption(symbol, parameters);
+        return new Option(res);
     }
 }

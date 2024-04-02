@@ -475,6 +475,7 @@ class htx extends Exchange {
                             'v2/sub-user/api-key-modification' => 1,
                             'v2/sub-user/api-key-deletion' => 1,
                             'v1/subuser/transfer' => 10,
+                            'v1/trust/user/active/credit' => 10,
                             // Trading
                             'v1/order/orders/place' => 0.2,
                             'v1/order/batch-orders' => 0.4,
@@ -955,6 +956,9 @@ class htx extends Exchange {
                             'inverse' => true,
                         ),
                     ),
+                ),
+                'fetchOHLCV' => array(
+                    'useHistoricalEndpointForSpot' => true,
                 ),
                 'withdraw' => array(
                     'includeFee' => false,
@@ -1614,7 +1618,7 @@ class htx extends Exchange {
         return $this->decimal_to_precision($cost, TRUNCATE, $this->markets[$symbol]['precision']['cost'], $this->precisionMode);
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * retrieves data on all markets for huobi
@@ -2197,7 +2201,7 @@ class htx extends Exchange {
             //         "ts":1639547261293
             //     }
             //
-            // $inverse swaps, $linear swaps, $inverse futures
+            // $linear $swap, $linear $future, $inverse $swap, $inverse $future
             //
             //     {
             //         "status":"ok",
@@ -2214,35 +2218,13 @@ class htx extends Exchange {
             //                 "high":"0.10725",
             //                 "amount":"2340267.415144052378486261756692535687481566",
             //                 "count":882,
-            //                 "vol":"24706"
+            //                 "vol":"24706",
+            //                 "trade_turnover":"840726.5048", // only in $linear futures
+            //                 "business_type":"futures", // only in $linear futures
+            //                 "contract_code":"BTC-USDT-CW", // only in $linear futures, instead of 'symbol'
             //             }
             //         ],
             //         "ts":1637504679376
-            //     }
-            //
-            // $linear futures
-            //
-            //     {
-            //         "status":"ok",
-            //         "ticks":[
-            //             {
-            //                 "id":1640745627,
-            //                 "ts":1640745627957,
-            //                 "ask":[48079.1,20],
-            //                 "bid":[47713.8,125],
-            //                 "business_type":"futures",
-            //                 "contract_code":"BTC-USDT-CW",
-            //                 "open":"49011.8",
-            //                 "close":"47934",
-            //                 "low":"47292.3",
-            //                 "high":"49011.8",
-            //                 "amount":"17.398",
-            //                 "count":1515,
-            //                 "vol":"17398",
-            //                 "trade_turnover":"840726.5048"
-            //             }
-            //         ],
-            //         "ts":1640745627988
             //     }
             //
             $tickers = $this->safe_value_2($response, 'data', 'ticks', array());
@@ -2379,7 +2361,7 @@ class htx extends Exchange {
                 throw new NotSupported($this->id . ' fetchLastPrices() does not support ' . $type . ' markets yet');
             }
             $tick = $this->safe_value($response, 'tick', array());
-            $data = $this->safe_value($tick, 'data', array());
+            $data = $this->safe_list($tick, 'data', array());
             return $this->parse_last_prices($data, $symbols);
         }) ();
     }
@@ -2940,7 +2922,7 @@ class htx extends Exchange {
     public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
-             * fetches historical candlestick $data containing the open, high, low, and close $price, and the volume of a $market
+             * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
              * @see https://huobiapi.github.io/docs/spot/v1/en/#get-klines-candles
              * @see https://huobiapi.github.io/docs/dm/v1/en/#get-kline-$data
              * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-kline-$data
@@ -2951,6 +2933,7 @@ class htx extends Exchange {
              * @param {int} [$limit] the maximum amount of candles to fetch
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
+             * @param {string} [$params->useHistoricalEndpointForSpot] true/false - whether use the historical candles endpoint for spot markets or default klines endpoint
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
@@ -2968,48 +2951,53 @@ class htx extends Exchange {
                 // 'from' => intval(($since / (string) 1000)), spot only
                 // 'to' => $this->seconds(), spot only
             );
-            $price = $this->safe_string($params, 'price');
-            $params = $this->omit($params, 'price');
+            $priceType = $this->safe_string_n($params, array( 'priceType', 'price' ));
+            $params = $this->omit($params, array( 'priceType', 'price' ));
+            $until = null;
+            list($until, $params) = $this->handle_param_integer($params, 'until');
+            $untilSeconds = ($until !== null) ? $this->parse_to_int($until / 1000) : null;
             if ($market['contract']) {
                 if ($limit !== null) {
-                    $request['size'] = $limit; // when using $limit from and to are ignored
+                    $request['size'] = min ($limit, 2000); // when using $limit => from & to are ignored
                     // https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-get-kline-$data
                 } else {
                     $limit = 2000; // only used for from/to calculation
                 }
-                if ($price === null) {
+                if ($priceType === null) {
                     $duration = $this->parse_timeframe($timeframe);
+                    $calcualtedEnd = null;
                     if ($since === null) {
                         $now = $this->seconds();
                         $request['from'] = $now - $duration * ($limit - 1);
-                        $request['to'] = $now;
+                        $calcualtedEnd = $now;
                     } else {
                         $start = $this->parse_to_int($since / 1000);
                         $request['from'] = $start;
-                        $request['to'] = $this->sum($start, $duration * ($limit - 1));
+                        $calcualtedEnd = $this->sum($start, $duration * ($limit - 1));
                     }
+                    $request['to'] = ($untilSeconds !== null) ? $untilSeconds : $calcualtedEnd;
                 }
             }
             $response = null;
             if ($market['future']) {
                 if ($market['inverse']) {
                     $request['symbol'] = $market['id'];
-                    if ($price === 'mark') {
+                    if ($priceType === 'mark') {
                         $response = Async\await($this->contractPublicGetIndexMarketHistoryMarkPriceKline (array_merge($request, $params)));
-                    } elseif ($price === 'index') {
+                    } elseif ($priceType === 'index') {
                         $response = Async\await($this->contractPublicGetIndexMarketHistoryIndex (array_merge($request, $params)));
-                    } elseif ($price === 'premiumIndex') {
-                        throw new BadRequest($this->id . ' ' . $market['type'] . ' has no api endpoint for ' . $price . ' kline data');
+                    } elseif ($priceType === 'premiumIndex') {
+                        throw new BadRequest($this->id . ' ' . $market['type'] . ' has no api endpoint for ' . $priceType . ' kline data');
                     } else {
                         $response = Async\await($this->contractPublicGetMarketHistoryKline (array_merge($request, $params)));
                     }
                 } elseif ($market['linear']) {
                     $request['contract_code'] = $market['id'];
-                    if ($price === 'mark') {
+                    if ($priceType === 'mark') {
                         $response = Async\await($this->contractPublicGetIndexMarketHistoryLinearSwapMarkPriceKline (array_merge($request, $params)));
-                    } elseif ($price === 'index') {
-                        throw new BadRequest($this->id . ' ' . $market['type'] . ' has no api endpoint for ' . $price . ' kline data');
-                    } elseif ($price === 'premiumIndex') {
+                    } elseif ($priceType === 'index') {
+                        throw new BadRequest($this->id . ' ' . $market['type'] . ' has no api endpoint for ' . $priceType . ' kline data');
+                    } elseif ($priceType === 'premiumIndex') {
                         $response = Async\await($this->contractPublicGetIndexMarketHistoryLinearSwapPremiumIndexKline (array_merge($request, $params)));
                     } else {
                         $response = Async\await($this->contractPublicGetLinearSwapExMarketHistoryKline (array_merge($request, $params)));
@@ -3018,39 +3006,46 @@ class htx extends Exchange {
             } elseif ($market['swap']) {
                 $request['contract_code'] = $market['id'];
                 if ($market['inverse']) {
-                    if ($price === 'mark') {
+                    if ($priceType === 'mark') {
                         $response = Async\await($this->contractPublicGetIndexMarketHistorySwapMarkPriceKline (array_merge($request, $params)));
-                    } elseif ($price === 'index') {
-                        throw new BadRequest($this->id . ' ' . $market['type'] . ' has no api endpoint for ' . $price . ' kline data');
-                    } elseif ($price === 'premiumIndex') {
+                    } elseif ($priceType === 'index') {
+                        throw new BadRequest($this->id . ' ' . $market['type'] . ' has no api endpoint for ' . $priceType . ' kline data');
+                    } elseif ($priceType === 'premiumIndex') {
                         $response = Async\await($this->contractPublicGetIndexMarketHistorySwapPremiumIndexKline (array_merge($request, $params)));
                     } else {
                         $response = Async\await($this->contractPublicGetSwapExMarketHistoryKline (array_merge($request, $params)));
                     }
                 } elseif ($market['linear']) {
-                    if ($price === 'mark') {
+                    if ($priceType === 'mark') {
                         $response = Async\await($this->contractPublicGetIndexMarketHistoryLinearSwapMarkPriceKline (array_merge($request, $params)));
-                    } elseif ($price === 'index') {
-                        throw new BadRequest($this->id . ' ' . $market['type'] . ' has no api endpoint for ' . $price . ' kline data');
-                    } elseif ($price === 'premiumIndex') {
+                    } elseif ($priceType === 'index') {
+                        throw new BadRequest($this->id . ' ' . $market['type'] . ' has no api endpoint for ' . $priceType . ' kline data');
+                    } elseif ($priceType === 'premiumIndex') {
                         $response = Async\await($this->contractPublicGetIndexMarketHistoryLinearSwapPremiumIndexKline (array_merge($request, $params)));
                     } else {
                         $response = Async\await($this->contractPublicGetLinearSwapExMarketHistoryKline (array_merge($request, $params)));
                     }
                 }
             } else {
-                if ($since !== null) {
-                    $request['from'] = $this->parse_to_int($since / 1000);
-                }
-                if ($limit !== null) {
-                    $request['size'] = $limit; // max 2000
-                }
                 $request['symbol'] = $market['id'];
-                if ($timeframe === '1M' || $timeframe === '1y') {
-                    // for some reason 1M and 1Y does not work with the regular endpoint
-                    // https://github.com/ccxt/ccxt/issues/18006
+                $useHistorical = null;
+                list($useHistorical, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'useHistoricalEndpointForSpot', true);
+                if (!$useHistorical) {
+                    if ($limit !== null) {
+                        $request['size'] = min ($limit, 2000); // max 2000
+                    }
                     $response = Async\await($this->spotPublicGetMarketHistoryKline (array_merge($request, $params)));
                 } else {
+                    // "from & to" only available for the this endpoint
+                    if ($since !== null) {
+                        $request['from'] = $this->parse_to_int($since / 1000);
+                    }
+                    if ($untilSeconds !== null) {
+                        $request['to'] = $untilSeconds;
+                    }
+                    if ($limit !== null) {
+                        $request['size'] = min (1000, $limit); // max 1000, otherwise default returns 150
+                    }
                     $response = Async\await($this->spotPublicGetMarketHistoryCandles (array_merge($request, $params)));
                 }
             }
@@ -3066,12 +3061,12 @@ class htx extends Exchange {
             //         )
             //     }
             //
-            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_list($response, 'data', array());
             return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
         }) ();
     }
 
-    public function fetch_accounts($params = array ()) {
+    public function fetch_accounts($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetch all the accounts associated with a profile
@@ -3928,7 +3923,7 @@ class htx extends Exchange {
             //         )
             //     }
             //
-            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_list($response, 'data', array());
             return $this->parse_orders($data, $market, $since, $limit);
         }) ();
     }
@@ -5055,7 +5050,7 @@ class htx extends Exchange {
         }) ();
     }
 
-    public function create_trailing_percent_order(string $symbol, string $type, string $side, $amount, $price = null, $trailingPercent = null, $trailingTriggerPrice = null, $params = array ()): PromiseInterface {
+    public function create_trailing_percent_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $trailingPercent = null, $trailingTriggerPrice = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $trailingPercent, $trailingTriggerPrice, $params) {
             /**
              * create a trailing order by providing the $symbol, $type, $side, $amount, $price and $trailingPercent
@@ -6649,6 +6644,7 @@ class htx extends Exchange {
              * @param {int} [$since] not used by huobi, but filtered internally by ccxt
              * @param {int} [$limit] not used by huobi, but filtered internally by ccxt
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=funding-rate-history-structure funding rate structures~
              */
             if ($symbol === null) {
@@ -7214,7 +7210,7 @@ class htx extends Exchange {
                 $request['symbol'] = $market['id'];
                 $response = Async\await($this->contractPrivatePostApiV3ContractFinancialRecordExact (array_merge($request, $query)));
             }
-            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_list($response, 'data', array());
             return $this->parse_incomes($data, $market, $since, $limit);
         }) ();
     }
@@ -7987,7 +7983,7 @@ class htx extends Exchange {
             //        )
             //    }
             //
-            $data = $this->safe_value($response, 'data');
+            $data = $this->safe_list($response, 'data');
             return $this->parse_leverage_tiers($data, $symbols, 'contract_code');
         }) ();
     }
@@ -8192,7 +8188,7 @@ class htx extends Exchange {
             //    }
             //
             $data = $this->safe_value($response, 'data');
-            $tick = $this->safe_value($data, 'tick');
+            $tick = $this->safe_list($data, 'tick');
             return $this->parse_open_interests($tick, $market, $since, $limit);
         }) ();
     }
@@ -8704,7 +8700,7 @@ class htx extends Exchange {
             //        )
             //    }
             //
-            $data = $this->safe_value($response, 'data');
+            $data = $this->safe_list($response, 'data');
             return $this->parse_deposit_withdraw_fees($data, $codes, 'currency');
         }) ();
     }
@@ -8931,7 +8927,7 @@ class htx extends Exchange {
             //         "ts" => 1604312615051
             //     }
             //
-            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_list($response, 'data', array());
             return $this->parse_liquidations($data, $market, $since, $limit);
         }) ();
     }

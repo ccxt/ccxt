@@ -1,5 +1,5 @@
 import Exchange from './abstract/bitflyer.js';
-import type { Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Trade, Transaction } from './base/types.js';
+import type { Balances, Currency, Int, Market, MarketInterface, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Trade, Transaction } from './base/types.js';
 /**
  * @class bitflyer
  * @augments Exchange
@@ -7,8 +7,8 @@ import type { Balances, Currency, Int, Market, Order, OrderBook, OrderSide, Orde
 export default class bitflyer extends Exchange {
     describe(): any;
     parseExpiryDate(expiry: any): number;
-    safeMarket(marketId?: any, market?: any, delimiter?: any, marketType?: any): import("./base/types.js").MarketInterface;
-    fetchMarkets(params?: {}): Promise<any[]>;
+    safeMarket(marketId?: Str, market?: Market, delimiter?: Str, marketType?: Str): MarketInterface;
+    fetchMarkets(params?: {}): Promise<Market[]>;
     parseBalance(response: any): Balances;
     fetchBalance(params?: {}): Promise<Balances>;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
@@ -22,7 +22,7 @@ export default class bitflyer extends Exchange {
         maker: number;
         taker: number;
     }>;
-    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: number, params?: {}): Promise<Order>;
+    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
     cancelOrder(id: string, symbol?: Str, params?: {}): Promise<any>;
     parseOrderStatus(status: any): string;
     parseOrder(order: any, market?: Market): Order;
@@ -44,4 +44,5 @@ export default class bitflyer extends Exchange {
         body: any;
         headers: any;
     };
+    handleErrors(code: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): any;
 }

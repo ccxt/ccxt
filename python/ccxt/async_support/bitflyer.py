@@ -6,11 +6,12 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.bitflyer import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Trade, Transaction
+from ccxt.base.types import Balances, Currency, Int, Market, MarketInterface, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import OrderNotFound
+from ccxt.base.errors import OnMaintenance
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -118,6 +119,11 @@ class bitflyer(Exchange, ImplicitAPI):
                 },
             },
             'precisionMode': TICK_SIZE,
+            'exceptions': {
+                'exact': {
+                    '-2': OnMaintenance,  # {"status":-2,"error_message":"Under maintenance","data":null}
+                },
+            },
         })
 
     def parse_expiry_date(self, expiry):
@@ -141,13 +147,13 @@ class bitflyer(Exchange, ImplicitAPI):
         month = self.safe_string(months, monthName)
         return self.parse8601(year + '-' + month + '-' + day + 'T00:00:00Z')
 
-    def safe_market(self, marketId=None, market=None, delimiter=None, marketType=None):
+    def safe_market(self, marketId: Str = None, market: Market = None, delimiter: Str = None, marketType: Str = None) -> MarketInterface:
         # Bitflyer has a different type of conflict in markets, because
         # some of their ids(ETH/BTC and BTC/JPY) are duplicated in US, EU and JP.
         # Since they're the same we just need to return one
         return super(bitflyer, self).safe_market(marketId, market, delimiter, 'spot')
 
-    async def fetch_markets(self, params={}):
+    async def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for bitflyer
         :see: https://lightning.bitflyer.com/docs?lang=en#market-list
@@ -514,7 +520,7 @@ class bitflyer(Exchange, ImplicitAPI):
             'taker': fee,
         }
 
-    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create a trade order
         :see: https://lightning.bitflyer.com/docs?lang=en#send-a-new-order
@@ -973,3 +979,15 @@ class bitflyer(Exchange, ImplicitAPI):
                 'Content-Type': 'application/json',
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
+
+    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
+        if response is None:
+            return None  # fallback to the default error handler
+        feedback = self.id + ' ' + body
+        # i.e. {"status":-2,"error_message":"Under maintenance","data":null}
+        errorMessage = self.safe_string(response, 'error_message')
+        statusCode = self.safe_number(response, 'status')
+        if errorMessage is not None:
+            self.throw_exactly_matched_exception(self.exceptions['exact'], statusCode, feedback)
+            self.throw_broadly_matched_exception(self.exceptions['broad'], errorMessage, feedback)
+        return None
