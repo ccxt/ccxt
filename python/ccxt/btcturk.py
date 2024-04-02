@@ -570,6 +570,7 @@ class btcturk(Exchange, ImplicitAPI):
         elif limit is None:  # since will also be None
             limit = 100  # default value
         if limit is not None:
+            limit = min(limit, 11000)  # max 11000 candles diapason can be covered
             if timeframe == '1y':  # difficult with leap years
                 raise BadRequest(self.id + ' fetchOHLCV() does not accept a limit parameter when timeframe == "1y"')
             seconds = self.parse_timeframe(timeframe)
@@ -578,7 +579,7 @@ class btcturk(Exchange, ImplicitAPI):
                 to = self.parse_to_int(since / 1000) + limitSeconds
                 request['to'] = min(request['to'], to)
             else:
-                request['from'] = self.parse_to_int(until / 1000) - limitSeconds
+                request['from'] = self.parse_to_int(0 / 1000) - limitSeconds
         response = self.graphGetKlinesHistory(self.extend(request, params))
         #
         #    {

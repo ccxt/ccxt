@@ -641,17 +641,13 @@ class krakenfutures extends krakenfutures$1 {
             if (limit === undefined) {
                 limit = 5000;
             }
-            else if (limit > 5000) {
-                throw new errors.BadRequest(this.id + ' fetchOHLCV() limit cannot exceed 5000');
-            }
+            limit = Math.min(limit, 5000);
             const toTimestamp = this.sum(request['from'], limit * duration - 1);
             const currentTimestamp = this.seconds();
             request['to'] = Math.min(toTimestamp, currentTimestamp);
         }
         else if (limit !== undefined) {
-            if (limit > 5000) {
-                throw new errors.BadRequest(this.id + ' fetchOHLCV() limit cannot exceed 5000');
-            }
+            limit = Math.min(limit, 5000);
             const duration = this.parseTimeframe(timeframe);
             request['to'] = this.seconds();
             request['from'] = this.parseToInt(request['to'] - (duration * limit));

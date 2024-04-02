@@ -930,6 +930,8 @@ class bitvavo extends Exchange {
             $request['start'] = $since;
             if ($limit === null) {
                 $limit = 1440;
+            } else {
+                $limit = min ($limit, 1440);
             }
             $request['end'] = $this->sum($since, $limit * $duration * 1000);
         }

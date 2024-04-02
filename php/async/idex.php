@@ -469,7 +469,7 @@ class idex extends Exchange {
                 $request['start'] = $since;
             }
             if ($limit !== null) {
-                $request['limit'] = $limit;
+                $request['limit'] = min ($limit, 1000);
             }
             $response = Async\await($this->publicGetCandles (array_merge($request, $params)));
             if (gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response))) {

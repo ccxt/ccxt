@@ -6118,11 +6118,14 @@ export default class gate extends Exchange {
         const total = this.safeNumber(data, 'margin');
         return {
             'info': data,
-            'amount': undefined,
-            'code': this.safeValue(market, 'quote'),
             'symbol': market['symbol'],
+            'type': undefined,
+            'amount': undefined,
             'total': total,
+            'code': this.safeValue(market, 'quote'),
             'status': 'ok',
+            'timestamp': undefined,
+            'datetime': undefined,
         };
     }
     async reduceMargin(symbol, amount, params = {}) {

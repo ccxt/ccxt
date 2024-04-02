@@ -1,5 +1,5 @@
 import Exchange from './abstract/gate.js';
-import type { Int, OrderSide, OrderType, OHLCV, Trade, FundingRateHistory, OpenInterest, Order, Balances, OrderRequest, FundingHistory, Str, Transaction, Ticker, OrderBook, Tickers, Greeks, Strings, Market, Currency, MarketInterface, TransferEntry, Leverage, Leverages, Num, OptionChain, Option } from './base/types.js';
+import type { Int, OrderSide, OrderType, OHLCV, Trade, FundingRateHistory, OpenInterest, Order, Balances, OrderRequest, FundingHistory, Str, Transaction, Ticker, OrderBook, Tickers, Greeks, Strings, Market, Currency, MarketInterface, TransferEntry, Leverage, Leverages, Num, OptionChain, Option, MarginModification } from './base/types.js';
 /**
  * @class gate
  * @augments Exchange
@@ -262,38 +262,10 @@ export default class gate extends Exchange {
         body: any;
         headers: any;
     };
-    modifyMarginHelper(symbol: string, amount: any, params?: {}): Promise<{
-        info: any;
-        amount: any;
-        code: any;
-        symbol: string;
-        total: number;
-        status: string;
-    }>;
-    parseMarginModification(data: any, market?: Market): {
-        info: any;
-        amount: any;
-        code: any;
-        symbol: string;
-        total: number;
-        status: string;
-    };
-    reduceMargin(symbol: string, amount: any, params?: {}): Promise<{
-        info: any;
-        amount: any;
-        code: any;
-        symbol: string;
-        total: number;
-        status: string;
-    }>;
-    addMargin(symbol: string, amount: any, params?: {}): Promise<{
-        info: any;
-        amount: any;
-        code: any;
-        symbol: string;
-        total: number;
-        status: string;
-    }>;
+    modifyMarginHelper(symbol: string, amount: any, params?: {}): Promise<MarginModification>;
+    parseMarginModification(data: any, market?: Market): MarginModification;
+    reduceMargin(symbol: string, amount: any, params?: {}): Promise<MarginModification>;
+    addMargin(symbol: string, amount: any, params?: {}): Promise<MarginModification>;
     fetchOpenInterestHistory(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OpenInterest[]>;
     parseOpenInterest(interest: any, market?: Market): {
         symbol: string;

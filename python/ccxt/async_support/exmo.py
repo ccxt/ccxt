@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.exmo import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Currency, Int, MarginModification, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -265,21 +265,23 @@ class exmo(Exchange, ImplicitAPI):
             margin['amount'] = amount
         return margin
 
-    def parse_margin_modification(self, data, market: Market = None):
+    def parse_margin_modification(self, data, market: Market = None) -> MarginModification:
         #
         #      {}
         #
         return {
             'info': data,
+            'symbol': self.safe_symbol(None, market),
             'type': None,
             'amount': None,
-            'code': self.safe_value(market, 'quote'),
-            'symbol': self.safe_symbol(None, market),
             'total': None,
+            'code': self.safe_value(market, 'quote'),
             'status': 'ok',
+            'timestamp': None,
+            'datetime': None,
         }
 
-    async def reduce_margin(self, symbol: str, amount, params={}):
+    async def reduce_margin(self, symbol: str, amount, params={}) -> MarginModification:
         """
         remove margin from a position
         :see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#eebf9f25-0289-4946-9482-89872c738449
@@ -290,7 +292,7 @@ class exmo(Exchange, ImplicitAPI):
         """
         return await self.modify_margin_helper(symbol, amount, 'reduce', params)
 
-    async def add_margin(self, symbol: str, amount, params={}):
+    async def add_margin(self, symbol: str, amount, params={}) -> MarginModification:
         """
         add margin
         :see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#143ef808-79ca-4e49-9e79-a60ea4d8c0e3
@@ -824,26 +826,24 @@ class exmo(Exchange, ImplicitAPI):
             'symbol': market['id'],
             'resolution': self.safe_string(self.timeframes, timeframe, timeframe),
         }
-        options = self.safe_value(self.options, 'fetchOHLCV')
-        maxLimit = self.safe_integer(options, 'maxLimit', 3000)
+        maxLimit = 3000
         duration = self.parse_timeframe(timeframe)
         now = self.milliseconds()
         if since is None:
             if limit is None:
                 limit = 1000  # cap default at generous amount
-            if limit > maxLimit:
-                limit = maxLimit  # avoid exception
+            else:
+                limit = min(limit, maxLimit)
             request['from'] = self.parse_to_int(now / 1000) - limit * duration - 1
             request['to'] = self.parse_to_int(now / 1000)
         else:
             request['from'] = self.parse_to_int(since / 1000) - 1
             if limit is None:
-                request['to'] = self.parse_to_int(now / 1000)
+                limit = maxLimit
             else:
-                if limit > maxLimit:
-                    raise BadRequest(self.id + ' fetchOHLCV() will serve ' + str(maxLimit) + ' candles at most')
-                to = self.sum(since, limit * duration * 1000)
-                request['to'] = self.parse_to_int(to / 1000)
+                limit = min(limit, maxLimit)
+            to = self.sum(since, limit * duration * 1000)
+            request['to'] = self.parse_to_int(to / 1000)
         response = await self.publicGetCandlesHistory(self.extend(request, params))
         #
         #     {

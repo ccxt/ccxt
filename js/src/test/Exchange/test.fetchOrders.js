@@ -5,8 +5,8 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 import assert from 'assert';
-import testSharedMethods from './base/test.sharedMethods.js';
 import testOrder from './base/test.order.js';
+import testSharedMethods from './base/test.sharedMethods.js';
 async function testFetchOrders(exchange, skippedProperties, symbol) {
     const method = 'fetchOrders';
     const orders = await exchange.fetchOrders(symbol);

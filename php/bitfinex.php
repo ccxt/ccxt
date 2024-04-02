@@ -1305,6 +1305,8 @@ class bitfinex extends Exchange {
         $this->load_markets();
         if ($limit === null) {
             $limit = 100;
+        } else {
+            $limit = min ($limit, 10000);
         }
         $market = $this->market($symbol);
         $v2id = 't' . $market['id'];

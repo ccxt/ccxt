@@ -27,6 +27,7 @@ class bingx extends Exchange {
                 'swap' => true,
                 'future' => false,
                 'option' => false,
+                'addMargin' => true,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'cancelOrders' => true,
@@ -73,6 +74,7 @@ class bingx extends Exchange {
                 'fetchTrades' => true,
                 'fetchTransfers' => true,
                 'fetchWithdrawals' => true,
+                'reduceMargin' => true,
                 'setLeverage' => true,
                 'setMargin' => true,
                 'setMarginMode' => true,
@@ -3406,7 +3408,21 @@ class bingx extends Exchange {
         return $this->swapV2PrivatePostTradeMarginType (array_merge($request, $params));
     }
 
-    public function set_margin(string $symbol, float $amount, $params = array ()) {
+    public function add_margin(string $symbol, float $amount, $params = array ()): array {
+        $request = array(
+            'type' => 1,
+        );
+        return $this->set_margin($symbol, $amount, array_merge($request, $params));
+    }
+
+    public function reduce_margin(string $symbol, float $amount, $params = array ()): array {
+        $request = array(
+            'type' => 2,
+        );
+        return $this->set_margin($symbol, $amount, array_merge($request, $params));
+    }
+
+    public function set_margin(string $symbol, float $amount, $params = array ()): array {
         /**
          * Either adds or reduces margin in an isolated position in order to set the margin to a specific value
          * @see https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Adjust%20isolated%20margin
@@ -3438,7 +3454,30 @@ class bingx extends Exchange {
         //        "type" => 1
         //    }
         //
-        return $response;
+        return $this->parse_margin_modification($response, $market);
+    }
+
+    public function parse_margin_modification($data, ?array $market = null): array {
+        //
+        //    {
+        //        "code" => 0,
+        //        "msg" => "",
+        //        "amount" => 1,
+        //        "type" => 1
+        //    }
+        //
+        $type = $this->safe_string($data, 'type');
+        return array(
+            'info' => $data,
+            'symbol' => $this->safe_string($market, 'symbol'),
+            'type' => ($type === '1') ? 'add' : 'reduce',
+            'amount' => $this->safe_number($data, 'amount'),
+            'total' => $this->safe_number($data, 'margin'),
+            'code' => $this->safe_string($market, 'settle'),
+            'status' => null,
+            'timestamp' => null,
+            'datetime' => null,
+        );
     }
 
     public function fetch_leverage(string $symbol, $params = array ()): array {

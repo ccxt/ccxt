@@ -1259,6 +1259,8 @@ class bitfinex(Exchange, ImplicitAPI):
         await self.load_markets()
         if limit is None:
             limit = 100
+        else:
+            limit = min(limit, 10000)
         market = self.market(symbol)
         v2id = 't' + market['id']
         request = {

@@ -1065,19 +1065,22 @@ class coinex extends coinex$1 {
          * @method
          * @name coinex#fetchTime
          * @description fetches the current integer timestamp in milliseconds from the exchange server
-         * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http005_system_time
+         * @see https://docs.coinex.com/api/v2/common/http/time
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {int} the current integer timestamp in milliseconds from the exchange server
          */
-        const response = await this.v1PerpetualPublicGetTime(params);
+        const response = await this.v2PublicGetTime(params);
         //
         //     {
-        //         "code": "0",
-        //         "data": "1653261274414",
+        //         "code": 0,
+        //         "data": {
+        //             "timestamp": 1711699867777
+        //         },
         //         "message": "OK"
         //     }
         //
-        return this.safeInteger(response, 'data');
+        const data = this.safeDict(response, 'data', {});
+        return this.safeInteger(data, 'timestamp');
     }
     async fetchOrderBook(symbol, limit = 20, params = {}) {
         /**
@@ -1337,7 +1340,8 @@ class coinex extends coinex$1 {
          * @method
          * @name coinex#fetchTradingFee
          * @description fetch the trading fees for a market
-         * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot001_market003_single_market_info
+         * @see https://docs.coinex.com/api/v2/spot/market/http/list-market
+         * @see https://docs.coinex.com/api/v2/futures/market/http/list-market
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
@@ -1347,67 +1351,132 @@ class coinex extends coinex$1 {
         const request = {
             'market': market['id'],
         };
-        const response = await this.v1PublicGetMarketDetail(this.extend(request, params));
-        //
-        //     {
-        //         "code": 0,
-        //         "data": {
-        //           "name": "BTCUSDC",
-        //           "min_amount": "0.0005",
-        //           "maker_fee_rate": "0.002",
-        //           "taker_fee_rate": "0.002",
-        //           "pricing_name": "USDC",
-        //           "pricing_decimal": 2,
-        //           "trading_name": "BTC",
-        //           "trading_decimal": 8
-        //         },
-        //         "message": "OK"
-        //      }
-        //
-        const data = this.safeValue(response, 'data', {});
-        return this.parseTradingFee(data, market);
+        let response = undefined;
+        if (market['spot']) {
+            response = await this.v2PublicGetSpotMarket(this.extend(request, params));
+            //
+            //     {
+            //         "code": 0,
+            //         "data": [
+            //             {
+            //                 "base_ccy": "BTC",
+            //                 "base_ccy_precision": 8,
+            //                 "is_amm_available": false,
+            //                 "is_margin_available": true,
+            //                 "maker_fee_rate": "0.002",
+            //                 "market": "BTCUSDT",
+            //                 "min_amount": "0.0001",
+            //                 "quote_ccy": "USDT",
+            //                 "quote_ccy_precision": 2,
+            //                 "taker_fee_rate": "0.002"
+            //             }
+            //         ],
+            //         "message": "OK"
+            //     }
+            //
+        }
+        else {
+            response = await this.v2PublicGetFuturesMarket(this.extend(request, params));
+            //
+            //     {
+            //         "code": 0,
+            //         "data": [
+            //             {
+            //                 "base_ccy": "BTC",
+            //                 "base_ccy_precision": 8,
+            //                 "contract_type": "linear",
+            //                 "leverage": ["1","2","3","5","8","10","15","20","30","50","100"],
+            //                 "maker_fee_rate": "0",
+            //                 "market": "BTCUSDT",
+            //                 "min_amount": "0.0001",
+            //                 "open_interest_volume": "185.7498",
+            //                 "quote_ccy": "USDT",
+            //                 "quote_ccy_precision": 2,
+            //                 "taker_fee_rate": "0"
+            //             }
+            //         ],
+            //         "message": "OK"
+            //     }
+            //
+        }
+        const data = this.safeList(response, 'data', []);
+        const result = this.safeDict(data, 0, {});
+        return this.parseTradingFee(result, market);
     }
     async fetchTradingFees(params = {}) {
         /**
          * @method
          * @name coinex#fetchTradingFees
          * @description fetch the trading fees for multiple markets
-         * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot001_market002_all_market_info
+         * @see https://docs.coinex.com/api/v2/spot/market/http/list-market
+         * @see https://docs.coinex.com/api/v2/futures/market/http/list-market
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
          */
         await this.loadMarkets();
-        const response = await this.v1PublicGetMarketInfo(params);
-        //
-        //     {
-        //         "code": 0,
-        //         "data": {
-        //             "WAVESBTC": {
-        //                 "name": "WAVESBTC",
-        //                 "min_amount": "1",
-        //                 "maker_fee_rate": "0.001",
-        //                 "taker_fee_rate": "0.001",
-        //                 "pricing_name": "BTC",
-        //                 "pricing_decimal": 8,
-        //                 "trading_name": "WAVES",
-        //                 "trading_decimal": 8
-        //             }
-        //             ...
-        //         }
-        //     }
-        //
-        const data = this.safeValue(response, 'data', {});
+        let type = undefined;
+        [type, params] = this.handleMarketTypeAndParams('fetchTradingFees', undefined, params);
+        let response = undefined;
+        if (type === 'swap') {
+            response = await this.v2PublicGetFuturesMarket(params);
+            //
+            //     {
+            //         "code": 0,
+            //         "data": [
+            //             {
+            //                 "base_ccy": "BTC",
+            //                 "base_ccy_precision": 8,
+            //                 "contract_type": "linear",
+            //                 "leverage": ["1","2","3","5","8","10","15","20","30","50","100"],
+            //                 "maker_fee_rate": "0",
+            //                 "market": "BTCUSDT",
+            //                 "min_amount": "0.0001",
+            //                 "open_interest_volume": "185.7498",
+            //                 "quote_ccy": "USDT",
+            //                 "quote_ccy_precision": 2,
+            //                 "taker_fee_rate": "0"
+            //             }
+            //         ],
+            //         "message": "OK"
+            //     }
+            //
+        }
+        else {
+            response = await this.v2PublicGetSpotMarket(params);
+            //
+            //     {
+            //         "code": 0,
+            //         "data": [
+            //             {
+            //                 "base_ccy": "BTC",
+            //                 "base_ccy_precision": 8,
+            //                 "is_amm_available": false,
+            //                 "is_margin_available": true,
+            //                 "maker_fee_rate": "0.002",
+            //                 "market": "BTCUSDT",
+            //                 "min_amount": "0.0001",
+            //                 "quote_ccy": "USDT",
+            //                 "quote_ccy_precision": 2,
+            //                 "taker_fee_rate": "0.002"
+            //             },
+            //         ],
+            //         "message": "OK"
+            //     }
+            //
+        }
+        const data = this.safeList(response, 'data', []);
         const result = {};
-        for (let i = 0; i < this.symbols.length; i++) {
-            const symbol = this.symbols[i];
-            const market = this.market(symbol);
-            const fee = this.safeValue(data, market['id'], {});
-            result[symbol] = this.parseTradingFee(fee, market);
+        for (let i = 0; i < data.length; i++) {
+            const entry = data[i];
+            const marketId = this.safeString(entry, 'market');
+            const market = this.safeMarket(marketId, undefined, undefined, type);
+            const symbol = market['symbol'];
+            result[symbol] = this.parseTradingFee(entry, market);
         }
         return result;
     }
     parseTradingFee(fee, market = undefined) {
-        const marketId = this.safeValue(fee, 'name');
+        const marketId = this.safeValue(fee, 'market');
         const symbol = this.safeSymbol(marketId, market);
         return {
             'info': fee,
@@ -4179,13 +4248,72 @@ class coinex extends coinex$1 {
         });
     }
     parseMarginModification(data, market = undefined) {
+        //
+        // addMargin/reduceMargin
+        //
+        //    {
+        //        "adl_sort": 1,
+        //        "adl_sort_val": "0.00004320",
+        //        "amount": "0.0005",
+        //        "amount_max": "0.0005",
+        //        "amount_max_margin": "6.57352000000000000000",
+        //        "bkr_price": "16294.08000000000000011090",
+        //        "bkr_price_imply": "0.00000000000000000000",
+        //        "close_left": "0.0005",
+        //        "create_time": 1651202571.320778,
+        //        "deal_all": "19.72000000000000000000",
+        //        "deal_asset_fee": "0.00000000000000000000",
+        //        "fee_asset": "",
+        //        "finish_type": 1,
+        //        "first_price": "39441.12",
+        //        "insurance": "0.00000000000000000000",
+        //        "latest_price": "39441.12",
+        //        "leverage": "3",
+        //        "liq_amount": "0.00000000000000000000",
+        //        "liq_order_price": "0",
+        //        "liq_order_time": 0,
+        //        "liq_price": "16491.28560000000000011090",
+        //        "liq_price_imply": "0.00000000000000000000",
+        //        "liq_profit": "0.00000000000000000000",
+        //        "liq_time": 0,
+        //        "mainten_margin": "0.005",
+        //        "mainten_margin_amount": "0.09860280000000000000",
+        //        "maker_fee": "0.00000000000000000000",
+        //        "margin_amount": "11.57352000000000000000",
+        //        "market": "BTCUSDT",
+        //        "open_margin": "0.58687582908396110455",
+        //        "open_margin_imply": "0.00000000000000000000",
+        //        "open_price": "39441.12000000000000000000",
+        //        "open_val": "19.72056000000000000000",
+        //        "open_val_max": "19.72056000000000000000",
+        //        "position_id": 65171206,
+        //        "profit_clearing": "-0.00986028000000000000",
+        //        "profit_real": "-0.00986028000000000000",
+        //        "profit_unreal": "0.00",
+        //        "side": 2,
+        //        "stop_loss_price": "0.00000000000000000000",
+        //        "stop_loss_type": 0,
+        //        "sys": 0,
+        //        "take_profit_price": "0.00000000000000000000",
+        //        "take_profit_type": 0,
+        //        "taker_fee": "0.00000000000000000000",
+        //        "total": 3464,
+        //        "type": 1,
+        //        "update_time": 1651202638.911212,
+        //        "user_id": 3620173
+        //    }
+        //
+        const timestamp = this.safeIntegerProduct(data, 'update_time', 1000);
         return {
             'info': data,
-            'type': undefined,
-            'amount': undefined,
-            'code': market['quote'],
             'symbol': this.safeSymbol(undefined, market),
+            'type': undefined,
+            'amount': this.safeNumber(data, 'margin_amount'),
+            'total': undefined,
+            'code': market['quote'],
             'status': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
         };
     }
     async addMargin(symbol, amount, params = {}) {

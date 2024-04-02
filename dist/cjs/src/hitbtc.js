@@ -1734,7 +1734,7 @@ class hitbtc extends hitbtc$1 {
         }
         [request, params] = this.handleUntilOption('till', request, params);
         if (limit !== undefined) {
-            request['limit'] = limit;
+            request['limit'] = Math.min(limit, 1000);
         }
         const price = this.safeString(params, 'price');
         params = this.omit(params, 'price');
@@ -3292,15 +3292,39 @@ class hitbtc extends hitbtc$1 {
         });
     }
     parseMarginModification(data, market = undefined) {
+        //
+        // addMargin/reduceMargin
+        //
+        //     {
+        //         "symbol": "BTCUSDT_PERP",
+        //         "type": "isolated",
+        //         "leverage": "8.00",
+        //         "created_at": "2022-03-30T23:34:27.161Z",
+        //         "updated_at": "2022-03-30T23:34:27.161Z",
+        //         "currencies": [
+        //             {
+        //                 "code": "USDT",
+        //                 "margin_balance": "7.000000000000",
+        //                 "reserved_orders": "0",
+        //                 "reserved_positions": "0"
+        //             }
+        //         ],
+        //         "positions": null
+        //     }
+        //
         const currencies = this.safeValue(data, 'currencies', []);
         const currencyInfo = this.safeValue(currencies, 0);
+        const datetime = this.safeString(data, 'updated_at');
         return {
             'info': data,
+            'symbol': market['symbol'],
             'type': undefined,
             'amount': undefined,
+            'total': undefined,
             'code': this.safeString(currencyInfo, 'code'),
-            'symbol': market['symbol'],
             'status': undefined,
+            'timestamp': this.parse8601(datetime),
+            'datetime': datetime,
         };
     }
     async reduceMargin(symbol, amount, params = {}) {
