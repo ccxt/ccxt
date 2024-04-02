@@ -106,8 +106,8 @@ namespace Org.BouncyCastle.OpenSsl
                 case "X509 CERTIFICATE":
                     return ReadCertificate(obj);
                 case "PKCS7":
-                case "CMS":
-                    return ReadPkcs7(obj);
+                // case "CMS":
+                //     return ReadPkcs7(obj);
                 case "X509 CRL":
                     return ReadCrl(obj);
                 case "ATTRIBUTE CERTIFICATE":
@@ -209,18 +209,18 @@ namespace Org.BouncyCastle.OpenSsl
         * @throws IOException if an I/O error occured
         */
         // TODO Consider returning Asn1.Pkcs.ContentInfo
-        private Asn1.Cms.ContentInfo ReadPkcs7(PemObject pemObject)
-        {
-            try
-            {
-                return Asn1.Cms.ContentInfo.GetInstance(
-                    Asn1Object.FromByteArray(pemObject.Content));
-            }
-            catch (Exception e)
-            {
-                throw new PemException("problem parsing PKCS7 object: " + e.ToString());
-            }
-        }
+        // private Asn1.Cms.ContentInfo ReadPkcs7(PemObject pemObject)
+        // {
+        //     try
+        //     {
+        //         return Asn1.Cms.ContentInfo.GetInstance(
+        //             Asn1Object.FromByteArray(pemObject.Content));
+        //     }
+        //     catch (Exception e)
+        //     {
+        //         throw new PemException("problem parsing PKCS7 object: " + e.ToString());
+        //     }
+        // }
 
         /**
         * Read a Key Pair

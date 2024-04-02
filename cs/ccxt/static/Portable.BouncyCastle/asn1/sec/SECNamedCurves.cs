@@ -1056,38 +1056,38 @@ namespace Org.BouncyCastle.Asn1.Sec
             }
         }
 
-        internal class Sect409r1Holder
-            : X9ECParametersHolder
-        {
-            private Sect409r1Holder() {}
+        // internal class Sect409r1Holder
+        //     : X9ECParametersHolder
+        // {
+        //     private Sect409r1Holder() {}
 
-            internal static readonly X9ECParametersHolder Instance = new Sect409r1Holder();
+        //     internal static readonly X9ECParametersHolder Instance = new Sect409r1Holder();
 
-            private const int m = 409;
-            private const int k = 87;
+        //     private const int m = 409;
+        //     private const int k = 87;
 
-            protected override ECCurve CreateCurve()
-            {
-                BigInteger a = BigInteger.One;
-                BigInteger b = FromHex("0021A5C2C8EE9FEB5C4B9A753B7B476B7FD6422EF1F3DD674761FA99D6AC27C8A9A197B272822F6CD57A55AA4F50AE317B13545F");
-                BigInteger n = FromHex("010000000000000000000000000000000000000000000000000001E2AAD6A612F33307BE5FA47C3C9E052F838164CD37D9A21173");
-                BigInteger h = BigInteger.ValueOf(2);
+        //     protected override ECCurve CreateCurve()
+        //     {
+        //         BigInteger a = BigInteger.One;
+        //         BigInteger b = FromHex("0021A5C2C8EE9FEB5C4B9A753B7B476B7FD6422EF1F3DD674761FA99D6AC27C8A9A197B272822F6CD57A55AA4F50AE317B13545F");
+        //         BigInteger n = FromHex("010000000000000000000000000000000000000000000000000001E2AAD6A612F33307BE5FA47C3C9E052F838164CD37D9A21173");
+        //         BigInteger h = BigInteger.ValueOf(2);
 
-                return ConfigureCurve(new F2mCurve(m, k, a, b, n, h));
-            }
+        //         return ConfigureCurve(new F2mCurve(m, k, a, b, n, h));
+        //     }
 
-            protected override X9ECParameters CreateParameters()
-            {
-                byte[] S = Hex.DecodeStrict("4099B5A457F9D69F79213D094C4BCD4D4262210B");
-                ECCurve curve = Curve;
+        //     protected override X9ECParameters CreateParameters()
+        //     {
+        //         byte[] S = Hex.DecodeStrict("4099B5A457F9D69F79213D094C4BCD4D4262210B");
+        //         ECCurve curve = Curve;
 
-                X9ECPoint G = ConfigureBasepoint(curve, "04"
-                    + "015D4860D088DDB3496B0C6064756260441CDE4AF1771D4DB01FFE5B34E59703DC255A868A1180515603AEAB60794E54BB7996A7"
-                    + "0061B1CFAB6BE5F32BBFA78324ED106A7636B9C5A7BD198D0158AA4F5488D08F38514F1FDF4B4F40D2181B3681C364BA0273C706");
+        //         X9ECPoint G = ConfigureBasepoint(curve, "04"
+        //             + "015D4860D088DDB3496B0C6064756260441CDE4AF1771D4DB01FFE5B34E59703DC255A868A1180515603AEAB60794E54BB7996A7"
+        //             + "0061B1CFAB6BE5F32BBFA78324ED106A7636B9C5A7BD198D0158AA4F5488D08F38514F1FDF4B4F40D2181B3681C364BA0273C706");
 
-                return new X9ECParameters(curve, G, curve.Order, curve.Cofactor, S);
-            }
-        }
+        //         return new X9ECParameters(curve, G, curve.Order, curve.Cofactor, S);
+        //     }
+        // }
 
         internal class Sect571k1Holder
             : X9ECParametersHolder
@@ -1175,40 +1175,40 @@ namespace Org.BouncyCastle.Asn1.Sec
 
         static SecNamedCurves()
         {
-            DefineCurve("secp112r1", SecObjectIdentifiers.SecP112r1, Secp112r1Holder.Instance);
-            DefineCurve("secp112r2", SecObjectIdentifiers.SecP112r2, Secp112r2Holder.Instance);
-            DefineCurve("secp128r1", SecObjectIdentifiers.SecP128r1, Secp128r1Holder.Instance);
-            DefineCurve("secp128r2", SecObjectIdentifiers.SecP128r2, Secp128r2Holder.Instance);
-            DefineCurve("secp160k1", SecObjectIdentifiers.SecP160k1, Secp160k1Holder.Instance);
-            DefineCurve("secp160r1", SecObjectIdentifiers.SecP160r1, Secp160r1Holder.Instance);
-            DefineCurve("secp160r2", SecObjectIdentifiers.SecP160r2, Secp160r2Holder.Instance);
-            DefineCurve("secp192k1", SecObjectIdentifiers.SecP192k1, Secp192k1Holder.Instance);
-            DefineCurve("secp192r1", SecObjectIdentifiers.SecP192r1, Secp192r1Holder.Instance);
-            DefineCurve("secp224k1", SecObjectIdentifiers.SecP224k1, Secp224k1Holder.Instance);
-            DefineCurve("secp224r1", SecObjectIdentifiers.SecP224r1, Secp224r1Holder.Instance);
+            // DefineCurve("secp112r1", SecObjectIdentifiers.SecP112r1, Secp112r1Holder.Instance);
+            // DefineCurve("secp112r2", SecObjectIdentifiers.SecP112r2, Secp112r2Holder.Instance);
+            // DefineCurve("secp128r1", SecObjectIdentifiers.SecP128r1, Secp128r1Holder.Instance);
+            // DefineCurve("secp128r2", SecObjectIdentifiers.SecP128r2, Secp128r2Holder.Instance);
+            // DefineCurve("secp160k1", SecObjectIdentifiers.SecP160k1, Secp160k1Holder.Instance);
+            // DefineCurve("secp160r1", SecObjectIdentifiers.SecP160r1, Secp160r1Holder.Instance);
+            // DefineCurve("secp160r2", SecObjectIdentifiers.SecP160r2, Secp160r2Holder.Instance);
+            // DefineCurve("secp192k1", SecObjectIdentifiers.SecP192k1, Secp192k1Holder.Instance);
+            // DefineCurve("secp192r1", SecObjectIdentifiers.SecP192r1, Secp192r1Holder.Instance);
+            // DefineCurve("secp224k1", SecObjectIdentifiers.SecP224k1, Secp224k1Holder.Instance);
+            // DefineCurve("secp224r1", SecObjectIdentifiers.SecP224r1, Secp224r1Holder.Instance);
             DefineCurve("secp256k1", SecObjectIdentifiers.SecP256k1, Secp256k1Holder.Instance);
             DefineCurve("secp256r1", SecObjectIdentifiers.SecP256r1, Secp256r1Holder.Instance);
-            DefineCurve("secp384r1", SecObjectIdentifiers.SecP384r1, Secp384r1Holder.Instance);
-            DefineCurve("secp521r1", SecObjectIdentifiers.SecP521r1, Secp521r1Holder.Instance);
+            // DefineCurve("secp384r1", SecObjectIdentifiers.SecP384r1, Secp384r1Holder.Instance);
+            // DefineCurve("secp521r1", SecObjectIdentifiers.SecP521r1, Secp521r1Holder.Instance);
 
-            DefineCurve("sect113r1", SecObjectIdentifiers.SecT113r1, Sect113r1Holder.Instance);
-            DefineCurve("sect113r2", SecObjectIdentifiers.SecT113r2, Sect113r2Holder.Instance);
-            DefineCurve("sect131r1", SecObjectIdentifiers.SecT131r1, Sect131r1Holder.Instance);
-            DefineCurve("sect131r2", SecObjectIdentifiers.SecT131r2, Sect131r2Holder.Instance);
-            DefineCurve("sect163k1", SecObjectIdentifiers.SecT163k1, Sect163k1Holder.Instance);
-            DefineCurve("sect163r1", SecObjectIdentifiers.SecT163r1, Sect163r1Holder.Instance);
-            DefineCurve("sect163r2", SecObjectIdentifiers.SecT163r2, Sect163r2Holder.Instance);
-            DefineCurve("sect193r1", SecObjectIdentifiers.SecT193r1, Sect193r1Holder.Instance);
-            DefineCurve("sect193r2", SecObjectIdentifiers.SecT193r2, Sect193r2Holder.Instance);
-            DefineCurve("sect233k1", SecObjectIdentifiers.SecT233k1, Sect233k1Holder.Instance);
-            DefineCurve("sect233r1", SecObjectIdentifiers.SecT233r1, Sect233r1Holder.Instance);
-            DefineCurve("sect239k1", SecObjectIdentifiers.SecT239k1, Sect239k1Holder.Instance);
-            DefineCurve("sect283k1", SecObjectIdentifiers.SecT283k1, Sect283k1Holder.Instance);
-            DefineCurve("sect283r1", SecObjectIdentifiers.SecT283r1, Sect283r1Holder.Instance);
-            DefineCurve("sect409k1", SecObjectIdentifiers.SecT409k1, Sect409k1Holder.Instance);
-            DefineCurve("sect409r1", SecObjectIdentifiers.SecT409r1, Sect409r1Holder.Instance);
-            DefineCurve("sect571k1", SecObjectIdentifiers.SecT571k1, Sect571k1Holder.Instance);
-            DefineCurve("sect571r1", SecObjectIdentifiers.SecT571r1, Sect571r1Holder.Instance);
+            // DefineCurve("sect113r1", SecObjectIdentifiers.SecT113r1, Sect113r1Holder.Instance);
+            // DefineCurve("sect113r2", SecObjectIdentifiers.SecT113r2, Sect113r2Holder.Instance);
+            // DefineCurve("sect131r1", SecObjectIdentifiers.SecT131r1, Sect131r1Holder.Instance);
+            // DefineCurve("sect131r2", SecObjectIdentifiers.SecT131r2, Sect131r2Holder.Instance);
+            // DefineCurve("sect163k1", SecObjectIdentifiers.SecT163k1, Sect163k1Holder.Instance);
+            // DefineCurve("sect163r1", SecObjectIdentifiers.SecT163r1, Sect163r1Holder.Instance);
+            // DefineCurve("sect163r2", SecObjectIdentifiers.SecT163r2, Sect163r2Holder.Instance);
+            // DefineCurve("sect193r1", SecObjectIdentifiers.SecT193r1, Sect193r1Holder.Instance);
+            // DefineCurve("sect193r2", SecObjectIdentifiers.SecT193r2, Sect193r2Holder.Instance);
+            // DefineCurve("sect233k1", SecObjectIdentifiers.SecT233k1, Sect233k1Holder.Instance);
+            // DefineCurve("sect233r1", SecObjectIdentifiers.SecT233r1, Sect233r1Holder.Instance);
+            // DefineCurve("sect239k1", SecObjectIdentifiers.SecT239k1, Sect239k1Holder.Instance);
+            // DefineCurve("sect283k1", SecObjectIdentifiers.SecT283k1, Sect283k1Holder.Instance);
+            // DefineCurve("sect283r1", SecObjectIdentifiers.SecT283r1, Sect283r1Holder.Instance);
+            // DefineCurve("sect409k1", SecObjectIdentifiers.SecT409k1, Sect409k1Holder.Instance);
+            // DefineCurve("sect409r1", SecObjectIdentifiers.SecT409r1, Sect409r1Holder.Instance);
+            // DefineCurve("sect571k1", SecObjectIdentifiers.SecT571k1, Sect571k1Holder.Instance);
+            // DefineCurve("sect571r1", SecObjectIdentifiers.SecT571r1, Sect571r1Holder.Instance);
         }
 
         /// <summary>Look up the <see cref="X9ECParameters"/> for the curve with the given name.</summary>
