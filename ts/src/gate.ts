@@ -1871,7 +1871,7 @@ export default class gate extends Exchange {
         await this.loadMarkets ();
         const currency = this.currency (code);
         const request = {
-            'currency': currency['id'],
+            'currency': currency['id'], // todo: currencies have network-junctions
         };
         const response = await this.privateWalletGetDepositAddress (this.extend (request, params));
         const addresses = this.safeValue (response, 'multichain_addresses');
@@ -1923,7 +1923,7 @@ export default class gate extends Exchange {
         const rawNetwork = this.safeStringUpper (params, 'network');
         params = this.omit (params, 'network');
         const request = {
-            'currency': currency['id'],
+            'currency': currency['id'], // todo: currencies have network-junctions
         };
         const response = await this.privateWalletGetDepositAddress (this.extend (request, params));
         //
@@ -3595,7 +3595,7 @@ export default class gate extends Exchange {
         await this.loadMarkets ();
         const currency = this.currency (code);
         const request = {
-            'currency': currency['id'],
+            'currency': currency['id'], // todo: currencies have network-junctions
             'address': address,
             'amount': this.currencyToPrecision (code, amount),
         };
@@ -5080,7 +5080,7 @@ export default class gate extends Exchange {
         const toId = this.convertTypeToAccount (toAccount);
         const truncated = this.currencyToPrecision (code, amount);
         const request = {
-            'currency': currency['id'],
+            'currency': currency['id'], // todo: currencies have network-junctions
             'amount': truncated,
         };
         if (!(fromId in this.options['accountsByType'])) {
@@ -7242,7 +7242,7 @@ export default class gate extends Exchange {
         await this.loadMarkets ();
         const currency = this.currency (code);
         const request = {
-            'underlying': currency['code'] + '_USDT', // todo: currency['id'].toUpperCase ();
+            'underlying': currency['code'] + '_USDT', // todo: currency['id'].toUpperCase () &  network junctions
         };
         const response = await this.publicOptionsGetContracts (this.extend (request, params));
         //
