@@ -1292,10 +1292,6 @@ public partial class bitrue : Exchange
             };
             if (isTrue(!isEqual(limit, null)))
             {
-                if (isTrue(isGreaterThan(limit, 300)))
-                {
-                    limit = 300;
-                }
                 ((IDictionary<string,object>)request)["limit"] = limit;
             }
             if (isTrue(getValue(market, "linear")))
@@ -1315,10 +1311,6 @@ public partial class bitrue : Exchange
             };
             if (isTrue(!isEqual(limit, null)))
             {
-                if (isTrue(isGreaterThan(limit, 1440)))
-                {
-                    limit = 1440;
-                }
                 ((IDictionary<string,object>)request)["limit"] = limit;
             }
             if (isTrue(!isEqual(since, null)))
@@ -3129,13 +3121,25 @@ public partial class bitrue : Exchange
 
     public virtual object parseMarginModification(object data, object market = null)
     {
+        //
+        // setMargin
+        //
+        //     {
+        //         "code": 0,
+        //         "msg": "success"
+        //         "data": null
+        //     }
+        //
         return new Dictionary<string, object>() {
             { "info", data },
+            { "symbol", getValue(market, "symbol") },
             { "type", null },
             { "amount", null },
+            { "total", null },
             { "code", null },
-            { "symbol", getValue(market, "symbol") },
             { "status", null },
+            { "timestamp", null },
+            { "datetime", null },
         };
     }
 

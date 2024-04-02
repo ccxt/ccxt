@@ -952,7 +952,7 @@ class huobijp extends huobijp$1 {
             'period': this.safeString(this.timeframes, timeframe, timeframe),
         };
         if (limit !== undefined) {
-            request['size'] = limit;
+            request['size'] = Math.min(limit, 2000);
         }
         const response = await this.marketGetHistoryKline(this.extend(request, params));
         //

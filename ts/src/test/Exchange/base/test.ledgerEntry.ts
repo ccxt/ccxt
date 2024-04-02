@@ -1,7 +1,7 @@
 import { Exchange } from "../../../../ccxt";
 import testSharedMethods from './test.sharedMethods.js';
 
-function testLedgerEntry (exchange: Exchange, skippedProperties: string[], method: string, entry: object, requestedCode: string, now: number) {
+function testLedgerEntry (exchange: Exchange, skippedProperties: object, method: string, entry: object, requestedCode: string, now: number) {
     const format = {
         'info': {},
         'id': 'x1234',

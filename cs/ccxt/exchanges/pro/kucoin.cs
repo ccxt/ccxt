@@ -623,19 +623,25 @@ public partial class kucoin : ccxt.kucoin
         object marketId = this.safeString(data, "symbol", topicSymbol);
         object symbol = this.safeSymbol(marketId, null, "-");
         object messageHash = add("orderbook:", symbol);
-        object orderbook = this.safeDict(this.orderbooks, symbol);
+        // let orderbook = this.safeDict (this.orderbooks, symbol);
         if (isTrue(isEqual(subject, "level2")))
         {
-            if (isTrue(isEqual(orderbook, null)))
+            if (!isTrue((inOp(this.orderbooks, symbol))))
             {
-                orderbook = this.orderBook();
+                ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook();
             } else
             {
+                object orderbook = getValue(this.orderbooks, symbol);
                 (orderbook as IOrderBook).reset();
             }
-            ((IDictionary<string,object>)orderbook)["symbol"] = symbol;
+            ((IDictionary<string,object>)getValue(this.orderbooks, symbol))["symbol"] = symbol;
         } else
         {
+            if (!isTrue((inOp(this.orderbooks, symbol))))
+            {
+                ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook();
+            }
+            object orderbook = getValue(this.orderbooks, symbol);
             object nonce = this.safeInteger(orderbook, "nonce");
             object deltaEnd = this.safeInteger2(data, "sequenceEnd", "timestamp");
             if (isTrue(isEqual(nonce, null)))
@@ -665,8 +671,8 @@ public partial class kucoin : ccxt.kucoin
                 return;
             }
         }
-        this.handleDelta(orderbook, data);
-        callDynamically(client as WebSocketClient, "resolve", new object[] {orderbook, messageHash});
+        this.handleDelta(getValue(this.orderbooks, symbol), data);
+        callDynamically(client as WebSocketClient, "resolve", new object[] {getValue(this.orderbooks, symbol), messageHash});
     }
 
     public override object getCacheIndex(object orderbook, object cache)

@@ -3,7 +3,7 @@ import { Exchange } from "../../../ccxt";
 import testAccount from './base/test.account.js';
 import testSharedMethods from './base/test.sharedMethods.js';
 
-async function testFetchAccounts (exchange: Exchange, skippedProperties: string[]) {
+async function testFetchAccounts (exchange: Exchange, skippedProperties: object) {
     const method = 'fetchAccounts';
     const accounts = await exchange.fetchAccounts ();
     testSharedMethods.assertNonEmtpyArray (exchange, skippedProperties, method, accounts);

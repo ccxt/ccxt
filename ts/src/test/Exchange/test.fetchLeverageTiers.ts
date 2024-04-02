@@ -3,7 +3,7 @@ import { Exchange } from "../../../ccxt";
 import testLeverageTier from './base/test.leverageTier.js';
 import testSharedMethods from './base/test.sharedMethods.js';
 
-async function testFetchLeverageTiers (exchange: Exchange, skippedProperties: string[], symbol: string) {
+async function testFetchLeverageTiers (exchange: Exchange, skippedProperties: object, symbol: string) {
     const method = 'fetchLeverageTiers';
     const tiers = await exchange.fetchLeverageTiers ([ 'symbol' ]);
     // const format = {

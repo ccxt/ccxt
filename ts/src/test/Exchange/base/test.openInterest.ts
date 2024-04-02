@@ -1,7 +1,7 @@
 import { Exchange } from "../../../../ccxt";
 import testSharedMethods from './test.sharedMethods.js';
 
-function testOpenInterest (exchange: Exchange, skippedProperties: string[], method: string, entry: object) {
+function testOpenInterest (exchange: Exchange, skippedProperties: object, method: string, entry: object) {
     const format = {
         'symbol': 'BTC/USDT',
         // 'baseVolume': exchange.parseNumber ('81094.084'), // deprecated

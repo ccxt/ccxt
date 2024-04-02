@@ -8,7 +8,7 @@ from ccxt.abstract.bingx import ImplicitAPI
 import asyncio
 import hashlib
 import numbers
-from ccxt.base.types import Balances, Currency, Int, Leverage, MarginMode, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
+from ccxt.base.types import Balances, Currency, Int, Leverage, MarginMode, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -44,6 +44,7 @@ class bingx(Exchange, ImplicitAPI):
                 'swap': True,
                 'future': False,
                 'option': False,
+                'addMargin': True,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'cancelOrders': True,
@@ -90,6 +91,7 @@ class bingx(Exchange, ImplicitAPI):
                 'fetchTrades': True,
                 'fetchTransfers': True,
                 'fetchWithdrawals': True,
+                'reduceMargin': True,
                 'setLeverage': True,
                 'setMargin': True,
                 'setMarginMode': True,
@@ -3247,7 +3249,19 @@ class bingx(Exchange, ImplicitAPI):
         }
         return await self.swapV2PrivatePostTradeMarginType(self.extend(request, params))
 
-    async def set_margin(self, symbol: str, amount: float, params={}):
+    async def add_margin(self, symbol: str, amount: float, params={}) -> MarginModification:
+        request = {
+            'type': 1,
+        }
+        return await self.set_margin(symbol, amount, self.extend(request, params))
+
+    async def reduce_margin(self, symbol: str, amount: float, params={}) -> MarginModification:
+        request = {
+            'type': 2,
+        }
+        return await self.set_margin(symbol, amount, self.extend(request, params))
+
+    async def set_margin(self, symbol: str, amount: float, params={}) -> MarginModification:
         """
         Either adds or reduces margin in an isolated position in order to set the margin to a specific value
         :see: https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Adjust%20isolated%20margin
@@ -3277,7 +3291,29 @@ class bingx(Exchange, ImplicitAPI):
         #        "type": 1
         #    }
         #
-        return response
+        return self.parse_margin_modification(response, market)
+
+    def parse_margin_modification(self, data, market: Market = None) -> MarginModification:
+        #
+        #    {
+        #        "code": 0,
+        #        "msg": "",
+        #        "amount": 1,
+        #        "type": 1
+        #    }
+        #
+        type = self.safe_string(data, 'type')
+        return {
+            'info': data,
+            'symbol': self.safe_string(market, 'symbol'),
+            'type': 'add' if (type == '1') else 'reduce',
+            'amount': self.safe_number(data, 'amount'),
+            'total': self.safe_number(data, 'margin'),
+            'code': self.safe_string(market, 'settle'),
+            'status': None,
+            'timestamp': None,
+            'datetime': None,
+        }
 
     async def fetch_leverage(self, symbol: str, params={}) -> Leverage:
         """

@@ -759,6 +759,9 @@ export default class bitopro extends Exchange {
         if (limit === undefined) {
             limit = 500;
         }
+        else {
+            limit = Math.min(limit, 75000); // supports slightly more than 75k candles atm, but limit here to avoid errors
+        }
         const timeframeInSeconds = this.parseTimeframe(timeframe);
         let alignedSince = undefined;
         if (since === undefined) {

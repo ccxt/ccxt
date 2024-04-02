@@ -9010,7 +9010,7 @@ export default class binance extends Exchange {
         };
     }
 
-    parseAccountPositions (account) {
+    parseAccountPositions (account, filterClosed = false) {
         const positions = this.safeList (account, 'positions');
         const assets = this.safeList (account, 'assets', []);
         const balances = {};
@@ -9033,7 +9033,8 @@ export default class binance extends Exchange {
             const code = market['linear'] ? market['quote'] : market['base'];
             const maintenanceMargin = this.safeString (position, 'maintMargin');
             // check for maintenance margin so empty positions are not returned
-            if ((maintenanceMargin !== '0') && (maintenanceMargin !== '0.00000000')) {
+            const isPositionOpen = (maintenanceMargin !== '0') && (maintenanceMargin !== '0.00000000');
+            if (!filterClosed || isPositionOpen) {
                 // sometimes not all the codes are correctly returned...
                 if (code in balances) {
                     const parsed = this.parseAccountPosition (this.extend (position, {
@@ -9863,10 +9864,11 @@ export default class binance extends Exchange {
          * @see https://binance-docs.github.io/apidocs/delivery/en/#account-information-user_data
          * @see https://binance-docs.github.io/apidocs/pm/en/#get-um-account-detail-user_data
          * @see https://binance-docs.github.io/apidocs/pm/en/#get-cm-account-detail-user_data
-         * @param {string[]|undefined} symbols list of unified market symbols
+         * @param {string[]} [symbols] list of unified market symbols
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch positions in a portfolio margin account
          * @param {string} [params.subType] "linear" or "inverse"
+         * @param {boolean} [params.filterClosed] set to true if you would like to filter out closed positions, default is false
          * @returns {object} data on account positions
          */
         if (symbols !== undefined) {
@@ -9899,7 +9901,9 @@ export default class binance extends Exchange {
         } else {
             throw new NotSupported (this.id + ' fetchPositions() supports linear and inverse contracts only');
         }
-        const result = this.parseAccountPositions (response);
+        let filterClosed = undefined;
+        [ filterClosed, params ] = this.handleOptionAndParams (params, 'fetchAccountPositions', 'filterClosed', false);
+        const result = this.parseAccountPositions (response, filterClosed);
         symbols = this.marketSymbols (symbols);
         return this.filterByArrayPositions (result, 'symbol', symbols, false);
     }

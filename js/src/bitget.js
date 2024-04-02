@@ -1222,6 +1222,7 @@ export default class bitget extends Exchange {
                     '40768': OrderNotFound,
                     '41114': OnMaintenance,
                     '43011': InvalidOrder,
+                    '43012': InsufficientFunds,
                     '43025': InvalidOrder,
                     '43115': OnMaintenance,
                     '45110': InvalidOrder,
@@ -6963,15 +6964,28 @@ export default class bitget extends Exchange {
         });
     }
     parseMarginModification(data, market = undefined) {
+        //
+        // addMargin/reduceMargin
+        //
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1700813444618,
+        //         "data": ""
+        //     }
+        //
         const errorCode = this.safeString(data, 'code');
         const status = (errorCode === '00000') ? 'ok' : 'failed';
         return {
             'info': data,
+            'symbol': market['symbol'],
             'type': undefined,
             'amount': undefined,
+            'total': undefined,
             'code': market['settle'],
-            'symbol': market['symbol'],
             'status': status,
+            'timestamp': undefined,
+            'datetime': undefined,
         };
     }
     async reduceMargin(symbol, amount, params = {}) {

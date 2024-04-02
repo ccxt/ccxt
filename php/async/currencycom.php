@@ -1003,7 +1003,7 @@ class currencycom extends Exchange {
                 $request['startTime'] = $since;
             }
             if ($limit !== null) {
-                $request['limit'] = $limit; // default 500, max 1000
+                $request['limit'] = min ($limit, 1000); // default 500, max 1000
             }
             $response = Async\await($this->publicGetV2Klines (array_merge($request, $params)));
             //

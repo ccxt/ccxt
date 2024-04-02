@@ -2927,7 +2927,7 @@ public partial class htx : Exchange
         {
             if (isTrue(!isEqual(limit, null)))
             {
-                ((IDictionary<string,object>)request)["size"] = limit; // when using limit: from & to are ignored
+                ((IDictionary<string,object>)request)["size"] = mathMin(limit, 2000); // when using limit: from & to are ignored
             } else
             {
                 limit = 2000; // only used for from/to calculation
@@ -3031,7 +3031,7 @@ public partial class htx : Exchange
             {
                 if (isTrue(!isEqual(limit, null)))
                 {
-                    ((IDictionary<string,object>)request)["size"] = mathMin(2000, limit); // max 2000
+                    ((IDictionary<string,object>)request)["size"] = mathMin(limit, 2000); // max 2000
                 }
                 response = await this.spotPublicGetMarketHistoryKline(this.extend(request, parameters));
             } else
