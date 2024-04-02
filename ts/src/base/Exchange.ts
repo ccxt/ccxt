@@ -5045,11 +5045,17 @@ export default class Exchange {
         };
     }
 
-    commonCurrencyCode (currency: string) {
+    commonCurrencyCode (code: string) {
         if (!this.substituteCommonCurrencyCodes) {
-            return currency;
+            return code;
         }
-        return this.safeString (this.commonCurrencies, currency, currency);
+        // if the provided code already exists as a value in commonCurrencies dict, then we should not again transform it
+        // (more details at: https://github.com/ccxt/ccxt/issues/21112#issuecomment-2031293691)
+        const exists = this.inArray (code, Object.values (this.commonCurrencies));
+        if (exists) {
+            return code;
+        }
+        return this.safeString (this.commonCurrencies, code, code);
     }
 
     currency (code: string) {
@@ -5724,8 +5730,8 @@ export default class Exchange {
             const entry = responseKeys[i];
             const dictionary = isArray ? entry : response[entry];
             const currencyId = isArray ? this.safeString (dictionary, currencyIdKey) : entry;
-            const currency = this.safeValue (this.currencies_by_id, currencyId);
-            const code = this.safeString (currency, 'code', currencyId);
+            const currency = this.safeCurrency (currencyId);
+            const code = this.safeString (currency, 'code');
             if ((codes === undefined) || (this.inArray (code, codes))) {
                 depositWithdrawFees[code] = this.parseDepositWithdrawFee (dictionary, currency);
             }
