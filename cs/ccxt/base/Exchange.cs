@@ -416,9 +416,21 @@ public partial class Exchange
         return this.currencies;
     }
 
+    public async Task<Currencies> FetchCurrencies(object parameters = null)
+    {
+        var res = await this.fetchCurrencies(parameters);
+        return new Currencies(res);
+    }
+
     public virtual async Task<object> fetchCurrenciesWs(object parameters = null)
     {
         return this.currencies;
+    }
+
+        public async Task<Currencies> FetchCurrenciesWs(object parameters = null)
+    {
+        var res = await this.fetchCurrenciesWs(parameters);
+        return new Currencies(res);
     }
 
     public void log(object s)
