@@ -951,7 +951,7 @@ export default class blofin extends Exchange {
         return this.safeBalance (result);
     }
 
-    parseTradingFee (fee: any, market: Market = undefined): TradingFeeInterface {
+    parseTradingFee (fee, market: Market = undefined): TradingFeeInterface {
         return {
             'info': fee,
             'symbol': this.safeSymbol (undefined, market),

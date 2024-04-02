@@ -1569,7 +1569,7 @@ export default class coinsph extends Exchange {
         return result;
     }
 
-    parseTradingFee (fee: any, market: Market = undefined): TradingFeeInterface {
+    parseTradingFee (fee, market: Market = undefined): TradingFeeInterface {
         //
         //     {
         //         "symbol": "ETHUSDT",

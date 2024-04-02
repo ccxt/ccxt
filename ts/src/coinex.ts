@@ -1482,7 +1482,7 @@ export default class coinex extends Exchange {
         return result;
     }
 
-    parseTradingFee (fee: any, market: Market = undefined): TradingFeeInterface {
+    parseTradingFee (fee, market: Market = undefined): TradingFeeInterface {
         const marketId = this.safeValue (fee, 'market');
         const symbol = this.safeSymbol (marketId, market);
         return {
