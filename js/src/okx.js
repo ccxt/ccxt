@@ -6463,26 +6463,40 @@ export default class okx extends Exchange {
         //       "msg": ""
         //     }
         //
-        return this.parseMarginModification(response, market);
+        const data = this.safeList(response, 'data', []);
+        const errorCode = this.safeString(response, 'code');
+        const item = this.safeDict(data, 0, {});
+        return this.extend(this.parseMarginModification(item, market), {
+            'status': (errorCode === '0') ? 'ok' : 'failed',
+        });
     }
     parseMarginModification(data, market = undefined) {
-        const innerData = this.safeValue(data, 'data', []);
-        const entry = this.safeValue(innerData, 0, {});
-        const errorCode = this.safeString(data, 'code');
-        const status = (errorCode === '0') ? 'ok' : 'failed';
-        const amountRaw = this.safeNumber(entry, 'amt');
-        const typeRaw = this.safeString(entry, 'type');
+        //
+        // addMargin/reduceMargin
+        //
+        //    {
+        //        "amt": "0.01",
+        //        "instId": "ETH-USD-SWAP",
+        //        "posSide": "net",
+        //        "type": "reduce"
+        //    }
+        //
+        const amountRaw = this.safeNumber(data, 'amt');
+        const typeRaw = this.safeString(data, 'type');
         const type = (typeRaw === 'reduce') ? 'reduce' : 'add';
-        const marketId = this.safeString(entry, 'instId');
+        const marketId = this.safeString(data, 'instId');
         const responseMarket = this.safeMarket(marketId, market);
         const code = responseMarket['inverse'] ? responseMarket['base'] : responseMarket['quote'];
         return {
             'info': data,
+            'symbol': responseMarket['symbol'],
             'type': type,
             'amount': amountRaw,
+            'total': undefined,
             'code': code,
-            'symbol': responseMarket['symbol'],
-            'status': status,
+            'status': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
         };
     }
     async reduceMargin(symbol, amount, params = {}) {

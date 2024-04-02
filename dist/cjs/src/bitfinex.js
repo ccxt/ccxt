@@ -1323,6 +1323,9 @@ class bitfinex extends bitfinex$1 {
         if (limit === undefined) {
             limit = 100;
         }
+        else {
+            limit = Math.min(limit, 10000);
+        }
         const market = this.market(symbol);
         const v2id = 't' + market['id'];
         const request = {

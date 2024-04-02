@@ -3037,15 +3037,25 @@ public partial class ascendex : Exchange
 
     public virtual object parseMarginModification(object data, object market = null)
     {
+        //
+        // addMargin/reduceMargin
+        //
+        //     {
+        //          "code": 0
+        //     }
+        //
         object errorCode = this.safeString(data, "code");
         object status = ((bool) isTrue((isEqual(errorCode, "0")))) ? "ok" : "failed";
         return new Dictionary<string, object>() {
             { "info", data },
+            { "symbol", getValue(market, "symbol") },
             { "type", null },
             { "amount", null },
+            { "total", null },
             { "code", getValue(market, "quote") },
-            { "symbol", getValue(market, "symbol") },
             { "status", status },
+            { "timestamp", null },
+            { "datetime", null },
         };
     }
 

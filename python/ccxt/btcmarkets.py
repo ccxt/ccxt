@@ -522,7 +522,7 @@ class btcmarkets(Exchange, ImplicitAPI):
         if since is not None:
             request['from'] = self.iso8601(since)
         if limit is not None:
-            request['limit'] = limit  # default is 10, max 200
+            request['limit'] = min(limit, 200)  # default is 10, max 200
         response = self.publicGetMarketsMarketIdCandles(self.extend(request, params))
         #
         #     [

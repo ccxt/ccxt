@@ -11041,7 +11041,17 @@ class binance extends Exchange {
         }) ();
     }
 
-    public function parse_margin_modification($data, ?array $market = null) {
+    public function parse_margin_modification($data, ?array $market = null): array {
+        //
+        // add/reduce margin
+        //
+        //     {
+        //         "code" => 200,
+        //         "msg" => "Successfully modify position margin.",
+        //         "amount" => 0.001,
+        //         "type" => 1
+        //     }
+        //
         $rawType = $this->safe_integer($data, 'type');
         $resultType = ($rawType === 1) ? 'add' : 'reduce';
         $resultAmount = $this->safe_number($data, 'amount');
@@ -11049,15 +11059,18 @@ class binance extends Exchange {
         $status = ($errorCode === '200') ? 'ok' : 'failed';
         return array(
             'info' => $data,
+            'symbol' => $market['symbol'],
             'type' => $resultType,
             'amount' => $resultAmount,
+            'total' => null,
             'code' => null,
-            'symbol' => $market['symbol'],
             'status' => $status,
+            'timestamp' => null,
+            'datetime' => null,
         );
     }
 
-    public function reduce_margin(string $symbol, $amount, $params = array ()) {
+    public function reduce_margin(string $symbol, $amount, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $amount, $params) {
             /**
              * @see https://binance-docs.github.io/apidocs/delivery/en/#modify-isolated-position-margin-trade
@@ -11072,7 +11085,7 @@ class binance extends Exchange {
         }) ();
     }
 
-    public function add_margin(string $symbol, $amount, $params = array ()) {
+    public function add_margin(string $symbol, $amount, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $amount, $params) {
             /**
              * @see https://binance-docs.github.io/apidocs/delivery/en/#modify-isolated-position-margin-trade

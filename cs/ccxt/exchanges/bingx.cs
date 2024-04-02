@@ -22,6 +22,7 @@ public partial class bingx : Exchange
                 { "swap", true },
                 { "future", false },
                 { "option", false },
+                { "addMargin", true },
                 { "cancelAllOrders", true },
                 { "cancelOrder", true },
                 { "cancelOrders", true },
@@ -68,6 +69,7 @@ public partial class bingx : Exchange
                 { "fetchTrades", true },
                 { "fetchTransfers", true },
                 { "fetchWithdrawals", true },
+                { "reduceMargin", true },
                 { "setLeverage", true },
                 { "setMargin", true },
                 { "setMarginMode", true },
@@ -3687,6 +3689,24 @@ public partial class bingx : Exchange
         return await this.swapV2PrivatePostTradeMarginType(this.extend(request, parameters));
     }
 
+    public async override Task<object> addMargin(object symbol, object amount, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        object request = new Dictionary<string, object>() {
+            { "type", 1 },
+        };
+        return await this.setMargin(symbol, amount, this.extend(request, parameters));
+    }
+
+    public async override Task<object> reduceMargin(object symbol, object amount, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        object request = new Dictionary<string, object>() {
+            { "type", 2 },
+        };
+        return await this.setMargin(symbol, amount, this.extend(request, parameters));
+    }
+
     public async override Task<object> setMargin(object symbol, object amount, object parameters = null)
     {
         /**
@@ -3725,7 +3745,31 @@ public partial class bingx : Exchange
         //        "type": 1
         //    }
         //
-        return response;
+        return this.parseMarginModification(response, market);
+    }
+
+    public virtual object parseMarginModification(object data, object market = null)
+    {
+        //
+        //    {
+        //        "code": 0,
+        //        "msg": "",
+        //        "amount": 1,
+        //        "type": 1
+        //    }
+        //
+        object type = this.safeString(data, "type");
+        return new Dictionary<string, object>() {
+            { "info", data },
+            { "symbol", this.safeString(market, "symbol") },
+            { "type", ((bool) isTrue((isEqual(type, "1")))) ? "add" : "reduce" },
+            { "amount", this.safeNumber(data, "amount") },
+            { "total", this.safeNumber(data, "margin") },
+            { "code", this.safeString(market, "settle") },
+            { "status", null },
+            { "timestamp", null },
+            { "datetime", null },
+        };
     }
 
     public async override Task<object> fetchLeverage(object symbol, object parameters = null)

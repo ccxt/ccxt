@@ -1000,6 +1000,9 @@ class lbank extends lbank$1 {
         if (limit === undefined) {
             limit = 100;
         }
+        else {
+            limit = Math.min(limit, 2000);
+        }
         if (since === undefined) {
             const duration = this.parseTimeframe(timeframe);
             since = this.milliseconds() - duration * 1000 * limit;

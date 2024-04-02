@@ -579,6 +579,7 @@ class btcturk extends Exchange {
             $limit = 100; // default value
         }
         if ($limit !== null) {
+            $limit = min ($limit, 11000); // max 11000 candles diapason can be covered
             if ($timeframe === '1y') { // difficult with leap years
                 throw new BadRequest($this->id . ' fetchOHLCV () does not accept a $limit parameter when $timeframe == "1y"');
             }
@@ -588,7 +589,7 @@ class btcturk extends Exchange {
                 $to = $this->parse_to_int($since / 1000) . $limitSeconds;
                 $request['to'] = min ($request['to'], $to);
             } else {
-                $request['from'] = $this->parse_to_int($until / 1000) - $limitSeconds;
+                $request['from'] = $this->parse_to_int(0 / 1000) - $limitSeconds;
             }
         }
         $response = $this->graphGetKlinesHistory (array_merge($request, $params));

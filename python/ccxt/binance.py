@@ -7,7 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.abstract.binance import ImplicitAPI
 import hashlib
 import json
-from ccxt.base.types import Balances, Currency, Greeks, Int, Leverage, Leverages, MarginMode, MarginModes, Market, MarketInterface, Num, Option, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
+from ccxt.base.types import Balances, Currency, Greeks, Int, Leverage, Leverages, MarginMode, MarginModes, MarginModification, Market, MarketInterface, Num, Option, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -10312,7 +10312,17 @@ class binance(Exchange, ImplicitAPI):
             'code': code,
         })
 
-    def parse_margin_modification(self, data, market: Market = None):
+    def parse_margin_modification(self, data, market: Market = None) -> MarginModification:
+        #
+        # add/reduce margin
+        #
+        #     {
+        #         "code": 200,
+        #         "msg": "Successfully modify position margin.",
+        #         "amount": 0.001,
+        #         "type": 1
+        #     }
+        #
         rawType = self.safe_integer(data, 'type')
         resultType = 'add' if (rawType == 1) else 'reduce'
         resultAmount = self.safe_number(data, 'amount')
@@ -10320,14 +10330,17 @@ class binance(Exchange, ImplicitAPI):
         status = 'ok' if (errorCode == '200') else 'failed'
         return {
             'info': data,
+            'symbol': market['symbol'],
             'type': resultType,
             'amount': resultAmount,
+            'total': None,
             'code': None,
-            'symbol': market['symbol'],
             'status': status,
+            'timestamp': None,
+            'datetime': None,
         }
 
-    def reduce_margin(self, symbol: str, amount, params={}):
+    def reduce_margin(self, symbol: str, amount, params={}) -> MarginModification:
         """
         :see: https://binance-docs.github.io/apidocs/delivery/en/#modify-isolated-position-margin-trade
         :see: https://binance-docs.github.io/apidocs/futures/en/#modify-isolated-position-margin-trade
@@ -10339,7 +10352,7 @@ class binance(Exchange, ImplicitAPI):
         """
         return self.modify_margin_helper(symbol, amount, 2, params)
 
-    def add_margin(self, symbol: str, amount, params={}):
+    def add_margin(self, symbol: str, amount, params={}) -> MarginModification:
         """
         :see: https://binance-docs.github.io/apidocs/delivery/en/#modify-isolated-position-margin-trade
         :see: https://binance-docs.github.io/apidocs/futures/en/#modify-isolated-position-margin-trade

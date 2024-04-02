@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.hitbtc import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, Int, Leverage, MarginMode, MarginModes, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
+from ccxt.base.types import Balances, Currency, Int, Leverage, MarginMode, MarginModes, MarginModification, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -1658,7 +1658,7 @@ class hitbtc(Exchange, ImplicitAPI):
             request['from'] = self.iso8601(since)
         request, params = self.handle_until_option('till', request, params)
         if limit is not None:
-            request['limit'] = limit
+            request['limit'] = min(limit, 1000)
         price = self.safe_string(params, 'price')
         params = self.omit(params, 'price')
         response = None
@@ -2999,7 +2999,7 @@ class hitbtc(Exchange, ImplicitAPI):
             'previousFundingDatetime': None,
         }
 
-    async def modify_margin_helper(self, symbol: str, amount, type, params={}):
+    async def modify_margin_helper(self, symbol: str, amount, type, params={}) -> MarginModification:
         await self.load_markets()
         market = self.market(symbol)
         leverage = self.safe_string(params, 'leverage')
@@ -3052,19 +3052,43 @@ class hitbtc(Exchange, ImplicitAPI):
             'type': type,
         })
 
-    def parse_margin_modification(self, data, market: Market = None):
+    def parse_margin_modification(self, data, market: Market = None) -> MarginModification:
+        #
+        # addMargin/reduceMargin
+        #
+        #     {
+        #         "symbol": "BTCUSDT_PERP",
+        #         "type": "isolated",
+        #         "leverage": "8.00",
+        #         "created_at": "2022-03-30T23:34:27.161Z",
+        #         "updated_at": "2022-03-30T23:34:27.161Z",
+        #         "currencies": [
+        #             {
+        #                 "code": "USDT",
+        #                 "margin_balance": "7.000000000000",
+        #                 "reserved_orders": "0",
+        #                 "reserved_positions": "0"
+        #             }
+        #         ],
+        #         "positions": null
+        #     }
+        #
         currencies = self.safe_value(data, 'currencies', [])
         currencyInfo = self.safe_value(currencies, 0)
+        datetime = self.safe_string(data, 'updated_at')
         return {
             'info': data,
+            'symbol': market['symbol'],
             'type': None,
             'amount': None,
+            'total': None,
             'code': self.safe_string(currencyInfo, 'code'),
-            'symbol': market['symbol'],
             'status': None,
+            'timestamp': self.parse8601(datetime),
+            'datetime': datetime,
         }
 
-    async def reduce_margin(self, symbol: str, amount, params={}):
+    async def reduce_margin(self, symbol: str, amount, params={}) -> MarginModification:
         """
         remove margin from a position
         :see: https://api.hitbtc.com/#create-update-margin-account-2
@@ -3080,7 +3104,7 @@ class hitbtc(Exchange, ImplicitAPI):
             raise BadRequest(self.id + ' reduceMargin() on hitbtc requires the amount to be 0 and that will remove the entire margin amount')
         return await self.modify_margin_helper(symbol, amount, 'reduce', params)
 
-    async def add_margin(self, symbol: str, amount, params={}):
+    async def add_margin(self, symbol: str, amount, params={}) -> MarginModification:
         """
         add margin
         :see: https://api.hitbtc.com/#create-update-margin-account-2

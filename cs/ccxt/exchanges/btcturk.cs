@@ -610,6 +610,7 @@ public partial class btcturk : Exchange
         }
         if (isTrue(!isEqual(limit, null)))
         {
+            limit = mathMin(limit, 11000); // max 11000 candles diapason can be covered
             if (isTrue(isEqual(timeframe, "1y")))
             {
                 throw new BadRequest ((string)add(this.id, " fetchOHLCV () does not accept a limit parameter when timeframe == \"1y\"")) ;
@@ -622,7 +623,7 @@ public partial class btcturk : Exchange
                 ((IDictionary<string,object>)request)["to"] = mathMin(getValue(request, "to"), to);
             } else
             {
-                ((IDictionary<string,object>)request)["from"] = subtract(this.parseToInt(divide(until, 1000)), limitSeconds);
+                ((IDictionary<string,object>)request)["from"] = subtract(this.parseToInt(divide(0, 1000)), limitSeconds);
             }
         }
         object response = await this.graphGetKlinesHistory(this.extend(request, parameters));

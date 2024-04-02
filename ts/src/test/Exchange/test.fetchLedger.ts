@@ -3,7 +3,7 @@ import { Exchange } from "../../../ccxt";
 import testLedgerEntry from './base/test.ledgerEntry.js';
 import testSharedMethods from './base/test.sharedMethods.js';
 
-async function testFetchLedger (exchange: Exchange, skippedProperties: string[], code: string) {
+async function testFetchLedger (exchange: Exchange, skippedProperties: object, code: string) {
     const method = 'fetchLedger';
     const items = await exchange.fetchLedger (code);
     testSharedMethods.assertNonEmtpyArray (exchange, skippedProperties, method, items, code);

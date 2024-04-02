@@ -923,6 +923,8 @@ class bitvavo(Exchange, ImplicitAPI):
             request['start'] = since
             if limit is None:
                 limit = 1440
+            else:
+                limit = min(limit, 1440)
             request['end'] = self.sum(since, limit * duration * 1000)
         request, params = self.handle_until_option('end', request, params)
         if limit is not None:

@@ -746,6 +746,8 @@ class bitopro extends Exchange {
         // we need to have a $limit argument because "to" and "from" are required
         if ($limit === null) {
             $limit = 500;
+        } else {
+            $limit = min ($limit, 75000); // supports slightly more than 75k candles atm, but $limit here to avoid errors
         }
         $timeframeInSeconds = $this->parse_timeframe($timeframe);
         $alignedSince = null;

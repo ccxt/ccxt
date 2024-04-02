@@ -817,7 +817,7 @@ class oceanex extends Exchange {
                 $request['timestamp'] = $since;
             }
             if ($limit !== null) {
-                $request['limit'] = $limit;
+                $request['limit'] = min ($limit, 10000);
             }
             $response = Async\await($this->publicPostK (array_merge($request, $params)));
             $ohlcvs = $this->safe_list($response, 'data', array());

@@ -1011,6 +1011,8 @@ class lbank extends Exchange {
             $market = $this->market($symbol);
             if ($limit === null) {
                 $limit = 100;
+            } else {
+                $limit = min ($limit, 2000);
             }
             if ($since === null) {
                 $duration = $this->parse_timeframe($timeframe);

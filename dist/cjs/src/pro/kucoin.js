@@ -570,17 +570,22 @@ class kucoin extends kucoin$1 {
         const marketId = this.safeString(data, 'symbol', topicSymbol);
         const symbol = this.safeSymbol(marketId, undefined, '-');
         const messageHash = 'orderbook:' + symbol;
-        let orderbook = this.safeDict(this.orderbooks, symbol);
+        // let orderbook = this.safeDict (this.orderbooks, symbol);
         if (subject === 'level2') {
-            if (orderbook === undefined) {
-                orderbook = this.orderBook();
+            if (!(symbol in this.orderbooks)) {
+                this.orderbooks[symbol] = this.orderBook();
             }
             else {
+                const orderbook = this.orderbooks[symbol];
                 orderbook.reset();
             }
-            orderbook['symbol'] = symbol;
+            this.orderbooks[symbol]['symbol'] = symbol;
         }
         else {
+            if (!(symbol in this.orderbooks)) {
+                this.orderbooks[symbol] = this.orderBook();
+            }
+            const orderbook = this.orderbooks[symbol];
             const nonce = this.safeInteger(orderbook, 'nonce');
             const deltaEnd = this.safeInteger2(data, 'sequenceEnd', 'timestamp');
             if (nonce === undefined) {
@@ -606,8 +611,8 @@ class kucoin extends kucoin$1 {
                 return;
             }
         }
-        this.handleDelta(orderbook, data);
-        client.resolve(orderbook, messageHash);
+        this.handleDelta(this.orderbooks[symbol], data);
+        client.resolve(this.orderbooks[symbol], messageHash);
     }
     getCacheIndex(orderbook, cache) {
         const firstDelta = this.safeValue(cache, 0);

@@ -5,13 +5,13 @@ import testSharedMethods from '../../../test/Exchange/base/test.sharedMethods.js
 import { ArgumentsRequired } from '../../../base/errors.js';
 import { Exchange, Tickers } from '../../../../ccxt.js';
 
-async function testWatchTickers (exchange: Exchange, skippedProperties: string[], symbol: string) {
+async function testWatchTickers (exchange: Exchange, skippedProperties: object, symbol: string) {
     const withoutSymbol = testWatchTickersHelper (exchange, skippedProperties, undefined);
     const withSymbol = testWatchTickersHelper (exchange, skippedProperties, [ symbol ]);
     await Promise.all ([ withSymbol, withoutSymbol ]);
 }
 
-async function testWatchTickersHelper (exchange: Exchange, skippedProperties: string[], argSymbols: string[], argParams = {}) {
+async function testWatchTickersHelper (exchange: Exchange, skippedProperties: object, argSymbols: string[], argParams = {}) {
     const method = 'watchTickers';
     let now = exchange.milliseconds ();
     const ends = now + 15000;

@@ -2,7 +2,7 @@ import { Exchange } from "../../../../ccxt";
 import { LastPrice } from "../../../base/types";
 import testSharedMethods from './test.sharedMethods.js';
 
-function testLastPrice (exchange: Exchange, skippedProperties: string[], method: string, entry: LastPrice, symbol: string) {
+function testLastPrice (exchange: Exchange, skippedProperties: object, method: string, entry: LastPrice, symbol: string) {
     const format = {
         'info': {},
         'symbol': 'ETH/BTC',
