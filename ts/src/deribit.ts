@@ -404,7 +404,7 @@ export default class deribit extends Exchange {
                     'method': 'privateGetSubmitTransferToSubaccount', // or 'privateGetSubmitTransferToUser'
                 },
                 'fetchTickers': {
-                    'all': true,
+                    'all': false, // fetches all tickers for all base-currencies (BTC, ETH, USD, EUR, ...), otherwise you have to provide specific 'currency' in params
                 },
             },
         });
@@ -1241,12 +1241,20 @@ export default class deribit extends Exchange {
             }
             return result;
         } else {
-            return await this.fetchTickersByCode (symbols, params);
+            const baseCoin = this.handleParamString (params, 'baseCoin');
+            if (baseCoin === undefined) {
+                throw new ArgumentsRequired (this.id + ' fetchTickers() requires a params["baseCoin"] to be set, one from ' + this.json (Object.keys (this.currencies)));
+            }
+            const request = {
+                'currency': baseCoin,
+            };
+            return await this.fetchTickersByCode (symbols, this.extend (request, params));
         }
     }
 
     async fetchTickersByCode (symbols: Strings = undefined, params = {}): Promise<Tickers> {
-        const code = this.codeFromOptions ('fetchTickers', params);
+        let code = undefined;
+        [ code, params ] = this.handleParamString (params, 'currency');
         const currency = this.currency (code);
         const request = {
             'currency': currency['id'],
