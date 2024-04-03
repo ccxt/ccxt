@@ -12411,6 +12411,7 @@ export default class binance extends Exchange {
         //        ...
         //    ]
         //
-        return this.parseMarginModifications (response);
+        const modifications = this.parseMarginModifications (response);
+        return this.filterBySymbolSinceLimit (modifications, symbol, since, limit);
     }
 }

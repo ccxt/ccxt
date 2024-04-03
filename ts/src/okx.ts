@@ -7757,6 +7757,7 @@ export default class okx extends Exchange {
         //    }
         //
         const data = this.safeList (response, 'data');
-        return this.parseMarginModifications (data);
+        const modifications = this.parseMarginModifications (data);
+        return this.filterBySymbolSinceLimit (modifications, symbol, since, limit);
     }
 }
