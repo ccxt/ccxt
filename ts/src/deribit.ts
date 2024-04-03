@@ -1221,22 +1221,22 @@ export default class deribit extends Exchange {
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
-        let baseCoins = [];
+        let selectedCodes = [];
         let fetchAll = undefined;
         [ fetchAll, params ] = this.handleOptionAndParams (params, 'fetchTickers', 'allBaseCoins', false);
         if (fetchAll) {
-            baseCoins = Object.keys (this.currencies);
+            selectedCodes = Object.keys (this.currencies);
         } else {
-            let baseCoin = undefined;
-            [ baseCoin, params ] = this.handleParamString2 (params, 'baseCoin', 'currency'); // "baseCoin" is unified key, "curency" is exchange-specific
-            if (baseCoin === undefined) {
-                throw new ArgumentsRequired (this.id + ' fetchTickers() set or params["baseCoin"] to any from: ' + this.json (Object.keys (this.currencies)) + ' or set params["allBaseCoins"] = true');
+            let coin = undefined;
+            [ coin, params ] = this.handleParamString2 (params, 'selectedCoin', 'currency'); // "selectedCoin" can be an unified key, "curency" is exchange-specific
+            if (coin === undefined) {
+                throw new ArgumentsRequired (this.id + ' fetchTickers() set or params["selectedCoin"] to any from: ' + this.json (Object.keys (this.currencies)) + ' or set params["allBaseCoins"] = true');
             }
-            baseCoins.push (baseCoin);
+            selectedCodes.push (coin);
         }
         const promises = [];
-        for (let i = 0; i < baseCoins.length; i++) {
-            const coin = baseCoins[i];
+        for (let i = 0; i < selectedCodes.length; i++) {
+            const coin = selectedCodes[i];
             promises.push (this.fetchTickersByCode (symbols, this.extend ({ 'currency': coin }, params)));
         }
         const responses = await Promise.all (promises);
