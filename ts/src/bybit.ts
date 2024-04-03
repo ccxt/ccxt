@@ -2086,7 +2086,7 @@ export default class bybit extends Exchange {
             request['category'] = 'option';
             // throw meaningful error here, because exchange returns unreadable error if baseCoin not present
             const baseCoins = this.safeList (this.options, 'baseCoinsForOptions', [ 'BTC', 'ETH', 'SOL' ]);
-            if ('baseCoin' in params) {
+            if (!('baseCoin' in params)) {
                 throw new ArgumentsRequired (this.id + ' fetchTickers() requires a params["baseCoin"]  for options markets, one from ' + this.json (baseCoins));
             }
         }
