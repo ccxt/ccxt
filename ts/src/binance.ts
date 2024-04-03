@@ -12352,7 +12352,7 @@ export default class binance extends Exchange {
         };
     }
 
-    async fetchMarginAdjustmentHistory (symbol: Str = undefined, type: Str = undefined, since: Num = undefined, limit: Num = undefined, params = {}): Promise<object[]> {
+    async fetchMarginAdjustmentHistory (symbol: Str = undefined, type: Str = undefined, since: Num = undefined, limit: Num = undefined, params = {}): Promise<MarginModification[]> {
         /**
          * @method
          * @description fetches the history of margin added or reduced from contract isolated positions
