@@ -924,12 +924,12 @@
                     }
                 },
                 "parsedResponse": {
-                  "info": {
-                    "code": "200000",
-                    "data": {
-                        "totalAssetOfQuoteCurrency": "5",
-                        "totalLiabilityOfQuoteCurrency": "0",
-                        "timestamp": 1712086569939,
+                    "info": {
+                        "code": "200000",
+                        "data": {
+                            "totalAssetOfQuoteCurrency": "5",
+                            "totalLiabilityOfQuoteCurrency": "0",
+                            "timestamp": 1712086569939,
                             "assets": [
                                 {
                                     "symbol": "LTC-USDT",
@@ -960,15 +960,17 @@
                                 }
                             ]
                         }
+                    },
+                    "timestamp": null,
+                    "datetime": null,
+                    "LTC/USDT": {
+                        "LTC":{"free":0,"used":0,"total":0,"debt":0},
+                        "USDT":{"free":5,"used":0,"total":5,"debt":0},
+                        "free":{"LTC":0,"USDT":5},
+                        "used":{"LTC":0,"USDT":0},
+                        "total":{"LTC":0,"USDT":5},
+                        "debt":{"LTC":0,"USDT":0}
                     }
-                },
-                "LTC/USDT": {
-                    "LTC": { "free": 0, "used": 0, "total": 0, "debt": 0 },
-                    "USDT": { "free": 5, "used": 0, "total": 5, "debt": 0 },
-                    "free": { "LTC": 0, "USDT": 5 },
-                    "used": { "LTC": 0, "USDT": 0 },
-                    "total": { "LTC": 0, "USDT": 5 },
-                    "debt": { "LTC": 0, "USDT": 0 }
                 }
             }
         ],
