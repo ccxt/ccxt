@@ -403,6 +403,9 @@ export default class deribit extends Exchange {
                 'transfer': {
                     'method': 'privateGetSubmitTransferToSubaccount', // or 'privateGetSubmitTransferToUser'
                 },
+                'fetchTickers': {
+                    'allBaseCoins': false, // fetches all tickers for all base-currencies (BTC, ETH, USD, EUR, ...), otherwise you have to provide specific 'currency' in params
+                },
             },
         });
     }
@@ -1218,7 +1221,35 @@ export default class deribit extends Exchange {
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
-        const code = this.codeFromOptions ('fetchTickers', params);
+        let selectedCodes = [];
+        let fetchAll = undefined;
+        [ fetchAll, params ] = this.handleOptionAndParams (params, 'fetchTickers', 'allBaseCoins', false);
+        if (fetchAll) {
+            selectedCodes = Object.keys (this.currencies);
+        } else {
+            let coin = undefined;
+            [ coin, params ] = this.handleParamString2 (params, 'selectedCoin', 'currency'); // "selectedCoin" can be an unified key, "curency" is exchange-specific
+            if (coin === undefined) {
+                throw new ArgumentsRequired (this.id + ' fetchTickers() set or params["selectedCoin"] to any from: ' + this.json (Object.keys (this.currencies)) + ' or set params["allBaseCoins"] = true');
+            }
+            selectedCodes.push (coin);
+        }
+        const promises = [];
+        for (let i = 0; i < selectedCodes.length; i++) {
+            const coin = selectedCodes[i];
+            promises.push (this.fetchTickersByCode (symbols, this.extend ({ 'currency': coin }, params)));
+        }
+        const responses = await Promise.all (promises);
+        let result = {};
+        for (let i = 0; i < responses.length; i++) {
+            result = this.extend (result, responses[i]);
+        }
+        return result;
+    }
+
+    async fetchTickersByCode (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        let code = undefined;
+        [ code, params ] = this.handleParamString (params, 'currency');
         const currency = this.currency (code);
         const request = {
             'currency': currency['id'],
