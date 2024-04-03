@@ -1655,7 +1655,7 @@ export default class gemini extends Exchange {
 
     nonce () {
         // previously here was option to choose between milliseconds vs seconds, however, api server proves that it accepts only seconds
-        return this.seconds ();
+        return (this.milliseconds () / 1000);
     }
 
     async fetchDepositsWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
@@ -1823,7 +1823,7 @@ export default class gemini extends Exchange {
             if (apiKey.indexOf ('account') < 0) {
                 throw new AuthenticationError (this.id + ' sign() requires an account-key, master-keys are not-supported');
             }
-            const nonce = this.nonce ();
+            const nonce = this.nonce ().toString ();
             const request = this.extend ({
                 'request': url,
                 'nonce': nonce,
