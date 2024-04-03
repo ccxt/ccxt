@@ -1862,7 +1862,7 @@ export default class binance extends Exchange {
                         '-4140': BadRequest, // Invalid symbol status for opening position
                         '-4141': OperationRejected, // Symbol is closed
                         '-4144': BadSymbol, // Invalid pair
-                        '-4164': OperationRejected, // Leverage reduction is not supported in Isolated Margin Mode with open positions
+                        '-4164': InvalidOrder, // {"code":-4164,"msg":"Order's notional must be no smaller than 20 (unless you choose reduce only)."}
                         '-4165': BadRequest, // Invalid time interval
                         '-4167': BadRequest, // Unable to adjust to Multi-Assets mode with symbols of USDⓈ-M Futures under isolated-margin mode.
                         '-4168': BadRequest, // Unable to adjust to isolated-margin mode under the Multi-Assets mode.
@@ -11009,7 +11009,7 @@ export default class binance extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        amount = this.costToPrecision (symbol, amount);
+        amount = this.amountToPrecision (symbol, amount);
         const request = {
             'type': addOrReduce,
             'symbol': market['id'],

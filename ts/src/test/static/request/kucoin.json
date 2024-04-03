@@ -269,6 +269,26 @@
                         "hf": true
                     }
                 ]
+            },
+            {
+                "description": "Fetch the cross margin balance",
+                "method": "fetchBalance",
+                "url": "https://api.kucoin.com/api/v1/margin/account",
+                "input": [
+                  {
+                    "type": "cross"
+                  }
+                ]
+            },
+            {
+                "description": "Fetch the isolated margin balance",
+                "method": "fetchBalance",
+                "url": "https://api.kucoin.com/api/v3/isolated/accounts",
+                "input": [
+                  {
+                    "marginMode": "isolated"
+                  }
+                ]
             }
         ],
         "fetchDeposits": [

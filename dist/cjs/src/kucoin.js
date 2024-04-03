@@ -3537,9 +3537,9 @@ class kucoin extends kucoin$1 {
          * @method
          * @name kucoin#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @see https://docs.kucoin.com/#list-accounts
          * @see https://www.kucoin.com/docs/rest/account/basic-info/get-account-list-spot-margin-trade_hf
-         * @see https://docs.kucoin.com/#query-isolated-margin-account-info
+         * @see https://www.kucoin.com/docs/rest/funding/funding-overview/get-account-detail-margin
+         * @see https://www.kucoin.com/docs/rest/funding/funding-overview/get-account-detail-isolated-margin
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {object} [params.marginMode] 'cross' or 'isolated', margin type for fetching margin balance
          * @param {object} [params.type] extra parameters specific to the exchange API endpoint
@@ -3566,7 +3566,7 @@ class kucoin extends kucoin$1 {
         let response = undefined;
         const request = {};
         const isolated = (marginMode === 'isolated') || (type === 'isolated');
-        const cross = (marginMode === 'cross') || (type === 'cross');
+        const cross = (marginMode === 'cross') || (type === 'margin');
         if (isolated) {
             if (currency !== undefined) {
                 request['balanceCurrency'] = currency['id'];
@@ -3636,13 +3636,14 @@ class kucoin extends kucoin$1 {
         //        }
         //    }
         //
-        const data = this.safeList(response, 'data', []);
+        let data = undefined;
         const result = {
             'info': response,
             'timestamp': undefined,
             'datetime': undefined,
         };
         if (isolated) {
+            data = this.safeDict(response, 'data', {});
             const assets = this.safeValue(data, 'assets', data);
             for (let i = 0; i < assets.length; i++) {
                 const entry = assets[i];
@@ -3659,6 +3660,7 @@ class kucoin extends kucoin$1 {
             }
         }
         else if (cross) {
+            data = this.safeDict(response, 'data', {});
             const accounts = this.safeList(data, 'accounts', []);
             for (let i = 0; i < accounts.length; i++) {
                 const balance = accounts[i];
@@ -3668,6 +3670,7 @@ class kucoin extends kucoin$1 {
             }
         }
         else {
+            data = this.safeList(response, 'data', []);
             for (let i = 0; i < data.length; i++) {
                 const balance = data[i];
                 const balanceType = this.safeString(balance, 'type');
