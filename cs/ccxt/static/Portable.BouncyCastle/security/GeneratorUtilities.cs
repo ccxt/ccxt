@@ -352,36 +352,9 @@ namespace Org.BouncyCastle.Security
             if (canonicalName == null)
                 throw new SecurityUtilityException("KeyPairGenerator " + algorithm + " not recognised.");
 
-            if (canonicalName == "DH")
-                return new DHKeyPairGenerator();
-
-            if (canonicalName == "DSA")
-                return new DsaKeyPairGenerator();
-
             // "EC", "ECDH", "ECDHC", "ECDSA", "ECGOST3410", "ECMQV"
             if (Platform.StartsWith(canonicalName, "EC"))
                 return new ECKeyPairGenerator(canonicalName);
-
-            if (canonicalName == "Ed25519")
-                return new Ed25519KeyPairGenerator();
-
-            if (canonicalName == "Ed448")
-                return new Ed448KeyPairGenerator();
-
-            if (canonicalName == "ELGAMAL")
-                return new ElGamalKeyPairGenerator();
-
-            if (canonicalName == "GOST3410")
-                return new Gost3410KeyPairGenerator();
-
-            if (canonicalName == "RSA" || canonicalName == "RSASSA-PSS")
-                return new RsaKeyPairGenerator();
-
-            if (canonicalName == "X25519")
-                return new X25519KeyPairGenerator();
-
-            if (canonicalName == "X448")
-                return new X448KeyPairGenerator();
 
             throw new SecurityUtilityException("KeyPairGenerator " + algorithm
                 + " (" + canonicalName + ") not supported.");
