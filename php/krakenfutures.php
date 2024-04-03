@@ -346,7 +346,8 @@ class krakenfutures extends Exchange {
             // $swap == perpetual
             $settle = null;
             $settleId = null;
-            $amountPrecision = $this->parse_number($this->parse_precision($this->safe_string($market, 'contractValueTradePrecision', '0')));
+            $cvtp = $this->safe_string($market, 'contractValueTradePrecision');
+            $amountPrecision = $this->parse_number($this->integer_precision_to_amount($cvtp));
             $pricePrecision = $this->safe_number($market, 'tickSize');
             $contract = ($swap || $future || $index);
             $swapOrFutures = ($swap || $future);

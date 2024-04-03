@@ -289,7 +289,8 @@ public partial class krakenfutures : Exchange
             // swap == perpetual
             object settle = null;
             object settleId = null;
-            object amountPrecision = this.parseNumber(this.parsePrecision(this.safeString(market, "contractValueTradePrecision", "0")));
+            object cvtp = this.safeString(market, "contractValueTradePrecision");
+            object amountPrecision = this.parseNumber(this.integerPrecisionToAmount(cvtp));
             object pricePrecision = this.safeNumber(market, "tickSize");
             object contract = (isTrue(isTrue(swap) || isTrue(future)) || isTrue(index));
             object swapOrFutures = (isTrue(swap) || isTrue(future));
