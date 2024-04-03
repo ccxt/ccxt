@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 
 using Org.BouncyCastle.Asn1;
-using Org.BouncyCastle.Asn1.Iana;
+// using Org.BouncyCastle.Asn1.Iana;
 using Org.BouncyCastle.Asn1.Misc;
 using Org.BouncyCastle.Asn1.Nist;
 using Org.BouncyCastle.Asn1.Pkcs;
@@ -26,10 +26,10 @@ namespace Org.BouncyCastle.Security
 
         static MacUtilities()
         {
-            Algorithms[IanaObjectIdentifiers.HmacMD5.Id] = "HMAC-MD5";
-            Algorithms[IanaObjectIdentifiers.HmacRipeMD160.Id] = "HMAC-RIPEMD160";
-            Algorithms[IanaObjectIdentifiers.HmacSha1.Id] = "HMAC-SHA1";
-            Algorithms[IanaObjectIdentifiers.HmacTiger.Id] = "HMAC-TIGER";
+            // Algorithms[IanaObjectIdentifiers.HmacMD5.Id] = "HMAC-MD5";
+            // Algorithms[IanaObjectIdentifiers.HmacRipeMD160.Id] = "HMAC-RIPEMD160";
+            // Algorithms[IanaObjectIdentifiers.HmacSha1.Id] = "HMAC-SHA1";
+            // Algorithms[IanaObjectIdentifiers.HmacTiger.Id] = "HMAC-TIGER";
 
             Algorithms[PkcsObjectIdentifiers.IdHmacWithSha1.Id] = "HMAC-SHA1";
             Algorithms[MiscObjectIdentifiers.HMAC_SHA1.Id] = "HMAC-SHA1";

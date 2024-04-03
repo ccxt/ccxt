@@ -7,7 +7,7 @@ using Org.BouncyCastle.Asn1.GM;
 using Org.BouncyCastle.Asn1.Misc;
 using Org.BouncyCastle.Asn1.Nist;
 using Org.BouncyCastle.Asn1.Pkcs;
-using Org.BouncyCastle.Asn1.Oiw;
+// using Org.BouncyCastle.Asn1.Oiw;
 using Org.BouncyCastle.Asn1.Rosstandart;
 using Org.BouncyCastle.Asn1.TeleTrust;
 using Org.BouncyCastle.Asn1.UA;
@@ -58,7 +58,7 @@ namespace Org.BouncyCastle.Security
             Aliases[PkcsObjectIdentifiers.MD5.Id] = "MD5";
 
             Aliases["SHA1"] = "SHA-1";
-            Aliases[OiwObjectIdentifiers.IdSha1.Id] = "SHA-1";
+            // Aliases[OiwObjectIdentifiers.IdSha1.Id] = "SHA-1";
             Aliases[PkcsObjectIdentifiers.IdHmacWithSha1.Id] = "SHA-1";
             Aliases[MiscObjectIdentifiers.HMAC_SHA1.Id] = "SHA-1";
             Aliases["SHA224"] = "SHA-224";
@@ -134,7 +134,7 @@ namespace Org.BouncyCastle.Security
             Oids["MD2"] = PkcsObjectIdentifiers.MD2;
             Oids["MD4"] = PkcsObjectIdentifiers.MD4;
             Oids["MD5"] = PkcsObjectIdentifiers.MD5;
-            Oids["SHA-1"] = OiwObjectIdentifiers.IdSha1;
+            // Oids["SHA-1"] = OiwObjectIdentifiers.IdSha1;
             Oids["SHA-224"] = NistObjectIdentifiers.IdSha224;
             Oids["SHA-256"] = NistObjectIdentifiers.IdSha256;
             Oids["SHA-384"] = NistObjectIdentifiers.IdSha384;

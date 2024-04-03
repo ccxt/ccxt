@@ -2,8 +2,8 @@ using System;
 
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.CryptoPro;
-using Org.BouncyCastle.Asn1.EdEC;
-using Org.BouncyCastle.Asn1.Oiw;
+// using Org.BouncyCastle.Asn1.EdEC;
+// using Org.BouncyCastle.Asn1.Oiw;
 using Org.BouncyCastle.Asn1.Pkcs;
 using Org.BouncyCastle.Asn1.Rosstandart;
 using Org.BouncyCastle.Asn1.Sec;
@@ -16,7 +16,7 @@ using Org.BouncyCastle.Math;
 // using Org.BouncyCastle.Pqc.Asn1;
 // using Org.BouncyCastle.Pqc.Crypto.Cmce;
 // using Org.BouncyCastle.Pqc.Crypto.Utilities;
-using Org.BouncyCastle.Security;
+// using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Pkcs

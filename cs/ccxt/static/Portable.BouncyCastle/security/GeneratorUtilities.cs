@@ -4,12 +4,12 @@ using System.Collections.Generic;
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.CryptoPro;
 using Org.BouncyCastle.Asn1.EdEC;
-using Org.BouncyCastle.Asn1.Iana;
-using Org.BouncyCastle.Asn1.Kisa;
+// using Org.BouncyCastle.Asn1.Iana;
+// using Org.BouncyCastle.Asn1.Kisa;
 using Org.BouncyCastle.Asn1.Nist;
-using Org.BouncyCastle.Asn1.Nsri;
-using Org.BouncyCastle.Asn1.Ntt;
-using Org.BouncyCastle.Asn1.Oiw;
+// using Org.BouncyCastle.Asn1.Nsri;
+// using Org.BouncyCastle.Asn1.Ntt;
+// using Org.BouncyCastle.Asn1.Oiw;
 using Org.BouncyCastle.Asn1.Pkcs;
 using Org.BouncyCastle.Asn1.Rosstandart;
 using Org.BouncyCastle.Asn1.X9;
@@ -68,42 +68,42 @@ namespace Org.BouncyCastle.Security
             AddKgAlgorithm("CAMELLIA",
                 "CAMELLIAWRAP");
             AddKgAlgorithm("ARIA");
-            AddKgAlgorithm("ARIA128",
-                NsriObjectIdentifiers.id_aria128_cbc,
-                NsriObjectIdentifiers.id_aria128_ccm,
-                NsriObjectIdentifiers.id_aria128_cfb,
-                NsriObjectIdentifiers.id_aria128_ctr,
-                NsriObjectIdentifiers.id_aria128_ecb,
-                NsriObjectIdentifiers.id_aria128_gcm,
-                NsriObjectIdentifiers.id_aria128_ocb2,
-                NsriObjectIdentifiers.id_aria128_ofb);
-            AddKgAlgorithm("ARIA192",
-                NsriObjectIdentifiers.id_aria192_cbc,
-                NsriObjectIdentifiers.id_aria192_ccm,
-                NsriObjectIdentifiers.id_aria192_cfb,
-                NsriObjectIdentifiers.id_aria192_ctr,
-                NsriObjectIdentifiers.id_aria192_ecb,
-                NsriObjectIdentifiers.id_aria192_gcm,
-                NsriObjectIdentifiers.id_aria192_ocb2,
-                NsriObjectIdentifiers.id_aria192_ofb);
-            AddKgAlgorithm("ARIA256",
-                NsriObjectIdentifiers.id_aria256_cbc,
-                NsriObjectIdentifiers.id_aria256_ccm,
-                NsriObjectIdentifiers.id_aria256_cfb,
-                NsriObjectIdentifiers.id_aria256_ctr,
-                NsriObjectIdentifiers.id_aria256_ecb,
-                NsriObjectIdentifiers.id_aria256_gcm,
-                NsriObjectIdentifiers.id_aria256_ocb2,
-                NsriObjectIdentifiers.id_aria256_ofb);
-            AddKgAlgorithm("CAMELLIA128",
-                NttObjectIdentifiers.IdCamellia128Cbc,
-                NttObjectIdentifiers.IdCamellia128Wrap);
-            AddKgAlgorithm("CAMELLIA192",
-                NttObjectIdentifiers.IdCamellia192Cbc,
-                NttObjectIdentifiers.IdCamellia192Wrap);
-            AddKgAlgorithm("CAMELLIA256",
-                NttObjectIdentifiers.IdCamellia256Cbc,
-                NttObjectIdentifiers.IdCamellia256Wrap);
+            // AddKgAlgorithm("ARIA128",
+            //     NsriObjectIdentifiers.id_aria128_cbc,
+            //     NsriObjectIdentifiers.id_aria128_ccm,
+            //     NsriObjectIdentifiers.id_aria128_cfb,
+            //     NsriObjectIdentifiers.id_aria128_ctr,
+            //     NsriObjectIdentifiers.id_aria128_ecb,
+            //     NsriObjectIdentifiers.id_aria128_gcm,
+            //     NsriObjectIdentifiers.id_aria128_ocb2,
+            //     NsriObjectIdentifiers.id_aria128_ofb);
+            // AddKgAlgorithm("ARIA192",
+            //     NsriObjectIdentifiers.id_aria192_cbc,
+            //     NsriObjectIdentifiers.id_aria192_ccm,
+            //     NsriObjectIdentifiers.id_aria192_cfb,
+            //     NsriObjectIdentifiers.id_aria192_ctr,
+            //     NsriObjectIdentifiers.id_aria192_ecb,
+            //     NsriObjectIdentifiers.id_aria192_gcm,
+            //     NsriObjectIdentifiers.id_aria192_ocb2,
+            //     NsriObjectIdentifiers.id_aria192_ofb);
+            // AddKgAlgorithm("ARIA256",
+            //     NsriObjectIdentifiers.id_aria256_cbc,
+            //     NsriObjectIdentifiers.id_aria256_ccm,
+            //     NsriObjectIdentifiers.id_aria256_cfb,
+            //     NsriObjectIdentifiers.id_aria256_ctr,
+            //     NsriObjectIdentifiers.id_aria256_ecb,
+            //     NsriObjectIdentifiers.id_aria256_gcm,
+            //     NsriObjectIdentifiers.id_aria256_ocb2,
+            //     NsriObjectIdentifiers.id_aria256_ofb);
+            // AddKgAlgorithm("CAMELLIA128",
+            //     NttObjectIdentifiers.IdCamellia128Cbc,
+            //     NttObjectIdentifiers.IdCamellia128Wrap);
+            // AddKgAlgorithm("CAMELLIA192",
+            //     NttObjectIdentifiers.IdCamellia192Cbc,
+            //     NttObjectIdentifiers.IdCamellia192Wrap);
+            // AddKgAlgorithm("CAMELLIA256",
+            //     NttObjectIdentifiers.IdCamellia256Cbc,
+            //     NttObjectIdentifiers.IdCamellia256Wrap);
             AddKgAlgorithm("CAST5",
                 "1.2.840.113533.7.66.10");
             AddKgAlgorithm("CAST6");
@@ -112,23 +112,23 @@ namespace Org.BouncyCastle.Security
                 "CHACHA20",
                 "CHACHA20-POLY1305",
                 PkcsObjectIdentifiers.IdAlgAeadChaCha20Poly1305);
-            AddKgAlgorithm("DES",
-                OiwObjectIdentifiers.DesCbc,
-                OiwObjectIdentifiers.DesCfb,
-                OiwObjectIdentifiers.DesEcb,
-                OiwObjectIdentifiers.DesOfb);
-            AddKgAlgorithm("DESEDE",
-                "DESEDEWRAP",
-                "TDEA",
-                OiwObjectIdentifiers.DesEde);
-            AddKgAlgorithm("DESEDE3",
-                PkcsObjectIdentifiers.DesEde3Cbc,
-                PkcsObjectIdentifiers.IdAlgCms3DesWrap);
-            AddKgAlgorithm("GOST28147",
-                "GOST",
-                "GOST-28147",
-                CryptoProObjectIdentifiers.GostR28147Cbc);
-            AddKgAlgorithm("HC128");
+            // AddKgAlgorithm("DES",
+            //     OiwObjectIdentifiers.DesCbc,
+            //     OiwObjectIdentifiers.DesCfb,
+            //     OiwObjectIdentifiers.DesEcb,
+            //     OiwObjectIdentifiers.DesOfb);
+            // AddKgAlgorithm("DESEDE",
+            //     "DESEDEWRAP",
+            //     "TDEA",
+            // OiwObjectIdentifiers.DesEde);
+            // AddKgAlgorithm("DESEDE3",
+            //     PkcsObjectIdentifiers.DesEde3Cbc,
+            //     PkcsObjectIdentifiers.IdAlgCms3DesWrap);
+            // AddKgAlgorithm("GOST28147",
+            //     "GOST",
+            //     "GOST-28147",
+            //     CryptoProObjectIdentifiers.GostR28147Cbc);
+            // AddKgAlgorithm("HC128");
             AddKgAlgorithm("HC256");
             AddKgAlgorithm("IDEA",
                 "1.3.6.1.4.1.188.7.1.1.2");
@@ -145,9 +145,9 @@ namespace Org.BouncyCastle.Security
             AddKgAlgorithm("RC6");
             AddKgAlgorithm("RIJNDAEL");
             AddKgAlgorithm("SALSA20");
-            AddKgAlgorithm("SEED",
-                KisaObjectIdentifiers.IdNpkiAppCmsSeedWrap,
-                KisaObjectIdentifiers.IdSeedCbc);
+            // AddKgAlgorithm("SEED",
+            //     KisaObjectIdentifiers.IdNpkiAppCmsSeedWrap,
+            //     KisaObjectIdentifiers.IdSeedCbc);
             AddKgAlgorithm("SERPENT");
             AddKgAlgorithm("SKIPJACK");
             AddKgAlgorithm("SM4");
@@ -166,11 +166,11 @@ namespace Org.BouncyCastle.Security
             //
             AddHMacKeyGenerator("MD2");
             AddHMacKeyGenerator("MD4");
-            AddHMacKeyGenerator("MD5",
-                IanaObjectIdentifiers.HmacMD5);
-            AddHMacKeyGenerator("SHA1",
-                PkcsObjectIdentifiers.IdHmacWithSha1,
-                IanaObjectIdentifiers.HmacSha1);
+            // AddHMacKeyGenerator("MD5",
+            //     IanaObjectIdentifiers.HmacMD5);
+            // AddHMacKeyGenerator("SHA1",
+            //     PkcsObjectIdentifiers.IdHmacWithSha1,
+            //     IanaObjectIdentifiers.HmacSha1);
             AddHMacKeyGenerator("SHA224",
                 PkcsObjectIdentifiers.IdHmacWithSha224);
             AddHMacKeyGenerator("SHA256",
@@ -195,10 +195,10 @@ namespace Org.BouncyCastle.Security
             AddHMacKeyGenerator("SHA3-512",
                 NistObjectIdentifiers.IdHMacWithSha3_512);
             AddHMacKeyGenerator("RIPEMD128");
-            AddHMacKeyGenerator("RIPEMD160",
-                IanaObjectIdentifiers.HmacRipeMD160);
-            AddHMacKeyGenerator("TIGER",
-                IanaObjectIdentifiers.HmacTiger);
+            // AddHMacKeyGenerator("RIPEMD160",
+            //     IanaObjectIdentifiers.HmacRipeMD160);
+            // AddHMacKeyGenerator("TIGER",
+            //     IanaObjectIdentifiers.HmacTiger);
             AddHMacKeyGenerator("GOST3411-2012-256",
                 RosstandartObjectIdentifiers.id_tc26_hmac_gost_3411_12_256);
             AddHMacKeyGenerator("GOST3411-2012-512",
