@@ -2071,8 +2071,7 @@ export default class bybit extends Exchange {
         };
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
-        // `.fetchTickers (undefined, {subType:'inverse'})` or `.fetchTickers (undefined, {subType:'inverse'})`
-        // should be supported for this exchange, so
+        // .fetchTickers (undefined, `{subType:'inverse'}` or `{type:'option'}` should be supported for this exchange, so
         // as "options.defaultSubType" is also set in exchange options, we should consider `params.subType`
         // with higher priority and only default to spot, if `subType` is not set in params
         const subTypePresent = ('subType' in params);
