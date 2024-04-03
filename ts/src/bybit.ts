@@ -153,6 +153,13 @@ export default class bybit extends Exchange {
                     'public': 'https://api.{hostname}',
                     'private': 'https://api.{hostname}',
                 },
+                'demotrading': {
+                    'spot': 'https://api-demo.{hostname}',
+                    'futures': 'https://api-demo.{hostname}',
+                    'v2': 'https://api-demo.{hostname}',
+                    'public': 'https://api-demo.{hostname}',
+                    'private': 'https://api-demo.{hostname}',
+                },
                 'www': 'https://www.bybit.com',
                 'doc': [
                     'https://bybit-exchange.github.io/docs/inverse/',
@@ -502,6 +509,8 @@ export default class bybit extends Exchange {
                         'v5/lending/redeem-cancel': 5,
                         'v5/account/set-collateral-switch': 5,
                         'v5/account/set-collateral-switch-batch': 5,
+                        // demo trading
+                        'v5/account/demo-apply-money': 5,
                     },
                 },
             },
@@ -968,6 +977,8 @@ export default class bybit extends Exchange {
             },
             'precisionMode': TICK_SIZE,
             'options': {
+                'sandboxMode': false,
+                'enableDemoTrading': false,
                 'fetchMarkets': [ 'spot', 'linear', 'inverse', 'option' ],
                 'createOrder': {
                     'method': 'privatePostV5OrderCreate', // 'privatePostV5PositionTradingStop'
@@ -1050,6 +1061,27 @@ export default class bybit extends Exchange {
                 },
             },
         });
+    }
+
+    setSandboxMode (enable: boolean) {
+        super.setSandboxMode (enable);
+        this.options['sandboxMode'] = enable;
+    }
+
+    enableDemoTrading (enable: boolean) {
+        // enable demo trading in bybit, see: https://bybit-exchange.github.io/docs/v5/demo
+        if (this.options['sandboxMode']) {
+            throw new NotSupported (this.id + ' demo trading does not support in sandbox environment');
+        }
+        if (enable) {
+            this.urls['apiBackupDemoTrading'] = this.urls['api'];
+            this.urls['api'] = this.urls['demotrading'];
+        } else if ('apiBackupDemoTrading' in this.urls) {
+            this.urls['api'] = this.urls['apiBackupDemoTrading'] as any;
+            const newUrls = this.omit (this.urls, 'apiBackupDemoTrading');
+            this.urls = newUrls;
+        }
+        this.options['enableDemoTrading'] = enable;
     }
 
     nonce () {
