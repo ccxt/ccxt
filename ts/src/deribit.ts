@@ -1243,7 +1243,7 @@ export default class deribit extends Exchange {
         } else {
             const baseCoin = this.handleParamString (params, 'baseCoin');
             if (baseCoin === undefined) {
-                throw new ArgumentsRequired (this.id + ' fetchTickers() requires a params["baseCoin"] to be set, one from ' + this.json (Object.keys (this.currencies)));
+                throw new ArgumentsRequired (this.id + ' fetchTickers() set or params["baseCoin"] to any from: ' + this.json (Object.keys (this.currencies)) + ' or set .options["fetchTickers"]["all"] = true');
             }
             const request = {
                 'currency': baseCoin,
