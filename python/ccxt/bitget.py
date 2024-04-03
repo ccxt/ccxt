@@ -6044,6 +6044,8 @@ class bitget(Exchange, ImplicitAPI):
         feeToClose = Precise.string_mul(notional, calcTakerFeeRate)
         maintenanceMargin = Precise.string_add(Precise.string_mul(maintenanceMarginPercentage, notional), feeToClose)
         percentage = Precise.string_mul(Precise.string_div(unrealizedPnl, initialMargin, 4), '100')
+        is_long = side == 'long'
+        cornix_quantity = ((1 if is_long else -1) * self.parse_number(contracts, 0.))
         return self.safe_position({
             'info': position,
             'id': self.safe_string(position, 'orderId'),
@@ -6074,8 +6076,8 @@ class bitget(Exchange, ImplicitAPI):
             'stopLossPrice': None,
             'takeProfitPrice': None,
             # cornix fields
-            'quantity': self.parse_number(contracts) or 0.,
-            'is_long': None if side == 'BOTH' else side == 'long',
+            'quantity': cornix_quantity,
+            'is_long': is_long,
             'maintenance_margin': self.parse_number(maintenanceMargin),
             'liquidation_price': liquidationPrice or 0.,
             'margin_type': marginMode,
