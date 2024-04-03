@@ -1824,7 +1824,7 @@ class gate(Exchange, ImplicitAPI):
         await self.load_markets()
         currency = self.currency(code)
         request = {
-            'currency': currency['id'],
+            'currency': currency['id'],  # todo: currencies have network-junctions
         }
         response = await self.privateWalletGetDepositAddress(self.extend(request, params))
         addresses = self.safe_value(response, 'multichain_addresses')
@@ -1871,7 +1871,7 @@ class gate(Exchange, ImplicitAPI):
         rawNetwork = self.safe_string_upper(params, 'network')
         params = self.omit(params, 'network')
         request = {
-            'currency': currency['id'],
+            'currency': currency['id'],  # todo: currencies have network-junctions
         }
         response = await self.privateWalletGetDepositAddress(self.extend(request, params))
         #
@@ -3346,7 +3346,7 @@ class gate(Exchange, ImplicitAPI):
         currency = None
         if code is not None:
             currency = self.currency(code)
-            request['currency'] = currency['id']
+            request['currency'] = currency['id']  # todo: currencies have network-junctions
         if limit is not None:
             request['limit'] = limit
         if since is not None:
@@ -3378,7 +3378,7 @@ class gate(Exchange, ImplicitAPI):
         currency = None
         if code is not None:
             currency = self.currency(code)
-            request['currency'] = currency['id']
+            request['currency'] = currency['id']  # todo: currencies have network-junctions
         if limit is not None:
             request['limit'] = limit
         if since is not None:
@@ -3405,7 +3405,7 @@ class gate(Exchange, ImplicitAPI):
         await self.load_markets()
         currency = self.currency(code)
         request = {
-            'currency': currency['id'],
+            'currency': currency['id'],  # todo: currencies have network-junctions
             'address': address,
             'amount': self.currency_to_precision(code, amount),
         }
@@ -3418,7 +3418,7 @@ class gate(Exchange, ImplicitAPI):
             request['chain'] = network
             params = self.omit(params, 'network')
         else:
-            request['chain'] = currency['id']
+            request['chain'] = currency['id']  # todo: currencies have network-junctions
         response = await self.privateWithdrawalsPostWithdrawals(self.extend(request, params))
         #
         #    {
@@ -4762,7 +4762,7 @@ class gate(Exchange, ImplicitAPI):
         toId = self.convert_type_to_account(toAccount)
         truncated = self.currency_to_precision(code, amount)
         request = {
-            'currency': currency['id'],
+            'currency': currency['id'],  # todo: currencies have network-junctions
             'amount': truncated,
         }
         if not (fromId in self.options['accountsByType']):
@@ -4783,7 +4783,7 @@ class gate(Exchange, ImplicitAPI):
             request['currency_pair'] = market['id']
             params = self.omit(params, 'symbol')
         if (toId == 'futures') or (toId == 'delivery') or (fromId == 'futures') or (fromId == 'delivery'):
-            request['settle'] = currency['id']
+            request['settle'] = currency['id']  # todo: currencies have network-junctions
         response = await self.privateWalletPostTransfers(self.extend(request, params))
         #
         # according to the docs(however actual response seems to be an empty string '')
@@ -5396,7 +5396,7 @@ class gate(Exchange, ImplicitAPI):
         await self.load_markets()
         currency = self.currency(code)
         request = {
-            'currency': currency['id'].upper(),
+            'currency': currency['id'].upper(),  # todo: currencies have network-junctions
             'amount': self.currency_to_precision(code, amount),
         }
         market = self.market(symbol)
@@ -5423,7 +5423,7 @@ class gate(Exchange, ImplicitAPI):
         await self.load_markets()
         currency = self.currency(code)
         request = {
-            'currency': currency['id'].upper(),
+            'currency': currency['id'].upper(),  # todo: currencies have network-junctions
             'amount': self.currency_to_precision(code, amount),
         }
         response = await self.privateMarginPostCrossRepayments(self.extend(request, params))
@@ -5460,7 +5460,7 @@ class gate(Exchange, ImplicitAPI):
         await self.load_markets()
         currency = self.currency(code)
         request = {
-            'currency': currency['id'].upper(),
+            'currency': currency['id'].upper(),  # todo: currencies have network-junctions
             'amount': self.currency_to_precision(code, amount),
         }
         response = None
@@ -5503,7 +5503,7 @@ class gate(Exchange, ImplicitAPI):
         await self.load_markets()
         currency = self.currency(code)
         request = {
-            'currency': currency['id'].upper(),
+            'currency': currency['id'].upper(),  # todo: currencies have network-junctions
             'amount': self.currency_to_precision(code, amount),
         }
         response = await self.privateMarginPostCrossLoans(self.extend(request, params))
@@ -5996,7 +5996,7 @@ class gate(Exchange, ImplicitAPI):
         if (type == 'spot') or (type == 'margin'):
             if code is not None:
                 currency = self.currency(code)
-                request['currency'] = currency['id']
+                request['currency'] = currency['id']  # todo: currencies have network-junctions
         if (type == 'swap') or (type == 'future'):
             defaultSettle = 'usdt' if (type == 'swap') else 'btc'
             settle = self.safe_string_lower(params, 'settle', defaultSettle)
@@ -6754,7 +6754,7 @@ class gate(Exchange, ImplicitAPI):
         await self.load_markets()
         currency = self.currency(code)
         request = {
-            'underlying': currency['code'] + '_USDT',
+            'underlying': currency['code'] + '_USDT',  # todo: currency['id'].upper() &  network junctions
         }
         response = await self.publicOptionsGetContracts(self.extend(request, params))
         #

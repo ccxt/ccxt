@@ -65,6 +65,15 @@ class FeeInterface(TypedDict):
 Fee = Optional[FeeInterface]
 
 
+class TradingFeeInterface(TypedDict):
+    info: Dict[str, Any]
+    symbol: Str
+    maker: Num
+    taker: Num
+    percentage: Bool
+    tierBased: Bool
+
+
 class Balance(TypedDict):
     free: Num
     used: Num
@@ -361,10 +370,31 @@ class MarketInterface(TypedDict):
     created: Int
 
 
+class Limit(TypedDict):
+    min: Num
+    max: Num
+
+
+class CurrencyLimits(TypedDict):
+    amount: Limit
+    withdraw: Limit
+
+
 class CurrencyInterface(TypedDict):
     id: Str
     code: Str
+    numericId: Int
     precision: Num
+    type: Str
+    margin: Bool
+    name: Str
+    active: Bool
+    deposit: Bool
+    withdraw: Bool
+    fee: Num
+    limits: CurrencyLimits
+    networks: Dict[str, any]
+    info: any
 
 
 class LastPrice(TypedDict):
@@ -388,6 +418,8 @@ class MarginModification(TypedDict):
 
 
 LastPrices = Dict[Str, LastPrice]
+Currencies = Dict[Str, CurrencyInterface]
+TradingFees = Dict[Str, TradingFeeInterface]
 
 Market = Optional[MarketInterface]
 Currency = Optional[CurrencyInterface]

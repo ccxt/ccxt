@@ -4228,7 +4228,7 @@ class mexc(Exchange, ImplicitAPI):
                 key = self.safe_string(keys, 0)
                 result = self.safe_dict(addressStructures, key)
         if result is None:
-            raise InvalidAddress(self.id + ' fetchDepositAddress() cannot find a deposit address for ' + code + ', and network' + network + 'consider creating one using the MEXC platform')
+            raise InvalidAddress(self.id + ' fetchDepositAddress() cannot find a deposit address for ' + code + ', and network' + network + 'consider creating one using .createDepositAddress() method or in MEXC website')
         return result
 
     async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:

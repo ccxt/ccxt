@@ -252,7 +252,7 @@ export interface Position {
     liquidationPrice?: number;
     marginMode?: Str;
     hedged?: boolean;
-    maintenenceMargin?: number;
+    maintenanceMargin?: number;
     maintenanceMarginPercentage?: number;
     initialMargin?: number;
     initialMarginPercentage?: number;

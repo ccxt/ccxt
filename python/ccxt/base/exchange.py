@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.2.87'
+__version__ = '4.2.88'
 
 # -----------------------------------------------------------------------------
 
@@ -4525,6 +4525,25 @@ class Exchange(object):
             parsedPrecision = parsedPrecision + '0'
         return parsedPrecision + '1'
 
+    def integer_precision_to_amount(self, precision: Str):
+        """
+         * @ignore
+        handles positive & negative numbers too. parsePrecision() does not handle negative numbers, but self method handles
+        :param str precision: The number of digits to the right of the decimal
+        :returns str: a string number equal to 1e-precision
+        """
+        if precision is None:
+            return None
+        if Precise.string_ge(precision, '0'):
+            return self.parse_precision(precision)
+        else:
+            positivePrecisionString = Precise.string_abs(precision)
+            positivePrecision = int(positivePrecisionString)
+            parsedPrecision = '1'
+            for i in range(0, positivePrecision - 1):
+                parsedPrecision = parsedPrecision + '0'
+            return parsedPrecision + '0'
+
     def load_time_difference(self, params={}):
         serverTime = self.fetch_time(params)
         after = self.milliseconds()
@@ -4935,8 +4954,8 @@ class Exchange(object):
             entry = responseKeys[i]
             dictionary = entry if isArray else response[entry]
             currencyId = self.safe_string(dictionary, currencyIdKey) if isArray else entry
-            currency = self.safe_value(self.currencies_by_id, currencyId)
-            code = self.safe_string(currency, 'code', currencyId)
+            currency = self.safe_currency(currencyId)
+            code = self.safe_string(currency, 'code')
             if (codes is None) or (self.in_array(code, codes)):
                 depositWithdrawFees[code] = self.parseDepositWithdrawFee(dictionary, currency)
         return depositWithdrawFees

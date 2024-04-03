@@ -43,6 +43,7 @@ import type {
     Balances,
     BorrowInterest,
     BorrowRate,
+    Currencies,
     Currency,
     CurrencyInterface,
     DepositAddressResponse,
@@ -86,6 +87,8 @@ import type {
     Ticker,
     Tickers,
     Trade,
+    TradingFeeInterface,
+    TradingFees,
     Transaction,
     TransferEntry,
 } from './types.js';
@@ -349,7 +352,7 @@ export default class Exchange {
     bidsasks: Dictionary<Ticker> = {};
     codes = undefined;
     commonCurrencies: Dictionary<string> = undefined;
-    currencies: Dictionary<Currency> = undefined;
+    currencies: Currencies = {};
     currencies_by_id = undefined;
     enableLastHttpResponse: boolean = true;
     enableLastJsonResponse: boolean = true;
@@ -1357,7 +1360,7 @@ export default class Exchange {
         return this.marketsLoading;
     }
 
-    async fetchCurrencies (params = {}) {
+    async fetchCurrencies (params = {}): Promise<Currencies> {
         // markets are returned as a list
         // currencies are returned as a dict
         // this is for historical reasons
@@ -1762,11 +1765,11 @@ export default class Exchange {
         return array.slice (first, second);
     }
 
-    getProperty (obj, property, defaultValue = undefined) {
+    getProperty (obj, property, defaultValue: any = undefined) {
         return (property in obj ? obj[property] : defaultValue);
     }
 
-    setProperty (obj, property, defaultValue = undefined) {
+    setProperty (obj, property, defaultValue: any = undefined) {
         obj[property] = defaultValue;
     }
 
@@ -2601,7 +2604,7 @@ export default class Exchange {
         };
     }
 
-    safeCurrencyStructure (currency: object) {
+    safeCurrencyStructure (currency: object): CurrencyInterface {
         return this.extend ({
             'active': undefined,
             'code': undefined,
@@ -4279,11 +4282,11 @@ export default class Exchange {
         if (currencyId !== undefined) {
             code = this.commonCurrencyCode (currencyId.toUpperCase ());
         }
-        return {
+        return this.safeCurrencyStructure ({
             'id': currencyId,
             'code': code,
             'precision': undefined,
-        };
+        });
     }
 
     safeMarket (marketId: Str, market: Market = undefined, delimiter: Str = undefined, marketType: Str = undefined): MarketInterface {
@@ -5123,11 +5126,17 @@ export default class Exchange {
         };
     }
 
-    commonCurrencyCode (currency: string) {
+    commonCurrencyCode (code: string) {
         if (!this.substituteCommonCurrencyCodes) {
-            return currency;
+            return code;
         }
-        return this.safeString (this.commonCurrencies, currency, currency);
+        // if the provided code already exists as a value in commonCurrencies dict, then we should not again transform it
+        // (more details at: https://github.com/ccxt/ccxt/issues/21112#issuecomment-2031293691)
+        const exists = this.inArray (code, Object.values (this.commonCurrencies));
+        if (exists) {
+            return code;
+        }
+        return this.safeString (this.commonCurrencies, code, code);
     }
 
     currency (code: string) {
@@ -5299,6 +5308,30 @@ export default class Exchange {
             parsedPrecision = parsedPrecision + '0';
         }
         return parsedPrecision + '1';
+    }
+
+    integerPrecisionToAmount (precision: Str) {
+        /**
+         * @ignore
+         * @method
+         * @description handles positive & negative numbers too. parsePrecision() does not handle negative numbers, but this method handles
+         * @param {string} precision The number of digits to the right of the decimal
+         * @returns {string} a string number equal to 1e-precision
+         */
+        if (precision === undefined) {
+            return undefined;
+        }
+        if (Precise.stringGe (precision, '0')) {
+            return this.parsePrecision (precision);
+        } else {
+            const positivePrecisionString = Precise.stringAbs (precision);
+            const positivePrecision = parseInt (positivePrecisionString);
+            let parsedPrecision = '1';
+            for (let i = 0; i < positivePrecision - 1; i++) {
+                parsedPrecision = parsedPrecision + '0';
+            }
+            return parsedPrecision + '0';
+        }
     }
 
     async loadTimeDifference (params = {}) {
@@ -5591,19 +5624,20 @@ export default class Exchange {
         throw new NotSupported (this.id + ' fetchLastPrices() is not supported yet');
     }
 
-    async fetchTradingFees (params = {}): Promise<{}> {
+    async fetchTradingFees (params = {}): Promise<TradingFees> {
         throw new NotSupported (this.id + ' fetchTradingFees() is not supported yet');
     }
 
-    async fetchTradingFeesWs (params = {}): Promise<{}> {
+    async fetchTradingFeesWs (params = {}): Promise<TradingFees> {
         throw new NotSupported (this.id + ' fetchTradingFeesWs() is not supported yet');
     }
 
-    async fetchTradingFee (symbol: string, params = {}): Promise<{}> {
+    async fetchTradingFee (symbol: string, params = {}): Promise<TradingFeeInterface> {
         if (!this.has['fetchTradingFees']) {
             throw new NotSupported (this.id + ' fetchTradingFee() is not supported yet');
         }
-        return await this.fetchTradingFees (params);
+        const fees = await this.fetchTradingFees (params);
+        return this.safeDict (fees, symbol) as TradingFeeInterface;
     }
 
     parseOpenInterest (interest, market: Market = undefined): OpenInterest {

@@ -196,7 +196,7 @@ export default class binance extends Exchange {
         previousFundingTimestamp: any;
         previousFundingDatetime: any;
     };
-    parseAccountPositions(account: any): any[];
+    parseAccountPositions(account: any, filterClosed?: boolean): any[];
     parseAccountPosition(position: any, market?: Market): {
         info: any;
         id: any;

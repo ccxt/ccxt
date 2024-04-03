@@ -4494,7 +4494,7 @@ public partial class mexc : Exchange
         }
         if (isTrue(isEqual(result, null)))
         {
-            throw new InvalidAddress ((string)add(add(add(add(add(this.id, " fetchDepositAddress() cannot find a deposit address for "), code), ", and network"), network), "consider creating one using the MEXC platform")) ;
+            throw new InvalidAddress ((string)add(add(add(add(add(this.id, " fetchDepositAddress() cannot find a deposit address for "), code), ", and network"), network), "consider creating one using .createDepositAddress() method or in MEXC website")) ;
         }
         return result;
     }

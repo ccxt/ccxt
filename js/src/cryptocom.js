@@ -2758,7 +2758,7 @@ export default class cryptocom extends Exchange {
         //
         const result = this.safeDict(response, 'result', {});
         const data = this.safeList(result, 'data', []);
-        return this.parsePosition(data[0], market);
+        return this.parsePosition(this.safeDict(data, 0), market);
     }
     async fetchPositions(symbols = undefined, params = {}) {
         /**
