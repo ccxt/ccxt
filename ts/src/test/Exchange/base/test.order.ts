@@ -1,8 +1,8 @@
-
+import { Exchange } from "../../../../ccxt";
 import testSharedMethods from './test.sharedMethods.js';
 import testTrade from './test.trade.js';
 
-function testOrder (exchange, skippedProperties, method, entry, symbol, now) {
+function testOrder (exchange: Exchange, skippedProperties: object, method: string, entry: object, symbol: string, now: number) {
     const format = {
         'info': {},
         'id': '123',

@@ -6,7 +6,7 @@ import { ArgumentsRequired, AuthenticationError, ExchangeError, InsufficientFund
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { TransferEntry, FundingHistory, Int, OHLCV, Order, OrderSide, OrderType, OrderRequest, Str, Trade, Balances, Transaction, Ticker, OrderBook, Tickers, Strings, Num, Currency, Market, Leverage, Leverages, Account, MarginModes, MarginMode } from './base/types.js';
+import type { TransferEntry, FundingHistory, Int, OHLCV, Order, OrderSide, OrderType, OrderRequest, Str, Trade, Balances, Transaction, Ticker, OrderBook, Tickers, Strings, Num, Currency, Market, Leverage, Leverages, Account, MarginModes, MarginMode, MarginModification, Currencies, TradingFees } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -389,7 +389,7 @@ export default class ascendex extends Exchange {
         return this.capitalize (lowercaseAccount);
     }
 
-    async fetchCurrencies (params = {}) {
+    async fetchCurrencies (params = {}): Promise<Currencies> {
         /**
          * @method
          * @name ascendex#fetchCurrencies
@@ -1041,7 +1041,7 @@ export default class ascendex extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         return this.parseTicker (data, market);
     }
 
@@ -1180,7 +1180,7 @@ export default class ascendex extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
@@ -1255,7 +1255,7 @@ export default class ascendex extends Exchange {
         //     }
         //
         const records = this.safeValue (response, 'data', []);
-        const trades = this.safeValue (records, 'data', []);
+        const trades = this.safeList (records, 'data', []);
         return this.parseTrades (trades, market, since, limit);
     }
 
@@ -1453,7 +1453,7 @@ export default class ascendex extends Exchange {
         }, market);
     }
 
-    async fetchTradingFees (params = {}) {
+    async fetchTradingFees (params = {}): Promise<TradingFees> {
         /**
          * @method
          * @name ascendex#fetchTradingFees
@@ -1498,6 +1498,8 @@ export default class ascendex extends Exchange {
                 'symbol': symbol,
                 'maker': this.safeNumber (takerMaker, 'maker'),
                 'taker': this.safeNumber (takerMaker, 'taker'),
+                'percentage': undefined,
+                'tierBased': undefined,
             };
         }
         return result;
@@ -1783,7 +1785,7 @@ export default class ascendex extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', {});
-        const info = this.safeValue (data, 'info', []);
+        const info = this.safeList (data, 'info', []);
         return this.parseOrders (info, market);
     }
 
@@ -1890,7 +1892,7 @@ export default class ascendex extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         return this.parseOrder (data, market);
     }
 
@@ -2579,7 +2581,7 @@ export default class ascendex extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', {});
-        const transactions = this.safeValue (data, 'data', []);
+        const transactions = this.safeList (data, 'data', []);
         return this.parseTransactions (transactions, currency, since, limit);
     }
 
@@ -2861,7 +2863,7 @@ export default class ascendex extends Exchange {
         return this.filterByArray (result, 'symbol', symbols);
     }
 
-    async modifyMarginHelper (symbol: string, amount, type, params = {}) {
+    async modifyMarginHelper (symbol: string, amount, type, params = {}): Promise<MarginModification> {
         await this.loadMarkets ();
         await this.loadAccounts ();
         const market = this.market (symbol);
@@ -2890,20 +2892,30 @@ export default class ascendex extends Exchange {
         });
     }
 
-    parseMarginModification (data, market: Market = undefined) {
+    parseMarginModification (data, market: Market = undefined): MarginModification {
+        //
+        // addMargin/reduceMargin
+        //
+        //     {
+        //          "code": 0
+        //     }
+        //
         const errorCode = this.safeString (data, 'code');
         const status = (errorCode === '0') ? 'ok' : 'failed';
         return {
             'info': data,
+            'symbol': market['symbol'],
             'type': undefined,
             'amount': undefined,
+            'total': undefined,
             'code': market['quote'],
-            'symbol': market['symbol'],
             'status': status,
+            'timestamp': undefined,
+            'datetime': undefined,
         };
     }
 
-    async reduceMargin (symbol: string, amount, params = {}) {
+    async reduceMargin (symbol: string, amount, params = {}): Promise<MarginModification> {
         /**
          * @method
          * @name ascendex#reduceMargin
@@ -2916,7 +2928,7 @@ export default class ascendex extends Exchange {
         return await this.modifyMarginHelper (symbol, -amount, 'reduce', params);
     }
 
-    async addMargin (symbol: string, amount, params = {}) {
+    async addMargin (symbol: string, amount, params = {}): Promise<MarginModification> {
         /**
          * @method
          * @name ascendex#addMargin
@@ -3154,7 +3166,7 @@ export default class ascendex extends Exchange {
          */
         await this.loadMarkets ();
         const response = await this.v2PublicGetAssets (params);
-        const data = this.safeValue (response, 'data');
+        const data = this.safeList (response, 'data');
         return this.parseDepositWithdrawFees (data, codes, 'assetCode');
     }
 
@@ -3284,7 +3296,7 @@ export default class ascendex extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', {});
-        const rows = this.safeValue (data, 'data', []);
+        const rows = this.safeList (data, 'data', []);
         return this.parseIncomes (rows, market, since, limit);
     }
 

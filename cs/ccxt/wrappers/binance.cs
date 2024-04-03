@@ -1928,6 +1928,12 @@ public partial class binance
     /// string : "linear" or "inverse"
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.filterClosed</term>
+    /// <description>
+    /// boolean : set to true if you would like to filter out closed positions, default is false
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> data on account positions.</returns>

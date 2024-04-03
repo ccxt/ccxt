@@ -1863,7 +1863,7 @@ export default class binance extends Exchange {
                         '-4140': BadRequest,
                         '-4141': OperationRejected,
                         '-4144': BadSymbol,
-                        '-4164': OperationRejected,
+                        '-4164': InvalidOrder,
                         '-4165': BadRequest,
                         '-4167': BadRequest,
                         '-4168': BadRequest,
@@ -2424,14 +2424,6 @@ export default class binance extends Exchange {
     setSandboxMode(enable) {
         super.setSandboxMode(enable);
         this.options['sandboxMode'] = enable;
-    }
-    convertExpireDate(date) {
-        // parse YYMMDD to timestamp
-        const year = date.slice(0, 2);
-        const month = date.slice(2, 4);
-        const day = date.slice(4, 6);
-        const reconstructedDate = '20' + year + '-' + month + '-' + day + 'T00:00:00Z';
-        return reconstructedDate;
     }
     createExpiredOptionMarket(symbol) {
         // support expired option contracts
@@ -3969,16 +3961,12 @@ export default class binance extends Exchange {
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets();
-        symbols = this.marketSymbols(symbols);
-        let market = undefined;
-        if (symbols !== undefined) {
-            const first = this.safeString(symbols, 0);
-            market = this.market(first);
-        }
+        symbols = this.marketSymbols(symbols, undefined, true, true, true);
+        const market = this.getMarketFromSymbols(symbols);
         let type = undefined;
+        [type, params] = this.handleMarketTypeAndParams('fetchBidsAsks', market, params);
         let subType = undefined;
         [subType, params] = this.handleSubTypeAndParams('fetchBidsAsks', market, params);
-        [type, params] = this.handleMarketTypeAndParams('fetchBidsAsks', market, params);
         let response = undefined;
         if (this.isLinear(type, subType)) {
             response = await this.fapiPublicGetTickerBookTicker(params);
@@ -3986,13 +3974,15 @@ export default class binance extends Exchange {
         else if (this.isInverse(type, subType)) {
             response = await this.dapiPublicGetTickerBookTicker(params);
         }
-        else {
+        else if (type === 'spot') {
             const request = {};
             if (symbols !== undefined) {
-                const marketIds = this.marketIds(symbols);
-                request['symbols'] = this.json(marketIds);
+                request['symbols'] = this.json(this.marketIds(symbols));
             }
             response = await this.publicGetTickerBookTicker(this.extend(request, params));
+        }
+        else {
+            throw new NotSupported(this.id + ' fetchBidsAsks() does not support ' + type + ' markets yet');
         }
         return this.parseTickers(response, symbols);
     }
@@ -4010,12 +4000,12 @@ export default class binance extends Exchange {
          * @returns {object} a dictionary of lastprices structures
          */
         await this.loadMarkets();
-        symbols = this.marketSymbols(symbols);
+        symbols = this.marketSymbols(symbols, undefined, true, true, true);
         const market = this.getMarketFromSymbols(symbols);
         let type = undefined;
+        [type, params] = this.handleMarketTypeAndParams('fetchLastPrices', market, params);
         let subType = undefined;
         [subType, params] = this.handleSubTypeAndParams('fetchLastPrices', market, params);
-        [type, params] = this.handleMarketTypeAndParams('fetchLastPrices', market, params);
         let response = undefined;
         if (this.isLinear(type, subType)) {
             response = await this.fapiPublicV2GetTickerPrice(params);
@@ -4116,33 +4106,31 @@ export default class binance extends Exchange {
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets();
-        let type = undefined;
-        let market = undefined;
         symbols = this.marketSymbols(symbols, undefined, true, true, true);
-        if (symbols !== undefined) {
-            const first = this.safeString(symbols, 0);
-            market = this.market(first);
-        }
+        const market = this.getMarketFromSymbols(symbols);
+        let type = undefined;
         [type, params] = this.handleMarketTypeAndParams('fetchTickers', market, params);
         let subType = undefined;
         [subType, params] = this.handleSubTypeAndParams('fetchTickers', market, params);
         let response = undefined;
-        if (type === 'option') {
-            response = await this.eapiPublicGetTicker(params);
-        }
-        else if (this.isLinear(type, subType)) {
+        if (this.isLinear(type, subType)) {
             response = await this.fapiPublicGetTicker24hr(params);
         }
         else if (this.isInverse(type, subType)) {
             response = await this.dapiPublicGetTicker24hr(params);
         }
-        else {
+        else if (type === 'spot') {
             const request = {};
             if (symbols !== undefined) {
-                const marketIds = this.marketIds(symbols);
-                request['symbols'] = this.json(marketIds);
+                request['symbols'] = this.json(this.marketIds(symbols));
             }
             response = await this.publicGetTicker24hr(this.extend(request, params));
+        }
+        else if (type === 'option') {
+            response = await this.eapiPublicGetTicker(params);
+        }
+        else {
+            throw new NotSupported(this.id + ' fetchTickers() does not support ' + type + ' markets yet');
         }
         return this.parseTickers(response, symbols);
     }
@@ -4810,7 +4798,7 @@ export default class binance extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue(response, 'newOrderResponse');
+        const data = this.safeDict(response, 'newOrderResponse');
         return this.parseOrder(data, market);
     }
     editSpotOrderRequest(id, symbol, type, side, amount, price = undefined, params = {}) {
@@ -9155,7 +9143,7 @@ export default class binance extends Exchange {
             'previousFundingDatetime': undefined,
         };
     }
-    parseAccountPositions(account) {
+    parseAccountPositions(account, filterClosed = false) {
         const positions = this.safeList(account, 'positions');
         const assets = this.safeList(account, 'assets', []);
         const balances = {};
@@ -9178,7 +9166,8 @@ export default class binance extends Exchange {
             const code = market['linear'] ? market['quote'] : market['base'];
             const maintenanceMargin = this.safeString(position, 'maintMargin');
             // check for maintenance margin so empty positions are not returned
-            if ((maintenanceMargin !== '0') && (maintenanceMargin !== '0.00000000')) {
+            const isPositionOpen = (maintenanceMargin !== '0') && (maintenanceMargin !== '0.00000000');
+            if (!filterClosed || isPositionOpen) {
                 // sometimes not all the codes are correctly returned...
                 if (code in balances) {
                     const parsed = this.parseAccountPosition(this.extend(position, {
@@ -10020,10 +10009,11 @@ export default class binance extends Exchange {
          * @see https://binance-docs.github.io/apidocs/delivery/en/#account-information-user_data
          * @see https://binance-docs.github.io/apidocs/pm/en/#get-um-account-detail-user_data
          * @see https://binance-docs.github.io/apidocs/pm/en/#get-cm-account-detail-user_data
-         * @param {string[]|undefined} symbols list of unified market symbols
+         * @param {string[]} [symbols] list of unified market symbols
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch positions in a portfolio margin account
          * @param {string} [params.subType] "linear" or "inverse"
+         * @param {boolean} [params.filterClosed] set to true if you would like to filter out closed positions, default is false
          * @returns {object} data on account positions
          */
         if (symbols !== undefined) {
@@ -10060,7 +10050,9 @@ export default class binance extends Exchange {
         else {
             throw new NotSupported(this.id + ' fetchPositions() supports linear and inverse contracts only');
         }
-        const result = this.parseAccountPositions(response);
+        let filterClosed = undefined;
+        [filterClosed, params] = this.handleOptionAndParams(params, 'fetchAccountPositions', 'filterClosed', false);
+        const result = this.parseAccountPositions(response, filterClosed);
         symbols = this.marketSymbols(symbols);
         return this.filterByArrayPositions(result, 'symbol', symbols, false);
     }
@@ -11198,7 +11190,7 @@ export default class binance extends Exchange {
         }
         await this.loadMarkets();
         const market = this.market(symbol);
-        amount = this.costToPrecision(symbol, amount);
+        amount = this.amountToPrecision(symbol, amount);
         const request = {
             'type': addOrReduce,
             'symbol': market['id'],
@@ -11227,6 +11219,16 @@ export default class binance extends Exchange {
         });
     }
     parseMarginModification(data, market = undefined) {
+        //
+        // add/reduce margin
+        //
+        //     {
+        //         "code": 200,
+        //         "msg": "Successfully modify position margin.",
+        //         "amount": 0.001,
+        //         "type": 1
+        //     }
+        //
         const rawType = this.safeInteger(data, 'type');
         const resultType = (rawType === 1) ? 'add' : 'reduce';
         const resultAmount = this.safeNumber(data, 'amount');
@@ -11234,11 +11236,14 @@ export default class binance extends Exchange {
         const status = (errorCode === '200') ? 'ok' : 'failed';
         return {
             'info': data,
+            'symbol': market['symbol'],
             'type': resultType,
             'amount': resultAmount,
+            'total': undefined,
             'code': undefined,
-            'symbol': market['symbol'],
             'status': status,
+            'timestamp': undefined,
+            'datetime': undefined,
         };
     }
     async reduceMargin(symbol, amount, params = {}) {
@@ -12400,7 +12405,7 @@ export default class binance extends Exchange {
         else {
             throw new BadRequest(this.id + ' fetchMarginModes () supports linear and inverse subTypes only');
         }
-        const assets = this.safeValue(response, 'positions', []);
+        const assets = this.safeList(response, 'positions', []);
         return this.parseMarginModes(assets, symbols, 'symbol', 'swap');
     }
     parseMarginMode(marginMode, market = undefined) {

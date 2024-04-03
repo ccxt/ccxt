@@ -2293,7 +2293,7 @@ public partial class htx : Exchange
             throw new NotSupported ((string)add(add(add(this.id, " fetchLastPrices() does not support "), type), " markets yet")) ;
         }
         object tick = this.safeValue(response, "tick", new Dictionary<string, object>() {});
-        object data = this.safeValue(tick, "data", new List<object>() {});
+        object data = this.safeList(tick, "data", new List<object>() {});
         return this.parseLastPrices(data, symbols);
     }
 
@@ -2927,7 +2927,7 @@ public partial class htx : Exchange
         {
             if (isTrue(!isEqual(limit, null)))
             {
-                ((IDictionary<string,object>)request)["size"] = limit; // when using limit: from & to are ignored
+                ((IDictionary<string,object>)request)["size"] = mathMin(limit, 2000); // when using limit: from & to are ignored
             } else
             {
                 limit = 2000; // only used for from/to calculation
@@ -3031,7 +3031,7 @@ public partial class htx : Exchange
             {
                 if (isTrue(!isEqual(limit, null)))
                 {
-                    ((IDictionary<string,object>)request)["size"] = mathMin(2000, limit); // max 2000
+                    ((IDictionary<string,object>)request)["size"] = mathMin(limit, 2000); // max 2000
                 }
                 response = await this.spotPublicGetMarketHistoryKline(this.extend(request, parameters));
             } else
@@ -3997,7 +3997,7 @@ public partial class htx : Exchange
         //         ]
         //     }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseOrders(data, market, since, limit);
     }
 
@@ -7703,7 +7703,7 @@ public partial class htx : Exchange
             ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
             response = await this.contractPrivatePostApiV3ContractFinancialRecordExact(this.extend(request, query));
         }
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseIncomes(data, market, since, limit);
     }
 
@@ -8256,7 +8256,7 @@ public partial class htx : Exchange
         //        ]
         //    }
         //
-        object data = this.safeValue(response, "data");
+        object data = this.safeList(response, "data");
         return this.parseLeverageTiers(data, symbols, "contract_code");
     }
 
@@ -8478,7 +8478,7 @@ public partial class htx : Exchange
         //    }
         //
         object data = this.safeValue(response, "data");
-        object tick = this.safeValue(data, "tick");
+        object tick = this.safeList(data, "tick");
         return this.parseOpenInterests(tick, market, since, limit);
     }
 
@@ -9021,7 +9021,7 @@ public partial class htx : Exchange
         //        ]
         //    }
         //
-        object data = this.safeValue(response, "data");
+        object data = this.safeList(response, "data");
         return this.parseDepositWithdrawFees(data, codes, "currency");
     }
 
@@ -9268,7 +9268,7 @@ public partial class htx : Exchange
         //         "ts": 1604312615051
         //     }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseLiquidations(data, market, since, limit);
     }
 

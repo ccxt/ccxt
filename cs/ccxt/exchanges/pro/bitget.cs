@@ -76,6 +76,7 @@ public partial class bitget : ccxt.bitget
                         { "30015", typeof(AuthenticationError) },
                         { "30016", typeof(BadRequest) },
                     } },
+                    { "broad", new Dictionary<string, object>() {} },
                 } },
             } },
         });

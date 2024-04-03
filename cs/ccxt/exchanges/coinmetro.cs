@@ -563,7 +563,7 @@ public partial class coinmetro : Exchange
         //         ]
         //     }
         //
-        object candleHistory = this.safeValue(response, "candleHistory", new List<object>() {});
+        object candleHistory = this.safeList(response, "candleHistory", new List<object>() {});
         return this.parseOHLCVs(candleHistory, market, timeframe, since, limit);
     }
 
@@ -628,7 +628,7 @@ public partial class coinmetro : Exchange
         //         ]
         //     }
         //
-        object tickHistory = this.safeValue(response, "tickHistory", new List<object>() {});
+        object tickHistory = this.safeList(response, "tickHistory", new List<object>() {});
         return this.parseTrades(tickHistory, market, since, limit);
     }
 
@@ -927,7 +927,7 @@ public partial class coinmetro : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object response = await this.publicGetExchangePrices(parameters);
-        object latestPrices = this.safeValue(response, "latestPrices", new List<object>() {});
+        object latestPrices = this.safeList(response, "latestPrices", new List<object>() {});
         return this.parseTickers(latestPrices, symbols);
     }
 

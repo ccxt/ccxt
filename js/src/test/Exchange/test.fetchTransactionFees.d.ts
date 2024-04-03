@@ -1,2 +1,3 @@
-declare function testFetchTransactionFees(exchange: any, skippedProperties: any): Promise<any>;
+import { Exchange } from "../../../ccxt";
+declare function testFetchTransactionFees(exchange: Exchange, skippedProperties: object): Promise<any>;
 export default testFetchTransactionFees;

@@ -988,7 +988,7 @@ export default class currencycom extends Exchange {
             request['startTime'] = since;
         }
         if (limit !== undefined) {
-            request['limit'] = limit; // default 500, max 1000
+            request['limit'] = Math.min(limit, 1000); // default 500, max 1000
         }
         const response = await this.publicGetV2Klines(this.extend(request, params));
         //
@@ -1937,7 +1937,7 @@ export default class currencycom extends Exchange {
         //        ]
         //    }
         //
-        const data = this.safeValue(response, 'positions', []);
+        const data = this.safeList(response, 'positions', []);
         return this.parsePositions(data, symbols);
     }
     parsePosition(position, market = undefined) {

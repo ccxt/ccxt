@@ -589,7 +589,7 @@ class kucoinfutures extends kucoin {
         //        ]
         //    }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_list($response, 'data', array());
         return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
     }
 
@@ -1056,7 +1056,7 @@ class kucoinfutures extends kucoin {
         //        }
         //    }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_dict($response, 'data', array());
         return $this->parse_position($data, $market);
     }
 
@@ -1116,7 +1116,7 @@ class kucoinfutures extends kucoin {
         //        )
         //    }
         //
-        $data = $this->safe_value($response, 'data');
+        $data = $this->safe_list($response, 'data');
         return $this->parse_positions($data, $symbols);
     }
 
@@ -1262,7 +1262,7 @@ class kucoinfutures extends kucoin {
         //        ),
         //    }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_dict($response, 'data', array());
         return $this->parse_order($data, $market);
     }
 
@@ -1310,7 +1310,7 @@ class kucoinfutures extends kucoin {
         //         )
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_list($response, 'data', array());
         return $this->parse_orders($data);
     }
 
@@ -1463,7 +1463,7 @@ class kucoinfutures extends kucoin {
         return $this->safe_value($response, 'data');
     }
 
-    public function add_margin(string $symbol, $amount, $params = array ()) {
+    public function add_margin(string $symbol, $amount, $params = array ()): array {
         /**
          * add margin
          * @see https://www.kucoin.com/docs/rest/futures-trading/positions/add-margin-manually
@@ -1706,7 +1706,7 @@ class kucoinfutures extends kucoin {
         //     }
         //
         $responseData = $this->safe_value($response, 'data', array());
-        $orders = $this->safe_value($responseData, 'items', array());
+        $orders = $this->safe_list($responseData, 'items', array());
         return $this->parse_orders($orders, $market, $since, $limit);
     }
 
@@ -1800,7 +1800,7 @@ class kucoinfutures extends kucoin {
         //     }
         //
         $market = ($symbol !== null) ? $this->market($symbol) : null;
-        $responseData = $this->safe_value($response, 'data');
+        $responseData = $this->safe_dict($response, 'data');
         return $this->parse_order($responseData, $market);
     }
 
@@ -2216,7 +2216,7 @@ class kucoinfutures extends kucoin {
         //          )
         //      }
         //
-        $trades = $this->safe_value($response, 'data', array());
+        $trades = $this->safe_list($response, 'data', array());
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 

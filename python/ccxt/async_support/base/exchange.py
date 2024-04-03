@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.2.84'
+__version__ = '4.2.88'
 
 # -----------------------------------------------------------------------------
 
@@ -16,7 +16,7 @@ import sys
 import yarl
 import math
 from typing import Any, List
-from ccxt.base.types import Int, Str, Num
+from ccxt.base.types import Int, Str, Num, Strings
 
 # -----------------------------------------------------------------------------
 
@@ -276,18 +276,6 @@ class Exchange(BaseExchange):
             raise e
         self.reloading_markets = False
         return result
-
-    async def fetch_fees(self):
-        trading = {}
-        funding = {}
-        if self.has['fetchTradingFees']:
-            trading = await self.fetch_trading_fees()
-        if self.has['fetchFundingFees']:
-            funding = await self.fetch_funding_fees()
-        return {
-            'trading': trading,
-            'funding': funding,
-        }
 
     async def load_fees(self, reload=False):
         if not reload:
@@ -910,18 +898,6 @@ class Exchange(BaseExchange):
     async def fetch_status(self, params={}):
         raise NotSupported(self.id + ' fetchStatus() is not supported yet')
 
-    async def fetch_funding_fee(self, code: str, params={}):
-        warnOnFetchFundingFee = self.safe_bool(self.options, 'warnOnFetchFundingFee', True)
-        if warnOnFetchFundingFee:
-            raise NotSupported(self.id + ' fetchFundingFee() method is deprecated, it will be removed in July 2022, please, use fetchTransactionFee() or set exchange.options["warnOnFetchFundingFee"] = False to suppress self warning')
-        return await self.fetch_transaction_fee(code, params)
-
-    async def fetch_funding_fees(self, codes: List[str] = None, params={}):
-        warnOnFetchFundingFees = self.safe_bool(self.options, 'warnOnFetchFundingFees', True)
-        if warnOnFetchFundingFees:
-            raise NotSupported(self.id + ' fetchFundingFees() method is deprecated, it will be removed in July 2022. Please, use fetchTransactionFees() or set exchange.options["warnOnFetchFundingFees"] = False to suppress self warning')
-        return await self.fetch_transaction_fees(codes, params)
-
     async def fetch_transaction_fee(self, code: str, params={}):
         if not self.has['fetchTransactionFees']:
             raise NotSupported(self.id + ' fetchTransactionFee() is not supported yet')
@@ -982,7 +958,7 @@ class Exchange(BaseExchange):
     async def fetch_order_books(self, symbols: List[str] = None, limit: Int = None, params={}):
         raise NotSupported(self.id + ' fetchOrderBooks() is not supported yet')
 
-    async def watch_bids_asks(self, symbols: List[str] = None, params={}):
+    async def watch_bids_asks(self, symbols: Strings = None, params={}):
         raise NotSupported(self.id + ' watchBidsAsks() is not supported yet')
 
     async def watch_tickers(self, symbols: List[str] = None, params={}):

@@ -4,7 +4,7 @@ import { Precise } from './base/Precise.js';
 import Exchange from './abstract/bitfinex2.js';
 import { SIGNIFICANT_DIGITS, DECIMAL_PLACES, TRUNCATE, ROUND } from './base/functions/number.js';
 import { sha384 } from './static_dependencies/noble-hashes/sha512.js';
-import type { TransferEntry, Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderBook, Str, Transaction, Ticker, Balances, Tickers, Strings, Currency, Market, OpenInterest, Liquidation, OrderRequest, Num } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderBook, Str, Transaction, Ticker, Balances, Tickers, Strings, Currency, Market, OpenInterest, Liquidation, OrderRequest, Num, MarginModification, Currencies, TradingFees } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -629,7 +629,7 @@ export default class bitfinex2 extends Exchange {
         return result;
     }
 
-    async fetchCurrencies (params = {}) {
+    async fetchCurrencies (params = {}): Promise<Currencies> {
         /**
          * @method
          * @name bitfinex2#fetchCurrencies
@@ -1395,6 +1395,8 @@ export default class bitfinex2 extends Exchange {
         const market = this.market (symbol);
         if (limit === undefined) {
             limit = 10000;
+        } else {
+            limit = Math.min (limit, 10000);
         }
         let request = {
             'symbol': market['id'],
@@ -1804,7 +1806,7 @@ export default class bitfinex2 extends Exchange {
             'all': 1,
         };
         const response = await this.privatePostAuthWOrderCancelMulti (this.extend (request, params));
-        const orders = this.safeValue (response, 4, []);
+        const orders = this.safeList (response, 4, []);
         return this.parseOrders (orders);
     }
 
@@ -2407,7 +2409,7 @@ export default class bitfinex2 extends Exchange {
         };
     }
 
-    async fetchTradingFees (params = {}) {
+    async fetchTradingFees (params = {}): Promise<TradingFees> {
         /**
          * @method
          * @name bitfinex2#fetchTradingFees
@@ -3506,7 +3508,7 @@ export default class bitfinex2 extends Exchange {
         });
     }
 
-    async setMargin (symbol: string, amount: number, params = {}) {
+    async setMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
         /**
          * @method
          * @name bitfinex2#setMargin
@@ -3538,16 +3540,28 @@ export default class bitfinex2 extends Exchange {
         return this.parseMarginModification (data, market);
     }
 
-    parseMarginModification (data, market = undefined) {
+    parseMarginModification (data, market = undefined): MarginModification {
+        //
+        // setMargin
+        //
+        //     [
+        //         [
+        //             1
+        //         ]
+        //     ]
+        //
         const marginStatusRaw = data[0];
         const marginStatus = (marginStatusRaw === 1) ? 'ok' : 'failed';
         return {
             'info': data,
+            'symbol': market['symbol'],
             'type': undefined,
             'amount': undefined,
+            'total': undefined,
             'code': undefined,
-            'symbol': market['symbol'],
             'status': marginStatus,
+            'timestamp': undefined,
+            'datetime': undefined,
         };
     }
 

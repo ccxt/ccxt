@@ -138,10 +138,10 @@ public partial class Exchange
         var res = await this.fetchIsolatedBorrowRates(parameters);
         return ((Dictionary<string, object>)res);
     }
-    public async Task<Dictionary<string, LeverageTier>> FetchLeverageTiers(List<string> symbols = null, Dictionary<string, object> parameters = null)
+    public async Task<Dictionary<string, LeverageTier[]>> FetchLeverageTiers(List<string> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchLeverageTiers(symbols, parameters);
-        return ((Dictionary<string, LeverageTier>)res);
+        return ((Dictionary<string, LeverageTier[]>)res);
     }
     public async Task<Dictionary<string, object>> FetchFundingRates(List<string> symbols = null, Dictionary<string, object> parameters = null)
     {
@@ -416,16 +416,6 @@ public partial class Exchange
         var res = await this.fetchStatus(parameters);
         return ((Dictionary<string, object>)res);
     }
-    public async Task<Dictionary<string, object>> FetchFundingFee(string code, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchFundingFee(code, parameters);
-        return ((Dictionary<string, object>)res);
-    }
-    public async Task<Dictionary<string, object>> FetchFundingFees(List<string> codes = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchFundingFees(codes, parameters);
-        return ((Dictionary<string, object>)res);
-    }
     public async Task<Dictionary<string, object>> FetchTransactionFee(string code, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchTransactionFee(code, parameters);
@@ -477,7 +467,7 @@ public partial class Exchange
         var res = await this.fetchOrderBooks(symbols, limit, parameters);
         return ((Dictionary<string, OrderBook>)res);
     }
-    public async Task<Tickers> WatchBidsAsks(List<string> symbols = null, Dictionary<string, object> parameters = null)
+    public async Task<Tickers> WatchBidsAsks(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.watchBidsAsks(symbols, parameters);
         return new Tickers(res);

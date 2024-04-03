@@ -1110,7 +1110,7 @@ class bitstamp extends bitstamp$1 {
         //     }
         //
         const data = this.safeValue(response, 'data', {});
-        const ohlc = this.safeValue(data, 'ohlc', []);
+        const ohlc = this.safeList(data, 'ohlc', []);
         return this.parseOHLCVs(ohlc, market, timeframe, since, limit);
     }
     parseBalance(response) {

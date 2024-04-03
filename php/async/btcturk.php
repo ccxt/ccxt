@@ -423,7 +423,7 @@ class btcturk extends Exchange {
              */
             Async\await($this->load_markets());
             $response = Async\await($this->publicGetTicker ($params));
-            $tickers = $this->safe_value($response, 'data');
+            $tickers = $this->safe_list($response, 'data');
             return $this->parse_tickers($tickers, $symbols);
         }) ();
     }
@@ -544,7 +544,7 @@ class btcturk extends Exchange {
             //       )
             //     }
             //
-            $data = $this->safe_value($response, 'data');
+            $data = $this->safe_list($response, 'data');
             return $this->parse_trades($data, $market, $since, $limit);
         }) ();
     }
@@ -597,6 +597,7 @@ class btcturk extends Exchange {
                 $limit = 100; // default value
             }
             if ($limit !== null) {
+                $limit = min ($limit, 11000); // max 11000 candles diapason can be covered
                 if ($timeframe === '1y') { // difficult with leap years
                     throw new BadRequest($this->id . ' fetchOHLCV () does not accept a $limit parameter when $timeframe == "1y"');
                 }
@@ -606,7 +607,7 @@ class btcturk extends Exchange {
                     $to = $this->parse_to_int($since / 1000) . $limitSeconds;
                     $request['to'] = min ($request['to'], $to);
                 } else {
-                    $request['from'] = $this->parse_to_int($until / 1000) - $limitSeconds;
+                    $request['from'] = $this->parse_to_int(0 / 1000) - $limitSeconds;
                 }
             }
             $response = Async\await($this->graphGetKlinesHistory (array_merge($request, $params)));
@@ -702,7 +703,7 @@ class btcturk extends Exchange {
                 $request['newClientOrderId'] = $this->uuid();
             }
             $response = Async\await($this->privatePostOrder (array_merge($request, $params)));
-            $data = $this->safe_value($response, 'data');
+            $data = $this->safe_dict($response, 'data');
             return $this->parse_order($data, $market);
         }) ();
     }
@@ -745,7 +746,7 @@ class btcturk extends Exchange {
             $response = Async\await($this->privateGetOpenOrders (array_merge($request, $params)));
             $data = $this->safe_value($response, 'data');
             $bids = $this->safe_value($data, 'bids', array());
-            $asks = $this->safe_value($data, 'asks', array());
+            $asks = $this->safe_list($data, 'asks', array());
             return $this->parse_orders($this->array_concat($bids, $asks), $market, $since, $limit);
         }) ();
     }
@@ -794,7 +795,7 @@ class btcturk extends Exchange {
             //     }
             //   )
             // }
-            $data = $this->safe_value($response, 'data');
+            $data = $this->safe_list($response, 'data');
             return $this->parse_orders($data, $market, $since, $limit);
         }) ();
     }
@@ -914,7 +915,7 @@ class btcturk extends Exchange {
             //       "code" => "0"
             //     }
             //
-            $data = $this->safe_value($response, 'data');
+            $data = $this->safe_list($response, 'data');
             return $this->parse_trades($data, $market, $since, $limit);
         }) ();
     }

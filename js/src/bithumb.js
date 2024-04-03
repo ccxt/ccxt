@@ -498,7 +498,7 @@ export default class bithumb extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         return this.parseTicker(data, market);
     }
     parseOHLCV(ohlcv, market = undefined) {
@@ -565,7 +565,7 @@ export default class bithumb extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseOHLCVs(data, market, timeframe, since, limit);
     }
     parseTrade(trade, market = undefined) {
@@ -682,7 +682,7 @@ export default class bithumb extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseTrades(data, market, since, limit);
     }
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
@@ -778,7 +778,7 @@ export default class bithumb extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue(response, 'data');
+        const data = this.safeDict(response, 'data');
         return this.parseOrder(this.extend(data, { 'order_id': id }), market);
     }
     parseOrderStatus(status) {
@@ -934,7 +934,7 @@ export default class bithumb extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseOrders(data, market, since, limit);
     }
     async cancelOrder(id, symbol = undefined, params = {}) {

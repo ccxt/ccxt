@@ -5,7 +5,7 @@ import Exchange from './abstract/independentreserve.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Balances, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade } from './base/types.js';
+import type { Balances, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, TradingFees } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -514,7 +514,7 @@ export default class independentreserve extends Exchange {
         request['pageIndex'] = 1;
         request['pageSize'] = limit;
         const response = await this.privatePostGetOpenOrders (this.extend (request, params));
-        const data = this.safeValue (response, 'Data', []);
+        const data = this.safeList (response, 'Data', []);
         return this.parseOrders (data, market, since, limit);
     }
 
@@ -543,7 +543,7 @@ export default class independentreserve extends Exchange {
         request['pageIndex'] = 1;
         request['pageSize'] = limit;
         const response = await this.privatePostGetClosedOrders (this.extend (request, params));
-        const data = this.safeValue (response, 'Data', []);
+        const data = this.safeList (response, 'Data', []);
         return this.parseOrders (data, market, since, limit);
     }
 
@@ -638,7 +638,7 @@ export default class independentreserve extends Exchange {
         return this.parseTrades (response['Trades'], market, since, limit);
     }
 
-    async fetchTradingFees (params = {}) {
+    async fetchTradingFees (params = {}): Promise<TradingFees> {
         /**
          * @method
          * @name independentreserve#fetchTradingFees

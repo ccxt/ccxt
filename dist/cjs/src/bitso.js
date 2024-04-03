@@ -687,7 +687,7 @@ class bitso extends bitso$1 {
         //         ]
         //     }
         //
-        const payload = this.safeValue(response, 'payload', []);
+        const payload = this.safeList(response, 'payload', []);
         return this.parseOHLCVs(payload, market, timeframe, since, limit);
     }
     parseOHLCV(ohlcv, market = undefined) {
@@ -1246,7 +1246,7 @@ class bitso extends bitso$1 {
         //     }
         //
         const transactions = this.safeValue(response, 'payload', []);
-        const first = this.safeValue(transactions, 0, {});
+        const first = this.safeDict(transactions, 0, {});
         return this.parseTransaction(first);
     }
     async fetchDeposits(code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1290,7 +1290,7 @@ class bitso extends bitso$1 {
         //         }]
         //     }
         //
-        const transactions = this.safeValue(response, 'payload', []);
+        const transactions = this.safeList(response, 'payload', []);
         return this.parseTransactions(transactions, currency, since, limit, params);
     }
     async fetchDepositAddress(code, params = {}) {
@@ -1473,7 +1473,7 @@ class bitso extends bitso$1 {
         //        }
         //    }
         //
-        const payload = this.safeValue(response, 'payload', {});
+        const payload = this.safeList(response, 'payload', []);
         return this.parseDepositWithdrawFees(payload, codes);
     }
     parseDepositWithdrawFees(response, codes = undefined, currencyIdKey = undefined) {
@@ -1609,7 +1609,7 @@ class bitso extends bitso$1 {
         //     }
         //
         const payload = this.safeValue(response, 'payload', []);
-        const first = this.safeValue(payload, 0);
+        const first = this.safeDict(payload, 0);
         return this.parseTransaction(first, currency);
     }
     safeNetwork(networkId) {

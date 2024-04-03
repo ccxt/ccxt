@@ -5,7 +5,7 @@ import { ArgumentsRequired, ExchangeNotAvailable, InvalidOrder, InsufficientFund
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import kucoin from './abstract/kucoinfutures.js';
-import type { TransferEntry, Int, OrderSide, OrderType, OHLCV, Order, Trade, OrderRequest, FundingHistory, Balances, Str, Ticker, Tickers, OrderBook, Transaction, Strings, Market, Currency, Num } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, OHLCV, Order, Trade, OrderRequest, FundingHistory, Balances, Str, Ticker, Tickers, OrderBook, Transaction, Strings, Market, Currency, Num, MarginModification } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -601,7 +601,7 @@ export default class kucoinfutures extends kucoin {
         //        ]
         //    }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
@@ -1080,7 +1080,7 @@ export default class kucoinfutures extends kucoin {
         //        }
         //    }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         return this.parsePosition (data, market);
     }
 
@@ -1142,7 +1142,7 @@ export default class kucoinfutures extends kucoin {
         //        ]
         //    }
         //
-        const data = this.safeValue (response, 'data');
+        const data = this.safeList (response, 'data');
         return this.parsePositions (data, symbols);
     }
 
@@ -1290,7 +1290,7 @@ export default class kucoinfutures extends kucoin {
         //        },
         //    }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         return this.parseOrder (data, market);
     }
 
@@ -1340,7 +1340,7 @@ export default class kucoinfutures extends kucoin {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         return this.parseOrders (data);
     }
 
@@ -1497,7 +1497,7 @@ export default class kucoinfutures extends kucoin {
         return this.safeValue (response, 'data');
     }
 
-    async addMargin (symbol: string, amount, params = {}) {
+    async addMargin (symbol: string, amount, params = {}): Promise<MarginModification> {
         /**
          * @method
          * @name kucoinfutures#addMargin
@@ -1744,7 +1744,7 @@ export default class kucoinfutures extends kucoin {
         //     }
         //
         const responseData = this.safeValue (response, 'data', {});
-        const orders = this.safeValue (responseData, 'items', []);
+        const orders = this.safeList (responseData, 'items', []);
         return this.parseOrders (orders, market, since, limit);
     }
 
@@ -1842,7 +1842,7 @@ export default class kucoinfutures extends kucoin {
         //     }
         //
         const market = (symbol !== undefined) ? this.market (symbol) : undefined;
-        const responseData = this.safeValue (response, 'data');
+        const responseData = this.safeDict (response, 'data');
         return this.parseOrder (responseData, market);
     }
 
@@ -2268,7 +2268,7 @@ export default class kucoinfutures extends kucoin {
         //          ]
         //      }
         //
-        const trades = this.safeValue (response, 'data', []);
+        const trades = this.safeList (response, 'data', []);
         return this.parseTrades (trades, market, since, limit);
     }
 

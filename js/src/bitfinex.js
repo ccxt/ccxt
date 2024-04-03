@@ -453,7 +453,7 @@ export default class bitfinex extends Exchange {
         //        }
         //    }
         //
-        const withdraw = this.safeValue(response, 'withdraw');
+        const withdraw = this.safeList(response, 'withdraw');
         return this.parseDepositWithdrawFees(withdraw, codes);
     }
     parseDepositWithdrawFee(fee, currency = undefined) {
@@ -1325,6 +1325,9 @@ export default class bitfinex extends Exchange {
         await this.loadMarkets();
         if (limit === undefined) {
             limit = 100;
+        }
+        else {
+            limit = Math.min(limit, 10000);
         }
         const market = this.market(symbol);
         const v2id = 't' + market['id'];

@@ -6,7 +6,7 @@ import { AuthenticationError, BadRequest, ExchangeError, NotSupported, Permissio
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Balances, Currency, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry } from './base/types.js';
+import type { Balances, Currencies, Currency, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -629,7 +629,7 @@ export default class bitstamp extends Exchange {
         return this.safeValue (this.options['fetchMarkets'], 'response');
     }
 
-    async fetchCurrencies (params = {}) {
+    async fetchCurrencies (params = {}): Promise<Currencies> {
         /**
          * @method
          * @name bitstamp#fetchCurrencies
@@ -1143,7 +1143,7 @@ export default class bitstamp extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', {});
-        const ohlc = this.safeValue (data, 'ohlc', []);
+        const ohlc = this.safeList (data, 'ohlc', []);
         return this.parseOHLCVs (ohlc, market, timeframe, since, limit);
     }
 
@@ -1194,7 +1194,7 @@ export default class bitstamp extends Exchange {
         return this.parseBalance (response);
     }
 
-    async fetchTradingFee (symbol: string, params = {}) {
+    async fetchTradingFee (symbol: string, params = {}): Promise<TradingFeeInterface> {
         /**
          * @method
          * @name bitstamp#fetchTradingFee
@@ -1229,7 +1229,7 @@ export default class bitstamp extends Exchange {
         return this.parseTradingFee (tradingFee, market);
     }
 
-    parseTradingFee (fee, market: Market = undefined) {
+    parseTradingFee (fee, market: Market = undefined): TradingFeeInterface {
         const marketId = this.safeString (fee, 'market');
         const fees = this.safeDict (fee, 'fees', {});
         return {
@@ -1237,6 +1237,8 @@ export default class bitstamp extends Exchange {
             'symbol': this.safeSymbol (marketId, market),
             'maker': this.safeNumber (fees, 'maker'),
             'taker': this.safeNumber (fees, 'taker'),
+            'percentage': undefined,
+            'tierBased': undefined,
         };
     }
 
@@ -1251,7 +1253,7 @@ export default class bitstamp extends Exchange {
         return result;
     }
 
-    async fetchTradingFees (params = {}) {
+    async fetchTradingFees (params = {}): Promise<TradingFees> {
         /**
          * @method
          * @name bitstamp#fetchTradingFees

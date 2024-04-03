@@ -627,7 +627,7 @@ class cryptocom extends Exchange {
             //     }
             //
             $result = $this->safe_value($response, 'result', array());
-            $data = $this->safe_value($result, 'data', array());
+            $data = $this->safe_list($result, 'data', array());
             return $this->parse_tickers($data, $symbols);
         }) ();
     }
@@ -725,7 +725,7 @@ class cryptocom extends Exchange {
             //     }
             //
             $data = $this->safe_value($response, 'result', array());
-            $orders = $this->safe_value($data, 'data', array());
+            $orders = $this->safe_list($data, 'data', array());
             return $this->parse_orders($orders, $market, $since, $limit);
         }) ();
     }
@@ -786,7 +786,7 @@ class cryptocom extends Exchange {
             //     }
             //
             $result = $this->safe_value($response, 'result', array());
-            $trades = $this->safe_value($result, 'data', array());
+            $trades = $this->safe_list($result, 'data', array());
             return $this->parse_trades($trades, $market, $since, $limit);
         }) ();
     }
@@ -850,7 +850,7 @@ class cryptocom extends Exchange {
             //     }
             //
             $result = $this->safe_value($response, 'result', array());
-            $data = $this->safe_value($result, 'data', array());
+            $data = $this->safe_list($result, 'data', array());
             return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
         }) ();
     }
@@ -1025,7 +1025,7 @@ class cryptocom extends Exchange {
             //         }
             //     }
             //
-            $order = $this->safe_value($response, 'result', array());
+            $order = $this->safe_dict($response, 'result', array());
             return $this->parse_order($order, $market);
         }) ();
     }
@@ -1161,7 +1161,7 @@ class cryptocom extends Exchange {
             //         }
             //     }
             //
-            $result = $this->safe_value($response, 'result', array());
+            $result = $this->safe_dict($response, 'result', array());
             return $this->parse_order($result, $market);
         }) ();
     }
@@ -1410,7 +1410,7 @@ class cryptocom extends Exchange {
             //         }
             //     }
             //
-            $result = $this->safe_value($response, 'result', array());
+            $result = $this->safe_dict($response, 'result', array());
             return $this->parse_order($result, $market);
         }) ();
     }
@@ -1444,7 +1444,7 @@ class cryptocom extends Exchange {
                 'order_list' => $orderRequests,
             );
             $response = Async\await($this->v1PrivatePostPrivateCancelOrderList (array_merge($request, $params)));
-            $result = $this->safe_value($response, 'result', array());
+            $result = $this->safe_list($response, 'result', array());
             return $this->parse_orders($result, $market, null, null, $params);
         }) ();
     }
@@ -1506,7 +1506,7 @@ class cryptocom extends Exchange {
             //     }
             //
             $data = $this->safe_value($response, 'result', array());
-            $orders = $this->safe_value($data, 'data', array());
+            $orders = $this->safe_list($data, 'data', array());
             return $this->parse_orders($orders, $market, $since, $limit);
         }) ();
     }
@@ -1578,7 +1578,7 @@ class cryptocom extends Exchange {
             //     }
             //
             $result = $this->safe_value($response, 'result', array());
-            $trades = $this->safe_value($result, 'data', array());
+            $trades = $this->safe_list($result, 'data', array());
             return $this->parse_trades($trades, $market, $since, $limit);
         }) ();
     }
@@ -1643,7 +1643,7 @@ class cryptocom extends Exchange {
             //        }
             //     }
             //
-            $result = $this->safe_value($response, 'result');
+            $result = $this->safe_dict($response, 'result');
             return $this->parse_transaction($result, $currency);
         }) ();
     }
@@ -1798,7 +1798,7 @@ class cryptocom extends Exchange {
             //     }
             //
             $data = $this->safe_value($response, 'result', array());
-            $depositList = $this->safe_value($data, 'deposit_list', array());
+            $depositList = $this->safe_list($data, 'deposit_list', array());
             return $this->parse_transactions($depositList, $currency, $since, $limit);
         }) ();
     }
@@ -1860,7 +1860,7 @@ class cryptocom extends Exchange {
             //     }
             //
             $data = $this->safe_value($response, 'result', array());
-            $withdrawalList = $this->safe_value($data, 'withdrawal_list', array());
+            $withdrawalList = $this->safe_list($data, 'withdrawal_list', array());
             return $this->parse_transactions($withdrawalList, $currency, $since, $limit);
         }) ();
     }
@@ -2324,7 +2324,7 @@ class cryptocom extends Exchange {
             Async\await($this->load_markets());
             $response = Async\await($this->v1PrivatePostPrivateGetCurrencyNetworks ($params));
             $data = $this->safe_value($response, 'result');
-            $currencyMap = $this->safe_value($data, 'currency_map');
+            $currencyMap = $this->safe_list($data, 'currency_map');
             return $this->parse_deposit_withdraw_fees($currencyMap, $codes, 'full_name');
         }) ();
     }
@@ -2762,9 +2762,9 @@ class cryptocom extends Exchange {
             //         }
             //     }
             //
-            $result = $this->safe_value($response, 'result', array());
-            $data = $this->safe_value($result, 'data', array());
-            return $this->parse_position($data[0], $market);
+            $result = $this->safe_dict($response, 'result', array());
+            $data = $this->safe_list($result, 'data', array());
+            return $this->parse_position($this->safe_dict($data, 0), $market);
         }) ();
     }
 
@@ -2957,7 +2957,7 @@ class cryptocom extends Exchange {
             //        }
             //    }
             //
-            $result = $this->safe_value($response, 'result');
+            $result = $this->safe_dict($response, 'result');
             return $this->parse_order($result, $market);
         }) ();
     }

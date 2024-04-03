@@ -2750,7 +2750,7 @@ public partial class mexc : Exchange
             //         ]
             //     }
             //
-            object data = this.safeValue(response, "data");
+            object data = this.safeList(response, "data");
             return this.parseOrders(data, market);
         }
     }
@@ -3045,7 +3045,7 @@ public partial class mexc : Exchange
             //         ]
             //     }
             //
-            object data = this.safeValue(response, "data");
+            object data = this.safeList(response, "data");
             return this.parseOrders(data, market);
         }
     }
@@ -3152,7 +3152,7 @@ public partial class mexc : Exchange
             //         "code": "0"
             //     }
             //
-            object data = this.safeValue(response, "data", new List<object>() {});
+            object data = this.safeList(response, "data", new List<object>() {});
             return this.parseOrders(data, market);
         }
     }
@@ -4314,7 +4314,7 @@ public partial class mexc : Exchange
         //         ]
         //     }
         //
-        object data = this.safeValue(response, "data");
+        object data = this.safeList(response, "data");
         return this.parseLeverageTiers(data, symbols, "symbol");
     }
 
@@ -4494,7 +4494,7 @@ public partial class mexc : Exchange
         }
         if (isTrue(isEqual(result, null)))
         {
-            throw new InvalidAddress ((string)add(add(add(add(add(this.id, " fetchDepositAddress() cannot find a deposit address for "), code), ", and network"), network), "consider creating one using the MEXC platform")) ;
+            throw new InvalidAddress ((string)add(add(add(add(add(this.id, " fetchDepositAddress() cannot find a deposit address for "), code), ", and network"), network), "consider creating one using .createDepositAddress() method or in MEXC website")) ;
         }
         return result;
     }
@@ -4810,7 +4810,7 @@ public partial class mexc : Exchange
         //         ]
         //     }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parsePositions(data, symbols);
     }
 
@@ -4909,7 +4909,7 @@ public partial class mexc : Exchange
             //         }
             //     }
             //
-            object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+            object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
             return this.parseTransfer(data);
         } else if (isTrue(isEqual(marketType, "swap")))
         {

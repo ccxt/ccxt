@@ -1,9 +1,9 @@
-
 import assert from 'assert';
+import { Exchange } from "../../../ccxt";
 import testOrder from './base/test.order.js';
 import testSharedMethods from './base/test.sharedMethods.js';
 
-async function testFetchClosedOrders (exchange, skippedProperties, symbol) {
+async function testFetchClosedOrders (exchange: Exchange, skippedProperties: object, symbol: string) {
     const method = 'fetchClosedOrders';
     const orders = await exchange.fetchClosedOrders (symbol);
     testSharedMethods.assertNonEmtpyArray (exchange, skippedProperties, method, orders, symbol);

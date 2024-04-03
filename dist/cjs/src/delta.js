@@ -243,14 +243,6 @@ class delta extends delta$1 {
             },
         });
     }
-    convertExpireDate(date) {
-        // parse YYMMDD to timestamp
-        const year = date.slice(0, 2);
-        const month = date.slice(2, 4);
-        const day = date.slice(4, 6);
-        const reconstructedDate = '20' + year + '-' + month + '-' + day + 'T00:00:00Z';
-        return reconstructedDate;
-    }
     createExpiredOptionMarket(symbol) {
         // support expired option contracts
         const quote = 'USDT';
@@ -2671,12 +2663,14 @@ class delta extends delta$1 {
         market = this.safeMarket(marketId, market);
         return {
             'info': data,
+            'symbol': market['symbol'],
             'type': undefined,
             'amount': undefined,
             'total': this.safeNumber(data, 'margin'),
             'code': undefined,
-            'symbol': market['symbol'],
             'status': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
         };
     }
     async fetchOpenInterest(symbol, params = {}) {

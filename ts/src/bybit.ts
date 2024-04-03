@@ -7,7 +7,7 @@ import { AuthenticationError, ExchangeError, ArgumentsRequired, PermissionDenied
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { rsa } from './base/functions/rsa.js';
-import type { Int, OrderSide, OrderType, Trade, Order, OHLCV, FundingRateHistory, OpenInterest, OrderRequest, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Greeks, Strings, Market, Currency, MarketInterface, TransferEntry, Liquidation, Leverage, Num, FundingHistory, Option, OptionChain } from './base/types.js';
+import type { Int, OrderSide, OrderType, Trade, Order, OHLCV, FundingRateHistory, OpenInterest, OrderRequest, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Greeks, Strings, Market, Currency, MarketInterface, TransferEntry, Liquidation, Leverage, Num, FundingHistory, Option, OptionChain, TradingFeeInterface, Currencies, TradingFees } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1127,74 +1127,6 @@ export default class bybit extends Exchange {
         return await this.privatePostV5AccountUpgradeToUta (params);
     }
 
-    convertExpireDate (date) {
-        // parse YYMMDD to timestamp
-        const year = date.slice (0, 2);
-        const month = date.slice (2, 4);
-        const day = date.slice (4, 6);
-        const reconstructedDate = '20' + year + '-' + month + '-' + day + 'T00:00:00Z';
-        return reconstructedDate;
-    }
-
-    convertExpireDateToMarketIdDate (date) {
-        // parse 231229 to 29DEC23
-        const year = date.slice (0, 2);
-        const monthRaw = date.slice (2, 4);
-        let month = undefined;
-        const day = date.slice (4, 6);
-        if (monthRaw === '01') {
-            month = 'JAN';
-        } else if (monthRaw === '02') {
-            month = 'FEB';
-        } else if (monthRaw === '03') {
-            month = 'MAR';
-        } else if (monthRaw === '04') {
-            month = 'APR';
-        } else if (monthRaw === '05') {
-            month = 'MAY';
-        } else if (monthRaw === '06') {
-            month = 'JUN';
-        } else if (monthRaw === '07') {
-            month = 'JUL';
-        } else if (monthRaw === '08') {
-            month = 'AUG';
-        } else if (monthRaw === '09') {
-            month = 'SEP';
-        } else if (monthRaw === '10') {
-            month = 'OCT';
-        } else if (monthRaw === '11') {
-            month = 'NOV';
-        } else if (monthRaw === '12') {
-            month = 'DEC';
-        }
-        const reconstructedDate = day + month + year;
-        return reconstructedDate;
-    }
-
-    convertMarketIdExpireDate (date) {
-        // parse 22JAN23 to 230122
-        const monthMappping = {
-            'JAN': '01',
-            'FEB': '02',
-            'MAR': '03',
-            'APR': '04',
-            'MAY': '05',
-            'JUN': '06',
-            'JUL': '07',
-            'AUG': '08',
-            'SEP': '09',
-            'OCT': '10',
-            'NOV': '11',
-            'DEC': '12',
-        };
-        const year = date.slice (0, 2);
-        const monthName = date.slice (2, 5);
-        const month = this.safeString (monthMappping, monthName);
-        const day = date.slice (5, 7);
-        const reconstructedDate = day + month + year;
-        return reconstructedDate;
-    }
-
     createExpiredOptionMarket (symbol: string) {
         // support expired option contracts
         const quote = 'USD';
@@ -1305,7 +1237,7 @@ export default class bybit extends Exchange {
         return this.safeInteger (response, 'time');
     }
 
-    async fetchCurrencies (params = {}) {
+    async fetchCurrencies (params = {}): Promise<Currencies> {
         /**
          * @method
          * @name bybit#fetchCurrencies
@@ -2089,7 +2021,7 @@ export default class bybit extends Exchange {
         //
         const result = this.safeValue (response, 'result', []);
         const tickers = this.safeValue (result, 'list', []);
-        const rawTicker = this.safeValue (tickers, 0);
+        const rawTicker = this.safeDict (tickers, 0);
         return this.parseTicker (rawTicker, market);
     }
 
@@ -2101,6 +2033,7 @@ export default class bybit extends Exchange {
          * @see https://bybit-exchange.github.io/docs/v5/market/tickers
          * @param {string[]} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.subType] *contract only* 'linear', 'inverse'
          * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
@@ -2137,11 +2070,16 @@ export default class bybit extends Exchange {
         };
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
-        if (type === 'spot') {
+        // Calls like `.fetchTickers (undefined, {subType:'inverse'})` should be supported for this exchange, so
+        // as "options.defaultSubType" is also set in exchange options, we should consider `params.subType`
+        // with higher priority and only default to spot, if `subType` is not set in params
+        const passedSubType = this.safeString (params, 'subType');
+        let subType = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams ('fetchTickers', market, params, 'linear');
+        // only if passedSubType is undefined, then use spot
+        if (type === 'spot' && passedSubType === undefined) {
             request['category'] = 'spot';
-        } else if (type === 'swap' || type === 'future') {
-            let subType = undefined;
-            [ subType, params ] = this.handleSubTypeAndParams ('fetchTickers', market, params, 'linear');
+        } else if (type === 'swap' || type === 'future' || subType !== undefined) {
             request['category'] = subType;
         } else if (type === 'option') {
             request['category'] = 'option';
@@ -2186,7 +2124,7 @@ export default class bybit extends Exchange {
         //     }
         //
         const result = this.safeValue (response, 'result', {});
-        const tickerList = this.safeValue (result, 'list', []);
+        const tickerList = this.safeList (result, 'list', []);
         return this.parseTickers (tickerList, parsedSymbols);
     }
 
@@ -2321,7 +2259,7 @@ export default class bybit extends Exchange {
         //     }
         //
         const result = this.safeValue (response, 'result', {});
-        const ohlcvs = this.safeValue (result, 'list', []);
+        const ohlcvs = this.safeList (result, 'list', []);
         return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
     }
 
@@ -2795,7 +2733,7 @@ export default class bybit extends Exchange {
         //     }
         //
         const result = this.safeValue (response, 'result', {});
-        const trades = this.safeValue (result, 'list', []);
+        const trades = this.safeList (result, 'list', []);
         return this.parseTrades (trades, market, since, limit);
     }
 
@@ -3542,7 +3480,7 @@ export default class bybit extends Exchange {
         //         "time": 1672211918471
         //     }
         //
-        const order = this.safeValue (response, 'result', {});
+        const order = this.safeDict (response, 'result', {});
         return this.parseOrder (order, market);
     }
 
@@ -3972,7 +3910,7 @@ export default class bybit extends Exchange {
         //            "tpTriggerBy":"UNKNOWN"
         //     }
         //
-        const order = this.safeValue (response, 'result', {});
+        const order = this.safeDict (response, 'result', {});
         return this.parseOrder (order, market);
     }
 
@@ -4028,7 +3966,7 @@ export default class bybit extends Exchange {
         //        "retExtMap": {}
         //   }
         //
-        const result = this.safeValue (response, 'result', {});
+        const result = this.safeDict (response, 'result', {});
         return this.parseOrder (result, market);
     }
 
@@ -4196,7 +4134,7 @@ export default class bybit extends Exchange {
         //         "retExtMap": {}
         //     }
         //
-        const result = this.safeValue (response, 'result', {});
+        const result = this.safeDict (response, 'result', {});
         return this.parseOrder (result, market);
     }
 
@@ -4262,7 +4200,7 @@ export default class bybit extends Exchange {
         //         "time": 1672217377164
         //     }
         //
-        const result = this.safeValue (response, 'result', {});
+        const result = this.safeDict (response, 'result', {});
         return this.parseOrder (result, market);
     }
 
@@ -4560,7 +4498,7 @@ export default class bybit extends Exchange {
         //     }
         //
         const result = this.safeValue (response, 'result', {});
-        const data = this.safeValue (result, 'dataList', []);
+        const data = this.safeList (result, 'dataList', []);
         return this.parseOrders (data, market, since, limit);
     }
 
@@ -5199,7 +5137,7 @@ export default class bybit extends Exchange {
         //     }
         //
         const result = this.safeValue (response, 'result', {});
-        const dataList = this.safeValue (result, 'dataList', []);
+        const dataList = this.safeList (result, 'dataList', []);
         return this.parseTrades (dataList, market, since, limit);
     }
 
@@ -5406,7 +5344,7 @@ export default class bybit extends Exchange {
         const chains = this.safeValue (result, 'chains', []);
         const chainsIndexedById = this.indexBy (chains, 'chain');
         const selectedNetworkId = this.selectNetworkIdFromRawNetworks (code, networkCode, chainsIndexedById);
-        const addressObject = this.safeValue (chainsIndexedById, selectedNetworkId, {});
+        const addressObject = this.safeDict (chainsIndexedById, selectedNetworkId, {});
         return this.parseDepositAddress (addressObject, currency);
     }
 
@@ -5971,7 +5909,7 @@ export default class bybit extends Exchange {
         //         "time": "1666892894902"
         //     }
         //
-        const result = this.safeValue (response, 'result', {});
+        const result = this.safeDict (response, 'result', {});
         return this.parseTransaction (result, currency);
     }
 
@@ -6377,6 +6315,12 @@ export default class bybit extends Exchange {
         if (timestamp === undefined) {
             timestamp = this.safeIntegerN (position, [ 'updatedTime', 'updatedAt' ]);
         }
+        const tradeMode = this.safeInteger (position, 'tradeMode', 0);
+        let marginMode = undefined;
+        if ((!this.options['enableUnifiedAccount']) || (this.options['enableUnifiedAccount'] && market['inverse'])) {
+            // tradeMode would work for classic and UTA(inverse)
+            marginMode = (tradeMode === 1) ? 'isolated' : 'cross';
+        }
         let collateralString = this.safeString (position, 'positionBalance');
         const entryPrice = this.omitZero (this.safeString2 (position, 'entryPrice', 'avgPrice'));
         const liquidationPrice = this.omitZero (this.safeString (position, 'liqPrice'));
@@ -6438,7 +6382,7 @@ export default class bybit extends Exchange {
             'markPrice': this.safeNumber (position, 'markPrice'),
             'lastPrice': undefined,
             'collateral': this.parseNumber (collateralString),
-            'marginMode': undefined,
+            'marginMode': marginMode,
             'side': side,
             'percentage': undefined,
             'stopLossPrice': this.safeNumber2 (position, 'stop_loss', 'stopLoss'),
@@ -7295,7 +7239,7 @@ export default class bybit extends Exchange {
         return await this.fetchDerivativesMarketLeverageTiers (symbol, params);
     }
 
-    parseTradingFee (fee, market: Market = undefined) {
+    parseTradingFee (fee, market: Market = undefined): TradingFeeInterface {
         //
         //     {
         //         "symbol": "ETHUSDT",
@@ -7311,10 +7255,12 @@ export default class bybit extends Exchange {
             'symbol': symbol,
             'maker': this.safeNumber (fee, 'makerFeeRate'),
             'taker': this.safeNumber (fee, 'takerFeeRate'),
+            'percentage': undefined,
+            'tierBased': undefined,
         };
     }
 
-    async fetchTradingFee (symbol: string, params = {}) {
+    async fetchTradingFee (symbol: string, params = {}): Promise<TradingFeeInterface> {
         /**
          * @method
          * @name bybit#fetchTradingFee
@@ -7364,7 +7310,7 @@ export default class bybit extends Exchange {
         return this.parseTradingFee (first, market);
     }
 
-    async fetchTradingFees (params = {}) {
+    async fetchTradingFees (params = {}): Promise<TradingFees> {
         /**
          * @method
          * @name bybit#fetchTradingFees
@@ -7507,7 +7453,7 @@ export default class bybit extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'result', {});
-        const rows = this.safeValue (data, 'rows', []);
+        const rows = this.safeList (data, 'rows', []);
         return this.parseDepositWithdrawFees (rows, codes, 'coin');
     }
 
