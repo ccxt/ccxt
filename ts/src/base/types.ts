@@ -35,6 +35,15 @@ export interface FeeInterface {
     rate?: Num;
 }
 
+export interface TradingFeeInterface {
+    info: any;
+    symbol: Str;
+    maker: Num;
+    taker: Num;
+    percentage: Bool;
+    tierBased: Bool;
+}
+
 export type Fee = FeeInterface | undefined
 
 export interface MarketInterface {
@@ -189,8 +198,29 @@ export interface Tickers extends Dictionary<Ticker> {
 export interface CurrencyInterface {
     id: string;
     code: string;
-    numericId?: number;
+    numericId?: Int;
     precision: number;
+    type?: Str;
+    margin?: Bool;
+    name?: Str;
+    active?: Bool;
+    deposit?: Bool;
+    withdraw?: Bool;
+    fee?: Num;
+    limits: {
+        amount: {
+            min?: Num;
+            max?: Num;
+        },
+        withdraw: {
+            min?: Num;
+            max?: Num;
+        },
+    },
+    networks: {
+        string: any,
+    },
+    info: any;
 }
 
 export interface Balance {
@@ -495,6 +525,11 @@ export interface Leverages extends Dictionary<Leverage> {
 
 export interface LastPrices extends Dictionary<LastPrice> {
 }
+export interface Currencies extends Dictionary<CurrencyInterface> {
+}
+
+export interface TradingFees extends Dictionary<TradingFeeInterface> {
+}
 
 export interface MarginModes extends Dictionary<MarginMode> {
 }
@@ -512,3 +547,4 @@ export type implicitReturnType = any;
 
 export type Market = MarketInterface | undefined;
 export type Currency = CurrencyInterface | undefined;
+

@@ -3469,9 +3469,9 @@ class kucoin extends Exchange {
     public function fetch_balance($params = array ()): array {
         /**
          * $query for $balance and get the amount of funds available for trading or funds locked in orders
-         * @see https://docs.kucoin.com/#list-$accounts
          * @see https://www.kucoin.com/docs/rest/account/basic-info/get-$account-list-spot-margin-trade_hf
-         * @see https://docs.kucoin.com/#$query-$isolated-margin-$account-info
+         * @see https://www.kucoin.com/docs/rest/funding/funding-overview/get-$account-detail-margin
+         * @see https://www.kucoin.com/docs/rest/funding/funding-overview/get-$account-detail-$isolated-margin
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {array} [$params->marginMode] 'cross' or 'isolated', margin $type for fetching margin $balance
          * @param {array} [$params->type] extra parameters specific to the exchange API endpoint
@@ -3498,7 +3498,7 @@ class kucoin extends Exchange {
         $response = null;
         $request = array();
         $isolated = ($marginMode === 'isolated') || ($type === 'isolated');
-        $cross = ($marginMode === 'cross') || ($type === 'cross');
+        $cross = ($marginMode === 'cross') || ($type === 'margin');
         if ($isolated) {
             if ($currency !== null) {
                 $request['balanceCurrency'] = $currency['id'];
@@ -3566,13 +3566,14 @@ class kucoin extends Exchange {
         //        }
         //    }
         //
-        $data = $this->safe_list($response, 'data', array());
+        $data = null;
         $result = array(
             'info' => $response,
             'timestamp' => null,
             'datetime' => null,
         );
         if ($isolated) {
+            $data = $this->safe_dict($response, 'data', array());
             $assets = $this->safe_value($data, 'assets', $data);
             for ($i = 0; $i < count($assets); $i++) {
                 $entry = $assets[$i];
@@ -3588,6 +3589,7 @@ class kucoin extends Exchange {
                 $result[$symbol] = $this->safe_balance($subResult);
             }
         } elseif ($cross) {
+            $data = $this->safe_dict($response, 'data', array());
             $accounts = $this->safe_list($data, 'accounts', array());
             for ($i = 0; $i < count($accounts); $i++) {
                 $balance = $accounts[$i];
@@ -3596,6 +3598,7 @@ class kucoin extends Exchange {
                 $result[$codeInner] = $this->parse_balance_helper($balance);
             }
         } else {
+            $data = $this->safe_list($response, 'data', array());
             for ($i = 0; $i < count($data); $i++) {
                 $balance = $data[$i];
                 $balanceType = $this->safe_string($balance, 'type');

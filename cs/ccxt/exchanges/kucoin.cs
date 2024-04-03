@@ -3669,9 +3669,9 @@ public partial class kucoin : Exchange
         * @method
         * @name kucoin#fetchBalance
         * @description query for balance and get the amount of funds available for trading or funds locked in orders
-        * @see https://docs.kucoin.com/#list-accounts
         * @see https://www.kucoin.com/docs/rest/account/basic-info/get-account-list-spot-margin-trade_hf
-        * @see https://docs.kucoin.com/#query-isolated-margin-account-info
+        * @see https://www.kucoin.com/docs/rest/funding/funding-overview/get-account-detail-margin
+        * @see https://www.kucoin.com/docs/rest/funding/funding-overview/get-account-detail-isolated-margin
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {object} [params.marginMode] 'cross' or 'isolated', margin type for fetching margin balance
         * @param {object} [params.type] extra parameters specific to the exchange API endpoint
@@ -3703,7 +3703,7 @@ public partial class kucoin : Exchange
         object response = null;
         object request = new Dictionary<string, object>() {};
         object isolated = isTrue((isEqual(marginMode, "isolated"))) || isTrue((isEqual(type, "isolated")));
-        object cross = isTrue((isEqual(marginMode, "cross"))) || isTrue((isEqual(type, "cross")));
+        object cross = isTrue((isEqual(marginMode, "cross"))) || isTrue((isEqual(type, "margin")));
         if (isTrue(isolated))
         {
             if (isTrue(!isEqual(currency, null)))
@@ -3776,7 +3776,7 @@ public partial class kucoin : Exchange
         //        }
         //    }
         //
-        object data = this.safeList(response, "data", new List<object>() {});
+        object data = null;
         object result = new Dictionary<string, object>() {
             { "info", response },
             { "timestamp", null },
@@ -3784,6 +3784,7 @@ public partial class kucoin : Exchange
         };
         if (isTrue(isolated))
         {
+            data = this.safeDict(response, "data", new Dictionary<string, object>() {});
             object assets = this.safeValue(data, "assets", data);
             for (object i = 0; isLessThan(i, getArrayLength(assets)); postFixIncrement(ref i))
             {
@@ -3801,6 +3802,7 @@ public partial class kucoin : Exchange
             }
         } else if (isTrue(cross))
         {
+            data = this.safeDict(response, "data", new Dictionary<string, object>() {});
             object accounts = this.safeList(data, "accounts", new List<object>() {});
             for (object i = 0; isLessThan(i, getArrayLength(accounts)); postFixIncrement(ref i))
             {
@@ -3811,6 +3813,7 @@ public partial class kucoin : Exchange
             }
         } else
         {
+            data = this.safeList(response, "data", new List<object>() {});
             for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
             {
                 object balance = getValue(data, i);

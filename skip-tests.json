@@ -1264,7 +1264,12 @@
         }
     },
     "poloniexfutures": {
-        "skipCSharp": "too flaky, check the reason later"
+        "skipCSharp": "too flaky, check the reason later",
+        "skipMethods": {
+            "watchOrderBook": {
+                "spread": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269769010#L3644"
+            }
+        }
     },
     "okx": {
         "skipCSharp": true,

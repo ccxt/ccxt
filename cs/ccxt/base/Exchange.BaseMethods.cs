@@ -4366,6 +4366,35 @@ public partial class Exchange
         return add(parsedPrecision, "1");
     }
 
+    public virtual object integerPrecisionToAmount(object precision)
+    {
+        /**
+         * @ignore
+         * @method
+         * @description handles positive & negative numbers too. parsePrecision() does not handle negative numbers, but this method handles
+         * @param {string} precision The number of digits to the right of the decimal
+         * @returns {string} a string number equal to 1e-precision
+         */
+        if (isTrue(isEqual(precision, null)))
+        {
+            return null;
+        }
+        if (isTrue(Precise.stringGe(precision, "0")))
+        {
+            return this.parsePrecision(precision);
+        } else
+        {
+            object positivePrecisionString = Precise.stringAbs(precision);
+            object positivePrecision = parseInt(positivePrecisionString);
+            object parsedPrecision = "1";
+            for (object i = 0; isLessThan(i, subtract(positivePrecision, 1)); postFixIncrement(ref i))
+            {
+                parsedPrecision = add(parsedPrecision, "0");
+            }
+            return add(parsedPrecision, "0");
+        }
+    }
+
     public async virtual Task<object> loadTimeDifference(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
@@ -5004,8 +5033,8 @@ public partial class Exchange
             object entry = getValue(responseKeys, i);
             object dictionary = ((bool) isTrue(isArray)) ? entry : getValue(response, entry);
             object currencyId = ((bool) isTrue(isArray)) ? this.safeString(dictionary, currencyIdKey) : entry;
-            object currency = this.safeValue(this.currencies_by_id, currencyId);
-            object code = this.safeString(currency, "code", currencyId);
+            object currency = this.safeCurrency(currencyId);
+            object code = this.safeString(currency, "code");
             if (isTrue(isTrue((isEqual(codes, null))) || isTrue((this.inArray(code, codes)))))
             {
                 ((IDictionary<string,object>)depositWithdrawFees)[(string)code] = this.parseDepositWithdrawFee(dictionary, currency);

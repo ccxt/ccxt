@@ -6,7 +6,7 @@ import { AuthenticationError, BadRequest, ExchangeError, NotSupported, Permissio
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Balances, Currency, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry } from './base/types.js';
+import type { Balances, Currencies, Currency, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -430,6 +430,30 @@ export default class bitstamp extends Exchange {
             'commonCurrencies': {
                 'UST': 'USTC',
             },
+            // exchange-specific options
+            'options': {
+                'networksById': {
+                    'bitcoin-cash': 'BCH',
+                    'bitcoin': 'BTC',
+                    'ethereum': 'ERC20',
+                    'litecoin': 'LTC',
+                    'stellar': 'XLM',
+                    'xrpl': 'XRP',
+                    'tron': 'TRC20',
+                    'algorand': 'ALGO',
+                    'flare': 'FLR',
+                    'hedera': 'HBAR',
+                    'cardana': 'ADA',
+                    'songbird': 'FLR',
+                    'avalanche-c-chain': 'AVAX',
+                    'solana': 'SOL',
+                    'polkadot': 'DOT',
+                    'near': 'NEAR',
+                    'doge': 'DOGE',
+                    'sui': 'SUI',
+                    'casper': 'CSRP',
+                },
+            },
             'exceptions': {
                 'exact': {
                     'No permission found': PermissionDenied,
@@ -605,7 +629,7 @@ export default class bitstamp extends Exchange {
         return this.safeValue (this.options['fetchMarkets'], 'response');
     }
 
-    async fetchCurrencies (params = {}) {
+    async fetchCurrencies (params = {}): Promise<Currencies> {
         /**
          * @method
          * @name bitstamp#fetchCurrencies
@@ -1170,7 +1194,7 @@ export default class bitstamp extends Exchange {
         return this.parseBalance (response);
     }
 
-    async fetchTradingFee (symbol: string, params = {}) {
+    async fetchTradingFee (symbol: string, params = {}): Promise<TradingFeeInterface> {
         /**
          * @method
          * @name bitstamp#fetchTradingFee
@@ -1205,7 +1229,7 @@ export default class bitstamp extends Exchange {
         return this.parseTradingFee (tradingFee, market);
     }
 
-    parseTradingFee (fee, market: Market = undefined) {
+    parseTradingFee (fee, market: Market = undefined): TradingFeeInterface {
         const marketId = this.safeString (fee, 'market');
         const fees = this.safeDict (fee, 'fees', {});
         return {
@@ -1213,6 +1237,8 @@ export default class bitstamp extends Exchange {
             'symbol': this.safeSymbol (marketId, market),
             'maker': this.safeNumber (fees, 'maker'),
             'taker': this.safeNumber (fees, 'taker'),
+            'percentage': undefined,
+            'tierBased': undefined,
         };
     }
 
@@ -1227,7 +1253,7 @@ export default class bitstamp extends Exchange {
         return result;
     }
 
-    async fetchTradingFees (params = {}) {
+    async fetchTradingFees (params = {}): Promise<TradingFees> {
         /**
          * @method
          * @name bitstamp#fetchTradingFees
@@ -1261,66 +1287,47 @@ export default class bitstamp extends Exchange {
          * @name bitstamp#fetchTransactionFees
          * @deprecated
          * @description please use fetchDepositWithdrawFees instead
-         * @see https://www.bitstamp.net/api/#balance
+         * @see https://www.bitstamp.net/api/#tag/Fees
          * @param {string[]|undefined} codes list of unified currency codes
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
          */
         await this.loadMarkets ();
-        const balance = await this.privatePostBalance (params);
-        return this.parseTransactionFees (balance);
+        const response = await this.privatePostFeesWithdrawal (params);
+        //
+        //     [
+        //         {
+        //             "currency": "btc",
+        //             "fee": "0.00015000",
+        //             "network": "bitcoin"
+        //         }
+        //         ...
+        //     ]
+        //
+        return this.parseTransactionFees (response);
     }
 
     parseTransactionFees (response, codes = undefined) {
-        //
-        //  {
-        //     "yfi_available": "0.00000000",
-        //     "yfi_balance": "0.00000000",
-        //     "yfi_reserved": "0.00000000",
-        //     "yfi_withdrawal_fee": "0.00070000",
-        //     "yfieur_fee": "0.000",
-        //     "yfiusd_fee": "0.000",
-        //     "zrx_available": "0.00000000",
-        //     "zrx_balance": "0.00000000",
-        //     "zrx_reserved": "0.00000000",
-        //     "zrx_withdrawal_fee": "12.00000000",
-        //     "zrxeur_fee": "0.000",
-        //     "zrxusd_fee": "0.000",
-        //     ...
-        //  }
-        //
-        if (codes === undefined) {
-            codes = Object.keys (this.currencies);
-        }
         const result = {};
-        let mainCurrencyId = undefined;
-        const ids = Object.keys (response);
+        const currencies = this.indexBy (response, 'currency');
+        const ids = Object.keys (currencies);
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
-            const currencyId = id.split ('_')[0];
-            const code = this.safeCurrencyCode (currencyId);
-            if (codes !== undefined && !this.inArray (code, codes)) {
+            const fees = this.safeValue (response, i, {});
+            const code = this.safeCurrencyCode (id);
+            if ((codes !== undefined) && !this.inArray (code, codes)) {
                 continue;
             }
-            if (id.indexOf ('_available') >= 0) {
-                mainCurrencyId = currencyId;
-                result[code] = {
-                    'deposit': undefined,
-                    'withdraw': undefined,
-                    'info': {},
-                };
-            }
-            if (currencyId === mainCurrencyId) {
-                result[code]['info'][id] = this.safeNumber (response, id);
-            }
-            if (id.indexOf ('_withdrawal_fee') >= 0) {
-                result[code]['withdraw'] = this.safeNumber (response, id);
-            }
+            result[code] = {
+                'withdraw_fee': this.safeNumber (fees, 'fee'),
+                'deposit': {},
+                'info': this.safeDict (currencies, id),
+            };
         }
         return result;
     }
 
-    async fetchDepositWithdrawFees (codes: Strings = undefined, params = {}) {
+    async fetchDepositWithdrawFees (codes = undefined, params = {}) {
         /**
          * @method
          * @name bitstamp#fetchDepositWithdrawFees
@@ -1331,65 +1338,42 @@ export default class bitstamp extends Exchange {
          * @returns {object[]} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
          */
         await this.loadMarkets ();
-        const response = await this.privatePostBalance (params);
+        const response = await this.privatePostFeesWithdrawal (params);
         //
-        //    {
-        //        "yfi_available": "0.00000000",
-        //        "yfi_balance": "0.00000000",
-        //        "yfi_reserved": "0.00000000",
-        //        "yfi_withdrawal_fee": "0.00070000",
-        //        "yfieur_fee": "0.000",
-        //        "yfiusd_fee": "0.000",
-        //        "zrx_available": "0.00000000",
-        //        "zrx_balance": "0.00000000",
-        //        "zrx_reserved": "0.00000000",
-        //        "zrx_withdrawal_fee": "12.00000000",
-        //        "zrxeur_fee": "0.000",
-        //        "zrxusd_fee": "0.000",
-        //        ...
-        //    }
+        //     [
+        //         {
+        //             "currency": "btc",
+        //             "fee": "0.00015000",
+        //             "network": "bitcoin"
+        //         }
+        //         ...
+        //     ]
         //
-        return this.parseDepositWithdrawFees (response, codes);
+        const responseByCurrencyId = this.groupBy (response, 'currency');
+        return this.parseDepositWithdrawFees (responseByCurrencyId, codes);
     }
 
-    parseDepositWithdrawFees (response, codes = undefined, currencyIdKey = undefined) {
-        //
-        //    {
-        //        "yfi_available": "0.00000000",
-        //        "yfi_balance": "0.00000000",
-        //        "yfi_reserved": "0.00000000",
-        //        "yfi_withdrawal_fee": "0.00070000",
-        //        "yfieur_fee": "0.000",
-        //        "yfiusd_fee": "0.000",
-        //        "zrx_available": "0.00000000",
-        //        "zrx_balance": "0.00000000",
-        //        "zrx_reserved": "0.00000000",
-        //        "zrx_withdrawal_fee": "12.00000000",
-        //        "zrxeur_fee": "0.000",
-        //        "zrxusd_fee": "0.000",
-        //        ...
-        //    }
-        //
-        const result = {};
-        const ids = Object.keys (response);
-        for (let i = 0; i < ids.length; i++) {
-            const id = ids[i];
-            const currencyId = id.split ('_')[0];
-            const code = this.safeCurrencyCode (currencyId);
-            const dictValue = this.safeNumber (response, id);
-            if (codes !== undefined && !this.inArray (code, codes)) {
-                continue;
-            }
-            if (id.indexOf ('_available') >= 0) {
-                result[code] = this.depositWithdrawFee ({});
-            }
-            if (id.indexOf ('_withdrawal_fee') >= 0) {
-                result[code]['withdraw']['fee'] = dictValue;
-            }
-            const resultValue = this.safeValue (result, code);
-            if (resultValue !== undefined) {
-                result[code]['info'][id] = dictValue;
-            }
+    parseDepositWithdrawFee (fee, currency = undefined) {
+        const result = this.depositWithdrawFee (fee);
+        for (let j = 0; j < fee.length; j++) {
+            const networkEntry = fee[j];
+            const networkId = this.safeString (networkEntry, 'network');
+            const networkCode = this.networkIdToCode (networkId);
+            const withdrawFee = this.safeNumber (networkEntry, 'fee');
+            result['withdraw'] = {
+                'fee': withdrawFee,
+                'percentage': undefined,
+            };
+            result['networks'][networkCode] = {
+                'withdraw': {
+                    'fee': withdrawFee,
+                    'percentage': undefined,
+                },
+                'deposit': {
+                    'fee': undefined,
+                    'percentage': undefined,
+                },
+            };
         }
         return result;
     }

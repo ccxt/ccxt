@@ -6,7 +6,7 @@ import { ExchangeError, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, 
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE, TRUNCATE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { TransferEntry, Int, OrderSide, OrderType, Order, OHLCV, Trade, Balances, OrderRequest, Str, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, Market, Num, Account } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, Order, OHLCV, Trade, Balances, OrderRequest, Str, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, Market, Num, Account, TradingFeeInterface, Currencies } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1127,7 +1127,7 @@ export default class kucoin extends Exchange {
         return result;
     }
 
-    async fetchCurrencies (params = {}) {
+    async fetchCurrencies (params = {}): Promise<Currencies> {
         /**
          * @method
          * @name kucoin#fetchCurrencies
@@ -3139,7 +3139,7 @@ export default class kucoin extends Exchange {
         }, market);
     }
 
-    async fetchTradingFee (symbol: string, params = {}) {
+    async fetchTradingFee (symbol: string, params = {}): Promise<TradingFeeInterface> {
         /**
          * @method
          * @name kucoin#fetchTradingFee
@@ -3529,9 +3529,9 @@ export default class kucoin extends Exchange {
 
     parseBalanceHelper (entry) {
         const account = this.account ();
-        account['used'] = this.safeString (entry, 'holdBalance');
-        account['free'] = this.safeString (entry, 'availableBalance');
-        account['total'] = this.safeString (entry, 'totalBalance');
+        account['used'] = this.safeString2 (entry, 'holdBalance', 'hold');
+        account['free'] = this.safeString2 (entry, 'availableBalance', 'available');
+        account['total'] = this.safeString2 (entry, 'totalBalance', 'total');
         const debt = this.safeString (entry, 'liability');
         const interest = this.safeString (entry, 'interest');
         account['debt'] = Precise.stringAdd (debt, interest);
@@ -3543,9 +3543,9 @@ export default class kucoin extends Exchange {
          * @method
          * @name kucoin#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @see https://docs.kucoin.com/#list-accounts
          * @see https://www.kucoin.com/docs/rest/account/basic-info/get-account-list-spot-margin-trade_hf
-         * @see https://docs.kucoin.com/#query-isolated-margin-account-info
+         * @see https://www.kucoin.com/docs/rest/funding/funding-overview/get-account-detail-margin
+         * @see https://www.kucoin.com/docs/rest/funding/funding-overview/get-account-detail-isolated-margin
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {object} [params.marginMode] 'cross' or 'isolated', margin type for fetching margin balance
          * @param {object} [params.type] extra parameters specific to the exchange API endpoint
@@ -3572,7 +3572,7 @@ export default class kucoin extends Exchange {
         let response = undefined;
         const request = {};
         const isolated = (marginMode === 'isolated') || (type === 'isolated');
-        const cross = (marginMode === 'cross') || (type === 'cross');
+        const cross = (marginMode === 'cross') || (type === 'margin');
         if (isolated) {
             if (currency !== undefined) {
                 request['balanceCurrency'] = currency['id'];
@@ -3588,7 +3588,7 @@ export default class kucoin extends Exchange {
             response = await this.privateGetAccounts (this.extend (request, query));
         }
         //
-        // Spot and Cross
+        // Spot
         //
         //    {
         //        "code": "200000",
@@ -3604,35 +3604,59 @@ export default class kucoin extends Exchange {
         //        ]
         //    }
         //
+        // Cross
+        //
+        //     {
+        //         "code": "200000",
+        //         "data": {
+        //             "debtRatio": "0",
+        //             "accounts": [
+        //                 {
+        //                     "currency": "USDT",
+        //                     "totalBalance": "5",
+        //                     "availableBalance": "5",
+        //                     "holdBalance": "0",
+        //                     "liability": "0",
+        //                     "maxBorrowSize": "20"
+        //                 },
+        //             ]
+        //         }
+        //     }
+        //
         // Isolated
         //
         //    {
         //        "code": "200000",
         //        "data": {
-        //            "totalConversionBalance": "0",
-        //            "liabilityConversionBalance": "0",
+        //            "totalAssetOfQuoteCurrency": "0",
+        //            "totalLiabilityOfQuoteCurrency": "0",
+        //            "timestamp": 1712085661155,
         //            "assets": [
         //                {
         //                    "symbol": "MANA-USDT",
-        //                    "status": "CLEAR",
+        //                    "status": "EFFECTIVE",
         //                    "debtRatio": "0",
         //                    "baseAsset": {
         //                        "currency": "MANA",
-        //                        "totalBalance": "0",
-        //                        "holdBalance": "0",
-        //                        "availableBalance": "0",
+        //                        "borrowEnabled": true,
+        //                        "transferInEnabled": true,
+        //                        "total": "0",
+        //                        "hold": "0",
+        //                        "available": "0",
         //                        "liability": "0",
         //                        "interest": "0",
-        //                        "borrowableAmount": "0"
+        //                        "maxBorrowSize": "0"
         //                    },
         //                    "quoteAsset": {
         //                        "currency": "USDT",
-        //                        "totalBalance": "0",
-        //                        "holdBalance": "0",
-        //                        "availableBalance": "0",
+        //                        "borrowEnabled": true,
+        //                        "transferInEnabled": true,
+        //                        "total": "0",
+        //                        "hold": "0",
+        //                        "available": "0",
         //                        "liability": "0",
         //                        "interest": "0",
-        //                        "borrowableAmount": "0"
+        //                        "maxBorrowSize": "0"
         //                    }
         //                },
         //                ...
@@ -3640,13 +3664,14 @@ export default class kucoin extends Exchange {
         //        }
         //    }
         //
-        const data = this.safeList (response, 'data', []);
+        let data = undefined;
         const result = {
             'info': response,
             'timestamp': undefined,
             'datetime': undefined,
         };
         if (isolated) {
+            data = this.safeDict (response, 'data', {});
             const assets = this.safeValue (data, 'assets', data);
             for (let i = 0; i < assets.length; i++) {
                 const entry = assets[i];
@@ -3662,6 +3687,7 @@ export default class kucoin extends Exchange {
                 result[symbol] = this.safeBalance (subResult);
             }
         } else if (cross) {
+            data = this.safeDict (response, 'data', {});
             const accounts = this.safeList (data, 'accounts', []);
             for (let i = 0; i < accounts.length; i++) {
                 const balance = accounts[i];
@@ -3670,6 +3696,7 @@ export default class kucoin extends Exchange {
                 result[codeInner] = this.parseBalanceHelper (balance);
             }
         } else {
+            data = this.safeList (response, 'data', []);
             for (let i = 0; i < data.length; i++) {
                 const balance = data[i];
                 const balanceType = this.safeString (balance, 'type');

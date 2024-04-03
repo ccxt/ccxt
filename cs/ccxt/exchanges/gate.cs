@@ -3704,7 +3704,7 @@ public partial class gate : Exchange
         if (isTrue(!isEqual(code, null)))
         {
             currency = this.currency(code);
-            ((IDictionary<string,object>)request)["currency"] = getValue(currency, "id");
+            ((IDictionary<string,object>)request)["currency"] = getValue(currency, "id"); // todo: currencies have network-junctions
         }
         if (isTrue(!isEqual(limit, null)))
         {
@@ -3753,7 +3753,7 @@ public partial class gate : Exchange
         if (isTrue(!isEqual(code, null)))
         {
             currency = this.currency(code);
-            ((IDictionary<string,object>)request)["currency"] = getValue(currency, "id");
+            ((IDictionary<string,object>)request)["currency"] = getValue(currency, "id"); // todo: currencies have network-junctions
         }
         if (isTrue(!isEqual(limit, null)))
         {
@@ -3811,7 +3811,7 @@ public partial class gate : Exchange
             parameters = this.omit(parameters, "network");
         } else
         {
-            ((IDictionary<string,object>)request)["chain"] = getValue(currency, "id");
+            ((IDictionary<string,object>)request)["chain"] = getValue(currency, "id"); // todo: currencies have network-junctions
         }
         object response = await this.privateWithdrawalsPostWithdrawals(this.extend(request, parameters));
         //
@@ -5493,7 +5493,7 @@ public partial class gate : Exchange
         }
         if (isTrue(isTrue(isTrue(isTrue((isEqual(toId, "futures"))) || isTrue((isEqual(toId, "delivery")))) || isTrue((isEqual(fromId, "futures")))) || isTrue((isEqual(fromId, "delivery")))))
         {
-            ((IDictionary<string,object>)request)["settle"] = getValue(currency, "id");
+            ((IDictionary<string,object>)request)["settle"] = getValue(currency, "id"); // todo: currencies have network-junctions
         }
         object response = await this.privateWalletPostTransfers(this.extend(request, parameters));
         //
@@ -6954,7 +6954,7 @@ public partial class gate : Exchange
             if (isTrue(!isEqual(code, null)))
             {
                 currency = this.currency(code);
-                ((IDictionary<string,object>)request)["currency"] = getValue(currency, "id");
+                ((IDictionary<string,object>)request)["currency"] = getValue(currency, "id"); // todo: currencies have network-junctions
             }
         }
         if (isTrue(isTrue((isEqual(type, "swap"))) || isTrue((isEqual(type, "future")))))

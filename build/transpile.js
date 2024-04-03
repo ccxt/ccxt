@@ -988,6 +988,7 @@ class Transpiler {
             'BalanceAccount': /-> BalanceAccount:/,
             'Balances': /-> Balances:/,
             'Bool': /: Bool =/,
+            'Currencies': /-> Currencies:/,
             'Currency': /(-> Currency:|: Currency)/,
             'FundingHistory': /\[FundingHistory/,
             'Greeks': /-> Greeks:/,
@@ -1020,6 +1021,8 @@ class Transpiler {
             'Ticker': /-> Ticker:/,
             'Tickers': /-> Tickers:/,
             'Trade': /-> (?:List\[)?Trade/,
+            'TradingFeeInterface': /-> TradingFeeInterface:/,
+            'TradingFees': /-> TradingFees:/,
             'Transaction': /-> (?:List\[)?Transaction/,
             'TransferEntry': /-> TransferEntry:/,
         }
@@ -1673,7 +1676,7 @@ class Transpiler {
                 'Dictionary<any>': 'array',
                 'Dict': 'array',
             }
-            const phpArrayRegex = /^(?:Market|Currency|Account|AccountStructure|BalanceAccount|object|OHLCV|Order|OrderBook|Tickers?|Trade|Transaction|Balances?|MarketInterface|TransferEntry|Leverages|Leverage|Greeks|MarginModes|MarginMode|MarginModification|LastPrice|LastPrices)( \| undefined)?$|\w+\[\]/
+            const phpArrayRegex = /^(?:Market|Currency|Account|AccountStructure|BalanceAccount|object|OHLCV|Order|OrderBook|Tickers?|Trade|Transaction|Balances?|MarketInterface|TransferEntry|Leverages|Leverage|Greeks|MarginModes|MarginMode|MarginModification|LastPrice|LastPrices|TradingFeeInterface|Currencies|TradingFees)( \| undefined)?$|\w+\[\]/
             let phpArgs = args.map (x => {
                 const parts = x.split (':')
                 if (parts.length === 1) {
