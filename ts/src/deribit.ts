@@ -1221,9 +1221,9 @@ export default class deribit extends Exchange {
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
-        let all = undefined;
-        [ all, params ] = this.handleOptionAndParams (params, 'fetchTickers', 'all', false);
-        if (all) {
+        let fetchAll = undefined;
+        [ fetchAll, params ] = this.handleOptionAndParams (params, 'fetchTickers', 'all', false);
+        if (fetchAll) {
             const promises = [];
             const keys = Object.keys (this.currencies);
             for (let i = 0; i < keys.length; i++) {
