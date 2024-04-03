@@ -12,7 +12,7 @@ using Org.BouncyCastle.Asn1.Rosstandart;
 using Org.BouncyCastle.Asn1.TeleTrust;
 using Org.BouncyCastle.Asn1.UA;
 using Org.BouncyCastle.Crypto;
-// using Org.BouncyCastle.Crypto.Digests;
+using Org.BouncyCastle.Crypto.Digests;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Collections;
 
@@ -190,7 +190,26 @@ namespace Org.BouncyCastle.Security
 
         public static IDigest GetDigest(string algorithm)
         {
-            throw new ArgumentNullException(nameof(algorithm));
+            if (algorithm == null)
+                throw new ArgumentNullException(nameof(algorithm));
+
+            string mechanism = CollectionUtilities.GetValueOrKey(Aliases, algorithm).ToUpperInvariant();
+
+            try
+            {
+                DigestAlgorithm digestAlgorithm = (DigestAlgorithm)Enums.GetEnumValue(
+                    typeof(DigestAlgorithm), mechanism);
+
+                switch (digestAlgorithm)
+                {
+                    case DigestAlgorithm.SHA_256: return new Sha256Digest();
+                }
+            }
+            catch (ArgumentException)
+            {
+            }
+
+            throw new SecurityUtilityException("Digest " + mechanism + " not recognised.");
         }
 
         public static string GetAlgorithmName(DerObjectIdentifier oid)

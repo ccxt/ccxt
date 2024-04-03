@@ -26,23 +26,23 @@ namespace Org.BouncyCastle.Asn1.Nist
 
         static NistNamedCurves()
         {
-            DefineCurveAlias("B-163", SecObjectIdentifiers.SecT163r2);
-            DefineCurveAlias("B-233", SecObjectIdentifiers.SecT233r1);
-            DefineCurveAlias("B-283", SecObjectIdentifiers.SecT283r1);
-            DefineCurveAlias("B-409", SecObjectIdentifiers.SecT409r1);
-            DefineCurveAlias("B-571", SecObjectIdentifiers.SecT571r1);
+            // DefineCurveAlias("B-163", SecObjectIdentifiers.SecT163r2);
+            // DefineCurveAlias("B-233", SecObjectIdentifiers.SecT233r1);
+            // DefineCurveAlias("B-283", SecObjectIdentifiers.SecT283r1);
+            // DefineCurveAlias("B-409", SecObjectIdentifiers.SecT409r1);
+            // DefineCurveAlias("B-571", SecObjectIdentifiers.SecT571r1);
 
-            DefineCurveAlias("K-163", SecObjectIdentifiers.SecT163k1);
-            DefineCurveAlias("K-233", SecObjectIdentifiers.SecT233k1);
-            DefineCurveAlias("K-283", SecObjectIdentifiers.SecT283k1);
-            DefineCurveAlias("K-409", SecObjectIdentifiers.SecT409k1);
-            DefineCurveAlias("K-571", SecObjectIdentifiers.SecT571k1);
+            // DefineCurveAlias("K-163", SecObjectIdentifiers.SecT163k1);
+            // DefineCurveAlias("K-233", SecObjectIdentifiers.SecT233k1);
+            // DefineCurveAlias("K-283", SecObjectIdentifiers.SecT283k1);
+            // DefineCurveAlias("K-409", SecObjectIdentifiers.SecT409k1);
+            // DefineCurveAlias("K-571", SecObjectIdentifiers.SecT571k1);
 
-            DefineCurveAlias("P-192", SecObjectIdentifiers.SecP192r1);
-            DefineCurveAlias("P-224", SecObjectIdentifiers.SecP224r1);
+            // DefineCurveAlias("P-192", SecObjectIdentifiers.SecP192r1);
+            // DefineCurveAlias("P-224", SecObjectIdentifiers.SecP224r1);
             DefineCurveAlias("P-256", SecObjectIdentifiers.SecP256r1);
-            DefineCurveAlias("P-384", SecObjectIdentifiers.SecP384r1);
-            DefineCurveAlias("P-521", SecObjectIdentifiers.SecP521r1);
+            // DefineCurveAlias("P-384", SecObjectIdentifiers.SecP384r1);
+            // DefineCurveAlias("P-521", SecObjectIdentifiers.SecP521r1);
         }
 
         /// <summary>Look up the <see cref="X9ECParameters"/> for the curve with the given name.</summary>

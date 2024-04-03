@@ -813,7 +813,7 @@ namespace Org.BouncyCastle.Crypto.EC
             // DefineCurve("secp192r1", SecObjectIdentifiers.SecP192r1, SecP192R1Holder.Instance);
             // DefineCurve("secp224k1", SecObjectIdentifiers.SecP224k1, SecP224K1Holder.Instance);
             // DefineCurve("secp224r1", SecObjectIdentifiers.SecP224r1, SecP224R1Holder.Instance);
-            DefineCurve("secp256k1", SecObjectIdentifiers.SecP256k1, SecP256K1Holder.Instance);
+            // DefineCurve("secp256k1", SecObjectIdentifiers.SecP256k1, SecP256K1Holder.Instance);
             DefineCurve("secp256r1", SecObjectIdentifiers.SecP256r1, SecP256R1Holder.Instance);
             // DefineCurve("secp384r1", SecObjectIdentifiers.SecP384r1, SecP384R1Holder.Instance);
             // DefineCurve("secp521r1", SecObjectIdentifiers.SecP521r1, SecP521R1Holder.Instance);
@@ -837,25 +837,25 @@ namespace Org.BouncyCastle.Crypto.EC
             // DefineCurve("sect571k1", SecObjectIdentifiers.SecT571k1, SecT571K1Holder.Instance);
             // DefineCurve("sect571r1", SecObjectIdentifiers.SecT571r1, SecT571R1Holder.Instance);
 
-            DefineCurve("sm2p256v1", GMObjectIdentifiers.sm2p256v1, SM2P256V1Holder.Instance);
+            // DefineCurve("sm2p256v1", GMObjectIdentifiers.sm2p256v1, SM2P256V1Holder.Instance);
 
-            DefineCurveAlias("B-163", SecObjectIdentifiers.SecT163r2);
-            DefineCurveAlias("B-233", SecObjectIdentifiers.SecT233r1);
-            DefineCurveAlias("B-283", SecObjectIdentifiers.SecT283r1);
-            DefineCurveAlias("B-409", SecObjectIdentifiers.SecT409r1);
-            DefineCurveAlias("B-571", SecObjectIdentifiers.SecT571r1);
+            // DefineCurveAlias("B-163", SecObjectIdentifiers.SecT163r2);
+            // DefineCurveAlias("B-233", SecObjectIdentifiers.SecT233r1);
+            // DefineCurveAlias("B-283", SecObjectIdentifiers.SecT283r1);
+            // DefineCurveAlias("B-409", SecObjectIdentifiers.SecT409r1);
+            // DefineCurveAlias("B-571", SecObjectIdentifiers.SecT571r1);
 
-            DefineCurveAlias("K-163", SecObjectIdentifiers.SecT163k1);
-            DefineCurveAlias("K-233", SecObjectIdentifiers.SecT233k1);
-            DefineCurveAlias("K-283", SecObjectIdentifiers.SecT283k1);
-            DefineCurveAlias("K-409", SecObjectIdentifiers.SecT409k1);
-            DefineCurveAlias("K-571", SecObjectIdentifiers.SecT571k1);
+            // DefineCurveAlias("K-163", SecObjectIdentifiers.SecT163k1);
+            // DefineCurveAlias("K-233", SecObjectIdentifiers.SecT233k1);
+            // DefineCurveAlias("K-283", SecObjectIdentifiers.SecT283k1);
+            // DefineCurveAlias("K-409", SecObjectIdentifiers.SecT409k1);
+            // DefineCurveAlias("K-571", SecObjectIdentifiers.SecT571k1);
 
-            DefineCurveAlias("P-192", SecObjectIdentifiers.SecP192r1);
-            DefineCurveAlias("P-224", SecObjectIdentifiers.SecP224r1);
+            // DefineCurveAlias("P-192", SecObjectIdentifiers.SecP192r1);
+            // DefineCurveAlias("P-224", SecObjectIdentifiers.SecP224r1);
             DefineCurveAlias("P-256", SecObjectIdentifiers.SecP256r1);
-            DefineCurveAlias("P-384", SecObjectIdentifiers.SecP384r1);
-            DefineCurveAlias("P-521", SecObjectIdentifiers.SecP521r1);
+            // DefineCurveAlias("P-384", SecObjectIdentifiers.SecP384r1);
+            // DefineCurveAlias("P-521", SecObjectIdentifiers.SecP521r1);
         }
 
         /// <summary>Look up the <see cref="X9ECParameters"/> for the curve with the given name.</summary>
