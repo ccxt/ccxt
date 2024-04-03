@@ -15,7 +15,7 @@ include_once PATH_TO_CCXT . '/test/base/test_shared_methods.php';
 function test_fetch_leverage_tiers($exchange, $skipped_properties, $symbol) {
     return Async\async(function () use ($exchange, $skipped_properties, $symbol) {
         $method = 'fetchLeverageTiers';
-        $tiers = Async\await($exchange->fetch_leverage_tiers($symbol));
+        $tiers = Async\await($exchange->fetch_leverage_tiers(['symbol']));
         // const format = {
         //     'RAY/USDT': [
         //       {},

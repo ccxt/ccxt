@@ -290,7 +290,8 @@
                 "high": "same",
                 "previousClose": "same",
                 "vwap": "same",
-                "baseVolume":"temp"
+                "baseVolume":"temp",
+                "spread": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269724413#L3725"
             },
             "fetchPositions": {
                 "stopLossPrice": "undefined",
@@ -349,8 +350,7 @@
         }
     },
     "onetrading": {
-        "skip": true,
-        "until": "2024-03-28",
+        "skip": "Api changed, as mentioned https://github.com/ccxt/ccxt/pull/21991",
         "skipWs": true,
         "skipMethods": {
             "fetchCurrencies": {
@@ -597,6 +597,9 @@
         "skipMethods": {
             "fetchTrades": {
                 "side":"side is undefined"
+            },
+            "ticker": {
+                "spread": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269687705#L3745"
             }
         }
     },
@@ -961,6 +964,7 @@
     },
     "idex": {
         "skipWs": "timeouts",
+        "skipCSharp": "for some reasons, frequent rate limits only in C#",
         "skipMethods": {
             "fetchCurrencies": {
                 "withdraw":"not provided",

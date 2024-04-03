@@ -1097,6 +1097,28 @@
                     "BTC/USDT:USDT"
                 ]
             }
+        ],
+        "addMargin": [
+            {
+                "description": "Add Margin",
+                "method": "addMargin",
+                "url": "https://open-api.bingx.com/openApi/swap/v2/trade/positionMargin?amount=1&symbol=BTC-USDT&timestamp=1711660769522&type=1&signature=00b43a627d45679f409ae85edb17d8c457c3dd3c91d8ab1058de7ad004aea448",
+                "input": [
+                  "BTC/USDT:USDT",
+                  1
+                ]
+            }
+        ],
+        "reduceMargin": [
+            {
+                "description": "Fill this with a description of the method call",
+                "method": "reduceMargin",
+                "url": "https://open-api.bingx.com/openApi/swap/v2/trade/positionMargin?amount=1&symbol=BTC-USDT&timestamp=1711660858980&type=2&signature=bde504579e677b43e8450197833dd7992680de74fa1926c4814578dd2b1a5ed9",
+                "input": [
+                  "BTC/USDT:USDT",
+                  1
+                ]
+            }
         ]
     }
 }

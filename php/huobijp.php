@@ -945,7 +945,7 @@ class huobijp extends Exchange {
             'period' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
         );
         if ($limit !== null) {
-            $request['size'] = $limit;
+            $request['size'] = min ($limit, 2000);
         }
         $response = $this->marketGetHistoryKline (array_merge($request, $params));
         //
@@ -960,7 +960,7 @@ class huobijp extends Exchange {
         //         )
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_list($response, 'data', array());
         return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
     }
 
@@ -1156,7 +1156,7 @@ class huobijp extends Exchange {
             'id' => $id,
         );
         $response = $this->privateGetOrderOrdersId (array_merge($request, $params));
-        $order = $this->safe_value($response, 'data');
+        $order = $this->safe_dict($response, 'data');
         return $this->parse_order($order);
     }
 
@@ -1253,7 +1253,7 @@ class huobijp extends Exchange {
         //         )
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_list($response, 'data', array());
         return $this->parse_orders($data, $market, $since, $limit);
     }
 

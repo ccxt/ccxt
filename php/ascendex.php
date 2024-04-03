@@ -1022,7 +1022,7 @@ class ascendex extends Exchange {
         //         }
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_dict($response, 'data', array());
         return $this->parse_ticker($data, $market);
     }
 
@@ -1157,7 +1157,7 @@ class ascendex extends Exchange {
         //         )
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_list($response, 'data', array());
         return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
     }
 
@@ -1230,7 +1230,7 @@ class ascendex extends Exchange {
         //     }
         //
         $records = $this->safe_value($response, 'data', array());
-        $trades = $this->safe_value($records, 'data', array());
+        $trades = $this->safe_list($records, 'data', array());
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
@@ -1750,7 +1750,7 @@ class ascendex extends Exchange {
         //     }
         //
         $data = $this->safe_value($response, 'data', array());
-        $info = $this->safe_value($data, 'info', array());
+        $info = $this->safe_list($data, 'info', array());
         return $this->parse_orders($info, $market);
     }
 
@@ -1855,7 +1855,7 @@ class ascendex extends Exchange {
         //         }
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_dict($response, 'data', array());
         return $this->parse_order($data, $market);
     }
 
@@ -2528,7 +2528,7 @@ class ascendex extends Exchange {
         //     }
         //
         $data = $this->safe_value($response, 'data', array());
-        $transactions = $this->safe_value($data, 'data', array());
+        $transactions = $this->safe_list($data, 'data', array());
         return $this->parse_transactions($transactions, $currency, $since, $limit);
     }
 
@@ -2806,7 +2806,7 @@ class ascendex extends Exchange {
         return $this->filter_by_array($result, 'symbol', $symbols);
     }
 
-    public function modify_margin_helper(string $symbol, $amount, $type, $params = array ()) {
+    public function modify_margin_helper(string $symbol, $amount, $type, $params = array ()): array {
         $this->load_markets();
         $this->load_accounts();
         $market = $this->market($symbol);
@@ -2835,20 +2835,30 @@ class ascendex extends Exchange {
         ));
     }
 
-    public function parse_margin_modification($data, ?array $market = null) {
+    public function parse_margin_modification($data, ?array $market = null): array {
+        //
+        // addMargin/reduceMargin
+        //
+        //     {
+        //          "code" => 0
+        //     }
+        //
         $errorCode = $this->safe_string($data, 'code');
         $status = ($errorCode === '0') ? 'ok' : 'failed';
         return array(
             'info' => $data,
+            'symbol' => $market['symbol'],
             'type' => null,
             'amount' => null,
+            'total' => null,
             'code' => $market['quote'],
-            'symbol' => $market['symbol'],
             'status' => $status,
+            'timestamp' => null,
+            'datetime' => null,
         );
     }
 
-    public function reduce_margin(string $symbol, $amount, $params = array ()) {
+    public function reduce_margin(string $symbol, $amount, $params = array ()): array {
         /**
          * remove margin from a position
          * @param {string} $symbol unified market $symbol
@@ -2859,7 +2869,7 @@ class ascendex extends Exchange {
         return $this->modify_margin_helper($symbol, -$amount, 'reduce', $params);
     }
 
-    public function add_margin(string $symbol, $amount, $params = array ()) {
+    public function add_margin(string $symbol, $amount, $params = array ()): array {
         /**
          * add margin
          * @param {string} $symbol unified market $symbol
@@ -3087,7 +3097,7 @@ class ascendex extends Exchange {
          */
         $this->load_markets();
         $response = $this->v2PublicGetAssets ($params);
-        $data = $this->safe_value($response, 'data');
+        $data = $this->safe_list($response, 'data');
         return $this->parse_deposit_withdraw_fees($data, $codes, 'assetCode');
     }
 
@@ -3213,7 +3223,7 @@ class ascendex extends Exchange {
         //     }
         //
         $data = $this->safe_value($response, 'data', array());
-        $rows = $this->safe_value($data, 'data', array());
+        $rows = $this->safe_list($data, 'data', array());
         return $this->parse_incomes($rows, $market, $since, $limit);
     }
 

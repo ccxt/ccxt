@@ -532,7 +532,7 @@ class coinmetro(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        candleHistory = self.safe_value(response, 'candleHistory', [])
+        candleHistory = self.safe_list(response, 'candleHistory', [])
         return self.parse_ohlcvs(candleHistory, market, timeframe, since, limit)
 
     def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
@@ -594,7 +594,7 @@ class coinmetro(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        tickHistory = self.safe_value(response, 'tickHistory', [])
+        tickHistory = self.safe_list(response, 'tickHistory', [])
         return self.parse_trades(tickHistory, market, since, limit)
 
     async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
@@ -851,7 +851,7 @@ class coinmetro(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         response = await self.publicGetExchangePrices(params)
-        latestPrices = self.safe_value(response, 'latestPrices', [])
+        latestPrices = self.safe_list(response, 'latestPrices', [])
         return self.parse_tickers(latestPrices, symbols)
 
     def parse_ticker(self, ticker, market: Market = None) -> Ticker:

@@ -6,9 +6,6 @@ import type { Balances, Currency, FundingRateHistory, Greeks, Int, Liquidation, 
  */
 export default class deribit extends Exchange {
     describe(): any;
-    convertExpireDate(date: any): string;
-    convertMarketIdExpireDate(date: any): string;
-    convertExpireDateToMarketIdDate(date: any): any;
     createExpiredOptionMarket(symbol: string): MarketInterface;
     safeMarket(marketId?: Str, market?: Market, delimiter?: Str, marketType?: Str): MarketInterface;
     fetchTime(params?: {}): Promise<number>;

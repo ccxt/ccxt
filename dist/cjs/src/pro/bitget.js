@@ -83,6 +83,7 @@ class bitget extends bitget$1 {
                         '30015': errors.AuthenticationError,
                         '30016': errors.BadRequest, // { event: 'error', code: 30016, msg: 'Param error' }
                     },
+                    'broad': {},
                 },
             },
         });

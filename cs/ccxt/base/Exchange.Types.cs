@@ -363,6 +363,33 @@ public struct LastPrice
     }
 }
 
+public struct MarginModification
+{
+    public string symbol; 
+    public string? type;
+    public double? amount;
+    public double? total;
+    public string? code;
+    public string? status;
+    public Int64? timestamp;
+    public string? datetime;
+    public Dictionary<string, object> info;
+
+    public MarginModification(object marginModification2)
+    {
+        var marginModification = (Dictionary<string, object>)marginModification2;
+        symbol = Exchange.SafeString(marginModification, "symbol");
+        type = Exchange.SafeString(marginModification, "type");
+        amount = Exchange.SafeFloat(marginModification, "amount");
+        total = Exchange.SafeFloat(marginModification, "total");
+        code = Exchange.SafeString(marginModification, "code");
+        status = Exchange.SafeString(marginModification, "status");
+        timestamp = Exchange.SafeInteger(marginModification, "timestamp");
+        datetime = Exchange.SafeString(marginModification, "datetime");
+        info = marginModification.ContainsKey("info") ? (Dictionary<string, object>)marginModification["info"] : null;
+    }
+}
+
 public struct LastPrices
 {
     public Dictionary<string, object> info;
@@ -525,7 +552,7 @@ public struct Balances
 
     public Balances(object balances2)
     {
-        var balances = (Dictionary<string, object>)balances2;
+        var balances = (IDictionary<string, object>)balances2;
         this.balances = new Dictionary<string, Balance>();
         foreach (var balance in balances)
         {
@@ -556,7 +583,7 @@ public struct Balances
             total.Add(balance.Key, Convert.ToDouble(balance.Value));
         }
         // info = (Dictionary<string, object>)balances["info"];
-        var balancesInfo = balances["info"];
+        var balancesInfo = balances.ContainsKey("info") ? (balances["info"]) : null;
         if (balancesInfo is IDictionary<string, object>)
         {
             info = (Dictionary<string, object>)balancesInfo;

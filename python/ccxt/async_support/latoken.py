@@ -1382,7 +1382,7 @@ class latoken(Exchange, ImplicitAPI):
         currency = None
         if code is not None:
             currency = self.currency(code)
-        content = self.safe_value(response, 'content', [])
+        content = self.safe_list(response, 'content', [])
         return self.parse_transactions(content, currency, since, limit)
 
     def parse_transaction(self, transaction, currency: Currency = None) -> Transaction:
@@ -1506,7 +1506,7 @@ class latoken(Exchange, ImplicitAPI):
         #         "hasContent": True
         #     }
         #
-        transfers = self.safe_value(response, 'content', [])
+        transfers = self.safe_list(response, 'content', [])
         return self.parse_transfers(transfers, currency, since, limit)
 
     async def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:

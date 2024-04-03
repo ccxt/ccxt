@@ -1431,7 +1431,7 @@ public partial class woo : Exchange
         //     ]
         // }
         //
-        object orders = this.safeValue(response, "data", response);
+        object orders = this.safeDict(response, "data", response);
         return this.parseOrder(orders, market);
     }
 

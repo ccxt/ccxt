@@ -2383,8 +2383,11 @@ class kucoin(Exchange, ImplicitAPI):
         #             ]
         #         }
         #    }
+        listData = self.safe_list(response, 'data')
+        if listData is not None:
+            return self.parse_orders(listData, market, since, limit)
         responseData = self.safe_dict(response, 'data', {})
-        orders = self.safe_value(responseData, 'items', responseData)
+        orders = self.safe_list(responseData, 'items', [])
         return self.parse_orders(orders, market, since, limit)
 
     def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:

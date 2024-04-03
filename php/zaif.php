@@ -619,7 +619,7 @@ class zaif extends Exchange {
         //         }
         //     }
         //
-        $returnData = $this->safe_value($result, 'return');
+        $returnData = $this->safe_dict($result, 'return');
         return $this->parse_transaction($returnData, $currency);
     }
 

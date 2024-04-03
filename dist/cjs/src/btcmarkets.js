@@ -538,7 +538,7 @@ class btcmarkets extends btcmarkets$1 {
             request['from'] = this.iso8601(since);
         }
         if (limit !== undefined) {
-            request['limit'] = limit; // default is 10, max 200
+            request['limit'] = Math.min(limit, 200); // default is 10, max 200
         }
         const response = await this.publicGetMarketsMarketIdCandles(this.extend(request, params));
         //

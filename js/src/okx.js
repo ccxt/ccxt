@@ -1120,14 +1120,6 @@ export default class okx extends Exchange {
         const exchangeTypes = this.safeValue(this.options, 'exchangeType', {});
         return this.safeString(exchangeTypes, type, type);
     }
-    convertExpireDate(date) {
-        // parse YYMMDD to timestamp
-        const year = date.slice(0, 2);
-        const month = date.slice(2, 4);
-        const day = date.slice(4, 6);
-        const reconstructedDate = '20' + year + '-' + month + '-' + day + 'T00:00:00Z';
-        return reconstructedDate;
-    }
     createExpiredOptionMarket(symbol) {
         // support expired option contracts
         const quote = 'USD';
@@ -1857,7 +1849,7 @@ export default class okx extends Exchange {
         //     }
         //
         const data = this.safeValue(response, 'data', []);
-        const first = this.safeValue(data, 0, {});
+        const first = this.safeDict(data, 0, {});
         return this.parseTicker(first, market);
     }
     async fetchTickers(symbols = undefined, params = {}) {
@@ -2086,7 +2078,7 @@ export default class okx extends Exchange {
         //         "msg": ""
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseTrades(data, market, since, limit);
     }
     parseOHLCV(ohlcv, market = undefined) {
@@ -2219,7 +2211,7 @@ export default class okx extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseOHLCVs(data, market, timeframe, since, limit);
     }
     async fetchFundingRateHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -2955,7 +2947,7 @@ export default class okx extends Exchange {
         //     "msg": "",
         //     "outTime": "1697979038586493"
         // }
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseOrders(data);
     }
     editOrderRequest(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
@@ -3164,7 +3156,7 @@ export default class okx extends Exchange {
         const response = await this.privatePostTradeCancelOrder(this.extend(request, query));
         // {"code":"0","data":[{"clOrdId":"","ordId":"317251910906576896","sCode":"0","sMsg":""}],"msg":""}
         const data = this.safeValue(response, 'data', []);
-        const order = this.safeValue(data, 0);
+        const order = this.safeDict(data, 0);
         return this.parseOrder(order, market);
     }
     parseIds(ids) {
@@ -3282,7 +3274,7 @@ export default class okx extends Exchange {
         //         "msg": ""
         //     }
         //
-        const ordersData = this.safeValue(response, 'data', []);
+        const ordersData = this.safeList(response, 'data', []);
         return this.parseOrders(ordersData, market, undefined, undefined, params);
     }
     parseOrderStatus(status) {
@@ -3656,7 +3648,7 @@ export default class okx extends Exchange {
         //     }
         //
         const data = this.safeValue(response, 'data', []);
-        const order = this.safeValue(data, 0);
+        const order = this.safeDict(data, 0);
         return this.parseOrder(order, market);
     }
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -3820,7 +3812,7 @@ export default class okx extends Exchange {
         //         "msg": ""
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseOrders(data, market, since, limit);
     }
     async fetchCanceledOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -4007,7 +3999,7 @@ export default class okx extends Exchange {
         //         "msg": ""
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseOrders(data, market, since, limit);
     }
     async fetchClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -4196,7 +4188,7 @@ export default class okx extends Exchange {
         //         "msg": ""
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseOrders(data, market, since, limit);
     }
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -4268,7 +4260,7 @@ export default class okx extends Exchange {
         //         "msg": ""
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseTrades(data, market, since, limit, query);
     }
     async fetchOrderTrades(id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -4751,7 +4743,7 @@ export default class okx extends Exchange {
         //     }
         //
         const data = this.safeValue(response, 'data', []);
-        const transaction = this.safeValue(data, 0);
+        const transaction = this.safeDict(data, 0);
         return this.parseTransaction(transaction, currency);
     }
     async fetchDeposits(code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -4832,7 +4824,7 @@ export default class okx extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseTransactions(data, currency, since, limit, params);
     }
     async fetchDeposit(id, code = undefined, params = {}) {
@@ -4857,7 +4849,7 @@ export default class okx extends Exchange {
         }
         const response = await this.privateGetAssetDepositHistory(this.extend(request, params));
         const data = this.safeValue(response, 'data');
-        const deposit = this.safeValue(data, 0, {});
+        const deposit = this.safeDict(data, 0, {});
         return this.parseTransaction(deposit, currency);
     }
     async fetchWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -4930,7 +4922,7 @@ export default class okx extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseTransactions(data, currency, since, limit, params);
     }
     async fetchWithdrawal(id, code = undefined, params = {}) {
@@ -4976,7 +4968,7 @@ export default class okx extends Exchange {
         //    }
         //
         const data = this.safeValue(response, 'data');
-        const withdrawal = this.safeValue(data, 0, {});
+        const withdrawal = this.safeDict(data, 0, {});
         return this.parseTransaction(withdrawal);
     }
     parseTransactionStatus(status) {
@@ -5605,7 +5597,7 @@ export default class okx extends Exchange {
         //     }
         //
         const data = this.safeValue(response, 'data', []);
-        const rawTransfer = this.safeValue(data, 0, {});
+        const rawTransfer = this.safeDict(data, 0, {});
         return this.parseTransfer(rawTransfer, currency);
     }
     parseTransfer(transfer, currency = undefined) {
@@ -5719,7 +5711,7 @@ export default class okx extends Exchange {
         //     }
         //
         const data = this.safeValue(response, 'data', []);
-        const transfer = this.safeValue(data, 0);
+        const transfer = this.safeDict(data, 0);
         return this.parseTransfer(transfer);
     }
     async fetchTransfers(code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -5782,7 +5774,7 @@ export default class okx extends Exchange {
         //        "msg": ""
         //    }
         //
-        const transfers = this.safeValue(response, 'data', []);
+        const transfers = this.safeList(response, 'data', []);
         return this.parseTransfers(transfers, currency, since, limit, params);
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
@@ -6471,26 +6463,40 @@ export default class okx extends Exchange {
         //       "msg": ""
         //     }
         //
-        return this.parseMarginModification(response, market);
+        const data = this.safeList(response, 'data', []);
+        const errorCode = this.safeString(response, 'code');
+        const item = this.safeDict(data, 0, {});
+        return this.extend(this.parseMarginModification(item, market), {
+            'status': (errorCode === '0') ? 'ok' : 'failed',
+        });
     }
     parseMarginModification(data, market = undefined) {
-        const innerData = this.safeValue(data, 'data', []);
-        const entry = this.safeValue(innerData, 0, {});
-        const errorCode = this.safeString(data, 'code');
-        const status = (errorCode === '0') ? 'ok' : 'failed';
-        const amountRaw = this.safeNumber(entry, 'amt');
-        const typeRaw = this.safeString(entry, 'type');
+        //
+        // addMargin/reduceMargin
+        //
+        //    {
+        //        "amt": "0.01",
+        //        "instId": "ETH-USD-SWAP",
+        //        "posSide": "net",
+        //        "type": "reduce"
+        //    }
+        //
+        const amountRaw = this.safeNumber(data, 'amt');
+        const typeRaw = this.safeString(data, 'type');
         const type = (typeRaw === 'reduce') ? 'reduce' : 'add';
-        const marketId = this.safeString(entry, 'instId');
+        const marketId = this.safeString(data, 'instId');
         const responseMarket = this.safeMarket(marketId, market);
         const code = responseMarket['inverse'] ? responseMarket['base'] : responseMarket['quote'];
         return {
             'info': data,
+            'symbol': responseMarket['symbol'],
             'type': type,
             'amount': amountRaw,
+            'total': undefined,
             'code': code,
-            'symbol': responseMarket['symbol'],
-            'status': status,
+            'status': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
         };
     }
     async reduceMargin(symbol, amount, params = {}) {
@@ -6842,7 +6848,7 @@ export default class okx extends Exchange {
         //         "msg": ""
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseOpenInterest(data[0], market);
     }
     async fetchOpenInterestHistory(symbol, timeframe = '1d', since = undefined, limit = undefined, params = {}) {
@@ -6913,7 +6919,7 @@ export default class okx extends Exchange {
         //        "msg": ''
         //    }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseOpenInterests(data, undefined, since, limit);
     }
     parseOpenInterest(interest, market = undefined) {
@@ -7036,7 +7042,7 @@ export default class okx extends Exchange {
         //        "msg": ""
         //    }
         //
-        const data = this.safeValue(response, 'data');
+        const data = this.safeList(response, 'data');
         return this.parseDepositWithdrawFees(data, codes);
     }
     parseDepositWithdrawFees(response, codes = undefined, currencyIdKey = undefined) {
@@ -7412,7 +7418,7 @@ export default class okx extends Exchange {
         //    }
         //
         const data = this.safeValue(response, 'data');
-        const order = this.safeValue(data, 0);
+        const order = this.safeDict(data, 0);
         return this.parseOrder(order, market);
     }
     async fetchOption(symbol, params = {}) {

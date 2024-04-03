@@ -473,7 +473,7 @@ class indodax(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        ticker = self.safe_value(response, 'ticker', {})
+        ticker = self.safe_dict(response, 'ticker', {})
         return self.parse_ticker(ticker, market)
 
     def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
@@ -502,7 +502,7 @@ class indodax(Exchange, ImplicitAPI):
         # }
         #
         response = self.publicGetApiTickerAll(params)
-        tickers = self.safe_value(response, 'tickers')
+        tickers = self.safe_list(response, 'tickers')
         return self.parse_tickers(tickers, symbols)
 
     def parse_trade(self, trade, market: Market = None) -> Trade:

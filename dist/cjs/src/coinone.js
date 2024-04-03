@@ -512,7 +512,7 @@ class coinone extends coinone$1 {
         //         ]
         //     }
         //
-        const data = this.safeValue(response, 'tickers', []);
+        const data = this.safeList(response, 'tickers', []);
         return this.parseTickers(data, symbols);
     }
     async fetchTicker(symbol, params = {}) {
@@ -566,7 +566,7 @@ class coinone extends coinone$1 {
         //     }
         //
         const data = this.safeValue(response, 'tickers', []);
-        const ticker = this.safeValue(data, 0, {});
+        const ticker = this.safeDict(data, 0, {});
         return this.parseTicker(ticker, market);
     }
     parseTicker(ticker, market = undefined) {
@@ -730,7 +730,7 @@ class coinone extends coinone$1 {
         //         ]
         //     }
         //
-        const data = this.safeValue(response, 'transactions', []);
+        const data = this.safeList(response, 'transactions', []);
         return this.parseTrades(data, market, since, limit);
     }
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
@@ -976,7 +976,7 @@ class coinone extends coinone$1 {
         //         ]
         //     }
         //
-        const limitOrders = this.safeValue(response, 'limitOrders', []);
+        const limitOrders = this.safeList(response, 'limitOrders', []);
         return this.parseOrders(limitOrders, market, since, limit);
     }
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1019,7 +1019,7 @@ class coinone extends coinone$1 {
         //         ]
         //     }
         //
-        const completeOrders = this.safeValue(response, 'completeOrders', []);
+        const completeOrders = this.safeList(response, 'completeOrders', []);
         return this.parseTrades(completeOrders, market, since, limit);
     }
     async cancelOrder(id, symbol = undefined, params = {}) {
