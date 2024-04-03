@@ -12,7 +12,7 @@ using Org.BouncyCastle.Asn1.Rosstandart;
 using Org.BouncyCastle.Asn1.TeleTrust;
 using Org.BouncyCastle.Asn1.UA;
 using Org.BouncyCastle.Crypto;
-using Org.BouncyCastle.Crypto.Digests;
+// using Org.BouncyCastle.Crypto.Digests;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Collections;
 
@@ -23,7 +23,8 @@ namespace Org.BouncyCastle.Security
     /// </remarks>
     public static class DigestUtilities
     {
-        private enum DigestAlgorithm {
+        private enum DigestAlgorithm
+        {
             BLAKE2B_160, BLAKE2B_256, BLAKE2B_384, BLAKE2B_512,
             BLAKE2S_128, BLAKE2S_160, BLAKE2S_224, BLAKE2S_256,
             DSTU7564_256, DSTU7564_384, DSTU7564_512,
@@ -189,68 +190,7 @@ namespace Org.BouncyCastle.Security
 
         public static IDigest GetDigest(string algorithm)
         {
-            if (algorithm == null)
-                throw new ArgumentNullException(nameof(algorithm));
-
-            string mechanism = CollectionUtilities.GetValueOrKey(Aliases, algorithm).ToUpperInvariant();
-
-            try
-            {
-                DigestAlgorithm digestAlgorithm = (DigestAlgorithm)Enums.GetEnumValue(
-                    typeof(DigestAlgorithm), mechanism);
-
-                switch (digestAlgorithm)
-                {
-                case DigestAlgorithm.BLAKE2B_160: return new Blake2bDigest(160);
-                case DigestAlgorithm.BLAKE2B_256: return new Blake2bDigest(256);
-                case DigestAlgorithm.BLAKE2B_384: return new Blake2bDigest(384);
-                case DigestAlgorithm.BLAKE2B_512: return new Blake2bDigest(512);
-                case DigestAlgorithm.BLAKE2S_128: return new Blake2sDigest(128);
-                case DigestAlgorithm.BLAKE2S_160: return new Blake2sDigest(160);
-                case DigestAlgorithm.BLAKE2S_224: return new Blake2sDigest(224);
-                case DigestAlgorithm.BLAKE2S_256: return new Blake2sDigest(256);
-                case DigestAlgorithm.DSTU7564_256: return new Dstu7564Digest(256);
-                case DigestAlgorithm.DSTU7564_384: return new Dstu7564Digest(384);
-                case DigestAlgorithm.DSTU7564_512: return new Dstu7564Digest(512);
-                case DigestAlgorithm.GOST3411: return new Gost3411Digest();
-                case DigestAlgorithm.GOST3411_2012_256: return new Gost3411_2012_256Digest();
-                case DigestAlgorithm.GOST3411_2012_512: return new Gost3411_2012_512Digest();
-                case DigestAlgorithm.KECCAK_224: return new KeccakDigest(224);
-                case DigestAlgorithm.KECCAK_256: return new KeccakDigest(256);
-                case DigestAlgorithm.KECCAK_288: return new KeccakDigest(288);
-                case DigestAlgorithm.KECCAK_384: return new KeccakDigest(384);
-                case DigestAlgorithm.KECCAK_512: return new KeccakDigest(512);
-                case DigestAlgorithm.MD2: return new MD2Digest();
-                case DigestAlgorithm.MD4: return new MD4Digest();
-                case DigestAlgorithm.MD5: return new MD5Digest();
-                case DigestAlgorithm.NONE: return new NullDigest();
-                case DigestAlgorithm.RIPEMD128: return new RipeMD128Digest();
-                case DigestAlgorithm.RIPEMD160: return new RipeMD160Digest();
-                case DigestAlgorithm.RIPEMD256: return new RipeMD256Digest();
-                case DigestAlgorithm.RIPEMD320: return new RipeMD320Digest();
-                case DigestAlgorithm.SHA_1: return new Sha1Digest();
-                case DigestAlgorithm.SHA_224: return new Sha224Digest();
-                case DigestAlgorithm.SHA_256: return new Sha256Digest();
-                case DigestAlgorithm.SHA_384: return new Sha384Digest();
-                case DigestAlgorithm.SHA_512: return new Sha512Digest();
-                case DigestAlgorithm.SHA_512_224: return new Sha512tDigest(224);
-                case DigestAlgorithm.SHA_512_256: return new Sha512tDigest(256);
-                case DigestAlgorithm.SHA3_224: return new Sha3Digest(224);
-                case DigestAlgorithm.SHA3_256: return new Sha3Digest(256);
-                case DigestAlgorithm.SHA3_384: return new Sha3Digest(384);
-                case DigestAlgorithm.SHA3_512: return new Sha3Digest(512);
-                case DigestAlgorithm.SHAKE128_256: return new ShakeDigest(128);
-                case DigestAlgorithm.SHAKE256_512: return new ShakeDigest(256);
-                case DigestAlgorithm.SM3: return new SM3Digest();
-                case DigestAlgorithm.TIGER: return new TigerDigest();
-                case DigestAlgorithm.WHIRLPOOL: return new WhirlpoolDigest();
-                }
-            }
-            catch (ArgumentException)
-            {
-            }
-
-            throw new SecurityUtilityException("Digest " + mechanism + " not recognised.");
+            throw new ArgumentNullException(nameof(algorithm));
         }
 
         public static string GetAlgorithmName(DerObjectIdentifier oid)

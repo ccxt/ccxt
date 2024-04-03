@@ -48,15 +48,15 @@ namespace Org.BouncyCastle.Pkcs
             if (!privateKey.IsPrivate)
                 throw new ArgumentException("Public key passed - private key expected", "privateKey");
 
-            if (privateKey is ElGamalPrivateKeyParameters)
-            {
-                ElGamalPrivateKeyParameters _key = (ElGamalPrivateKeyParameters)privateKey;
-                ElGamalParameters egp = _key.Parameters;
-                return new PrivateKeyInfo(
-                    new AlgorithmIdentifier(OiwObjectIdentifiers.ElGamalAlgorithm, new ElGamalParameter(egp.P, egp.G).ToAsn1Object()),
-                    new DerInteger(_key.X),
-                    attributes);
-            }
+            // if (privateKey is ElGamalPrivateKeyParameters)
+            // {
+            //     ElGamalPrivateKeyParameters _key = (ElGamalPrivateKeyParameters)privateKey;
+            //     ElGamalParameters egp = _key.Parameters;
+            //     return new PrivateKeyInfo(
+            //         new AlgorithmIdentifier(OiwObjectIdentifiers.ElGamalAlgorithm, new ElGamalParameter(egp.P, egp.G).ToAsn1Object()),
+            //         new DerInteger(_key.X),
+            //         attributes);
+            // }
 
             if (privateKey is DsaPrivateKeyParameters)
             {
@@ -79,44 +79,6 @@ namespace Org.BouncyCastle.Pkcs
                     new AlgorithmIdentifier(_key.AlgorithmOid, p.ToAsn1Object()),
                     new DerInteger(_key.X),
                     attributes);
-            }
-
-            if (privateKey is RsaKeyParameters)
-            {
-                AlgorithmIdentifier algID = new AlgorithmIdentifier(
-                    PkcsObjectIdentifiers.RsaEncryption, DerNull.Instance);
-
-                RsaPrivateKeyStructure keyStruct;
-                if (privateKey is RsaPrivateCrtKeyParameters)
-                {
-                    RsaPrivateCrtKeyParameters _key = (RsaPrivateCrtKeyParameters)privateKey;
-
-                    keyStruct = new RsaPrivateKeyStructure(
-                        _key.Modulus,
-                        _key.PublicExponent,
-                        _key.Exponent,
-                        _key.P,
-                        _key.Q,
-                        _key.DP,
-                        _key.DQ,
-                        _key.QInv);
-                }
-                else
-                {
-                    RsaKeyParameters _key = (RsaKeyParameters)privateKey;
-
-                    keyStruct = new RsaPrivateKeyStructure(
-                        _key.Modulus,
-                        BigInteger.Zero,
-                        _key.Exponent,
-                        BigInteger.Zero,
-                        BigInteger.Zero,
-                        BigInteger.Zero,
-                        BigInteger.Zero,
-                        BigInteger.Zero);
-                }
-
-                return new PrivateKeyInfo(algID, keyStruct.ToAsn1Object(), attributes);
             }
 
             if (privateKey is ECPrivateKeyParameters)
@@ -190,62 +152,6 @@ namespace Org.BouncyCastle.Pkcs
                 return new PrivateKeyInfo(algID, ec, attributes);
             }
 
-            if (privateKey is Gost3410PrivateKeyParameters)
-            {
-                Gost3410PrivateKeyParameters _key = (Gost3410PrivateKeyParameters)privateKey;
-
-                if (_key.PublicKeyParamSet == null)
-                    throw new NotImplementedException("Not a CryptoPro parameter set");
-
-                byte[] keyEnc = _key.X.ToByteArrayUnsigned();
-                byte[] keyBytes = new byte[keyEnc.Length];
-
-                for (int i = 0; i != keyBytes.Length; i++)
-                {
-                    keyBytes[i] = keyEnc[keyEnc.Length - 1 - i]; // must be little endian
-                }
-
-                Gost3410PublicKeyAlgParameters algParams = new Gost3410PublicKeyAlgParameters(
-                    _key.PublicKeyParamSet, CryptoProObjectIdentifiers.GostR3411x94CryptoProParamSet, null);
-
-                AlgorithmIdentifier algID = new AlgorithmIdentifier(
-                    CryptoProObjectIdentifiers.GostR3410x94,
-                    algParams.ToAsn1Object());
-
-                return new PrivateKeyInfo(algID, new DerOctetString(keyBytes), attributes);
-            }
-
-            if (privateKey is X448PrivateKeyParameters)
-            {
-                X448PrivateKeyParameters key = (X448PrivateKeyParameters)privateKey;
-
-                return new PrivateKeyInfo(new AlgorithmIdentifier(EdECObjectIdentifiers.id_X448),
-                    new DerOctetString(key.GetEncoded()), attributes, key.GeneratePublicKey().GetEncoded());
-            }
-
-            if (privateKey is X25519PrivateKeyParameters)
-            {
-                X25519PrivateKeyParameters key = (X25519PrivateKeyParameters)privateKey;
-
-                return new PrivateKeyInfo(new AlgorithmIdentifier(EdECObjectIdentifiers.id_X25519),
-                    new DerOctetString(key.GetEncoded()), attributes, key.GeneratePublicKey().GetEncoded());
-            }
-
-            if (privateKey is Ed448PrivateKeyParameters)
-            {
-                Ed448PrivateKeyParameters key = (Ed448PrivateKeyParameters)privateKey;
-
-                return new PrivateKeyInfo(new AlgorithmIdentifier(EdECObjectIdentifiers.id_Ed448),
-                    new DerOctetString(key.GetEncoded()), attributes, key.GeneratePublicKey().GetEncoded());
-            }
-
-            if (privateKey is Ed25519PrivateKeyParameters)
-            {
-                Ed25519PrivateKeyParameters key = (Ed25519PrivateKeyParameters)privateKey;
-
-                return new PrivateKeyInfo(new AlgorithmIdentifier(EdECObjectIdentifiers.id_Ed25519),
-                    new DerOctetString(key.GetEncoded()), attributes, key.GeneratePublicKey().GetEncoded());
-            }
 
             // if (privateKey is CmcePrivateKeyParameters)
             // {
@@ -265,31 +171,31 @@ namespace Org.BouncyCastle.Pkcs
             throw new ArgumentException("Class provided is not convertible: " + Platform.GetTypeName(privateKey));
         }
 
-        public static PrivateKeyInfo CreatePrivateKeyInfo(
-            char[] passPhrase,
-            EncryptedPrivateKeyInfo encInfo)
-        {
-            return CreatePrivateKeyInfo(passPhrase, false, encInfo);
-        }
+        // public static PrivateKeyInfo CreatePrivateKeyInfo(
+        //     char[] passPhrase,
+        //     EncryptedPrivateKeyInfo encInfo)
+        // {
+        //     return CreatePrivateKeyInfo(passPhrase, false, encInfo);
+        // }
 
-        public static PrivateKeyInfo CreatePrivateKeyInfo(
-            char[] passPhrase,
-            bool wrongPkcs12Zero,
-            EncryptedPrivateKeyInfo encInfo)
-        {
-            AlgorithmIdentifier algID = encInfo.EncryptionAlgorithm;
+        // public static PrivateKeyInfo CreatePrivateKeyInfo(
+        //     char[] passPhrase,
+        //     bool wrongPkcs12Zero,
+        //     EncryptedPrivateKeyInfo encInfo)
+        // {
+        //     AlgorithmIdentifier algID = encInfo.EncryptionAlgorithm;
 
-            IBufferedCipher cipher = PbeUtilities.CreateEngine(algID) as IBufferedCipher;
-            if (cipher == null)
-                throw new Exception("Unknown encryption algorithm: " + algID.Algorithm);
+        //     IBufferedCipher cipher = PbeUtilities.CreateEngine(algID) as IBufferedCipher;
+        //     if (cipher == null)
+        //         throw new Exception("Unknown encryption algorithm: " + algID.Algorithm);
 
-            ICipherParameters cipherParameters = PbeUtilities.GenerateCipherParameters(
-                algID, passPhrase, wrongPkcs12Zero);
-            cipher.Init(false, cipherParameters);
-            byte[] keyBytes = cipher.DoFinal(encInfo.GetEncryptedData());
+        //     ICipherParameters cipherParameters = PbeUtilities.GenerateCipherParameters(
+        //         algID, passPhrase, wrongPkcs12Zero);
+        //     cipher.Init(false, cipherParameters);
+        //     byte[] keyBytes = cipher.DoFinal(encInfo.GetEncryptedData());
 
-            return PrivateKeyInfo.GetInstance(keyBytes);
-        }
+        //     return PrivateKeyInfo.GetInstance(keyBytes);
+        // }
 
         private static void ExtractBytes(byte[] encKey, int size, int offSet, BigInteger bI)
         {

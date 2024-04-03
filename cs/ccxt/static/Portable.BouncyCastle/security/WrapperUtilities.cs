@@ -7,7 +7,7 @@ using Org.BouncyCastle.Asn1.Nist;
 using Org.BouncyCastle.Asn1.Ntt;
 using Org.BouncyCastle.Asn1.Pkcs;
 using Org.BouncyCastle.Crypto;
-using Org.BouncyCastle.Crypto.Engines;
+// using Org.BouncyCastle.Crypto.Engines;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Collections;
 
@@ -18,8 +18,11 @@ namespace Org.BouncyCastle.Security
     /// </remarks>
     public static class WrapperUtilities
     {
-        private enum WrapAlgorithm { AESWRAP, CAMELLIAWRAP, DESEDEWRAP, RC2WRAP, SEEDWRAP,
-            DESEDERFC3211WRAP, AESRFC3211WRAP, CAMELLIARFC3211WRAP };
+        private enum WrapAlgorithm
+        {
+            AESWRAP, CAMELLIAWRAP, DESEDEWRAP, RC2WRAP, SEEDWRAP,
+            DESEDERFC3211WRAP, AESRFC3211WRAP, CAMELLIARFC3211WRAP
+        };
 
         private static readonly IDictionary<string, string> Algorithms =
             new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
@@ -52,35 +55,6 @@ namespace Org.BouncyCastle.Security
 
         public static IWrapper GetWrapper(string algorithm)
         {
-            string mechanism = CollectionUtilities.GetValueOrKey(Algorithms, algorithm).ToUpperInvariant();
-
-            try
-            {
-                WrapAlgorithm wrapAlgorithm = (WrapAlgorithm)Enums.GetEnumValue(
-                    typeof(WrapAlgorithm), mechanism);
-
-                switch (wrapAlgorithm)
-                {
-                case WrapAlgorithm.AESWRAP:				return new AesWrapEngine();
-                case WrapAlgorithm.CAMELLIAWRAP:		return new CamelliaWrapEngine();
-                case WrapAlgorithm.DESEDEWRAP:			return new DesEdeWrapEngine();
-                case WrapAlgorithm.RC2WRAP:				return new RC2WrapEngine();
-                case WrapAlgorithm.SEEDWRAP:			return new SeedWrapEngine();
-                case WrapAlgorithm.DESEDERFC3211WRAP:	return new Rfc3211WrapEngine(new DesEdeEngine());
-                case WrapAlgorithm.AESRFC3211WRAP:		return new Rfc3211WrapEngine(AesUtilities.CreateEngine());
-                case WrapAlgorithm.CAMELLIARFC3211WRAP:	return new Rfc3211WrapEngine(new CamelliaEngine());
-                }
-            }
-            catch (ArgumentException)
-            {
-            }
-
-            // Create an IBufferedCipher and use it as IWrapper (via BufferedCipherWrapper)
-            IBufferedCipher blockCipher = CipherUtilities.GetCipher(algorithm);
-
-            if (blockCipher != null)
-                return new BufferedCipherWrapper(blockCipher);
-
             throw new SecurityUtilityException("Wrapper " + algorithm + " not recognised.");
         }
 
@@ -107,8 +81,8 @@ namespace Org.BouncyCastle.Security
             }
 
             public void Init(
-                bool				forWrapping,
-                ICipherParameters	parameters)
+                bool forWrapping,
+                ICipherParameters parameters)
             {
                 this.forWrapping = forWrapping;
 
@@ -116,9 +90,9 @@ namespace Org.BouncyCastle.Security
             }
 
             public byte[] Wrap(
-                byte[]	input,
-                int		inOff,
-                int		length)
+                byte[] input,
+                int inOff,
+                int length)
             {
                 if (!forWrapping)
                     throw new InvalidOperationException("Not initialised for wrapping");
@@ -127,9 +101,9 @@ namespace Org.BouncyCastle.Security
             }
 
             public byte[] Unwrap(
-                byte[]	input,
-                int		inOff,
-                int		length)
+                byte[] input,
+                int inOff,
+                int length)
             {
                 if (forWrapping)
                     throw new InvalidOperationException("Not initialised for unwrapping");

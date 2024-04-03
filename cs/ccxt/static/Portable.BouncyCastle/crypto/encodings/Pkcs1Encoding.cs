@@ -1,7 +1,7 @@
 using System;
 
 using Org.BouncyCastle.Crypto.Parameters;
-using Org.BouncyCastle.Crypto.Digests;
+// using Org.BouncyCastle.Crypto.Digests;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 
@@ -41,7 +41,7 @@ namespace Org.BouncyCastle.Crypto.Encodings
         {
             string strictProperty = Platform.GetEnvironmentVariable(StrictLengthEnabledProperty);
 
-            strictLengthEnabled = new bool[]{ strictProperty == null || Platform.EqualsIgnoreCase("true", strictProperty) };
+            strictLengthEnabled = new bool[] { strictProperty == null || Platform.EqualsIgnoreCase("true", strictProperty) };
         }
 
 
@@ -129,8 +129,8 @@ namespace Org.BouncyCastle.Crypto.Encodings
             int baseBlockSize = engine.GetInputBlockSize();
 
             return forEncryption
-                ?	baseBlockSize - HeaderLength
-                :	baseBlockSize;
+                ? baseBlockSize - HeaderLength
+                : baseBlockSize;
         }
 
         public int GetOutputBlockSize()
@@ -138,24 +138,24 @@ namespace Org.BouncyCastle.Crypto.Encodings
             int baseBlockSize = engine.GetOutputBlockSize();
 
             return forEncryption
-                ?	baseBlockSize
-                :	baseBlockSize - HeaderLength;
+                ? baseBlockSize
+                : baseBlockSize - HeaderLength;
         }
 
         public byte[] ProcessBlock(
-            byte[]	input,
-            int		inOff,
-            int		length)
+            byte[] input,
+            int inOff,
+            int length)
         {
             return forEncryption
-                ?	EncodeBlock(input, inOff, length)
-                :	DecodeBlock(input, inOff, length);
+                ? EncodeBlock(input, inOff, length)
+                : DecodeBlock(input, inOff, length);
         }
 
         private byte[] EncodeBlock(
-            byte[]	input,
-            int		inOff,
-            int		inLen)
+            byte[] input,
+            int inOff,
+            int inLen)
         {
             if (inLen > GetInputBlockSize())
                 throw new ArgumentException("input data too large", "inLen");
@@ -217,7 +217,7 @@ namespace Org.BouncyCastle.Crypto.Encodings
              */
             int plen = encoded.Length - (
                       pLen /* Length of the PMS */
-                    +  1 /* Final 0-byte before PMS */
+                    + 1 /* Final 0-byte before PMS */
             );
 
             for (int i = 1; i < plen; i++)
@@ -272,12 +272,12 @@ namespace Org.BouncyCastle.Crypto.Encodings
 
             byte[] data = (useStrictLength & (block.Length != engine.GetOutputBlockSize())) ? blockBuffer : block;
 
-		    /*
+            /*
 		     * Check the padding.
 		     */
             int correct = CheckPkcs1Encoding(data, this.pLen);
 
-		    /*
+            /*
 		     * Now, to a constant time constant memory copy of the decrypted value
 		     * or the random value, depending on the validity of the padding.
 		     */
@@ -296,9 +296,9 @@ namespace Org.BouncyCastle.Crypto.Encodings
         * @exception InvalidCipherTextException if the decrypted block is not in Pkcs1 format.
         */
         private byte[] DecodeBlock(
-            byte[]	input,
-            int		inOff,
-            int		inLen)
+            byte[] input,
+            int inOff,
+            int inLen)
         {
             /*
              * If the length of the expected plaintext is known, we use a constant-time decryption.

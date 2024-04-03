@@ -46,18 +46,7 @@ namespace Org.BouncyCastle.Security
             AlgorithmIdentifier algID = keyInfo.AlgorithmID;
             DerObjectIdentifier algOid = algID.Algorithm;
 
-            // TODO See RSAUtil.isRsaOid in Java build
-            if (algOid.Equals(PkcsObjectIdentifiers.RsaEncryption)
-                || algOid.Equals(X509ObjectIdentifiers.IdEARsa)
-                || algOid.Equals(PkcsObjectIdentifiers.IdRsassaPss)
-                || algOid.Equals(PkcsObjectIdentifiers.IdRsaesOaep))
-            {
-                RsaPublicKeyStructure pubKey = RsaPublicKeyStructure.GetInstance(
-                    keyInfo.ParsePublicKey());
-
-                return new RsaKeyParameters(false, pubKey.Modulus, pubKey.PublicExponent);
-            }
-            else if (algOid.Equals(X9ObjectIdentifiers.DHPublicNumber))
+         if (algOid.Equals(X9ObjectIdentifiers.DHPublicNumber))
             {
                 Asn1Sequence seq = Asn1Sequence.GetInstance(algID.Parameters.ToAsn1Object());
 
@@ -102,16 +91,16 @@ namespace Org.BouncyCastle.Security
 
                 return ReadPkcsDHParam(algOid, derY.Value, seq);
             }
-            else if (algOid.Equals(OiwObjectIdentifiers.ElGamalAlgorithm))
-            {
-                ElGamalParameter para = new ElGamalParameter(
-                    Asn1Sequence.GetInstance(algID.Parameters.ToAsn1Object()));
-                DerInteger derY = (DerInteger)keyInfo.ParsePublicKey();
+            // else if (algOid.Equals(OiwObjectIdentifiers.ElGamalAlgorithm))
+            // {
+            //     ElGamalParameter para = new ElGamalParameter(
+            //         Asn1Sequence.GetInstance(algID.Parameters.ToAsn1Object()));
+            //     DerInteger derY = (DerInteger)keyInfo.ParsePublicKey();
 
-                return new ElGamalPublicKeyParameters(
-                    derY.Value,
-                    new ElGamalParameters(para.P, para.G));
-            }
+            //     return new ElGamalPublicKeyParameters(
+            //         derY.Value,
+            //         new ElGamalParameters(para.P, para.G));
+            // }
             else if (algOid.Equals(X9ObjectIdentifiers.IdDsa)
                 || algOid.Equals(OiwObjectIdentifiers.DsaWithSha1))
             {
@@ -191,49 +180,49 @@ namespace Org.BouncyCastle.Security
 
                 return new ECPublicKeyParameters("ECGOST3410", q, publicKeyParamSet);
             }
-            else if (algOid.Equals(CryptoProObjectIdentifiers.GostR3410x94))
-            {
-                Gost3410PublicKeyAlgParameters algParams = Gost3410PublicKeyAlgParameters.GetInstance(algID.Parameters);
+            // else if (algOid.Equals(CryptoProObjectIdentifiers.GostR3410x94))
+            // {
+            //     Gost3410PublicKeyAlgParameters algParams = Gost3410PublicKeyAlgParameters.GetInstance(algID.Parameters);
 
-                Asn1OctetString key;
-                try
-                {
-                    key = (Asn1OctetString)keyInfo.ParsePublicKey();
-                }
-                catch (IOException e)
-                {
-                    throw new ArgumentException("error recovering GOST3410_94 public key", e);
-                }
+            //     Asn1OctetString key;
+            //     try
+            //     {
+            //         key = (Asn1OctetString)keyInfo.ParsePublicKey();
+            //     }
+            //     catch (IOException e)
+            //     {
+            //         throw new ArgumentException("error recovering GOST3410_94 public key", e);
+            //     }
 
-                byte[] keyBytes = Arrays.Reverse(key.GetOctets()); // was little endian
+            //     byte[] keyBytes = Arrays.Reverse(key.GetOctets()); // was little endian
 
-                BigInteger y = new BigInteger(1, keyBytes);
+            //     BigInteger y = new BigInteger(1, keyBytes);
 
-                return new Gost3410PublicKeyParameters(y, algParams.PublicKeyParamSet);
-            }
-            else if (algOid.Equals(EdECObjectIdentifiers.id_X25519))
-            {
-                return new X25519PublicKeyParameters(GetRawKey(keyInfo));
-            }
-            else if (algOid.Equals(EdECObjectIdentifiers.id_X448))
-            {
-                return new X448PublicKeyParameters(GetRawKey(keyInfo));
-            }
-            else if (algOid.Equals(EdECObjectIdentifiers.id_Ed25519))
-            {
-                return new Ed25519PublicKeyParameters(GetRawKey(keyInfo));
-            }
-            else if (algOid.Equals(EdECObjectIdentifiers.id_Ed448))
-            {
-                return new Ed448PublicKeyParameters(GetRawKey(keyInfo));
-            }
+            //     return new Gost3410PublicKeyParameters(y, algParams.PublicKeyParamSet);
+            // }
+            // else if (algOid.Equals(EdECObjectIdentifiers.id_X25519))
+            // {
+            //     return new X25519PublicKeyParameters(GetRawKey(keyInfo));
+            // }
+            // else if (algOid.Equals(EdECObjectIdentifiers.id_X448))
+            // {
+            //     return new X448PublicKeyParameters(GetRawKey(keyInfo));
+            // }
+            // else if (algOid.Equals(EdECObjectIdentifiers.id_Ed25519))
+            // {
+            //     return new Ed25519PublicKeyParameters(GetRawKey(keyInfo));
+            // }
+            // else if (algOid.Equals(EdECObjectIdentifiers.id_Ed448))
+            // {
+            //     return new Ed448PublicKeyParameters(GetRawKey(keyInfo));
+            // }
             else if (algOid.Equals(RosstandartObjectIdentifiers.id_tc26_gost_3410_12_256)
-                ||   algOid.Equals(RosstandartObjectIdentifiers.id_tc26_gost_3410_12_512))
+                || algOid.Equals(RosstandartObjectIdentifiers.id_tc26_gost_3410_12_512))
             {
                 Gost3410PublicKeyAlgParameters gostParams = Gost3410PublicKeyAlgParameters.GetInstance(algID.Parameters);
                 DerObjectIdentifier publicKeyParamSet = gostParams.PublicKeyParamSet;
 
-                ECGost3410Parameters ecDomainParameters =new ECGost3410Parameters(
+                ECGost3410Parameters ecDomainParameters = new ECGost3410Parameters(
                     new ECNamedDomainParameters(publicKeyParamSet, ECGost3410NamedCurves.GetByOid(publicKeyParamSet)),
                     publicKeyParamSet,
                     gostParams.DigestParamSet,

@@ -197,18 +197,18 @@ namespace Org.BouncyCastle.Security
 
         public static KeyParameter CreateKeyParameter(
             DerObjectIdentifier algOid,
-            byte[]				keyBytes,
-            int					offset,
-            int					length)
+            byte[] keyBytes,
+            int offset,
+            int length)
         {
             return CreateKeyParameter(algOid.Id, keyBytes, offset, length);
         }
 
         public static KeyParameter CreateKeyParameter(
-            string	algorithm,
-            byte[]	keyBytes,
-            int		offset,
-            int		length)
+            string algorithm,
+            byte[] keyBytes,
+            int offset,
+            int length)
         {
             if (algorithm == null)
                 throw new ArgumentNullException(nameof(algorithm));
@@ -221,27 +221,27 @@ namespace Org.BouncyCastle.Security
             if (canonical == "DES")
                 return new DesParameters(keyBytes, offset, length);
 
-            if (canonical == "DESEDE" || canonical =="DESEDE3")
+            if (canonical == "DESEDE" || canonical == "DESEDE3")
                 return new DesEdeParameters(keyBytes, offset, length);
 
-            if (canonical == "RC2")
-                return new RC2Parameters(keyBytes, offset, length);
+            // if (canonical == "RC2")
+            //     return new RC2Parameters(keyBytes, offset, length);
 
             return new KeyParameter(keyBytes, offset, length);
         }
 
         public static ICipherParameters GetCipherParameters(
-            DerObjectIdentifier	algOid,
-            ICipherParameters	key,
-            Asn1Object			asn1Params)
+            DerObjectIdentifier algOid,
+            ICipherParameters key,
+            Asn1Object asn1Params)
         {
             return GetCipherParameters(algOid.Id, key, asn1Params);
         }
 
         public static ICipherParameters GetCipherParameters(
-            string				algorithm,
-            ICipherParameters	key,
-            Asn1Object			asn1Params)
+            string algorithm,
+            ICipherParameters key,
+            Asn1Object asn1Params)
         {
             if (algorithm == null)
                 throw new ArgumentNullException("algorithm");
@@ -263,7 +263,7 @@ namespace Org.BouncyCastle.Security
                 if (basicIVKeySize != -1
                     || canonical == "RIJNDAEL" || canonical == "SKIPJACK" || canonical == "TWOFISH")
                 {
-                    iv = ((Asn1OctetString) asn1Params).GetOctets();
+                    iv = ((Asn1OctetString)asn1Params).GetOctets();
                 }
                 else if (canonical == "CAST5")
                 {
@@ -293,14 +293,14 @@ namespace Org.BouncyCastle.Security
 
         public static Asn1Encodable GenerateParameters(
             DerObjectIdentifier algID,
-            SecureRandom		random)
+            SecureRandom random)
         {
             return GenerateParameters(algID.Id, random);
         }
 
         public static Asn1Encodable GenerateParameters(
-            string			algorithm,
-            SecureRandom	random)
+            string algorithm,
+            SecureRandom random)
         {
             if (algorithm == null)
                 throw new ArgumentNullException("algorithm");

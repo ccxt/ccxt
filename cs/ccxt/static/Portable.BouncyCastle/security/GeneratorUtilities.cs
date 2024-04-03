@@ -331,11 +331,11 @@ namespace Org.BouncyCastle.Security
                 throw new SecurityUtilityException("KeyGenerator " + algorithm
                     + " (" + canonicalName + ") not supported.");
 
-            if (canonicalName == "DES")
-                return new DesKeyGenerator(defaultKeySize);
+            // if (canonicalName == "DES")
+            //     return new DesKeyGenerator(defaultKeySize);
 
-            if (canonicalName == "DESEDE" || canonicalName == "DESEDE3")
-                return new DesEdeKeyGenerator(defaultKeySize);
+            // if (canonicalName == "DESEDE" || canonicalName == "DESEDE3")
+            //     return new DesEdeKeyGenerator(defaultKeySize);
 
             return new CipherKeyGenerator(defaultKeySize);
         }

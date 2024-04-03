@@ -96,8 +96,8 @@ namespace Org.BouncyCastle.OpenSsl
             {
                 case "PUBLIC KEY":
                     return ReadPublicKey(obj);
-                case "RSA PUBLIC KEY":
-                    return ReadRsaPublicKey(obj);
+                // case "RSA PUBLIC KEY":
+                //     return ReadRsaPublicKey(obj);
                 // case "CERTIFICATE REQUEST":
                 // case "NEW CERTIFICATE REQUEST":
                 //     return ReadCertificateRequest(obj);
@@ -119,16 +119,16 @@ namespace Org.BouncyCastle.OpenSsl
             }
         }
 
-        private AsymmetricKeyParameter ReadRsaPublicKey(PemObject pemObject)
-        {
-            RsaPublicKeyStructure rsaPubStructure = RsaPublicKeyStructure.GetInstance(
-                Asn1Object.FromByteArray(pemObject.Content));
+        // private AsymmetricKeyParameter ReadRsaPublicKey(PemObject pemObject)
+        // {
+        //     RsaPublicKeyStructure rsaPubStructure = RsaPublicKeyStructure.GetInstance(
+        //         Asn1Object.FromByteArray(pemObject.Content));
 
-            return new RsaKeyParameters(
-                false, // not private
-                rsaPubStructure.Modulus,
-                rsaPubStructure.PublicExponent);
-        }
+        //     return new RsaKeyParameters(
+        //         false, // not private
+        //         rsaPubStructure.Modulus,
+        //         rsaPubStructure.PublicExponent);
+        // }
 
         private AsymmetricKeyParameter ReadPublicKey(PemObject pemObject)
         {
@@ -242,25 +242,25 @@ namespace Org.BouncyCastle.OpenSsl
 
             string procType = CollectionUtilities.GetValueOrNull(fields, "Proc-Type");
 
-            if (procType == "4,ENCRYPTED")
-            {
-                if (pFinder == null)
-                    throw new PasswordException("No password finder specified, but a password is required");
+            // if (procType == "4,ENCRYPTED")
+            // {
+            //     if (pFinder == null)
+            //         throw new PasswordException("No password finder specified, but a password is required");
 
-                char[] password = pFinder.GetPassword();
-                if (password == null)
-                    throw new PasswordException("Password is null, but a password is required");
+            //     char[] password = pFinder.GetPassword();
+            //     if (password == null)
+            //         throw new PasswordException("Password is null, but a password is required");
 
-                if (!fields.TryGetValue("DEK-Info", out var dekInfo))
-                    throw new PemException("missing DEK-info");
+            //     if (!fields.TryGetValue("DEK-Info", out var dekInfo))
+            //         throw new PemException("missing DEK-info");
 
-                string[] tknz = dekInfo.Split(',');
+            //     string[] tknz = dekInfo.Split(',');
 
-                string dekAlgName = tknz[0].Trim();
-                byte[] iv = Hex.Decode(tknz[1].Trim());
+            //     string dekAlgName = tknz[0].Trim();
+            //     byte[] iv = Hex.Decode(tknz[1].Trim());
 
-                keyBytes = PemUtilities.Crypt(false, keyBytes, password, dekAlgName, iv);
-            }
+            //     keyBytes = PemUtilities.Crypt(false, keyBytes, password, dekAlgName, iv);
+            // }
 
             try
             {
@@ -269,21 +269,21 @@ namespace Org.BouncyCastle.OpenSsl
 
                 switch (type)
                 {
-                    case "RSA":
-                        {
-                            if (seq.Count != 9)
-                                throw new PemException("malformed sequence in RSA private key");
+                    // case "RSA":
+                    //     {
+                    //         if (seq.Count != 9)
+                    //             throw new PemException("malformed sequence in RSA private key");
 
-                            RsaPrivateKeyStructure rsa = RsaPrivateKeyStructure.GetInstance(seq);
+                    //         RsaPrivateKeyStructure rsa = RsaPrivateKeyStructure.GetInstance(seq);
 
-                            pubSpec = new RsaKeyParameters(false, rsa.Modulus, rsa.PublicExponent);
-                            privSpec = new RsaPrivateCrtKeyParameters(
-                                rsa.Modulus, rsa.PublicExponent, rsa.PrivateExponent,
-                                rsa.Prime1, rsa.Prime2, rsa.Exponent1, rsa.Exponent2,
-                                rsa.Coefficient);
+                    //         pubSpec = new RsaKeyParameters(false, rsa.Modulus, rsa.PublicExponent);
+                    //         privSpec = new RsaPrivateCrtKeyParameters(
+                    //             rsa.Modulus, rsa.PublicExponent, rsa.PrivateExponent,
+                    //             rsa.Prime1, rsa.Prime2, rsa.Exponent1, rsa.Exponent2,
+                    //             rsa.Coefficient);
 
-                            break;
-                        }
+                    //         break;
+                    //     }
 
                     case "DSA":
                         {
@@ -334,15 +334,15 @@ namespace Org.BouncyCastle.OpenSsl
                             break;
                         }
 
-                    case "ENCRYPTED":
-                        {
-                            char[] password = pFinder.GetPassword();
+                    // case "ENCRYPTED":
+                    //     {
+                    //         char[] password = pFinder.GetPassword();
 
-                            if (password == null)
-                                throw new PasswordException("Password is null, but a password is required");
+                    //         if (password == null)
+                    //             throw new PasswordException("Password is null, but a password is required");
 
-                            return PrivateKeyFactory.DecryptKey(password, EncryptedPrivateKeyInfo.GetInstance(seq));
-                        }
+                    //         return PrivateKeyFactory.DecryptKey(password, EncryptedPrivateKeyInfo.GetInstance(seq));
+                    //     }
 
                     case "":
                         {

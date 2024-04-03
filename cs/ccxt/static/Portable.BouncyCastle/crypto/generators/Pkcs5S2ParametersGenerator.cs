@@ -2,7 +2,7 @@ using System;
 
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Parameters;
-using Org.BouncyCastle.Crypto.Digests;
+// using Org.BouncyCastle.Crypto.Digests;
 using Org.BouncyCastle.Crypto.Macs;
 using Org.BouncyCastle.Crypto.Utilities;
 using Org.BouncyCastle.Math;
@@ -27,10 +27,10 @@ namespace Org.BouncyCastle.Crypto.Generators
         /**
         * construct a Pkcs5 Scheme 2 Parameters generator.
         */
-        public Pkcs5S2ParametersGenerator()
-            : this(new Sha1Digest())
-        {
-        }
+        // public Pkcs5S2ParametersGenerator()
+        //     : this(new Sha1Digest())
+        // {
+        // }
 
         public Pkcs5S2ParametersGenerator(IDigest digest)
         {
@@ -39,11 +39,11 @@ namespace Org.BouncyCastle.Crypto.Generators
         }
 
         private void F(
-            byte[]  S,
-            int     c,
-            byte[]  iBuf,
-            byte[]  outBytes,
-            int     outOff)
+            byte[] S,
+            int c,
+            byte[] iBuf,
+            byte[] outBytes,
+            int outOff)
         {
             if (c == 0)
                 throw new ArgumentException("iteration count must be at least 1.");
@@ -73,11 +73,11 @@ namespace Org.BouncyCastle.Crypto.Generators
         private byte[] GenerateDerivedKey(
             int dkLen)
         {
-            int     hLen = hMac.GetMacSize();
-            int     l = (dkLen + hLen - 1) / hLen;
-            byte[]  iBuf = new byte[4];
-            byte[]  outBytes = new byte[l * hLen];
-            int     outPos = 0;
+            int hLen = hMac.GetMacSize();
+            int l = (dkLen + hLen - 1) / hLen;
+            byte[] iBuf = new byte[4];
+            byte[] outBytes = new byte[l * hLen];
+            int outPos = 0;
 
             ICipherParameters param = new KeyParameter(mPassword);
 
@@ -100,8 +100,8 @@ namespace Org.BouncyCastle.Crypto.Generators
         }
 
         public override ICipherParameters GenerateDerivedParameters(
-            string	algorithm,
-            int		keySize)
+            string algorithm,
+            int keySize)
         {
             keySize /= 8;
 
@@ -111,9 +111,9 @@ namespace Org.BouncyCastle.Crypto.Generators
         }
 
         public override ICipherParameters GenerateDerivedParameters(
-            string	algorithm,
-            int		keySize,
-            int		ivSize)
+            string algorithm,
+            int keySize,
+            int ivSize)
         {
             keySize /= 8;
             ivSize /= 8;

@@ -8,7 +8,7 @@ using Org.BouncyCastle.Asn1.Nist;
 using Org.BouncyCastle.Asn1.Pkcs;
 using Org.BouncyCastle.Asn1.Rosstandart;
 using Org.BouncyCastle.Crypto;
-using Org.BouncyCastle.Crypto.Engines;
+// using Org.BouncyCastle.Crypto.Engines;
 using Org.BouncyCastle.Crypto.Macs;
 using Org.BouncyCastle.Crypto.Paddings;
 using Org.BouncyCastle.Utilities;
@@ -111,96 +111,6 @@ namespace Org.BouncyCastle.Security
                 }
 
                 return new HMac(DigestUtilities.GetDigest(digestName));
-            }
-
-            if (mechanism == "AESCMAC")
-            {
-                return new CMac(AesUtilities.CreateEngine());
-            }
-            if (mechanism == "DESMAC")
-            {
-                return new CbcBlockCipherMac(new DesEngine());
-            }
-            if (mechanism == "DESMAC/CFB8")
-            {
-                return new CfbBlockCipherMac(new DesEngine());
-            }
-            if (mechanism == "DESMAC64")
-            {
-                return new CbcBlockCipherMac(new DesEngine(), 64);
-            }
-            if (mechanism == "DESEDECMAC")
-            {
-                return new CMac(new DesEdeEngine());
-            }
-            if (mechanism == "DESEDEMAC")
-            {
-                return new CbcBlockCipherMac(new DesEdeEngine());
-            }
-            if (mechanism == "DESEDEMAC/CFB8")
-            {
-                return new CfbBlockCipherMac(new DesEdeEngine());
-            }
-            if (mechanism == "DESEDEMAC64")
-            {
-                return new CbcBlockCipherMac(new DesEdeEngine(), 64);
-            }
-            if (mechanism == "DESEDEMAC64WITHISO7816-4PADDING")
-            {
-                return new CbcBlockCipherMac(new DesEdeEngine(), 64, new ISO7816d4Padding());
-            }
-            if (mechanism == "DESWITHISO9797"
-                || mechanism == "ISO9797ALG3MAC")
-            {
-                return new ISO9797Alg3Mac(new DesEngine());
-            }
-            if (mechanism == "ISO9797ALG3WITHISO7816-4PADDING")
-            {
-                return new ISO9797Alg3Mac(new DesEngine(), new ISO7816d4Padding());
-            }
-            if (mechanism == "SKIPJACKMAC")
-            {
-                return new CbcBlockCipherMac(new SkipjackEngine());
-            }
-            if (mechanism == "SKIPJACKMAC/CFB8")
-            {
-                return new CfbBlockCipherMac(new SkipjackEngine());
-            }
-            if (mechanism == "IDEAMAC")
-            {
-                return new CbcBlockCipherMac(new IdeaEngine());
-            }
-            if (mechanism == "IDEAMAC/CFB8")
-            {
-                return new CfbBlockCipherMac(new IdeaEngine());
-            }
-            if (mechanism == "RC2MAC")
-            {
-                return new CbcBlockCipherMac(new RC2Engine());
-            }
-            if (mechanism == "RC2MAC/CFB8")
-            {
-                return new CfbBlockCipherMac(new RC2Engine());
-            }
-            if (mechanism == "RC5MAC")
-            {
-                return new CbcBlockCipherMac(new RC532Engine());
-            }
-            if (mechanism == "RC5MAC/CFB8")
-            {
-                return new CfbBlockCipherMac(new RC532Engine());
-            }
-            if (mechanism == "GOST28147MAC")
-            {
-                return new Gost28147Mac();
-            }
-            if (mechanism == "VMPCMAC")
-            {
-                return new VmpcMac();
-            }
-            if (mechanism == "SIPHASH-2-4")
-            {
-                return new SipHash();
             }
             throw new SecurityUtilityException("Mac " + mechanism + " not recognised.");
         }

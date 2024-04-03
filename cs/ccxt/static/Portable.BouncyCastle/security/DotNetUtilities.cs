@@ -3,10 +3,10 @@ using System;
 using System.Runtime.Versioning;
 #endif
 using System.Security.Cryptography;
-using SystemX509 = System.Security.Cryptography.X509Certificates;
+// using SystemX509 = System.Security.Cryptography.X509Certificates;
 
 using Org.BouncyCastle.Asn1.Pkcs;
-using Org.BouncyCastle.Asn1.X509;
+// using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
@@ -96,47 +96,47 @@ namespace Org.BouncyCastle.Security
                 parameters);
         }
 
-        public static AsymmetricCipherKeyPair GetRsaKeyPair(RSA rsa)
-        {
-            return GetRsaKeyPair(rsa.ExportParameters(true));
-        }
+        // public static AsymmetricCipherKeyPair GetRsaKeyPair(RSA rsa)
+        // {
+        //     return GetRsaKeyPair(rsa.ExportParameters(true));
+        // }
 
-        public static AsymmetricCipherKeyPair GetRsaKeyPair(RSAParameters rp)
-        {
-            BigInteger modulus = new BigInteger(1, rp.Modulus);
-            BigInteger pubExp = new BigInteger(1, rp.Exponent);
+        // public static AsymmetricCipherKeyPair GetRsaKeyPair(RSAParameters rp)
+        // {
+        //     BigInteger modulus = new BigInteger(1, rp.Modulus);
+        //     BigInteger pubExp = new BigInteger(1, rp.Exponent);
 
-            RsaKeyParameters pubKey = new RsaKeyParameters(
-                false,
-                modulus,
-                pubExp);
+        //     RsaKeyParameters pubKey = new RsaKeyParameters(
+        //         false,
+        //         modulus,
+        //         pubExp);
 
-            RsaPrivateCrtKeyParameters privKey = new RsaPrivateCrtKeyParameters(
-                modulus,
-                pubExp,
-                new BigInteger(1, rp.D),
-                new BigInteger(1, rp.P),
-                new BigInteger(1, rp.Q),
-                new BigInteger(1, rp.DP),
-                new BigInteger(1, rp.DQ),
-                new BigInteger(1, rp.InverseQ));
+        //     RsaPrivateCrtKeyParameters privKey = new RsaPrivateCrtKeyParameters(
+        //         modulus,
+        //         pubExp,
+        //         new BigInteger(1, rp.D),
+        //         new BigInteger(1, rp.P),
+        //         new BigInteger(1, rp.Q),
+        //         new BigInteger(1, rp.DP),
+        //         new BigInteger(1, rp.DQ),
+        //         new BigInteger(1, rp.InverseQ));
 
-            return new AsymmetricCipherKeyPair(pubKey, privKey);
-        }
+        //     return new AsymmetricCipherKeyPair(pubKey, privKey);
+        // }
 
-        public static RsaKeyParameters GetRsaPublicKey(RSA rsa)
-        {
-            return GetRsaPublicKey(rsa.ExportParameters(false));
-        }
+        // public static RsaKeyParameters GetRsaPublicKey(RSA rsa)
+        // {
+        //     return GetRsaPublicKey(rsa.ExportParameters(false));
+        // }
 
-        public static RsaKeyParameters GetRsaPublicKey(
-            RSAParameters rp)
-        {
-            return new RsaKeyParameters(
-                false,
-                new BigInteger(1, rp.Modulus),
-                new BigInteger(1, rp.Exponent));
-        }
+        // public static RsaKeyParameters GetRsaPublicKey(
+        //     RSAParameters rp)
+        // {
+        //     return new RsaKeyParameters(
+        //         false,
+        //         new BigInteger(1, rp.Modulus),
+        //         new BigInteger(1, rp.Exponent));
+        // }
 
         public static AsymmetricCipherKeyPair GetKeyPair(AsymmetricAlgorithm privateKey)
         {
@@ -145,102 +145,102 @@ namespace Org.BouncyCastle.Security
                 return GetDsaKeyPair((DSA)privateKey);
             }
 
-            if (privateKey is RSA)
-            {
-                return GetRsaKeyPair((RSA)privateKey);
-            }
+            // if (privateKey is RSA)
+            // {
+            //     return GetRsaKeyPair((RSA)privateKey);
+            // }
 
             throw new ArgumentException("Unsupported algorithm specified", "privateKey");
         }
 
-        public static RSA ToRSA(RsaKeyParameters rsaKey)
-        {
-            // TODO This appears to not work for private keys (when no CRT info)
-            return CreateRSAProvider(ToRSAParameters(rsaKey));
-        }
+        // public static RSA ToRSA(RsaKeyParameters rsaKey)
+        // {
+        //     // TODO This appears to not work for private keys (when no CRT info)
+        //     return CreateRSAProvider(ToRSAParameters(rsaKey));
+        // }
 
-        public static RSA ToRSA(RsaKeyParameters rsaKey, CspParameters csp)
-        {
-            // TODO This appears to not work for private keys (when no CRT info)
-            return CreateRSAProvider(ToRSAParameters(rsaKey), csp);
-        }
+        // public static RSA ToRSA(RsaKeyParameters rsaKey, CspParameters csp)
+        // {
+        //     // TODO This appears to not work for private keys (when no CRT info)
+        //     return CreateRSAProvider(ToRSAParameters(rsaKey), csp);
+        // }
 
-        public static RSA ToRSA(RsaPrivateCrtKeyParameters privKey)
-        {
-            return CreateRSAProvider(ToRSAParameters(privKey));
-        }
+        // public static RSA ToRSA(RsaPrivateCrtKeyParameters privKey)
+        // {
+        //     return CreateRSAProvider(ToRSAParameters(privKey));
+        // }
 
-        public static RSA ToRSA(RsaPrivateCrtKeyParameters privKey, CspParameters csp)
-        {
-            return CreateRSAProvider(ToRSAParameters(privKey), csp);
-        }
+        // public static RSA ToRSA(RsaPrivateCrtKeyParameters privKey, CspParameters csp)
+        // {
+        //     return CreateRSAProvider(ToRSAParameters(privKey), csp);
+        // }
 
-        public static RSA ToRSA(RsaPrivateKeyStructure privKey)
-        {
-            return CreateRSAProvider(ToRSAParameters(privKey));
-        }
+        // public static RSA ToRSA(RsaPrivateKeyStructure privKey)
+        // {
+        //     return CreateRSAProvider(ToRSAParameters(privKey));
+        // }
 
-        public static RSA ToRSA(RsaPrivateKeyStructure privKey, CspParameters csp)
-        {
-            return CreateRSAProvider(ToRSAParameters(privKey), csp);
-        }
+        // public static RSA ToRSA(RsaPrivateKeyStructure privKey, CspParameters csp)
+        // {
+        //     return CreateRSAProvider(ToRSAParameters(privKey), csp);
+        // }
 
-        public static RSAParameters ToRSAParameters(RsaKeyParameters rsaKey)
-        {
-            RSAParameters rp = new RSAParameters();
-            rp.Modulus = rsaKey.Modulus.ToByteArrayUnsigned();
-            if (rsaKey.IsPrivate)
-                rp.D = ConvertRSAParametersField(rsaKey.Exponent, rp.Modulus.Length);
-            else
-                rp.Exponent = rsaKey.Exponent.ToByteArrayUnsigned();
-            return rp;
-        }
+        // public static RSAParameters ToRSAParameters(RsaKeyParameters rsaKey)
+        // {
+        //     RSAParameters rp = new RSAParameters();
+        //     rp.Modulus = rsaKey.Modulus.ToByteArrayUnsigned();
+        //     if (rsaKey.IsPrivate)
+        //         rp.D = ConvertRSAParametersField(rsaKey.Exponent, rp.Modulus.Length);
+        //     else
+        //         rp.Exponent = rsaKey.Exponent.ToByteArrayUnsigned();
+        //     return rp;
+        // }
 
-        public static RSAParameters ToRSAParameters(RsaPrivateCrtKeyParameters privKey)
-        {
-            RSAParameters rp = new RSAParameters();
-            rp.Modulus = privKey.Modulus.ToByteArrayUnsigned();
-            rp.Exponent = privKey.PublicExponent.ToByteArrayUnsigned();
-            rp.P = privKey.P.ToByteArrayUnsigned();
-            rp.Q = privKey.Q.ToByteArrayUnsigned();
-            rp.D = ConvertRSAParametersField(privKey.Exponent, rp.Modulus.Length);
-            rp.DP = ConvertRSAParametersField(privKey.DP, rp.P.Length);
-            rp.DQ = ConvertRSAParametersField(privKey.DQ, rp.Q.Length);
-            rp.InverseQ = ConvertRSAParametersField(privKey.QInv, rp.Q.Length);
-            return rp;
-        }
+        // public static RSAParameters ToRSAParameters(RsaPrivateCrtKeyParameters privKey)
+        // {
+        //     RSAParameters rp = new RSAParameters();
+        //     rp.Modulus = privKey.Modulus.ToByteArrayUnsigned();
+        //     rp.Exponent = privKey.PublicExponent.ToByteArrayUnsigned();
+        //     rp.P = privKey.P.ToByteArrayUnsigned();
+        //     rp.Q = privKey.Q.ToByteArrayUnsigned();
+        //     rp.D = ConvertRSAParametersField(privKey.Exponent, rp.Modulus.Length);
+        //     rp.DP = ConvertRSAParametersField(privKey.DP, rp.P.Length);
+        //     rp.DQ = ConvertRSAParametersField(privKey.DQ, rp.Q.Length);
+        //     rp.InverseQ = ConvertRSAParametersField(privKey.QInv, rp.Q.Length);
+        //     return rp;
+        // }
 
-        public static RSAParameters ToRSAParameters(RsaPrivateKeyStructure privKey)
-        {
-            RSAParameters rp = new RSAParameters();
-            rp.Modulus = privKey.Modulus.ToByteArrayUnsigned();
-            rp.Exponent = privKey.PublicExponent.ToByteArrayUnsigned();
-            rp.P = privKey.Prime1.ToByteArrayUnsigned();
-            rp.Q = privKey.Prime2.ToByteArrayUnsigned();
-            rp.D = ConvertRSAParametersField(privKey.PrivateExponent, rp.Modulus.Length);
-            rp.DP = ConvertRSAParametersField(privKey.Exponent1, rp.P.Length);
-            rp.DQ = ConvertRSAParametersField(privKey.Exponent2, rp.Q.Length);
-            rp.InverseQ = ConvertRSAParametersField(privKey.Coefficient, rp.Q.Length);
-            return rp;
-        }
+        // public static RSAParameters ToRSAParameters(RsaPrivateKeyStructure privKey)
+        // {
+        //     RSAParameters rp = new RSAParameters();
+        //     rp.Modulus = privKey.Modulus.ToByteArrayUnsigned();
+        //     rp.Exponent = privKey.PublicExponent.ToByteArrayUnsigned();
+        //     rp.P = privKey.Prime1.ToByteArrayUnsigned();
+        //     rp.Q = privKey.Prime2.ToByteArrayUnsigned();
+        //     rp.D = ConvertRSAParametersField(privKey.PrivateExponent, rp.Modulus.Length);
+        //     rp.DP = ConvertRSAParametersField(privKey.Exponent1, rp.P.Length);
+        //     rp.DQ = ConvertRSAParametersField(privKey.Exponent2, rp.Q.Length);
+        //     rp.InverseQ = ConvertRSAParametersField(privKey.Coefficient, rp.Q.Length);
+        //     return rp;
+        // }
 
-        private static byte[] ConvertRSAParametersField(BigInteger n, int size)
-        {
-            return BigIntegers.AsUnsignedByteArray(size, n);
-        }
+        // private static byte[] ConvertRSAParametersField(BigInteger n, int size)
+        // {
+        //     return BigIntegers.AsUnsignedByteArray(size, n);
+        // }
 
-        private static RSACryptoServiceProvider CreateRSAProvider(RSAParameters rp)
-        {
-            CspParameters csp = new CspParameters();
-            csp.KeyContainerName = string.Format("BouncyCastle-{0}", Guid.NewGuid());
-            return CreateRSAProvider(rp, csp);
-        }
+        // private static RSACryptoServiceProvider CreateRSAProvider(RSAParameters rp)
+        // {
+        //     CspParameters csp = new CspParameters();
+        //     csp.KeyContainerName = string.Format("BouncyCastle-{0}", Guid.NewGuid());
+        //     return CreateRSAProvider(rp, csp);
+        // }
 
-        private static RSACryptoServiceProvider CreateRSAProvider(RSAParameters rp, CspParameters csp)
-        {
-            RSACryptoServiceProvider rsaCsp = new RSACryptoServiceProvider(csp);
-            rsaCsp.ImportParameters(rp);
-            return rsaCsp;
-        }
+        // private static RSACryptoServiceProvider CreateRSAProvider(RSAParameters rp, CspParameters csp)
+        // {
+        //     RSACryptoServiceProvider rsaCsp = new RSACryptoServiceProvider(csp);
+        //     rsaCsp.ImportParameters(rp);
+        //     return rsaCsp;
+        // }
     }
 }
