@@ -74,12 +74,12 @@ namespace Org.BouncyCastle.OpenSsl
 
         public PemObject Generate()
         {
-            if (algorithm == null)
-            {
-                PrivateKeyInfo pki = PrivateKeyInfoFactory.CreatePrivateKeyInfo(privKey);
+            // if (algorithm == null)
+            // {
+            //     PrivateKeyInfo pki = PrivateKeyInfoFactory.CreatePrivateKeyInfo(privKey);
 
-                return new PemObject("PRIVATE KEY", pki.GetEncoded());
-            }
+            //     return new PemObject("PRIVATE KEY", pki.GetEncoded());
+            // }
 
             // TODO Theoretically, the amount of salt needed depends on the algorithm
             byte[] salt = new byte[20];

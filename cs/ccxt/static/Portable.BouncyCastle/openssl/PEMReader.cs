@@ -94,8 +94,8 @@ namespace Org.BouncyCastle.OpenSsl
 
             switch (obj.Type)
             {
-                case "PUBLIC KEY":
-                    return ReadPublicKey(obj);
+                // case "PUBLIC KEY":
+                //     return ReadPublicKey(obj);
                 // case "RSA PUBLIC KEY":
                 //     return ReadRsaPublicKey(obj);
                 // case "CERTIFICATE REQUEST":
@@ -112,8 +112,8 @@ namespace Org.BouncyCastle.OpenSsl
                 // case "ATTRIBUTE CERTIFICATE":
                 //     return ReadAttributeCertificate(obj);
                 // TODO Add back in when tests done, and return type issue resolved
-                //case "EC PARAMETERS":
-                //	return ReadECParameters(obj);
+                // case "EC PARAMETERS":
+                //     return ReadECParameters(obj);
                 default:
                     throw new IOException("unrecognised object: " + obj.Type);
             }
@@ -130,10 +130,10 @@ namespace Org.BouncyCastle.OpenSsl
         //         rsaPubStructure.PublicExponent);
         // }
 
-        private AsymmetricKeyParameter ReadPublicKey(PemObject pemObject)
-        {
-            return PublicKeyFactory.CreateKey(pemObject.Content);
-        }
+        // private AsymmetricKeyParameter ReadPublicKey(PemObject pemObject)
+        // {
+        //     return PublicKeyFactory.CreateKey(pemObject.Content);
+        // }
 
         /**
         * Reads in a X509Certificate.
@@ -284,28 +284,6 @@ namespace Org.BouncyCastle.OpenSsl
 
                     //         break;
                     //     }
-
-                    case "DSA":
-                        {
-                            if (seq.Count != 6)
-                                throw new PemException("malformed sequence in DSA private key");
-
-                            // TODO Create an ASN1 object somewhere for this?
-                            //DerInteger v = (DerInteger)seq[0];
-                            DerInteger p = (DerInteger)seq[1];
-                            DerInteger q = (DerInteger)seq[2];
-                            DerInteger g = (DerInteger)seq[3];
-                            DerInteger y = (DerInteger)seq[4];
-                            DerInteger x = (DerInteger)seq[5];
-
-                            DsaParameters parameters = new DsaParameters(p.Value, q.Value, g.Value);
-
-                            privSpec = new DsaPrivateKeyParameters(x.Value, parameters);
-                            pubSpec = new DsaPublicKeyParameters(y.Value, parameters);
-
-                            break;
-                        }
-
                     case "EC":
                         {
                             ECPrivateKeyStructure pKey = ECPrivateKeyStructure.GetInstance(seq);
@@ -343,12 +321,6 @@ namespace Org.BouncyCastle.OpenSsl
 
                     //         return PrivateKeyFactory.DecryptKey(password, EncryptedPrivateKeyInfo.GetInstance(seq));
                     //     }
-
-                    case "":
-                        {
-                            return PrivateKeyFactory.CreateKey(PrivateKeyInfo.GetInstance(seq));
-                        }
-
                     default:
                         throw new ArgumentException("Unknown key type: " + type, "type");
                 }
@@ -367,14 +339,15 @@ namespace Org.BouncyCastle.OpenSsl
         }
 
         // TODO Add an equivalent class for ECNamedCurveParameterSpec?
-        //private ECNamedCurveParameterSpec ReadECParameters(
-        //		private X9ECParameters ReadECParameters(PemObject pemObject)
-        //		{
-        //			DerObjectIdentifier oid = (DerObjectIdentifier)Asn1Object.FromByteArray(pemObject.Content);
-        //
-        //			//return ECNamedCurveTable.getParameterSpec(oid.Id);
-        //			return GetCurveParameters(oid.Id);
-        //		}
+        // private ECNamedCurveParameterSpec ReadECParameters()
+
+        //         private X9ECParameters ReadECParameters(PemObject pemObject)
+        // {
+        //     DerObjectIdentifier oid = (DerObjectIdentifier)Asn1Object.FromByteArray(pemObject.Content);
+
+        //     //return ECNamedCurveTable.getParameterSpec(oid.Id);
+        //     return GetCurveParameters(oid.Id);
+        // }
 
         private static X9ECParameters GetCurveParameters(string name)
         {

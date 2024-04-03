@@ -7,7 +7,7 @@ using Org.BouncyCastle.Asn1.Nist;
 using Org.BouncyCastle.Asn1.Ntt;
 using Org.BouncyCastle.Asn1.Oiw;
 using Org.BouncyCastle.Asn1.Pkcs;
-using Org.BouncyCastle.Asn1.X509;
+// using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Security;
 
 namespace Org.BouncyCastle.Crypto.Utilities
@@ -35,62 +35,16 @@ namespace Org.BouncyCastle.Crypto.Utilities
             0x64, 0x6d, 0x7a, 0xd4, 0x10, 0x81, 0x44, 0xef, 0x49, 0xd6, 0xae, 0x2e, 0xdd, 0x76, 0x5c, 0x2f,
             0xa7, 0x1c, 0xc9, 0x09, 0x69, 0x9a, 0x83, 0xcf, 0x29, 0x39, 0xb9, 0xe9, 0x4c, 0xff, 0x43, 0xab
         };
-
-
-        /**
-    * Create an AlgorithmIdentifier for the passed in encryption algorithm.
-    *
-    * @param encryptionOID OID for the encryption algorithm
-    * @param keySize key size in bits (-1 if unknown)
-    * @param random SecureRandom to use for parameter generation.
-    * @return a full AlgorithmIdentifier including parameters
-    * @throws IllegalArgumentException if encryptionOID cannot be matched
-    */
-        public static AlgorithmIdentifier GenerateEncryptionAlgID(DerObjectIdentifier encryptionOID, int keySize, SecureRandom random)
-
-        {
-            if (encryptionOID.Equals(NistObjectIdentifiers.IdAes128Cbc)
-                    || encryptionOID.Equals(NistObjectIdentifiers.IdAes192Cbc)
-                    || encryptionOID.Equals(NistObjectIdentifiers.IdAes256Cbc)
-                    || encryptionOID.Equals(NttObjectIdentifiers.IdCamellia128Cbc)
-                    || encryptionOID.Equals(NttObjectIdentifiers.IdCamellia192Cbc)
-                    || encryptionOID.Equals(NttObjectIdentifiers.IdCamellia256Cbc)
-                    || encryptionOID.Equals(KisaObjectIdentifiers.IdSeedCbc))
-            {
-                byte[] iv = new byte[16];
-
-                random.NextBytes(iv);
-
-                return new AlgorithmIdentifier(encryptionOID, new DerOctetString(iv));
-            }
-            else if (encryptionOID.Equals(PkcsObjectIdentifiers.DesEde3Cbc)
-                    || encryptionOID.Equals(IDEA_CBC)
-                    || encryptionOID.Equals(OiwObjectIdentifiers.DesCbc))
-            {
-                byte[] iv = new byte[8];
-
-                random.NextBytes(iv);
-
-                return new AlgorithmIdentifier(encryptionOID, new DerOctetString(iv));
-            }
-            else if (encryptionOID.Equals(CAST5_CBC))
-            {
-                byte[] iv = new byte[8];
-
-                random.NextBytes(iv);
-
-                Cast5CbcParameters cbcParams = new Cast5CbcParameters(iv, keySize);
-
-                return new AlgorithmIdentifier(encryptionOID, cbcParams);
-            }
-            else if (encryptionOID.Equals(PkcsObjectIdentifiers.rc4))
-            {
-                return new AlgorithmIdentifier(encryptionOID, DerNull.Instance);
-            }
-            else
-            {
-                throw new InvalidOperationException("unable to match algorithm");
-            }
-        }
     }
+
+
+    /**
+* Create an AlgorithmIdentifier for the passed in encryption algorithm.
+*
+* @param encryptionOID OID for the encryption algorithm
+* @param keySize key size in bits (-1 if unknown)
+* @param random SecureRandom to use for parameter generation.
+* @return a full AlgorithmIdentifier including parameters
+* @throws IllegalArgumentException if encryptionOID cannot be matched
+*/
 }
