@@ -2076,7 +2076,7 @@ export default class bybit extends Exchange {
         // with higher priority and only default to spot, if `subType` is not set in params
         const subTypePresent = ('subType' in params);
         let subType = undefined;
-        [ subType, params ] = this.handleSubTypeAndParams ('fetchTickers', market, params);
+        [ subType, params ] = this.handleSubTypeAndParams ('fetchTickers', market, params, 'linear');
         // only if passedSubType is undefined, then use spot
         if (type === 'spot' && !subTypePresent) {
             request['category'] = 'spot';
