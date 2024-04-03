@@ -1383,7 +1383,7 @@ export default class bybit extends Exchange {
             await this.loadTimeDifference ();
         }
         const promisesUnresolved = [];
-        const fetchMarkets = this.safeList (this.options, 'fetchMarkets', [ 'spot', 'linear', 'inverse', 'option' ]);
+        const fetchMarkets = this.safeValue (this.options, 'fetchMarkets', [ 'spot', 'linear', 'inverse' ]);
         for (let i = 0; i < fetchMarkets.length; i++) {
             const marketType = fetchMarkets[i];
             if (marketType === 'spot') {
@@ -1393,11 +1393,9 @@ export default class bybit extends Exchange {
             } else if (marketType === 'inverse') {
                 promisesUnresolved.push (this.fetchFutureMarkets ({ 'category': 'inverse' }));
             } else if (marketType === 'option') {
-                const baseCoins = this.safeList (this.options, 'baseCoinsForOptions', [ 'BTC', 'ETH', 'SOL' ]);
-                for (let j = 0; j < baseCoins.length; j++) {
-                    const baseCoin = baseCoins[j];
-                    promisesUnresolved.push (this.fetchOptionMarkets ({ 'baseCoin': baseCoin }));
-                }
+                promisesUnresolved.push (this.fetchOptionMarkets ({ 'baseCoin': 'BTC' }));
+                promisesUnresolved.push (this.fetchOptionMarkets ({ 'baseCoin': 'ETH' }));
+                promisesUnresolved.push (this.fetchOptionMarkets ({ 'baseCoin': 'SOL' }));
             } else {
                 throw new ExchangeError (this.id + ' fetchMarkets() this.options fetchMarkets "' + marketType + '" is not a supported market type');
             }
