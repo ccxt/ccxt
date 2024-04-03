@@ -968,6 +968,7 @@ export default class bybit extends Exchange {
             'precisionMode': TICK_SIZE,
             'options': {
                 'fetchMarkets': [ 'spot', 'linear', 'inverse', 'option' ],
+                'baseCoinsForOptions': [ 'BTC', 'ETH', 'SOL' ],
                 'createOrder': {
                     'method': 'privatePostV5OrderCreate', // 'privatePostV5PositionTradingStop'
                 },
@@ -1382,7 +1383,7 @@ export default class bybit extends Exchange {
             await this.loadTimeDifference ();
         }
         const promisesUnresolved = [];
-        const fetchMarkets = this.safeValue (this.options, 'fetchMarkets', [ 'spot', 'linear', 'inverse' ]);
+        const fetchMarkets = this.safeList (this.options, 'fetchMarkets', [ 'spot', 'linear', 'inverse', 'option' ]);
         for (let i = 0; i < fetchMarkets.length; i++) {
             const marketType = fetchMarkets[i];
             if (marketType === 'spot') {
@@ -1392,9 +1393,11 @@ export default class bybit extends Exchange {
             } else if (marketType === 'inverse') {
                 promisesUnresolved.push (this.fetchFutureMarkets ({ 'category': 'inverse' }));
             } else if (marketType === 'option') {
-                promisesUnresolved.push (this.fetchOptionMarkets ({ 'baseCoin': 'BTC' }));
-                promisesUnresolved.push (this.fetchOptionMarkets ({ 'baseCoin': 'ETH' }));
-                promisesUnresolved.push (this.fetchOptionMarkets ({ 'baseCoin': 'SOL' }));
+                const baseCoins = this.safeList (this.options, 'baseCoinsForOptions', [ 'BTC', 'ETH', 'SOL' ]);
+                for (let j = 0; j < baseCoins.length; j++) {
+                    const baseCoin = baseCoins[j];
+                    promisesUnresolved.push (this.fetchOptionMarkets ({ 'baseCoin': baseCoin }));
+                }
             } else {
                 throw new ExchangeError (this.id + ' fetchMarkets() this.options fetchMarkets "' + marketType + '" is not a supported market type');
             }
@@ -2070,19 +2073,27 @@ export default class bybit extends Exchange {
         };
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
-        // Calls like `.fetchTickers (undefined, {subType:'inverse'})` should be supported for this exchange, so
+        // `.fetchTickers (undefined, {subType:'inverse'})` or `.fetchTickers (undefined, {subType:'inverse'})`
+        // should be supported for this exchange, so
         // as "options.defaultSubType" is also set in exchange options, we should consider `params.subType`
         // with higher priority and only default to spot, if `subType` is not set in params
-        const passedSubType = this.safeString (params, 'subType');
+        const subTypePresent = ('subType' in params);
         let subType = undefined;
-        [ subType, params ] = this.handleSubTypeAndParams ('fetchTickers', market, params, 'linear');
+        [ subType, params ] = this.handleSubTypeAndParams ('fetchTickers', market, params);
         // only if passedSubType is undefined, then use spot
-        if (type === 'spot' && passedSubType === undefined) {
+        if (type === 'spot' && !subTypePresent) {
             request['category'] = 'spot';
-        } else if (type === 'swap' || type === 'future' || subType !== undefined) {
+        } else if (type === 'swap' || type === 'future' || subTypePresent) {
             request['category'] = subType;
         } else if (type === 'option') {
             request['category'] = 'option';
+            const baseCoins = this.safeList (this.options, 'baseCoinsForOptions', [ 'BTC', 'ETH', 'SOL' ]);
+            let baseCoin = undefined;
+            [ baseCoin, params ] = this.handleOptionAndParams (params, 'fetchTickers', 'baseCoinForOptions');
+            if (baseCoin === undefined) {
+                throw new ArgumentsRequired (this.id + ' fetchTickers() requires a params["baseCoinForOptions"]  for options markets, one from ' + this.json (baseCoins));
+            }
+            request['baseCoin'] = baseCoin;
         }
         const response = await this.publicGetV5MarketTickers (this.extend (request, params));
         //
