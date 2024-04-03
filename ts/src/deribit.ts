@@ -1221,30 +1221,30 @@ export default class deribit extends Exchange {
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
+        let baseCoins = [];
         let fetchAll = undefined;
         [ fetchAll, params ] = this.handleOptionAndParams (params, 'fetchTickers', 'allBaseCoins', false);
         if (fetchAll) {
-            const promises = [];
-            const keys = Object.keys (this.currencies);
-            for (let i = 0; i < keys.length; i++) {
-                const key = keys[i];
-                const baseCoin = this.currencies[key];
-                promises.push (this.fetchTickersByCode (symbols, this.extend ({ 'currency': baseCoin }, params)));
-            }
-            const responses = await Promise.all (promises);
-            let result = {};
-            for (let i = 0; i < responses.length; i++) {
-                result = this.extend (result, responses[i]);
-            }
-            return result;
+            baseCoins = Object.keys (this.currencies);
         } else {
             let baseCoin = undefined;
-            [ baseCoin, params ] = this.handleParamString (params, 'baseCoin');
+            [ baseCoin, params ] = this.handleParamString2 (params, 'baseCoin', 'currency'); // "baseCoin" is unified key, "curency" is exchange-specific
             if (baseCoin === undefined) {
                 throw new ArgumentsRequired (this.id + ' fetchTickers() set or params["baseCoin"] to any from: ' + this.json (Object.keys (this.currencies)) + ' or set params["allBaseCoins"] = true');
             }
-            return await this.fetchTickersByCode (symbols, this.extend ({ 'currency': baseCoin }, params));
+            baseCoins.push (baseCoin);
         }
+        const promises = [];
+        for (let i = 0; i < baseCoins.length; i++) {
+            const coin = baseCoins[i];
+            promises.push (this.fetchTickersByCode (symbols, this.extend ({ 'currency': coin }, params)));
+        }
+        const responses = await Promise.all (promises);
+        let result = {};
+        for (let i = 0; i < responses.length; i++) {
+            result = this.extend (result, responses[i]);
+        }
+        return result;
     }
 
     async fetchTickersByCode (symbols: Strings = undefined, params = {}): Promise<Tickers> {
