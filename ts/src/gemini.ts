@@ -286,6 +286,7 @@ export default class gemini extends Exchange {
                     'ATOM': 'cosmos',
                     'DOT': 'polkadot',
                 },
+                'nonce': 'milliseconds', // if getting a Network 400 error change to seconds
             },
         });
     }
@@ -1654,8 +1655,11 @@ export default class gemini extends Exchange {
     }
 
     nonce () {
-        // previously here was option to choose between milliseconds vs seconds, however, api server proves that it accepts only seconds
-        return (this.milliseconds () / 1000);
+        const nonceMethod = this.safeString (this.options, 'nonce', 'milliseconds');
+        if (nonceMethod === 'milliseconds') {
+            return this.milliseconds ();
+        }
+        return this.seconds ();
     }
 
     async fetchDepositsWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
