@@ -149,47 +149,48 @@ namespace Org.BouncyCastle.Security
             else if (algOid.Equals(RosstandartObjectIdentifiers.id_tc26_gost_3410_12_256)
                 || algOid.Equals(RosstandartObjectIdentifiers.id_tc26_gost_3410_12_512))
             {
-                Gost3410PublicKeyAlgParameters gostParams = Gost3410PublicKeyAlgParameters.GetInstance(algID.Parameters);
-                DerObjectIdentifier publicKeyParamSet = gostParams.PublicKeyParamSet;
+                // Gost3410PublicKeyAlgParameters gostParams = Gost3410PublicKeyAlgParameters.GetInstance(algID.Parameters);
+                // DerObjectIdentifier publicKeyParamSet = gostParams.PublicKeyParamSet;
 
-                ECGost3410Parameters ecDomainParameters = new ECGost3410Parameters(
-                    new ECNamedDomainParameters(publicKeyParamSet, ECGost3410NamedCurves.GetByOid(publicKeyParamSet)),
-                    publicKeyParamSet,
-                    gostParams.DigestParamSet,
-                    gostParams.EncryptionParamSet);
+                // ECGost3410Parameters ecDomainParameters = new ECGost3410Parameters(
+                //     new ECNamedDomainParameters(publicKeyParamSet, ECGost3410NamedCurves.GetByOid(publicKeyParamSet)),
+                //     publicKeyParamSet,
+                //     gostParams.DigestParamSet,
+                //     gostParams.EncryptionParamSet);
 
-                Asn1OctetString key;
-                try
-                {
-                    key = (Asn1OctetString)keyInfo.ParsePublicKey();
-                }
-                catch (IOException e)
-                {
-                    throw new ArgumentException("error recovering GOST3410_2012 public key", e);
-                }
+                // Asn1OctetString key;
+                // try
+                // {
+                //     key = (Asn1OctetString)keyInfo.ParsePublicKey();
+                // }
+                // catch (IOException e)
+                // {
+                //     throw new ArgumentException("error recovering GOST3410_2012 public key", e);
+                // }
 
-                int fieldSize = 32;
-                if (algOid.Equals(RosstandartObjectIdentifiers.id_tc26_gost_3410_12_512))
-                {
-                    fieldSize = 64;
-                }
-                int keySize = 2 * fieldSize;
+                // int fieldSize = 32;
+                // if (algOid.Equals(RosstandartObjectIdentifiers.id_tc26_gost_3410_12_512))
+                // {
+                //     fieldSize = 64;
+                // }
+                // int keySize = 2 * fieldSize;
 
-                byte[] keyEnc = key.GetOctets();
-                if (keyEnc.Length != keySize)
-                    throw new ArgumentException("invalid length for GOST3410_2012 public key");
+                // byte[] keyEnc = key.GetOctets();
+                // if (keyEnc.Length != keySize)
+                //     throw new ArgumentException("invalid length for GOST3410_2012 public key");
 
-                byte[] x9Encoding = new byte[1 + keySize];
-                x9Encoding[0] = 0x04;
-                for (int i = 1; i <= fieldSize; ++i)
-                {
-                    x9Encoding[i] = keyEnc[fieldSize - i];
-                    x9Encoding[i + fieldSize] = keyEnc[keySize - i];
-                }
+                // byte[] x9Encoding = new byte[1 + keySize];
+                // x9Encoding[0] = 0x04;
+                // for (int i = 1; i <= fieldSize; ++i)
+                // {
+                //     x9Encoding[i] = keyEnc[fieldSize - i];
+                //     x9Encoding[i + fieldSize] = keyEnc[keySize - i];
+                // }
 
-                ECPoint q = ecDomainParameters.Curve.DecodePoint(x9Encoding);
+                // ECPoint q = ecDomainParameters.Curve.DecodePoint(x9Encoding);
 
-                return new ECPublicKeyParameters(q, ecDomainParameters);
+                // return new ECPublicKeyParameters(q, ecDomainParameters);
+                throw new SecurityUtilityException("algorithm identifier in public key not recognised: ");
             }
             else
             {

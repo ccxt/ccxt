@@ -89,27 +89,27 @@ namespace Org.BouncyCastle.Pkcs
                 ECDomainParameters dp = priv.Parameters;
 
                 // ECGOST3410
-                if (dp is ECGost3410Parameters)
-                {
-                    ECGost3410Parameters domainParameters = (ECGost3410Parameters)dp;
+                // if (dp is ECGost3410Parameters)
+                // {
+                //     ECGost3410Parameters domainParameters = (ECGost3410Parameters)dp;
 
-                    Gost3410PublicKeyAlgParameters gostParams = new Gost3410PublicKeyAlgParameters(
-                        (domainParameters).PublicKeyParamSet,
-                        (domainParameters).DigestParamSet,
-                        (domainParameters).EncryptionParamSet);
+                //     Gost3410PublicKeyAlgParameters gostParams = new Gost3410PublicKeyAlgParameters(
+                //         (domainParameters).PublicKeyParamSet,
+                //         (domainParameters).DigestParamSet,
+                //         (domainParameters).EncryptionParamSet);
 
-                    bool is512 = priv.D.BitLength > 256;
-                    DerObjectIdentifier identifier = (is512) ?
-                        RosstandartObjectIdentifiers.id_tc26_gost_3410_12_512 :
-                        RosstandartObjectIdentifiers.id_tc26_gost_3410_12_256;
-                    int size = (is512) ? 64 : 32;
+                //     bool is512 = priv.D.BitLength > 256;
+                //     DerObjectIdentifier identifier = (is512) ?
+                //         RosstandartObjectIdentifiers.id_tc26_gost_3410_12_512 :
+                //         RosstandartObjectIdentifiers.id_tc26_gost_3410_12_256;
+                //     int size = (is512) ? 64 : 32;
 
-                    byte[] encKey = new byte[size];
+                //     byte[] encKey = new byte[size];
 
-                    ExtractBytes(encKey, size, 0, priv.D);
+                //     ExtractBytes(encKey, size, 0, priv.D);
 
-                    return new PrivateKeyInfo(new AlgorithmIdentifier(identifier, gostParams), new DerOctetString(encKey));
-                }
+                //     return new PrivateKeyInfo(new AlgorithmIdentifier(identifier, gostParams), new DerOctetString(encKey));
+                // }
 
 
                 int orderBitLength = dp.N.BitLength;
