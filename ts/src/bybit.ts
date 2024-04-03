@@ -2087,13 +2087,11 @@ export default class bybit extends Exchange {
             request['category'] = subType;
         } else if (type === 'option') {
             request['category'] = 'option';
+            // throw meaningful error here, because exchange returns unreadable error if baseCoin not present
             const baseCoins = this.safeList (this.options, 'baseCoinsForOptions', [ 'BTC', 'ETH', 'SOL' ]);
-            let baseCoin = undefined;
-            [ baseCoin, params ] = this.handleOptionAndParams (params, 'fetchTickers', 'baseCoinForOptions');
-            if (baseCoin === undefined) {
-                throw new ArgumentsRequired (this.id + ' fetchTickers() requires a params["baseCoinForOptions"]  for options markets, one from ' + this.json (baseCoins));
+            if ('baseCoin' in params) {
+                throw new ArgumentsRequired (this.id + ' fetchTickers() requires a params["baseCoin"]  for options markets, one from ' + this.json (baseCoins));
             }
-            request['baseCoin'] = baseCoin;
         }
         const response = await this.publicGetV5MarketTickers (this.extend (request, params));
         //
