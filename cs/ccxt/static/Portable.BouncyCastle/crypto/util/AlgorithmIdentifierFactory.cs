@@ -87,16 +87,6 @@ namespace Org.BouncyCastle.Crypto.Utilities
             {
                 return new AlgorithmIdentifier(encryptionOID, DerNull.Instance);
             }
-            else if (encryptionOID.Equals(PkcsObjectIdentifiers.RC2Cbc))
-            {
-                byte[] iv = new byte[8];
-
-                random.NextBytes(iv);
-
-                RC2CbcParameter cbcParams = new RC2CbcParameter(rc2Table[128], iv);
-
-                return new AlgorithmIdentifier(encryptionOID, cbcParams);
-            }
             else
             {
                 throw new InvalidOperationException("unable to match algorithm");

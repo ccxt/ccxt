@@ -273,10 +273,10 @@ namespace Org.BouncyCastle.Security
                 {
                     iv = IdeaCbcPar.GetInstance(asn1Params).GetIV();
                 }
-                else if (canonical == "RC2")
-                {
-                    iv = RC2CbcParameter.GetInstance(asn1Params).GetIV();
-                }
+                // else if (canonical == "RC2")
+                // {
+                //     iv = RC2CbcParameter.GetInstance(asn1Params).GetIV();
+                // }
             }
             catch (Exception e)
             {
@@ -324,8 +324,8 @@ namespace Org.BouncyCastle.Security
             if (canonical == "IDEA")
                 return new IdeaCbcPar(CreateIV(random, 8));
 
-            if (canonical == "RC2")
-                return new RC2CbcParameter(CreateIV(random, 8));
+            // if (canonical == "RC2")
+            //     return new RC2CbcParameter(CreateIV(random, 8));
 
             throw new SecurityUtilityException("Algorithm " + algorithm + " not recognised.");
         }
