@@ -1862,7 +1862,7 @@ export default class gate extends Exchange {
         await this.loadMarkets();
         const currency = this.currency(code);
         const request = {
-            'currency': currency['id'],
+            'currency': currency['id'], // todo: currencies have network-junctions
         };
         const response = await this.privateWalletGetDepositAddress(this.extend(request, params));
         const addresses = this.safeValue(response, 'multichain_addresses');
@@ -1913,7 +1913,7 @@ export default class gate extends Exchange {
         const rawNetwork = this.safeStringUpper(params, 'network');
         params = this.omit(params, 'network');
         const request = {
-            'currency': currency['id'],
+            'currency': currency['id'], // todo: currencies have network-junctions
         };
         const response = await this.privateWalletGetDepositAddress(this.extend(request, params));
         //
@@ -3529,7 +3529,7 @@ export default class gate extends Exchange {
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency(code);
-            request['currency'] = currency['id'];
+            request['currency'] = currency['id']; // todo: currencies have network-junctions
         }
         if (limit !== undefined) {
             request['limit'] = limit;
@@ -3567,7 +3567,7 @@ export default class gate extends Exchange {
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency(code);
-            request['currency'] = currency['id'];
+            request['currency'] = currency['id']; // todo: currencies have network-junctions
         }
         if (limit !== undefined) {
             request['limit'] = limit;
@@ -3614,7 +3614,7 @@ export default class gate extends Exchange {
             params = this.omit(params, 'network');
         }
         else {
-            request['chain'] = currency['id'];
+            request['chain'] = currency['id']; // todo: currencies have network-junctions
         }
         const response = await this.privateWithdrawalsPostWithdrawals(this.extend(request, params));
         //
@@ -5148,7 +5148,7 @@ export default class gate extends Exchange {
             params = this.omit(params, 'symbol');
         }
         if ((toId === 'futures') || (toId === 'delivery') || (fromId === 'futures') || (fromId === 'delivery')) {
-            request['settle'] = currency['id'];
+            request['settle'] = currency['id']; // todo: currencies have network-junctions
         }
         const response = await this.privateWalletPostTransfers(this.extend(request, params));
         //
@@ -6456,7 +6456,7 @@ export default class gate extends Exchange {
         if ((type === 'spot') || (type === 'margin')) {
             if (code !== undefined) {
                 currency = this.currency(code);
-                request['currency'] = currency['id'];
+                request['currency'] = currency['id']; // todo: currencies have network-junctions
             }
         }
         if ((type === 'swap') || (type === 'future')) {
@@ -7275,7 +7275,7 @@ export default class gate extends Exchange {
         await this.loadMarkets();
         const currency = this.currency(code);
         const request = {
-            'underlying': currency['code'] + '_USDT',
+            'underlying': currency['code'] + '_USDT', // todo: currency['id'].toUpperCase () &  network junctions
         };
         const response = await this.publicOptionsGetContracts(this.extend(request, params));
         //
