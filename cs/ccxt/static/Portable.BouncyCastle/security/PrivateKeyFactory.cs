@@ -47,43 +47,43 @@ namespace Org.BouncyCastle.Security
             AlgorithmIdentifier algID = keyInfo.PrivateKeyAlgorithm;
             DerObjectIdentifier algOid = algID.Algorithm;
 
-            if (algOid.Equals(PkcsObjectIdentifiers.DhKeyAgreement))
-            {
-                DHParameter para = new DHParameter(
-                    Asn1Sequence.GetInstance(algID.Parameters.ToAsn1Object()));
-                DerInteger derX = (DerInteger)keyInfo.ParsePrivateKey();
-
-                BigInteger lVal = para.L;
-                int l = lVal == null ? 0 : lVal.IntValue;
-                DHParameters dhParams = new DHParameters(para.P, para.G, null, l);
-
-                return new DHPrivateKeyParameters(derX.Value, dhParams, algOid);
-            }
-            // else if (algOid.Equals(OiwObjectIdentifiers.ElGamalAlgorithm))
+            // if (algOid.Equals(PkcsObjectIdentifiers.DhKeyAgreement))
             // {
-            //     ElGamalParameter para = new ElGamalParameter(
+            //     DHParameter para = new DHParameter(
             //         Asn1Sequence.GetInstance(algID.Parameters.ToAsn1Object()));
             //     DerInteger derX = (DerInteger)keyInfo.ParsePrivateKey();
 
-            //     return new ElGamalPrivateKeyParameters(
-            //         derX.Value,
-            //         new ElGamalParameters(para.P, para.G));
-            // }
-            // else if (algOid.Equals(X9ObjectIdentifiers.IdDsa))
-            // {
-            //     DerInteger derX = (DerInteger)keyInfo.ParsePrivateKey();
-            //     Asn1Encodable ae = algID.Parameters;
+                //     BigInteger lVal = para.L;
+                //     int l = lVal == null ? 0 : lVal.IntValue;
+                //     DHParameters dhParams = new DHParameters(para.P, para.G, null, l);
 
-            //     DsaParameters parameters = null;
-            //     if (ae != null)
-            //     {
-            //         DsaParameter para = DsaParameter.GetInstance(ae.ToAsn1Object());
-            //         parameters = new DsaParameters(para.P, para.Q, para.G);
-            //     }
+                //     return new DHPrivateKeyParameters(derX.Value, dhParams, algOid);
+                // }
+                // else if (algOid.Equals(OiwObjectIdentifiers.ElGamalAlgorithm))
+                // {
+                //     ElGamalParameter para = new ElGamalParameter(
+                //         Asn1Sequence.GetInstance(algID.Parameters.ToAsn1Object()));
+                //     DerInteger derX = (DerInteger)keyInfo.ParsePrivateKey();
 
-            //     return new DsaPrivateKeyParameters(derX.Value, parameters);
-            // }
-            else if (algOid.Equals(X9ObjectIdentifiers.IdECPublicKey))
+                //     return new ElGamalPrivateKeyParameters(
+                //         derX.Value,
+                //         new ElGamalParameters(para.P, para.G));
+                // }
+                // else if (algOid.Equals(X9ObjectIdentifiers.IdDsa))
+                // {
+                //     DerInteger derX = (DerInteger)keyInfo.ParsePrivateKey();
+                //     Asn1Encodable ae = algID.Parameters;
+
+                //     DsaParameters parameters = null;
+                //     if (ae != null)
+                //     {
+                //         DsaParameter para = DsaParameter.GetInstance(ae.ToAsn1Object());
+                //         parameters = new DsaParameters(para.P, para.Q, para.G);
+                //     }
+
+                //     return new DsaPrivateKeyParameters(derX.Value, parameters);
+                // }
+            if (algOid.Equals(X9ObjectIdentifiers.IdECPublicKey))
             {
                 X962Parameters para = X962Parameters.GetInstance(algID.Parameters.ToAsn1Object());
 

@@ -218,11 +218,11 @@ namespace Org.BouncyCastle.Security
             if (canonical == null)
                 throw new SecurityUtilityException("Algorithm " + algorithm + " not recognised.");
 
-            if (canonical == "DES")
-                return new DesParameters(keyBytes, offset, length);
+            // if (canonical == "DES")
+            //     return new DesParameters(keyBytes, offset, length);
 
-            if (canonical == "DESEDE" || canonical == "DESEDE3")
-                return new DesEdeParameters(keyBytes, offset, length);
+            // if (canonical == "DESEDE" || canonical == "DESEDE3")
+            //     return new DesEdeParameters(keyBytes, offset, length);
 
             // if (canonical == "RC2")
             //     return new RC2Parameters(keyBytes, offset, length);

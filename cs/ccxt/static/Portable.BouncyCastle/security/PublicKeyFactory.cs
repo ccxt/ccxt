@@ -46,77 +46,7 @@ namespace Org.BouncyCastle.Security
             AlgorithmIdentifier algID = keyInfo.AlgorithmID;
             DerObjectIdentifier algOid = algID.Algorithm;
 
-         if (algOid.Equals(X9ObjectIdentifiers.DHPublicNumber))
-            {
-                Asn1Sequence seq = Asn1Sequence.GetInstance(algID.Parameters.ToAsn1Object());
-
-                DHPublicKey dhPublicKey = DHPublicKey.GetInstance(keyInfo.ParsePublicKey());
-
-                BigInteger y = dhPublicKey.Y.Value;
-
-                if (IsPkcsDHParam(seq))
-                    return ReadPkcsDHParam(algOid, y, seq);
-
-                DHDomainParameters dhParams = DHDomainParameters.GetInstance(seq);
-
-                BigInteger p = dhParams.P.Value;
-                BigInteger g = dhParams.G.Value;
-                BigInteger q = dhParams.Q.Value;
-
-                BigInteger j = null;
-                if (dhParams.J != null)
-                {
-                    j = dhParams.J.Value;
-                }
-
-                DHValidationParameters validation = null;
-                DHValidationParms dhValidationParms = dhParams.ValidationParms;
-                if (dhValidationParms != null)
-                {
-                    byte[] seed = dhValidationParms.Seed.GetBytes();
-                    BigInteger pgenCounter = dhValidationParms.PgenCounter.Value;
-
-                    // TODO Check pgenCounter size?
-
-                    validation = new DHValidationParameters(seed, pgenCounter.IntValue);
-                }
-
-                return new DHPublicKeyParameters(y, new DHParameters(p, g, q, j, validation));
-            }
-            else if (algOid.Equals(PkcsObjectIdentifiers.DhKeyAgreement))
-            {
-                Asn1Sequence seq = Asn1Sequence.GetInstance(algID.Parameters.ToAsn1Object());
-
-                DerInteger derY = (DerInteger)keyInfo.ParsePublicKey();
-
-                return ReadPkcsDHParam(algOid, derY.Value, seq);
-            }
-            // else if (algOid.Equals(OiwObjectIdentifiers.ElGamalAlgorithm))
-            // {
-            //     ElGamalParameter para = new ElGamalParameter(
-            //         Asn1Sequence.GetInstance(algID.Parameters.ToAsn1Object()));
-            //     DerInteger derY = (DerInteger)keyInfo.ParsePublicKey();
-
-            //     return new ElGamalPublicKeyParameters(
-            //         derY.Value,
-            //         new ElGamalParameters(para.P, para.G));
-            // }
-            else if (algOid.Equals(X9ObjectIdentifiers.IdDsa)
-                || algOid.Equals(OiwObjectIdentifiers.DsaWithSha1))
-            {
-                DerInteger derY = (DerInteger)keyInfo.ParsePublicKey();
-                Asn1Encodable ae = algID.Parameters;
-
-                DsaParameters parameters = null;
-                if (ae != null)
-                {
-                    DsaParameter para = DsaParameter.GetInstance(ae.ToAsn1Object());
-                    parameters = new DsaParameters(para.P, para.Q, para.G);
-                }
-
-                return new DsaPublicKeyParameters(derY.Value, parameters);
-            }
-            else if (algOid.Equals(X9ObjectIdentifiers.IdECPublicKey))
+            if (algOid.Equals(X9ObjectIdentifiers.IdECPublicKey))
             {
                 X962Parameters para = X962Parameters.GetInstance(algID.Parameters.ToAsn1Object());
 
@@ -290,16 +220,16 @@ namespace Org.BouncyCastle.Security
             return l.Value.CompareTo(BigInteger.ValueOf(p.Value.BitLength)) <= 0;
         }
 
-        private static DHPublicKeyParameters ReadPkcsDHParam(DerObjectIdentifier algOid,
-            BigInteger y, Asn1Sequence seq)
-        {
-            DHParameter para = new DHParameter(seq);
+        // private static DHPublicKeyParameters ReadPkcsDHParam(DerObjectIdentifier algOid,
+        //     BigInteger y, Asn1Sequence seq)
+        // {
+        //     DHParameter para = new DHParameter(seq);
 
-            BigInteger lVal = para.L;
-            int l = lVal == null ? 0 : lVal.IntValue;
-            DHParameters dhParams = new DHParameters(para.P, para.G, null, l);
+        //     BigInteger lVal = para.L;
+        //     int l = lVal == null ? 0 : lVal.IntValue;
+        //     DHParameters dhParams = new DHParameters(para.P, para.G, null, l);
 
-            return new DHPublicKeyParameters(y, dhParams, algOid);
-        }
+        //     return new DHPublicKeyParameters(y, dhParams, algOid);
+        // }
     }
 }

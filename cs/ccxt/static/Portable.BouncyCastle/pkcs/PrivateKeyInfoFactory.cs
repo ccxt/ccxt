@@ -58,28 +58,28 @@ namespace Org.BouncyCastle.Pkcs
             //         attributes);
             // }
 
-            if (privateKey is DsaPrivateKeyParameters)
-            {
-                DsaPrivateKeyParameters _key = (DsaPrivateKeyParameters)privateKey;
-                DsaParameters dp = _key.Parameters;
-                return new PrivateKeyInfo(
-                    new AlgorithmIdentifier(X9ObjectIdentifiers.IdDsa, new DsaParameter(dp.P, dp.Q, dp.G).ToAsn1Object()),
-                    new DerInteger(_key.X),
-                    attributes);
-            }
+            // if (privateKey is DsaPrivateKeyParameters)
+            // {
+            //     DsaPrivateKeyParameters _key = (DsaPrivateKeyParameters)privateKey;
+            //     DsaParameters dp = _key.Parameters;
+            //     return new PrivateKeyInfo(
+            //         new AlgorithmIdentifier(X9ObjectIdentifiers.IdDsa, new DsaParameter(dp.P, dp.Q, dp.G).ToAsn1Object()),
+            //         new DerInteger(_key.X),
+            //         attributes);
+            // }
 
-            if (privateKey is DHPrivateKeyParameters)
-            {
-                DHPrivateKeyParameters _key = (DHPrivateKeyParameters)privateKey;
+            // if (privateKey is DHPrivateKeyParameters)
+            // {
+            //     DHPrivateKeyParameters _key = (DHPrivateKeyParameters)privateKey;
 
-                DHParameter p = new DHParameter(
-                    _key.Parameters.P, _key.Parameters.G, _key.Parameters.L);
+            //     DHParameter p = new DHParameter(
+            //         _key.Parameters.P, _key.Parameters.G, _key.Parameters.L);
 
-                return new PrivateKeyInfo(
-                    new AlgorithmIdentifier(_key.AlgorithmOid, p.ToAsn1Object()),
-                    new DerInteger(_key.X),
-                    attributes);
-            }
+            //     return new PrivateKeyInfo(
+            //         new AlgorithmIdentifier(_key.AlgorithmOid, p.ToAsn1Object()),
+            //         new DerInteger(_key.X),
+            //         attributes);
+            // }
 
             if (privateKey is ECPrivateKeyParameters)
             {

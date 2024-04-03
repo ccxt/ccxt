@@ -46,55 +46,55 @@ namespace Org.BouncyCastle.Security
         //     return new X509CertificateParser().ReadCertificate(x509Cert.GetRawCertData());
         // }
 
-        public static AsymmetricCipherKeyPair GetDsaKeyPair(DSA dsa)
-        {
-            return GetDsaKeyPair(dsa.ExportParameters(true));
-        }
+        // public static AsymmetricCipherKeyPair GetDsaKeyPair(DSA dsa)
+        // {
+        //     return GetDsaKeyPair(dsa.ExportParameters(true));
+        // }
 
-        public static AsymmetricCipherKeyPair GetDsaKeyPair(DSAParameters dp)
-        {
-            DsaValidationParameters validationParameters = (dp.Seed != null)
-                ? new DsaValidationParameters(dp.Seed, dp.Counter)
-                : null;
+        // public static AsymmetricCipherKeyPair GetDsaKeyPair(DSAParameters dp)
+        // {
+        //     DsaValidationParameters validationParameters = (dp.Seed != null)
+        //         ? new DsaValidationParameters(dp.Seed, dp.Counter)
+        //         : null;
 
-            DsaParameters parameters = new DsaParameters(
-                new BigInteger(1, dp.P),
-                new BigInteger(1, dp.Q),
-                new BigInteger(1, dp.G),
-                validationParameters);
+        //     DsaParameters parameters = new DsaParameters(
+        //         new BigInteger(1, dp.P),
+        //         new BigInteger(1, dp.Q),
+        //         new BigInteger(1, dp.G),
+        //         validationParameters);
 
-            DsaPublicKeyParameters pubKey = new DsaPublicKeyParameters(
-                new BigInteger(1, dp.Y),
-                parameters);
+        //     DsaPublicKeyParameters pubKey = new DsaPublicKeyParameters(
+        //         new BigInteger(1, dp.Y),
+        //         parameters);
 
-            DsaPrivateKeyParameters privKey = new DsaPrivateKeyParameters(
-                new BigInteger(1, dp.X),
-                parameters);
+        //     DsaPrivateKeyParameters privKey = new DsaPrivateKeyParameters(
+        //         new BigInteger(1, dp.X),
+        //         parameters);
 
-            return new AsymmetricCipherKeyPair(pubKey, privKey);
-        }
+        //     return new AsymmetricCipherKeyPair(pubKey, privKey);
+        // }
 
-        public static DsaPublicKeyParameters GetDsaPublicKey(DSA dsa)
-        {
-            return GetDsaPublicKey(dsa.ExportParameters(false));
-        }
+        // public static DsaPublicKeyParameters GetDsaPublicKey(DSA dsa)
+        // {
+        //     return GetDsaPublicKey(dsa.ExportParameters(false));
+        // }
 
-        public static DsaPublicKeyParameters GetDsaPublicKey(DSAParameters dp)
-        {
-            DsaValidationParameters validationParameters = (dp.Seed != null)
-                ? new DsaValidationParameters(dp.Seed, dp.Counter)
-                : null;
+        // public static DsaPublicKeyParameters GetDsaPublicKey(DSAParameters dp)
+        // {
+        //     DsaValidationParameters validationParameters = (dp.Seed != null)
+        //         ? new DsaValidationParameters(dp.Seed, dp.Counter)
+        //         : null;
 
-            DsaParameters parameters = new DsaParameters(
-                new BigInteger(1, dp.P),
-                new BigInteger(1, dp.Q),
-                new BigInteger(1, dp.G),
-                validationParameters);
+        //     DsaParameters parameters = new DsaParameters(
+        //         new BigInteger(1, dp.P),
+        //         new BigInteger(1, dp.Q),
+        //         new BigInteger(1, dp.G),
+        //         validationParameters);
 
-            return new DsaPublicKeyParameters(
-                new BigInteger(1, dp.Y),
-                parameters);
-        }
+        //     return new DsaPublicKeyParameters(
+        //         new BigInteger(1, dp.Y),
+        //         parameters);
+        // }
 
         // public static AsymmetricCipherKeyPair GetRsaKeyPair(RSA rsa)
         // {
@@ -140,10 +140,10 @@ namespace Org.BouncyCastle.Security
 
         public static AsymmetricCipherKeyPair GetKeyPair(AsymmetricAlgorithm privateKey)
         {
-            if (privateKey is DSA)
-            {
-                return GetDsaKeyPair((DSA)privateKey);
-            }
+            // if (privateKey is DSA)
+            // {
+            //     return GetDsaKeyPair((DSA)privateKey);
+            // }
 
             // if (privateKey is RSA)
             // {
