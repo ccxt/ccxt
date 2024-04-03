@@ -2,7 +2,7 @@ using System;
 using System.IO;
 
 using Org.BouncyCastle.Asn1;
-using Org.BouncyCastle.Asn1.CryptoPro;
+// using Org.BouncyCastle.Asn1.CryptoPro;
 using Org.BouncyCastle.Asn1.EdEC;
 // using Org.BouncyCastle.Asn1.Oiw;
 using Org.BouncyCastle.Asn1.Pkcs;
@@ -72,44 +72,44 @@ namespace Org.BouncyCastle.Security
                 ECDomainParameters dParams = new ECDomainParameters(x9);
                 return new ECPublicKeyParameters(q, dParams);
             }
-            else if (algOid.Equals(CryptoProObjectIdentifiers.GostR3410x2001))
-            {
-                Gost3410PublicKeyAlgParameters gostParams = Gost3410PublicKeyAlgParameters.GetInstance(algID.Parameters);
-                DerObjectIdentifier publicKeyParamSet = gostParams.PublicKeyParamSet;
+            // else if (algOid.Equals(CryptoProObjectIdentifiers.GostR3410x2001))
+            // {
+            //     Gost3410PublicKeyAlgParameters gostParams = Gost3410PublicKeyAlgParameters.GetInstance(algID.Parameters);
+            //     DerObjectIdentifier publicKeyParamSet = gostParams.PublicKeyParamSet;
 
-                X9ECParameters ecP = ECGost3410NamedCurves.GetByOid(publicKeyParamSet);
-                if (ecP == null)
-                    return null;
+            //     X9ECParameters ecP = ECGost3410NamedCurves.GetByOid(publicKeyParamSet);
+            //     if (ecP == null)
+            //         return null;
 
-                Asn1OctetString key;
-                try
-                {
-                    key = (Asn1OctetString)keyInfo.ParsePublicKey();
-                }
-                catch (IOException e)
-                {
-                    throw new ArgumentException("error recovering GOST3410_2001 public key", e);
-                }
+            //     Asn1OctetString key;
+            //     try
+            //     {
+            //         key = (Asn1OctetString)keyInfo.ParsePublicKey();
+            //     }
+            //     catch (IOException e)
+            //     {
+            //         throw new ArgumentException("error recovering GOST3410_2001 public key", e);
+            //     }
 
-                int fieldSize = 32;
-                int keySize = 2 * fieldSize;
+            //     int fieldSize = 32;
+            //     int keySize = 2 * fieldSize;
 
-                byte[] keyEnc = key.GetOctets();
-                if (keyEnc.Length != keySize)
-                    throw new ArgumentException("invalid length for GOST3410_2001 public key");
+            //     byte[] keyEnc = key.GetOctets();
+            //     if (keyEnc.Length != keySize)
+            //         throw new ArgumentException("invalid length for GOST3410_2001 public key");
 
-                byte[] x9Encoding = new byte[1 + keySize];
-                x9Encoding[0] = 0x04;
-                for (int i = 1; i <= fieldSize; ++i)
-                {
-                    x9Encoding[i] = keyEnc[fieldSize - i];
-                    x9Encoding[i + fieldSize] = keyEnc[keySize - i];
-                }
+            //     byte[] x9Encoding = new byte[1 + keySize];
+            //     x9Encoding[0] = 0x04;
+            //     for (int i = 1; i <= fieldSize; ++i)
+            //     {
+            //         x9Encoding[i] = keyEnc[fieldSize - i];
+            //         x9Encoding[i + fieldSize] = keyEnc[keySize - i];
+            //     }
 
-                ECPoint q = ecP.Curve.DecodePoint(x9Encoding);
+            //     ECPoint q = ecP.Curve.DecodePoint(x9Encoding);
 
-                return new ECPublicKeyParameters("ECGOST3410", q, publicKeyParamSet);
-            }
+            //     return new ECPublicKeyParameters("ECGOST3410", q, publicKeyParamSet);
+            // }
             // else if (algOid.Equals(CryptoProObjectIdentifiers.GostR3410x94))
             // {
             //     Gost3410PublicKeyAlgParameters algParams = Gost3410PublicKeyAlgParameters.GetInstance(algID.Parameters);

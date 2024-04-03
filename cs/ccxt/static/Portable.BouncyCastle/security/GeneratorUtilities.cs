@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 
 using Org.BouncyCastle.Asn1;
-using Org.BouncyCastle.Asn1.CryptoPro;
+// using Org.BouncyCastle.Asn1.CryptoPro;
 using Org.BouncyCastle.Asn1.EdEC;
 // using Org.BouncyCastle.Asn1.Iana;
 // using Org.BouncyCastle.Asn1.Kisa;

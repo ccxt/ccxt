@@ -1,7 +1,7 @@
 using System;
 
 using Org.BouncyCastle.Asn1;
-using Org.BouncyCastle.Asn1.CryptoPro;
+// using Org.BouncyCastle.Asn1.CryptoPro;
 using Org.BouncyCastle.Security;
 
 namespace Org.BouncyCastle.Crypto.Parameters

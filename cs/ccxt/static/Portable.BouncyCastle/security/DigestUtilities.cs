@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 
 using Org.BouncyCastle.Asn1;
-using Org.BouncyCastle.Asn1.CryptoPro;
-using Org.BouncyCastle.Asn1.GM;
-using Org.BouncyCastle.Asn1.Misc;
+// using Org.BouncyCastle.Asn1.CryptoPro;
+// using Org.BouncyCastle.Asn1.GM;
+// using Org.BouncyCastle.Asn1.Misc;
 using Org.BouncyCastle.Asn1.Nist;
 using Org.BouncyCastle.Asn1.Pkcs;
 // using Org.BouncyCastle.Asn1.Oiw;
@@ -60,7 +60,7 @@ namespace Org.BouncyCastle.Security
             Aliases["SHA1"] = "SHA-1";
             // Aliases[OiwObjectIdentifiers.IdSha1.Id] = "SHA-1";
             Aliases[PkcsObjectIdentifiers.IdHmacWithSha1.Id] = "SHA-1";
-            Aliases[MiscObjectIdentifiers.HMAC_SHA1.Id] = "SHA-1";
+            // Aliases[MiscObjectIdentifiers.HMAC_SHA1.Id] = "SHA-1";
             Aliases["SHA224"] = "SHA-224";
             Aliases[NistObjectIdentifiers.IdSha224.Id] = "SHA-224";
             Aliases[PkcsObjectIdentifiers.IdHmacWithSha224.Id] = "SHA-224";
@@ -92,7 +92,7 @@ namespace Org.BouncyCastle.Security
             Aliases["RIPEMD-320"] = "RIPEMD320";
             //Aliases[TeleTrusTObjectIdentifiers.RipeMD320.Id] = "RIPEMD320";
 
-            Aliases[CryptoProObjectIdentifiers.GostR3411.Id] = "GOST3411";
+            // Aliases[CryptoProObjectIdentifiers.GostR3411.Id] = "GOST3411";
 
             Aliases["KECCAK224"] = "KECCAK-224";
             Aliases["KECCAK256"] = "KECCAK-256";
@@ -113,16 +113,16 @@ namespace Org.BouncyCastle.Security
             Aliases["SHAKE256"] = "SHAKE256-512";
             Aliases[NistObjectIdentifiers.IdShake256.Id] = "SHAKE256-512";
 
-            Aliases[GMObjectIdentifiers.sm3.Id] = "SM3";
+            // Aliases[GMObjectIdentifiers.sm3.Id] = "SM3";
 
-            Aliases[MiscObjectIdentifiers.id_blake2b160.Id] = "BLAKE2B-160";
-            Aliases[MiscObjectIdentifiers.id_blake2b256.Id] = "BLAKE2B-256";
-            Aliases[MiscObjectIdentifiers.id_blake2b384.Id] = "BLAKE2B-384";
-            Aliases[MiscObjectIdentifiers.id_blake2b512.Id] = "BLAKE2B-512";
-            Aliases[MiscObjectIdentifiers.id_blake2s128.Id] = "BLAKE2S-128";
-            Aliases[MiscObjectIdentifiers.id_blake2s160.Id] = "BLAKE2S-160";
-            Aliases[MiscObjectIdentifiers.id_blake2s224.Id] = "BLAKE2S-224";
-            Aliases[MiscObjectIdentifiers.id_blake2s256.Id] = "BLAKE2S-256";
+            // Aliases[MiscObjectIdentifiers.id_blake2b160.Id] = "BLAKE2B-160";
+            // Aliases[MiscObjectIdentifiers.id_blake2b256.Id] = "BLAKE2B-256";
+            // Aliases[MiscObjectIdentifiers.id_blake2b384.Id] = "BLAKE2B-384";
+            // Aliases[MiscObjectIdentifiers.id_blake2b512.Id] = "BLAKE2B-512";
+            // Aliases[MiscObjectIdentifiers.id_blake2s128.Id] = "BLAKE2S-128";
+            // Aliases[MiscObjectIdentifiers.id_blake2s160.Id] = "BLAKE2S-160";
+            // Aliases[MiscObjectIdentifiers.id_blake2s224.Id] = "BLAKE2S-224";
+            // Aliases[MiscObjectIdentifiers.id_blake2s256.Id] = "BLAKE2S-256";
 
             Aliases[RosstandartObjectIdentifiers.id_tc26_gost_3411_12_256.Id] = "GOST3411-2012-256";
             Aliases[RosstandartObjectIdentifiers.id_tc26_gost_3411_12_512.Id] = "GOST3411-2012-512";
@@ -150,16 +150,16 @@ namespace Org.BouncyCastle.Security
             Oids["RIPEMD128"] = TeleTrusTObjectIdentifiers.RipeMD128;
             Oids["RIPEMD160"] = TeleTrusTObjectIdentifiers.RipeMD160;
             Oids["RIPEMD256"] = TeleTrusTObjectIdentifiers.RipeMD256;
-            Oids["GOST3411"] = CryptoProObjectIdentifiers.GostR3411;
-            Oids["SM3"] = GMObjectIdentifiers.sm3;
-            Oids["BLAKE2B-160"] = MiscObjectIdentifiers.id_blake2b160;
-            Oids["BLAKE2B-256"] = MiscObjectIdentifiers.id_blake2b256;
-            Oids["BLAKE2B-384"] = MiscObjectIdentifiers.id_blake2b384;
-            Oids["BLAKE2B-512"] = MiscObjectIdentifiers.id_blake2b512;
-            Oids["BLAKE2S-128"] = MiscObjectIdentifiers.id_blake2s128;
-            Oids["BLAKE2S-160"] = MiscObjectIdentifiers.id_blake2s160;
-            Oids["BLAKE2S-224"] = MiscObjectIdentifiers.id_blake2s224;
-            Oids["BLAKE2S-256"] = MiscObjectIdentifiers.id_blake2s256;
+            // Oids["GOST3411"] = CryptoProObjectIdentifiers.GostR3411;
+            // Oids["SM3"] = GMObjectIdentifiers.sm3;
+            // Oids["BLAKE2B-160"] = MiscObjectIdentifiers.id_blake2b160;
+            // Oids["BLAKE2B-256"] = MiscObjectIdentifiers.id_blake2b256;
+            // Oids["BLAKE2B-384"] = MiscObjectIdentifiers.id_blake2b384;
+            // Oids["BLAKE2B-512"] = MiscObjectIdentifiers.id_blake2b512;
+            // Oids["BLAKE2S-128"] = MiscObjectIdentifiers.id_blake2s128;
+            // Oids["BLAKE2S-160"] = MiscObjectIdentifiers.id_blake2s160;
+            // Oids["BLAKE2S-224"] = MiscObjectIdentifiers.id_blake2s224;
+            // Oids["BLAKE2S-256"] = MiscObjectIdentifiers.id_blake2s256;
             Oids["GOST3411-2012-256"] = RosstandartObjectIdentifiers.id_tc26_gost_3411_12_256;
             Oids["GOST3411-2012-512"] = RosstandartObjectIdentifiers.id_tc26_gost_3411_12_512;
             Oids["DSTU7564-256"] = UAObjectIdentifiers.dstu7564digest_256;

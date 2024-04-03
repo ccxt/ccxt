@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 using Org.BouncyCastle.Asn1;
 // using Org.BouncyCastle.Asn1.Iana;
-using Org.BouncyCastle.Asn1.Misc;
+// using Org.BouncyCastle.Asn1.Misc;
 using Org.BouncyCastle.Asn1.Nist;
 using Org.BouncyCastle.Asn1.Pkcs;
 using Org.BouncyCastle.Asn1.Rosstandart;
@@ -32,7 +32,7 @@ namespace Org.BouncyCastle.Security
             // Algorithms[IanaObjectIdentifiers.HmacTiger.Id] = "HMAC-TIGER";
 
             Algorithms[PkcsObjectIdentifiers.IdHmacWithSha1.Id] = "HMAC-SHA1";
-            Algorithms[MiscObjectIdentifiers.HMAC_SHA1.Id] = "HMAC-SHA1";
+            // Algorithms[MiscObjectIdentifiers.HMAC_SHA1.Id] = "HMAC-SHA1";
             Algorithms[PkcsObjectIdentifiers.IdHmacWithSha224.Id] = "HMAC-SHA224";
             Algorithms[PkcsObjectIdentifiers.IdHmacWithSha256.Id] = "HMAC-SHA256";
             Algorithms[PkcsObjectIdentifiers.IdHmacWithSha384.Id] = "HMAC-SHA384";

@@ -1,7 +1,7 @@
 using System;
 
 using Org.BouncyCastle.Asn1;
-using Org.BouncyCastle.Asn1.CryptoPro;
+// using Org.BouncyCastle.Asn1.CryptoPro;
 // using Org.BouncyCastle.Asn1.EdEC;
 // using Org.BouncyCastle.Asn1.Oiw;
 using Org.BouncyCastle.Asn1.Pkcs;
@@ -112,44 +112,44 @@ namespace Org.BouncyCastle.Pkcs
                 // }
 
 
-                int orderBitLength = dp.N.BitLength;
+                // int orderBitLength = dp.N.BitLength;
 
-                AlgorithmIdentifier algID;
-                ECPrivateKeyStructure ec;
+                // AlgorithmIdentifier algID;
+                // ECPrivateKeyStructure ec;
 
-                if (priv.AlgorithmName == "ECGOST3410")
-                {
-                    if (priv.PublicKeyParamSet == null)
-                        throw new NotImplementedException("Not a CryptoPro parameter set");
+                // if (priv.AlgorithmName == "ECGOST3410")
+                // {
+                //     // if (priv.PublicKeyParamSet == null)
+                //     //     throw new NotImplementedException("Not a CryptoPro parameter set");
 
-                    Gost3410PublicKeyAlgParameters gostParams = new Gost3410PublicKeyAlgParameters(
-                        priv.PublicKeyParamSet, CryptoProObjectIdentifiers.GostR3411x94CryptoProParamSet);
+                //     // Gost3410PublicKeyAlgParameters gostParams = new Gost3410PublicKeyAlgParameters(
+                //     //     priv.PublicKeyParamSet, CryptoProObjectIdentifiers.GostR3411x94CryptoProParamSet);
 
-                    algID = new AlgorithmIdentifier(CryptoProObjectIdentifiers.GostR3410x2001, gostParams);
+                //     // algID = new AlgorithmIdentifier(CryptoProObjectIdentifiers.GostR3410x2001, gostParams);
 
-                    // TODO Do we need to pass any parameters here?
-                    ec = new ECPrivateKeyStructure(orderBitLength, priv.D, publicKey, null);
-                }
-                else
-                {
-                    X962Parameters x962;
-                    if (priv.PublicKeyParamSet == null)
-                    {
-                        X9ECParameters ecP = new X9ECParameters(dp.Curve, new X9ECPoint(dp.G, false), dp.N, dp.H,
-                            dp.GetSeed());
-                        x962 = new X962Parameters(ecP);
-                    }
-                    else
-                    {
-                        x962 = new X962Parameters(priv.PublicKeyParamSet);
-                    }
+                //     // // TODO Do we need to pass any parameters here?
+                //     // ec = new ECPrivateKeyStructure(orderBitLength, priv.D, publicKey, null);
+                // }
+                // else
+                // {
+                //     X962Parameters x962;
+                //     if (priv.PublicKeyParamSet == null)
+                //     {
+                //         X9ECParameters ecP = new X9ECParameters(dp.Curve, new X9ECPoint(dp.G, false), dp.N, dp.H,
+                //             dp.GetSeed());
+                //         x962 = new X962Parameters(ecP);
+                //     }
+                //     else
+                //     {
+                //         x962 = new X962Parameters(priv.PublicKeyParamSet);
+                //     }
 
-                    ec = new ECPrivateKeyStructure(orderBitLength, priv.D, publicKey, x962);
+                //     ec = new ECPrivateKeyStructure(orderBitLength, priv.D, publicKey, x962);
 
-                    algID = new AlgorithmIdentifier(X9ObjectIdentifiers.IdECPublicKey, x962);
-                }
+                //     algID = new AlgorithmIdentifier(X9ObjectIdentifiers.IdECPublicKey, x962);
+                // }
 
-                return new PrivateKeyInfo(algID, ec, attributes);
+                // return new PrivateKeyInfo(algID, ec, attributes);
             }
 
 

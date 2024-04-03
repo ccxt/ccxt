@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 
 using Org.BouncyCastle.Asn1;
-using Org.BouncyCastle.Asn1.CryptoPro;
-// using Org.BouncyCastle.Asn1.Kisa;
-using Org.BouncyCastle.Asn1.Misc;
+// using Org.BouncyCastle.Asn1.CryptoPro;
+// // using Org.BouncyCastle.Asn1.Kisa;
+// using Org.BouncyCastle.Asn1.Misc;
 using Org.BouncyCastle.Asn1.Nist;
 // using Org.BouncyCastle.Asn1.Nsri;
 // using Org.BouncyCastle.Asn1.Ntt;
@@ -113,29 +113,29 @@ namespace Org.BouncyCastle.Security
             //     "TDEA",
             //     OiwObjectIdentifiers.DesEde,
             //     PkcsObjectIdentifiers.IdAlgCms3DesWrap);
-            AddAlgorithm("DESEDE3",
-                PkcsObjectIdentifiers.DesEde3Cbc);
-            AddAlgorithm("GOST28147",
-                "GOST",
-                "GOST-28147",
-                CryptoProObjectIdentifiers.GostR28147Cbc);
-            AddAlgorithm("HC128");
-            AddAlgorithm("HC256");
-            AddAlgorithm("IDEA",
-                "1.3.6.1.4.1.188.7.1.1.2");
-            AddAlgorithm("NOEKEON");
-            AddAlgorithm("RC2",
-                PkcsObjectIdentifiers.RC2Cbc,
-                PkcsObjectIdentifiers.IdAlgCmsRC2Wrap);
-            AddAlgorithm("RC4",
-                "ARC4",
-                "1.2.840.113549.3.4");
-            AddAlgorithm("RC5",
-                "RC5-32");
-            AddAlgorithm("RC5-64");
-            AddAlgorithm("RC6");
-            AddAlgorithm("RIJNDAEL");
-            AddAlgorithm("SALSA20");
+            // AddAlgorithm("DESEDE3",
+            //     PkcsObjectIdentifiers.DesEde3Cbc);
+            // // AddAlgorithm("GOST28147",
+            // //     "GOST",
+            // //     "GOST-28147",
+            // //     CryptoProObjectIdentifiers.GostR28147Cbc);
+            // AddAlgorithm("HC128");
+            // AddAlgorithm("HC256");
+            // AddAlgorithm("IDEA",
+            //     "1.3.6.1.4.1.188.7.1.1.2");
+            // AddAlgorithm("NOEKEON");
+            // AddAlgorithm("RC2",
+            //     PkcsObjectIdentifiers.RC2Cbc,
+            //     PkcsObjectIdentifiers.IdAlgCmsRC2Wrap);
+            // AddAlgorithm("RC4",
+            //     "ARC4",
+            //     "1.2.840.113549.3.4");
+            // AddAlgorithm("RC5",
+            //     "RC5-32");
+            // AddAlgorithm("RC5-64");
+            // AddAlgorithm("RC6");
+            // AddAlgorithm("RIJNDAEL");
+            // AddAlgorithm("SALSA20");
             // AddAlgorithm("SEED",
             //     KisaObjectIdentifiers.IdNpkiAppCmsSeedWrap,
             //     KisaObjectIdentifiers.IdSeedCbc);
@@ -267,11 +267,11 @@ namespace Org.BouncyCastle.Security
                 }
                 else if (canonical == "CAST5")
                 {
-                    iv = Cast5CbcParameters.GetInstance(asn1Params).GetIV();
+                    // iv = Cast5CbcParameters.GetInstance(asn1Params).GetIV();
                 }
                 else if (canonical == "IDEA")
                 {
-                    iv = IdeaCbcPar.GetInstance(asn1Params).GetIV();
+                    // iv = IdeaCbcPar.GetInstance(asn1Params).GetIV();
                 }
                 // else if (canonical == "RC2")
                 // {
@@ -318,11 +318,11 @@ namespace Org.BouncyCastle.Security
             if (basicIVKeySize != -1)
                 return CreateIVOctetString(random, basicIVKeySize);
 
-            if (canonical == "CAST5")
-                return new Cast5CbcParameters(CreateIV(random, 8), 128);
+            // if (canonical == "CAST5")
+            //     return new Cast5CbcParameters(CreateIV(random, 8), 128);
 
-            if (canonical == "IDEA")
-                return new IdeaCbcPar(CreateIV(random, 8));
+            // if (canonical == "IDEA")
+            //     return new IdeaCbcPar(CreateIV(random, 8));
 
             // if (canonical == "RC2")
             //     return new RC2CbcParameter(CreateIV(random, 8));

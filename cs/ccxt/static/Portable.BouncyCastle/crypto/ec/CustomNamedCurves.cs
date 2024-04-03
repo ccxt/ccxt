@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 
 using Org.BouncyCastle.Asn1;
-using Org.BouncyCastle.Asn1.GM;
+// using Org.BouncyCastle.Asn1.GM;
 using Org.BouncyCastle.Asn1.Sec;
 using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Math;

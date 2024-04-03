@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 
 using Org.BouncyCastle.Asn1.Anssi;
-using Org.BouncyCastle.Asn1.CryptoPro;
-using Org.BouncyCastle.Asn1.GM;
+// using Org.BouncyCastle.Asn1.CryptoPro;
+// using Org.BouncyCastle.Asn1.GM;
 using Org.BouncyCastle.Asn1.Nist;
 using Org.BouncyCastle.Asn1.Sec;
 using Org.BouncyCastle.Asn1.TeleTrust;
@@ -34,14 +34,14 @@ namespace Org.BouncyCastle.Asn1.X9
             {
                 ecP = AnssiNamedCurves.GetByName(name);
             }
-            if (ecP == null)
-            {
-                ecP = ECGost3410NamedCurves.GetByName(name);
-            }
-            if (ecP == null)
-            {
-                ecP = GMNamedCurves.GetByName(name);
-            }
+            // if (ecP == null)
+            // {
+            //     ecP = ECGost3410NamedCurves.GetByName(name);
+            // }
+            // if (ecP == null)
+            // {
+            //     ecP = GMNamedCurves.GetByName(name);
+            // }
             return ecP;
         }
 
@@ -70,14 +70,14 @@ namespace Org.BouncyCastle.Asn1.X9
             {
                 holder = AnssiNamedCurves.GetByNameLazy(name);
             }
-            if (null == holder)
-            {
-                holder = ECGost3410NamedCurves.GetByNameLazy(name);
-            }
-            if (null == holder)
-            {
-                holder = GMNamedCurves.GetByNameLazy(name);
-            }
+            // if (null == holder)
+            // {
+            //     holder = ECGost3410NamedCurves.GetByNameLazy(name);
+            // }
+            // if (null == holder)
+            // {
+            //     holder = GMNamedCurves.GetByNameLazy(name);
+            // }
             return holder;
         }
 
@@ -102,14 +102,14 @@ namespace Org.BouncyCastle.Asn1.X9
             {
                 ecP = AnssiNamedCurves.GetByOid(oid);
             }
-            if (ecP == null)
-            {
-                ecP = ECGost3410NamedCurves.GetByOid(oid);
-            }
-            if (ecP == null)
-            {
-                ecP = GMNamedCurves.GetByOid(oid);
-            }
+            // if (ecP == null)
+            // {
+            //     ecP = ECGost3410NamedCurves.GetByOid(oid);
+            // }
+            // if (ecP == null)
+            // {
+            //     ecP = GMNamedCurves.GetByOid(oid);
+            // }
             return ecP;
         }
 
@@ -138,14 +138,14 @@ namespace Org.BouncyCastle.Asn1.X9
             {
                 holder = AnssiNamedCurves.GetByOidLazy(oid);
             }
-            if (null == holder)
-            {
-                holder = ECGost3410NamedCurves.GetByOidLazy(oid);
-            }
-            if (null == holder)
-            {
-                holder = GMNamedCurves.GetByOidLazy(oid);
-            }
+            // if (null == holder)
+            // {
+            //     holder = ECGost3410NamedCurves.GetByOidLazy(oid);
+            // }
+            // if (null == holder)
+            // {
+            //     holder = GMNamedCurves.GetByOidLazy(oid);
+            // }
             return holder;
         }
 
@@ -170,14 +170,14 @@ namespace Org.BouncyCastle.Asn1.X9
             {
                 name = AnssiNamedCurves.GetName(oid);
             }
-            if (name == null)
-            {
-                name = ECGost3410NamedCurves.GetName(oid);
-            }
-            if (name == null)
-            {
-                name = GMNamedCurves.GetName(oid);
-            }
+            // if (name == null)
+            // {
+            //     name = ECGost3410NamedCurves.GetName(oid);
+            // }
+            // if (name == null)
+            // {
+            //     name = GMNamedCurves.GetName(oid);
+            // }
             return name;
         }
 
@@ -202,14 +202,14 @@ namespace Org.BouncyCastle.Asn1.X9
             {
                 oid = AnssiNamedCurves.GetOid(name);
             }
-            if (oid == null)
-            {
-                oid = ECGost3410NamedCurves.GetOid(name);
-            }
-            if (oid == null)
-            {
-                oid = GMNamedCurves.GetOid(name);
-            }
+            // if (oid == null)
+            // {
+            //     oid = ECGost3410NamedCurves.GetOid(name);
+            // }
+            // if (oid == null)
+            // {
+            //     oid = GMNamedCurves.GetOid(name);
+            // }
             return oid;
         }
 
@@ -222,10 +222,10 @@ namespace Org.BouncyCastle.Asn1.X9
                 result.AddRange(X962NamedCurves.Names);
                 result.AddRange(SecNamedCurves.Names);
                 result.AddRange(NistNamedCurves.Names);
-                result.AddRange(TeleTrusTNamedCurves.Names);
+                // result.AddRange(TeleTrusTNamedCurves.Names);
                 result.AddRange(AnssiNamedCurves.Names);
-                result.AddRange(ECGost3410NamedCurves.Names);
-                result.AddRange(GMNamedCurves.Names);
+                // result.AddRange(ECGost3410NamedCurves.Names);
+                // result.AddRange(GMNamedCurves.Names);
                 return result;
             }
         }
