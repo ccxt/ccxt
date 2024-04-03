@@ -1574,7 +1574,7 @@ export default class kucoinfutures extends kucoin {
         });
     }
 
-    parseMarginModification (info, market: Market = undefined) {
+    parseMarginModification (info, market: Market = undefined): MarginModification {
         //
         //    {
         //        "id": "62311d26064e8f00013f2c6d",
