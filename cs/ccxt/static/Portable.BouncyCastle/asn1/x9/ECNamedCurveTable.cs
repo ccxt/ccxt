@@ -6,7 +6,7 @@ using Org.BouncyCastle.Asn1.Anssi;
 // using Org.BouncyCastle.Asn1.GM;
 using Org.BouncyCastle.Asn1.Nist;
 using Org.BouncyCastle.Asn1.Sec;
-using Org.BouncyCastle.Asn1.TeleTrust;
+// using Org.BouncyCastle.Asn1.TeleTrust;
 
 namespace Org.BouncyCastle.Asn1.X9
 {
@@ -28,7 +28,7 @@ namespace Org.BouncyCastle.Asn1.X9
             }
             if (ecP == null)
             {
-                ecP = TeleTrusTNamedCurves.GetByName(name);
+                // ecP = TeleTrusTNamedCurves.GetByName(name);
             }
             if (ecP == null)
             {
@@ -64,7 +64,7 @@ namespace Org.BouncyCastle.Asn1.X9
             }
             if (null == holder)
             {
-                holder = TeleTrusTNamedCurves.GetByNameLazy(name);
+                // holder = TeleTrusTNamedCurves.GetByNameLazy(name);
             }
             if (null == holder)
             {
@@ -96,7 +96,7 @@ namespace Org.BouncyCastle.Asn1.X9
 
             if (ecP == null)
             {
-                ecP = TeleTrusTNamedCurves.GetByOid(oid);
+                // ecP = TeleTrusTNamedCurves.GetByOid(oid);
             }
             if (ecP == null)
             {
@@ -132,7 +132,7 @@ namespace Org.BouncyCastle.Asn1.X9
 
             if (null == holder)
             {
-                holder = TeleTrusTNamedCurves.GetByOidLazy(oid);
+                // holder = TeleTrusTNamedCurves.GetByOidLazy(oid);
             }
             if (null == holder)
             {
@@ -164,7 +164,7 @@ namespace Org.BouncyCastle.Asn1.X9
             }
             if (name == null)
             {
-                name = TeleTrusTNamedCurves.GetName(oid);
+                // name = TeleTrusTNamedCurves.GetName(oid);
             }
             if (name == null)
             {
@@ -196,7 +196,7 @@ namespace Org.BouncyCastle.Asn1.X9
             }
             if (oid == null)
             {
-                oid = TeleTrusTNamedCurves.GetOid(name);
+                // oid = TeleTrusTNamedCurves.GetOid(name);
             }
             if (oid == null)
             {

@@ -6,11 +6,11 @@ using Org.BouncyCastle.Asn1;
 // using Org.BouncyCastle.Asn1.Misc;
 using Org.BouncyCastle.Asn1.Nist;
 using Org.BouncyCastle.Asn1.Pkcs;
-using Org.BouncyCastle.Asn1.Rosstandart;
+// using Org.BouncyCastle.Asn1.Rosstandart;
 using Org.BouncyCastle.Crypto;
 // using Org.BouncyCastle.Crypto.Engines;
 using Org.BouncyCastle.Crypto.Macs;
-using Org.BouncyCastle.Crypto.Paddings;
+// using Org.BouncyCastle.Crypto.Paddings;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Collections;
 
@@ -43,42 +43,42 @@ namespace Org.BouncyCastle.Security
             Algorithms[NistObjectIdentifiers.IdHMacWithSha3_384.Id] = "HMAC-SHA3-384";
             Algorithms[NistObjectIdentifiers.IdHMacWithSha3_512.Id] = "HMAC-SHA3-512";
 
-            Algorithms[RosstandartObjectIdentifiers.id_tc26_hmac_gost_3411_12_256.Id] = "HMAC-GOST3411-2012-256";
-            Algorithms[RosstandartObjectIdentifiers.id_tc26_hmac_gost_3411_12_512.Id] = "HMAC-GOST3411-2012-512";
+            // Algorithms[RosstandartObjectIdentifiers.id_tc26_hmac_gost_3411_12_256.Id] = "HMAC-GOST3411-2012-256";
+            // Algorithms[RosstandartObjectIdentifiers.id_tc26_hmac_gost_3411_12_512.Id] = "HMAC-GOST3411-2012-512";
 
             // TODO AESMAC?
 
-            Algorithms["DES"] = "DESMAC";
-            Algorithms["DES/CFB8"] = "DESMAC/CFB8";
-            Algorithms["DES64"] = "DESMAC64";
-            Algorithms["DESEDE"] = "DESEDEMAC";
-            Algorithms[PkcsObjectIdentifiers.DesEde3Cbc.Id] = "DESEDEMAC";
-            Algorithms["DESEDE/CFB8"] = "DESEDEMAC/CFB8";
-            Algorithms["DESISO9797MAC"] = "DESWITHISO9797";
-            Algorithms["DESEDE64"] = "DESEDEMAC64";
+            // Algorithms["DES"] = "DESMAC";
+            // Algorithms["DES/CFB8"] = "DESMAC/CFB8";
+            // Algorithms["DES64"] = "DESMAC64";
+            // Algorithms["DESEDE"] = "DESEDEMAC";
+            // Algorithms[PkcsObjectIdentifiers.DesEde3Cbc.Id] = "DESEDEMAC";
+            // Algorithms["DESEDE/CFB8"] = "DESEDEMAC/CFB8";
+            // Algorithms["DESISO9797MAC"] = "DESWITHISO9797";
+            // Algorithms["DESEDE64"] = "DESEDEMAC64";
 
-            Algorithms["DESEDE64WITHISO7816-4PADDING"] = "DESEDEMAC64WITHISO7816-4PADDING";
-            Algorithms["DESEDEISO9797ALG1MACWITHISO7816-4PADDING"] = "DESEDEMAC64WITHISO7816-4PADDING";
-            Algorithms["DESEDEISO9797ALG1WITHISO7816-4PADDING"] = "DESEDEMAC64WITHISO7816-4PADDING";
+            // Algorithms["DESEDE64WITHISO7816-4PADDING"] = "DESEDEMAC64WITHISO7816-4PADDING";
+            // Algorithms["DESEDEISO9797ALG1MACWITHISO7816-4PADDING"] = "DESEDEMAC64WITHISO7816-4PADDING";
+            // Algorithms["DESEDEISO9797ALG1WITHISO7816-4PADDING"] = "DESEDEMAC64WITHISO7816-4PADDING";
 
-            Algorithms["ISO9797ALG3"] = "ISO9797ALG3MAC";
-            Algorithms["ISO9797ALG3MACWITHISO7816-4PADDING"] = "ISO9797ALG3WITHISO7816-4PADDING";
+            // Algorithms["ISO9797ALG3"] = "ISO9797ALG3MAC";
+            // Algorithms["ISO9797ALG3MACWITHISO7816-4PADDING"] = "ISO9797ALG3WITHISO7816-4PADDING";
 
-            Algorithms["SKIPJACK"] = "SKIPJACKMAC";
-            Algorithms["SKIPJACK/CFB8"] = "SKIPJACKMAC/CFB8";
-            Algorithms["IDEA"] = "IDEAMAC";
-            Algorithms["IDEA/CFB8"] = "IDEAMAC/CFB8";
-            Algorithms["RC2"] = "RC2MAC";
-            Algorithms["RC2/CFB8"] = "RC2MAC/CFB8";
-            Algorithms["RC5"] = "RC5MAC";
-            Algorithms["RC5/CFB8"] = "RC5MAC/CFB8";
-            Algorithms["GOST28147"] = "GOST28147MAC";
-            Algorithms["VMPC"] = "VMPCMAC";
-            Algorithms["VMPC-MAC"] = "VMPCMAC";
-            Algorithms["SIPHASH"] = "SIPHASH-2-4";
+            // Algorithms["SKIPJACK"] = "SKIPJACKMAC";
+            // Algorithms["SKIPJACK/CFB8"] = "SKIPJACKMAC/CFB8";
+            // Algorithms["IDEA"] = "IDEAMAC";
+            // Algorithms["IDEA/CFB8"] = "IDEAMAC/CFB8";
+            // Algorithms["RC2"] = "RC2MAC";
+            // Algorithms["RC2/CFB8"] = "RC2MAC/CFB8";
+            // Algorithms["RC5"] = "RC5MAC";
+            // Algorithms["RC5/CFB8"] = "RC5MAC/CFB8";
+            // Algorithms["GOST28147"] = "GOST28147MAC";
+            // Algorithms["VMPC"] = "VMPCMAC";
+            // Algorithms["VMPC-MAC"] = "VMPCMAC";
+            // Algorithms["SIPHASH"] = "SIPHASH-2-4";
 
-            Algorithms["PBEWITHHMACSHA"] = "PBEWITHHMACSHA1";
-            Algorithms["1.3.14.3.2.26"] = "PBEWITHHMACSHA1";
+            // Algorithms["PBEWITHHMACSHA"] = "PBEWITHHMACSHA1";
+            // Algorithms["1.3.14.3.2.26"] = "PBEWITHHMACSHA1";
         }
 
         public static IMac GetMac(DerObjectIdentifier id)

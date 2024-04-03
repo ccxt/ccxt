@@ -8,9 +8,9 @@ using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Nist;
 using Org.BouncyCastle.Asn1.Pkcs;
 // using Org.BouncyCastle.Asn1.Oiw;
-using Org.BouncyCastle.Asn1.Rosstandart;
-using Org.BouncyCastle.Asn1.TeleTrust;
-using Org.BouncyCastle.Asn1.UA;
+// using Org.BouncyCastle.Asn1.Rosstandart;
+// using Org.BouncyCastle.Asn1.TeleTrust;
+// using Org.BouncyCastle.Asn1.UA;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Digests;
 using Org.BouncyCastle.Utilities;
@@ -83,22 +83,22 @@ namespace Org.BouncyCastle.Security
             Aliases["SHA-512(256)"] = "SHA-512/256";
             Aliases[NistObjectIdentifiers.IdSha512_256.Id] = "SHA-512/256";
 
-            Aliases["RIPEMD-128"] = "RIPEMD128";
-            Aliases[TeleTrusTObjectIdentifiers.RipeMD128.Id] = "RIPEMD128";
-            Aliases["RIPEMD-160"] = "RIPEMD160";
-            Aliases[TeleTrusTObjectIdentifiers.RipeMD160.Id] = "RIPEMD160";
-            Aliases["RIPEMD-256"] = "RIPEMD256";
-            Aliases[TeleTrusTObjectIdentifiers.RipeMD256.Id] = "RIPEMD256";
-            Aliases["RIPEMD-320"] = "RIPEMD320";
+            // Aliases["RIPEMD-128"] = "RIPEMD128";
+            // Aliases[TeleTrusTObjectIdentifiers.RipeMD128.Id] = "RIPEMD128";
+            // Aliases["RIPEMD-160"] = "RIPEMD160";
+            // Aliases[TeleTrusTObjectIdentifiers.RipeMD160.Id] = "RIPEMD160";
+            // Aliases["RIPEMD-256"] = "RIPEMD256";
+            // Aliases[TeleTrusTObjectIdentifiers.RipeMD256.Id] = "RIPEMD256";
+            // Aliases["RIPEMD-320"] = "RIPEMD320";
             //Aliases[TeleTrusTObjectIdentifiers.RipeMD320.Id] = "RIPEMD320";
 
             // Aliases[CryptoProObjectIdentifiers.GostR3411.Id] = "GOST3411";
 
-            Aliases["KECCAK224"] = "KECCAK-224";
-            Aliases["KECCAK256"] = "KECCAK-256";
-            Aliases["KECCAK288"] = "KECCAK-288";
-            Aliases["KECCAK384"] = "KECCAK-384";
-            Aliases["KECCAK512"] = "KECCAK-512";
+            // Aliases["KECCAK224"] = "KECCAK-224";
+            // Aliases["KECCAK256"] = "KECCAK-256";
+            // Aliases["KECCAK288"] = "KECCAK-288";
+            // Aliases["KECCAK384"] = "KECCAK-384";
+            // Aliases["KECCAK512"] = "KECCAK-512";
 
             Aliases[NistObjectIdentifiers.IdSha3_224.Id] = "SHA3-224";
             Aliases[NistObjectIdentifiers.IdHMacWithSha3_224.Id] = "SHA3-224";
@@ -124,12 +124,12 @@ namespace Org.BouncyCastle.Security
             // Aliases[MiscObjectIdentifiers.id_blake2s224.Id] = "BLAKE2S-224";
             // Aliases[MiscObjectIdentifiers.id_blake2s256.Id] = "BLAKE2S-256";
 
-            Aliases[RosstandartObjectIdentifiers.id_tc26_gost_3411_12_256.Id] = "GOST3411-2012-256";
-            Aliases[RosstandartObjectIdentifiers.id_tc26_gost_3411_12_512.Id] = "GOST3411-2012-512";
+            // Aliases[RosstandartObjectIdentifiers.id_tc26_gost_3411_12_256.Id] = "GOST3411-2012-256";
+            // Aliases[RosstandartObjectIdentifiers.id_tc26_gost_3411_12_512.Id] = "GOST3411-2012-512";
 
-            Aliases[UAObjectIdentifiers.dstu7564digest_256.Id] = "DSTU7564-256";
-            Aliases[UAObjectIdentifiers.dstu7564digest_384.Id] = "DSTU7564-384";
-            Aliases[UAObjectIdentifiers.dstu7564digest_512.Id] = "DSTU7564-512";
+            // Aliases[UAObjectIdentifiers.dstu7564digest_256.Id] = "DSTU7564-256";
+            // Aliases[UAObjectIdentifiers.dstu7564digest_384.Id] = "DSTU7564-384";
+            // Aliases[UAObjectIdentifiers.dstu7564digest_512.Id] = "DSTU7564-512";
 
             Oids["MD2"] = PkcsObjectIdentifiers.MD2;
             Oids["MD4"] = PkcsObjectIdentifiers.MD4;
@@ -147,9 +147,9 @@ namespace Org.BouncyCastle.Security
             Oids["SHA3-512"] = NistObjectIdentifiers.IdSha3_512;
             Oids["SHAKE128-256"] = NistObjectIdentifiers.IdShake128;
             Oids["SHAKE256-512"] = NistObjectIdentifiers.IdShake256;
-            Oids["RIPEMD128"] = TeleTrusTObjectIdentifiers.RipeMD128;
-            Oids["RIPEMD160"] = TeleTrusTObjectIdentifiers.RipeMD160;
-            Oids["RIPEMD256"] = TeleTrusTObjectIdentifiers.RipeMD256;
+            // Oids["RIPEMD128"] = TeleTrusTObjectIdentifiers.RipeMD128;
+            // Oids["RIPEMD160"] = TeleTrusTObjectIdentifiers.RipeMD160;
+            // Oids["RIPEMD256"] = TeleTrusTObjectIdentifiers.RipeMD256;
             // Oids["GOST3411"] = CryptoProObjectIdentifiers.GostR3411;
             // Oids["SM3"] = GMObjectIdentifiers.sm3;
             // Oids["BLAKE2B-160"] = MiscObjectIdentifiers.id_blake2b160;
@@ -160,11 +160,11 @@ namespace Org.BouncyCastle.Security
             // Oids["BLAKE2S-160"] = MiscObjectIdentifiers.id_blake2s160;
             // Oids["BLAKE2S-224"] = MiscObjectIdentifiers.id_blake2s224;
             // Oids["BLAKE2S-256"] = MiscObjectIdentifiers.id_blake2s256;
-            Oids["GOST3411-2012-256"] = RosstandartObjectIdentifiers.id_tc26_gost_3411_12_256;
-            Oids["GOST3411-2012-512"] = RosstandartObjectIdentifiers.id_tc26_gost_3411_12_512;
-            Oids["DSTU7564-256"] = UAObjectIdentifiers.dstu7564digest_256;
-            Oids["DSTU7564-384"] = UAObjectIdentifiers.dstu7564digest_384;
-            Oids["DSTU7564-512"] = UAObjectIdentifiers.dstu7564digest_512;
+            // Oids["GOST3411-2012-256"] = RosstandartObjectIdentifiers.id_tc26_gost_3411_12_256;
+            // Oids["GOST3411-2012-512"] = RosstandartObjectIdentifiers.id_tc26_gost_3411_12_512;
+            // Oids["DSTU7564-256"] = UAObjectIdentifiers.dstu7564digest_256;
+            // Oids["DSTU7564-384"] = UAObjectIdentifiers.dstu7564digest_384;
+            // Oids["DSTU7564-512"] = UAObjectIdentifiers.dstu7564digest_512;
         }
 
         /// <summary>

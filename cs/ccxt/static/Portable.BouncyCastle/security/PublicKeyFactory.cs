@@ -6,7 +6,7 @@ using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.EdEC;
 // using Org.BouncyCastle.Asn1.Oiw;
 using Org.BouncyCastle.Asn1.Pkcs;
-using Org.BouncyCastle.Asn1.Rosstandart;
+// using Org.BouncyCastle.Asn1.Rosstandart;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Crypto;
@@ -146,8 +146,7 @@ namespace Org.BouncyCastle.Security
             // {
             //     return new Ed448PublicKeyParameters(GetRawKey(keyInfo));
             // }
-            else if (algOid.Equals(RosstandartObjectIdentifiers.id_tc26_gost_3410_12_256)
-                || algOid.Equals(RosstandartObjectIdentifiers.id_tc26_gost_3410_12_512))
+            else if (false)
             {
                 // Gost3410PublicKeyAlgParameters gostParams = Gost3410PublicKeyAlgParameters.GetInstance(algID.Parameters);
                 // DerObjectIdentifier publicKeyParamSet = gostParams.PublicKeyParamSet;

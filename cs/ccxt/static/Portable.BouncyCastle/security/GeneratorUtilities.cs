@@ -11,7 +11,7 @@ using Org.BouncyCastle.Asn1.Nist;
 // using Org.BouncyCastle.Asn1.Ntt;
 // using Org.BouncyCastle.Asn1.Oiw;
 using Org.BouncyCastle.Asn1.Pkcs;
-using Org.BouncyCastle.Asn1.Rosstandart;
+// using Org.BouncyCastle.Asn1.Rosstandart;
 using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Generators;
@@ -199,10 +199,10 @@ namespace Org.BouncyCastle.Security
             //     IanaObjectIdentifiers.HmacRipeMD160);
             // AddHMacKeyGenerator("TIGER",
             //     IanaObjectIdentifiers.HmacTiger);
-            AddHMacKeyGenerator("GOST3411-2012-256",
-                RosstandartObjectIdentifiers.id_tc26_hmac_gost_3411_12_256);
-            AddHMacKeyGenerator("GOST3411-2012-512",
-                RosstandartObjectIdentifiers.id_tc26_hmac_gost_3411_12_512);
+            // AddHMacKeyGenerator("GOST3411-2012-256",
+            //     RosstandartObjectIdentifiers.id_tc26_hmac_gost_3411_12_256);
+            // AddHMacKeyGenerator("GOST3411-2012-512",
+            //     RosstandartObjectIdentifiers.id_tc26_hmac_gost_3411_12_512);
 
             //
             // key pair generators.
