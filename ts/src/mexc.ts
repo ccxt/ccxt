@@ -4409,7 +4409,7 @@ export default class mexc extends Exchange {
                     'notionalFloor': undefined,
                     'notionalCap': undefined,
                     'maintenanceMarginRate': undefined,
-                    'maxLeverage': undefined,
+                    'maxLeverage': this.safeNumber (info, 'maxLeverage'),
                     'info': info,
                 },
             ];
