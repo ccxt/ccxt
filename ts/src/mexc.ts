@@ -5647,7 +5647,8 @@ export default class mexc extends Exchange {
         //    }
         //
         const data = this.safeList (response, 'data');
-        return this.parsePositions (data);
+        const positions = this.parsePositions (data);
+        return this.filterBySymbolSinceLimit (positions, symbol, since, limit);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

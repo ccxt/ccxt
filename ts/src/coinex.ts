@@ -5765,7 +5765,8 @@ export default class coinex extends Exchange {
         //
         const data = this.safeDict (response, 'data');
         const records = this.safeList (data, 'records');
-        return this.parsePositions (records);
+        const positions = this.parsePositions (records);
+        return this.filterBySymbolSinceLimit (positions, symbol, since, limit);
     }
 
     handleMarginModeAndParams (methodName, params = {}, defaultValue = undefined) {
