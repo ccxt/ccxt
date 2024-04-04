@@ -340,11 +340,12 @@ Read the [Manual](https://github.com/ccxt/ccxt/wiki/) for more details.
 #### CJS
 
 ```JavaScript
-// cjs example
+// JavaScript example using CommonJS syntax
 'use strict';
 const ccxt = require ('ccxt');
 
 (async function () {
+    // Instantiate exchanges
     let kraken    = new ccxt.kraken ()
     let bitfinex  = new ccxt.bitfinex ({ verbose: true })
     let huobipro  = new ccxt.huobipro ()
@@ -353,6 +354,7 @@ const ccxt = require ('ccxt');
         secret: 'YOUR_SECRET_PRIVATE_KEY',
     })
 
+    // Define an exchange by id and instantiate it
     const exchangeId = 'binance'
         , exchangeClass = ccxt[exchangeId]
         , exchange = new exchangeClass ({
@@ -360,24 +362,26 @@ const ccxt = require ('ccxt');
             'secret': 'YOUR_SECRET',
         })
 
+    // Fetch markets
     console.log (kraken.id,    await kraken.loadMarkets ())
     console.log (bitfinex.id,  await bitfinex.loadMarkets  ())
     console.log (huobipro.id,  await huobipro.loadMarkets ())
 
+    // Fetch order book, ticker, and trades
     console.log (kraken.id,    await kraken.fetchOrderBook (kraken.symbols[0]))
     console.log (bitfinex.id,  await bitfinex.fetchTicker ('BTC/USD'))
     console.log (huobipro.id,  await huobipro.fetchTrades ('ETH/USDT'))
 
+    // Fetch balance
     console.log (okcoinusd.id, await okcoinusd.fetchBalance ())
 
-    // sell 1 BTC/USD for market price, sell a bitcoin for dollars immediately
+    // Create market sell order
     console.log (okcoinusd.id, await okcoinusd.createMarketSellOrder ('BTC/USD', 1))
 
-    // buy 1 BTC/USD for $2500, you pay $2500 and receive ฿1 when the order is closed
+    // Create limit buy order
     console.log (okcoinusd.id, await okcoinusd.createLimitBuyOrder ('BTC/USD', 1, 2500.00))
 
-    // pass/redefine custom exchange-specific order params: type, amount, price or whatever
-    // use a custom order type
+    // Custom order parameters
     bitfinex.createLimitSellOrder ('BTC/USD', 1, 10, { 'type': 'trailing-stop' })
 
 }) ();
@@ -397,10 +401,11 @@ console.log(ticker);
 ### Python
 
 ```Python
-# coding=utf-8
+# Python example
 
 import ccxt
 
+# Instantiate exchanges
 hitbtc   = ccxt.hitbtc({'verbose': True})
 bitmex   = ccxt.bitmex()
 huobipro = ccxt.huobipro()
@@ -413,6 +418,7 @@ kraken = ccxt.kraken({
     'secret': 'YOUR_SECRET_PRIVATE_KEY',
 })
 
+# Define an exchange by id and instantiate it
 exchange_id = 'binance'
 exchange_class = getattr(ccxt, exchange_id)
 exchange = exchange_class({
@@ -420,25 +426,29 @@ exchange = exchange_class({
     'secret': 'YOUR_SECRET',
 })
 
+# Fetch markets
 hitbtc_markets = hitbtc.load_markets()
 
+# Display markets and other exchange data
 print(hitbtc.id, hitbtc_markets)
 print(bitmex.id, bitmex.load_markets())
 print(huobipro.id, huobipro.load_markets())
 
+# Fetch order book, ticker, and trades
 print(hitbtc.fetch_order_book(hitbtc.symbols[0]))
 print(bitmex.fetch_ticker('BTC/USD'))
 print(huobipro.fetch_trades('LTC/USDT'))
 
+# Fetch balance
 print(exmo.fetch_balance())
 
-# sell one ฿ for market price and receive $ right now
+# Create market sell order
 print(exmo.id, exmo.create_market_sell_order('BTC/USD', 1))
 
-# limit buy BTC/EUR, you pay €2500 and receive ฿1  when the order is closed
+# Create limit buy order
 print(exmo.id, exmo.create_limit_buy_order('BTC/EUR', 1, 2500.00))
 
-# pass/redefine custom exchange-specific order params: type, amount, price, flags, etc...
+# Custom order parameters
 kraken.create_market_buy_order('BTC/USD', 1, {'trading_agreement': 'agree'})
 ```
 
