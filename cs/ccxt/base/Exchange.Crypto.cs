@@ -141,7 +141,7 @@ public partial class Exchange
     }
 
 
-    public string jwt(object data, object secret, Delegate alg = null, bool isRsa = false, object options = null) => Jwt(data, secret, alg, isRsa);
+    public string jwt(object data, object secret, Delegate alg = null, bool isRsa = false, object options = null) => Jwt(data, secret, alg, isRsa, options);
 
     public static string Jwt(object data, object secret, Delegate hash = null, bool isRsa = false, object options2 = null)
     {
