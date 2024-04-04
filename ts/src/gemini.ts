@@ -109,6 +109,7 @@ export default class gemini extends Exchange {
                     // https://github.com/ccxt/ccxt/issues/7874
                     // https://github.com/ccxt/ccxt/issues/7894
                     'web': 'https://docs.gemini.com',
+                    'webExchange': 'https://exchange.gemini.com',
                 },
                 'fees': [
                     'https://gemini.com/api-fee-schedule',
