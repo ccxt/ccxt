@@ -182,6 +182,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];
+        params['callerMethodName'] = 'watchTicker';
         const tickers = await this.watchTickers ([ symbol ], params);
         return tickers[symbol];
     }
@@ -206,23 +207,6 @@ export default class kucoinfutures extends kucoinfuturesRest {
     }
 
     handleTicker (client: Client, message) {
-        //
-        // market/tickerV2
-        //
-        //    {
-        //        "type": "message",
-        //        "topic": "/contractMarket/tickerV2:ADAUSDTM",
-        //        "subject": "tickerV2",
-        //        "data": {
-        //            "symbol": "ADAUSDTM",
-        //            "sequence": 1668007800439,
-        //            "bestBidSize": 178,
-        //            "bestBidPrice": "0.35959",
-        //            "bestAskPrice": "0.35981",
-        //            "ts": "1668141430037124460",
-        //            "bestAskSize": 134
-        //        }
-        //    }
         //
         // ticker (v1)
         //
@@ -249,9 +233,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
         const market = this.safeMarket (marketId, undefined, '-');
         const ticker = this.parseTicker (data, market);
         this.tickers[market['symbol']] = ticker;
-        const messageHash = 'ticker:' + market['symbol'];
-        client.resolve (ticker, messageHash);
-        return message;
+        client.resolve (ticker, this.getMessageHash ('ticker', market['symbol']));
     }
 
     async watchBidsAsks (symbols: Strings = undefined, params = {}): Promise<Tickers> {
@@ -275,6 +257,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
 
     async watchMultiHelper (methodName, channelName: string, symbols: Strings = undefined, params = {}) {
         await this.loadMarkets ();
+        [ methodName, params ] = this.handleParamString (params, 'callerMethodName', methodName);
         const isBidsAsks = (methodName === 'watchBidsAsks');
         symbols = this.marketSymbols (symbols, undefined, false, true, false);
         const length = symbols.length;
@@ -286,7 +269,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
             const symbol = symbols[i];
             const market = this.market (symbol);
             const prefix = isBidsAsks ? 'bidask' : 'ticker';
-            messageHashes.push (prefix + '@' + market['symbol']);
+            messageHashes.push (this.getMessageHash (prefix, market['symbol']));
         }
         const url = await this.negotiate (false);
         const marketIds = this.marketIds (symbols);
@@ -321,8 +304,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
         const parsedTicker = this.parseWsBidAsk (message);
         const symbol = parsedTicker['symbol'];
         this.bidsasks[symbol] = parsedTicker;
-        const messageHash = 'bidask@' + symbol;
-        client.resolve (parsedTicker, messageHash);
+        client.resolve (parsedTicker, this.getMessageHash ('bidask', symbol));
     }
 
     parseWsBidAsk (ticker, market = undefined) {
@@ -1089,6 +1071,15 @@ export default class kucoinfutures extends kucoinfuturesRest {
         const method = this.safeValue (methods, subject);
         if (method !== undefined) {
             method.call (this, client, message);
+        }
+    }
+
+    getMessageHash (elementName: string, symbol: Str = undefined) {
+        // elementName can be 'ticker', 'bidask', ...
+        if (symbol !== undefined) {
+            return elementName + '@' + symbol;
+        } else {
+            return elementName + 's@all';
         }
     }
 
