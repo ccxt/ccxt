@@ -899,6 +899,24 @@
                 "input": []
             }
         ],
+        "fetchMarketsByType": [
+            {
+                "description": "Fetch markets by type spot",
+                "method": "fetchMarketsByType",
+                "url": "https://www.okx.com/api/v5/public/instruments?instType=SPOT",
+                "input": [
+                    "spot"
+                ]
+            },
+            {
+                "description": "Fetch markets by type future",
+                "method": "fetchMarketsByType",
+                "url": "https://www.okx.com/api/v5/public/instruments?instType=FUTURES",
+                "input": [
+                    "future"
+                ]
+            }
+        ],
         "addMargin": [
             {
                 "description": "Add margin to an inverse swap long position",
