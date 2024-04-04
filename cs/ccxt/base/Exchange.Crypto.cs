@@ -391,7 +391,7 @@ public partial class Exchange
         }
         else
         {
-            sig = SignP256(Encoding.UTF8.GetBytes(Exchange.Json(secret)), secret.ToString(), hashName, out recoveryId);
+            sig = SignP256(Encoding.UTF8.GetBytes(Exchange.Json(request)), secret.ToString(), hashName, out recoveryId);
         }
 
         var rBytes = sig.Take(32).ToArray();
