@@ -349,6 +349,49 @@ export default class kucoin extends kucoinRest {
         return await this.watchMultiple (url, messageHashes, message, messageHashes);
     }
 
+    handleBidsAsks (client: Client, message) {
+        //
+        // arrives one symbol dict or array of symbol dicts
+        //
+        //     {
+        //         topic: '/spotMarket/level1:ETH-USDT',
+        //         type: 'message',
+        //         data: {
+        //             asks: [ '3347.42', '2.0778387' ],
+        //             bids: [ '3347.41', '6.0411697' ],
+        //             timestamp: 1712231142085
+        //         },
+        //         subject: 'level1'
+        //     }
+        //
+        const parsedTicker = this.parseWsBidAsk (message);
+        const symbol = parsedTicker['symbol'];
+        this.bidsasks[symbol] = parsedTicker;
+        const messageHash = 'bidask@' + symbol;
+        client.resolve (parsedTicker, messageHash);
+    }
+
+    parseWsBidAsk (ticker: any, market = undefined) {
+        const topic = this.safeString (ticker, 'topic');
+        const parts = topic.split (':');
+        const marketId = parts[1];
+        market = this.safeMarket (marketId, market);
+        const symbol = this.safeString (market, 'symbol');
+        const data = this.safeDict (ticker, 'data', {});
+        const ask = this.safeList (data, 'asks', []);
+        const bid = this.safeList (data, 'bids', []);
+        const timestamp = this.safeInteger (data, 'timestamp');
+        return this.safeTicker ({
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'ask': this.safeNumber (ask, 0),
+            'askVolume': this.safeNumber (ask, 1),
+            'bid': this.safeNumber (bid, 0),
+            'bidVolume': this.safeNumber (bid, 1),
+        }, market);
+    }
+
     async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         /**
          * @method
@@ -1132,6 +1175,7 @@ export default class kucoin extends kucoinRest {
         }
         const subject = this.safeString (message, 'subject');
         const methods = {
+            'level1': this.handleBidsAsks,
             'level2': this.handleOrderBook,
             'trade.l2update': this.handleOrderBook,
             'trade.ticker': this.handleTicker,
