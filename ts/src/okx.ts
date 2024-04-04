@@ -1698,7 +1698,7 @@ export default class okx extends Exchange {
         return result;
     }
 
-     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         /**
          * @method
          * @name okx#fetchOrderBook
