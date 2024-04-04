@@ -883,6 +883,14 @@
                 ]
             }
         ],
+        "fetchStatus": [
+            {
+                "description": "Fetch status",
+                "method": "fetchStatus",
+                "url": "https://www.okx.com/api/v5/system/status",
+                "input": []
+            }
+        ],
         "addMargin": [
             {
                 "description": "Add margin to an inverse swap long position",
