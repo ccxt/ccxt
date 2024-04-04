@@ -391,6 +391,7 @@ export default class kucoin extends kucoinRest {
             'askVolume': this.safeNumber (ask, 1),
             'bid': this.safeNumber (bid, 0),
             'bidVolume': this.safeNumber (bid, 1),
+            'info': ticker,
         }, market);
     }
 
