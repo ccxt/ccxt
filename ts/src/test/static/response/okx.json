@@ -9,22 +9,39 @@
                 "method": "fetchStatus",
                 "input": [],
                 "httpResponse": {
-                  "code": "0",
-                  "data": [],
-                  "msg": ""
-                },
-                "parsedResponse": {
-                  "updated": null,
-                  "status": "ok",
-                  "eta": null,
-                  "url": null,
-                  "info": {
                     "code": "0",
                     "data": [],
                     "msg": ""
-                  }
+                },
+                "parsedResponse": {
+                    "updated": null,
+                    "status": "ok",
+                    "eta": null,
+                    "url": null,
+                    "info": {
+                        "code": "0",
+                        "data": [],
+                        "msg": ""
+                    }
                 }
-              }
+            }
+        ],
+        "fetchTime" : [
+            {
+                "description": "Fetch time",
+                "method": "fetchTime",
+                "input": [],
+                "httpResponse": {
+                    "code": "0",
+                    "data": [
+                        {
+                            "ts": "1712250348676"
+                        }
+                    ],
+                    "msg": ""
+                },
+                    "parsedResponse": 1712250348676
+            }
         ],
         "fetchOpenOrders": [
             {
