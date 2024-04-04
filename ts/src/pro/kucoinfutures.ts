@@ -286,6 +286,48 @@ export default class kucoinfutures extends kucoinfuturesRest {
         return await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes);
     }
 
+    handleBidAsk (client: Client, message) {
+        //
+        // arrives one symbol dict
+        //
+        // {
+        //   "subject": "tickerV2",
+        //   "topic": "/contractMarket/tickerV2:XBTUSDM",
+        //   "data": {
+        //     "symbol": "XBTUSDM", //Market of the symbol
+        //     "bestBidSize": 795, // Best bid size
+        //     "bestBidPrice": 3200.0, // Best bid
+        //     "bestAskPrice": 3600.0, // Best ask
+        //     "bestAskSize": 284, // Best ask size
+        //     "ts": 1553846081210004941 // Filled time - nanosecond
+        //   }
+        // }
+        //
+        const parsedTicker = this.parseWsBidAsk (message);
+        const symbol = parsedTicker['symbol'];
+        this.bidsasks[symbol] = parsedTicker;
+        const messageHash = 'bidask@' + symbol;
+        client.resolve (parsedTicker, messageHash);
+    }
+
+    parseWsBidAsk (ticker, market = undefined) {
+        const data = this.safeDict (ticker, 'data', {});
+        const marketId = this.safeString (data, 'symbol');
+        market = this.safeMarket (marketId, market);
+        const symbol = this.safeString (market, 'symbol');
+        const timestamp = this.safeIntegerProduct (data, 'ts', 0.000001);
+        return this.safeTicker ({
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'ask': this.safeNumber (data, 'bestAskPrice'),
+            'askVolume': this.safeNumber (data, 'bestAskSize'),
+            'bid': this.safeNumber (data, 'bestBidPrice'),
+            'bidVolume': this.safeNumber (data, 'bestBidSize'),
+            'info': ticker,
+        }, market);
+    }
+
     async watchPosition (symbol: Str = undefined, params = {}): Promise<Position> {
         /**
          * @method
@@ -1020,7 +1062,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
         const methods = {
             'level2': this.handleOrderBook,
             'ticker': this.handleTicker,
-            'tickerV2': this.handleTicker,
+            'tickerV2': this.handleBidAsk,
             'availableBalance.change': this.handleBalance,
             'match': this.handleTrade,
             'orderChange': this.handleOrder,
