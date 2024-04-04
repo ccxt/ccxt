@@ -1333,6 +1333,14 @@
                 ],
                 "output": "{\"ccy\":\"USDT\",\"toAddr\":\"TTsY9uu2Y3aXXXXXscA4v\",\"dest\":\"4\",\"amt\":\"5\",\"chain\":\"USDT-TRC20\",\"fee\":\"1\"}"
             }
+        ],
+        "fetchConvertCurrencies": [
+            {
+                "description": "Fetch currencies that can be converted",
+                "method": "fetchConvertCurrencies",
+                "url": "https://www.okx.com/api/v5/asset/convert/currencies",
+                "input": []
+            }
         ]
     }
 }
