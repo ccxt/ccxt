@@ -62,6 +62,7 @@ export default class okx extends Exchange {
                 'fetchCanceledOrders': true,
                 'fetchClosedOrder': undefined,
                 'fetchClosedOrders': true,
+                'fetchConvertCurrencies': true,
                 'fetchCrossBorrowRate': true,
                 'fetchCrossBorrowRates': true,
                 'fetchCurrencies': true,
@@ -7573,6 +7574,50 @@ export default class okx extends Exchange {
             'baseVolume': this.safeNumber (chain, 'volCcy24h'),
             'quoteVolume': undefined,
         };
+    }
+
+    async fetchConvertCurrencies (params = {}) {
+        /**
+         * @method
+         * @name okx#fetchConvertCurrencies
+         * @description fetches all available currencies that can be converted
+         * @see https://www.okx.com/docs-v5/en/#funding-account-rest-api-get-convert-currencies
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an associative dictionary of currencies
+         */
+        await this.loadMarkets ();
+        const response = await this.privateGetAssetConvertCurrencies (params);
+        //
+        //     {
+        //         "code": "0",
+        //         "data": [
+        //             {
+        //                 "ccy": "BTC",
+        //                 "max": "",
+        //                 "min": ""
+        //             },
+        //         ],
+        //         "msg": ""
+        //     }
+        //
+        const result = {};
+        const data = this.safeList (response, 'data', []);
+        for (let i = 0; i < data.length; i++) {
+            const entry = data[i];
+            const id = this.safeString (entry, 'ccy');
+            const code = this.safeCurrencyCode (id);
+            result[code] = {
+                'info': entry,
+                'id': id,
+                'code': code,
+                'precision': undefined,
+                'available': undefined,
+                'minAmount': this.safeNumber (entry, 'min'),
+                'maxAmount': this.safeNumber (entry, 'max'),
+                'created': undefined,
+            };
+        }
+        return result;
     }
 
     handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
