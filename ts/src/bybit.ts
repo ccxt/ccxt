@@ -1128,7 +1128,7 @@ export default class bybit extends Exchange {
         if (enableUnifiedMargin === undefined || enableUnifiedAccount === undefined) {
             if (this.options['enableDemoTrading']) {
                 // info endpoint is not available in demo trading
-                // so we're assuming UTA is enabled in demo trading
+                // so we're assuming UTA is enabled
                 this.options['enableUnifiedMargin'] = false;
                 this.options['enableUnifiedAccount'] = true;
                 return [ this.options['enableUnifiedMargin'], this.options['enableUnifiedAccount'] ];
