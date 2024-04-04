@@ -148,7 +148,6 @@ public partial class Exchange
         var options = (options2 != null) ? options2 as Dictionary<string, object> : new Dictionary<string, object>();
         var algorithm = hash.DynamicInvoke() as string;
         var alg = (isRsa ? "RS" : "HS") + algorithm.Substring(3).ToUpper();
-        var algoType = algorithm.Substring(0, 2);
         if (options.ContainsKey("alg"))
         {
             alg = options["alg"] as string;
@@ -168,6 +167,7 @@ public partial class Exchange
         var encodedData = Exchange.Base64urlEncode(Exchange.StringToBase64(Exchange.Json(data)));
         var token = encodedHeader + "." + encodedData;
         string signature = null;
+        var algoType = alg.Substring(0, 2);
         if (isRsa)
         {
             signature = Exchange.Base64urlEncode(Exchange.Rsa(token, secret, hash));
@@ -372,25 +372,26 @@ public partial class Exchange
 
         var hashName = (hash != null) ? hash.DynamicInvoke() as string : null;
         byte[] msgHash;
-        if (hashName != null)
-        {
-            msgHash = HashBytes(request, hash);
-        }
-        else
-        {
-            msgHash = Hex.HexToBytes((string)request);
-        }
+
         var seckey = Hex.HexToBytes(secret.ToString());
 
         byte[] sig;
         int recoveryId;
         if (curveName == "secp256k1")
         {
+            if (hashName != null)
+            {
+                msgHash = HashBytes(request, hash);
+            }
+            else
+            {
+                msgHash = Hex.HexToBytes((string)request);
+            }
             sig = Secp256K1Manager.SignCompact(msgHash, seckey, out recoveryId);
         }
         else
         {
-            sig = SignP256(Encoding.UTF8.GetBytes(request as string), secret.ToString(), hashName, out recoveryId);
+            sig = SignP256(Encoding.UTF8.GetBytes(Exchange.Json(secret)), secret.ToString(), hashName, out recoveryId);
         }
 
         var rBytes = sig.Take(32).ToArray();
