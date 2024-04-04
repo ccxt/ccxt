@@ -11075,6 +11075,7 @@ export default class binance extends Exchange {
             'info': data,
             'symbol': market['symbol'],
             'type': (rawType === 1) ? 'add' : 'reduce',
+            'marginMode': 'isolated',
             'amount': this.safeNumber (data, 'amount'),
             'code': this.safeString (data, 'asset'),
             'total': undefined,

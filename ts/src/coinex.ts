@@ -4309,6 +4309,7 @@ export default class coinex extends Exchange {
             'info': data,
             'symbol': this.safeSymbol (marketId, market, undefined, 'swap'),
             'type': (type === '1') ? 'add' : 'reduce',
+            'marginMode': 'isolated',
             'amount': this.safeNumber (data, 'margin_change'),
             'total': this.safeNumber (data, 'position_amount'),
             'code': market['quote'],

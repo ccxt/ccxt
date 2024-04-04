@@ -6080,6 +6080,7 @@ export default class gate extends Exchange {
             'info': data,
             'symbol': market['symbol'],
             'type': undefined,
+            'marginMode': 'isolated',
             'amount': undefined,
             'total': total,
             'code': this.safeValue (market, 'quote'),

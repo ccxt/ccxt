@@ -3546,6 +3546,7 @@ export default class bingx extends Exchange {
             'info': data,
             'symbol': this.safeString (market, 'symbol'),
             'type': (type === '1') ? 'add' : 'reduce',
+            'marginMode': 'isolated',
             'amount': this.safeNumber (data, 'amount'),
             'total': this.safeNumber (data, 'margin'),
             'code': this.safeString (market, 'settle'),
