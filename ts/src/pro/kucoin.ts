@@ -373,7 +373,7 @@ export default class kucoin extends kucoinRest {
         client.resolve (parsedTicker, messageHash);
     }
 
-    parseWsBidAsk (ticker: any, market = undefined) {
+    parseWsBidAsk (ticker, market = undefined) {
         const topic = this.safeString (ticker, 'topic');
         const parts = topic.split (':');
         const marketId = parts[1];
