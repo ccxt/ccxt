@@ -182,6 +182,7 @@ export default class bingx extends Exchange {
                                 'positionSide/dual': 1,
                                 'market/markPriceKlines': 1,
                                 'trade/batchCancelReplace': 1,
+                                'trade/fullOrder': 1,
                             },
                             'post': {
                                 'trade/cancelReplace': 1,
@@ -329,6 +330,7 @@ export default class bingx extends Exchange {
                             'post': {
                                 'swap/trace/closeTrackOrder': 1,
                                 'swap/trace/setTPSL': 1,
+                                'spot/trader/sellOrder': 1,
                             },
                         },
                     },
