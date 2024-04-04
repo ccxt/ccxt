@@ -11060,6 +11060,7 @@ export default class binance extends Exchange {
             'info': data,
             'symbol': market['symbol'],
             'type': resultType,
+            'marginMode': 'isolated',
             'amount': resultAmount,
             'total': undefined,
             'code': undefined,

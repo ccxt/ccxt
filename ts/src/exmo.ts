@@ -267,6 +267,7 @@ export default class exmo extends Exchange {
             'info': data,
             'symbol': this.safeSymbol (undefined, market),
             'type': undefined,
+            'marginMode': 'isolated',
             'amount': undefined,
             'total': undefined,
             'code': this.safeValue (market, 'quote'),

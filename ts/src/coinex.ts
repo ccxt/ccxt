@@ -4325,6 +4325,7 @@ export default class coinex extends Exchange {
             'info': data,
             'symbol': this.safeSymbol (undefined, market),
             'type': undefined,
+            'marginMode': 'isolated',
             'amount': this.safeNumber (data, 'margin_amount'),
             'total': undefined,
             'code': market['quote'],

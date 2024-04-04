@@ -6489,6 +6489,7 @@ export default class okx extends Exchange {
             'info': data,
             'symbol': responseMarket['symbol'],
             'type': type,
+            'marginMode': 'isolated',
             'amount': amountRaw,
             'total': undefined,
             'code': code,

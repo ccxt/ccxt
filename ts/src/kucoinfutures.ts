@@ -1574,7 +1574,7 @@ export default class kucoinfutures extends kucoin {
         });
     }
 
-    parseMarginModification (info, market: Market = undefined) {
+    parseMarginModification (info, market: Market = undefined): MarginModification {
         //
         //    {
         //        "id": "62311d26064e8f00013f2c6d",
@@ -1626,14 +1626,18 @@ export default class kucoinfutures extends kucoin {
         const crossMode = this.safeValue (info, 'crossMode');
         const mode = crossMode ? 'cross' : 'isolated';
         const marketId = this.safeString (market, 'symbol');
+        const timestamp = this.safeInteger (info, 'currentTimestamp');
         return {
             'info': info,
-            'direction': undefined,
-            'mode': mode,
-            'amount': undefined,
-            'code': this.safeCurrencyCode (currencyId),
             'symbol': this.safeSymbol (marketId, market),
+            'type': undefined,
+            'marginMode': mode,
+            'amount': undefined,
+            'total': undefined,
+            'code': this.safeCurrencyCode (currencyId),
             'status': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
         };
     }
 

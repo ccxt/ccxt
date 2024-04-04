@@ -2176,6 +2176,7 @@ export default class hyperliquid extends Exchange {
             'info': data,
             'symbol': this.safeSymbol (undefined, market),
             'type': undefined,
+            'marginMode': 'isolated',
             'amount': undefined,
             'total': undefined,
             'code': this.safeString (market, 'settle'),
