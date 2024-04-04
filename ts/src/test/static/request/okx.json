@@ -891,6 +891,14 @@
                 "input": []
             }
         ],
+        "fetchCurrencies": [
+            {
+                "description": "Fetch currencies",
+                "method": "fetchCurrencies",
+                "url": "https://www.okx.com/api/v5/asset/currencies",
+                "input": []
+            }
+        ],
         "addMargin": [
             {
                 "description": "Add margin to an inverse swap long position",
