@@ -1855,7 +1855,7 @@ export default class okx extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         const first = this.safeDict (data, 0, {});
         return this.parseTicker (first, market);
     }
@@ -1879,7 +1879,7 @@ export default class okx extends Exchange {
             'instType': this.convertToInstrumentType (marketType),
         };
         if (marketType === 'option') {
-            const defaultUnderlying = this.safeValue (this.options, 'defaultUnderlying', 'BTC-USD');
+            const defaultUnderlying = this.safeString (this.options, 'defaultUnderlying', 'BTC-USD');
             const currencyId = this.safeString2 (params, 'uly', 'marketId', defaultUnderlying);
             if (currencyId === undefined) {
                 throw new ArgumentsRequired (this.id + ' fetchTickers() requires an underlying uly or marketId parameter for options markets');
