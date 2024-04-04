@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import kucoinRest from '../kucoin.js';
-import { ExchangeError, ArgumentsRequired } from '../base/errors.js';
+import { ExchangeError, ArgumentsRequired, NotSupported } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Balances } from '../base/types.js';
 import Client from '../base/ws/Client.js';
@@ -21,6 +21,7 @@ export default class kucoin extends kucoinRest {
                 'cancelOrderWs': false,
                 'cancelOrdersWs': false,
                 'cancelAllOrdersWs': false,
+                'watchBidsAsks': true,
                 'watchOrderBook': true,
                 'watchOrders': true,
                 'watchMyTrades': true,
@@ -292,6 +293,60 @@ export default class kucoin extends kucoinRest {
                 client.resolve (tickers, currentMessageHash);
             }
         }
+    }
+
+    async watchBidsAsks (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        /**
+         * @method
+         * @name kucoin#watchBidsAsks
+         * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level1-bbo-market-data
+         * @description watches best bid & ask for symbols
+         * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        const result = await this.watchMultiHelper ('watchBidsAsks', 'bookTicker', symbols, params);
+        if (this.newUpdates) {
+            return result;
+        }
+        return this.filterByArray (this.tickers, 'symbol', symbols);
+    }
+
+    async watchMultiHelper (methodName, channelName: string, symbols: Strings = undefined, params = {}) {
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols, undefined, false, true, false);
+        const length = symbols.length;
+        if (length > 100) {
+            throw new ArgumentsRequired (this.id + ' watchBidsAsks() accepts a maximum of 100 symbols');
+        }
+        let firstMarket = undefined;
+        const symbolsDefined = (symbols !== undefined);
+        if (symbolsDefined) {
+            firstMarket = this.market (symbols[0]);
+        }
+        let marketType = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams (methodName, firstMarket, params);
+        if (marketType !== 'spot') {
+            throw new NotSupported (this.id + ' ' + methodName + '() supports spot markets only');
+        }
+        const messageHashes = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            const market = this.market (symbol);
+            messageHashes.push ('bidask@' + market['symbol']);
+        }
+        const url = await this.negotiate (false);
+        const marketIds = this.marketIds (symbols);
+        const joined = marketIds.join (',');
+        const requestId = this.requestId ().toString ();
+        const request = {
+            'id': requestId,
+            'type': 'subscribe',
+            'topic': 'spotMarket/level1:' + joined,
+            'response': true,
+        };
+        const message = this.extend (request, params);
+        return await this.watchMultiple (url, messageHashes, message, messageHashes);
     }
 
     async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
