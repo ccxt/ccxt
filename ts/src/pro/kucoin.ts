@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import kucoinRest from '../kucoin.js';
-import { ExchangeError, ArgumentsRequired, NotSupported } from '../base/errors.js';
+import { ExchangeError, ArgumentsRequired } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Balances } from '../base/types.js';
 import Client from '../base/ws/Client.js';
