@@ -760,6 +760,29 @@
                 ]
             }
         ],
+        "fetchOrders": [
+            {
+                "description": "Swap orders",
+                "method": "fetchOrders",
+                "url": "https://open-api.bingx.com/openApi/swap/v1/trade/fullOrder?symbol=LTC-USDT&timestamp=1699458294373&signature=0386bcc46ee9b65c4a2b770c9eb8bbdeec387ea6230d8456d37a4c0c103979e0",
+                "input": [
+                    "LTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "Swap orders without symbol",
+                "method": "fetchOrders",
+                "url": "https://open-api.bingx.com/openApi/swap/v1/trade/fullOrder?timestamp=1699458294373&signature=0386bcc46ee9b65c4a2b770c9eb8bbdeec387ea6230d8456d37a4c0c103979e0",
+                "input": [
+                    null,
+                    null,
+                    null,
+                    {
+                        "type": "swap"
+                    }
+                ]
+            }
+        ],
         "fetchBalance": [
             {
                 "description": "Fetch spot Balance",
