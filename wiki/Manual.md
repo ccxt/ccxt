@@ -6099,6 +6099,7 @@ To get information about positions currently held in contract markets, use
 - fetchPosition ()            // for a single market
 - fetchPositions ()           // for all positions
 - fetchAccountPositions ()    // TODO
+- fetchPositionHistory ()     // for historical positions
 
 ```javascript
 fetchPosition (symbol, params = {})                         // for a single market
@@ -6121,6 +6122,21 @@ fetchAccountPositions (symbols = undefined, params = {})
 Parameters
 
 - **symbols** (\[String\]) Unified CCXT market symbols, do not set to retrieve all positions (e.g. `["BTC/USDT:USDT"]`)
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
+
+Returns
+
+- An array of [position structures](#position-structure)
+
+```javascript
+fetchPositionHistory (symbol = undefined, since = undefined, limit = undefined, params = {})
+```
+
+Parameters
+
+- **symbol** (\[String\]) Unified CCXT market symbols, do not set to retrieve all positions (e.g. `["BTC/USDT:USDT"]`)
+- **since** (Integer) Timestamp (ms) of the earliest time to retrieve positions for (e.g. `1646940314000`)
+- **limit** (Integer) The number of [position structures](#position-structure) to retrieve (e.g. `5`)
 - **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
 
 Returns
