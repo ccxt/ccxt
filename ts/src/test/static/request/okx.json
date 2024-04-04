@@ -1298,7 +1298,7 @@
                 "method": "fetchTicker",
                 "url": "https://www.okx.com/api/v5/market/ticker?instId=BTC-USDT-SWAP",
                 "input": [
-                  "BTC/USDT:USDT"
+                    "BTC/USDT:USDT"
                 ]
             },
             {
@@ -1306,7 +1306,7 @@
                 "method": "fetchTicker",
                 "url": "https://www.okx.com/api/v5/market/ticker?instId=BTC-USDT",
                 "input": [
-                  "BTC/USDT"
+                    "BTC/USDT"
                 ]
             }
         ],
