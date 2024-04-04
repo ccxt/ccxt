@@ -780,10 +780,10 @@ export default class kucoinfutures extends kucoinfuturesRest {
         //     }
         //
         const id = this.safeString (message, 'id');
+        const subscriptionsById = this.indexBy (client.subscriptions, 'id');
         if (!(id in client.subscriptions)) {
             return;
         }
-        const subscriptionsById = this.indexBy (client.subscriptions, 'id');
         const subscription = this.safeValue (subscriptionsById, id, {});
         const method = this.safeValue (subscription, 'method');
         if (method !== undefined) {
