@@ -43,6 +43,73 @@
                     "parsedResponse": 1712250348676
             }
         ],
+        "fetchAccounts" : [
+            {
+                "description": "Fetch accounts",
+                "method": "fetchAccounts",
+                "input": [],
+                "httpResponse": {
+                    "code": "0",
+                    "data": [
+                        {
+                        "acctLv": "1",
+                        "autoLoan": false,
+                        "ctIsoMode": "automatic",
+                        "greeksType": "PA",
+                        "ip": "",
+                        "kycLv": "2",
+                        "label": "Ray2",
+                        "level": "Lv1",
+                        "levelTmp": "",
+                        "liquidationGear": "-1",
+                        "mainUid": "374579799097793561",
+                        "mgnIsoMode": "automatic",
+                        "opAuth": "0",
+                        "perm": "read_only,withdraw,trade",
+                        "posMode": "net_mode",
+                        "roleType": "0",
+                        "spotOffsetType": "",
+                        "spotRoleType": "0",
+                        "spotTraderInsts": [],
+                        "traderInsts": [],
+                        "uid": "374579799097793561"
+                    }
+                    ],
+                    "msg": ""
+                },
+                "parsedResponse": [
+                    {
+                        "id": "374579799097793561",
+                        "type": "1",
+                        "currency": null,
+                        "info": {
+                            "acctLv": "1",
+                            "autoLoan": false,
+                            "ctIsoMode": "automatic",
+                            "greeksType": "PA",
+                            "ip": "",
+                            "kycLv": "2",
+                            "label": "Ray2",
+                            "level": "Lv1",
+                            "levelTmp": "",
+                            "liquidationGear": "-1",
+                            "mainUid": "374579799097793561",
+                            "mgnIsoMode": "automatic",
+                            "opAuth": "0",
+                            "perm": "read_only,withdraw,trade",
+                            "posMode": "net_mode",
+                            "roleType": "0",
+                            "spotOffsetType": "",
+                            "spotRoleType": "0",
+                            "spotTraderInsts": [],
+                            "traderInsts": [],
+                            "uid": "374579799097793561"
+                        },
+                        "code": null
+                    }
+                ]
+            }
+        ],
         "fetchOpenOrders": [
             {
                 "description": "fetch swap limit open order with take profit and stop loss",
