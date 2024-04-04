@@ -59,6 +59,7 @@ export default class woo extends Exchange {
                 'fetchCanceledOrders': false,
                 'fetchClosedOrder': false,
                 'fetchClosedOrders': true,
+                'fetchConvertCurrencies': true,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
@@ -3013,6 +3014,50 @@ export default class woo extends Exchange {
             'stopLossPrice': undefined,
             'takeProfitPrice': undefined,
         });
+    }
+
+    async fetchConvertCurrencies (params = {}) {
+        /**
+         * @method
+         * @name woo#fetchConvertCurrencies
+         * @description fetches all available currencies that can be converted
+         * @see https://docs.woo.org/#get-quote-asset-info
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an associative dictionary of currencies
+         */
+        await this.loadMarkets ();
+        const response = await this.v3PrivateGetConvertAssetInfo (params);
+        //
+        //     {
+        //         "success": true,
+        //         "rows": [
+        //             {
+        //                 "token": "BTC",
+        //                 "tick": 0.0001,
+        //                 "createdTime": "1575014248.99", // Unix epoch time in seconds
+        //                 "updatedTime": "1575014248.99"  // Unix epoch time in seconds
+        //             },
+        //         ]
+        //     }
+        //
+        const result = {};
+        const data = this.safeList (response, 'rows', []);
+        for (let i = 0; i < data.length; i++) {
+            const entry = data[i];
+            const id = this.safeString (entry, 'token');
+            const code = this.safeCurrencyCode (id);
+            result[code] = {
+                'info': entry,
+                'id': id,
+                'code': code,
+                'precision': this.safeNumber (entry, 'tick'),
+                'available': undefined,
+                'minAmount': undefined,
+                'maxAmount': undefined,
+                'created': this.safeTimestamp (entry, 'createdTime'),
+            };
+        }
+        return result;
     }
 
     defaultNetworkCodeForCurrency (code) { // TODO: can be moved into base as an unified method
