@@ -305,7 +305,7 @@ export default class kucoin extends kucoinRest {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
-        const result = await this.watchMultiHelper ('watchBidsAsks', 'bookTicker', symbols, params);
+        const result = await this.watchMultiHelper ('watchBidsAsks', '/spotMarket/level1:', symbols, params);
         if (this.newUpdates) {
             return result;
         }
@@ -342,7 +342,7 @@ export default class kucoin extends kucoinRest {
         const request = {
             'id': requestId,
             'type': 'subscribe',
-            'topic': 'spotMarket/level1:' + joined,
+            'topic': channelName + joined,
             'response': true,
         };
         const message = this.extend (request, params);
