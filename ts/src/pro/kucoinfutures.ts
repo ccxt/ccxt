@@ -14,6 +14,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
             'has': {
                 'ws': true,
                 'watchTicker': true,
+                'watchTickers': true,
                 'watchTrades': true,
                 'watchOrderBook': true,
                 'watchOrders': true,
@@ -182,6 +183,25 @@ export default class kucoinfutures extends kucoinfuturesRest {
         const market = this.market (symbol);
         symbol = market['symbol'];
         return await this.watchMultiHelper ('watchTicker', '/contractMarket/ticker:', [ symbol ], params);
+    }
+
+    async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        /**
+         * @method
+         * @name kucoinfutures#watchTickers
+         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+         * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        await this.loadMarkets ();
+        const ticker = await this.watchMultiHelper ('watchTickers', '/contractMarket/ticker:', symbols, params);
+        if (this.newUpdates) {
+            const tickers = {};
+            tickers[ticker['symbol']] = ticker;
+            return tickers;
+        }
+        return this.filterByArray (this.tickers, 'symbol', symbols);
     }
 
     handleTicker (client: Client, message) {
