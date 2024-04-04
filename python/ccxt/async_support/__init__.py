@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.2.59'
+__version__ = '4.2.89'
 
 # -----------------------------------------------------------------------------
 
@@ -98,6 +98,7 @@ from ccxt.async_support.btcturk import btcturk                                  
 from ccxt.async_support.bybit import bybit                                      # noqa: F401
 from ccxt.async_support.cex import cex                                          # noqa: F401
 from ccxt.async_support.coinbase import coinbase                                # noqa: F401
+from ccxt.async_support.coinbaseinternational import coinbaseinternational      # noqa: F401
 from ccxt.async_support.coinbasepro import coinbasepro                          # noqa: F401
 from ccxt.async_support.coincheck import coincheck                              # noqa: F401
 from ccxt.async_support.coinex import coinex                                    # noqa: F401
@@ -123,6 +124,7 @@ from ccxt.async_support.hollaex import hollaex                                  
 from ccxt.async_support.htx import htx                                          # noqa: F401
 from ccxt.async_support.huobi import huobi                                      # noqa: F401
 from ccxt.async_support.huobijp import huobijp                                  # noqa: F401
+from ccxt.async_support.hyperliquid import hyperliquid                          # noqa: F401
 from ccxt.async_support.idex import idex                                        # noqa: F401
 from ccxt.async_support.independentreserve import independentreserve            # noqa: F401
 from ccxt.async_support.indodax import indodax                                  # noqa: F401
@@ -151,6 +153,7 @@ from ccxt.async_support.poloniexfutures import poloniexfutures                  
 from ccxt.async_support.probit import probit                                    # noqa: F401
 from ccxt.async_support.timex import timex                                      # noqa: F401
 from ccxt.async_support.tokocrypto import tokocrypto                            # noqa: F401
+from ccxt.async_support.tradeogre import tradeogre                              # noqa: F401
 from ccxt.async_support.upbit import upbit                                      # noqa: F401
 from ccxt.async_support.wavesexchange import wavesexchange                      # noqa: F401
 from ccxt.async_support.wazirx import wazirx                                    # noqa: F401
@@ -200,6 +203,7 @@ exchanges = [
     'bybit',
     'cex',
     'coinbase',
+    'coinbaseinternational',
     'coinbasepro',
     'coincheck',
     'coinex',
@@ -225,6 +229,7 @@ exchanges = [
     'htx',
     'huobi',
     'huobijp',
+    'hyperliquid',
     'idex',
     'independentreserve',
     'indodax',
@@ -253,6 +258,7 @@ exchanges = [
     'probit',
     'timex',
     'tokocrypto',
+    'tradeogre',
     'upbit',
     'wavesexchange',
     'wazirx',

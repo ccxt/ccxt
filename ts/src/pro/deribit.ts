@@ -776,7 +776,7 @@ export default class deribit extends deribitRest {
         ];
     }
 
-    async watchMultipleWrapper (channelName: string, channelDescriptor: string, symbolsArray = undefined, params = {}) {
+    async watchMultipleWrapper (channelName: string, channelDescriptor: Str, symbolsArray = undefined, params = {}) {
         await this.loadMarkets ();
         const url = this.urls['api']['ws'];
         const rawSubscriptions = [];
@@ -959,7 +959,7 @@ export default class deribit extends deribitRest {
                     'data': '',
                 },
             };
-            future = this.watch (url, messageHash, this.extend (request, params));
+            future = await this.watch (url, messageHash, this.extend (request, params), messageHash);
             client.subscriptions[messageHash] = future;
         }
         return future;

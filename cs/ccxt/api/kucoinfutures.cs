@@ -396,6 +396,11 @@ public partial class kucoinfutures : kucoin
         return await this.callAsync ("privateGetMarginRepay",parameters);
     }
 
+    public async Task<object> privateGetMarginInterest (object parameters = null)
+    {
+        return await this.callAsync ("privateGetMarginInterest",parameters);
+    }
+
     public async Task<object> privateGetProjectList (object parameters = null)
     {
         return await this.callAsync ("privateGetProjectList",parameters);
@@ -414,6 +419,11 @@ public partial class kucoinfutures : kucoin
     public async Task<object> privateGetPurchaseOrders (object parameters = null)
     {
         return await this.callAsync ("privateGetPurchaseOrders",parameters);
+    }
+
+    public async Task<object> privateGetBrokerApiRebaseDownload (object parameters = null)
+    {
+        return await this.callAsync ("privateGetBrokerApiRebaseDownload",parameters);
     }
 
     public async Task<object> privatePostSubUserCreated (object parameters = null)
@@ -1019,6 +1029,51 @@ public partial class kucoinfutures : kucoin
     public async Task<object> webExchangeGetContractSymbolFundingRates (object parameters = null)
     {
         return await this.callAsync ("webExchangeGetContractSymbolFundingRates",parameters);
+    }
+
+    public async Task<object> brokerGetBrokerNdInfo (object parameters = null)
+    {
+        return await this.callAsync ("brokerGetBrokerNdInfo",parameters);
+    }
+
+    public async Task<object> brokerGetBrokerNdAccount (object parameters = null)
+    {
+        return await this.callAsync ("brokerGetBrokerNdAccount",parameters);
+    }
+
+    public async Task<object> brokerGetBrokerNdAccountApikey (object parameters = null)
+    {
+        return await this.callAsync ("brokerGetBrokerNdAccountApikey",parameters);
+    }
+
+    public async Task<object> brokerGetBrokerNdRebaseDownload (object parameters = null)
+    {
+        return await this.callAsync ("brokerGetBrokerNdRebaseDownload",parameters);
+    }
+
+    public async Task<object> brokerPostBrokerNdTransfer (object parameters = null)
+    {
+        return await this.callAsync ("brokerPostBrokerNdTransfer",parameters);
+    }
+
+    public async Task<object> brokerPostBrokerNdAccount (object parameters = null)
+    {
+        return await this.callAsync ("brokerPostBrokerNdAccount",parameters);
+    }
+
+    public async Task<object> brokerPostBrokerNdAccountApikey (object parameters = null)
+    {
+        return await this.callAsync ("brokerPostBrokerNdAccountApikey",parameters);
+    }
+
+    public async Task<object> brokerPostBrokerNdAccountUpdateApikey (object parameters = null)
+    {
+        return await this.callAsync ("brokerPostBrokerNdAccountUpdateApikey",parameters);
+    }
+
+    public async Task<object> brokerDeleteBrokerNdAccountApikey (object parameters = null)
+    {
+        return await this.callAsync ("brokerDeleteBrokerNdAccountApikey",parameters);
     }
 
 }

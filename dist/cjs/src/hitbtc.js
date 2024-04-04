@@ -315,6 +315,7 @@ class hitbtc extends hitbtc$1 {
                     '2012': errors.BadRequest,
                     '2020': errors.BadRequest,
                     '2022': errors.BadRequest,
+                    '2024': errors.InvalidOrder,
                     '10001': errors.BadRequest,
                     '10021': errors.AccountSuspended,
                     '10022': errors.BadRequest,
@@ -332,6 +333,7 @@ class hitbtc extends hitbtc$1 {
                     '20012': errors.ExchangeError,
                     '20014': errors.ExchangeError,
                     '20016': errors.ExchangeError,
+                    '20018': errors.ExchangeError,
                     '20031': errors.ExchangeError,
                     '20032': errors.ExchangeError,
                     '20033': errors.ExchangeError,
@@ -342,10 +344,15 @@ class hitbtc extends hitbtc$1 {
                     '20043': errors.ExchangeError,
                     '20044': errors.PermissionDenied,
                     '20045': errors.InvalidOrder,
+                    '20047': errors.InvalidOrder,
+                    '20048': errors.InvalidOrder,
+                    '20049': errors.InvalidOrder,
                     '20080': errors.ExchangeError,
                     '21001': errors.ExchangeError,
                     '21003': errors.AccountSuspended,
                     '21004': errors.AccountSuspended,
+                    '22004': errors.ExchangeError,
+                    '22008': errors.ExchangeError, // Gateway timeout exceeded.
                 },
                 'broad': {},
             },
@@ -1443,15 +1450,16 @@ class hitbtc extends hitbtc$1 {
         //         ],
         //         "fee": "1.22" // only for WITHDRAW
         //       }
-        //     }
-        //
+        //     },
+        //     "operation_id": "084cfcd5-06b9-4826-882e-fdb75ec3625d", // only for WITHDRAW
+        //     "commit_risk": {}
         // withdraw
         //
         //     {
         //         "id":"084cfcd5-06b9-4826-882e-fdb75ec3625d"
         //     }
         //
-        const id = this.safeString(transaction, 'id');
+        const id = this.safeString2(transaction, 'operation_id', 'id');
         const timestamp = this.parse8601(this.safeString(transaction, 'created_at'));
         const updated = this.parse8601(this.safeString(transaction, 'updated_at'));
         const type = this.parseTransactionType(this.safeString(transaction, 'type'));
@@ -1617,6 +1625,8 @@ class hitbtc extends hitbtc$1 {
             'symbol': symbol,
             'taker': taker,
             'maker': maker,
+            'percentage': undefined,
+            'tierBased': undefined,
         };
     }
     async fetchTradingFee(symbol, params = {}) {
@@ -1721,12 +1731,12 @@ class hitbtc extends hitbtc$1 {
             'symbol': market['id'],
             'period': this.safeString(this.timeframes, timeframe, timeframe),
         };
-        [request, params] = this.handleUntilOption('till', request, params);
         if (since !== undefined) {
             request['from'] = this.iso8601(since);
         }
+        [request, params] = this.handleUntilOption('till', request, params);
         if (limit !== undefined) {
-            request['limit'] = limit;
+            request['limit'] = Math.min(limit, 1000);
         }
         const price = this.safeString(params, 'price');
         params = this.omit(params, 'price');
@@ -1924,7 +1934,7 @@ class hitbtc extends hitbtc$1 {
         //       }
         //     ]
         //
-        const order = this.safeValue(response, 0);
+        const order = this.safeDict(response, 0);
         return this.parseOrder(order, market);
     }
     async fetchOrderTrades(id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -2517,7 +2527,7 @@ class hitbtc extends hitbtc$1 {
          * @see https://api.hitbtc.com/#get-futures-position-parameters
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} Struct of MarginMode
+         * @returns {object} a list of [margin mode structures]{@link https://docs.ccxt.com/#/?id=margin-mode-structure}
          */
         await this.loadMarkets();
         let market = undefined;
@@ -2699,7 +2709,7 @@ class hitbtc extends hitbtc$1 {
         if ((network !== undefined) && (code === 'USDT')) {
             const parsedNetwork = this.safeString(networks, network);
             if (parsedNetwork !== undefined) {
-                request['currency'] = parsedNetwork;
+                request['network_code'] = parsedNetwork;
             }
             params = this.omit(params, 'network');
         }
@@ -3284,15 +3294,39 @@ class hitbtc extends hitbtc$1 {
         });
     }
     parseMarginModification(data, market = undefined) {
+        //
+        // addMargin/reduceMargin
+        //
+        //     {
+        //         "symbol": "BTCUSDT_PERP",
+        //         "type": "isolated",
+        //         "leverage": "8.00",
+        //         "created_at": "2022-03-30T23:34:27.161Z",
+        //         "updated_at": "2022-03-30T23:34:27.161Z",
+        //         "currencies": [
+        //             {
+        //                 "code": "USDT",
+        //                 "margin_balance": "7.000000000000",
+        //                 "reserved_orders": "0",
+        //                 "reserved_positions": "0"
+        //             }
+        //         ],
+        //         "positions": null
+        //     }
+        //
         const currencies = this.safeValue(data, 'currencies', []);
         const currencyInfo = this.safeValue(currencies, 0);
+        const datetime = this.safeString(data, 'updated_at');
         return {
             'info': data,
+            'symbol': market['symbol'],
             'type': undefined,
             'amount': undefined,
+            'total': undefined,
             'code': this.safeString(currencyInfo, 'code'),
-            'symbol': market['symbol'],
             'status': undefined,
+            'timestamp': this.parse8601(datetime),
+            'datetime': datetime,
         };
     }
     async reduceMargin(symbol, amount, params = {}) {

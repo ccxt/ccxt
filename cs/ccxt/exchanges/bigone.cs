@@ -742,7 +742,7 @@ public partial class bigone : Exchange
             //         }
             //     }
             //
-            object ticker = this.safeValue(response, "data", new Dictionary<string, object>() {});
+            object ticker = this.safeDict(response, "data", new Dictionary<string, object>() {});
             return this.parseTicker(ticker, market);
         } else
         {
@@ -920,7 +920,7 @@ public partial class bigone : Exchange
             //         }
             //     }
             //
-            object orderbook = this.safeValue(response, "data", new Dictionary<string, object>() {});
+            object orderbook = this.safeDict(response, "data", new Dictionary<string, object>() {});
             return this.parseOrderBook(orderbook, getValue(market, "symbol"), null, "bids", "asks", "price", "quantity");
         }
     }
@@ -1166,7 +1166,7 @@ public partial class bigone : Exchange
         //         ]
         //     }
         //
-        object trades = this.safeValue(response, "data", new List<object>() {});
+        object trades = this.safeList(response, "data", new List<object>() {});
         return this.parseTrades(trades, market, since, limit);
     }
 
@@ -1247,7 +1247,7 @@ public partial class bigone : Exchange
         //         ]
         //     }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseOHLCVs(data, market, timeframe, since, limit);
     }
 
@@ -1527,7 +1527,12 @@ public partial class bigone : Exchange
             }
         }
         ((IDictionary<string,object>)request)["type"] = uppercaseType;
-        parameters = this.omit(parameters, new List<object>() {"stop_price", "stopPrice", "triggerPrice", "timeInForce"});
+        object clientOrderId = this.safeString(parameters, "clientOrderId");
+        if (isTrue(!isEqual(clientOrderId, null)))
+        {
+            ((IDictionary<string,object>)request)["client_order_id"] = clientOrderId;
+        }
+        parameters = this.omit(parameters, new List<object>() {"stop_price", "stopPrice", "triggerPrice", "timeInForce", "clientOrderId"});
         object response = await this.privatePostOrders(this.extend(request, parameters));
         //
         //    {
@@ -1543,7 +1548,7 @@ public partial class bigone : Exchange
         //        "updated_at":"2019-01-29T06:05:56Z"
         //    }
         //
-        object order = this.safeValue(response, "data");
+        object order = this.safeDict(response, "data");
         return this.parseOrder(order, market);
     }
 
@@ -1577,7 +1582,7 @@ public partial class bigone : Exchange
         //        "created_at":"2019-01-29T06:05:56Z",
         //        "updated_at":"2019-01-29T06:05:56Z"
         //    }
-        object order = this.safeValue(response, "data");
+        object order = this.safeDict(response, "data");
         return this.parseOrder(order);
     }
 
@@ -1631,7 +1636,7 @@ public partial class bigone : Exchange
             { "id", id },
         };
         object response = await this.privateGetOrdersId(this.extend(request, parameters));
-        object order = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        object order = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return this.parseOrder(order);
     }
 
@@ -1683,7 +1688,7 @@ public partial class bigone : Exchange
         //        "page_token":"dxzef",
         //    }
         //
-        object orders = this.safeValue(response, "data", new List<object>() {});
+        object orders = this.safeList(response, "data", new List<object>() {});
         return this.parseOrders(orders, market, since, limit);
     }
 
@@ -1749,7 +1754,7 @@ public partial class bigone : Exchange
         //         "page_token":"dxfv"
         //     }
         //
-        object trades = this.safeValue(response, "data", new List<object>() {});
+        object trades = this.safeList(response, "data", new List<object>() {});
         return this.parseTrades(trades, market, since, limit);
     }
 
@@ -1844,7 +1849,7 @@ public partial class bigone : Exchange
             } else if (isTrue(isEqual(method, "POST")))
             {
                 ((IDictionary<string,object>)headers)["Content-Type"] = "application/json";
-                body = query;
+                body = this.json(query);
             }
         }
         ((IDictionary<string,object>)headers)["User-Agent"] = add(add(add("ccxt/", this.id), "-"), this.version);
@@ -2064,7 +2069,7 @@ public partial class bigone : Exchange
         //         ]
         //     }
         //
-        object deposits = this.safeValue(response, "data", new List<object>() {});
+        object deposits = this.safeList(response, "data", new List<object>() {});
         return this.parseTransactions(deposits, currency, since, limit);
     }
 
@@ -2116,7 +2121,7 @@ public partial class bigone : Exchange
         //         "page_token":"dxvf"
         //     }
         //
-        object withdrawals = this.safeValue(response, "data", new List<object>() {});
+        object withdrawals = this.safeList(response, "data", new List<object>() {});
         return this.parseTransactions(withdrawals, currency, since, limit);
     }
 
@@ -2258,7 +2263,7 @@ public partial class bigone : Exchange
         //         }
         //     }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return this.parseTransaction(data, currency);
     }
 

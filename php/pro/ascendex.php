@@ -973,29 +973,31 @@ class ascendex extends \ccxt\async\ascendex {
     }
 
     public function authenticate($url, $params = array ()) {
-        $this->check_required_credentials();
-        $messageHash = 'authenticated';
-        $client = $this->client($url);
-        $future = $this->safe_value($client->subscriptions, $messageHash);
-        if ($future === null) {
-            $timestamp = (string) $this->milliseconds();
-            $urlParts = explode('/', $url);
-            $partsLength = count($urlParts);
-            $path = $this->safe_string($urlParts, $partsLength - 1);
-            $version = $this->safe_string($urlParts, $partsLength - 2);
-            $auth = $timestamp . '+' . $version . '/' . $path;
-            $secret = base64_decode($this->secret);
-            $signature = $this->hmac($this->encode($auth), $secret, 'sha256', 'base64');
-            $request = array(
-                'op' => 'auth',
-                'id' => (string) $this->nonce(),
-                't' => $timestamp,
-                'key' => $this->apiKey,
-                'sig' => $signature,
-            );
-            $future = $this->watch($url, $messageHash, array_merge($request, $params));
-            $client->subscriptions[$messageHash] = $future;
-        }
-        return $future;
+        return Async\async(function () use ($url, $params) {
+            $this->check_required_credentials();
+            $messageHash = 'authenticated';
+            $client = $this->client($url);
+            $future = $this->safe_value($client->subscriptions, $messageHash);
+            if ($future === null) {
+                $timestamp = (string) $this->milliseconds();
+                $urlParts = explode('/', $url);
+                $partsLength = count($urlParts);
+                $path = $this->safe_string($urlParts, $partsLength - 1);
+                $version = $this->safe_string($urlParts, $partsLength - 2);
+                $auth = $timestamp . '+' . $version . '/' . $path;
+                $secret = base64_decode($this->secret);
+                $signature = $this->hmac($this->encode($auth), $secret, 'sha256', 'base64');
+                $request = array(
+                    'op' => 'auth',
+                    'id' => (string) $this->nonce(),
+                    't' => $timestamp,
+                    'key' => $this->apiKey,
+                    'sig' => $signature,
+                );
+                $future = Async\await($this->watch($url, $messageHash, array_merge($request, $params), $messageHash));
+                $client->subscriptions[$messageHash] = $future;
+            }
+            return $future;
+        }) ();
     }
 }

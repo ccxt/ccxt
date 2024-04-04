@@ -178,7 +178,7 @@ export default class bl3p extends Exchange {
             'market': market['id'],
         };
         const response = await this.publicGetMarketOrderbook(this.extend(request, params));
-        const orderbook = this.safeValue(response, 'data');
+        const orderbook = this.safeDict(response, 'data');
         return this.parseOrderBook(orderbook, market['symbol'], undefined, 'bids', 'asks', 'price_int', 'amount_int');
     }
     parseTicker(ticker, market = undefined) {

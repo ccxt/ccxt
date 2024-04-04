@@ -470,7 +470,7 @@ class poloniex extends Exchange {
         return $markets;
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): array {
         /**
          * retrieves data on all $markets for poloniex
          * @see https://docs.poloniex.com/#public-endpoints-reference-data-symbol-information
@@ -666,7 +666,7 @@ class poloniex extends Exchange {
         return $this->parse_tickers($response, $symbols);
     }
 
-    public function fetch_currencies($params = array ()) {
+    public function fetch_currencies($params = array ()): array {
         /**
          * fetches all available currencies on an exchange
          * @see https://docs.poloniex.com/#public-endpoints-reference-data-$currency-information
@@ -1622,7 +1622,7 @@ class poloniex extends Exchange {
         return $this->parse_balance($response);
     }
 
-    public function fetch_trading_fees($params = array ()) {
+    public function fetch_trading_fees($params = array ()): array {
         /**
          * fetch the trading fees for multiple markets
          * @see https://docs.poloniex.com/#authenticated-endpoints-accounts-fee-info
@@ -1808,7 +1808,7 @@ class poloniex extends Exchange {
         );
     }
 
-    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): TransferEntry {
+    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): array {
         /**
          * transfer $currency internally between wallets on the same account
          * @see https://docs.poloniex.com/#authenticated-endpoints-accounts-accounts-transfer

@@ -201,7 +201,7 @@ class currencycom extends \ccxt\async\currencycom {
         );
     }
 
-    public function handle_trades(Client $client, $message, $subscription) {
+    public function handle_trades(Client $client, $message) {
         //
         //     {
         //         "status" => "OK",

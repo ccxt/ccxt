@@ -33,14 +33,14 @@ import { Exchange }  from './src/base/Exchange.js'
 import { Precise }   from './src/base/Precise.js'
 import * as functions from './src/base/functions.js'
 import * as errors   from './src/base/errors.js'
-import type { Market, Trade , Fee, Ticker, OrderBook, Order, Transaction, Tickers, Currency, Balance, DepositAddress, WithdrawalResponse, DepositAddressResponse, OHLCV, Balances, PartialBalances, Dictionary, MinMax, Position, FundingRateHistory, Liquidation, FundingHistory, MarginMode, Greeks, Leverage, Leverages } from './src/base/types.js'
-import { BaseError, ExchangeError, PermissionDenied, AccountNotEnabled, AccountSuspended, ArgumentsRequired, BadRequest, BadSymbol, MarginModeAlreadySet, BadResponse, NullResponse, InsufficientFunds, InvalidAddress, InvalidOrder, OrderNotFound, OrderNotCached, CancelPending, OrderImmediatelyFillable, OrderNotFillable, DuplicateOrderId, NotSupported, NetworkError, DDoSProtection, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, InvalidNonce, RequestTimeout, AuthenticationError, AddressPending, NoChange }  from './src/base/errors.js'
+import type { Market, Trade , Fee, Ticker, OrderBook, Order, Transaction, Tickers, Currency, Balance, DepositAddress, WithdrawalResponse, DepositAddressResponse, OHLCV, Balances, PartialBalances, Dictionary, MinMax, Position, FundingRateHistory, Liquidation, FundingHistory, MarginMode, Greeks, Leverage, Leverages, Option, OptionChain } from './src/base/types.js'
+import {BaseError, ExchangeError, AuthenticationError, PermissionDenied, AccountNotEnabled, AccountSuspended, ArgumentsRequired, BadRequest, BadSymbol, OperationRejected, NoChange, MarginModeAlreadySet, BadResponse, NullResponse, InsufficientFunds, InvalidAddress, AddressPending, InvalidOrder, OrderNotFound, OrderNotCached, CancelPending, OrderImmediatelyFillable, OrderNotFillable, DuplicateOrderId, ContractUnavailable, NotSupported, ProxyError, OperationFailed, NetworkError, DDoSProtection, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, InvalidNonce, RequestTimeout, ExchangeClosedByUser}  from './src/base/errors.js'
 
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '4.2.59';
+const version = '4.2.89';
 
 (Exchange as any).ccxtVersion = version
 
@@ -85,6 +85,7 @@ import btcturk from  './src/btcturk.js'
 import bybit from  './src/bybit.js'
 import cex from  './src/cex.js'
 import coinbase from  './src/coinbase.js'
+import coinbaseinternational from  './src/coinbaseinternational.js'
 import coinbasepro from  './src/coinbasepro.js'
 import coincheck from  './src/coincheck.js'
 import coinex from  './src/coinex.js'
@@ -110,6 +111,7 @@ import hollaex from  './src/hollaex.js'
 import htx from  './src/htx.js'
 import huobi from  './src/huobi.js'
 import huobijp from  './src/huobijp.js'
+import hyperliquid from  './src/hyperliquid.js'
 import idex from  './src/idex.js'
 import independentreserve from  './src/independentreserve.js'
 import indodax from  './src/indodax.js'
@@ -138,6 +140,7 @@ import poloniexfutures from  './src/poloniexfutures.js'
 import probit from  './src/probit.js'
 import timex from  './src/timex.js'
 import tokocrypto from  './src/tokocrypto.js'
+import tradeogre from  './src/tradeogre.js'
 import upbit from  './src/upbit.js'
 import wavesexchange from  './src/wavesexchange.js'
 import wazirx from  './src/wazirx.js'
@@ -161,6 +164,7 @@ import bitcoincomPro from  './src/pro/bitcoincom.js'
 import bitfinexPro from  './src/pro/bitfinex.js'
 import bitfinex2Pro from  './src/pro/bitfinex2.js'
 import bitgetPro from  './src/pro/bitget.js'
+import bithumbPro from  './src/pro/bithumb.js'
 import bitmartPro from  './src/pro/bitmart.js'
 import bitmexPro from  './src/pro/bitmex.js'
 import bitoproPro from  './src/pro/bitopro.js'
@@ -172,6 +176,7 @@ import blockchaincomPro from  './src/pro/blockchaincom.js'
 import bybitPro from  './src/pro/bybit.js'
 import cexPro from  './src/pro/cex.js'
 import coinbasePro from  './src/pro/coinbase.js'
+import coinbaseinternationalPro from  './src/pro/coinbaseinternational.js'
 import coinbaseproPro from  './src/pro/coinbasepro.js'
 import coincheckPro from  './src/pro/coincheck.js'
 import coinexPro from  './src/pro/coinex.js'
@@ -188,6 +193,7 @@ import hollaexPro from  './src/pro/hollaex.js'
 import htxPro from  './src/pro/htx.js'
 import huobiPro from  './src/pro/huobi.js'
 import huobijpPro from  './src/pro/huobijp.js'
+import hyperliquidPro from  './src/pro/hyperliquid.js'
 import idexPro from  './src/pro/idex.js'
 import independentreservePro from  './src/pro/independentreserve.js'
 import krakenPro from  './src/pro/kraken.js'
@@ -251,6 +257,7 @@ const exchanges = {
     'bybit':                  bybit,
     'cex':                    cex,
     'coinbase':               coinbase,
+    'coinbaseinternational':  coinbaseinternational,
     'coinbasepro':            coinbasepro,
     'coincheck':              coincheck,
     'coinex':                 coinex,
@@ -276,6 +283,7 @@ const exchanges = {
     'htx':                    htx,
     'huobi':                  huobi,
     'huobijp':                huobijp,
+    'hyperliquid':            hyperliquid,
     'idex':                   idex,
     'independentreserve':     independentreserve,
     'indodax':                indodax,
@@ -304,6 +312,7 @@ const exchanges = {
     'probit':                 probit,
     'timex':                  timex,
     'tokocrypto':             tokocrypto,
+    'tradeogre':              tradeogre,
     'upbit':                  upbit,
     'wavesexchange':          wavesexchange,
     'wazirx':                 wazirx,
@@ -327,6 +336,7 @@ const pro = {
     'bitfinex':               bitfinexPro,
     'bitfinex2':              bitfinex2Pro,
     'bitget':                 bitgetPro,
+    'bithumb':                bithumbPro,
     'bitmart':                bitmartPro,
     'bitmex':                 bitmexPro,
     'bitopro':                bitoproPro,
@@ -338,6 +348,7 @@ const pro = {
     'bybit':                  bybitPro,
     'cex':                    cexPro,
     'coinbase':               coinbasePro,
+    'coinbaseinternational':  coinbaseinternationalPro,
     'coinbasepro':            coinbaseproPro,
     'coincheck':              coincheckPro,
     'coinex':                 coinexPro,
@@ -354,6 +365,7 @@ const pro = {
     'htx':                    htxPro,
     'huobi':                  huobiPro,
     'huobijp':                huobijpPro,
+    'hyperliquid':            hyperliquidPro,
     'idex':                   idexPro,
     'independentreserve':     independentreservePro,
     'kraken':                 krakenPro,
@@ -403,17 +415,21 @@ export {
     errors,
     BaseError,
     ExchangeError,
+    AuthenticationError,
     PermissionDenied,
     AccountNotEnabled,
     AccountSuspended,
     ArgumentsRequired,
     BadRequest,
     BadSymbol,
+    OperationRejected,
+    NoChange,
     MarginModeAlreadySet,
     BadResponse,
     NullResponse,
     InsufficientFunds,
     InvalidAddress,
+    AddressPending,
     InvalidOrder,
     OrderNotFound,
     OrderNotCached,
@@ -421,7 +437,10 @@ export {
     OrderImmediatelyFillable,
     OrderNotFillable,
     DuplicateOrderId,
+    ContractUnavailable,
     NotSupported,
+    ProxyError,
+    OperationFailed,
     NetworkError,
     DDoSProtection,
     RateLimitExceeded,
@@ -429,9 +448,7 @@ export {
     OnMaintenance,
     InvalidNonce,
     RequestTimeout,
-    AuthenticationError,
-    AddressPending,
-    NoChange,
+    ExchangeClosedByUser,
     Market,
     Trade,
     Fee,
@@ -458,6 +475,8 @@ export {
     Greeks,
     Leverage,
     Leverages,
+    Option,
+    OptionChain,
     ace,
     alpaca,
     ascendex,
@@ -497,6 +516,7 @@ export {
     bybit,
     cex,
     coinbase,
+    coinbaseinternational,
     coinbasepro,
     coincheck,
     coinex,
@@ -522,6 +542,7 @@ export {
     htx,
     huobi,
     huobijp,
+    hyperliquid,
     idex,
     independentreserve,
     indodax,
@@ -550,6 +571,7 @@ export {
     probit,
     timex,
     tokocrypto,
+    tradeogre,
     upbit,
     wavesexchange,
     wazirx,

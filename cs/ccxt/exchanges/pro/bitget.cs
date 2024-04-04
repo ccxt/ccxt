@@ -76,6 +76,7 @@ public partial class bitget : ccxt.bitget
                         { "30015", typeof(AuthenticationError) },
                         { "30016", typeof(BadRequest) },
                     } },
+                    { "broad", new Dictionary<string, object>() {} },
                 } },
             } },
         });
@@ -735,11 +736,11 @@ public partial class bitget : ccxt.bitget
         }
         object data = this.safeList(message, "data", new List<object>() {});
         object length = getArrayLength(data);
-        object maxLength = mathMax(subtract(length, 1), 0);
         // fix chronological order by reversing
-        for (object i = maxLength; isGreaterThanOrEqual(i, 0); postFixDecrement(ref i))
+        for (object i = 0; isLessThan(i, length); postFixIncrement(ref i))
         {
-            object rawTrade = getValue(data, i);
+            object index = subtract(subtract(length, i), 1);
+            object rawTrade = getValue(data, index);
             object parsed = this.parseWsTrade(rawTrade, market);
             callDynamically(stored, "append", new object[] {parsed});
         }
@@ -1405,7 +1406,7 @@ public partial class bitget : ccxt.bitget
         {
             object feeCurrency = this.safeString(fee, "feeCoin");
             feeObject = new Dictionary<string, object>() {
-                { "cost", Precise.stringAbs(feeAmount) },
+                { "cost", this.parseNumber(Precise.stringAbs(feeAmount)) },
                 { "currency", this.safeCurrencyCode(feeCurrency) },
             };
         }
@@ -1420,10 +1421,9 @@ public partial class bitget : ccxt.bitget
             cost = this.safeString(order, "newSize", cost);
         }
         object filled = this.safeString2(order, "accBaseVolume", "baseVolume");
-        if (isTrue(isTrue(getValue(market, "spot")) && isTrue((!isEqual(rawStatus, "live")))))
-        {
-            filled = Precise.stringDiv(cost, avgPrice);
-        }
+        // if (market['spot'] && (rawStatus !== 'live')) {
+        //     filled = Precise.stringDiv (cost, avgPrice);
+        // }
         object amount = this.safeString(order, "baseVolume");
         if (isTrue(!isTrue(getValue(market, "spot")) || !isTrue((isTrue(isEqual(side, "buy")) && isTrue(isEqual(type, "market"))))))
         {
@@ -1763,7 +1763,7 @@ public partial class bitget : ccxt.bitget
             object message = this.extend(request, parameters);
             this.watch(url, messageHash, message, messageHash);
         }
-        return future;
+        return await (future as Exchange.Future);
     }
 
     public async virtual Task<object> watchPrivate(object messageHash, object subscriptionHash, object args, object parameters = null)
@@ -1895,6 +1895,8 @@ public partial class bitget : ccxt.bitget
             { "ordersAlgo", this.handleOrder },
             { "account", this.handleBalance },
             { "positions", this.handlePositions },
+            { "account-isolated", this.handleBalance },
+            { "account-crossed", this.handleBalance },
         };
         object arg = this.safeValue(message, "arg", new Dictionary<string, object>() {});
         object topic = this.safeValue(arg, "channel", "");

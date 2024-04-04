@@ -51,6 +51,7 @@ var btcturk = require('./src/btcturk.js');
 var bybit = require('./src/bybit.js');
 var cex = require('./src/cex.js');
 var coinbase = require('./src/coinbase.js');
+var coinbaseinternational = require('./src/coinbaseinternational.js');
 var coinbasepro = require('./src/coinbasepro.js');
 var coincheck = require('./src/coincheck.js');
 var coinex = require('./src/coinex.js');
@@ -76,6 +77,7 @@ var hollaex = require('./src/hollaex.js');
 var htx = require('./src/htx.js');
 var huobi = require('./src/huobi.js');
 var huobijp = require('./src/huobijp.js');
+var hyperliquid = require('./src/hyperliquid.js');
 var idex = require('./src/idex.js');
 var independentreserve = require('./src/independentreserve.js');
 var indodax = require('./src/indodax.js');
@@ -104,6 +106,7 @@ var poloniexfutures = require('./src/poloniexfutures.js');
 var probit = require('./src/probit.js');
 var timex = require('./src/timex.js');
 var tokocrypto = require('./src/tokocrypto.js');
+var tradeogre = require('./src/tradeogre.js');
 var upbit = require('./src/upbit.js');
 var wavesexchange = require('./src/wavesexchange.js');
 var wazirx = require('./src/wazirx.js');
@@ -124,6 +127,7 @@ var bitcoincom$1 = require('./src/pro/bitcoincom.js');
 var bitfinex$1 = require('./src/pro/bitfinex.js');
 var bitfinex2$1 = require('./src/pro/bitfinex2.js');
 var bitget$1 = require('./src/pro/bitget.js');
+var bithumb$1 = require('./src/pro/bithumb.js');
 var bitmart$1 = require('./src/pro/bitmart.js');
 var bitmex$1 = require('./src/pro/bitmex.js');
 var bitopro$1 = require('./src/pro/bitopro.js');
@@ -135,6 +139,7 @@ var blockchaincom$1 = require('./src/pro/blockchaincom.js');
 var bybit$1 = require('./src/pro/bybit.js');
 var cex$1 = require('./src/pro/cex.js');
 var coinbase$1 = require('./src/pro/coinbase.js');
+var coinbaseinternational$1 = require('./src/pro/coinbaseinternational.js');
 var coinbasepro$1 = require('./src/pro/coinbasepro.js');
 var coincheck$1 = require('./src/pro/coincheck.js');
 var coinex$1 = require('./src/pro/coinex.js');
@@ -151,6 +156,7 @@ var hollaex$1 = require('./src/pro/hollaex.js');
 var htx$1 = require('./src/pro/htx.js');
 var huobi$1 = require('./src/pro/huobi.js');
 var huobijp$1 = require('./src/pro/huobijp.js');
+var hyperliquid$1 = require('./src/pro/hyperliquid.js');
 var idex$1 = require('./src/pro/idex.js');
 var independentreserve$1 = require('./src/pro/independentreserve.js');
 var kraken$1 = require('./src/pro/kraken.js');
@@ -176,7 +182,7 @@ var woo$1 = require('./src/pro/woo.js');
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
-const version = '4.2.59';
+const version = '4.2.89';
 Exchange["default"].ccxtVersion = version;
 const exchanges = {
     'ace': ace,
@@ -218,6 +224,7 @@ const exchanges = {
     'bybit': bybit,
     'cex': cex,
     'coinbase': coinbase,
+    'coinbaseinternational': coinbaseinternational,
     'coinbasepro': coinbasepro,
     'coincheck': coincheck,
     'coinex': coinex,
@@ -243,6 +250,7 @@ const exchanges = {
     'htx': htx,
     'huobi': huobi,
     'huobijp': huobijp,
+    'hyperliquid': hyperliquid,
     'idex': idex,
     'independentreserve': independentreserve,
     'indodax': indodax,
@@ -271,6 +279,7 @@ const exchanges = {
     'probit': probit,
     'timex': timex,
     'tokocrypto': tokocrypto,
+    'tradeogre': tradeogre,
     'upbit': upbit,
     'wavesexchange': wavesexchange,
     'wazirx': wazirx,
@@ -293,6 +302,7 @@ const pro = {
     'bitfinex': bitfinex$1,
     'bitfinex2': bitfinex2$1,
     'bitget': bitget$1,
+    'bithumb': bithumb$1,
     'bitmart': bitmart$1,
     'bitmex': bitmex$1,
     'bitopro': bitopro$1,
@@ -304,6 +314,7 @@ const pro = {
     'bybit': bybit$1,
     'cex': cex$1,
     'coinbase': coinbase$1,
+    'coinbaseinternational': coinbaseinternational$1,
     'coinbasepro': coinbasepro$1,
     'coincheck': coincheck$1,
     'coinex': coinex$1,
@@ -320,6 +331,7 @@ const pro = {
     'htx': htx$1,
     'huobi': huobi$1,
     'huobijp': huobijp$1,
+    'hyperliquid': hyperliquid$1,
     'idex': idex$1,
     'independentreserve': independentreserve$1,
     'kraken': kraken$1,
@@ -362,8 +374,10 @@ exports.BadResponse = errors.BadResponse;
 exports.BadSymbol = errors.BadSymbol;
 exports.BaseError = errors.BaseError;
 exports.CancelPending = errors.CancelPending;
+exports.ContractUnavailable = errors.ContractUnavailable;
 exports.DDoSProtection = errors.DDoSProtection;
 exports.DuplicateOrderId = errors.DuplicateOrderId;
+exports.ExchangeClosedByUser = errors.ExchangeClosedByUser;
 exports.ExchangeError = errors.ExchangeError;
 exports.ExchangeNotAvailable = errors.ExchangeNotAvailable;
 exports.InsufficientFunds = errors.InsufficientFunds;
@@ -376,11 +390,14 @@ exports.NoChange = errors.NoChange;
 exports.NotSupported = errors.NotSupported;
 exports.NullResponse = errors.NullResponse;
 exports.OnMaintenance = errors.OnMaintenance;
+exports.OperationFailed = errors.OperationFailed;
+exports.OperationRejected = errors.OperationRejected;
 exports.OrderImmediatelyFillable = errors.OrderImmediatelyFillable;
 exports.OrderNotCached = errors.OrderNotCached;
 exports.OrderNotFillable = errors.OrderNotFillable;
 exports.OrderNotFound = errors.OrderNotFound;
 exports.PermissionDenied = errors.PermissionDenied;
+exports.ProxyError = errors.ProxyError;
 exports.RateLimitExceeded = errors.RateLimitExceeded;
 exports.RequestTimeout = errors.RequestTimeout;
 exports.errors = errors;
@@ -423,6 +440,7 @@ exports.btcturk = btcturk;
 exports.bybit = bybit;
 exports.cex = cex;
 exports.coinbase = coinbase;
+exports.coinbaseinternational = coinbaseinternational;
 exports.coinbasepro = coinbasepro;
 exports.coincheck = coincheck;
 exports.coinex = coinex;
@@ -448,6 +466,7 @@ exports.hollaex = hollaex;
 exports.htx = htx;
 exports.huobi = huobi;
 exports.huobijp = huobijp;
+exports.hyperliquid = hyperliquid;
 exports.idex = idex;
 exports.independentreserve = independentreserve;
 exports.indodax = indodax;
@@ -476,6 +495,7 @@ exports.poloniexfutures = poloniexfutures;
 exports.probit = probit;
 exports.timex = timex;
 exports.tokocrypto = tokocrypto;
+exports.tradeogre = tradeogre;
 exports.upbit = upbit;
 exports.wavesexchange = wavesexchange;
 exports.wazirx = wazirx;

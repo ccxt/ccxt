@@ -875,6 +875,8 @@ class latoken extends latoken$1 {
             'symbol': market['symbol'],
             'maker': this.safeNumber(response, 'makerFee'),
             'taker': this.safeNumber(response, 'takerFee'),
+            'percentage': undefined,
+            'tierBased': undefined,
         };
     }
     async fetchPrivateTradingFee(symbol, params = {}) {
@@ -898,6 +900,8 @@ class latoken extends latoken$1 {
             'symbol': market['symbol'],
             'maker': this.safeNumber(response, 'makerFee'),
             'taker': this.safeNumber(response, 'takerFee'),
+            'percentage': undefined,
+            'tierBased': undefined,
         };
     }
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1457,7 +1461,7 @@ class latoken extends latoken$1 {
         if (code !== undefined) {
             currency = this.currency(code);
         }
-        const content = this.safeValue(response, 'content', []);
+        const content = this.safeList(response, 'content', []);
         return this.parseTransactions(content, currency, since, limit);
     }
     parseTransaction(transaction, currency = undefined) {
@@ -1584,7 +1588,7 @@ class latoken extends latoken$1 {
         //         "hasContent": true
         //     }
         //
-        const transfers = this.safeValue(response, 'content', []);
+        const transfers = this.safeList(response, 'content', []);
         return this.parseTransfers(transfers, currency, since, limit);
     }
     async transfer(code, amount, fromAccount, toAccount, params = {}) {

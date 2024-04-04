@@ -90,6 +90,7 @@ class bitget(ccxt.async_support.bitget):
                         '30015': AuthenticationError,  # {event: 'error', code: 30015, msg: 'Invalid sign'}
                         '30016': BadRequest,  # {event: 'error', code: 30016, msg: 'Param error'}
                     },
+                    'broad': {},
                 },
             },
         })
@@ -639,10 +640,10 @@ class bitget(ccxt.async_support.bitget):
             self.trades[symbol] = stored
         data = self.safe_list(message, 'data', [])
         length = len(data)
-        maxLength = max(length - 1, 0)
         # fix chronological order by reversing
-        for i in range(maxLength, 0):
-            rawTrade = data[i]
+        for i in range(0, length):
+            index = length - i - 1
+            rawTrade = data[index]
             parsed = self.parse_ws_trade(rawTrade, market)
             stored.append(parsed)
         messageHash = 'trade:' + symbol
@@ -1227,7 +1228,7 @@ class bitget(ccxt.async_support.bitget):
         if feeAmount is not None:
             feeCurrency = self.safe_string(fee, 'feeCoin')
             feeObject = {
-                'cost': Precise.string_abs(feeAmount),
+                'cost': self.parse_number(Precise.string_abs(feeAmount)),
                 'currency': self.safe_currency_code(feeCurrency),
             }
         triggerPrice = self.safe_number(order, 'triggerPrice')
@@ -1239,8 +1240,9 @@ class bitget(ccxt.async_support.bitget):
         if side == 'buy' and market['spot'] and (type == 'market'):
             cost = self.safe_string(order, 'newSize', cost)
         filled = self.safe_string_2(order, 'accBaseVolume', 'baseVolume')
-        if market['spot'] and (rawStatus != 'live'):
-            filled = Precise.string_div(cost, avgPrice)
+        # if market['spot'] and (rawStatus != 'live'):
+        #     filled = Precise.string_div(cost, avgPrice)
+        # }
         amount = self.safe_string(order, 'baseVolume')
         if not market['spot'] or not (side == 'buy' and type == 'market'):
             amount = self.safe_string(order, 'newSize', amount)
@@ -1522,7 +1524,7 @@ class bitget(ccxt.async_support.bitget):
             }
             message = self.extend(request, params)
             self.watch(url, messageHash, message, messageHash)
-        return future
+        return await future
 
     async def watch_private(self, messageHash, subscriptionHash, args, params={}):
         await self.authenticate()
@@ -1625,6 +1627,8 @@ class bitget(ccxt.async_support.bitget):
             'ordersAlgo': self.handle_order,
             'account': self.handle_balance,
             'positions': self.handle_positions,
+            'account-isolated': self.handle_balance,
+            'account-crossed': self.handle_balance,
         }
         arg = self.safe_value(message, 'arg', {})
         topic = self.safe_value(arg, 'channel', '')

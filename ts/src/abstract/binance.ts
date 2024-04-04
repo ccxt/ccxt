@@ -504,6 +504,7 @@ interface Exchange {
     fapiPrivateGetUserTrades (params?: {}): Promise<implicitReturnType>;
     fapiPrivateGetIncome (params?: {}): Promise<implicitReturnType>;
     fapiPrivateGetCommissionRate (params?: {}): Promise<implicitReturnType>;
+    fapiPrivateGetRateLimitOrder (params?: {}): Promise<implicitReturnType>;
     fapiPrivateGetApiTradingStatus (params?: {}): Promise<implicitReturnType>;
     fapiPrivateGetMultiAssetsMargin (params?: {}): Promise<implicitReturnType>;
     fapiPrivateGetApiReferralIfNewUser (params?: {}): Promise<implicitReturnType>;

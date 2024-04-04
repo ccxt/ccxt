@@ -106,7 +106,7 @@ public partial class poloniex : ccxt.poloniex
                 } },
             };
             object message = this.extend(request, parameters);
-            future = await this.watch(url, messageHash, message);
+            future = await this.watch(url, messageHash, message, messageHash);
             //
             //    {
             //        "data": {

@@ -7,7 +7,7 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 // -----------------------------------------------------------------------------
-include_once PATH_TO_CCXT . '/test/base/test_shared_methods.php';
+
 
 function test_status($exchange, $skipped_properties, $method, $entry, $now) {
     $format = array(

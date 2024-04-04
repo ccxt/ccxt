@@ -714,7 +714,7 @@ class deribit(ccxt.async_support.deribit):
             self.safe_number(ohlcv, 'volume'),
         ]
 
-    async def watch_multiple_wrapper(self, channelName: str, channelDescriptor: str, symbolsArray=None, params={}):
+    async def watch_multiple_wrapper(self, channelName: str, channelDescriptor: Str, symbolsArray=None, params={}):
         await self.load_markets()
         url = self.urls['api']['ws']
         rawSubscriptions = []
@@ -887,6 +887,6 @@ class deribit(ccxt.async_support.deribit):
                     'data': '',
                 },
             }
-            future = self.watch(url, messageHash, self.extend(request, params))
+            future = await self.watch(url, messageHash, self.extend(request, params), messageHash)
             client.subscriptions[messageHash] = future
         return future

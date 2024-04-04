@@ -18,7 +18,7 @@ from ccxt.test.base import test_trade  # noqa E402
 def test_fetch_trades(exchange, skipped_properties, symbol):
     method = 'fetchTrades'
     trades = exchange.fetch_trades(symbol)
-    assert isinstance(trades, list), exchange.id + ' ' + method + ' ' + symbol + ' must return an array. ' + exchange.json(trades)
+    test_shared_methods.assert_non_emtpy_array(exchange, skipped_properties, method, trades)
     now = exchange.milliseconds()
     for i in range(0, len(trades)):
         test_trade(exchange, skipped_properties, method, trades[i], symbol, now)

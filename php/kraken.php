@@ -16,7 +16,10 @@ class kraken extends Exchange {
             'name' => 'Kraken',
             'countries' => array( 'US' ),
             'version' => '0',
-            'rateLimit' => 3000,  // bucket fills max 15, but drains 1 every 3s
+            // rate-limits => https://support.kraken.com/hc/en-us/articles/206548367-What-are-the-API-rate-limits-#1
+            // for public => 1 req/s
+            // for private => every second 0.33 weight added to your allowed capacity (some private endpoints need 1 weight, some need 2)
+            'rateLimit' => 1000,
             'certified' => false,
             'pro' => true,
             'has' => array(
@@ -146,7 +149,7 @@ class kraken extends Exchange {
                 ),
                 'public' => array(
                     'get' => array(
-                        // public endpoint rate-limits are described in article => https://support.kraken.com/hc/en-us/articles/206548367-What-are-the-API-rate-limits-#1
+                        // rate-limits explained in comment in the top of this file
                         'Assets' => 1,
                         'AssetPairs' => 1,
                         'Depth' => 1,
@@ -162,48 +165,48 @@ class kraken extends Exchange {
                     'post' => array(
                         'AddOrder' => 0,
                         'AddOrderBatch' => 0,
-                        'AddExport' => 1,
-                        'Balance' => 1,
-                        'CancelAll' => 1,
-                        'CancelAllOrdersAfter' => 1,
+                        'AddExport' => 3,
+                        'Balance' => 3,
+                        'CancelAll' => 3,
+                        'CancelAllOrdersAfter' => 3,
                         'CancelOrder' => 0,
                         'CancelOrderBatch' => 0,
-                        'ClosedOrders' => 1,
-                        'DepositAddresses' => 1,
-                        'DepositMethods' => 1,
-                        'DepositStatus' => 1,
+                        'ClosedOrders' => 3,
+                        'DepositAddresses' => 3,
+                        'DepositMethods' => 3,
+                        'DepositStatus' => 3,
                         'EditOrder' => 0,
-                        'ExportStatus' => 1,
-                        'GetWebSocketsToken' => 1,
-                        'Ledgers' => 2,
-                        'OpenOrders' => 1,
-                        'OpenPositions' => 1,
-                        'QueryLedgers' => 1,
-                        'QueryOrders' => 1,
-                        'QueryTrades' => 1,
-                        'RetrieveExport' => 1,
-                        'RemoveExport' => 1,
-                        'BalanceEx' => 1,
-                        'TradeBalance' => 1,
-                        'TradesHistory' => 2,
-                        'TradeVolume' => 1,
-                        'Withdraw' => 1,
-                        'WithdrawCancel' => 1,
-                        'WithdrawInfo' => 1,
-                        'WithdrawMethods' => 1,
-                        'WithdrawAddresses' => 1,
-                        'WithdrawStatus' => 1,
-                        'WalletTransfer' => 1,
+                        'ExportStatus' => 3,
+                        'GetWebSocketsToken' => 3,
+                        'Ledgers' => 6,
+                        'OpenOrders' => 3,
+                        'OpenPositions' => 3,
+                        'QueryLedgers' => 3,
+                        'QueryOrders' => 3,
+                        'QueryTrades' => 3,
+                        'RetrieveExport' => 3,
+                        'RemoveExport' => 3,
+                        'BalanceEx' => 3,
+                        'TradeBalance' => 3,
+                        'TradesHistory' => 6,
+                        'TradeVolume' => 3,
+                        'Withdraw' => 3,
+                        'WithdrawCancel' => 3,
+                        'WithdrawInfo' => 3,
+                        'WithdrawMethods' => 3,
+                        'WithdrawAddresses' => 3,
+                        'WithdrawStatus' => 3,
+                        'WalletTransfer' => 3,
                         // sub accounts
-                        'CreateSubaccount' => 1,
-                        'AccountTransfer' => 1,
+                        'CreateSubaccount' => 3,
+                        'AccountTransfer' => 3,
                         // earn
-                        'Earn/Allocate' => 1,
-                        'Earn/Deallocate' => 1,
-                        'Earn/AllocateStatus' => 1,
-                        'Earn/DeallocateStatus' => 1,
-                        'Earn/Strategies' => 1,
-                        'Earn/Allocations' => 1,
+                        'Earn/Allocate' => 3,
+                        'Earn/Deallocate' => 3,
+                        'Earn/AllocateStatus' => 3,
+                        'Earn/DeallocateStatus' => 3,
+                        'Earn/Strategies' => 3,
+                        'Earn/Allocations' => 3,
                     ),
                 ),
             ),
@@ -441,10 +444,10 @@ class kraken extends Exchange {
         return $this->decimal_to_precision($fee, TRUNCATE, $this->markets[$symbol]['precision']['amount'], $this->precisionMode);
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): array {
         /**
          * retrieves data on all $markets for kraken
-         * @see https://docs.kraken.com/rest/#tag/Market-Data/operation/getTradableAssetPairs
+         * @see https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getTradableAssetPairs
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing $market data
          */
@@ -628,10 +631,10 @@ class kraken extends Exchange {
         return $result;
     }
 
-    public function fetch_currencies($params = array ()) {
+    public function fetch_currencies($params = array ()): array {
         /**
          * fetches all available $currencies on an exchange
-         * @see https://docs.kraken.com/rest/#tag/Market-Data/operation/getAssetInfo
+         * @see https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getAssetInfo
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an associative dictionary of $currencies
          */
@@ -686,7 +689,7 @@ class kraken extends Exchange {
         return $result;
     }
 
-    public function fetch_trading_fee(string $symbol, $params = array ()) {
+    public function fetch_trading_fee(string $symbol, $params = array ()): array {
         /**
          * fetch the trading fees for a $market
          * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getTradeVolume
@@ -759,7 +762,7 @@ class kraken extends Exchange {
     public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): array {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @see https://docs.kraken.com/rest/#tag/Market-Data/operation/getOrderBook
+         * @see https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getOrderBook
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -861,7 +864,7 @@ class kraken extends Exchange {
     public function fetch_tickers(?array $symbols = null, $params = array ()): array {
         /**
          * fetches price $tickers for multiple markets, statistical information calculated over the past 24 hours for each $market
-         * @see https://docs.kraken.com/rest/#tag/Market-Data/operation/getTickerInformation
+         * @see https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getTickerInformation
          * @param {string[]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all $market $tickers are returned if not assigned
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?$id=$ticker-structure $ticker structures~
@@ -897,7 +900,7 @@ class kraken extends Exchange {
     public function fetch_ticker(string $symbol, $params = array ()): array {
         /**
          * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
-         * @see https://docs.kraken.com/rest/#tag/Market-Data/operation/getTickerInformation
+         * @see https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getTickerInformation
          * @param {string} $symbol unified $symbol of the $market to fetch the $ticker for
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structure~
@@ -942,7 +945,7 @@ class kraken extends Exchange {
     public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
-         * @see https://docs.kraken.com/rest/#tag/Market-Data/operation/getOHLCData
+         * @see https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getOHLCData
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
          * @param {string} $timeframe the length of time each candle represents
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
@@ -987,7 +990,7 @@ class kraken extends Exchange {
         //         }
         //     }
         $result = $this->safe_value($response, 'result', array());
-        $ohlcvs = $this->safe_value($result, $market['id'], array());
+        $ohlcvs = $this->safe_list($result, $market['id'], array());
         return $this->parse_ohlcvs($ohlcvs, $market, $timeframe, $since, $limit);
     }
 
@@ -1238,7 +1241,7 @@ class kraken extends Exchange {
     public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * get the list of most recent $trades for a particular $symbol
-         * @see https://docs.kraken.com/rest/#tag/Market-Data/operation/getRecentTrades
+         * @see https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getRecentTrades
          * @param {string} $symbol unified $symbol of the $market to fetch $trades for
          * @param {int} [$since] timestamp in ms of the earliest trade to fetch
          * @param {int} [$limit] the maximum amount of $trades to fetch
@@ -1284,6 +1287,7 @@ class kraken extends Exchange {
         $lastTrade = $trades[$length - 1];
         $lastTradeId = $this->safe_string($result, 'last');
         $lastTrade[] = $lastTradeId;
+        $trades[$length - 1] = $lastTrade;
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
@@ -1373,7 +1377,7 @@ class kraken extends Exchange {
         //         }
         //     }
         //
-        $result = $this->safe_value($response, 'result');
+        $result = $this->safe_dict($response, 'result');
         return $this->parse_order($result);
     }
 
@@ -1538,8 +1542,13 @@ class kraken extends Exchange {
         //      }
         //  }
         //
-        $description = $this->safe_value($order, 'descr', array());
-        $orderDescription = $this->safe_string($description, 'order', $description);
+        $description = $this->safe_dict($order, 'descr', array());
+        $orderDescription = null;
+        if ($description !== null) {
+            $orderDescription = $this->safe_string($description, 'order');
+        } else {
+            $orderDescription = $this->safe_string($order, 'descr');
+        }
         $side = null;
         $type = null;
         $marketId = null;
@@ -1792,7 +1801,7 @@ class kraken extends Exchange {
         //         }
         //     }
         //
-        $data = $this->safe_value($response, 'result', array());
+        $data = $this->safe_dict($response, 'result', array());
         return $this->parse_order($data, $market);
     }
 
@@ -2118,8 +2127,8 @@ class kraken extends Exchange {
         if ($symbol !== null) {
             $market = $this->market($symbol);
         }
-        $result = $this->safe_value($response, 'result', array());
-        $orders = $this->safe_value($result, 'open', array());
+        $result = $this->safe_dict($response, 'result', array());
+        $orders = $this->safe_dict($result, 'open', array());
         return $this->parse_orders($orders, $market, $since, $limit);
     }
 
@@ -2190,8 +2199,8 @@ class kraken extends Exchange {
         if ($symbol !== null) {
             $market = $this->market($symbol);
         }
-        $result = $this->safe_value($response, 'result', array());
-        $orders = $this->safe_value($result, 'closed', array());
+        $result = $this->safe_dict($response, 'result', array());
+        $orders = $this->safe_dict($result, 'closed', array());
         return $this->parse_orders($orders, $market, $since, $limit);
     }
 
@@ -2376,7 +2385,7 @@ class kraken extends Exchange {
     public function fetch_time($params = array ()) {
         /**
          * fetches the current integer timestamp in milliseconds from the exchange server
-         * @see https://docs.kraken.com/rest/#tag/Market-Data/operation/getServerTime
+         * @see https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getServerTime
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {int} the current integer timestamp in milliseconds from the exchange server
          */
@@ -2649,7 +2658,7 @@ class kraken extends Exchange {
             //         }
             //     }
             //
-            $result = $this->safe_value($response, 'result', array());
+            $result = $this->safe_dict($response, 'result', array());
             return $this->parse_transaction($result, $currency);
         }
         throw new ExchangeError($this->id . " withdraw() requires a 'key' parameter (withdrawal key name, up on your account)");
@@ -2720,7 +2729,7 @@ class kraken extends Exchange {
         return $result;
     }
 
-    public function parse_account($account) {
+    public function parse_account_type($account) {
         $accountByType = array(
             'spot' => 'Spot Wallet',
             'swap' => 'Futures Wallet',
@@ -2741,7 +2750,7 @@ class kraken extends Exchange {
         return $this->transfer($code, $amount, 'spot', 'swap', $params);
     }
 
-    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): TransferEntry {
+    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): array {
         /**
          * @see https://docs.kraken.com/rest/#tag/User-Funding/operation/walletTransfer
          * transfers currencies between sub-accounts (only spot->swap direction is supported)
@@ -2754,8 +2763,8 @@ class kraken extends Exchange {
          */
         $this->load_markets();
         $currency = $this->currency($code);
-        $fromAccount = $this->parse_account($fromAccount);
-        $toAccount = $this->parse_account($toAccount);
+        $fromAccount = $this->parse_account_type($fromAccount);
+        $toAccount = $this->parse_account_type($toAccount);
         $request = array(
             'amount' => $this->currency_to_precision($code, $amount),
             'from' => $fromAccount,

@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.latoken import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, Int, Market, Order, TransferEntry, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Currencies, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -256,7 +256,7 @@ class latoken(Exchange, ImplicitAPI):
         #
         return self.safe_integer(response, 'serverTime')
 
-    def fetch_markets(self, params={}):
+    def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for latoken
         :see: https://api.latoken.com/doc/v2/#tag/Pair/operation/getActivePairs
@@ -401,7 +401,7 @@ class latoken(Exchange, ImplicitAPI):
             })
         return self.safe_value(self.options['fetchCurrencies'], 'response')
 
-    def fetch_currencies(self, params={}):
+    def fetch_currencies(self, params={}) -> Currencies:
         """
         fetches all available currencies on an exchange
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -808,7 +808,7 @@ class latoken(Exchange, ImplicitAPI):
         #
         return self.parse_trades(response, market, since, limit)
 
-    def fetch_trading_fee(self, symbol: str, params={}):
+    def fetch_trading_fee(self, symbol: str, params={}) -> TradingFeeInterface:
         """
         fetch the trading fees for a market
         :see: https://api.latoken.com/doc/v2/#tag/Trade/operation/getFeeByPair
@@ -849,6 +849,8 @@ class latoken(Exchange, ImplicitAPI):
             'symbol': market['symbol'],
             'maker': self.safe_number(response, 'makerFee'),
             'taker': self.safe_number(response, 'takerFee'),
+            'percentage': None,
+            'tierBased': None,
         }
 
     def fetch_private_trading_fee(self, symbol: str, params={}):
@@ -872,6 +874,8 @@ class latoken(Exchange, ImplicitAPI):
             'symbol': market['symbol'],
             'maker': self.safe_number(response, 'makerFee'),
             'taker': self.safe_number(response, 'takerFee'),
+            'percentage': None,
+            'tierBased': None,
         }
 
     def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
@@ -1206,7 +1210,7 @@ class latoken(Exchange, ImplicitAPI):
         #
         return self.parse_order(response)
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create a trade order
         :see: https://api.latoken.com/doc/v2/#tag/Order/operation/placeOrder
@@ -1382,7 +1386,7 @@ class latoken(Exchange, ImplicitAPI):
         currency = None
         if code is not None:
             currency = self.currency(code)
-        content = self.safe_value(response, 'content', [])
+        content = self.safe_list(response, 'content', [])
         return self.parse_transactions(content, currency, since, limit)
 
     def parse_transaction(self, transaction, currency: Currency = None) -> Transaction:
@@ -1506,7 +1510,7 @@ class latoken(Exchange, ImplicitAPI):
         #         "hasContent": True
         #     }
         #
-        transfers = self.safe_value(response, 'content', [])
+        transfers = self.safe_list(response, 'content', [])
         return self.parse_transfers(transfers, currency, since, limit)
 
     def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:

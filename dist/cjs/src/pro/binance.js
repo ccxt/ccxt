@@ -17,6 +17,7 @@ class binance extends binance$1 {
             'has': {
                 'ws': true,
                 'watchBalance': true,
+                'watchBidsAsks': true,
                 'watchMyTrades': true,
                 'watchOHLCV': true,
                 'watchOHLCVForSymbols': false,
@@ -84,7 +85,7 @@ class binance extends binance$1 {
                     'future': 200,
                     'delivery': 200,
                 },
-                'streamBySubscriptionsHash': {},
+                'streamBySubscriptionsHash': this.createSafeDictionary(),
                 'streamIndex': -1,
                 // get updates every 1000ms or 100ms
                 // or every 0ms in real-time for futures
@@ -92,16 +93,16 @@ class binance extends binance$1 {
                 'tradesLimit': 1000,
                 'ordersLimit': 1000,
                 'OHLCVLimit': 1000,
-                'requestId': {},
+                'requestId': this.createSafeDictionary(),
                 'watchOrderBookLimit': 1000,
                 'watchTrades': {
                     'name': 'trade', // 'trade' or 'aggTrade'
                 },
                 'watchTicker': {
-                    'name': 'ticker', // ticker = 1000ms L1+OHLCV, bookTicker = real-time L1
+                    'name': 'ticker', // ticker or miniTicker or ticker_<window_size>
                 },
                 'watchTickers': {
-                    'name': 'ticker', // ticker or miniTicker or bookTicker
+                    'name': 'ticker', // ticker or miniTicker or ticker_<window_size>
                 },
                 'watchOHLCV': {
                     'name': 'kline', // or indexPriceKline or markPriceKline (coin-m futures)
@@ -122,18 +123,27 @@ class binance extends binance$1 {
                 'ws': {
                     'cost': 5,
                 },
+                'tickerChannelsMap': {
+                    '24hrTicker': 'ticker',
+                    '24hrMiniTicker': 'miniTicker',
+                    // rolling window tickers
+                    '1hTicker': 'ticker_1h',
+                    '4hTicker': 'ticker_4h',
+                    '1dTicker': 'ticker_1d',
+                    'bookTicker': 'bookTicker',
+                },
             },
         });
     }
     requestId(url) {
-        const options = this.safeValue(this.options, 'requestId', {});
+        const options = this.safeDict(this.options, 'requestId', this.createSafeDictionary());
         const previousValue = this.safeInteger(options, url, 0);
         const newValue = this.sum(previousValue, 1);
         this.options['requestId'][url] = newValue;
         return newValue;
     }
     stream(type, subscriptionHash, numSubscriptions = 1) {
-        const streamBySubscriptionsHash = this.safeValue(this.options, 'streamBySubscriptionsHash', {});
+        const streamBySubscriptionsHash = this.safeDict(this.options, 'streamBySubscriptionsHash', this.createSafeDictionary());
         let stream = this.safeString(streamBySubscriptionsHash, subscriptionHash);
         if (stream === undefined) {
             let streamIndex = this.safeInteger(this.options, 'streamIndex', -1);
@@ -146,7 +156,7 @@ class binance extends binance$1 {
             this.options['streamBySubscriptionsHash'][subscriptionHash] = stream;
             const subscriptionsByStreams = this.safeValue(this.options, 'numSubscriptionsByStream');
             if (subscriptionsByStreams === undefined) {
-                this.options['numSubscriptionsByStream'] = {};
+                this.options['numSubscriptionsByStream'] = this.createSafeDictionary();
             }
             const subscriptionsByStream = this.safeInteger(this.options['numSubscriptionsByStream'], stream, 0);
             const newNumSubscriptions = subscriptionsByStream + numSubscriptions;
@@ -935,34 +945,13 @@ class binance extends binance$1 {
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {string} [params.name] stream to use can be ticker or bookTicker
+         * @param {string} [params.name] stream to use can be ticker or miniTicker
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets();
-        const market = this.market(symbol);
-        const marketId = market['lowercaseId'];
-        let type = market['type'];
-        if (market['contract']) {
-            type = market['linear'] ? 'future' : 'delivery';
-        }
-        const options = this.safeValue(this.options, 'watchTicker', {});
-        let name = this.safeString(options, 'name', 'ticker');
-        name = this.safeString(params, 'name', name);
-        params = this.omit(params, 'name');
-        const messageHash = marketId + '@' + name;
-        const url = this.urls['api']['ws'][type] + '/' + this.stream(type, messageHash);
-        const requestId = this.requestId(url);
-        const request = {
-            'method': 'SUBSCRIBE',
-            'params': [
-                messageHash,
-            ],
-            'id': requestId,
-        };
-        const subscribe = {
-            'id': requestId,
-        };
-        return await this.watch(url, messageHash, this.extend(request, params), messageHash, subscribe);
+        symbol = this.symbol(symbol);
+        const tickers = await this.watchTickers([symbol], this.extend(params, { 'callerMethodName': 'watchTicker' }));
+        return tickers[symbol];
     }
     async watchTickers(symbols = undefined, params = {}) {
         /**
@@ -973,61 +962,108 @@ class binance extends binance$1 {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
+        let channelName = undefined;
+        [channelName, params] = this.handleOptionAndParams(params, 'watchTickers', 'name', 'ticker');
+        if (channelName === 'bookTicker') {
+            throw new errors.BadRequest(this.id + ' deprecation notice - to subscribe for bids-asks, use watch_bids_asks() method instead');
+        }
+        const newTickers = await this.watchMultiTickerHelper('watchTickers', channelName, symbols, params);
+        if (this.newUpdates) {
+            return newTickers;
+        }
+        return this.filterByArray(this.tickers, 'symbol', symbols);
+    }
+    async watchBidsAsks(symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name binance#watchBidsAsks
+         * @see https://binance-docs.github.io/apidocs/spot/en/#individual-symbol-book-ticker-streams
+         * @see https://binance-docs.github.io/apidocs/futures/en/#all-book-tickers-stream
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#all-book-tickers-stream
+         * @description watches best bid & ask for symbols
+         * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        const result = await this.watchMultiTickerHelper('watchBidsAsks', 'bookTicker', symbols, params);
+        if (this.newUpdates) {
+            return result;
+        }
+        return this.filterByArray(this.tickers, 'symbol', symbols);
+    }
+    async watchMultiTickerHelper(methodName, channelName, symbols = undefined, params = {}) {
         await this.loadMarkets();
-        symbols = this.marketSymbols(symbols, undefined, true, true, true);
-        const marketIds = this.marketIds(symbols);
-        let market = undefined;
-        let type = undefined;
-        if (symbols !== undefined) {
-            market = this.market(symbols[0]);
+        symbols = this.marketSymbols(symbols, undefined, true, false, true);
+        let firstMarket = undefined;
+        let marketType = undefined;
+        const symbolsDefined = (symbols !== undefined);
+        if (symbolsDefined) {
+            firstMarket = this.market(symbols[0]);
         }
-        [type, params] = this.handleMarketTypeAndParams('watchTickers', market, params);
+        [marketType, params] = this.handleMarketTypeAndParams(methodName, firstMarket, params);
         let subType = undefined;
-        [subType, params] = this.handleSubTypeAndParams('watchTickers', market, params);
-        if (this.isLinear(type, subType)) {
-            type = 'future';
+        [subType, params] = this.handleSubTypeAndParams(methodName, firstMarket, params);
+        let rawMarketType = undefined;
+        if (this.isLinear(marketType, subType)) {
+            rawMarketType = 'future';
         }
-        else if (this.isInverse(type, subType)) {
-            type = 'delivery';
+        else if (this.isInverse(marketType, subType)) {
+            rawMarketType = 'delivery';
         }
-        const options = this.safeValue(this.options, 'watchTickers', {});
-        let name = this.safeString(options, 'name', 'ticker');
-        name = this.safeString(params, 'name', name);
-        params = this.omit(params, 'name');
-        let wsParams = [];
-        let messageHash = 'tickers';
-        if (symbols !== undefined) {
-            messageHash = 'tickers::' + symbols.join(',');
+        else if (marketType === 'spot') {
+            rawMarketType = marketType;
         }
-        if (name === 'bookTicker') {
-            if (marketIds === undefined) {
-                throw new errors.ArgumentsRequired(this.id + ' watchTickers() requires symbols for bookTicker');
-            }
-            // simulate watchTickers with subscribe multiple individual bookTicker topic
-            for (let i = 0; i < marketIds.length; i++) {
-                wsParams.push(marketIds[i].toLowerCase() + '@bookTicker');
+        else {
+            throw new errors.NotSupported(this.id + ' ' + methodName + '() does not support options markets');
+        }
+        const isBidAsk = (channelName === 'bookTicker');
+        const subscriptionArgs = [];
+        const messageHashes = [];
+        if (symbolsDefined) {
+            for (let i = 0; i < symbols.length; i++) {
+                const symbol = symbols[i];
+                const market = this.market(symbol);
+                subscriptionArgs.push(market['lowercaseId'] + '@' + channelName);
+                messageHashes.push(this.getMessageHash(channelName, market['symbol'], isBidAsk));
             }
         }
         else {
-            wsParams = [
-                '!' + name + '@arr',
-            ];
+            if (isBidAsk) {
+                if (marketType === 'spot') {
+                    throw new errors.ArgumentsRequired(this.id + ' ' + methodName + '() requires symbols for this channel for spot markets');
+                }
+                subscriptionArgs.push('!' + channelName);
+            }
+            else {
+                subscriptionArgs.push('!' + channelName + '@arr');
+            }
+            messageHashes.push(this.getMessageHash(channelName, undefined, isBidAsk));
         }
-        const url = this.urls['api']['ws'][type] + '/' + this.stream(type, messageHash);
+        let streamHash = channelName;
+        if (symbolsDefined) {
+            streamHash = channelName + '::' + symbols.join(',');
+        }
+        const url = this.urls['api']['ws'][rawMarketType] + '/' + this.stream(rawMarketType, streamHash);
         const requestId = this.requestId(url);
         const request = {
             'method': 'SUBSCRIBE',
-            'params': wsParams,
+            'params': subscriptionArgs,
             'id': requestId,
         };
         const subscribe = {
             'id': requestId,
         };
-        const newTickers = await this.watch(url, messageHash, this.extend(request, params), messageHash, subscribe);
-        if (this.newUpdates) {
-            return newTickers;
+        const result = await this.watchMultiple(url, messageHashes, this.deepExtend(request, params), subscriptionArgs, subscribe);
+        // for efficiency, we have two type of returned structure here - if symbols array was provided, then individual
+        // ticker dict comes in, otherwise all-tickers dict comes in
+        if (!symbolsDefined) {
+            return result;
         }
-        return this.filterByArray(this.tickers, 'symbol', symbols);
+        else {
+            const newDict = {};
+            newDict[result['symbol']] = result;
+            return newDict;
+        }
     }
     parseWsTicker(message, marketType) {
         //
@@ -1111,11 +1147,24 @@ class binance extends binance$1 {
             'info': message,
         }, market);
     }
-    handleTicker(client, message) {
+    handleBidsAsks(client, message) {
         //
-        // 24hr rolling window ticker statistics for a single symbol
-        // These are NOT the statistics of the UTC day, but a 24hr rolling window for the previous 24hrs
-        // Update Speed 1000ms
+        // arrives one symbol dict or array of symbol dicts
+        //
+        //     {
+        //         "u": 7488717758,
+        //         "s": "BTCUSDT",
+        //         "b": "28621.74000000",
+        //         "B": "1.43278800",
+        //         "a": "28621.75000000",
+        //         "A": "2.52500800"
+        //     }
+        //
+        this.handleTickersAndBidsAsks(client, message, 'bidasks');
+    }
+    handleTickers(client, message) {
+        //
+        // arrives one symbol dict or array of symbol dicts
         //
         //     {
         //         "e": "24hrTicker",      // event type
@@ -1143,39 +1192,14 @@ class binance extends binance$1 {
         //         "n": 163222,            // total number of trades
         //     }
         //
-        let event = this.safeString(message, 'e', 'bookTicker');
-        if (event === '24hrTicker') {
-            event = 'ticker';
-        }
-        else if (event === '24hrMiniTicker') {
-            event = 'miniTicker';
-        }
-        const wsMarketId = this.safeStringLower(message, 's');
-        const messageHash = wsMarketId + '@' + event;
-        const isSpot = ((client.url.indexOf('/stream') > -1) || (client.url.indexOf('/testnet.binance') > -1));
-        const marketType = (isSpot) ? 'spot' : 'contract';
-        const result = this.parseWsTicker(message, marketType);
-        const symbol = result['symbol'];
-        this.tickers[symbol] = result;
-        client.resolve(result, messageHash);
-        if (event === 'bookTicker') {
-            // watch bookTickers
-            client.resolve(result, '!' + 'bookTicker@arr');
-            const messageHashes = this.findMessageHashes(client, 'tickers::');
-            for (let i = 0; i < messageHashes.length; i++) {
-                const currentMessageHash = messageHashes[i];
-                const parts = currentMessageHash.split('::');
-                const symbolsString = parts[1];
-                const symbols = symbolsString.split(',');
-                if (this.inArray(symbol, symbols)) {
-                    client.resolve(result, currentMessageHash);
-                }
-            }
-        }
+        this.handleTickersAndBidsAsks(client, message, 'tickers');
     }
-    handleTickers(client, message) {
+    handleTickersAndBidsAsks(client, message, methodType) {
         const isSpot = ((client.url.indexOf('/stream') > -1) || (client.url.indexOf('/testnet.binance') > -1));
         const marketType = (isSpot) ? 'spot' : 'contract';
+        const isBidAsk = (methodType === 'bidasks');
+        let channelName = undefined;
+        const resolvedMessageHashes = [];
         let rawTickers = [];
         const newTickers = {};
         if (Array.isArray(message)) {
@@ -1186,25 +1210,42 @@ class binance extends binance$1 {
         }
         for (let i = 0; i < rawTickers.length; i++) {
             const ticker = rawTickers[i];
-            const result = this.parseWsTicker(ticker, marketType);
-            const symbol = result['symbol'];
-            this.tickers[symbol] = result;
-            newTickers[symbol] = result;
-        }
-        const messageHashes = this.findMessageHashes(client, 'tickers::');
-        for (let i = 0; i < messageHashes.length; i++) {
-            const messageHash = messageHashes[i];
-            const parts = messageHash.split('::');
-            const symbolsString = parts[1];
-            const symbols = symbolsString.split(',');
-            const tickers = this.filterByArray(newTickers, 'symbol', symbols);
-            const tickersSymbols = Object.keys(tickers);
-            const numTickers = tickersSymbols.length;
-            if (numTickers > 0) {
-                client.resolve(tickers, messageHash);
+            let event = this.safeString(ticker, 'e');
+            if (isBidAsk) {
+                event = 'bookTicker'; // as noted in `handleMessage`, bookTicker doesn't have identifier, so manually set here
             }
+            channelName = this.safeString(this.options['tickerChannelsMap'], event, event);
+            if (channelName === undefined) {
+                continue;
+            }
+            const parsedTicker = this.parseWsTicker(ticker, marketType);
+            const symbol = parsedTicker['symbol'];
+            newTickers[symbol] = parsedTicker;
+            if (isBidAsk) {
+                this.bidsasks[symbol] = parsedTicker;
+            }
+            else {
+                this.tickers[symbol] = parsedTicker;
+            }
+            const messageHash = this.getMessageHash(channelName, symbol, isBidAsk);
+            resolvedMessageHashes.push(messageHash);
+            client.resolve(parsedTicker, messageHash);
         }
-        client.resolve(newTickers, 'tickers');
+        // resolve batch endpoint
+        const length = resolvedMessageHashes.length;
+        if (length > 0) {
+            const batchMessageHash = this.getMessageHash(channelName, undefined, isBidAsk);
+            client.resolve(newTickers, batchMessageHash);
+        }
+    }
+    getMessageHash(channelName, symbol, isBidAsk) {
+        const prefix = isBidAsk ? 'bidask' : 'ticker';
+        if (symbol !== undefined) {
+            return prefix + ':' + channelName + '@' + symbol;
+        }
+        else {
+            return prefix + 's' + ':' + channelName;
+        }
     }
     signParams(params = {}) {
         this.checkRequiredCredentials();
@@ -2599,8 +2640,21 @@ class binance extends binance$1 {
         //     }
         //
         const marketId = this.safeString(position, 's');
-        const positionSide = this.safeStringLower(position, 'ps');
-        const hedged = positionSide !== 'both';
+        const contracts = this.safeString(position, 'pa');
+        const contractsAbs = Precise["default"].stringAbs(this.safeString(position, 'pa'));
+        let positionSide = this.safeStringLower(position, 'ps');
+        let hedged = true;
+        if (positionSide === 'both') {
+            hedged = false;
+            if (!Precise["default"].stringEq(contracts, '0')) {
+                if (Precise["default"].stringLt(contracts, '0')) {
+                    positionSide = 'short';
+                }
+                else {
+                    positionSide = 'long';
+                }
+            }
+        }
         return this.safePosition({
             'info': position,
             'id': undefined,
@@ -2611,7 +2665,7 @@ class binance extends binance$1 {
             'entryPrice': this.safeNumber(position, 'ep'),
             'unrealizedPnl': this.safeNumber(position, 'up'),
             'percentage': undefined,
-            'contracts': this.safeNumber(position, 'pa'),
+            'contracts': this.parseNumber(contractsAbs),
             'contractSize': undefined,
             'markPrice': undefined,
             'side': positionSide,
@@ -2996,11 +3050,17 @@ class binance extends binance$1 {
             'kline': this.handleOHLCV,
             'markPrice_kline': this.handleOHLCV,
             'indexPrice_kline': this.handleOHLCV,
+            '1hTicker@arr': this.handleTickers,
+            '4hTicker@arr': this.handleTickers,
+            '1dTicker@arr': this.handleTickers,
             '24hrTicker@arr': this.handleTickers,
             '24hrMiniTicker@arr': this.handleTickers,
-            '24hrTicker': this.handleTicker,
-            '24hrMiniTicker': this.handleTicker,
-            'bookTicker': this.handleTicker,
+            '1hTicker': this.handleTickers,
+            '4hTicker': this.handleTickers,
+            '1dTicker': this.handleTickers,
+            '24hrTicker': this.handleTickers,
+            '24hrMiniTicker': this.handleTickers,
+            'bookTicker': this.handleBidsAsks,
             'outboundAccountPosition': this.handleBalance,
             'balanceUpdate': this.handleBalance,
             'ACCOUNT_UPDATE': this.handleAcountUpdate,
@@ -3030,9 +3090,8 @@ class binance extends binance$1 {
             //         "A": "2.52500800"
             //     }
             //
-            if (event === undefined) {
-                this.handleTicker(client, message);
-                this.handleTickers(client, message);
+            if (event === undefined && ('a' in message) && ('b' in message)) {
+                this.handleBidsAsks(client, message);
             }
         }
         else {

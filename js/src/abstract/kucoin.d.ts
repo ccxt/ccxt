@@ -78,10 +78,12 @@ interface Exchange {
     privateGetIsolatedAccountSymbol(params?: {}): Promise<implicitReturnType>;
     privateGetMarginBorrow(params?: {}): Promise<implicitReturnType>;
     privateGetMarginRepay(params?: {}): Promise<implicitReturnType>;
+    privateGetMarginInterest(params?: {}): Promise<implicitReturnType>;
     privateGetProjectList(params?: {}): Promise<implicitReturnType>;
     privateGetProjectMarketInterestRate(params?: {}): Promise<implicitReturnType>;
     privateGetRedeemOrders(params?: {}): Promise<implicitReturnType>;
     privateGetPurchaseOrders(params?: {}): Promise<implicitReturnType>;
+    privateGetBrokerApiRebaseDownload(params?: {}): Promise<implicitReturnType>;
     privatePostSubUserCreated(params?: {}): Promise<implicitReturnType>;
     privatePostSubApiKey(params?: {}): Promise<implicitReturnType>;
     privatePostSubApiKeyUpdate(params?: {}): Promise<implicitReturnType>;
@@ -186,6 +188,15 @@ interface Exchange {
     futuresPrivateDeleteOrders(params?: {}): Promise<implicitReturnType>;
     futuresPrivateDeleteStopOrders(params?: {}): Promise<implicitReturnType>;
     webExchangeGetCurrencyCurrencyChainInfo(params?: {}): Promise<implicitReturnType>;
+    brokerGetBrokerNdInfo(params?: {}): Promise<implicitReturnType>;
+    brokerGetBrokerNdAccount(params?: {}): Promise<implicitReturnType>;
+    brokerGetBrokerNdAccountApikey(params?: {}): Promise<implicitReturnType>;
+    brokerGetBrokerNdRebaseDownload(params?: {}): Promise<implicitReturnType>;
+    brokerPostBrokerNdTransfer(params?: {}): Promise<implicitReturnType>;
+    brokerPostBrokerNdAccount(params?: {}): Promise<implicitReturnType>;
+    brokerPostBrokerNdAccountApikey(params?: {}): Promise<implicitReturnType>;
+    brokerPostBrokerNdAccountUpdateApikey(params?: {}): Promise<implicitReturnType>;
+    brokerDeleteBrokerNdAccountApikey(params?: {}): Promise<implicitReturnType>;
 }
 declare abstract class Exchange extends _Exchange {
 }

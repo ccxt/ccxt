@@ -19,8 +19,8 @@ public partial class bitfinex2 : Exchange
                 { "spot", true },
                 { "margin", true },
                 { "swap", true },
-                { "future", null },
-                { "option", null },
+                { "future", false },
+                { "option", false },
                 { "addMargin", false },
                 { "borrowCrossMargin", false },
                 { "borrowIsolatedMargin", false },
@@ -31,6 +31,7 @@ public partial class bitfinex2 : Exchange
                 { "createLimitOrder", true },
                 { "createMarketOrder", true },
                 { "createOrder", true },
+                { "createPostOnlyOrder", true },
                 { "createReduceOnlyOrder", true },
                 { "createStopLimitOrder", true },
                 { "createStopMarketOrder", true },
@@ -41,8 +42,11 @@ public partial class bitfinex2 : Exchange
                 { "editOrder", true },
                 { "fetchBalance", true },
                 { "fetchBorrowInterest", false },
+                { "fetchBorrowRate", false },
                 { "fetchBorrowRateHistories", false },
                 { "fetchBorrowRateHistory", false },
+                { "fetchBorrowRates", false },
+                { "fetchBorrowRatesPerSymbol", false },
                 { "fetchClosedOrder", true },
                 { "fetchClosedOrders", true },
                 { "fetchCrossBorrowRate", false },
@@ -71,6 +75,8 @@ public partial class bitfinex2 : Exchange
                 { "fetchOpenOrder", true },
                 { "fetchOpenOrders", true },
                 { "fetchOrder", true },
+                { "fetchOrderBook", true },
+                { "fetchOrderBooks", false },
                 { "fetchOrderTrades", true },
                 { "fetchPosition", false },
                 { "fetchPositionMode", false },
@@ -90,6 +96,8 @@ public partial class bitfinex2 : Exchange
                 { "setMargin", true },
                 { "setMarginMode", false },
                 { "setPositionMode", false },
+                { "signIn", false },
+                { "transfer", true },
                 { "withdraw", true },
             } },
             { "timeframes", new Dictionary<string, object>() {
@@ -1401,14 +1409,20 @@ public partial class bitfinex2 : Exchange
         if (isTrue(isEqual(limit, null)))
         {
             limit = 10000;
+        } else
+        {
+            limit = mathMin(limit, 10000);
         }
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
             { "timeframe", this.safeString(this.timeframes, timeframe, timeframe) },
             { "sort", 1 },
-            { "start", since },
             { "limit", limit },
         };
+        if (isTrue(!isEqual(since, null)))
+        {
+            ((IDictionary<string,object>)request)["start"] = since;
+        }
         var requestparametersVariable = this.handleUntilOption("end", request, parameters);
         request = ((IList<object>)requestparametersVariable)[0];
         parameters = ((IList<object>)requestparametersVariable)[1];
@@ -1570,7 +1584,16 @@ public partial class bitfinex2 : Exchange
         * @param {float} amount how much you want to trade in units of the base currency
         * @param {float} [price] the price of the order, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} request to be sent to the exchange
+        * @param {float} [params.stopPrice] The price at which a trigger order is triggered at
+        * @param {string} [params.timeInForce] "GTC", "IOC", "FOK", or "PO"
+        * @param {bool} [params.postOnly]
+        * @param {bool} [params.reduceOnly] Ensures that the executed order does not flip the opened position.
+        * @param {int} [params.flags] additional order parameters: 4096 (Post Only), 1024 (Reduce Only), 16384 (OCO), 64 (Hidden), 512 (Close), 524288 (No Var Rates)
+        * @param {int} [params.lev] leverage for a derivative order, supported by derivative symbol orders only. The value should be between 1 and 100 inclusive.
+        * @param {string} [params.price_traling] The trailing price for a trailing stop order
+        * @param {string} [params.price_aux_limit] Order price for stop limit orders
+        * @param {string} [params.price_oco_stop] OCO stop price
+        * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
         */
         parameters ??= new Dictionary<string, object>();
         object market = this.market(symbol);
@@ -1829,7 +1852,7 @@ public partial class bitfinex2 : Exchange
             { "all", 1 },
         };
         object response = await this.privatePostAuthWOrderCancelMulti(this.extend(request, parameters));
-        object orders = this.safeValue(response, 4, new List<object>() {});
+        object orders = this.safeList(response, 4, new List<object>() {});
         return this.parseOrders(orders);
     }
 
@@ -3135,7 +3158,7 @@ public partial class bitfinex2 : Exchange
         * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
         */
         parameters ??= new Dictionary<string, object>();
-        return ((object)this.fetchFundingRates(new List<object>() {symbol}, parameters));
+        return ((object)await this.fetchFundingRates(new List<object>() {symbol}, parameters));
     }
 
     public async override Task<object> fetchFundingRates(object symbols = null, object parameters = null)
@@ -3273,11 +3296,11 @@ public partial class bitfinex2 : Exchange
         }
         object reversedArray = new List<object>() {};
         object rawRates = this.filterBySymbolSinceLimit(rates, symbol, since, limit);
-        object rawRatesLength = getArrayLength(rawRates);
-        object ratesLength = mathMax(subtract(rawRatesLength, 1), 0);
-        for (object i = ratesLength; isGreaterThanOrEqual(i, 0); postFixDecrement(ref i))
+        object ratesLength = getArrayLength(rawRates);
+        for (object i = 0; isLessThan(i, ratesLength); postFixIncrement(ref i))
         {
-            object valueAtIndex = getValue(rawRates, i);
+            object index = subtract(subtract(ratesLength, i), 1);
+            object valueAtIndex = getValue(rawRates, index);
             ((IList<object>)reversedArray).Add(valueAtIndex);
         }
         return reversedArray;
@@ -3729,15 +3752,27 @@ public partial class bitfinex2 : Exchange
 
     public virtual object parseMarginModification(object data, object market = null)
     {
+        //
+        // setMargin
+        //
+        //     [
+        //         [
+        //             1
+        //         ]
+        //     ]
+        //
         object marginStatusRaw = getValue(data, 0);
         object marginStatus = ((bool) isTrue((isEqual(marginStatusRaw, 1)))) ? "ok" : "failed";
         return new Dictionary<string, object>() {
             { "info", data },
+            { "symbol", getValue(market, "symbol") },
             { "type", null },
             { "amount", null },
+            { "total", null },
             { "code", null },
-            { "symbol", getValue(market, "symbol") },
             { "status", marginStatus },
+            { "timestamp", null },
+            { "datetime", null },
         };
     }
 

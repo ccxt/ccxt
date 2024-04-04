@@ -488,7 +488,7 @@ export default class luno extends Exchange {
             request['pair'] = market['id'];
         }
         const response = await this.privateGetListorders(this.extend(request, params));
-        const orders = this.safeValue(response, 'orders', []);
+        const orders = this.safeList(response, 'orders', []);
         return this.parseOrders(orders, market, since, limit);
     }
     async fetchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -751,7 +751,7 @@ export default class luno extends Exchange {
         //          ]
         //      }
         //
-        const trades = this.safeValue(response, 'trades', []);
+        const trades = this.safeList(response, 'trades', []);
         return this.parseTrades(trades, market, since, limit);
     }
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
@@ -797,7 +797,7 @@ export default class luno extends Exchange {
         //          "pair": "XBTEUR"
         //     }
         //
-        const ohlcvs = this.safeValue(response, 'candles', []);
+        const ohlcvs = this.safeList(response, 'candles', []);
         return this.parseOHLCVs(ohlcvs, market, timeframe, since, limit);
     }
     parseOHLCV(ohlcv, market = undefined) {
@@ -866,7 +866,7 @@ export default class luno extends Exchange {
         //          ]
         //      }
         //
-        const trades = this.safeValue(response, 'trades', []);
+        const trades = this.safeList(response, 'trades', []);
         return this.parseTrades(trades, market, since, limit);
     }
     async fetchTradingFee(symbol, params = {}) {
@@ -897,6 +897,8 @@ export default class luno extends Exchange {
             'symbol': symbol,
             'maker': this.safeNumber(response, 'maker_fee'),
             'taker': this.safeNumber(response, 'taker_fee'),
+            'percentage': undefined,
+            'tierBased': undefined,
         };
     }
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {

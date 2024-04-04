@@ -1,1952 +1,2122 @@
 {
-  "exchange": "cryptocom",
-  "options": {},
-  "methods": {
-    "createOrder": [
-      {
-        "description": "Create Spot order limit",
-        "method": "createOrder",
-        "input": [
-          "XRP/USDT",
-          "limit",
-          "buy",
-          1,
-          0.1
-        ],
-        "httpResponse": {
-          "id": 1700185827878,
-          "method": "private/create-order",
-          "code": 0,
-          "result": {
-            "client_oid": "1700185827878",
-            "order_id": "6142909896902422832"
-          }
-        },
-        "parsedResponse": {
-          "info": {
-            "client_oid": "1700185827878",
-            "order_id": "6142909896902422832"
-          },
-          "id": "6142909896902422832",
-          "clientOrderId": "1700185827878",
-          "timestamp": null,
-          "datetime": null,
-          "lastTradeTimestamp": null,
-          "status": null,
-          "symbol": "XRP/USDT",
-          "type": null,
-          "timeInForce": null,
-          "postOnly": null,
-          "side": null,
-          "price": null,
-          "amount": null,
-          "filled": null,
-          "remaining": null,
-          "average": null,
-          "cost": null,
-          "fee": {
-            "currency": null,
-            "cost": null
-          },
-          "trades": [],
-          "fees": [
+    "exchange": "cryptocom",
+    "options": {},
+    "methods": {
+        "createOrder": [
             {
-              "currency": null,
-              "cost": null
-            }
-          ],
-          "lastUpdateTimestamp": null,
-          "reduceOnly": null,
-          "stopPrice": null,
-          "triggerPrice": null,
-          "takeProfitPrice": null,
-          "stopLossPrice": null
-        }
-      },
-      {
-        "description": "createOrder Spot Market buy",
-        "method": "createOrder",
-        "input": [
-          "XRP/USDT",
-          "market",
-          "buy",
-          1
-        ],
-        "httpResponse": {
-          "id": 1700184926121,
-          "method": "private/create-order",
-          "code": 0,
-          "result": {
-            "client_oid": "1700184926121",
-            "order_id": "6142909896902261394"
-          }
-        },
-        "parsedResponse": {
-          "info": {
-            "client_oid": "1700184926121",
-            "order_id": "6142909896902261394"
-          },
-          "id": "6142909896902261394",
-          "clientOrderId": "1700184926121",
-          "timestamp": null,
-          "datetime": null,
-          "lastTradeTimestamp": null,
-          "status": null,
-          "symbol": "XRP/USDT",
-          "type": null,
-          "timeInForce": null,
-          "postOnly": null,
-          "side": null,
-          "price": null,
-          "amount": null,
-          "filled": null,
-          "remaining": null,
-          "average": null,
-          "cost": null,
-          "fee": {
-            "currency": null,
-            "cost": null
-          },
-          "trades": [],
-          "fees": [
-            {
-              "currency": null,
-              "cost": null
-            }
-          ],
-          "lastUpdateTimestamp": null,
-          "reduceOnly": null,
-          "stopPrice": null,
-          "triggerPrice": null,
-          "takeProfitPrice": null,
-          "stopLossPrice": null
-        }
-      }
-    ],
-    "cancelOrder": [
-      {
-        "description": "Cancel spot order",
-        "method": "cancelOrder",
-        "input": [
-          "6142909896903043813"
-        ],
-        "httpResponse": {
-          "id": 1700188981261,
-          "method": "private/cancel-order",
-          "code": 0,
-          "message": "NO_ERROR",
-          "result": {
-            "client_oid": "1700188955703",
-            "order_id": "6142909896903043813"
-          }
-        },
-        "parsedResponse": {
-          "info": {
-            "client_oid": "1700188955703",
-            "order_id": "6142909896903043813"
-          },
-          "id": "6142909896903043813",
-          "clientOrderId": "1700188955703",
-          "timestamp": null,
-          "datetime": null,
-          "lastTradeTimestamp": null,
-          "status": null,
-          "symbol": null,
-          "type": null,
-          "timeInForce": null,
-          "postOnly": null,
-          "side": null,
-          "price": null,
-          "amount": null,
-          "filled": null,
-          "remaining": null,
-          "average": null,
-          "cost": null,
-          "fee": {
-            "currency": null,
-            "cost": null
-          },
-          "trades": [],
-          "fees": [
-            {
-              "currency": null,
-              "cost": null
-            }
-          ],
-          "lastUpdateTimestamp": null,
-          "reduceOnly": null,
-          "stopPrice": null,
-          "triggerPrice": null,
-          "takeProfitPrice": null,
-          "stopLossPrice": null
-        }
-      }
-    ],
-    "fetchOrder": [
-      {
-        "description": "Fetch Order by id and symbol",
-        "method": "fetchOrder",
-        "input": [
-          "6142909896902261394",
-          "XRP/USDT"
-        ],
-        "httpResponse": {
-          "id": 1700188382599,
-          "method": "private/get-order-detail",
-          "code": 0,
-          "result": {
-            "account_id": "96a0edb1-afb5-4c7c-af89-5cb610319e2c",
-            "order_id": "6142909896902261394",
-            "client_oid": "1700184926121",
-            "order_type": "MARKET",
-            "time_in_force": "GOOD_TILL_CANCEL",
-            "side": "BUY",
-            "exec_inst": [],
-            "quantity": "1",
-            "order_value": "0.6497",
-            "maker_fee_rate": "0",
-            "taker_fee_rate": "0",
-            "avg_price": "0.61877",
-            "ref_price": "0",
-            "ref_price_type": "NULL_VAL",
-            "cumulative_quantity": "1",
-            "cumulative_value": "0.61877",
-            "cumulative_fee": "0.00075",
-            "status": "FILLED",
-            "update_user_id": "96a0edb1-afb5-4c7c-af89-5cb610319e2c",
-            "order_date": "2023-11-17",
-            "instrument_name": "XRP_USDT",
-            "fee_instrument_name": "XRP",
-            "create_time": 1700184926414,
-            "create_time_ns": "1700184926414072677",
-            "update_time": 1700184926413
-          }
-        },
-        "parsedResponse": {
-          "info": {
-            "account_id": "96a0edb1-afb5-4c7c-af89-5cb610319e2c",
-            "order_id": "6142909896902261394",
-            "client_oid": "1700184926121",
-            "order_type": "MARKET",
-            "time_in_force": "GOOD_TILL_CANCEL",
-            "side": "BUY",
-            "exec_inst": [],
-            "quantity": "1",
-            "order_value": "0.6497",
-            "maker_fee_rate": "0",
-            "taker_fee_rate": "0",
-            "avg_price": "0.61877",
-            "ref_price": "0",
-            "ref_price_type": "NULL_VAL",
-            "cumulative_quantity": "1",
-            "cumulative_value": "0.61877",
-            "cumulative_fee": "0.00075",
-            "status": "FILLED",
-            "update_user_id": "96a0edb1-afb5-4c7c-af89-5cb610319e2c",
-            "order_date": "2023-11-17",
-            "instrument_name": "XRP_USDT",
-            "fee_instrument_name": "XRP",
-            "create_time": 1700184926414,
-            "create_time_ns": "1700184926414072677",
-            "update_time": 1700184926413
-          },
-          "id": "6142909896902261394",
-          "clientOrderId": "1700184926121",
-          "timestamp": 1700184926414,
-          "datetime": "2023-11-17T01:35:26.414Z",
-          "lastTradeTimestamp": 1700184926413,
-          "status": "closed",
-          "symbol": "XRP/USDT",
-          "type": "market",
-          "timeInForce": "GTC",
-          "postOnly": false,
-          "side": "buy",
-          "price": 0.61877,
-          "amount": 1,
-          "filled": 1,
-          "remaining": 0,
-          "average": 0.61877,
-          "cost": 0.61877,
-          "fee": {
-            "currency": "XRP",
-            "cost": 0.00075
-          },
-          "trades": [],
-          "fees": [
-            {
-              "currency": "XRP",
-              "cost": 0.00075
-            }
-          ],
-          "lastUpdateTimestamp": null,
-          "reduceOnly": null,
-          "stopPrice": null,
-          "triggerPrice": null,
-          "takeProfitPrice": null,
-          "stopLossPrice": null
-        }
-      }
-    ],
-    "fetchTrades": [
-      {
-        "description": "fetch trades",
-        "method": "fetchTrades",
-        "input": [
-          "XRP/USDT"
-        ],
-        "httpResponse": {
-          "id": -1,
-          "method": "public/get-trades",
-          "code": 0,
-          "result": {
-            "data": [
-              {
-                "s": "sell",
-                "p": "0.61824",
-                "q": "100",
-                "t": 1700184459169,
-                "d": "1700184459169006180",
-                "i": "XRP_USDT"
-              },
-              {
-                "s": "sell",
-                "p": "0.61840",
-                "q": "100",
-                "t": 1700184475195,
-                "d": "1700184475195571110",
-                "i": "XRP_USDT"
-              },
-              {
-                "s": "sell",
-                "p": "0.61850",
-                "q": "48",
-                "t": 1700184484970,
-                "d": "1700184484970829760",
-                "i": "XRP_USDT"
-              },
-              {
-                "s": "sell",
-                "p": "0.61853",
-                "q": "1",
-                "t": 1700184525273,
-                "d": "1700184525273440568",
-                "i": "XRP_USDT"
-              },
-              {
-                "s": "buy",
-                "p": "0.61856",
-                "q": "1",
-                "t": 1700184541978,
-                "d": "1700184541978615579",
-                "i": "XRP_USDT"
-              },
-              {
-                "s": "buy",
-                "p": "0.61853",
-                "q": "1",
-                "t": 1700184559872,
-                "d": "1700184559872447022",
-                "i": "XRP_USDT"
-              },
-              {
-                "s": "sell",
-                "p": "0.61854",
-                "q": "1",
-                "t": 1700184576769,
-                "d": "1700184576769225600",
-                "i": "XRP_USDT"
-              },
-              {
-                "s": "sell",
-                "p": "0.61860",
-                "q": "57",
-                "t": 1700184600419,
-                "d": "1700184600419254091",
-                "i": "XRP_USDT"
-              },
-              {
-                "s": "sell",
-                "p": "0.61860",
-                "q": "100",
-                "t": 1700184600419,
-                "d": "1700184600419254092",
-                "i": "XRP_USDT"
-              },
-              {
-                "s": "sell",
-                "p": "0.61859",
-                "q": "1",
-                "t": 1700184614570,
-                "d": "1700184614570021654",
-                "i": "XRP_USDT"
-              },
-              {
-                "s": "sell",
-                "p": "0.61859",
-                "q": "99",
-                "t": 1700184616823,
-                "d": "1700184616823186124",
-                "i": "XRP_USDT"
-              },
-              {
-                "s": "sell",
-                "p": "0.61852",
-                "q": "100",
-                "t": 1700184649493,
-                "d": "1700184649493462112",
-                "i": "XRP_USDT"
-              },
-              {
-                "s": "buy",
-                "p": "0.61812",
-                "q": "14",
-                "t": 1700184652749,
-                "d": "1700184652749874976",
-                "i": "XRP_USDT"
-              },
-              {
-                "s": "buy",
-                "p": "0.61812",
-                "q": "1",
-                "t": 1700184653169,
-                "d": "1700184653169533908",
-                "i": "XRP_USDT"
-              },
-              {
-                "s": "sell",
-                "p": "0.61780",
-                "q": "1167",
-                "t": 1700184682582,
-                "d": "1700184682582902512",
-                "i": "XRP_USDT"
-              },
-              {
-                "s": "sell",
-                "p": "0.61780",
-                "q": "484",
-                "t": 1700184682582,
-                "d": "1700184682582902513",
-                "i": "XRP_USDT"
-              },
-              {
-                "s": "buy",
-                "p": "0.61755",
-                "q": "1",
-                "t": 1700184694269,
-                "d": "1700184694269265736",
-                "i": "XRP_USDT"
-              },
-              {
-                "s": "buy",
-                "p": "0.61764",
-                "q": "1",
-                "t": 1700184699679,
-                "d": "1700184699679530373",
-                "i": "XRP_USDT"
-              },
-              {
-                "s": "sell",
-                "p": "0.61767",
-                "q": "183",
-                "t": 1700184718127,
-                "d": "1700184718127692714",
-                "i": "XRP_USDT"
-              },
-              {
-                "s": "sell",
-                "p": "0.61782",
-                "q": "100",
-                "t": 1700184753175,
-                "d": "1700184753175562683",
-                "i": "XRP_USDT"
-              },
-              {
-                "s": "sell",
-                "p": "0.61777",
-                "q": "1",
-                "t": 1700184763869,
-                "d": "1700184763869599900",
-                "i": "XRP_USDT"
-              },
-              {
-                "s": "buy",
-                "p": "0.61778",
-                "q": "3",
-                "t": 1700184767200,
-                "d": "1700184767200390305",
-                "i": "XRP_USDT"
-              },
-              {
-                "s": "buy",
-                "p": "0.61778",
-                "q": "100",
-                "t": 1700184767224,
-                "d": "1700184767224977414",
-                "i": "XRP_USDT"
-              },
-              {
-                "s": "buy",
-                "p": "0.61778",
-                "q": "95",
-                "t": 1700184767359,
-                "d": "1700184767359775099",
-                "i": "XRP_USDT"
-              },
-              {
-                "s": "buy",
-                "p": "0.61778",
-                "q": "100",
-                "t": 1700184767359,
-                "d": "1700184767359775100",
-                "i": "XRP_USDT"
-              }
-            ]
-          }
-        },
-        "parsedResponse": [
-          {
-            "info": {
-              "s": "sell",
-              "p": "0.61824",
-              "q": "100",
-              "t": 1700184459169,
-              "d": "1700184459169006180",
-              "i": "XRP_USDT"
-            },
-            "id": "1700184459169006180",
-            "timestamp": 1700184459169,
-            "datetime": "2023-11-17T01:27:39.169Z",
-            "symbol": "XRP/USDT",
-            "order": null,
-            "side": "sell",
-            "takerOrMaker": null,
-            "price": 0.61824,
-            "amount": 100,
-            "cost": 61.824,
-            "type": null,
-            "fee": {
-              "currency": null,
-              "cost": null
-            },
-            "fees": [
-              {
-                "currency": null,
-                "cost": null
-              }
-            ]
-          },
-          {
-            "info": {
-              "s": "sell",
-              "p": "0.61840",
-              "q": "100",
-              "t": 1700184475195,
-              "d": "1700184475195571110",
-              "i": "XRP_USDT"
-            },
-            "id": "1700184475195571110",
-            "timestamp": 1700184475195,
-            "datetime": "2023-11-17T01:27:55.195Z",
-            "symbol": "XRP/USDT",
-            "order": null,
-            "side": "sell",
-            "takerOrMaker": null,
-            "price": 0.6184,
-            "amount": 100,
-            "cost": 61.84,
-            "type": null,
-            "fee": {
-              "currency": null,
-              "cost": null
-            },
-            "fees": [
-              {
-                "currency": null,
-                "cost": null
-              }
-            ]
-          },
-          {
-            "info": {
-              "s": "sell",
-              "p": "0.61850",
-              "q": "48",
-              "t": 1700184484970,
-              "d": "1700184484970829760",
-              "i": "XRP_USDT"
-            },
-            "id": "1700184484970829760",
-            "timestamp": 1700184484970,
-            "datetime": "2023-11-17T01:28:04.970Z",
-            "symbol": "XRP/USDT",
-            "order": null,
-            "side": "sell",
-            "takerOrMaker": null,
-            "price": 0.6185,
-            "amount": 48,
-            "cost": 29.688,
-            "type": null,
-            "fee": {
-              "currency": null,
-              "cost": null
-            },
-            "fees": [
-              {
-                "currency": null,
-                "cost": null
-              }
-            ]
-          },
-          {
-            "info": {
-              "s": "sell",
-              "p": "0.61853",
-              "q": "1",
-              "t": 1700184525273,
-              "d": "1700184525273440568",
-              "i": "XRP_USDT"
-            },
-            "id": "1700184525273440568",
-            "timestamp": 1700184525273,
-            "datetime": "2023-11-17T01:28:45.273Z",
-            "symbol": "XRP/USDT",
-            "order": null,
-            "side": "sell",
-            "takerOrMaker": null,
-            "price": 0.61853,
-            "amount": 1,
-            "cost": 0.61853,
-            "type": null,
-            "fee": {
-              "currency": null,
-              "cost": null
-            },
-            "fees": [
-              {
-                "currency": null,
-                "cost": null
-              }
-            ]
-          },
-          {
-            "info": {
-              "s": "buy",
-              "p": "0.61856",
-              "q": "1",
-              "t": 1700184541978,
-              "d": "1700184541978615579",
-              "i": "XRP_USDT"
-            },
-            "id": "1700184541978615579",
-            "timestamp": 1700184541978,
-            "datetime": "2023-11-17T01:29:01.978Z",
-            "symbol": "XRP/USDT",
-            "order": null,
-            "side": "buy",
-            "takerOrMaker": null,
-            "price": 0.61856,
-            "amount": 1,
-            "cost": 0.61856,
-            "type": null,
-            "fee": {
-              "currency": null,
-              "cost": null
-            },
-            "fees": [
-              {
-                "currency": null,
-                "cost": null
-              }
-            ]
-          },
-          {
-            "info": {
-              "s": "buy",
-              "p": "0.61853",
-              "q": "1",
-              "t": 1700184559872,
-              "d": "1700184559872447022",
-              "i": "XRP_USDT"
-            },
-            "id": "1700184559872447022",
-            "timestamp": 1700184559872,
-            "datetime": "2023-11-17T01:29:19.872Z",
-            "symbol": "XRP/USDT",
-            "order": null,
-            "side": "buy",
-            "takerOrMaker": null,
-            "price": 0.61853,
-            "amount": 1,
-            "cost": 0.61853,
-            "type": null,
-            "fee": {
-              "currency": null,
-              "cost": null
-            },
-            "fees": [
-              {
-                "currency": null,
-                "cost": null
-              }
-            ]
-          },
-          {
-            "info": {
-              "s": "sell",
-              "p": "0.61854",
-              "q": "1",
-              "t": 1700184576769,
-              "d": "1700184576769225600",
-              "i": "XRP_USDT"
-            },
-            "id": "1700184576769225600",
-            "timestamp": 1700184576769,
-            "datetime": "2023-11-17T01:29:36.769Z",
-            "symbol": "XRP/USDT",
-            "order": null,
-            "side": "sell",
-            "takerOrMaker": null,
-            "price": 0.61854,
-            "amount": 1,
-            "cost": 0.61854,
-            "type": null,
-            "fee": {
-              "currency": null,
-              "cost": null
-            },
-            "fees": [
-              {
-                "currency": null,
-                "cost": null
-              }
-            ]
-          },
-          {
-            "info": {
-              "s": "sell",
-              "p": "0.61860",
-              "q": "57",
-              "t": 1700184600419,
-              "d": "1700184600419254091",
-              "i": "XRP_USDT"
-            },
-            "id": "1700184600419254091",
-            "timestamp": 1700184600419,
-            "datetime": "2023-11-17T01:30:00.419Z",
-            "symbol": "XRP/USDT",
-            "order": null,
-            "side": "sell",
-            "takerOrMaker": null,
-            "price": 0.6186,
-            "amount": 57,
-            "cost": 35.2602,
-            "type": null,
-            "fee": {
-              "currency": null,
-              "cost": null
-            },
-            "fees": [
-              {
-                "currency": null,
-                "cost": null
-              }
-            ]
-          },
-          {
-            "info": {
-              "s": "sell",
-              "p": "0.61860",
-              "q": "100",
-              "t": 1700184600419,
-              "d": "1700184600419254092",
-              "i": "XRP_USDT"
-            },
-            "id": "1700184600419254092",
-            "timestamp": 1700184600419,
-            "datetime": "2023-11-17T01:30:00.419Z",
-            "symbol": "XRP/USDT",
-            "order": null,
-            "side": "sell",
-            "takerOrMaker": null,
-            "price": 0.6186,
-            "amount": 100,
-            "cost": 61.86,
-            "type": null,
-            "fee": {
-              "currency": null,
-              "cost": null
-            },
-            "fees": [
-              {
-                "currency": null,
-                "cost": null
-              }
-            ]
-          },
-          {
-            "info": {
-              "s": "sell",
-              "p": "0.61859",
-              "q": "1",
-              "t": 1700184614570,
-              "d": "1700184614570021654",
-              "i": "XRP_USDT"
-            },
-            "id": "1700184614570021654",
-            "timestamp": 1700184614570,
-            "datetime": "2023-11-17T01:30:14.570Z",
-            "symbol": "XRP/USDT",
-            "order": null,
-            "side": "sell",
-            "takerOrMaker": null,
-            "price": 0.61859,
-            "amount": 1,
-            "cost": 0.61859,
-            "type": null,
-            "fee": {
-              "currency": null,
-              "cost": null
-            },
-            "fees": [
-              {
-                "currency": null,
-                "cost": null
-              }
-            ]
-          },
-          {
-            "info": {
-              "s": "sell",
-              "p": "0.61859",
-              "q": "99",
-              "t": 1700184616823,
-              "d": "1700184616823186124",
-              "i": "XRP_USDT"
-            },
-            "id": "1700184616823186124",
-            "timestamp": 1700184616823,
-            "datetime": "2023-11-17T01:30:16.823Z",
-            "symbol": "XRP/USDT",
-            "order": null,
-            "side": "sell",
-            "takerOrMaker": null,
-            "price": 0.61859,
-            "amount": 99,
-            "cost": 61.24041,
-            "type": null,
-            "fee": {
-              "currency": null,
-              "cost": null
-            },
-            "fees": [
-              {
-                "currency": null,
-                "cost": null
-              }
-            ]
-          },
-          {
-            "info": {
-              "s": "sell",
-              "p": "0.61852",
-              "q": "100",
-              "t": 1700184649493,
-              "d": "1700184649493462112",
-              "i": "XRP_USDT"
-            },
-            "id": "1700184649493462112",
-            "timestamp": 1700184649493,
-            "datetime": "2023-11-17T01:30:49.493Z",
-            "symbol": "XRP/USDT",
-            "order": null,
-            "side": "sell",
-            "takerOrMaker": null,
-            "price": 0.61852,
-            "amount": 100,
-            "cost": 61.852,
-            "type": null,
-            "fee": {
-              "currency": null,
-              "cost": null
-            },
-            "fees": [
-              {
-                "currency": null,
-                "cost": null
-              }
-            ]
-          },
-          {
-            "info": {
-              "s": "buy",
-              "p": "0.61812",
-              "q": "14",
-              "t": 1700184652749,
-              "d": "1700184652749874976",
-              "i": "XRP_USDT"
-            },
-            "id": "1700184652749874976",
-            "timestamp": 1700184652749,
-            "datetime": "2023-11-17T01:30:52.749Z",
-            "symbol": "XRP/USDT",
-            "order": null,
-            "side": "buy",
-            "takerOrMaker": null,
-            "price": 0.61812,
-            "amount": 14,
-            "cost": 8.65368,
-            "type": null,
-            "fee": {
-              "currency": null,
-              "cost": null
-            },
-            "fees": [
-              {
-                "currency": null,
-                "cost": null
-              }
-            ]
-          },
-          {
-            "info": {
-              "s": "buy",
-              "p": "0.61812",
-              "q": "1",
-              "t": 1700184653169,
-              "d": "1700184653169533908",
-              "i": "XRP_USDT"
-            },
-            "id": "1700184653169533908",
-            "timestamp": 1700184653169,
-            "datetime": "2023-11-17T01:30:53.169Z",
-            "symbol": "XRP/USDT",
-            "order": null,
-            "side": "buy",
-            "takerOrMaker": null,
-            "price": 0.61812,
-            "amount": 1,
-            "cost": 0.61812,
-            "type": null,
-            "fee": {
-              "currency": null,
-              "cost": null
-            },
-            "fees": [
-              {
-                "currency": null,
-                "cost": null
-              }
-            ]
-          },
-          {
-            "info": {
-              "s": "sell",
-              "p": "0.61780",
-              "q": "1167",
-              "t": 1700184682582,
-              "d": "1700184682582902512",
-              "i": "XRP_USDT"
-            },
-            "id": "1700184682582902512",
-            "timestamp": 1700184682582,
-            "datetime": "2023-11-17T01:31:22.582Z",
-            "symbol": "XRP/USDT",
-            "order": null,
-            "side": "sell",
-            "takerOrMaker": null,
-            "price": 0.6178,
-            "amount": 1167,
-            "cost": 720.9726,
-            "type": null,
-            "fee": {
-              "currency": null,
-              "cost": null
-            },
-            "fees": [
-              {
-                "currency": null,
-                "cost": null
-              }
-            ]
-          },
-          {
-            "info": {
-              "s": "sell",
-              "p": "0.61780",
-              "q": "484",
-              "t": 1700184682582,
-              "d": "1700184682582902513",
-              "i": "XRP_USDT"
-            },
-            "id": "1700184682582902513",
-            "timestamp": 1700184682582,
-            "datetime": "2023-11-17T01:31:22.582Z",
-            "symbol": "XRP/USDT",
-            "order": null,
-            "side": "sell",
-            "takerOrMaker": null,
-            "price": 0.6178,
-            "amount": 484,
-            "cost": 299.0152,
-            "type": null,
-            "fee": {
-              "currency": null,
-              "cost": null
-            },
-            "fees": [
-              {
-                "currency": null,
-                "cost": null
-              }
-            ]
-          },
-          {
-            "info": {
-              "s": "buy",
-              "p": "0.61755",
-              "q": "1",
-              "t": 1700184694269,
-              "d": "1700184694269265736",
-              "i": "XRP_USDT"
-            },
-            "id": "1700184694269265736",
-            "timestamp": 1700184694269,
-            "datetime": "2023-11-17T01:31:34.269Z",
-            "symbol": "XRP/USDT",
-            "order": null,
-            "side": "buy",
-            "takerOrMaker": null,
-            "price": 0.61755,
-            "amount": 1,
-            "cost": 0.61755,
-            "type": null,
-            "fee": {
-              "currency": null,
-              "cost": null
-            },
-            "fees": [
-              {
-                "currency": null,
-                "cost": null
-              }
-            ]
-          },
-          {
-            "info": {
-              "s": "buy",
-              "p": "0.61764",
-              "q": "1",
-              "t": 1700184699679,
-              "d": "1700184699679530373",
-              "i": "XRP_USDT"
-            },
-            "id": "1700184699679530373",
-            "timestamp": 1700184699679,
-            "datetime": "2023-11-17T01:31:39.679Z",
-            "symbol": "XRP/USDT",
-            "order": null,
-            "side": "buy",
-            "takerOrMaker": null,
-            "price": 0.61764,
-            "amount": 1,
-            "cost": 0.61764,
-            "type": null,
-            "fee": {
-              "currency": null,
-              "cost": null
-            },
-            "fees": [
-              {
-                "currency": null,
-                "cost": null
-              }
-            ]
-          },
-          {
-            "info": {
-              "s": "sell",
-              "p": "0.61767",
-              "q": "183",
-              "t": 1700184718127,
-              "d": "1700184718127692714",
-              "i": "XRP_USDT"
-            },
-            "id": "1700184718127692714",
-            "timestamp": 1700184718127,
-            "datetime": "2023-11-17T01:31:58.127Z",
-            "symbol": "XRP/USDT",
-            "order": null,
-            "side": "sell",
-            "takerOrMaker": null,
-            "price": 0.61767,
-            "amount": 183,
-            "cost": 113.03361,
-            "type": null,
-            "fee": {
-              "currency": null,
-              "cost": null
-            },
-            "fees": [
-              {
-                "currency": null,
-                "cost": null
-              }
-            ]
-          },
-          {
-            "info": {
-              "s": "sell",
-              "p": "0.61782",
-              "q": "100",
-              "t": 1700184753175,
-              "d": "1700184753175562683",
-              "i": "XRP_USDT"
-            },
-            "id": "1700184753175562683",
-            "timestamp": 1700184753175,
-            "datetime": "2023-11-17T01:32:33.175Z",
-            "symbol": "XRP/USDT",
-            "order": null,
-            "side": "sell",
-            "takerOrMaker": null,
-            "price": 0.61782,
-            "amount": 100,
-            "cost": 61.782,
-            "type": null,
-            "fee": {
-              "currency": null,
-              "cost": null
-            },
-            "fees": [
-              {
-                "currency": null,
-                "cost": null
-              }
-            ]
-          },
-          {
-            "info": {
-              "s": "sell",
-              "p": "0.61777",
-              "q": "1",
-              "t": 1700184763869,
-              "d": "1700184763869599900",
-              "i": "XRP_USDT"
-            },
-            "id": "1700184763869599900",
-            "timestamp": 1700184763869,
-            "datetime": "2023-11-17T01:32:43.869Z",
-            "symbol": "XRP/USDT",
-            "order": null,
-            "side": "sell",
-            "takerOrMaker": null,
-            "price": 0.61777,
-            "amount": 1,
-            "cost": 0.61777,
-            "type": null,
-            "fee": {
-              "currency": null,
-              "cost": null
-            },
-            "fees": [
-              {
-                "currency": null,
-                "cost": null
-              }
-            ]
-          },
-          {
-            "info": {
-              "s": "buy",
-              "p": "0.61778",
-              "q": "3",
-              "t": 1700184767200,
-              "d": "1700184767200390305",
-              "i": "XRP_USDT"
-            },
-            "id": "1700184767200390305",
-            "timestamp": 1700184767200,
-            "datetime": "2023-11-17T01:32:47.200Z",
-            "symbol": "XRP/USDT",
-            "order": null,
-            "side": "buy",
-            "takerOrMaker": null,
-            "price": 0.61778,
-            "amount": 3,
-            "cost": 1.85334,
-            "type": null,
-            "fee": {
-              "currency": null,
-              "cost": null
-            },
-            "fees": [
-              {
-                "currency": null,
-                "cost": null
-              }
-            ]
-          },
-          {
-            "info": {
-              "s": "buy",
-              "p": "0.61778",
-              "q": "100",
-              "t": 1700184767224,
-              "d": "1700184767224977414",
-              "i": "XRP_USDT"
-            },
-            "id": "1700184767224977414",
-            "timestamp": 1700184767224,
-            "datetime": "2023-11-17T01:32:47.224Z",
-            "symbol": "XRP/USDT",
-            "order": null,
-            "side": "buy",
-            "takerOrMaker": null,
-            "price": 0.61778,
-            "amount": 100,
-            "cost": 61.778,
-            "type": null,
-            "fee": {
-              "currency": null,
-              "cost": null
-            },
-            "fees": [
-              {
-                "currency": null,
-                "cost": null
-              }
-            ]
-          },
-          {
-            "info": {
-              "s": "buy",
-              "p": "0.61778",
-              "q": "95",
-              "t": 1700184767359,
-              "d": "1700184767359775099",
-              "i": "XRP_USDT"
-            },
-            "id": "1700184767359775099",
-            "timestamp": 1700184767359,
-            "datetime": "2023-11-17T01:32:47.359Z",
-            "symbol": "XRP/USDT",
-            "order": null,
-            "side": "buy",
-            "takerOrMaker": null,
-            "price": 0.61778,
-            "amount": 95,
-            "cost": 58.6891,
-            "type": null,
-            "fee": {
-              "currency": null,
-              "cost": null
-            },
-            "fees": [
-              {
-                "currency": null,
-                "cost": null
-              }
-            ]
-          },
-          {
-            "info": {
-              "s": "buy",
-              "p": "0.61778",
-              "q": "100",
-              "t": 1700184767359,
-              "d": "1700184767359775100",
-              "i": "XRP_USDT"
-            },
-            "id": "1700184767359775100",
-            "timestamp": 1700184767359,
-            "datetime": "2023-11-17T01:32:47.359Z",
-            "symbol": "XRP/USDT",
-            "order": null,
-            "side": "buy",
-            "takerOrMaker": null,
-            "price": 0.61778,
-            "amount": 100,
-            "cost": 61.778,
-            "type": null,
-            "fee": {
-              "currency": null,
-              "cost": null
-            },
-            "fees": [
-              {
-                "currency": null,
-                "cost": null
-              }
-            ]
-          }
-        ]
-      }
-    ],
-    "fetchDepositAddress": [
-      {
-        "description": "Fetch Deposit Address",
-        "method": "fetchDepositAddress",
-        "input": [
-          "BTC"
-        ],
-        "httpResponse": {
-          "id": "1700185365514",
-          "method": "private/get-deposit-address",
-          "code": "0",
-          "result": {
-            "deposit_address_list": [
-              {
-                "currency": "BTC",
-                "create_time": "1700185351000",
-                "id": "4406972",
-                "address": "3KuHWhoLpKp333s1Fbo2BGS5GDKRupKykC",
-                "status": "1",
-                "network": "BTC"
-              }
-            ]
-          }
-        },
-        "parsedResponse": {
-          "info": {
-            "currency": "BTC",
-            "create_time": "1700185351000",
-            "id": "4406972",
-            "address": "3KuHWhoLpKp333s1Fbo2BGS5GDKRupKykC",
-            "status": "1",
-            "network": "BTC"
-          },
-          "currency": "BTC",
-          "address": "3KuHWhoLpKp333s1Fbo2BGS5GDKRupKykC",
-          "tag": null,
-          "network": "BTC"
-        }
-      }
-    ],
-    "fetchOrders": [
-      {
-        "description": "Fetch Orders",
-        "method": "fetchOrders",
-        "input": [],
-        "httpResponse": {
-          "id": 1700185017102,
-          "method": "private/get-order-history",
-          "code": 0,
-          "result": {
-            "data": [
-              {
-                "account_id": "96a0edb1-afb5-4c7c-3339-323333319e2c",
-                "order_id": "6142909896902261394",
-                "client_oid": "1700184926121",
-                "order_type": "MARKET",
-                "time_in_force": "GOOD_TILL_CANCEL",
-                "side": "BUY",
-                "exec_inst": [],
-                "quantity": "1",
-                "order_value": "0.6497",
-                "maker_fee_rate": "0",
-                "taker_fee_rate": "0",
-                "avg_price": "0.61877",
-                "ref_price": "0",
-                "ref_price_type": "NULL_VAL",
-                "cumulative_quantity": "1",
-                "cumulative_value": "0.61877",
-                "cumulative_fee": "0.00075",
-                "status": "FILLED",
-                "update_user_id": "96a0edb1-afb5-4c7c-3339-323333319e2c",
-                "order_date": "2023-11-17",
-                "instrument_name": "XRP_USDT",
-                "fee_instrument_name": "XRP",
-                "create_time": 1700184926414,
-                "create_time_ns": "1700184926414072677",
-                "update_time": 1700184926413
-              }
-            ]
-          }
-        },
-        "parsedResponse": [
-          {
-            "info": {
-              "account_id": "96a0edb1-afb5-4c7c-3339-323333319e2c",
-              "order_id": "6142909896902261394",
-              "client_oid": "1700184926121",
-              "order_type": "MARKET",
-              "time_in_force": "GOOD_TILL_CANCEL",
-              "side": "BUY",
-              "exec_inst": [],
-              "quantity": "1",
-              "order_value": "0.6497",
-              "maker_fee_rate": "0",
-              "taker_fee_rate": "0",
-              "avg_price": "0.61877",
-              "ref_price": "0",
-              "ref_price_type": "NULL_VAL",
-              "cumulative_quantity": "1",
-              "cumulative_value": "0.61877",
-              "cumulative_fee": "0.00075",
-              "status": "FILLED",
-              "update_user_id": "96a0edb1-afb5-4c7c-3339-323333319e2c",
-              "order_date": "2023-11-17",
-              "instrument_name": "XRP_USDT",
-              "fee_instrument_name": "XRP",
-              "create_time": 1700184926414,
-              "create_time_ns": "1700184926414072677",
-              "update_time": 1700184926413
-            },
-            "id": "6142909896902261394",
-            "clientOrderId": "1700184926121",
-            "timestamp": 1700184926414,
-            "datetime": "2023-11-17T01:35:26.414Z",
-            "lastTradeTimestamp": 1700184926413,
-            "status": "closed",
-            "symbol": "XRP/USDT",
-            "type": "market",
-            "timeInForce": "GTC",
-            "postOnly": false,
-            "side": "buy",
-            "price": 0.61877,
-            "amount": 1,
-            "filled": 1,
-            "remaining": 0,
-            "average": 0.61877,
-            "cost": 0.61877,
-            "fee": {
-              "currency": "XRP",
-              "cost": 0.00075
-            },
-            "trades": [],
-            "fees": [
-              {
-                "currency": "XRP",
-                "cost": 0.00075
-              }
-            ],
-            "lastUpdateTimestamp": null,
-            "reduceOnly": null,
-            "stopPrice": null,
-            "triggerPrice": null,
-            "takeProfitPrice": null,
-            "stopLossPrice": null
-          }
-        ]
-      }
-    ],
-    "fetchMyTrades": [
-      {
-        "description": "Fetch My Trades",
-        "method": "fetchMyTrades",
-        "input": [],
-        "httpResponse": {
-          "id": 1700184985347,
-          "method": "private/get-trades",
-          "code": 0,
-          "result": {
-            "data": [
-              {
-                "account_id": "96a0edb1-afb5-4c7c-3339-323333319e2c",
-                "event_date": "2023-11-17",
-                "journal_type": "TRADING",
-                "side": "BUY",
-                "instrument_name": "XRP_USDT",
-                "fees": "-0.00075",
-                "trade_id": "6142909902007042569",
-                "trade_match_id": "4611686018433366744",
-                "create_time": 1700184926414,
-                "traded_price": "0.61877",
-                "traded_quantity": "1",
-                "fee_instrument_name": "XRP",
-                "client_oid": "1700184926121",
-                "taker_side": "TAKER",
-                "order_id": "6142909896902261394",
-                "create_time_ns": "1700184926414072677"
-              }
-            ]
-          }
-        },
-        "parsedResponse": [
-          {
-            "info": {
-              "account_id": "96a0edb1-afb5-4c7c-3339-323333319e2c",
-              "event_date": "2023-11-17",
-              "journal_type": "TRADING",
-              "side": "BUY",
-              "instrument_name": "XRP_USDT",
-              "fees": "-0.00075",
-              "trade_id": "6142909902007042569",
-              "trade_match_id": "4611686018433366744",
-              "create_time": 1700184926414,
-              "traded_price": "0.61877",
-              "traded_quantity": "1",
-              "fee_instrument_name": "XRP",
-              "client_oid": "1700184926121",
-              "taker_side": "TAKER",
-              "order_id": "6142909896902261394",
-              "create_time_ns": "1700184926414072677"
-            },
-            "id": "6142909902007042569",
-            "timestamp": 1700184926414,
-            "datetime": "2023-11-17T01:35:26.414Z",
-            "symbol": "XRP/USDT",
-            "order": "6142909896902261394",
-            "side": "buy",
-            "takerOrMaker": "taker",
-            "price": 0.61877,
-            "amount": 1,
-            "cost": 0.61877,
-            "type": null,
-            "fee": {
-              "currency": "XRP",
-              "cost": 0.00075
-            },
-            "fees": [
-              {
-                "currency": "XRP",
-                "cost": 0.00075
-              }
-            ]
-          }
-        ]
-      }
-    ],
-    "fetchBalance": [
-      {
-        "description": "fetchBalance",
-        "method": "fetchBalance",
-        "input": [],
-        "httpResponse": {
-          "id": 1700184695140,
-          "method": "private/user-balance",
-          "code": 0,
-          "result": {
-            "data": [
-              {
-                "total_available_balance": "106.05840488",
-                "total_margin_balance": "128.61024714",
-                "total_initial_margin": "22.55184227",
-                "total_haircut": "5.84569226",
-                "total_position_im": "16.70615001",
-                "total_maintenance_margin": "11.27592113",
-                "total_position_cost": "335.768",
-                "total_cash_balance": "143.04034396",
-                "total_collateral_value": "126.19377168",
-                "total_session_unrealized_pnl": "-1.645",
-                "instrument_name": "USD",
-                "total_session_realized_pnl": "0",
-                "position_balances": [
-                  {
-                    "quantity": "0.0003999",
-                    "reserved_qty": "0",
-                    "collateral_amount": "13.07522797",
-                    "haircut": "0.1",
-                    "collateral_eligible": true,
-                    "market_value": "14.52803108",
-                    "max_withdrawal_balance": "0.0003999",
-                    "instrument_name": "BTC",
-                    "hourly_interest_rate": "0"
-                  },
-                  {
-                    "quantity": "94.3411639875",
-                    "reserved_qty": "11",
-                    "collateral_amount": "80.01391802",
-                    "haircut": "0.04",
-                    "collateral_eligible": true,
-                    "market_value": "83.34783128",
-                    "max_withdrawal_balance": "83.34116398",
-                    "instrument_name": "USDT",
-                    "hourly_interest_rate": "0"
-                  },
-                  {
-                    "quantity": "0.99625",
-                    "reserved_qty": "0",
-                    "collateral_amount": "0.04814876",
-                    "haircut": "0.5",
-                    "collateral_eligible": true,
-                    "market_value": "0.09629752",
-                    "max_withdrawal_balance": "0.99625",
-                    "instrument_name": "CRO",
-                    "hourly_interest_rate": "0"
-                  },
-                  {
-                    "quantity": "0.07109989",
-                    "reserved_qty": "0",
-                    "collateral_amount": "4.04330854",
-                    "haircut": "0.2",
-                    "collateral_eligible": true,
-                    "market_value": "5.05413568",
-                    "max_withdrawal_balance": "0.07109989",
-                    "instrument_name": "LTC",
-                    "hourly_interest_rate": "0"
-                  },
-                  {
-                    "quantity": "29.01316839415396",
-                    "reserved_qty": "0",
-                    "collateral_amount": "29.01316839",
-                    "haircut": "0",
-                    "collateral_eligible": true,
-                    "market_value": "29.01316839",
-                    "max_withdrawal_balance": "29.01316839",
-                    "instrument_name": "USD",
-                    "hourly_interest_rate": "0"
-                  }
+                "description": "Create Spot order limit",
+                "method": "createOrder",
+                "input": [
+                    "XRP/USDT",
+                    "limit",
+                    "buy",
+                    1,
+                    0.1
                 ],
-                "credit_limits": [],
-                "total_effective_leverage": "3.399024",
-                "position_limit": "12861.02471444",
-                "used_position_limit": "437.14929558",
-                "total_borrow": "0",
-                "margin_score": "0",
-                "is_liquidating": false,
-                "has_risk": true,
-                "terminatable": false
-              }
-            ]
-          }
-        },
-        "parsedResponse": {
-          "info": {
-            "id": 1700184695140,
-            "method": "private/user-balance",
-            "code": 0,
-            "result": {
-              "data": [
-                {
-                  "total_available_balance": "106.05840488",
-                  "total_margin_balance": "128.61024714",
-                  "total_initial_margin": "22.55184227",
-                  "total_haircut": "5.84569226",
-                  "total_position_im": "16.70615001",
-                  "total_maintenance_margin": "11.27592113",
-                  "total_position_cost": "335.768",
-                  "total_cash_balance": "143.04034396",
-                  "total_collateral_value": "126.19377168",
-                  "total_session_unrealized_pnl": "-1.645",
-                  "instrument_name": "USD",
-                  "total_session_realized_pnl": "0",
-                  "position_balances": [
-                    {
-                      "quantity": "0.0003999",
-                      "reserved_qty": "0",
-                      "collateral_amount": "13.07522797",
-                      "haircut": "0.1",
-                      "collateral_eligible": true,
-                      "market_value": "14.52803108",
-                      "max_withdrawal_balance": "0.0003999",
-                      "instrument_name": "BTC",
-                      "hourly_interest_rate": "0"
-                    },
-                    {
-                      "quantity": "94.3411639875",
-                      "reserved_qty": "11",
-                      "collateral_amount": "80.01391802",
-                      "haircut": "0.04",
-                      "collateral_eligible": true,
-                      "market_value": "83.34783128",
-                      "max_withdrawal_balance": "83.34116398",
-                      "instrument_name": "USDT",
-                      "hourly_interest_rate": "0"
-                    },
-                    {
-                      "quantity": "0.99625",
-                      "reserved_qty": "0",
-                      "collateral_amount": "0.04814876",
-                      "haircut": "0.5",
-                      "collateral_eligible": true,
-                      "market_value": "0.09629752",
-                      "max_withdrawal_balance": "0.99625",
-                      "instrument_name": "CRO",
-                      "hourly_interest_rate": "0"
-                    },
-                    {
-                      "quantity": "0.07109989",
-                      "reserved_qty": "0",
-                      "collateral_amount": "4.04330854",
-                      "haircut": "0.2",
-                      "collateral_eligible": true,
-                      "market_value": "5.05413568",
-                      "max_withdrawal_balance": "0.07109989",
-                      "instrument_name": "LTC",
-                      "hourly_interest_rate": "0"
-                    },
-                    {
-                      "quantity": "29.01316839415396",
-                      "reserved_qty": "0",
-                      "collateral_amount": "29.01316839",
-                      "haircut": "0",
-                      "collateral_eligible": true,
-                      "market_value": "29.01316839",
-                      "max_withdrawal_balance": "29.01316839",
-                      "instrument_name": "USD",
-                      "hourly_interest_rate": "0"
+                "httpResponse": {
+                    "id": 1700185827878,
+                    "method": "private/create-order",
+                    "code": 0,
+                    "result": {
+                        "client_oid": "1700185827878",
+                        "order_id": "6142909896902422832"
                     }
-                  ],
-                  "credit_limits": [],
-                  "total_effective_leverage": "3.399024",
-                  "position_limit": "12861.02471444",
-                  "used_position_limit": "437.14929558",
-                  "total_borrow": "0",
-                  "margin_score": "0",
-                  "is_liquidating": false,
-                  "has_risk": true,
-                  "terminatable": false
+                },
+                "parsedResponse": {
+                    "info": {
+                        "client_oid": "1700185827878",
+                        "order_id": "6142909896902422832"
+                    },
+                    "id": "6142909896902422832",
+                    "clientOrderId": "1700185827878",
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "status": null,
+                    "symbol": "XRP/USDT",
+                    "type": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "side": null,
+                    "price": null,
+                    "amount": null,
+                    "filled": null,
+                    "remaining": null,
+                    "average": null,
+                    "cost": null,
+                    "fee": {
+                        "currency": null,
+                        "cost": null
+                    },
+                    "trades": [],
+                    "fees": [
+                        {
+                            "currency": null,
+                            "cost": null
+                        }
+                    ],
+                    "lastUpdateTimestamp": null,
+                    "reduceOnly": null,
+                    "stopPrice": null,
+                    "triggerPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
                 }
-              ]
-            }
-          },
-          "BTC": {
-            "free": 0.0003999,
-            "used": 0,
-            "total": 0.0003999
-          },
-          "USDT": {
-            "free": 83.3411639875,
-            "used": 11,
-            "total": 94.3411639875
-          },
-          "CRO": {
-            "free": 0.99625,
-            "used": 0,
-            "total": 0.99625
-          },
-          "LTC": {
-            "free": 0.07109989,
-            "used": 0,
-            "total": 0.07109989
-          },
-          "USD": {
-            "free": 29.01316839415396,
-            "used": 0,
-            "total": 29.01316839415396
-          },
-          "free": {
-            "BTC": 0.0003999,
-            "USDT": 83.3411639875,
-            "CRO": 0.99625,
-            "LTC": 0.07109989,
-            "USD": 29.01316839415396
-          },
-          "used": {
-            "BTC": 0,
-            "USDT": 11,
-            "CRO": 0,
-            "LTC": 0,
-            "USD": 0
-          },
-          "total": {
-            "BTC": 0.0003999,
-            "USDT": 94.3411639875,
-            "CRO": 0.99625,
-            "LTC": 0.07109989,
-            "USD": 29.01316839415396
-          }
-        }
-      }
-    ],
-    "fetchPositions": [
-      {
-        "description": "Fetch positions",
-        "method": "fetchPositions",
-        "input": [
-          [
-            "LTC/USD:USD"
-          ]
-        ],
-        "httpResponse": {
-          "id": 1700841372136,
-          "method": "private/get-positions",
-          "code": 0,
-          "result": {
-            "data": [
-              {
-                "account_id": "96a0edb1-afb5-4c7c-af89-5cb610319e2c",
-                "quantity": "4.7",
-                "cost": "330.598",
-                "open_pos_cost": "310.16670833333336076",
-                "open_position_pnl": "14.721750955418",
-                "session_pnl": "0",
-                "update_timestamp_ms": 1700838000031,
-                "instrument_name": "LTCUSD-PERP",
-                "type": "PERPETUAL_SWAP"
-              }
-            ]
-          }
-        },
-        "parsedResponse": [
-          {
-            "info": {
-              "account_id": "96a0edb1-afb5-4c7c-af89-5cb610319e2c",
-              "quantity": "4.7",
-              "cost": "330.598",
-              "open_pos_cost": "310.16670833333336076",
-              "open_position_pnl": "14.721750955418",
-              "session_pnl": "0",
-              "update_timestamp_ms": 1700838000031,
-              "instrument_name": "LTCUSD-PERP",
-              "type": "PERPETUAL_SWAP"
             },
-            "id": null,
-            "symbol": "LTC/USD:USD",
-            "timestamp": 1700838000031,
-            "datetime": "2023-11-24T15:00:00.031Z",
-            "hedged": null,
-            "side": "buy",
-            "contracts": "4.7",
-            "contractSize": 1,
-            "entryPrice": null,
-            "markPrice": null,
-            "notional": null,
-            "leverage": null,
-            "collateral": 310.16670833333336,
-            "initialMargin": 330.598,
-            "maintenanceMargin": null,
-            "initialMarginPercentage": null,
-            "maintenanceMarginPercentage": null,
-            "unrealizedPnl": 14.721750955418,
-            "liquidationPrice": null,
-            "marginMode": null,
-            "percentage": null,
-            "marginRatio": null,
-            "stopLossPrice": null,
-            "takeProfitPrice": null
-          }
-        ]
-      }
-    ],
-    "fetchOrderBook": [
-      {
-        "description": "fetch orderbook",
-        "method": "fetchOrderBook",
-        "input": [
-          "BTC/USDT",
-          5
+            {
+                "description": "createOrder Spot Market buy",
+                "method": "createOrder",
+                "input": [
+                    "XRP/USDT",
+                    "market",
+                    "buy",
+                    1
+                ],
+                "httpResponse": {
+                    "id": 1700184926121,
+                    "method": "private/create-order",
+                    "code": 0,
+                    "result": {
+                        "client_oid": "1700184926121",
+                        "order_id": "6142909896902261394"
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "client_oid": "1700184926121",
+                        "order_id": "6142909896902261394"
+                    },
+                    "id": "6142909896902261394",
+                    "clientOrderId": "1700184926121",
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "status": null,
+                    "symbol": "XRP/USDT",
+                    "type": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "side": null,
+                    "price": null,
+                    "amount": null,
+                    "filled": null,
+                    "remaining": null,
+                    "average": null,
+                    "cost": null,
+                    "fee": {
+                        "currency": null,
+                        "cost": null
+                    },
+                    "trades": [],
+                    "fees": [
+                        {
+                            "currency": null,
+                            "cost": null
+                        }
+                    ],
+                    "lastUpdateTimestamp": null,
+                    "reduceOnly": null,
+                    "stopPrice": null,
+                    "triggerPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            }
         ],
-        "httpResponse": {
-          "id": -1,
-          "method": "public/get-book",
-          "code": 0,
-          "result": {
-            "depth": 5,
-            "data": [
-              {
-                "bids": [
-                  [
-                    "44238.31",
-                    "0.22932",
-                    "2"
-                  ],
-                  [
-                    "44236.33",
-                    "0.11424",
-                    "1"
-                  ],
-                  [
-                    "44236.30",
-                    "0.00001",
-                    "1"
-                  ],
-                  [
-                    "44233.92",
-                    "0.00681",
-                    "1"
-                  ],
-                  [
-                    "44233.24",
-                    "0.10000",
-                    "1"
-                  ]
+        "cancelOrder": [
+            {
+                "description": "Cancel spot order",
+                "method": "cancelOrder",
+                "input": [
+                    "6142909896903043813"
                 ],
-                "asks": [
-                  [
-                    "44238.32",
-                    "0.29028",
-                    "7"
-                  ],
-                  [
-                    "44239.51",
-                    "0.01358",
-                    "1"
-                  ],
-                  [
-                    "44239.52",
-                    "0.25870",
-                    "1"
-                  ],
-                  [
-                    "44240.31",
-                    "0.25870",
-                    "1"
-                  ],
-                  [
-                    "44240.38",
-                    "0.08000",
-                    "1"
-                  ]
+                "httpResponse": {
+                    "id": 1700188981261,
+                    "method": "private/cancel-order",
+                    "code": 0,
+                    "message": "NO_ERROR",
+                    "result": {
+                        "client_oid": "1700188955703",
+                        "order_id": "6142909896903043813"
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "client_oid": "1700188955703",
+                        "order_id": "6142909896903043813"
+                    },
+                    "id": "6142909896903043813",
+                    "clientOrderId": "1700188955703",
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "status": null,
+                    "symbol": null,
+                    "type": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "side": null,
+                    "price": null,
+                    "amount": null,
+                    "filled": null,
+                    "remaining": null,
+                    "average": null,
+                    "cost": null,
+                    "fee": {
+                        "currency": null,
+                        "cost": null
+                    },
+                    "trades": [],
+                    "fees": [
+                        {
+                            "currency": null,
+                            "cost": null
+                        }
+                    ],
+                    "lastUpdateTimestamp": null,
+                    "reduceOnly": null,
+                    "stopPrice": null,
+                    "triggerPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            }
+        ],
+        "fetchOrder": [
+            {
+                "description": "Fetch Order by id and symbol",
+                "method": "fetchOrder",
+                "input": [
+                    "6142909896902261394",
+                    "XRP/USDT"
                 ],
-                "t": 1704713531481
-              }
-            ],
-            "instrument_name": "BTC_USDT"
-          }
-        },
-        "parsedResponse": {
-          "symbol": "BTC/USDT",
-          "bids": [
-            [
-              44238.31,
-              0.22932,
-              2
-            ],
-            [
-              44236.33,
-              0.11424,
-              1
-            ],
-            [
-              44236.3,
-              0.00001,
-              1
-            ],
-            [
-              44233.92,
-              0.00681,
-              1
-            ],
-            [
-              44233.24,
-              0.1,
-              1
-            ]
-          ],
-          "asks": [
-            [
-              44238.32,
-              0.29028,
-              7
-            ],
-            [
-              44239.51,
-              0.01358,
-              1
-            ],
-            [
-              44239.52,
-              0.2587,
-              1
-            ],
-            [
-              44240.31,
-              0.2587,
-              1
-            ],
-            [
-              44240.38,
-              0.08,
-              1
-            ]
-          ],
-          "timestamp": 1704713531481,
-          "datetime": "2024-01-08T11:32:11.481Z",
-          "nonce": null
-        }
-      }
-    ]
-  }
+                "httpResponse": {
+                    "id": 1700188382599,
+                    "method": "private/get-order-detail",
+                    "code": 0,
+                    "result": {
+                        "account_id": "96a0edb1-afb5-4c7c-af89-5cb610319e2c",
+                        "order_id": "6142909896902261394",
+                        "client_oid": "1700184926121",
+                        "order_type": "MARKET",
+                        "time_in_force": "GOOD_TILL_CANCEL",
+                        "side": "BUY",
+                        "exec_inst": [],
+                        "quantity": "1",
+                        "order_value": "0.6497",
+                        "maker_fee_rate": "0",
+                        "taker_fee_rate": "0",
+                        "avg_price": "0.61877",
+                        "ref_price": "0",
+                        "ref_price_type": "NULL_VAL",
+                        "cumulative_quantity": "1",
+                        "cumulative_value": "0.61877",
+                        "cumulative_fee": "0.00075",
+                        "status": "FILLED",
+                        "update_user_id": "96a0edb1-afb5-4c7c-af89-5cb610319e2c",
+                        "order_date": "2023-11-17",
+                        "instrument_name": "XRP_USDT",
+                        "fee_instrument_name": "XRP",
+                        "create_time": 1700184926414,
+                        "create_time_ns": "1700184926414072677",
+                        "update_time": 1700184926413
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "account_id": "96a0edb1-afb5-4c7c-af89-5cb610319e2c",
+                        "order_id": "6142909896902261394",
+                        "client_oid": "1700184926121",
+                        "order_type": "MARKET",
+                        "time_in_force": "GOOD_TILL_CANCEL",
+                        "side": "BUY",
+                        "exec_inst": [],
+                        "quantity": "1",
+                        "order_value": "0.6497",
+                        "maker_fee_rate": "0",
+                        "taker_fee_rate": "0",
+                        "avg_price": "0.61877",
+                        "ref_price": "0",
+                        "ref_price_type": "NULL_VAL",
+                        "cumulative_quantity": "1",
+                        "cumulative_value": "0.61877",
+                        "cumulative_fee": "0.00075",
+                        "status": "FILLED",
+                        "update_user_id": "96a0edb1-afb5-4c7c-af89-5cb610319e2c",
+                        "order_date": "2023-11-17",
+                        "instrument_name": "XRP_USDT",
+                        "fee_instrument_name": "XRP",
+                        "create_time": 1700184926414,
+                        "create_time_ns": "1700184926414072677",
+                        "update_time": 1700184926413
+                    },
+                    "id": "6142909896902261394",
+                    "clientOrderId": "1700184926121",
+                    "timestamp": 1700184926414,
+                    "datetime": "2023-11-17T01:35:26.414Z",
+                    "lastTradeTimestamp": 1700184926413,
+                    "status": "closed",
+                    "symbol": "XRP/USDT",
+                    "type": "market",
+                    "timeInForce": "GTC",
+                    "postOnly": false,
+                    "side": "buy",
+                    "price": 0.61877,
+                    "amount": 1,
+                    "filled": 1,
+                    "remaining": 0,
+                    "average": 0.61877,
+                    "cost": 0.61877,
+                    "fee": {
+                        "currency": "XRP",
+                        "cost": 0.00075
+                    },
+                    "trades": [],
+                    "fees": [
+                        {
+                            "currency": "XRP",
+                            "cost": 0.00075
+                        }
+                    ],
+                    "lastUpdateTimestamp": null,
+                    "reduceOnly": null,
+                    "stopPrice": null,
+                    "triggerPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "fetch trades",
+                "method": "fetchTrades",
+                "input": [
+                    "XRP/USDT"
+                ],
+                "httpResponse": {
+                    "id": -1,
+                    "method": "public/get-trades",
+                    "code": 0,
+                    "result": {
+                        "data": [
+                            {
+                                "s": "sell",
+                                "p": "0.61824",
+                                "q": "100",
+                                "t": 1700184459169,
+                                "d": "1700184459169006180",
+                                "i": "XRP_USDT"
+                            },
+                            {
+                                "s": "sell",
+                                "p": "0.61840",
+                                "q": "100",
+                                "t": 1700184475195,
+                                "d": "1700184475195571110",
+                                "i": "XRP_USDT"
+                            },
+                            {
+                                "s": "sell",
+                                "p": "0.61850",
+                                "q": "48",
+                                "t": 1700184484970,
+                                "d": "1700184484970829760",
+                                "i": "XRP_USDT"
+                            },
+                            {
+                                "s": "sell",
+                                "p": "0.61853",
+                                "q": "1",
+                                "t": 1700184525273,
+                                "d": "1700184525273440568",
+                                "i": "XRP_USDT"
+                            },
+                            {
+                                "s": "buy",
+                                "p": "0.61856",
+                                "q": "1",
+                                "t": 1700184541978,
+                                "d": "1700184541978615579",
+                                "i": "XRP_USDT"
+                            },
+                            {
+                                "s": "buy",
+                                "p": "0.61853",
+                                "q": "1",
+                                "t": 1700184559872,
+                                "d": "1700184559872447022",
+                                "i": "XRP_USDT"
+                            },
+                            {
+                                "s": "sell",
+                                "p": "0.61854",
+                                "q": "1",
+                                "t": 1700184576769,
+                                "d": "1700184576769225600",
+                                "i": "XRP_USDT"
+                            },
+                            {
+                                "s": "sell",
+                                "p": "0.61860",
+                                "q": "57",
+                                "t": 1700184600419,
+                                "d": "1700184600419254091",
+                                "i": "XRP_USDT"
+                            },
+                            {
+                                "s": "sell",
+                                "p": "0.61860",
+                                "q": "100",
+                                "t": 1700184600419,
+                                "d": "1700184600419254092",
+                                "i": "XRP_USDT"
+                            },
+                            {
+                                "s": "sell",
+                                "p": "0.61859",
+                                "q": "1",
+                                "t": 1700184614570,
+                                "d": "1700184614570021654",
+                                "i": "XRP_USDT"
+                            },
+                            {
+                                "s": "sell",
+                                "p": "0.61859",
+                                "q": "99",
+                                "t": 1700184616823,
+                                "d": "1700184616823186124",
+                                "i": "XRP_USDT"
+                            },
+                            {
+                                "s": "sell",
+                                "p": "0.61852",
+                                "q": "100",
+                                "t": 1700184649493,
+                                "d": "1700184649493462112",
+                                "i": "XRP_USDT"
+                            },
+                            {
+                                "s": "buy",
+                                "p": "0.61812",
+                                "q": "14",
+                                "t": 1700184652749,
+                                "d": "1700184652749874976",
+                                "i": "XRP_USDT"
+                            },
+                            {
+                                "s": "buy",
+                                "p": "0.61812",
+                                "q": "1",
+                                "t": 1700184653169,
+                                "d": "1700184653169533908",
+                                "i": "XRP_USDT"
+                            },
+                            {
+                                "s": "sell",
+                                "p": "0.61780",
+                                "q": "1167",
+                                "t": 1700184682582,
+                                "d": "1700184682582902512",
+                                "i": "XRP_USDT"
+                            },
+                            {
+                                "s": "sell",
+                                "p": "0.61780",
+                                "q": "484",
+                                "t": 1700184682582,
+                                "d": "1700184682582902513",
+                                "i": "XRP_USDT"
+                            },
+                            {
+                                "s": "buy",
+                                "p": "0.61755",
+                                "q": "1",
+                                "t": 1700184694269,
+                                "d": "1700184694269265736",
+                                "i": "XRP_USDT"
+                            },
+                            {
+                                "s": "buy",
+                                "p": "0.61764",
+                                "q": "1",
+                                "t": 1700184699679,
+                                "d": "1700184699679530373",
+                                "i": "XRP_USDT"
+                            },
+                            {
+                                "s": "sell",
+                                "p": "0.61767",
+                                "q": "183",
+                                "t": 1700184718127,
+                                "d": "1700184718127692714",
+                                "i": "XRP_USDT"
+                            },
+                            {
+                                "s": "sell",
+                                "p": "0.61782",
+                                "q": "100",
+                                "t": 1700184753175,
+                                "d": "1700184753175562683",
+                                "i": "XRP_USDT"
+                            },
+                            {
+                                "s": "sell",
+                                "p": "0.61777",
+                                "q": "1",
+                                "t": 1700184763869,
+                                "d": "1700184763869599900",
+                                "i": "XRP_USDT"
+                            },
+                            {
+                                "s": "buy",
+                                "p": "0.61778",
+                                "q": "3",
+                                "t": 1700184767200,
+                                "d": "1700184767200390305",
+                                "i": "XRP_USDT"
+                            },
+                            {
+                                "s": "buy",
+                                "p": "0.61778",
+                                "q": "100",
+                                "t": 1700184767224,
+                                "d": "1700184767224977414",
+                                "i": "XRP_USDT"
+                            },
+                            {
+                                "s": "buy",
+                                "p": "0.61778",
+                                "q": "95",
+                                "t": 1700184767359,
+                                "d": "1700184767359775099",
+                                "i": "XRP_USDT"
+                            },
+                            {
+                                "s": "buy",
+                                "p": "0.61778",
+                                "q": "100",
+                                "t": 1700184767359,
+                                "d": "1700184767359775100",
+                                "i": "XRP_USDT"
+                            }
+                        ]
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "s": "sell",
+                            "p": "0.61824",
+                            "q": "100",
+                            "t": 1700184459169,
+                            "d": "1700184459169006180",
+                            "i": "XRP_USDT"
+                        },
+                        "id": "1700184459169006180",
+                        "timestamp": 1700184459169,
+                        "datetime": "2023-11-17T01:27:39.169Z",
+                        "symbol": "XRP/USDT",
+                        "order": null,
+                        "side": "sell",
+                        "takerOrMaker": null,
+                        "price": 0.61824,
+                        "amount": 100,
+                        "cost": 61.824,
+                        "type": null,
+                        "fee": {
+                            "currency": null,
+                            "cost": null
+                        },
+                        "fees": [
+                            {
+                                "currency": null,
+                                "cost": null
+                            }
+                        ]
+                    },
+                    {
+                        "info": {
+                            "s": "sell",
+                            "p": "0.61840",
+                            "q": "100",
+                            "t": 1700184475195,
+                            "d": "1700184475195571110",
+                            "i": "XRP_USDT"
+                        },
+                        "id": "1700184475195571110",
+                        "timestamp": 1700184475195,
+                        "datetime": "2023-11-17T01:27:55.195Z",
+                        "symbol": "XRP/USDT",
+                        "order": null,
+                        "side": "sell",
+                        "takerOrMaker": null,
+                        "price": 0.6184,
+                        "amount": 100,
+                        "cost": 61.84,
+                        "type": null,
+                        "fee": {
+                            "currency": null,
+                            "cost": null
+                        },
+                        "fees": [
+                            {
+                                "currency": null,
+                                "cost": null
+                            }
+                        ]
+                    },
+                    {
+                        "info": {
+                            "s": "sell",
+                            "p": "0.61850",
+                            "q": "48",
+                            "t": 1700184484970,
+                            "d": "1700184484970829760",
+                            "i": "XRP_USDT"
+                        },
+                        "id": "1700184484970829760",
+                        "timestamp": 1700184484970,
+                        "datetime": "2023-11-17T01:28:04.970Z",
+                        "symbol": "XRP/USDT",
+                        "order": null,
+                        "side": "sell",
+                        "takerOrMaker": null,
+                        "price": 0.6185,
+                        "amount": 48,
+                        "cost": 29.688,
+                        "type": null,
+                        "fee": {
+                            "currency": null,
+                            "cost": null
+                        },
+                        "fees": [
+                            {
+                                "currency": null,
+                                "cost": null
+                            }
+                        ]
+                    },
+                    {
+                        "info": {
+                            "s": "sell",
+                            "p": "0.61853",
+                            "q": "1",
+                            "t": 1700184525273,
+                            "d": "1700184525273440568",
+                            "i": "XRP_USDT"
+                        },
+                        "id": "1700184525273440568",
+                        "timestamp": 1700184525273,
+                        "datetime": "2023-11-17T01:28:45.273Z",
+                        "symbol": "XRP/USDT",
+                        "order": null,
+                        "side": "sell",
+                        "takerOrMaker": null,
+                        "price": 0.61853,
+                        "amount": 1,
+                        "cost": 0.61853,
+                        "type": null,
+                        "fee": {
+                            "currency": null,
+                            "cost": null
+                        },
+                        "fees": [
+                            {
+                                "currency": null,
+                                "cost": null
+                            }
+                        ]
+                    },
+                    {
+                        "info": {
+                            "s": "buy",
+                            "p": "0.61856",
+                            "q": "1",
+                            "t": 1700184541978,
+                            "d": "1700184541978615579",
+                            "i": "XRP_USDT"
+                        },
+                        "id": "1700184541978615579",
+                        "timestamp": 1700184541978,
+                        "datetime": "2023-11-17T01:29:01.978Z",
+                        "symbol": "XRP/USDT",
+                        "order": null,
+                        "side": "buy",
+                        "takerOrMaker": null,
+                        "price": 0.61856,
+                        "amount": 1,
+                        "cost": 0.61856,
+                        "type": null,
+                        "fee": {
+                            "currency": null,
+                            "cost": null
+                        },
+                        "fees": [
+                            {
+                                "currency": null,
+                                "cost": null
+                            }
+                        ]
+                    },
+                    {
+                        "info": {
+                            "s": "buy",
+                            "p": "0.61853",
+                            "q": "1",
+                            "t": 1700184559872,
+                            "d": "1700184559872447022",
+                            "i": "XRP_USDT"
+                        },
+                        "id": "1700184559872447022",
+                        "timestamp": 1700184559872,
+                        "datetime": "2023-11-17T01:29:19.872Z",
+                        "symbol": "XRP/USDT",
+                        "order": null,
+                        "side": "buy",
+                        "takerOrMaker": null,
+                        "price": 0.61853,
+                        "amount": 1,
+                        "cost": 0.61853,
+                        "type": null,
+                        "fee": {
+                            "currency": null,
+                            "cost": null
+                        },
+                        "fees": [
+                            {
+                                "currency": null,
+                                "cost": null
+                            }
+                        ]
+                    },
+                    {
+                        "info": {
+                            "s": "sell",
+                            "p": "0.61854",
+                            "q": "1",
+                            "t": 1700184576769,
+                            "d": "1700184576769225600",
+                            "i": "XRP_USDT"
+                        },
+                        "id": "1700184576769225600",
+                        "timestamp": 1700184576769,
+                        "datetime": "2023-11-17T01:29:36.769Z",
+                        "symbol": "XRP/USDT",
+                        "order": null,
+                        "side": "sell",
+                        "takerOrMaker": null,
+                        "price": 0.61854,
+                        "amount": 1,
+                        "cost": 0.61854,
+                        "type": null,
+                        "fee": {
+                            "currency": null,
+                            "cost": null
+                        },
+                        "fees": [
+                            {
+                                "currency": null,
+                                "cost": null
+                            }
+                        ]
+                    },
+                    {
+                        "info": {
+                            "s": "sell",
+                            "p": "0.61860",
+                            "q": "57",
+                            "t": 1700184600419,
+                            "d": "1700184600419254091",
+                            "i": "XRP_USDT"
+                        },
+                        "id": "1700184600419254091",
+                        "timestamp": 1700184600419,
+                        "datetime": "2023-11-17T01:30:00.419Z",
+                        "symbol": "XRP/USDT",
+                        "order": null,
+                        "side": "sell",
+                        "takerOrMaker": null,
+                        "price": 0.6186,
+                        "amount": 57,
+                        "cost": 35.2602,
+                        "type": null,
+                        "fee": {
+                            "currency": null,
+                            "cost": null
+                        },
+                        "fees": [
+                            {
+                                "currency": null,
+                                "cost": null
+                            }
+                        ]
+                    },
+                    {
+                        "info": {
+                            "s": "sell",
+                            "p": "0.61860",
+                            "q": "100",
+                            "t": 1700184600419,
+                            "d": "1700184600419254092",
+                            "i": "XRP_USDT"
+                        },
+                        "id": "1700184600419254092",
+                        "timestamp": 1700184600419,
+                        "datetime": "2023-11-17T01:30:00.419Z",
+                        "symbol": "XRP/USDT",
+                        "order": null,
+                        "side": "sell",
+                        "takerOrMaker": null,
+                        "price": 0.6186,
+                        "amount": 100,
+                        "cost": 61.86,
+                        "type": null,
+                        "fee": {
+                            "currency": null,
+                            "cost": null
+                        },
+                        "fees": [
+                            {
+                                "currency": null,
+                                "cost": null
+                            }
+                        ]
+                    },
+                    {
+                        "info": {
+                            "s": "sell",
+                            "p": "0.61859",
+                            "q": "1",
+                            "t": 1700184614570,
+                            "d": "1700184614570021654",
+                            "i": "XRP_USDT"
+                        },
+                        "id": "1700184614570021654",
+                        "timestamp": 1700184614570,
+                        "datetime": "2023-11-17T01:30:14.570Z",
+                        "symbol": "XRP/USDT",
+                        "order": null,
+                        "side": "sell",
+                        "takerOrMaker": null,
+                        "price": 0.61859,
+                        "amount": 1,
+                        "cost": 0.61859,
+                        "type": null,
+                        "fee": {
+                            "currency": null,
+                            "cost": null
+                        },
+                        "fees": [
+                            {
+                                "currency": null,
+                                "cost": null
+                            }
+                        ]
+                    },
+                    {
+                        "info": {
+                            "s": "sell",
+                            "p": "0.61859",
+                            "q": "99",
+                            "t": 1700184616823,
+                            "d": "1700184616823186124",
+                            "i": "XRP_USDT"
+                        },
+                        "id": "1700184616823186124",
+                        "timestamp": 1700184616823,
+                        "datetime": "2023-11-17T01:30:16.823Z",
+                        "symbol": "XRP/USDT",
+                        "order": null,
+                        "side": "sell",
+                        "takerOrMaker": null,
+                        "price": 0.61859,
+                        "amount": 99,
+                        "cost": 61.24041,
+                        "type": null,
+                        "fee": {
+                            "currency": null,
+                            "cost": null
+                        },
+                        "fees": [
+                            {
+                                "currency": null,
+                                "cost": null
+                            }
+                        ]
+                    },
+                    {
+                        "info": {
+                            "s": "sell",
+                            "p": "0.61852",
+                            "q": "100",
+                            "t": 1700184649493,
+                            "d": "1700184649493462112",
+                            "i": "XRP_USDT"
+                        },
+                        "id": "1700184649493462112",
+                        "timestamp": 1700184649493,
+                        "datetime": "2023-11-17T01:30:49.493Z",
+                        "symbol": "XRP/USDT",
+                        "order": null,
+                        "side": "sell",
+                        "takerOrMaker": null,
+                        "price": 0.61852,
+                        "amount": 100,
+                        "cost": 61.852,
+                        "type": null,
+                        "fee": {
+                            "currency": null,
+                            "cost": null
+                        },
+                        "fees": [
+                            {
+                                "currency": null,
+                                "cost": null
+                            }
+                        ]
+                    },
+                    {
+                        "info": {
+                            "s": "buy",
+                            "p": "0.61812",
+                            "q": "14",
+                            "t": 1700184652749,
+                            "d": "1700184652749874976",
+                            "i": "XRP_USDT"
+                        },
+                        "id": "1700184652749874976",
+                        "timestamp": 1700184652749,
+                        "datetime": "2023-11-17T01:30:52.749Z",
+                        "symbol": "XRP/USDT",
+                        "order": null,
+                        "side": "buy",
+                        "takerOrMaker": null,
+                        "price": 0.61812,
+                        "amount": 14,
+                        "cost": 8.65368,
+                        "type": null,
+                        "fee": {
+                            "currency": null,
+                            "cost": null
+                        },
+                        "fees": [
+                            {
+                                "currency": null,
+                                "cost": null
+                            }
+                        ]
+                    },
+                    {
+                        "info": {
+                            "s": "buy",
+                            "p": "0.61812",
+                            "q": "1",
+                            "t": 1700184653169,
+                            "d": "1700184653169533908",
+                            "i": "XRP_USDT"
+                        },
+                        "id": "1700184653169533908",
+                        "timestamp": 1700184653169,
+                        "datetime": "2023-11-17T01:30:53.169Z",
+                        "symbol": "XRP/USDT",
+                        "order": null,
+                        "side": "buy",
+                        "takerOrMaker": null,
+                        "price": 0.61812,
+                        "amount": 1,
+                        "cost": 0.61812,
+                        "type": null,
+                        "fee": {
+                            "currency": null,
+                            "cost": null
+                        },
+                        "fees": [
+                            {
+                                "currency": null,
+                                "cost": null
+                            }
+                        ]
+                    },
+                    {
+                        "info": {
+                            "s": "sell",
+                            "p": "0.61780",
+                            "q": "1167",
+                            "t": 1700184682582,
+                            "d": "1700184682582902512",
+                            "i": "XRP_USDT"
+                        },
+                        "id": "1700184682582902512",
+                        "timestamp": 1700184682582,
+                        "datetime": "2023-11-17T01:31:22.582Z",
+                        "symbol": "XRP/USDT",
+                        "order": null,
+                        "side": "sell",
+                        "takerOrMaker": null,
+                        "price": 0.6178,
+                        "amount": 1167,
+                        "cost": 720.9726,
+                        "type": null,
+                        "fee": {
+                            "currency": null,
+                            "cost": null
+                        },
+                        "fees": [
+                            {
+                                "currency": null,
+                                "cost": null
+                            }
+                        ]
+                    },
+                    {
+                        "info": {
+                            "s": "sell",
+                            "p": "0.61780",
+                            "q": "484",
+                            "t": 1700184682582,
+                            "d": "1700184682582902513",
+                            "i": "XRP_USDT"
+                        },
+                        "id": "1700184682582902513",
+                        "timestamp": 1700184682582,
+                        "datetime": "2023-11-17T01:31:22.582Z",
+                        "symbol": "XRP/USDT",
+                        "order": null,
+                        "side": "sell",
+                        "takerOrMaker": null,
+                        "price": 0.6178,
+                        "amount": 484,
+                        "cost": 299.0152,
+                        "type": null,
+                        "fee": {
+                            "currency": null,
+                            "cost": null
+                        },
+                        "fees": [
+                            {
+                                "currency": null,
+                                "cost": null
+                            }
+                        ]
+                    },
+                    {
+                        "info": {
+                            "s": "buy",
+                            "p": "0.61755",
+                            "q": "1",
+                            "t": 1700184694269,
+                            "d": "1700184694269265736",
+                            "i": "XRP_USDT"
+                        },
+                        "id": "1700184694269265736",
+                        "timestamp": 1700184694269,
+                        "datetime": "2023-11-17T01:31:34.269Z",
+                        "symbol": "XRP/USDT",
+                        "order": null,
+                        "side": "buy",
+                        "takerOrMaker": null,
+                        "price": 0.61755,
+                        "amount": 1,
+                        "cost": 0.61755,
+                        "type": null,
+                        "fee": {
+                            "currency": null,
+                            "cost": null
+                        },
+                        "fees": [
+                            {
+                                "currency": null,
+                                "cost": null
+                            }
+                        ]
+                    },
+                    {
+                        "info": {
+                            "s": "buy",
+                            "p": "0.61764",
+                            "q": "1",
+                            "t": 1700184699679,
+                            "d": "1700184699679530373",
+                            "i": "XRP_USDT"
+                        },
+                        "id": "1700184699679530373",
+                        "timestamp": 1700184699679,
+                        "datetime": "2023-11-17T01:31:39.679Z",
+                        "symbol": "XRP/USDT",
+                        "order": null,
+                        "side": "buy",
+                        "takerOrMaker": null,
+                        "price": 0.61764,
+                        "amount": 1,
+                        "cost": 0.61764,
+                        "type": null,
+                        "fee": {
+                            "currency": null,
+                            "cost": null
+                        },
+                        "fees": [
+                            {
+                                "currency": null,
+                                "cost": null
+                            }
+                        ]
+                    },
+                    {
+                        "info": {
+                            "s": "sell",
+                            "p": "0.61767",
+                            "q": "183",
+                            "t": 1700184718127,
+                            "d": "1700184718127692714",
+                            "i": "XRP_USDT"
+                        },
+                        "id": "1700184718127692714",
+                        "timestamp": 1700184718127,
+                        "datetime": "2023-11-17T01:31:58.127Z",
+                        "symbol": "XRP/USDT",
+                        "order": null,
+                        "side": "sell",
+                        "takerOrMaker": null,
+                        "price": 0.61767,
+                        "amount": 183,
+                        "cost": 113.03361,
+                        "type": null,
+                        "fee": {
+                            "currency": null,
+                            "cost": null
+                        },
+                        "fees": [
+                            {
+                                "currency": null,
+                                "cost": null
+                            }
+                        ]
+                    },
+                    {
+                        "info": {
+                            "s": "sell",
+                            "p": "0.61782",
+                            "q": "100",
+                            "t": 1700184753175,
+                            "d": "1700184753175562683",
+                            "i": "XRP_USDT"
+                        },
+                        "id": "1700184753175562683",
+                        "timestamp": 1700184753175,
+                        "datetime": "2023-11-17T01:32:33.175Z",
+                        "symbol": "XRP/USDT",
+                        "order": null,
+                        "side": "sell",
+                        "takerOrMaker": null,
+                        "price": 0.61782,
+                        "amount": 100,
+                        "cost": 61.782,
+                        "type": null,
+                        "fee": {
+                            "currency": null,
+                            "cost": null
+                        },
+                        "fees": [
+                            {
+                                "currency": null,
+                                "cost": null
+                            }
+                        ]
+                    },
+                    {
+                        "info": {
+                            "s": "sell",
+                            "p": "0.61777",
+                            "q": "1",
+                            "t": 1700184763869,
+                            "d": "1700184763869599900",
+                            "i": "XRP_USDT"
+                        },
+                        "id": "1700184763869599900",
+                        "timestamp": 1700184763869,
+                        "datetime": "2023-11-17T01:32:43.869Z",
+                        "symbol": "XRP/USDT",
+                        "order": null,
+                        "side": "sell",
+                        "takerOrMaker": null,
+                        "price": 0.61777,
+                        "amount": 1,
+                        "cost": 0.61777,
+                        "type": null,
+                        "fee": {
+                            "currency": null,
+                            "cost": null
+                        },
+                        "fees": [
+                            {
+                                "currency": null,
+                                "cost": null
+                            }
+                        ]
+                    },
+                    {
+                        "info": {
+                            "s": "buy",
+                            "p": "0.61778",
+                            "q": "3",
+                            "t": 1700184767200,
+                            "d": "1700184767200390305",
+                            "i": "XRP_USDT"
+                        },
+                        "id": "1700184767200390305",
+                        "timestamp": 1700184767200,
+                        "datetime": "2023-11-17T01:32:47.200Z",
+                        "symbol": "XRP/USDT",
+                        "order": null,
+                        "side": "buy",
+                        "takerOrMaker": null,
+                        "price": 0.61778,
+                        "amount": 3,
+                        "cost": 1.85334,
+                        "type": null,
+                        "fee": {
+                            "currency": null,
+                            "cost": null
+                        },
+                        "fees": [
+                            {
+                                "currency": null,
+                                "cost": null
+                            }
+                        ]
+                    },
+                    {
+                        "info": {
+                            "s": "buy",
+                            "p": "0.61778",
+                            "q": "100",
+                            "t": 1700184767224,
+                            "d": "1700184767224977414",
+                            "i": "XRP_USDT"
+                        },
+                        "id": "1700184767224977414",
+                        "timestamp": 1700184767224,
+                        "datetime": "2023-11-17T01:32:47.224Z",
+                        "symbol": "XRP/USDT",
+                        "order": null,
+                        "side": "buy",
+                        "takerOrMaker": null,
+                        "price": 0.61778,
+                        "amount": 100,
+                        "cost": 61.778,
+                        "type": null,
+                        "fee": {
+                            "currency": null,
+                            "cost": null
+                        },
+                        "fees": [
+                            {
+                                "currency": null,
+                                "cost": null
+                            }
+                        ]
+                    },
+                    {
+                        "info": {
+                            "s": "buy",
+                            "p": "0.61778",
+                            "q": "95",
+                            "t": 1700184767359,
+                            "d": "1700184767359775099",
+                            "i": "XRP_USDT"
+                        },
+                        "id": "1700184767359775099",
+                        "timestamp": 1700184767359,
+                        "datetime": "2023-11-17T01:32:47.359Z",
+                        "symbol": "XRP/USDT",
+                        "order": null,
+                        "side": "buy",
+                        "takerOrMaker": null,
+                        "price": 0.61778,
+                        "amount": 95,
+                        "cost": 58.6891,
+                        "type": null,
+                        "fee": {
+                            "currency": null,
+                            "cost": null
+                        },
+                        "fees": [
+                            {
+                                "currency": null,
+                                "cost": null
+                            }
+                        ]
+                    },
+                    {
+                        "info": {
+                            "s": "buy",
+                            "p": "0.61778",
+                            "q": "100",
+                            "t": 1700184767359,
+                            "d": "1700184767359775100",
+                            "i": "XRP_USDT"
+                        },
+                        "id": "1700184767359775100",
+                        "timestamp": 1700184767359,
+                        "datetime": "2023-11-17T01:32:47.359Z",
+                        "symbol": "XRP/USDT",
+                        "order": null,
+                        "side": "buy",
+                        "takerOrMaker": null,
+                        "price": 0.61778,
+                        "amount": 100,
+                        "cost": 61.778,
+                        "type": null,
+                        "fee": {
+                            "currency": null,
+                            "cost": null
+                        },
+                        "fees": [
+                            {
+                                "currency": null,
+                                "cost": null
+                            }
+                        ]
+                    }
+                ]
+            }
+        ],
+        "fetchDepositAddress": [
+            {
+                "description": "Fetch Deposit Address",
+                "method": "fetchDepositAddress",
+                "input": [
+                    "BTC"
+                ],
+                "httpResponse": {
+                    "id": "1700185365514",
+                    "method": "private/get-deposit-address",
+                    "code": "0",
+                    "result": {
+                        "deposit_address_list": [
+                            {
+                                "currency": "BTC",
+                                "create_time": "1700185351000",
+                                "id": "4406972",
+                                "address": "3KuHWhoLpKp333s1Fbo2BGS5GDKRupKykC",
+                                "status": "1",
+                                "network": "BTC"
+                            }
+                        ]
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "currency": "BTC",
+                        "create_time": "1700185351000",
+                        "id": "4406972",
+                        "address": "3KuHWhoLpKp333s1Fbo2BGS5GDKRupKykC",
+                        "status": "1",
+                        "network": "BTC"
+                    },
+                    "currency": "BTC",
+                    "address": "3KuHWhoLpKp333s1Fbo2BGS5GDKRupKykC",
+                    "tag": null,
+                    "network": "BTC"
+                }
+            }
+        ],
+        "fetchOrders": [
+            {
+                "description": "Fetch Orders",
+                "method": "fetchOrders",
+                "input": [],
+                "httpResponse": {
+                    "id": 1700185017102,
+                    "method": "private/get-order-history",
+                    "code": 0,
+                    "result": {
+                        "data": [
+                            {
+                                "account_id": "96a0edb1-afb5-4c7c-3339-323333319e2c",
+                                "order_id": "6142909896902261394",
+                                "client_oid": "1700184926121",
+                                "order_type": "MARKET",
+                                "time_in_force": "GOOD_TILL_CANCEL",
+                                "side": "BUY",
+                                "exec_inst": [],
+                                "quantity": "1",
+                                "order_value": "0.6497",
+                                "maker_fee_rate": "0",
+                                "taker_fee_rate": "0",
+                                "avg_price": "0.61877",
+                                "ref_price": "0",
+                                "ref_price_type": "NULL_VAL",
+                                "cumulative_quantity": "1",
+                                "cumulative_value": "0.61877",
+                                "cumulative_fee": "0.00075",
+                                "status": "FILLED",
+                                "update_user_id": "96a0edb1-afb5-4c7c-3339-323333319e2c",
+                                "order_date": "2023-11-17",
+                                "instrument_name": "XRP_USDT",
+                                "fee_instrument_name": "XRP",
+                                "create_time": 1700184926414,
+                                "create_time_ns": "1700184926414072677",
+                                "update_time": 1700184926413
+                            }
+                        ]
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "account_id": "96a0edb1-afb5-4c7c-3339-323333319e2c",
+                            "order_id": "6142909896902261394",
+                            "client_oid": "1700184926121",
+                            "order_type": "MARKET",
+                            "time_in_force": "GOOD_TILL_CANCEL",
+                            "side": "BUY",
+                            "exec_inst": [],
+                            "quantity": "1",
+                            "order_value": "0.6497",
+                            "maker_fee_rate": "0",
+                            "taker_fee_rate": "0",
+                            "avg_price": "0.61877",
+                            "ref_price": "0",
+                            "ref_price_type": "NULL_VAL",
+                            "cumulative_quantity": "1",
+                            "cumulative_value": "0.61877",
+                            "cumulative_fee": "0.00075",
+                            "status": "FILLED",
+                            "update_user_id": "96a0edb1-afb5-4c7c-3339-323333319e2c",
+                            "order_date": "2023-11-17",
+                            "instrument_name": "XRP_USDT",
+                            "fee_instrument_name": "XRP",
+                            "create_time": 1700184926414,
+                            "create_time_ns": "1700184926414072677",
+                            "update_time": 1700184926413
+                        },
+                        "id": "6142909896902261394",
+                        "clientOrderId": "1700184926121",
+                        "timestamp": 1700184926414,
+                        "datetime": "2023-11-17T01:35:26.414Z",
+                        "lastTradeTimestamp": 1700184926413,
+                        "status": "closed",
+                        "symbol": "XRP/USDT",
+                        "type": "market",
+                        "timeInForce": "GTC",
+                        "postOnly": false,
+                        "side": "buy",
+                        "price": 0.61877,
+                        "amount": 1,
+                        "filled": 1,
+                        "remaining": 0,
+                        "average": 0.61877,
+                        "cost": 0.61877,
+                        "fee": {
+                            "currency": "XRP",
+                            "cost": 0.00075
+                        },
+                        "trades": [],
+                        "fees": [
+                            {
+                                "currency": "XRP",
+                                "cost": 0.00075
+                            }
+                        ],
+                        "lastUpdateTimestamp": null,
+                        "reduceOnly": null,
+                        "stopPrice": null,
+                        "triggerPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null
+                    }
+                ]
+            }
+        ],
+        "fetchMyTrades": [
+            {
+                "description": "Fetch My Trades",
+                "method": "fetchMyTrades",
+                "input": [],
+                "httpResponse": {
+                    "id": 1700184985347,
+                    "method": "private/get-trades",
+                    "code": 0,
+                    "result": {
+                        "data": [
+                            {
+                                "account_id": "96a0edb1-afb5-4c7c-3339-323333319e2c",
+                                "event_date": "2023-11-17",
+                                "journal_type": "TRADING",
+                                "side": "BUY",
+                                "instrument_name": "XRP_USDT",
+                                "fees": "-0.00075",
+                                "trade_id": "6142909902007042569",
+                                "trade_match_id": "4611686018433366744",
+                                "create_time": 1700184926414,
+                                "traded_price": "0.61877",
+                                "traded_quantity": "1",
+                                "fee_instrument_name": "XRP",
+                                "client_oid": "1700184926121",
+                                "taker_side": "TAKER",
+                                "order_id": "6142909896902261394",
+                                "create_time_ns": "1700184926414072677"
+                            }
+                        ]
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "account_id": "96a0edb1-afb5-4c7c-3339-323333319e2c",
+                            "event_date": "2023-11-17",
+                            "journal_type": "TRADING",
+                            "side": "BUY",
+                            "instrument_name": "XRP_USDT",
+                            "fees": "-0.00075",
+                            "trade_id": "6142909902007042569",
+                            "trade_match_id": "4611686018433366744",
+                            "create_time": 1700184926414,
+                            "traded_price": "0.61877",
+                            "traded_quantity": "1",
+                            "fee_instrument_name": "XRP",
+                            "client_oid": "1700184926121",
+                            "taker_side": "TAKER",
+                            "order_id": "6142909896902261394",
+                            "create_time_ns": "1700184926414072677"
+                        },
+                        "id": "6142909902007042569",
+                        "timestamp": 1700184926414,
+                        "datetime": "2023-11-17T01:35:26.414Z",
+                        "symbol": "XRP/USDT",
+                        "order": "6142909896902261394",
+                        "side": "buy",
+                        "takerOrMaker": "taker",
+                        "price": 0.61877,
+                        "amount": 1,
+                        "cost": 0.61877,
+                        "type": null,
+                        "fee": {
+                            "currency": "XRP",
+                            "cost": 0.00075
+                        },
+                        "fees": [
+                            {
+                                "currency": "XRP",
+                                "cost": 0.00075
+                            }
+                        ]
+                    }
+                ]
+            }
+        ],
+        "fetchBalance": [
+            {
+                "description": "fetchBalance",
+                "method": "fetchBalance",
+                "input": [],
+                "httpResponse": {
+                    "id": 1700184695140,
+                    "method": "private/user-balance",
+                    "code": 0,
+                    "result": {
+                        "data": [
+                            {
+                                "total_available_balance": "106.05840488",
+                                "total_margin_balance": "128.61024714",
+                                "total_initial_margin": "22.55184227",
+                                "total_haircut": "5.84569226",
+                                "total_position_im": "16.70615001",
+                                "total_maintenance_margin": "11.27592113",
+                                "total_position_cost": "335.768",
+                                "total_cash_balance": "143.04034396",
+                                "total_collateral_value": "126.19377168",
+                                "total_session_unrealized_pnl": "-1.645",
+                                "instrument_name": "USD",
+                                "total_session_realized_pnl": "0",
+                                "position_balances": [
+                                    {
+                                        "quantity": "0.0003999",
+                                        "reserved_qty": "0",
+                                        "collateral_amount": "13.07522797",
+                                        "haircut": "0.1",
+                                        "collateral_eligible": true,
+                                        "market_value": "14.52803108",
+                                        "max_withdrawal_balance": "0.0003999",
+                                        "instrument_name": "BTC",
+                                        "hourly_interest_rate": "0"
+                                    },
+                                    {
+                                        "quantity": "94.3411639875",
+                                        "reserved_qty": "11",
+                                        "collateral_amount": "80.01391802",
+                                        "haircut": "0.04",
+                                        "collateral_eligible": true,
+                                        "market_value": "83.34783128",
+                                        "max_withdrawal_balance": "83.34116398",
+                                        "instrument_name": "USDT",
+                                        "hourly_interest_rate": "0"
+                                    },
+                                    {
+                                        "quantity": "0.99625",
+                                        "reserved_qty": "0",
+                                        "collateral_amount": "0.04814876",
+                                        "haircut": "0.5",
+                                        "collateral_eligible": true,
+                                        "market_value": "0.09629752",
+                                        "max_withdrawal_balance": "0.99625",
+                                        "instrument_name": "CRO",
+                                        "hourly_interest_rate": "0"
+                                    },
+                                    {
+                                        "quantity": "0.07109989",
+                                        "reserved_qty": "0",
+                                        "collateral_amount": "4.04330854",
+                                        "haircut": "0.2",
+                                        "collateral_eligible": true,
+                                        "market_value": "5.05413568",
+                                        "max_withdrawal_balance": "0.07109989",
+                                        "instrument_name": "LTC",
+                                        "hourly_interest_rate": "0"
+                                    },
+                                    {
+                                        "quantity": "29.01316839415396",
+                                        "reserved_qty": "0",
+                                        "collateral_amount": "29.01316839",
+                                        "haircut": "0",
+                                        "collateral_eligible": true,
+                                        "market_value": "29.01316839",
+                                        "max_withdrawal_balance": "29.01316839",
+                                        "instrument_name": "USD",
+                                        "hourly_interest_rate": "0"
+                                    }
+                                ],
+                                "credit_limits": [],
+                                "total_effective_leverage": "3.399024",
+                                "position_limit": "12861.02471444",
+                                "used_position_limit": "437.14929558",
+                                "total_borrow": "0",
+                                "margin_score": "0",
+                                "is_liquidating": false,
+                                "has_risk": true,
+                                "terminatable": false
+                            }
+                        ]
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "id": 1700184695140,
+                        "method": "private/user-balance",
+                        "code": 0,
+                        "result": {
+                            "data": [
+                                {
+                                    "total_available_balance": "106.05840488",
+                                    "total_margin_balance": "128.61024714",
+                                    "total_initial_margin": "22.55184227",
+                                    "total_haircut": "5.84569226",
+                                    "total_position_im": "16.70615001",
+                                    "total_maintenance_margin": "11.27592113",
+                                    "total_position_cost": "335.768",
+                                    "total_cash_balance": "143.04034396",
+                                    "total_collateral_value": "126.19377168",
+                                    "total_session_unrealized_pnl": "-1.645",
+                                    "instrument_name": "USD",
+                                    "total_session_realized_pnl": "0",
+                                    "position_balances": [
+                                        {
+                                            "quantity": "0.0003999",
+                                            "reserved_qty": "0",
+                                            "collateral_amount": "13.07522797",
+                                            "haircut": "0.1",
+                                            "collateral_eligible": true,
+                                            "market_value": "14.52803108",
+                                            "max_withdrawal_balance": "0.0003999",
+                                            "instrument_name": "BTC",
+                                            "hourly_interest_rate": "0"
+                                        },
+                                        {
+                                            "quantity": "94.3411639875",
+                                            "reserved_qty": "11",
+                                            "collateral_amount": "80.01391802",
+                                            "haircut": "0.04",
+                                            "collateral_eligible": true,
+                                            "market_value": "83.34783128",
+                                            "max_withdrawal_balance": "83.34116398",
+                                            "instrument_name": "USDT",
+                                            "hourly_interest_rate": "0"
+                                        },
+                                        {
+                                            "quantity": "0.99625",
+                                            "reserved_qty": "0",
+                                            "collateral_amount": "0.04814876",
+                                            "haircut": "0.5",
+                                            "collateral_eligible": true,
+                                            "market_value": "0.09629752",
+                                            "max_withdrawal_balance": "0.99625",
+                                            "instrument_name": "CRO",
+                                            "hourly_interest_rate": "0"
+                                        },
+                                        {
+                                            "quantity": "0.07109989",
+                                            "reserved_qty": "0",
+                                            "collateral_amount": "4.04330854",
+                                            "haircut": "0.2",
+                                            "collateral_eligible": true,
+                                            "market_value": "5.05413568",
+                                            "max_withdrawal_balance": "0.07109989",
+                                            "instrument_name": "LTC",
+                                            "hourly_interest_rate": "0"
+                                        },
+                                        {
+                                            "quantity": "29.01316839415396",
+                                            "reserved_qty": "0",
+                                            "collateral_amount": "29.01316839",
+                                            "haircut": "0",
+                                            "collateral_eligible": true,
+                                            "market_value": "29.01316839",
+                                            "max_withdrawal_balance": "29.01316839",
+                                            "instrument_name": "USD",
+                                            "hourly_interest_rate": "0"
+                                        }
+                                    ],
+                                    "credit_limits": [],
+                                    "total_effective_leverage": "3.399024",
+                                    "position_limit": "12861.02471444",
+                                    "used_position_limit": "437.14929558",
+                                    "total_borrow": "0",
+                                    "margin_score": "0",
+                                    "is_liquidating": false,
+                                    "has_risk": true,
+                                    "terminatable": false
+                                }
+                            ]
+                        }
+                    },
+                    "BTC": {
+                        "free": 0.0003999,
+                        "used": 0,
+                        "total": 0.0003999
+                    },
+                    "USDT": {
+                        "free": 83.3411639875,
+                        "used": 11,
+                        "total": 94.3411639875
+                    },
+                    "CRO": {
+                        "free": 0.99625,
+                        "used": 0,
+                        "total": 0.99625
+                    },
+                    "LTC": {
+                        "free": 0.07109989,
+                        "used": 0,
+                        "total": 0.07109989
+                    },
+                    "USD": {
+                        "free": 29.01316839415396,
+                        "used": 0,
+                        "total": 29.01316839415396
+                    },
+                    "free": {
+                        "BTC": 0.0003999,
+                        "USDT": 83.3411639875,
+                        "CRO": 0.99625,
+                        "LTC": 0.07109989,
+                        "USD": 29.01316839415396
+                    },
+                    "used": {
+                        "BTC": 0,
+                        "USDT": 11,
+                        "CRO": 0,
+                        "LTC": 0,
+                        "USD": 0
+                    },
+                    "total": {
+                        "BTC": 0.0003999,
+                        "USDT": 94.3411639875,
+                        "CRO": 0.99625,
+                        "LTC": 0.07109989,
+                        "USD": 29.01316839415396
+                    }
+                }
+            }
+        ],
+        "fetchPositions": [
+            {
+                "description": "Fetch positions",
+                "method": "fetchPositions",
+                "input": [
+                    [
+                        "LTC/USD:USD"
+                    ]
+                ],
+                "httpResponse": {
+                    "id": 1700841372136,
+                    "method": "private/get-positions",
+                    "code": 0,
+                    "result": {
+                        "data": [
+                            {
+                                "account_id": "96a0edb1-afb5-4c7c-af89-5cb610319e2c",
+                                "quantity": "4.7",
+                                "cost": "330.598",
+                                "open_pos_cost": "310.16670833333336076",
+                                "open_position_pnl": "14.721750955418",
+                                "session_pnl": "0",
+                                "update_timestamp_ms": 1700838000031,
+                                "instrument_name": "LTCUSD-PERP",
+                                "type": "PERPETUAL_SWAP"
+                            }
+                        ]
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "account_id": "96a0edb1-afb5-4c7c-af89-5cb610319e2c",
+                            "quantity": "4.7",
+                            "cost": "330.598",
+                            "open_pos_cost": "310.16670833333336076",
+                            "open_position_pnl": "14.721750955418",
+                            "session_pnl": "0",
+                            "update_timestamp_ms": 1700838000031,
+                            "instrument_name": "LTCUSD-PERP",
+                            "type": "PERPETUAL_SWAP"
+                        },
+                        "id": null,
+                        "symbol": "LTC/USD:USD",
+                        "timestamp": 1700838000031,
+                        "datetime": "2023-11-24T15:00:00.031Z",
+                        "hedged": null,
+                        "side": "buy",
+                        "contracts": "4.7",
+                        "contractSize": 1,
+                        "entryPrice": null,
+                        "markPrice": null,
+                        "notional": null,
+                        "leverage": null,
+                        "collateral": 310.16670833333336,
+                        "initialMargin": 330.598,
+                        "maintenanceMargin": null,
+                        "initialMarginPercentage": null,
+                        "maintenanceMarginPercentage": null,
+                        "unrealizedPnl": 14.721750955418,
+                        "liquidationPrice": null,
+                        "marginMode": null,
+                        "percentage": null,
+                        "marginRatio": null,
+                        "stopLossPrice": null,
+                        "takeProfitPrice": null
+                    }
+                ]
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "fetch orderbook",
+                "method": "fetchOrderBook",
+                "input": [
+                    "BTC/USDT",
+                    5
+                ],
+                "httpResponse": {
+                    "id": -1,
+                    "method": "public/get-book",
+                    "code": 0,
+                    "result": {
+                        "depth": 5,
+                        "data": [
+                            {
+                                "bids": [
+                                    [
+                                        "44238.31",
+                                        "0.22932",
+                                        "2"
+                                    ],
+                                    [
+                                        "44236.33",
+                                        "0.11424",
+                                        "1"
+                                    ],
+                                    [
+                                        "44236.30",
+                                        "0.00001",
+                                        "1"
+                                    ],
+                                    [
+                                        "44233.92",
+                                        "0.00681",
+                                        "1"
+                                    ],
+                                    [
+                                        "44233.24",
+                                        "0.10000",
+                                        "1"
+                                    ]
+                                ],
+                                "asks": [
+                                    [
+                                        "44238.32",
+                                        "0.29028",
+                                        "7"
+                                    ],
+                                    [
+                                        "44239.51",
+                                        "0.01358",
+                                        "1"
+                                    ],
+                                    [
+                                        "44239.52",
+                                        "0.25870",
+                                        "1"
+                                    ],
+                                    [
+                                        "44240.31",
+                                        "0.25870",
+                                        "1"
+                                    ],
+                                    [
+                                        "44240.38",
+                                        "0.08000",
+                                        "1"
+                                    ]
+                                ],
+                                "t": 1704713531481
+                            }
+                        ],
+                        "instrument_name": "BTC_USDT"
+                    }
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/USDT",
+                    "bids": [
+                        [
+                            44238.31,
+                            0.22932,
+                            2
+                        ],
+                        [
+                            44236.33,
+                            0.11424,
+                            1
+                        ],
+                        [
+                            44236.3,
+                            0.00001,
+                            1
+                        ],
+                        [
+                            44233.92,
+                            0.00681,
+                            1
+                        ],
+                        [
+                            44233.24,
+                            0.1,
+                            1
+                        ]
+                    ],
+                    "asks": [
+                        [
+                            44238.32,
+                            0.29028,
+                            7
+                        ],
+                        [
+                            44239.51,
+                            0.01358,
+                            1
+                        ],
+                        [
+                            44239.52,
+                            0.2587,
+                            1
+                        ],
+                        [
+                            44240.31,
+                            0.2587,
+                            1
+                        ],
+                        [
+                            44240.38,
+                            0.08,
+                            1
+                        ]
+                    ],
+                    "timestamp": 1704713531481,
+                    "datetime": "2024-01-08T11:32:11.481Z",
+                    "nonce": null
+                }
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "public spot ticker",
+                "method": "fetchTicker",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "httpResponse": {
+                    "id": -1,
+                    "method": "public/get-tickers",
+                    "code": 0,
+                    "result": {
+                        "data": [
+                            {
+                                "i": "BTC_USDT",
+                                "h": "73632.60",
+                                "l": "68600.00",
+                                "a": "73375.26",
+                                "v": "6921.5068",
+                                "vv": "495479911.35",
+                                "c": "0.0171",
+                                "b": "73375.25",
+                                "k": "73375.26",
+                                "t": 1710328243533
+                            }
+                        ]
+                    }
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/USDT",
+                    "timestamp": 1710328243533,
+                    "datetime": "2024-03-13T11:10:43.533Z",
+                    "high": 73632.6,
+                    "low": 68600,
+                    "bid": 73375.25,
+                    "bidVolume": null,
+                    "ask": 73375.26,
+                    "askVolume": null,
+                    "vwap": null,
+                    "open": null,
+                    "close": 73375.26,
+                    "last": 73375.26,
+                    "previousClose": null,
+                    "change": null,
+                    "percentage": 0.0171,
+                    "average": null,
+                    "baseVolume": 6921.5068,
+                    "quoteVolume": null,
+                    "info": {
+                        "i": "BTC_USDT",
+                        "h": "73632.60",
+                        "l": "68600.00",
+                        "a": "73375.26",
+                        "v": "6921.5068",
+                        "vv": "495479911.35",
+                        "c": "0.0171",
+                        "b": "73375.25",
+                        "k": "73375.26",
+                        "t": 1710328243533
+                    }
+                }
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "public spot ohlcv",
+                "method": "fetchOHLCV",
+                "input": [
+                    "BTC/USDT",
+                    "1h",
+                    null,
+                    1
+                ],
+                "httpResponse": {
+                    "id": -1,
+                    "method": "public/get-candlestick",
+                    "code": 0,
+                    "result": {
+                        "interval": "1h",
+                        "data": [
+                            {
+                                "o": "73251.26",
+                                "h": "73449.06",
+                                "l": "73235.16",
+                                "c": "73411.02",
+                                "v": "49.8762",
+                                "t": 1710327600000
+                            }
+                        ],
+                        "instrument_name": "BTC_USDT"
+                    }
+                },
+                "parsedResponse": [
+                    [
+                        1710327600000,
+                        73251.26,
+                        73449.06,
+                        73235.16,
+                        73411.02,
+                        49.8762
+                    ]
+                ]
+            }
+        ],
+        "fetchPosition": [
+            {
+                "description": "fetchPostion",
+                "method": "fetchPosition",
+                "input": [
+                  "LTC/USD:USD"
+                ],
+                "httpResponse": {
+                  "id": 1712055052426,
+                  "method": "private/get-positions",
+                  "code": 0,
+                  "result": {
+                    "data": [
+                      {
+                        "account_id": "96a0edb1-afb5-4c7c-af89-5cb610319e2c",
+                        "quantity": "0.1",
+                        "cost": "9.9728",
+                        "open_pos_cost": "9.9728",
+                        "open_position_pnl": "-0.003390752",
+                        "session_pnl": "-0.003390752",
+                        "update_timestamp_ms": 1712055034409,
+                        "instrument_name": "LTCUSD-PERP",
+                        "type": "PERPETUAL_SWAP"
+                      }
+                    ]
+                  }
+                },
+                "parsedResponse": {
+                  "info": {
+                    "account_id": "96a0edb1-afb5-4c7c-af89-5cb610319e2c",
+                    "quantity": "0.1",
+                    "cost": "9.9728",
+                    "open_pos_cost": "9.9728",
+                    "open_position_pnl": "-0.003390752",
+                    "session_pnl": "-0.003390752",
+                    "update_timestamp_ms": 1712055034409,
+                    "instrument_name": "LTCUSD-PERP",
+                    "type": "PERPETUAL_SWAP"
+                  },
+                  "id": null,
+                  "symbol": "LTC/USD:USD",
+                  "timestamp": 1712055034409,
+                  "datetime": "2024-04-02T10:50:34.409Z",
+                  "hedged": null,
+                  "side": "buy",
+                  "contracts": "0.1",
+                  "contractSize": 1,
+                  "entryPrice": null,
+                  "markPrice": null,
+                  "notional": null,
+                  "leverage": null,
+                  "collateral": 9.9728,
+                  "initialMargin": 9.9728,
+                  "maintenanceMargin": null,
+                  "initialMarginPercentage": null,
+                  "maintenanceMarginPercentage": null,
+                  "unrealizedPnl": -0.003390752,
+                  "liquidationPrice": null,
+                  "marginMode": null,
+                  "percentage": null,
+                  "marginRatio": null,
+                  "stopLossPrice": null,
+                  "takeProfitPrice": null
+                }
+            }
+        ]
+    }
 }

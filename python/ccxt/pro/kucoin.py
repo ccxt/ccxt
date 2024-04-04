@@ -464,7 +464,7 @@ class kucoin(ccxt.async_support.kucoin):
         symbols = self.market_symbols(symbols)
         marketIds = self.market_ids(symbols)
         url = await self.negotiate(False)
-        method: str = None
+        method: Str = None
         method, params = self.handle_option_and_params(params, 'watchOrderBook', 'method', '/market/level2')
         if (limit == 5) or (limit == 50):
             method = '/spotMarket/level2Depth' + str(limit)
@@ -536,14 +536,18 @@ class kucoin(ccxt.async_support.kucoin):
         marketId = self.safe_string(data, 'symbol', topicSymbol)
         symbol = self.safe_symbol(marketId, None, '-')
         messageHash = 'orderbook:' + symbol
-        orderbook = self.safe_dict(self.orderbooks, symbol)
+        # orderbook = self.safe_dict(self.orderbooks, symbol)
         if subject == 'level2':
-            if orderbook is None:
-                orderbook = self.order_book()
+            if not (symbol in self.orderbooks):
+                self.orderbooks[symbol] = self.order_book()
             else:
+                orderbook = self.orderbooks[symbol]
                 orderbook.reset()
-            orderbook['symbol'] = symbol
+            self.orderbooks[symbol]['symbol'] = symbol
         else:
+            if not (symbol in self.orderbooks):
+                self.orderbooks[symbol] = self.order_book()
+            orderbook = self.orderbooks[symbol]
             nonce = self.safe_integer(orderbook, 'nonce')
             deltaEnd = self.safe_integer_2(data, 'sequenceEnd', 'timestamp')
             if nonce is None:
@@ -563,8 +567,8 @@ class kucoin(ccxt.async_support.kucoin):
                 return
             elif nonce >= deltaEnd:
                 return
-        self.handle_delta(orderbook, data)
-        client.resolve(orderbook, messageHash)
+        self.handle_delta(self.orderbooks[symbol], data)
+        client.resolve(self.orderbooks[symbol], messageHash)
 
     def get_cache_index(self, orderbook, cache):
         firstDelta = self.safe_value(cache, 0)
@@ -824,17 +828,16 @@ class kucoin(ccxt.async_support.kucoin):
         return self.filter_by_symbol_since_limit(trades, symbol, since, limit, True)
 
     def handle_my_trade(self, client: Client, message):
-        trades = self.myTrades
-        if trades is None:
+        if self.myTrades is None:
             limit = self.safe_integer(self.options, 'tradesLimit', 1000)
-            trades = ArrayCacheBySymbolById(limit)
-        data = self.safe_value(message, 'data')
+            self.myTrades = ArrayCacheBySymbolById(limit)
+        data = self.safe_dict(message, 'data')
         parsed = self.parse_ws_trade(data)
-        trades.append(parsed)
+        self.myTrades.append(parsed)
         messageHash = 'myTrades'
-        client.resolve(trades, messageHash)
+        client.resolve(self.myTrades, messageHash)
         symbolSpecificMessageHash = messageHash + ':' + parsed['symbol']
-        client.resolve(trades, symbolSpecificMessageHash)
+        client.resolve(self.myTrades, symbolSpecificMessageHash)
 
     def parse_ws_trade(self, trade, market=None):
         #

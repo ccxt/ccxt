@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.independentreserve import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade
+from ccxt.base.types import Balances, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, TradingFees
 from typing import List
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
@@ -143,7 +143,7 @@ class independentreserve(Exchange, ImplicitAPI):
             'precisionMode': TICK_SIZE,
         })
 
-    def fetch_markets(self, params={}):
+    def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for independentreserve
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -480,7 +480,7 @@ class independentreserve(Exchange, ImplicitAPI):
         request['pageIndex'] = 1
         request['pageSize'] = limit
         response = self.privatePostGetOpenOrders(self.extend(request, params))
-        data = self.safe_value(response, 'Data', [])
+        data = self.safe_list(response, 'Data', [])
         return self.parse_orders(data, market, since, limit)
 
     def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
@@ -504,7 +504,7 @@ class independentreserve(Exchange, ImplicitAPI):
         request['pageIndex'] = 1
         request['pageSize'] = limit
         response = self.privatePostGetClosedOrders(self.extend(request, params))
-        data = self.safe_value(response, 'Data', [])
+        data = self.safe_list(response, 'Data', [])
         return self.parse_orders(data, market, since, limit)
 
     def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = 50, params={}):
@@ -586,7 +586,7 @@ class independentreserve(Exchange, ImplicitAPI):
         response = self.publicGetGetRecentTrades(self.extend(request, params))
         return self.parse_trades(response['Trades'], market, since, limit)
 
-    def fetch_trading_fees(self, params={}):
+    def fetch_trading_fees(self, params={}) -> TradingFees:
         """
         fetch the trading fees for multiple markets
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -628,7 +628,7 @@ class independentreserve(Exchange, ImplicitAPI):
             }
         return result
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create a trade order
         :param str symbol: unified symbol of the market to create an order in

@@ -57,9 +57,11 @@ class ascendex extends ascendex$1 {
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': true,
                 'fetchIndexOHLCV': false,
-                'fetchLeverage': false,
+                'fetchLeverage': 'emulated',
+                'fetchLeverages': true,
                 'fetchLeverageTiers': true,
-                'fetchMarginMode': false,
+                'fetchMarginMode': 'emulated',
+                'fetchMarginModes': true,
                 'fetchMarketLeverageTiers': 'emulated',
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
@@ -748,17 +750,16 @@ class ascendex extends ascendex$1 {
             {
                 'id': accountGroup,
                 'type': undefined,
-                'currency': undefined,
+                'code': undefined,
                 'info': response,
             },
         ];
     }
     parseBalance(response) {
-        const timestamp = this.milliseconds();
         const result = {
             'info': response,
-            'timestamp': timestamp,
-            'datetime': this.iso8601(timestamp),
+            'timestamp': undefined,
+            'datetime': undefined,
         };
         const balances = this.safeValue(response, 'data', []);
         for (let i = 0; i < balances.length; i++) {
@@ -772,11 +773,10 @@ class ascendex extends ascendex$1 {
         return this.safeBalance(result);
     }
     parseMarginBalance(response) {
-        const timestamp = this.milliseconds();
         const result = {
             'info': response,
-            'timestamp': timestamp,
-            'datetime': this.iso8601(timestamp),
+            'timestamp': undefined,
+            'datetime': undefined,
         };
         const balances = this.safeValue(response, 'data', []);
         for (let i = 0; i < balances.length; i++) {
@@ -793,11 +793,10 @@ class ascendex extends ascendex$1 {
         return this.safeBalance(result);
     }
     parseSwapBalance(response) {
-        const timestamp = this.milliseconds();
         const result = {
             'info': response,
-            'timestamp': timestamp,
-            'datetime': this.iso8601(timestamp),
+            'timestamp': undefined,
+            'datetime': undefined,
         };
         const data = this.safeValue(response, 'data', {});
         const collaterals = this.safeValue(data, 'collaterals', []);
@@ -819,6 +818,8 @@ class ascendex extends ascendex$1 {
          * @see https://ascendex.github.io/ascendex-pro-api/#margin-account-balance
          * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#position
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.type] wallet type, 'spot', 'margin', or 'swap'
+         * @param {string} [params.marginMode] 'cross' or undefined, for spot margin trading, value of 'isolated' is invalid
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.loadMarkets();
@@ -1030,7 +1031,7 @@ class ascendex extends ascendex$1 {
         //         }
         //     }
         //
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         return this.parseTicker(data, market);
     }
     async fetchTickers(symbols = undefined, params = {}) {
@@ -1169,7 +1170,7 @@ class ascendex extends ascendex$1 {
         //         ]
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseOHLCVs(data, market, timeframe, since, limit);
     }
     parseTrade(trade, market = undefined) {
@@ -1242,7 +1243,7 @@ class ascendex extends ascendex$1 {
         //     }
         //
         const records = this.safeValue(response, 'data', []);
-        const trades = this.safeValue(records, 'data', []);
+        const trades = this.safeList(records, 'data', []);
         return this.parseTrades(trades, market, since, limit);
     }
     parseOrderStatus(status) {
@@ -1482,6 +1483,8 @@ class ascendex extends ascendex$1 {
                 'symbol': symbol,
                 'maker': this.safeNumber(takerMaker, 'maker'),
                 'taker': this.safeNumber(takerMaker, 'taker'),
+                'percentage': undefined,
+                'tierBased': undefined,
             };
         }
         return result;
@@ -1770,7 +1773,7 @@ class ascendex extends ascendex$1 {
         //     }
         //
         const data = this.safeValue(response, 'data', {});
-        const info = this.safeValue(data, 'info', []);
+        const info = this.safeList(data, 'info', []);
         return this.parseOrders(info, market);
     }
     async fetchOrder(id, symbol = undefined, params = {}) {
@@ -1878,7 +1881,7 @@ class ascendex extends ascendex$1 {
         //         }
         //     }
         //
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         return this.parseOrder(data, market);
     }
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -2568,7 +2571,7 @@ class ascendex extends ascendex$1 {
         //     }
         //
         const data = this.safeValue(response, 'data', {});
-        const transactions = this.safeValue(data, 'data', []);
+        const transactions = this.safeList(data, 'data', []);
         return this.parseTransactions(transactions, currency, since, limit);
     }
     parseTransactionStatus(status) {
@@ -2729,7 +2732,8 @@ class ascendex extends ascendex$1 {
         if (Precise["default"].stringEq(notional, '0')) {
             notional = this.safeString(position, 'sellOpenOrderNotional');
         }
-        const marginMode = this.safeString(position, 'marginType');
+        const marginType = this.safeString(position, 'marginType');
+        const marginMode = (marginType === 'crossed') ? 'cross' : 'isolated';
         let collateral = undefined;
         if (marginMode === 'isolated') {
             collateral = this.safeString(position, 'isolatedMargin');
@@ -2871,15 +2875,25 @@ class ascendex extends ascendex$1 {
         });
     }
     parseMarginModification(data, market = undefined) {
+        //
+        // addMargin/reduceMargin
+        //
+        //     {
+        //          "code": 0
+        //     }
+        //
         const errorCode = this.safeString(data, 'code');
         const status = (errorCode === '0') ? 'ok' : 'failed';
         return {
             'info': data,
+            'symbol': market['symbol'],
             'type': undefined,
             'amount': undefined,
+            'total': undefined,
             'code': market['quote'],
-            'symbol': market['symbol'],
             'status': status,
+            'timestamp': undefined,
+            'datetime': undefined,
         };
     }
     async reduceMargin(symbol, amount, params = {}) {
@@ -3126,7 +3140,7 @@ class ascendex extends ascendex$1 {
          */
         await this.loadMarkets();
         const response = await this.v2PublicGetAssets(params);
-        const data = this.safeValue(response, 'data');
+        const data = this.safeList(response, 'data');
         return this.parseDepositWithdrawFees(data, codes, 'assetCode');
     }
     async transfer(code, amount, fromAccount, toAccount, params = {}) {
@@ -3181,12 +3195,11 @@ class ascendex extends ascendex$1 {
         //
         const status = this.safeInteger(transfer, 'code');
         const currencyCode = this.safeCurrencyCode(undefined, currency);
-        const timestamp = this.milliseconds();
         return {
             'info': transfer,
             'id': undefined,
-            'timestamp': timestamp,
-            'datetime': this.iso8601(timestamp),
+            'timestamp': undefined,
+            'datetime': undefined,
             'currency': currencyCode,
             'amount': undefined,
             'fromAccount': undefined,
@@ -3253,7 +3266,7 @@ class ascendex extends ascendex$1 {
         //     }
         //
         const data = this.safeValue(response, 'data', {});
-        const rows = this.safeValue(data, 'data', []);
+        const rows = this.safeList(data, 'data', []);
         return this.parseIncomes(rows, market, since, limit);
     }
     parseIncome(income, market = undefined) {
@@ -3275,6 +3288,151 @@ class ascendex extends ascendex$1 {
             'datetime': this.iso8601(timestamp),
             'id': undefined,
             'amount': this.safeNumber(income, 'paymentInUSDT'),
+        };
+    }
+    async fetchMarginModes(symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name ascendex#fetchMarginMode
+         * @description fetches the set margin mode of the user
+         * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#position
+         * @param {string[]} [symbols] a list of unified market symbols
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a list of [margin mode structures]{@link https://docs.ccxt.com/#/?id=margin-mode-structure}
+         */
+        await this.loadMarkets();
+        await this.loadAccounts();
+        const account = this.safeValue(this.accounts, 0, {});
+        const accountGroup = this.safeString(account, 'id');
+        const request = {
+            'account-group': accountGroup,
+        };
+        const response = await this.v2PrivateAccountGroupGetFuturesPosition(this.extend(request, params));
+        //
+        //     {
+        //         "code": 0,
+        //         "data": {
+        //             "accountId": "fut2ODPhGiY71Pl4vtXnOZ00ssgD7QGn",
+        //             "ac": "FUTURES",
+        //             "collaterals": [
+        //                 {
+        //                     "asset": "USDT",
+        //                     "balance": "44.570287262",
+        //                     "referencePrice": "1",
+        //                     "discountFactor": "1"
+        //                 }
+        //             ],
+        //             "contracts": [
+        //                 {
+        //                     "symbol": "BTC-PERP",
+        //                     "side": "LONG",
+        //                     "position": "0.0001",
+        //                     "referenceCost": "-3.12277254",
+        //                     "unrealizedPnl": "-0.001700233",
+        //                     "realizedPnl": "0",
+        //                     "avgOpenPrice": "31209",
+        //                     "marginType": "isolated",
+        //                     "isolatedMargin": "1.654972977",
+        //                     "leverage": "2",
+        //                     "takeProfitPrice": "0",
+        //                     "takeProfitTrigger": "market",
+        //                     "stopLossPrice": "0",
+        //                     "stopLossTrigger": "market",
+        //                     "buyOpenOrderNotional": "0",
+        //                     "sellOpenOrderNotional": "0",
+        //                     "markPrice": "31210.723063672",
+        //                     "indexPrice": "31223.148857925"
+        //                 },
+        //             ]
+        //         }
+        //     }
+        //
+        const data = this.safeDict(response, 'data', {});
+        const marginModes = this.safeList(data, 'contracts', []);
+        return this.parseMarginModes(marginModes, symbols, 'symbol');
+    }
+    parseMarginMode(marginMode, market = undefined) {
+        const marketId = this.safeString(marginMode, 'symbol');
+        const marginType = this.safeString(marginMode, 'marginType');
+        const margin = (marginType === 'crossed') ? 'cross' : 'isolated';
+        return {
+            'info': marginMode,
+            'symbol': this.safeSymbol(marketId, market),
+            'marginMode': margin,
+        };
+    }
+    async fetchLeverages(symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name ascendex#fetchLeverages
+         * @description fetch the set leverage for all contract markets
+         * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#position
+         * @param {string[]} [symbols] a list of unified market symbols
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a list of [leverage structures]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+         */
+        await this.loadMarkets();
+        await this.loadAccounts();
+        const account = this.safeValue(this.accounts, 0, {});
+        const accountGroup = this.safeString(account, 'id');
+        const request = {
+            'account-group': accountGroup,
+        };
+        const response = await this.v2PrivateAccountGroupGetFuturesPosition(this.extend(request, params));
+        //
+        //     {
+        //         "code": 0,
+        //         "data": {
+        //             "accountId": "fut2ODPhGiY71Pl4vtXnOZ00ssgD7QGn",
+        //             "ac": "FUTURES",
+        //             "collaterals": [
+        //                 {
+        //                     "asset": "USDT",
+        //                     "balance": "44.570287262",
+        //                     "referencePrice": "1",
+        //                     "discountFactor": "1"
+        //                 }
+        //             ],
+        //             "contracts": [
+        //                 {
+        //                     "symbol": "BTC-PERP",
+        //                     "side": "LONG",
+        //                     "position": "0.0001",
+        //                     "referenceCost": "-3.12277254",
+        //                     "unrealizedPnl": "-0.001700233",
+        //                     "realizedPnl": "0",
+        //                     "avgOpenPrice": "31209",
+        //                     "marginType": "isolated",
+        //                     "isolatedMargin": "1.654972977",
+        //                     "leverage": "2",
+        //                     "takeProfitPrice": "0",
+        //                     "takeProfitTrigger": "market",
+        //                     "stopLossPrice": "0",
+        //                     "stopLossTrigger": "market",
+        //                     "buyOpenOrderNotional": "0",
+        //                     "sellOpenOrderNotional": "0",
+        //                     "markPrice": "31210.723063672",
+        //                     "indexPrice": "31223.148857925"
+        //                 },
+        //             ]
+        //         }
+        //     }
+        //
+        const data = this.safeDict(response, 'data', {});
+        const leverages = this.safeList(data, 'contracts', []);
+        return this.parseLeverages(leverages, symbols, 'symbol');
+    }
+    parseLeverage(leverage, market = undefined) {
+        const marketId = this.safeString(leverage, 'symbol');
+        const leverageValue = this.safeInteger(leverage, 'leverage');
+        const marginType = this.safeString(leverage, 'marginType');
+        const marginMode = (marginType === 'crossed') ? 'cross' : 'isolated';
+        return {
+            'info': leverage,
+            'symbol': this.safeSymbol(marketId, market),
+            'marginMode': marginMode,
+            'longLeverage': leverageValue,
+            'shortLeverage': leverageValue,
         };
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

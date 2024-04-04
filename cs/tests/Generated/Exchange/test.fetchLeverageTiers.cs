@@ -10,7 +10,7 @@ public partial class testMainClass : BaseTest
     async static public Task testFetchLeverageTiers(Exchange exchange, object skippedProperties, object symbol)
     {
         object method = "fetchLeverageTiers";
-        object tiers = await exchange.fetchLeverageTiers(symbol);
+        object tiers = await exchange.fetchLeverageTiers(new List<object>() {"symbol"});
         // const format = {
         //     'RAY/USDT': [
         //       {},
@@ -18,13 +18,11 @@ public partial class testMainClass : BaseTest
         // };
         assert((tiers is IDictionary<string, object>), add(add(add(add(add(add(exchange.id, " "), method), " "), symbol), " must return an object. "), exchange.json(tiers)));
         object tierKeys = new List<object>(((IDictionary<string,object>)tiers).Keys);
-        object arrayLength = getArrayLength(tierKeys);
-        assert(isGreaterThanOrEqual(arrayLength, 1), add(add(add(add(add(add(exchange.id, " "), method), " "), symbol), " must have at least one entry. "), exchange.json(tiers)));
-        for (object i = 0; isLessThan(i, arrayLength); postFixIncrement(ref i))
+        testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, tierKeys, symbol);
+        for (object i = 0; isLessThan(i, getArrayLength(tierKeys)); postFixIncrement(ref i))
         {
             object tiersForSymbol = getValue(tiers, getValue(tierKeys, i));
-            object arrayLengthSymbol = getArrayLength(tiersForSymbol);
-            assert(isGreaterThanOrEqual(arrayLengthSymbol, 1), add(add(add(add(add(add(exchange.id, " "), method), " "), symbol), " must have at least one entry. "), exchange.json(tiers)));
+            testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, tiersForSymbol, symbol);
             for (object j = 0; isLessThan(j, getArrayLength(tiersForSymbol)); postFixIncrement(ref j))
             {
                 testLeverageTier(exchange, skippedProperties, method, getValue(tiersForSymbol, j));

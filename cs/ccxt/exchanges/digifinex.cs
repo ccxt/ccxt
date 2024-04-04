@@ -1436,7 +1436,7 @@ public partial class digifinex : Exchange
         //         ]
         //     }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseTrades(data, market, since, limit);
     }
 
@@ -1488,7 +1488,7 @@ public partial class digifinex : Exchange
             ((IDictionary<string,object>)request)["granularity"] = timeframe;
             if (isTrue(!isEqual(limit, null)))
             {
-                ((IDictionary<string,object>)request)["limit"] = limit;
+                ((IDictionary<string,object>)request)["limit"] = mathMin(limit, 100);
             }
             response = await this.publicSwapGetPublicCandles(this.extend(request, parameters));
         } else
@@ -1508,7 +1508,8 @@ public partial class digifinex : Exchange
             {
                 object endTime = this.seconds();
                 object duration = this.parseTimeframe(timeframe);
-                ((IDictionary<string,object>)request)["start_time"] = this.sum(endTime, multiply(prefixUnaryNeg(ref limit), duration));
+                object auxLimit = limit; // in c# -limit is mutating the arg
+                ((IDictionary<string,object>)request)["start_time"] = this.sum(endTime, multiply(prefixUnaryNeg(ref auxLimit), duration));
             }
             response = await this.publicSpotGetKline(this.extend(request, parameters));
         }
@@ -2302,7 +2303,7 @@ public partial class digifinex : Exchange
         //         ]
         //     }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseOrders(data, market, since, limit);
     }
 
@@ -2424,7 +2425,7 @@ public partial class digifinex : Exchange
         //         ]
         //     }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseOrders(data, market, since, limit);
     }
 
@@ -2653,7 +2654,7 @@ public partial class digifinex : Exchange
         //     }
         //
         object responseRequest = ((bool) isTrue((isEqual(marketType, "swap")))) ? "data" : "list";
-        object data = this.safeValue(response, responseRequest, new List<object>() {});
+        object data = this.safeList(response, responseRequest, new List<object>() {});
         return this.parseTrades(data, market, since, limit);
     }
 
@@ -2928,7 +2929,7 @@ public partial class digifinex : Exchange
         //         ]
         //     }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseTransactions(data, currency, since, limit, new Dictionary<string, object>() {
             { "type", type },
         });
@@ -3568,6 +3569,8 @@ public partial class digifinex : Exchange
             { "symbol", symbol },
             { "maker", this.safeNumber(fee, "maker_fee_rate") },
             { "taker", this.safeNumber(fee, "taker_fee_rate") },
+            { "percentage", null },
+            { "tierBased", null },
         };
     }
 
@@ -3991,7 +3994,7 @@ public partial class digifinex : Exchange
         //         ]
         //     }
         //
-        object transfers = this.safeValue(response, "data", new List<object>() {});
+        object transfers = this.safeList(response, "data", new List<object>() {});
         return this.parseTransfers(transfers, currency, since, limit);
     }
 
@@ -4271,7 +4274,7 @@ public partial class digifinex : Exchange
         //       "code": 200,
         //   }
         //
-        object data = this.safeValue(response, "data");
+        object data = this.safeList(response, "data");
         return this.parseDepositWithdrawFees(data, codes);
     }
 
@@ -4437,12 +4440,14 @@ public partial class digifinex : Exchange
         object rawType = this.safeInteger(data, "type");
         return new Dictionary<string, object>() {
             { "info", data },
+            { "symbol", this.safeSymbol(marketId, market, null, "swap") },
             { "type", ((bool) isTrue((isEqual(rawType, 1)))) ? "add" : "reduce" },
             { "amount", this.safeNumber(data, "amount") },
             { "total", null },
             { "code", getValue(market, "settle") },
-            { "symbol", this.safeSymbol(marketId, market, null, "swap") },
             { "status", null },
+            { "timestamp", null },
+            { "datetime", null },
         };
     }
 
@@ -4494,7 +4499,7 @@ public partial class digifinex : Exchange
         //         ]
         //     }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseIncomes(data, market, since, limit);
     }
 

@@ -49,7 +49,7 @@ public partial class woo : Exchange
                 { "fetchBalance", true },
                 { "fetchCanceledOrders", false },
                 { "fetchClosedOrder", false },
-                { "fetchClosedOrders", false },
+                { "fetchClosedOrders", true },
                 { "fetchCurrencies", true },
                 { "fetchDepositAddress", true },
                 { "fetchDeposits", true },
@@ -68,7 +68,7 @@ public partial class woo : Exchange
                 { "fetchOHLCV", true },
                 { "fetchOpenInterestHistory", false },
                 { "fetchOpenOrder", false },
-                { "fetchOpenOrders", false },
+                { "fetchOpenOrders", true },
                 { "fetchOrder", true },
                 { "fetchOrderBook", true },
                 { "fetchOrders", true },
@@ -77,10 +77,10 @@ public partial class woo : Exchange
                 { "fetchPositionMode", false },
                 { "fetchPositions", true },
                 { "fetchPremiumIndexOHLCV", false },
-                { "fetchStatus", false },
+                { "fetchStatus", true },
                 { "fetchTicker", false },
                 { "fetchTickers", false },
-                { "fetchTime", false },
+                { "fetchTime", true },
                 { "fetchTrades", true },
                 { "fetchTradingFee", false },
                 { "fetchTradingFees", true },
@@ -309,6 +309,74 @@ public partial class woo : Exchange
         });
     }
 
+    public async override Task<object> fetchStatus(object parameters = null)
+    {
+        /**
+        * @method
+        * @name woo#fetchStatus
+        * @description the latest known information on the availability of the exchange API
+        * @see https://docs.woo.org/#get-system-maintenance-status-public
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        object response = await this.v1PublicGetSystemInfo(parameters);
+        //
+        //     {
+        //         "success": true,
+        //         "data": {
+        //             "status": "0",
+        //             "msg": "System is functioning properly."
+        //         },
+        //         "timestamp": "1709274106602"
+        //     }
+        //
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        object status = this.safeString(data, "status");
+        if (isTrue(isEqual(status, null)))
+        {
+            status = "error";
+        } else if (isTrue(isEqual(status, "0")))
+        {
+            status = "ok";
+        } else
+        {
+            status = "maintenance";
+        }
+        return new Dictionary<string, object>() {
+            { "status", status },
+            { "updated", null },
+            { "eta", null },
+            { "url", null },
+            { "info", response },
+        };
+    }
+
+    public async override Task<object> fetchTime(object parameters = null)
+    {
+        /**
+        * @method
+        * @name woo#fetchTime
+        * @description fetches the current integer timestamp in milliseconds from the exchange server
+        * @see https://docs.woo.org/#get-system-maintenance-status-public
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {int} the current integer timestamp in milliseconds from the exchange server
+        */
+        parameters ??= new Dictionary<string, object>();
+        object response = await this.v1PublicGetSystemInfo(parameters);
+        //
+        //     {
+        //         "success": true,
+        //         "data": {
+        //             "status": "0",
+        //             "msg": "System is functioning properly."
+        //         },
+        //         "timestamp": "1709274106602"
+        //     }
+        //
+        return this.safeInteger(response, "timestamp");
+    }
+
     public async override Task<object> fetchMarkets(object parameters = null)
     {
         /**
@@ -341,7 +409,7 @@ public partial class woo : Exchange
         //     "success": true
         // }
         //
-        object data = this.safeValue(response, "rows", new List<object>() {});
+        object data = this.safeList(response, "rows", new List<object>() {});
         return this.parseMarkets(data);
     }
 
@@ -610,7 +678,7 @@ public partial class woo : Exchange
         //         "timestamp": 1673323685109
         //     }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         object maker = this.safeString(data, "makerFeeRate");
         object taker = this.safeString(data, "takerFeeRate");
         object result = new Dictionary<string, object>() {};
@@ -701,7 +769,7 @@ public partial class woo : Exchange
         //     "success": true
         // }
         //
-        object tokenRows = this.safeValue(tokenResponse, "rows", new List<object>() {});
+        object tokenRows = this.safeList(tokenResponse, "rows", new List<object>() {});
         object networksByCurrencyId = this.groupBy(tokenRows, "balance_token");
         object currencyIds = new List<object>(((IDictionary<string,object>)networksByCurrencyId).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(currencyIds)); postFixIncrement(ref i))
@@ -881,7 +949,7 @@ public partial class woo : Exchange
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
-        object reduceOnly = this.safeValue2(parameters, "reduceOnly", "reduce_only");
+        object reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only");
         parameters = this.omit(parameters, new List<object>() {"reduceOnly", "reduce_only"});
         object orderType = ((string)type).ToUpper();
         await this.loadMarkets();
@@ -1070,10 +1138,10 @@ public partial class woo : Exchange
         //     },
         //     "timestamp": "1686149372216"
         // }
-        object data = this.safeValue(response, "data");
+        object data = this.safeDict(response, "data");
         if (isTrue(!isEqual(data, null)))
         {
-            object rows = this.safeValue(data, "rows", new List<object>() {});
+            object rows = this.safeList(data, "rows", new List<object>() {});
             return this.parseOrder(getValue(rows, 0), market);
         }
         object order = this.parseOrder(response, market);
@@ -1183,7 +1251,7 @@ public partial class woo : Exchange
         //         "timestamp": 0
         //     }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return this.parseOrder(data, market);
     }
 
@@ -1270,8 +1338,8 @@ public partial class woo : Exchange
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object stop = this.safeValue(parameters, "stop");
-        parameters = this.omit(parameters, "stop");
+        object stop = this.safeBool2(parameters, "stop", "trigger");
+        parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
         if (isTrue(stop))
         {
             return await this.v3PrivateDeleteAlgoOrdersPending(parameters);
@@ -1310,8 +1378,8 @@ public partial class woo : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = ((bool) isTrue((!isEqual(symbol, null)))) ? this.market(symbol) : null;
-        object stop = this.safeValue(parameters, "stop");
-        parameters = this.omit(parameters, "stop");
+        object stop = this.safeBool2(parameters, "stop", "trigger");
+        parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
         object request = new Dictionary<string, object>() {};
         object clientOrderId = this.safeString2(parameters, "clOrdID", "clientOrderId");
         object response = null;
@@ -1363,7 +1431,7 @@ public partial class woo : Exchange
         //     ]
         // }
         //
-        object orders = this.safeValue(response, "data", response);
+        object orders = this.safeDict(response, "data", response);
         return this.parseOrder(orders, market);
     }
 
@@ -1383,15 +1451,24 @@ public partial class woo : Exchange
         * @param {boolean} [params.isTriggered] whether the order has been triggered (false by default)
         * @param {string} [params.side] 'buy' or 'sell'
         * @param {boolean} [params.trailing] set to true if you want to fetch trailing orders
+        * @param {boolean} [params.paginate] set to true if you want to fetch orders with pagination
         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
+        object paginate = false;
+        var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchOrders", "paginate");
+        paginate = ((IList<object>)paginateparametersVariable)[0];
+        parameters = ((IList<object>)paginateparametersVariable)[1];
+        if (isTrue(paginate))
+        {
+            return await this.fetchPaginatedCallIncremental("fetchOrders", symbol, since, limit, parameters, "page", 500);
+        }
         object request = new Dictionary<string, object>() {};
         object market = null;
-        object stop = this.safeValue(parameters, "stop");
+        object stop = this.safeBool2(parameters, "stop", "trigger");
         object trailing = this.safeBool(parameters, "trailing", false);
-        parameters = this.omit(parameters, new List<object>() {"stop", "trailing"});
+        parameters = this.omit(parameters, new List<object>() {"stop", "trailing", "trigger"});
         if (isTrue(!isEqual(symbol, null)))
         {
             market = this.market(symbol);
@@ -1406,6 +1483,13 @@ public partial class woo : Exchange
             {
                 ((IDictionary<string,object>)request)["start_t"] = since;
             }
+        }
+        if (isTrue(!isEqual(limit, null)))
+        {
+            ((IDictionary<string,object>)request)["size"] = limit;
+        } else
+        {
+            ((IDictionary<string,object>)request)["size"] = 500;
         }
         if (isTrue(stop))
         {
@@ -1454,8 +1538,62 @@ public partial class woo : Exchange
         //     }
         //
         object data = this.safeValue(response, "data", response);
-        object orders = this.safeValue(data, "rows");
-        return this.parseOrders(orders, market, since, limit, parameters);
+        object orders = this.safeList(data, "rows");
+        return this.parseOrders(orders, market, since, limit);
+    }
+
+    public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name woo#fetchOpenOrders
+        * @description fetches information on multiple orders made by the user
+        * @see https://docs.woo.org/#get-orders
+        * @see https://docs.woo.org/#get-algo-orders
+        * @param {string} symbol unified market symbol of the market orders were made in
+        * @param {int} [since] the earliest time in ms to fetch orders for
+        * @param {int} [limit] the maximum number of order structures to retrieve
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {boolean} [params.stop] whether the order is a stop/algo order
+        * @param {boolean} [params.isTriggered] whether the order has been triggered (false by default)
+        * @param {string} [params.side] 'buy' or 'sell'
+        * @param {boolean} [params.trailing] set to true if you want to fetch trailing orders
+        * @param {boolean} [params.paginate] set to true if you want to fetch orders with pagination
+        * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object extendedParams = this.extend(parameters, new Dictionary<string, object>() {
+            { "status", "INCOMPLETE" },
+        });
+        return await this.fetchOrders(symbol, since, limit, extendedParams);
+    }
+
+    public async override Task<object> fetchClosedOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name woo#fetchClosedOrders
+        * @description fetches information on multiple orders made by the user
+        * @see https://docs.woo.org/#get-orders
+        * @see https://docs.woo.org/#get-algo-orders
+        * @param {string} symbol unified market symbol of the market orders were made in
+        * @param {int} [since] the earliest time in ms to fetch orders for
+        * @param {int} [limit] the maximum number of order structures to retrieve
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {boolean} [params.stop] whether the order is a stop/algo order
+        * @param {boolean} [params.isTriggered] whether the order has been triggered (false by default)
+        * @param {string} [params.side] 'buy' or 'sell'
+        * @param {boolean} [params.trailing] set to true if you want to fetch trailing orders
+        * @param {boolean} [params.paginate] set to true if you want to fetch orders with pagination
+        * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object extendedParams = this.extend(parameters, new Dictionary<string, object>() {
+            { "status", "COMPLETED" },
+        });
+        return await this.fetchOrders(symbol, since, limit, extendedParams);
     }
 
     public virtual object parseTimeInForce(object timeInForce)
@@ -1562,7 +1700,7 @@ public partial class woo : Exchange
             { "type", orderType },
             { "timeInForce", this.parseTimeInForce(orderType) },
             { "postOnly", null },
-            { "reduceOnly", this.safeValue(order, "reduce_only") },
+            { "reduceOnly", this.safeBool(order, "reduce_only") },
             { "side", side },
             { "price", price },
             { "stopPrice", stopPrice },
@@ -1692,7 +1830,7 @@ public partial class woo : Exchange
             response = await this.v1PubGetHistKline(this.extend(request, parameters));
             response = this.safeDict(response, "data");
         }
-        object rows = this.safeValue(response, "rows", new List<object>() {});
+        object rows = this.safeList(response, "rows", new List<object>() {});
         return this.parseOHLCVs(rows, market, timeframe, since, limit);
     }
 
@@ -1744,7 +1882,7 @@ public partial class woo : Exchange
         //       }
         //     ]
         // }
-        object trades = this.safeValue(response, "rows", new List<object>() {});
+        object trades = this.safeList(response, "rows", new List<object>() {});
         return this.parseTrades(trades, market, since, limit, parameters);
     }
 
@@ -1753,15 +1891,25 @@ public partial class woo : Exchange
         /**
         * @method
         * @name woo#fetchMyTrades
+        * @see https://docs.woo.org/#get-trades
         * @description fetch all trades made by the user
         * @param {string} symbol unified market symbol
         * @param {int} [since] the earliest time in ms to fetch trades for
         * @param {int} [limit] the maximum number of trades structures to retrieve
         * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {boolean} [params.paginate] set to true if you want to fetch trades with pagination
         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
+        object paginate = false;
+        var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate");
+        paginate = ((IList<object>)paginateparametersVariable)[0];
+        parameters = ((IList<object>)paginateparametersVariable)[1];
+        if (isTrue(paginate))
+        {
+            return await this.fetchPaginatedCallIncremental("fetchMyTrades", symbol, since, limit, parameters, "page", 500);
+        }
         object request = new Dictionary<string, object>() {};
         object market = null;
         if (isTrue(!isEqual(symbol, null)))
@@ -1772,6 +1920,13 @@ public partial class woo : Exchange
         if (isTrue(!isEqual(since, null)))
         {
             ((IDictionary<string,object>)request)["start_t"] = since;
+        }
+        if (isTrue(!isEqual(limit, null)))
+        {
+            ((IDictionary<string,object>)request)["size"] = limit;
+        } else
+        {
+            ((IDictionary<string,object>)request)["size"] = 500;
         }
         object response = await this.v1PrivateGetClientTrades(this.extend(request, parameters));
         // {
@@ -1797,7 +1952,7 @@ public partial class woo : Exchange
         //         ...
         //     ]
         // }
-        object trades = this.safeValue(response, "rows", new List<object>() {});
+        object trades = this.safeList(response, "rows", new List<object>() {});
         return this.parseTrades(trades, market, since, limit, parameters);
     }
 
@@ -1828,7 +1983,7 @@ public partial class woo : Exchange
         //         "success": true
         //     }
         //
-        object rows = this.safeValue(response, "rows", new List<object>() {});
+        object rows = this.safeList(response, "rows", new List<object>() {});
         return this.parseAccounts(rows, parameters);
     }
 
@@ -1887,7 +2042,7 @@ public partial class woo : Exchange
         //         "timestamp": 1673323746259
         //     }
         //
-        object data = this.safeValue(response, "data");
+        object data = this.safeDict(response, "data");
         return this.parseBalance(data);
     }
 
@@ -1896,7 +2051,7 @@ public partial class woo : Exchange
         object result = new Dictionary<string, object>() {
             { "info", response },
         };
-        object balances = this.safeValue(response, "holding", new List<object>() {});
+        object balances = this.safeList(response, "holding", new List<object>() {});
         for (object i = 0; isLessThan(i, getArrayLength(balances)); postFixIncrement(ref i))
         {
             object balance = getValue(balances, i);
@@ -2215,6 +2370,7 @@ public partial class woo : Exchange
         /**
         * @method
         * @name woo#transfer
+        * @see https://docs.woo.org/#get-transfer-history
         * @description transfer currency internally between wallets on the same account
         * @param {string} code unified currency code
         * @param {float} amount amount to transfer
@@ -2228,7 +2384,7 @@ public partial class woo : Exchange
         object currency = this.currency(code);
         object request = new Dictionary<string, object>() {
             { "token", getValue(currency, "id") },
-            { "amount", this.parseNumber(amount) },
+            { "amount", this.parseToNumeric(amount) },
             { "from_application_id", fromAccount },
             { "to_application_id", toAccount },
         };
@@ -2240,7 +2396,7 @@ public partial class woo : Exchange
         //     }
         //
         object transfer = this.parseTransfer(response, currency);
-        object transferOptions = this.safeValue(this.options, "transfer", new Dictionary<string, object>() {});
+        object transferOptions = this.safeDict(this.options, "transfer", new Dictionary<string, object>() {});
         object fillResponseFromRequest = this.safeBool(transferOptions, "fillResponseFromRequest", true);
         if (isTrue(fillResponseFromRequest))
         {
@@ -2257,46 +2413,77 @@ public partial class woo : Exchange
         * @method
         * @name woo#fetchTransfers
         * @description fetch a history of internal transfers made on an account
+        * @see https://docs.woo.org/#get-transfer-history
         * @param {string} code unified currency code of the currency transferred
         * @param {int} [since] the earliest time in ms to fetch transfers for
         * @param {int} [limit] the maximum number of  transfers structures to retrieve
         * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {int} [params.until] the latest time in ms to fetch entries for
         * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
         */
         parameters ??= new Dictionary<string, object>();
-        object request = new Dictionary<string, object>() {
-            { "type", "COLLATERAL" },
-        };
-        var currencyrowsVariable = await this.getAssetHistoryRows(code, since, limit, this.extend(request, parameters));
-        var currency = ((IList<object>) currencyrowsVariable)[0];
-        var rows = ((IList<object>) currencyrowsVariable)[1];
-        return this.parseTransfers(rows, currency, since, limit, parameters);
+        object request = new Dictionary<string, object>() {};
+        if (isTrue(!isEqual(limit, null)))
+        {
+            ((IDictionary<string,object>)request)["size"] = limit;
+        }
+        if (isTrue(!isEqual(since, null)))
+        {
+            ((IDictionary<string,object>)request)["start_t"] = since;
+        }
+        object until = this.safeInteger2(parameters, "until", "till"); // unified in milliseconds
+        parameters = this.omit(parameters, new List<object>() {"until", "till"});
+        if (isTrue(!isEqual(until, null)))
+        {
+            ((IDictionary<string,object>)request)["end_t"] = until;
+        }
+        object response = await this.v1PrivateGetAssetMainSubTransferHistory(this.extend(request, parameters));
+        //
+        //     {
+        //         "rows": [
+        //             {
+        //                 "id": 46704,
+        //                 "token": "USDT",
+        //                 "amount": 30000.00000000,
+        //                 "status": "COMPLETED",
+        //                 "from_application_id": "0f1bd3cd-dba2-4563-b8bb-0adb1bfb83a3",
+        //                 "to_application_id": "c01e6940-a735-4022-9b6c-9d3971cdfdfa",
+        //                 "from_user": "LeverageLow",
+        //                 "to_user": "dev",
+        //                 "created_time": "1709022325.427",
+        //                 "updated_time": "1709022325.542"
+        //             }
+        //         ],
+        //         "meta": {
+        //             "total": 50,
+        //             "records_per_page": 25,
+        //             "current_page": 1
+        //         },
+        //         "success": true
+        //     }
+        //
+        object data = this.safeList(response, "rows", new List<object>() {});
+        return this.parseTransfers(data, null, since, limit, parameters);
     }
 
     public override object parseTransfer(object transfer, object currency = null)
     {
         //
-        //    getAssetHistoryRows
-        //        {
-        //            "created_time": "1579399877.041",  // Unix epoch time in seconds
-        //            "updated_time": "1579399877.041",  // Unix epoch time in seconds
-        //            "id": "202029292829292",
-        //            "external_id": "202029292829292",
-        //            "application_id": null,
-        //            "token": "ETH",
-        //            "target_address": "0x31d64B3230f8baDD91dE1710A65DF536aF8f7cDa",
-        //            "source_address": "0x70fd25717f769c7f9a46b319f0f9103c0d887af0",
-        //            "extra": "",
-        //            "type": "BALANCE",
-        //            "token_side": "DEPOSIT",
-        //            "amount": 1000,
-        //            "tx_id": "0x8a74c517bc104c8ebad0c3c3f64b1f302ed5f8bca598ae4459c63419038106b6",
-        //            "fee_token": null,
-        //            "fee_amount": null,
-        //            "status": "CONFIRMING"
-        //        }
+        //    fetchTransfers
+        //     {
+        //         "id": 46704,
+        //         "token": "USDT",
+        //         "amount": 30000.00000000,
+        //         "status": "COMPLETED",
+        //         "from_application_id": "0f1bd3cd-dba2-4563-b8bb-0adb1bfb83a3",
+        //         "to_application_id": "c01e6940-a735-4022-9b6c-9d3971cdfdfa",
+        //         "from_user": "LeverageLow",
+        //         "to_user": "dev",
+        //         "created_time": "1709022325.427",
+        //         "updated_time": "1709022325.542"
+        //     }
         //
-        //    v1PrivatePostAssetMainSubTransfer
+        //    transfer
         //        {
         //            "success": true,
         //            "id": 200
@@ -2305,24 +2492,8 @@ public partial class woo : Exchange
         object networkizedCode = this.safeString(transfer, "token");
         object currencyDefined = this.getCurrencyFromChaincode(networkizedCode, currency);
         object code = getValue(currencyDefined, "code");
-        object movementDirection = this.safeStringLower(transfer, "token_side");
-        if (isTrue(isEqual(movementDirection, "withdraw")))
-        {
-            movementDirection = "withdrawal";
-        }
-        object fromAccount = null;
-        object toAccount = null;
-        if (isTrue(isEqual(movementDirection, "withdraw")))
-        {
-            fromAccount = null;
-            toAccount = "spot";
-        } else if (isTrue(isEqual(movementDirection, "deposit")))
-        {
-            fromAccount = "spot";
-            toAccount = null;
-        }
         object timestamp = this.safeTimestamp(transfer, "created_time");
-        object success = this.safeValue(transfer, "success");
+        object success = this.safeBool(transfer, "success");
         object status = null;
         if (isTrue(!isEqual(success, null)))
         {
@@ -2334,8 +2505,8 @@ public partial class woo : Exchange
             { "datetime", this.iso8601(timestamp) },
             { "currency", code },
             { "amount", this.safeNumber(transfer, "amount") },
-            { "fromAccount", fromAccount },
-            { "toAccount", toAccount },
+            { "fromAccount", this.safeString(transfer, "from_application_id") },
+            { "toAccount", this.safeString(transfer, "to_application_id") },
             { "status", this.parseTransferStatus(this.safeString(transfer, "status", status)) },
             { "info", transfer },
         };
@@ -2381,11 +2552,11 @@ public partial class woo : Exchange
         {
             ((IDictionary<string,object>)request)["extra"] = tag;
         }
-        object networks = this.safeValue(this.options, "networks", new Dictionary<string, object>() {});
-        object currencyNetworks = this.safeValue(currency, "networks", new Dictionary<string, object>() {});
+        object networks = this.safeDict(this.options, "networks", new Dictionary<string, object>() {});
+        object currencyNetworks = this.safeDict(currency, "networks", new Dictionary<string, object>() {});
         object network = this.safeStringUpper(parameters, "network");
         object networkId = this.safeString(networks, network, network);
-        object coinNetwork = this.safeValue(currencyNetworks, networkId, new Dictionary<string, object>() {});
+        object coinNetwork = this.safeDict(currencyNetworks, networkId, new Dictionary<string, object>() {});
         object coinNetworkId = this.safeString(coinNetwork, "id");
         if (isTrue(isEqual(coinNetworkId, null)))
         {
@@ -2536,7 +2707,10 @@ public partial class woo : Exchange
                     body = auth;
                 } else
                 {
-                    url = add(url, add("?", auth));
+                    if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)parameters).Keys))))
+                    {
+                        url = add(url, add("?", auth));
+                    }
                 }
                 auth = add(auth, add("|", ts));
                 ((IDictionary<string,object>)headers)["content-type"] = "application/x-www-form-urlencoded";
@@ -2561,7 +2735,7 @@ public partial class woo : Exchange
         //     400 Bad Request {"success":false,"code":-1012,"message":"Amount is required for buy market orders when margin disabled."}
         //                     {"code":"-1011","message":"The system is under maintenance.","success":false}
         //
-        object success = this.safeValue(response, "success");
+        object success = this.safeBool(response, "success");
         object errorCode = this.safeString(response, "code");
         if (!isTrue(success))
         {
@@ -2645,7 +2819,7 @@ public partial class woo : Exchange
         //         "success":true
         //     }
         //
-        object result = this.safeValue(response, "rows", new List<object>() {});
+        object result = this.safeList(response, "rows", new List<object>() {});
         return this.parseIncomes(result, market, since, limit);
     }
 
@@ -2734,7 +2908,7 @@ public partial class woo : Exchange
         //         "timestamp":1653633985646
         //     }
         //
-        object rows = this.safeValue(response, "rows", new Dictionary<string, object>() {});
+        object rows = this.safeList(response, "rows", new List<object>() {});
         object result = this.parseFundingRates(rows);
         return this.filterByArray(result, "symbol", symbols);
     }
@@ -2798,7 +2972,7 @@ public partial class woo : Exchange
         //         "timestamp":1653640814885
         //     }
         //
-        object result = this.safeValue(response, "rows");
+        object result = this.safeList(response, "rows");
         object rates = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(result)); postFixIncrement(ref i))
         {
@@ -2980,8 +3154,8 @@ public partial class woo : Exchange
         //         "timestamp": 1673323880342
         //     }
         //
-        object result = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object positions = this.safeValue(result, "positions", new List<object>() {});
+        object result = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        object positions = this.safeList(result, "positions", new List<object>() {});
         return this.parsePositions(positions, symbols);
     }
 

@@ -780,7 +780,7 @@ class deribit extends \ccxt\async\deribit {
         );
     }
 
-    public function watch_multiple_wrapper(string $channelName, string $channelDescriptor, $symbolsArray = null, $params = array ()) {
+    public function watch_multiple_wrapper(string $channelName, ?string $channelDescriptor, $symbolsArray = null, $params = array ()) {
         return Async\async(function () use ($channelName, $channelDescriptor, $symbolsArray, $params) {
             Async\await($this->load_markets());
             $url = $this->urls['api']['ws'];
@@ -941,33 +941,35 @@ class deribit extends \ccxt\async\deribit {
     }
 
     public function authenticate($params = array ()) {
-        $url = $this->urls['api']['ws'];
-        $client = $this->client($url);
-        $time = $this->milliseconds();
-        $timeString = $this->number_to_string($time);
-        $nonce = $timeString;
-        $messageHash = 'authenticated';
-        $future = $this->safe_value($client->subscriptions, $messageHash);
-        if ($future === null) {
-            $this->check_required_credentials();
-            $requestId = $this->request_id();
-            $signature = $this->hmac($this->encode($timeString . '\n' . $nonce . '\n'), $this->encode($this->secret), 'sha256');
-            $request = array(
-                'jsonrpc' => '2.0',
-                'id' => $requestId,
-                'method' => 'public/auth',
-                'params' => array(
-                    'grant_type' => 'client_signature',
-                    'client_id' => $this->apiKey,
-                    'timestamp' => $time,
-                    'signature' => $signature,
-                    'nonce' => $nonce,
-                    'data' => '',
-                ),
-            );
-            $future = $this->watch($url, $messageHash, array_merge($request, $params));
-            $client->subscriptions[$messageHash] = $future;
-        }
-        return $future;
+        return Async\async(function () use ($params) {
+            $url = $this->urls['api']['ws'];
+            $client = $this->client($url);
+            $time = $this->milliseconds();
+            $timeString = $this->number_to_string($time);
+            $nonce = $timeString;
+            $messageHash = 'authenticated';
+            $future = $this->safe_value($client->subscriptions, $messageHash);
+            if ($future === null) {
+                $this->check_required_credentials();
+                $requestId = $this->request_id();
+                $signature = $this->hmac($this->encode($timeString . '\n' . $nonce . '\n'), $this->encode($this->secret), 'sha256');
+                $request = array(
+                    'jsonrpc' => '2.0',
+                    'id' => $requestId,
+                    'method' => 'public/auth',
+                    'params' => array(
+                        'grant_type' => 'client_signature',
+                        'client_id' => $this->apiKey,
+                        'timestamp' => $time,
+                        'signature' => $signature,
+                        'nonce' => $nonce,
+                        'data' => '',
+                    ),
+                );
+                $future = Async\await($this->watch($url, $messageHash, array_merge($request, $params), $messageHash));
+                $client->subscriptions[$messageHash] = $future;
+            }
+            return $future;
+        }) ();
     }
 }

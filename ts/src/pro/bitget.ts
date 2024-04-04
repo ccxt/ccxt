@@ -86,6 +86,7 @@ export default class bitget extends bitgetRest {
                         '30015': AuthenticationError, // { event: 'error', code: 30015, msg: 'Invalid sign' }
                         '30016': BadRequest, // { event: 'error', code: 30016, msg: 'Param error' }
                     },
+                    'broad': {},
                 },
             },
         });
@@ -686,10 +687,10 @@ export default class bitget extends bitgetRest {
         }
         const data = this.safeList (message, 'data', []);
         const length = data.length;
-        const maxLength = Math.max (length - 1, 0);
         // fix chronological order by reversing
-        for (let i = maxLength; i >= 0; i--) {
-            const rawTrade = data[i];
+        for (let i = 0; i < length; i++) {
+            const index = length - i - 1;
+            const rawTrade = data[index];
             const parsed = this.parseWsTrade (rawTrade, market);
             stored.append (parsed);
         }
@@ -1310,7 +1311,7 @@ export default class bitget extends bitgetRest {
         if (feeAmount !== undefined) {
             const feeCurrency = this.safeString (fee, 'feeCoin');
             feeObject = {
-                'cost': Precise.stringAbs (feeAmount),
+                'cost': this.parseNumber (Precise.stringAbs (feeAmount)),
                 'currency': this.safeCurrencyCode (feeCurrency),
             };
         }
@@ -1323,10 +1324,10 @@ export default class bitget extends bitgetRest {
         if (side === 'buy' && market['spot'] && (type === 'market')) {
             cost = this.safeString (order, 'newSize', cost);
         }
-        let filled = this.safeString2 (order, 'accBaseVolume', 'baseVolume');
-        if (market['spot'] && (rawStatus !== 'live')) {
-            filled = Precise.stringDiv (cost, avgPrice);
-        }
+        const filled = this.safeString2 (order, 'accBaseVolume', 'baseVolume');
+        // if (market['spot'] && (rawStatus !== 'live')) {
+        //     filled = Precise.stringDiv (cost, avgPrice);
+        // }
         let amount = this.safeString (order, 'baseVolume');
         if (!market['spot'] || !(side === 'buy' && type === 'market')) {
             amount = this.safeString (order, 'newSize', amount);
@@ -1631,7 +1632,7 @@ export default class bitget extends bitgetRest {
             const message = this.extend (request, params);
             this.watch (url, messageHash, message, messageHash);
         }
-        return future;
+        return await future;
     }
 
     async watchPrivate (messageHash, subscriptionHash, args, params = {}) {
@@ -1747,6 +1748,8 @@ export default class bitget extends bitgetRest {
             'ordersAlgo': this.handleOrder,
             'account': this.handleBalance,
             'positions': this.handlePositions,
+            'account-isolated': this.handleBalance,
+            'account-crossed': this.handleBalance,
         };
         const arg = this.safeValue (message, 'arg', {});
         const topic = this.safeValue (arg, 'channel', '');

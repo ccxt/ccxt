@@ -176,15 +176,12 @@ class Transpiler {
             [ /\.marketSymbols\s/g, '.market_symbols'],
             [ /\.marketIds\s/g, '.market_ids'],
             [ /\.marketId\s/g, '.market_id'],
-            [ /\.fetchFundingFee\s/g, '.fetch_funding_fee'],
-            [ /\.fetchFundingFees\s/g, '.fetch_funding_fees'],
             [ /\.fetchTradingLimits\s/g, '.fetch_trading_limits'],
             [ /\.fetchTransactionFee\s/g, '.fetch_transaction_fee'],
             [ /\.fetchTransactionFees\s/g, '.fetch_transaction_fees'],
             [ /\.fetchTradingFees\s/g, '.fetch_trading_fees'],
             [ /\.fetchTradingFee\s/g, '.fetch_trading_fee'],
             [ /\.fetchOHLCVWs\s/g, '.fetch_ohlcv_ws'],
-            [ /\.fetchFees\s/g, '.fetch_fees'],
             [ /\.fetchOHLCVC\s/g, '.fetch_ohlcvc'],
             [ /\.fetchOHLCV\s/g, '.fetch_ohlcv'],
             [ /\.buildOHLCVC\s/g, '.build_ohlcvc'],
@@ -220,7 +217,6 @@ class Transpiler {
             [ /\.getDefaultOptions\s/g, '.get_default_options'],
             [ /\.loadAccounts\s/g, '.load_accounts'],
             [ /\.fetchAccounts\s/g, '.fetch_accounts'],
-            [ /\.loadFees\s/g, '.load_fees'],
             [ /\.loadMarkets\s/g, '.load_markets'],
             [ /\.loadTimeDifference\s/g, '.load_time_difference'],
             [ /\.fetchMarkets\s/g, '.fetch_markets'],
@@ -341,6 +337,14 @@ class Transpiler {
             [ /\.isRoundNumber\s/g, '.is_round_number'],
             [ /\.getDescribeForExtendedWsExchange\s/g, '.get_describe_for_extended_ws_exchange'],
             [ /\.watchMultiple\s/g, '.watch_multiple'],
+            [ /\.intToBase16\s/g, '.int_to_base16'],
+            [ /\.convertExpireDate\s/g, '.convert_expire_date'],
+            [ /\.convertMarketIdExpireDate\s/g, '.convert_market_id_expire_date'],
+            [ /\.convertExpireDateToMarketIdDate\s/g, '.convert_expire_date_to_market_id_date'],
+            [ /\.handleParamString\s/g, '.handle_param_string'],
+            [ /\.fetchIsolatedBorrowRates\s/g, '.fetch_isolated_borrow_rates'],
+            [ /\.extendExchangeOptions\s/g, '.extend_exchange_options'],
+            [ /\.createSafeDictionary\s/g, '.create_safe_dictionary'],
             [ /\ssha(1|256|384|512)([,)])/g, ' \'sha$1\'$2'], // from js imports to this
             [ /\s(md5|secp256k1|ed25519|keccak)([,)])/g, ' \'$1\'$2'], // from js imports to this
 
@@ -407,6 +411,11 @@ class Transpiler {
             [ /\!\=\=?/g, '!=' ],
             [ /this\.stringToBinary\s*\((.*)\)/g, '$1' ],
             [ /\.shift\s*\(\)/g, '.pop(0)' ],
+            // beware of .reverse() in python, because opposed to JS, python does in-place, so 
+            // only cases like `x = x.reverse ()` should be transpiled, which will resul as 
+            // `x.reverse()` in python. otherwise, if transpiling `x = y.reverse()`, then the
+            // left side `x = `will be removed and only `y.reverse()` will end up in python
+            [ /\s+(\w+)\s\=\s(.*?)\.reverse\s\(/g, '$2.reverse(' ], 
             [ /Number\.MAX_SAFE_INTEGER/g, 'float(\'inf\')'],
             [ /function\s*(\w+\s*\([^)]+\))\s*{/g, 'def $1:'],
             // [ /\.replaceAll\s*\(([^)]+)\)/g, '.replace($1)' ], // still not a part of the standard
@@ -592,7 +601,7 @@ class Transpiler {
             [ /Number\.isInteger\s*\(([^\)]+)\)/g, "is_int($1)" ],
             [ /([^\(\s]+)\s+instanceof\s+String/g, 'is_string($1)' ],
             // we want to remove type hinting variable lines
-            [ /^\s+(?:let|const|var)\s+\w+:\s+(?:Str|Int|Num|MarketType|string|number|Dict|any);\n/mg, '' ],
+            [ /^\s+(?:let|const|var)\s+\w+:\s+(?:Str|Int|Num|SubType|MarketType|string|number|Dict|any);\n/mg, '' ],
             [ /(^|[^a-zA-Z0-9_])(let|const|var)(\s+\w+):\s+(?:Str|Int|Num|Bool|Market|Currency|string|number|Dict|any)(\s+=\s+[\w+\{}])/g, '$1$2$3$4' ],
 
             [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\=\=\=?\s+\'undefined\'/g, '$1[$2] === null' ],
@@ -641,7 +650,7 @@ class Transpiler {
             // a proper \ccxt\Exchange::deep_extend() base method is implemented instead
             // [ /this\.deepExtend\s/g, 'array_replace_recursive'],
             [ /(\w+)\.shift\s*\(\)/g, 'array_shift($1)' ],
-            [ /(\w+)\.reverse\s*\(\)/g, 'array_reverse($1)' ],
+            [ /(\w+)\.reverse\s*\(\)/g, 'array_reverse($1)' ], // see comment in python .reverse()
             [ /(\w+)\.pop\s*\(\)/g, 'array_pop($1)' ],
             [ /Number\.MAX_SAFE_INTEGER/g, 'PHP_INT_MAX' ],
             [ /Precise\.stringAdd\s/g, 'Precise::string_add' ],
@@ -973,37 +982,48 @@ class Transpiler {
             libraries.push ('import numbers')
         }
         const matchObject = {
-            'Account': /-> Account:/,
+            'Account': /-> (?:List\[)?Account/,
+            'Any': /: Any =/,
+            'BalanceAccount': /-> BalanceAccount:/,
             'Balances': /-> Balances:/,
+            'Bool': /: Bool =/,
+            'Currencies': /-> Currencies:/,
             'Currency': /(-> Currency:|: Currency)/,
+            'FundingHistory': /\[FundingHistory/,
             'Greeks': /-> Greeks:/,
+            'IndexType': /: IndexType/,
             'Int': /: Int =/,
             'Liquidation': /-> (?:List\[)?Liquidation/,
+            'LastPrice': /-> LastPrice:/,
+            'LastPrices': /-> LastPrices:/,
             'Leverage': /-> Leverage:/,
             'Leverages': /-> Leverages:/,
+            'Liquidation': /-> (?:List\[)?Liquidation/,
             'MarginMode': /-> MarginMode:/,
             'MarginModes': /-> MarginModes:/,
-            'MarketType': /: MarketType/,
+            'MarginModification': /-> MarginModification:/,
             'Market': /(-> Market:|: Market)/,
-            'Order': /-> Order:/,
-            'TransferEntry': /-> TransferEntry:/,
+            'MarketInterface': /-> MarketInterface:/,
+            'MarketType': /: MarketType/,
+            'Num': /: Num =/,
+            'Option': /-> Option:/,
+            'OptionChain': /-> OptionChain:/,
+            'Order': /-> (?:List\[)?Order\]?:/,
             'OrderBook': /-> OrderBook:/,
             'OrderRequest': /: (?:List\[)?OrderRequest/,
             'OrderSide': /: OrderSide/,
             'OrderType': /: OrderType/,
             'Position': /-> (?:List\[)?Position/,
-            'IndexType': /: IndexType/,
-            'FundingHistory': /\[FundingHistory/,
-            'Num': /: Num =/,
-            'Any': /: Any =/,
             'Str': /: Str =/,
-            'Bool': /: Bool =/,
             'Strings': /: Strings =/,
+            'SubType': /: SubType/,
             'Ticker': /-> Ticker:/,
             'Tickers': /-> Tickers:/,
             'Trade': /-> (?:List\[)?Trade/,
-            'Order': /-> (?:List\[)?Order\]?:/,
+            'TradingFeeInterface': /-> TradingFeeInterface:/,
+            'TradingFees': /-> TradingFees:/,
             'Transaction': /-> (?:List\[)?Transaction/,
+            'TransferEntry': /-> TransferEntry:/,
         }
         const matches = []
         let match
@@ -1642,7 +1662,9 @@ class Transpiler {
                 'any': 'mixed',
                 'string': 'string',
                 'MarketType': 'string',
+                'SubType': 'string',
                 'Str': '?string',
+                'Num': '?float',
                 'Strings': '?array',
                 'number': 'float',
                 'boolean': 'bool',
@@ -1653,7 +1675,7 @@ class Transpiler {
                 'Dictionary<any>': 'array',
                 'Dict': 'array',
             }
-            const phpArrayRegex = /^(?:Market|Currency|Account|object|OHLCV|Order|OrderBook|Tickers?|Trade|Transaction|Balances?)( \| undefined)?$|\w+\[\]/
+            const phpArrayRegex = /^(?:Market|Currency|Account|AccountStructure|BalanceAccount|object|OHLCV|Order|OrderBook|Tickers?|Trade|Transaction|Balances?|MarketInterface|TransferEntry|Leverages|Leverage|Greeks|MarginModes|MarginMode|MarginModification|LastPrice|LastPrices|TradingFeeInterface|Currencies|TradingFees)( \| undefined)?$|\w+\[\]/
             let phpArgs = args.map (x => {
                 const parts = x.split (':')
                 if (parts.length === 1) {
