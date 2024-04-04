@@ -44,9 +44,6 @@ export default class kucoinfutures extends kucoinfuturesRest {
                     'snapshotDelay': 20,
                     'snapshotMaxRetries': 3,
                 },
-                'watchTicker': {
-                    'name': 'contractMarket/tickerV2', // market/ticker
-                },
                 'watchPosition': {
                     'fetchPositionSnapshot': true, // or false
                     'awaitPositionSnapshot': true, // whether to wait for the position snapshot before providing updates
@@ -176,7 +173,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
          * @method
          * @name kucoinfutures#watchTicker
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-         * @see https://docs.kucoin.com/futures/#get-real-time-symbol-ticker-v2
+         * @see https://www.kucoin.com/docs/websocket/futures-trading/public-channels/get-ticker
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -185,9 +182,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
         const market = this.market (symbol);
         symbol = market['symbol'];
         const url = await this.negotiate (false);
-        const options = this.safeValue (this.options, 'watchTicker', {});
-        const channel = this.safeString (options, 'name', 'contractMarket/tickerV2');
-        const topic = '/' + channel + ':' + market['id'];
+        const topic = '/contractMarket/ticker:' + market['id'];
         const messageHash = 'ticker:' + symbol;
         return await this.subscribe (url, messageHash, topic, undefined, params);
     }
