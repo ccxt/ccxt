@@ -182,7 +182,8 @@ export default class kucoinfutures extends kucoinfuturesRest {
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];
-        return await this.watchMultiHelper ('watchTicker', '/contractMarket/ticker:', [ symbol ], params);
+        const tickers = await this.watchTickers ([ symbol ], params);
+        return tickers[symbol];
     }
 
     async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
