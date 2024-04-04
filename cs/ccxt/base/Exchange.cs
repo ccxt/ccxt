@@ -798,6 +798,15 @@ public partial class Exchange
         // return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
     }
 
+    public string randomBytes(object length2)
+    {
+        var length = Convert.ToInt32(length2);
+        var bytes = new byte[length];
+        var rng = new Random();
+        rng.NextBytes(bytes);
+        return Convert.ToBase64String(bytes);
+    }
+
     public class DynamicInvoker
     {
         public static object InvokeMethod(object action, object[] parameters)
