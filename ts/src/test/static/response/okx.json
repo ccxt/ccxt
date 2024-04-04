@@ -3,6 +3,29 @@
     "skipKeys": [],
     "options": {},
     "methods": {
+        "fetchStatus" : [
+            {
+                "description": "Fetch status",
+                "method": "fetchStatus",
+                "input": [],
+                "httpResponse": {
+                  "code": "0",
+                  "data": [],
+                  "msg": ""
+                },
+                "parsedResponse": {
+                  "updated": null,
+                  "status": "ok",
+                  "eta": null,
+                  "url": null,
+                  "info": {
+                    "code": "0",
+                    "data": [],
+                    "msg": ""
+                  }
+                }
+              }
+        ],
         "fetchOpenOrders": [
             {
                 "description": "fetch swap limit open order with take profit and stop loss",
