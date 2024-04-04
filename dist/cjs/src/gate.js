@@ -2071,6 +2071,8 @@ class gate extends gate$1 {
             'symbol': this.safeString(market, 'symbol'),
             'maker': this.safeNumber(info, makerKey),
             'taker': this.safeNumber(info, takerKey),
+            'percentage': undefined,
+            'tierBased': undefined,
         };
     }
     async fetchTransactionFees(codes = undefined, params = {}) {

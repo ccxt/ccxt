@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.blofin import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, Int, Leverage, Leverages, MarginMode, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
+from ccxt.base.types import Balances, Currency, Int, Leverage, Leverages, MarginMode, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
@@ -906,13 +906,15 @@ class blofin(Exchange, ImplicitAPI):
             result[code] = account
         return self.safe_balance(result)
 
-    def parse_trading_fee(self, fee, market: Market = None):
+    def parse_trading_fee(self, fee, market: Market = None) -> TradingFeeInterface:
         return {
             'info': fee,
             'symbol': self.safe_symbol(None, market),
             # blofin returns the fees values opposed to other exchanges, so the sign needs to be flipped
             'maker': self.parse_number(Precise.string_neg(self.safe_string_2(fee, 'maker', 'makerU'))),
             'taker': self.parse_number(Precise.string_neg(self.safe_string_2(fee, 'taker', 'takerU'))),
+            'percentage': None,
+            'tierBased': None,
         }
 
     async def fetch_balance(self, params={}) -> Balances:

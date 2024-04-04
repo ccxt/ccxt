@@ -1547,6 +1547,8 @@ public partial class ascendex : Exchange
                 { "symbol", symbol },
                 { "maker", this.safeNumber(takerMaker, "maker") },
                 { "taker", this.safeNumber(takerMaker, "taker") },
+                { "percentage", null },
+                { "tierBased", null },
             };
         }
         return result;

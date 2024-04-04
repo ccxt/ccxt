@@ -778,7 +778,7 @@ class coinmate extends Exchange {
         return $this->parse_trades($data, $market, $since, $limit);
     }
 
-    public function fetch_trading_fee(string $symbol, $params = array ()) {
+    public function fetch_trading_fee(string $symbol, $params = array ()): array {
         /**
          * fetch the trading fees for a $market
          * @see https://coinmate.docs.apiary.io/#reference/trader-fees/get-trading-fees/post

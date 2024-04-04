@@ -832,7 +832,7 @@ class bitso extends Exchange {
         return $this->parse_trades($response['payload'], $market, $since, $limit);
     }
 
-    public function fetch_trading_fees($params = array ()) {
+    public function fetch_trading_fees($params = array ()): array {
         /**
          * fetch the trading $fees for multiple markets
          * @see https://docs.bitso.com/bitso-api/docs/list-$fees

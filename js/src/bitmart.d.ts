@@ -1,5 +1,5 @@
 import Exchange from './abstract/bitmart.js';
-import type { Int, OrderSide, Balances, OrderType, OHLCV, Order, Str, Trade, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, Market, TransferEntry, Num } from './base/types.js';
+import type { Int, OrderSide, Balances, OrderType, OHLCV, Order, Str, Trade, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, Market, TransferEntry, Num, TradingFeeInterface, Currencies } from './base/types.js';
 /**
  * @class bitmart
  * @augments Exchange
@@ -17,7 +17,7 @@ export default class bitmart extends Exchange {
     fetchSpotMarkets(params?: {}): Promise<any[]>;
     fetchContractMarkets(params?: {}): Promise<any[]>;
     fetchMarkets(params?: {}): Promise<Market[]>;
-    fetchCurrencies(params?: {}): Promise<{}>;
+    fetchCurrencies(params?: {}): Promise<Currencies>;
     fetchTransactionFee(code: string, params?: {}): Promise<{
         info: any;
         withdraw: {};
@@ -49,18 +49,8 @@ export default class bitmart extends Exchange {
     customParseBalance(response: any, marketType: any): Balances;
     parseBalanceHelper(entry: any): import("./base/types.js").BalanceAccount;
     fetchBalance(params?: {}): Promise<Balances>;
-    parseTradingFee(fee: any, market?: Market): {
-        info: any;
-        symbol: string;
-        maker: number;
-        taker: number;
-    };
-    fetchTradingFee(symbol: string, params?: {}): Promise<{
-        info: any;
-        symbol: string;
-        maker: number;
-        taker: number;
-    }>;
+    parseTradingFee(fee: any, market?: Market): TradingFeeInterface;
+    fetchTradingFee(symbol: string, params?: {}): Promise<TradingFeeInterface>;
     parseOrder(order: any, market?: Market): Order;
     parseOrderSide(side: any): string;
     parseOrderStatusByType(type: any, status: any): string;

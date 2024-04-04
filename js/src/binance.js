@@ -8656,6 +8656,8 @@ export default class binance extends Exchange {
             'symbol': symbol,
             'maker': this.safeNumber2(fee, 'makerCommission', 'makerCommissionRate'),
             'taker': this.safeNumber2(fee, 'takerCommission', 'takerCommissionRate'),
+            'percentage': undefined,
+            'tierBased': undefined,
         };
     }
     async fetchTradingFee(symbol, params = {}) {

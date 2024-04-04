@@ -1,5 +1,5 @@
 import Exchange from './abstract/bitget.js';
-import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Market, Strings, Currency, Position, Liquidation, TransferEntry, Leverage, MarginMode, Num, MarginModification } from './base/types.js';
+import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Market, Strings, Currency, Position, Liquidation, TransferEntry, Leverage, MarginMode, Num, MarginModification, TradingFeeInterface, Currencies, TradingFees } from './base/types.js';
 /**
  * @class bitget
  * @augments Exchange
@@ -13,7 +13,7 @@ export default class bitget extends Exchange {
     fetchMarkets(params?: {}): Promise<Market[]>;
     parseMarket(market: any): Market;
     fetchMarketsByType(type: any, params?: {}): Promise<import("./base/types.js").MarketInterface[]>;
-    fetchCurrencies(params?: {}): Promise<{}>;
+    fetchCurrencies(params?: {}): Promise<Currencies>;
     fetchMarketLeverageTiers(symbol: string, params?: {}): Promise<any[]>;
     parseMarketLeverageTiers(info: any, market?: Market): any[];
     fetchDeposits(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
@@ -41,18 +41,15 @@ export default class bitget extends Exchange {
     fetchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
     parseTrade(trade: any, market?: Market): Trade;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
-    fetchTradingFee(symbol: string, params?: {}): Promise<{
-        info: any;
-        symbol: string;
-        maker: number;
-        taker: number;
-    }>;
-    fetchTradingFees(params?: {}): Promise<{}>;
+    fetchTradingFee(symbol: string, params?: {}): Promise<TradingFeeInterface>;
+    fetchTradingFees(params?: {}): Promise<TradingFees>;
     parseTradingFee(data: any, market?: Market): {
         info: any;
         symbol: string;
         maker: number;
         taker: number;
+        percentage: any;
+        tierBased: any;
     };
     parseOHLCV(ohlcv: any, market?: Market): OHLCV;
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;

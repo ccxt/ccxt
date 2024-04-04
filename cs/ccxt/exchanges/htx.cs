@@ -1420,6 +1420,8 @@ public partial class htx : Exchange
             { "symbol", this.safeSymbol(marketId, market) },
             { "maker", this.safeNumber(fee, "actualMakerRate") },
             { "taker", this.safeNumber(fee, "actualTakerRate") },
+            { "percentage", null },
+            { "tierBased", null },
         };
     }
 

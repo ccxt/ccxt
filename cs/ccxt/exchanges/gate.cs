@@ -2098,6 +2098,8 @@ public partial class gate : Exchange
             { "symbol", this.safeString(market, "symbol") },
             { "maker", this.safeNumber(info, makerKey) },
             { "taker", this.safeNumber(info, takerKey) },
+            { "percentage", null },
+            { "tierBased", null },
         };
     }
 

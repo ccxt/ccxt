@@ -7,7 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.abstract.cex import ImplicitAPI
 import hashlib
 import json
-from ccxt.base.types import Balances, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Balances, Currencies, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
@@ -237,7 +237,7 @@ class cex(Exchange, ImplicitAPI):
             })
         return self.safe_value(self.options['fetchCurrencies'], 'response')
 
-    def fetch_currencies(self, params={}):
+    def fetch_currencies(self, params={}) -> Currencies:
         """
         fetches all available currencies on an exchange
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -681,7 +681,7 @@ class cex(Exchange, ImplicitAPI):
         response = self.publicGetTradeHistoryPair(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
-    def fetch_trading_fees(self, params={}):
+    def fetch_trading_fees(self, params={}) -> TradingFees:
         """
         :see: https://docs.cex.io/#get-my-fee
         fetch the trading fees for multiple markets

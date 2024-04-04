@@ -1532,6 +1532,8 @@ public partial class hitbtc : Exchange
             { "symbol", symbol },
             { "taker", taker },
             { "maker", maker },
+            { "percentage", null },
+            { "tierBased", null },
         };
     }
 

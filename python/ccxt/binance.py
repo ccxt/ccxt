@@ -7,7 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.abstract.binance import ImplicitAPI
 import hashlib
 import json
-from ccxt.base.types import Balances, Currency, Greeks, Int, Leverage, Leverages, MarginMode, MarginModes, MarginModification, Market, MarketInterface, Num, Option, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
+from ccxt.base.types import Balances, Currencies, Currency, Greeks, Int, Leverage, Leverages, MarginMode, MarginModes, MarginModification, Market, MarketInterface, Num, Option, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -2592,7 +2592,7 @@ class binance(Exchange, ImplicitAPI):
             response = self.publicGetTime(query)
         return self.safe_integer(response, 'serverTime')
 
-    def fetch_currencies(self, params={}):
+    def fetch_currencies(self, params={}) -> Currencies:
         """
         fetches all available currencies on an exchange
         :see: https://binance-docs.github.io/apidocs/spot/en/#all-coins-39-information-user_data
@@ -8036,7 +8036,7 @@ class binance(Exchange, ImplicitAPI):
         #     {id: '9a67628b16ba4988ae20d329333f16bc'}
         return self.parse_transaction(response, currency)
 
-    def parse_trading_fee(self, fee, market: Market = None):
+    def parse_trading_fee(self, fee, market: Market = None) -> TradingFeeInterface:
         #
         # spot
         #     [
@@ -8061,9 +8061,11 @@ class binance(Exchange, ImplicitAPI):
             'symbol': symbol,
             'maker': self.safe_number_2(fee, 'makerCommission', 'makerCommissionRate'),
             'taker': self.safe_number_2(fee, 'takerCommission', 'takerCommissionRate'),
+            'percentage': None,
+            'tierBased': None,
         }
 
-    def fetch_trading_fee(self, symbol: str, params={}):
+    def fetch_trading_fee(self, symbol: str, params={}) -> TradingFeeInterface:
         """
         fetch the trading fees for a market
         :see: https://binance-docs.github.io/apidocs/spot/en/#trade-fee-user_data
@@ -8126,7 +8128,7 @@ class binance(Exchange, ImplicitAPI):
             data = self.safe_dict(data, 0, {})
         return self.parse_trading_fee(data, market)
 
-    def fetch_trading_fees(self, params={}):
+    def fetch_trading_fees(self, params={}) -> TradingFees:
         """
         fetch the trading fees for multiple markets
         :see: https://binance-docs.github.io/apidocs/spot/en/#trade-fee-user_data

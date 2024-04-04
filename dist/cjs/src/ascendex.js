@@ -1483,6 +1483,8 @@ class ascendex extends ascendex$1 {
                 'symbol': symbol,
                 'maker': this.safeNumber(takerMaker, 'maker'),
                 'taker': this.safeNumber(takerMaker, 'taker'),
+                'percentage': undefined,
+                'tierBased': undefined,
             };
         }
         return result;

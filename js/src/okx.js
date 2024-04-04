@@ -2357,6 +2357,8 @@ export default class okx extends Exchange {
             // OKX returns the fees as negative values opposed to other exchanges, so the sign needs to be flipped
             'maker': this.parseNumber(Precise.stringNeg(this.safeString2(fee, 'maker', 'makerU'))),
             'taker': this.parseNumber(Precise.stringNeg(this.safeString2(fee, 'taker', 'takerU'))),
+            'percentage': undefined,
+            'tierBased': undefined,
         };
     }
     async fetchTradingFee(symbol, params = {}) {

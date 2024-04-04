@@ -8653,6 +8653,8 @@ class binance extends binance$1 {
             'symbol': symbol,
             'maker': this.safeNumber2(fee, 'makerCommission', 'makerCommissionRate'),
             'taker': this.safeNumber2(fee, 'takerCommission', 'takerCommissionRate'),
+            'percentage': undefined,
+            'tierBased': undefined,
         };
     }
     async fetchTradingFee(symbol, params = {}) {

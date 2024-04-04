@@ -432,6 +432,30 @@ class bitstamp extends Exchange {
             'commonCurrencies' => array(
                 'UST' => 'USTC',
             ),
+            // exchange-specific options
+            'options' => array(
+                'networksById' => array(
+                    'bitcoin-cash' => 'BCH',
+                    'bitcoin' => 'BTC',
+                    'ethereum' => 'ERC20',
+                    'litecoin' => 'LTC',
+                    'stellar' => 'XLM',
+                    'xrpl' => 'XRP',
+                    'tron' => 'TRC20',
+                    'algorand' => 'ALGO',
+                    'flare' => 'FLR',
+                    'hedera' => 'HBAR',
+                    'cardana' => 'ADA',
+                    'songbird' => 'FLR',
+                    'avalanche-c-chain' => 'AVAX',
+                    'solana' => 'SOL',
+                    'polkadot' => 'DOT',
+                    'near' => 'NEAR',
+                    'doge' => 'DOGE',
+                    'sui' => 'SUI',
+                    'casper' => 'CSRP',
+                ),
+            ),
             'exceptions' => array(
                 'exact' => array(
                     'No permission found' => '\\ccxt\\PermissionDenied',
@@ -609,7 +633,7 @@ class bitstamp extends Exchange {
         }) ();
     }
 
-    public function fetch_currencies($params = array ()) {
+    public function fetch_currencies($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches all available currencies on an exchange
@@ -1174,7 +1198,7 @@ class bitstamp extends Exchange {
         }) ();
     }
 
-    public function fetch_trading_fee(string $symbol, $params = array ()) {
+    public function fetch_trading_fee(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch the trading fees for a $market
@@ -1209,7 +1233,7 @@ class bitstamp extends Exchange {
         }) ();
     }
 
-    public function parse_trading_fee($fee, ?array $market = null) {
+    public function parse_trading_fee($fee, ?array $market = null): array {
         $marketId = $this->safe_string($fee, 'market');
         $fees = $this->safe_dict($fee, 'fees', array());
         return array(
@@ -1217,6 +1241,8 @@ class bitstamp extends Exchange {
             'symbol' => $this->safe_symbol($marketId, $market),
             'maker' => $this->safe_number($fees, 'maker'),
             'taker' => $this->safe_number($fees, 'taker'),
+            'percentage' => null,
+            'tierBased' => null,
         );
     }
 
@@ -1231,7 +1257,7 @@ class bitstamp extends Exchange {
         return $result;
     }
 
-    public function fetch_trading_fees($params = array ()) {
+    public function fetch_trading_fees($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetch the trading fees for multiple markets
@@ -1264,67 +1290,48 @@ class bitstamp extends Exchange {
             /**
              * @deprecated
              * please use fetchDepositWithdrawFees instead
-             * @see https://www.bitstamp.net/api/#$balance
+             * @see https://www.bitstamp.net/api/#tag/Fees
              * @param {string[]|null} $codes list of unified currency $codes
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=fee-structure fee structures~
              */
             Async\await($this->load_markets());
-            $balance = Async\await($this->privatePostBalance ($params));
-            return $this->parse_transaction_fees($balance);
+            $response = Async\await($this->privatePostFeesWithdrawal ($params));
+            //
+            //     array(
+            //         {
+            //             "currency" => "btc",
+            //             "fee" => "0.00015000",
+            //             "network" => "bitcoin"
+            //         }
+            //         ...
+            //     )
+            //
+            return $this->parse_transaction_fees($response);
         }) ();
     }
 
     public function parse_transaction_fees($response, $codes = null) {
-        //
-        //  {
-        //     "yfi_available" => "0.00000000",
-        //     "yfi_balance" => "0.00000000",
-        //     "yfi_reserved" => "0.00000000",
-        //     "yfi_withdrawal_fee" => "0.00070000",
-        //     "yfieur_fee" => "0.000",
-        //     "yfiusd_fee" => "0.000",
-        //     "zrx_available" => "0.00000000",
-        //     "zrx_balance" => "0.00000000",
-        //     "zrx_reserved" => "0.00000000",
-        //     "zrx_withdrawal_fee" => "12.00000000",
-        //     "zrxeur_fee" => "0.000",
-        //     "zrxusd_fee" => "0.000",
-        //     ...
-        //  }
-        //
-        if ($codes === null) {
-            $codes = is_array($this->currencies) ? array_keys($this->currencies) : array();
-        }
         $result = array();
-        $mainCurrencyId = null;
-        $ids = is_array($response) ? array_keys($response) : array();
+        $currencies = $this->index_by($response, 'currency');
+        $ids = is_array($currencies) ? array_keys($currencies) : array();
         for ($i = 0; $i < count($ids); $i++) {
             $id = $ids[$i];
-            $currencyId = explode('_', $id)[0];
-            $code = $this->safe_currency_code($currencyId);
-            if ($codes !== null && !$this->in_array($code, $codes)) {
+            $fees = $this->safe_value($response, $i, array());
+            $code = $this->safe_currency_code($id);
+            if (($codes !== null) && !$this->in_array($code, $codes)) {
                 continue;
             }
-            if (mb_strpos($id, '_available') !== false) {
-                $mainCurrencyId = $currencyId;
-                $result[$code] = array(
-                    'deposit' => null,
-                    'withdraw' => null,
-                    'info' => array(),
-                );
-            }
-            if ($currencyId === $mainCurrencyId) {
-                $result[$code]['info'][$id] = $this->safe_number($response, $id);
-            }
-            if (mb_strpos($id, '_withdrawal_fee') !== false) {
-                $result[$code]['withdraw'] = $this->safe_number($response, $id);
-            }
+            $result[$code] = array(
+                'withdraw_fee' => $this->safe_number($fees, 'fee'),
+                'deposit' => array(),
+                'info' => $this->safe_dict($currencies, $id),
+            );
         }
         return $result;
     }
 
-    public function fetch_deposit_withdraw_fees(?array $codes = null, $params = array ()) {
+    public function fetch_deposit_withdraw_fees($codes = null, $params = array ()) {
         return Async\async(function () use ($codes, $params) {
             /**
              * fetch deposit and withdraw fees
@@ -1334,66 +1341,43 @@ class bitstamp extends Exchange {
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=fee-structure fee structures~
              */
             Async\await($this->load_markets());
-            $response = Async\await($this->privatePostBalance ($params));
+            $response = Async\await($this->privatePostFeesWithdrawal ($params));
             //
-            //    {
-            //        "yfi_available" => "0.00000000",
-            //        "yfi_balance" => "0.00000000",
-            //        "yfi_reserved" => "0.00000000",
-            //        "yfi_withdrawal_fee" => "0.00070000",
-            //        "yfieur_fee" => "0.000",
-            //        "yfiusd_fee" => "0.000",
-            //        "zrx_available" => "0.00000000",
-            //        "zrx_balance" => "0.00000000",
-            //        "zrx_reserved" => "0.00000000",
-            //        "zrx_withdrawal_fee" => "12.00000000",
-            //        "zrxeur_fee" => "0.000",
-            //        "zrxusd_fee" => "0.000",
-            //        ...
-            //    }
+            //     array(
+            //         {
+            //             "currency" => "btc",
+            //             "fee" => "0.00015000",
+            //             "network" => "bitcoin"
+            //         }
+            //         ...
+            //     )
             //
-            return $this->parse_deposit_withdraw_fees($response, $codes);
+            $responseByCurrencyId = $this->group_by($response, 'currency');
+            return $this->parse_deposit_withdraw_fees($responseByCurrencyId, $codes);
         }) ();
     }
 
-    public function parse_deposit_withdraw_fees($response, $codes = null, $currencyIdKey = null) {
-        //
-        //    {
-        //        "yfi_available" => "0.00000000",
-        //        "yfi_balance" => "0.00000000",
-        //        "yfi_reserved" => "0.00000000",
-        //        "yfi_withdrawal_fee" => "0.00070000",
-        //        "yfieur_fee" => "0.000",
-        //        "yfiusd_fee" => "0.000",
-        //        "zrx_available" => "0.00000000",
-        //        "zrx_balance" => "0.00000000",
-        //        "zrx_reserved" => "0.00000000",
-        //        "zrx_withdrawal_fee" => "12.00000000",
-        //        "zrxeur_fee" => "0.000",
-        //        "zrxusd_fee" => "0.000",
-        //        ...
-        //    }
-        //
-        $result = array();
-        $ids = is_array($response) ? array_keys($response) : array();
-        for ($i = 0; $i < count($ids); $i++) {
-            $id = $ids[$i];
-            $currencyId = explode('_', $id)[0];
-            $code = $this->safe_currency_code($currencyId);
-            $dictValue = $this->safe_number($response, $id);
-            if ($codes !== null && !$this->in_array($code, $codes)) {
-                continue;
-            }
-            if (mb_strpos($id, '_available') !== false) {
-                $result[$code] = $this->deposit_withdraw_fee(array());
-            }
-            if (mb_strpos($id, '_withdrawal_fee') !== false) {
-                $result[$code]['withdraw']['fee'] = $dictValue;
-            }
-            $resultValue = $this->safe_value($result, $code);
-            if ($resultValue !== null) {
-                $result[$code]['info'][$id] = $dictValue;
-            }
+    public function parse_deposit_withdraw_fee($fee, $currency = null) {
+        $result = $this->deposit_withdraw_fee($fee);
+        for ($j = 0; $j < count($fee); $j++) {
+            $networkEntry = $fee[$j];
+            $networkId = $this->safe_string($networkEntry, 'network');
+            $networkCode = $this->network_id_to_code($networkId);
+            $withdrawFee = $this->safe_number($networkEntry, 'fee');
+            $result['withdraw'] = array(
+                'fee' => $withdrawFee,
+                'percentage' => null,
+            );
+            $result['networks'][$networkCode] = array(
+                'withdraw' => array(
+                    'fee' => $withdrawFee,
+                    'percentage' => null,
+                ),
+                'deposit' => array(
+                    'fee' => null,
+                    'percentage' => null,
+                ),
+            );
         }
         return $result;
     }
