@@ -5050,8 +5050,9 @@ export default class Exchange {
             return code;
         }
         // if the provided code already exists as a value in commonCurrencies dict, then we should not again transform it
-        // (more details at: https://github.com/ccxt/ccxt/issues/21112#issuecomment-2031293691)
-        const exists = this.inArray (code, Object.values (this.commonCurrencies));
+        // more details at: https://github.com/ccxt/ccxt/issues/21112#issuecomment-2031293691
+        const commonCurrencies = Object.values (this.commonCurrencies);
+        const exists = this.inArray (code, commonCurrencies);
         if (exists) {
             return code;
         }
