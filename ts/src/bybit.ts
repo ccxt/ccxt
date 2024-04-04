@@ -1064,15 +1064,28 @@ export default class bybit extends Exchange {
     }
 
     setSandboxMode (enable: boolean) {
+        /**
+         * @method
+         * @name bybit#setSandboxMode
+         * @description enables or disables sandbox mode
+         * @param {boolean} [enable] true if demo trading should be enabled, false otherwise
+         */
         super.setSandboxMode (enable);
         this.options['sandboxMode'] = enable;
     }
 
     enableDemoTrading (enable: boolean) {
-        // enable demo trading in bybit, see: https://bybit-exchange.github.io/docs/v5/demo
+        /**
+         * @method
+         * @name bybit#enableDemoTrading
+         * @description enables or disables demo trading mode
+         * @see https://bybit-exchange.github.io/docs/v5/demo
+         * @param {boolean} [enable] true if demo trading should be enabled, false otherwise
+         */
         if (this.options['sandboxMode']) {
             throw new NotSupported (this.id + ' demo trading does not support in sandbox environment');
         }
+        // enable demo trading in bybit, see: https://bybit-exchange.github.io/docs/v5/demo
         if (enable) {
             this.urls['apiBackupDemoTrading'] = this.urls['api'];
             this.urls['api'] = this.urls['demotrading'];
@@ -1102,6 +1115,11 @@ export default class bybit extends Exchange {
     }
 
     async isUnifiedEnabled (params = {}) {
+        /**
+         * @method
+         * @name bybit#isUnifiedEnabled
+         * @description returns [enableUnifiedMargin, enableUnifiedAccount] so the user can check if unified account is enabled
+         */
         // The API key of user id must own one of permissions will be allowed to call following API endpoints.
         // SUB UID: "Account Transfer"
         // MASTER UID: "Account Transfer", "Subaccount Transfer", "Withdrawal"
