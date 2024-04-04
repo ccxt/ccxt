@@ -8,7 +8,7 @@ from ccxt.abstract.kucoin import ImplicitAPI
 import hashlib
 import math
 import json
-from ccxt.base.types import Account, Balances, Currency, Int, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
+from ccxt.base.types import Account, Balances, Currencies, Currency, Int, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -1130,7 +1130,7 @@ class kucoin(Exchange, ImplicitAPI):
             })
         return result
 
-    def fetch_currencies(self, params={}):
+    def fetch_currencies(self, params={}) -> Currencies:
         """
         fetches all available currencies on an exchange
         :see: https://docs.kucoin.com/#get-currencies
@@ -2960,7 +2960,7 @@ class kucoin(Exchange, ImplicitAPI):
             'fee': fee,
         }, market)
 
-    def fetch_trading_fee(self, symbol: str, params={}):
+    def fetch_trading_fee(self, symbol: str, params={}) -> TradingFeeInterface:
         """
         fetch the trading fees for a market
         :see: https://docs.kucoin.com/#actual-fee-rate-of-the-trading-pair
@@ -3314,9 +3314,9 @@ class kucoin(Exchange, ImplicitAPI):
 
     def parse_balance_helper(self, entry):
         account = self.account()
-        account['used'] = self.safe_string(entry, 'holdBalance')
-        account['free'] = self.safe_string(entry, 'availableBalance')
-        account['total'] = self.safe_string(entry, 'totalBalance')
+        account['used'] = self.safe_string_2(entry, 'holdBalance', 'hold')
+        account['free'] = self.safe_string_2(entry, 'availableBalance', 'available')
+        account['total'] = self.safe_string_2(entry, 'totalBalance', 'total')
         debt = self.safe_string(entry, 'liability')
         interest = self.safe_string(entry, 'interest')
         account['debt'] = Precise.string_add(debt, interest)
@@ -3365,7 +3365,7 @@ class kucoin(Exchange, ImplicitAPI):
             request['type'] = type
             response = self.privateGetAccounts(self.extend(request, query))
         #
-        # Spot and Cross
+        # Spot
         #
         #    {
         #        "code": "200000",
@@ -3381,35 +3381,59 @@ class kucoin(Exchange, ImplicitAPI):
         #        ]
         #    }
         #
+        # Cross
+        #
+        #     {
+        #         "code": "200000",
+        #         "data": {
+        #             "debtRatio": "0",
+        #             "accounts": [
+        #                 {
+        #                     "currency": "USDT",
+        #                     "totalBalance": "5",
+        #                     "availableBalance": "5",
+        #                     "holdBalance": "0",
+        #                     "liability": "0",
+        #                     "maxBorrowSize": "20"
+        #                 },
+        #             ]
+        #         }
+        #     }
+        #
         # Isolated
         #
         #    {
         #        "code": "200000",
         #        "data": {
-        #            "totalConversionBalance": "0",
-        #            "liabilityConversionBalance": "0",
+        #            "totalAssetOfQuoteCurrency": "0",
+        #            "totalLiabilityOfQuoteCurrency": "0",
+        #            "timestamp": 1712085661155,
         #            "assets": [
         #                {
         #                    "symbol": "MANA-USDT",
-        #                    "status": "CLEAR",
+        #                    "status": "EFFECTIVE",
         #                    "debtRatio": "0",
         #                    "baseAsset": {
         #                        "currency": "MANA",
-        #                        "totalBalance": "0",
-        #                        "holdBalance": "0",
-        #                        "availableBalance": "0",
+        #                        "borrowEnabled": True,
+        #                        "transferInEnabled": True,
+        #                        "total": "0",
+        #                        "hold": "0",
+        #                        "available": "0",
         #                        "liability": "0",
         #                        "interest": "0",
-        #                        "borrowableAmount": "0"
+        #                        "maxBorrowSize": "0"
         #                    },
         #                    "quoteAsset": {
         #                        "currency": "USDT",
-        #                        "totalBalance": "0",
-        #                        "holdBalance": "0",
-        #                        "availableBalance": "0",
+        #                        "borrowEnabled": True,
+        #                        "transferInEnabled": True,
+        #                        "total": "0",
+        #                        "hold": "0",
+        #                        "available": "0",
         #                        "liability": "0",
         #                        "interest": "0",
-        #                        "borrowableAmount": "0"
+        #                        "maxBorrowSize": "0"
         #                    }
         #                },
         #                ...

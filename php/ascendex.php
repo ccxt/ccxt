@@ -384,7 +384,7 @@ class ascendex extends Exchange {
         return $this->capitalize($lowercaseAccount);
     }
 
-    public function fetch_currencies($params = array ()) {
+    public function fetch_currencies($params = array ()): array {
         /**
          * fetches all available currencies on an exchange
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1428,7 +1428,7 @@ class ascendex extends Exchange {
         ), $market);
     }
 
-    public function fetch_trading_fees($params = array ()) {
+    public function fetch_trading_fees($params = array ()): array {
         /**
          * fetch the trading $fees for multiple markets
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1471,6 +1471,8 @@ class ascendex extends Exchange {
                 'symbol' => $symbol,
                 'maker' => $this->safe_number($takerMaker, 'maker'),
                 'taker' => $this->safe_number($takerMaker, 'taker'),
+                'percentage' => null,
+                'tierBased' => null,
             );
         }
         return $result;
