@@ -321,16 +321,6 @@ export default class kucoin extends kucoinRest {
         if (length > 100) {
             throw new ArgumentsRequired (this.id + ' watchBidsAsks() accepts a maximum of 100 symbols');
         }
-        let firstMarket = undefined;
-        const symbolsDefined = (symbols !== undefined);
-        if (symbolsDefined) {
-            firstMarket = this.market (symbols[0]);
-        }
-        let marketType = undefined;
-        [ marketType, params ] = this.handleMarketTypeAndParams (methodName, firstMarket, params);
-        if (marketType !== 'spot') {
-            throw new NotSupported (this.id + ' ' + methodName + '() supports spot markets only');
-        }
         const messageHashes = [];
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
@@ -794,6 +784,9 @@ export default class kucoin extends kucoinRest {
         //     }
         //
         const id = this.safeString (message, 'id');
+        if (!(id in client.subscriptions)) {
+            return;
+        }
         const subscriptionHash = this.safeString (client.subscriptions, id);
         const subscription = this.safeValue (client.subscriptions, subscriptionHash);
         delete client.subscriptions[id];
