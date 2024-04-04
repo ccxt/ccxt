@@ -1127,7 +1127,9 @@ export default class bybit extends Exchange {
         const enableUnifiedAccount = this.safeValue (this.options, 'enableUnifiedAccount');
         if (enableUnifiedMargin === undefined || enableUnifiedAccount === undefined) {
             if (this.options['enableDemoTrading']) {
-                this.options['enableUnifiedMargin'] = true;
+                // info endpoint is not available in demo trading
+                // so we're assuming UTA is enabled in demo trading
+                this.options['enableUnifiedMargin'] = false;
                 this.options['enableUnifiedAccount'] = true;
                 return [ this.options['enableUnifiedMargin'], this.options['enableUnifiedAccount'] ];
             }
