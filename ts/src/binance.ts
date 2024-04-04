@@ -73,6 +73,7 @@ export default class binance extends Exchange {
                 'fetchCanceledOrders': 'emulated',
                 'fetchClosedOrder': false,
                 'fetchClosedOrders': 'emulated',
+                'fetchConvertCurrencies': true,
                 'fetchCrossBorrowRate': true,
                 'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
@@ -12334,5 +12335,54 @@ export default class binance extends Exchange {
             'baseVolume': this.safeNumber (chain, 'volume'),
             'quoteVolume': undefined,
         };
+    }
+
+    async fetchConvertCurrencies (params = {}) {
+        /**
+         * @method
+         * @name binance#fetchConvertCurrencies
+         * @description fetches all available currencies that can be converted
+         * @see https://binance-docs.github.io/apidocs/spot/en/#get-assets-that-can-be-converted-into-bnb-user_data
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an associative dictionary of currencies
+         */
+        await this.loadMarkets ();
+        const response = await this.sapiPostAssetDustBtc (params);
+        //
+        //     {
+        //         "details": [
+        //             {
+        //                 "asset": "ADA",
+        //                 "assetFullName": "ADA",
+        //                 "amountFree": "6.21",   //Convertible amount
+        //                 "toBTC": "0.00016848",  //BTC amount
+        //                 "toBNB": "0.01777302",  //BNB amount（Not deducted commission fee）
+        //                 "toBNBOffExchange": "0.01741756", //BNB amount（Deducted commission fee）
+        //                 "exchange": "0.00035546" //Commission fee
+        //             }
+        //         ],
+        //         "totalTransferBtc": "0.00016848",
+        //         "totalTransferBNB": "0.01777302",
+        //         "dribbletPercentage": "0.02"     //Commission fee
+        //     }
+        //
+        const result = {};
+        const data = this.safeList (response, 'details', []);
+        for (let i = 0; i < data.length; i++) {
+            const entry = data[i];
+            const id = this.safeString (entry, 'asset');
+            const code = this.safeCurrencyCode (id);
+            result[code] = {
+                'info': entry,
+                'id': id,
+                'code': code,
+                'precision': undefined,
+                'available': this.safeNumber (entry, 'amountFree'),
+                'minAmount': undefined,
+                'maxAmount': undefined,
+                'created': undefined,
+            };
+        }
+        return result;
     }
 }
