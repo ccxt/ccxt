@@ -343,7 +343,7 @@ export default class kucoin extends kucoinRest {
 
     handleBidAsk (client: Client, message) {
         //
-        // arrives one symbol dict or array of symbol dicts
+        // arrives one symbol dict
         //
         //     {
         //         topic: '/spotMarket/level1:ETH-USDT',
