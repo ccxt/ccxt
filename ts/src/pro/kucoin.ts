@@ -305,11 +305,13 @@ export default class kucoin extends kucoinRest {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
-        const result = await this.watchMultiHelper ('watchBidsAsks', '/spotMarket/level1:', symbols, params);
+        const ticker = await this.watchMultiHelper ('watchBidsAsks', '/spotMarket/level1:', symbols, params);
         if (this.newUpdates) {
-            return result;
+            const tickers = {};
+            tickers[ticker['symbol']] = ticker;
+            return tickers;
         }
-        return this.filterByArray (this.tickers, 'symbol', symbols);
+        return this.filterByArray (this.bidsasks, 'symbol', symbols);
     }
 
     async watchMultiHelper (methodName, channelName: string, symbols: Strings = undefined, params = {}) {
@@ -349,7 +351,7 @@ export default class kucoin extends kucoinRest {
         return await this.watchMultiple (url, messageHashes, message, messageHashes);
     }
 
-    handleBidsAsks (client: Client, message) {
+    handleBidAsk (client: Client, message) {
         //
         // arrives one symbol dict or array of symbol dicts
         //
@@ -1175,7 +1177,7 @@ export default class kucoin extends kucoinRest {
         }
         const subject = this.safeString (message, 'subject');
         const methods = {
-            'level1': this.handleBidsAsks,
+            'level1': this.handleBidAsk,
             'level2': this.handleOrderBook,
             'trade.l2update': this.handleOrderBook,
             'trade.ticker': this.handleTicker,
