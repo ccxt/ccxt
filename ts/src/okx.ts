@@ -1623,7 +1623,7 @@ export default class okx extends Exchange {
         //        "msg": ""
         //    }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeDict (response, 'data', []);
         const result = {};
         const dataByCurrencyId = this.groupBy (data, 'ccy');
         const currencyIds = Object.keys (dataByCurrencyId);
@@ -1639,11 +1639,11 @@ export default class okx extends Exchange {
             let maxPrecision = undefined;
             for (let j = 0; j < chains.length; j++) {
                 const chain = chains[j];
-                const canDeposit = this.safeValue (chain, 'canDep');
+                const canDeposit = this.safeBool (chain, 'canDep');
                 depositEnabled = (canDeposit) ? canDeposit : depositEnabled;
-                const canWithdraw = this.safeValue (chain, 'canWd');
+                const canWithdraw = this.safeBool (chain, 'canWd');
                 withdrawEnabled = (canWithdraw) ? canWithdraw : withdrawEnabled;
-                const canInternal = this.safeValue (chain, 'canInternal');
+                const canInternal = this.safeBool (chain, 'canInternal');
                 const active = (canDeposit && canWithdraw && canInternal) ? true : false;
                 currencyActive = (active) ? active : currencyActive;
                 const networkId = this.safeString (chain, 'chain');
@@ -1675,7 +1675,7 @@ export default class okx extends Exchange {
                     };
                 }
             }
-            const firstChain = this.safeValue (chains, 0);
+            const firstChain = this.safeDict (chains, 0, {});
             result[code] = {
                 'info': undefined,
                 'code': code,
