@@ -8367,7 +8367,7 @@ export default class bitget extends Exchange {
         } as MarginMode;
     }
 
-    async fetchConvertCurrencies (params = {}) {
+    async fetchConvertCurrencies (params = {}): Promise<Currencies> {
         /**
          * @method
          * @name bitget#fetchConvertCurrencies
@@ -8403,10 +8403,28 @@ export default class bitget extends Exchange {
                 'info': entry,
                 'id': id,
                 'code': code,
+                'networks': undefined,
+                'type': undefined,
+                'name': undefined,
+                'active': undefined,
+                'deposit': undefined,
+                'withdraw': this.safeNumber (entry, 'available'),
+                'fee': undefined,
                 'precision': undefined,
-                'available': this.safeNumber (entry, 'available'),
-                'minAmount': this.safeNumber (entry, 'minAmount'),
-                'maxAmount': this.safeNumber (entry, 'maxAmount'),
+                'limits': {
+                    'amount': {
+                        'min': this.safeNumber (entry, 'minAmount'),
+                        'max': this.safeNumber (entry, 'maxAmount'),
+                    },
+                    'withdraw': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'deposit': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
                 'created': undefined,
             };
         }

@@ -12337,7 +12337,7 @@ export default class binance extends Exchange {
         };
     }
 
-    async fetchConvertCurrencies (params = {}) {
+    async fetchConvertCurrencies (params = {}): Promise<Currencies> {
         /**
          * @method
          * @name binance#fetchConvertCurrencies
@@ -12376,10 +12376,28 @@ export default class binance extends Exchange {
                 'info': entry,
                 'id': id,
                 'code': code,
+                'networks': undefined,
+                'type': undefined,
+                'name': undefined,
+                'active': undefined,
+                'deposit': undefined,
+                'withdraw': this.safeNumber (entry, 'amountFree'),
+                'fee': undefined,
                 'precision': undefined,
-                'available': this.safeNumber (entry, 'amountFree'),
-                'minAmount': undefined,
-                'maxAmount': undefined,
+                'limits': {
+                    'amount': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'withdraw': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'deposit': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
                 'created': undefined,
             };
         }

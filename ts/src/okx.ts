@@ -7576,7 +7576,7 @@ export default class okx extends Exchange {
         };
     }
 
-    async fetchConvertCurrencies (params = {}) {
+    async fetchConvertCurrencies (params = {}): Promise<Currencies> {
         /**
          * @method
          * @name okx#fetchConvertCurrencies
@@ -7610,10 +7610,28 @@ export default class okx extends Exchange {
                 'info': entry,
                 'id': id,
                 'code': code,
+                'networks': undefined,
+                'type': undefined,
+                'name': undefined,
+                'active': undefined,
+                'deposit': undefined,
+                'withdraw': undefined,
+                'fee': undefined,
                 'precision': undefined,
-                'available': undefined,
-                'minAmount': this.safeNumber (entry, 'min'),
-                'maxAmount': this.safeNumber (entry, 'max'),
+                'limits': {
+                    'amount': {
+                        'min': this.safeNumber (entry, 'min'),
+                        'max': this.safeNumber (entry, 'max'),
+                    },
+                    'withdraw': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'deposit': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
                 'created': undefined,
             };
         }

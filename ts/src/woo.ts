@@ -3016,7 +3016,7 @@ export default class woo extends Exchange {
         });
     }
 
-    async fetchConvertCurrencies (params = {}) {
+    async fetchConvertCurrencies (params = {}): Promise<Currencies> {
         /**
          * @method
          * @name woo#fetchConvertCurrencies
@@ -3050,10 +3050,28 @@ export default class woo extends Exchange {
                 'info': entry,
                 'id': id,
                 'code': code,
+                'networks': undefined,
+                'type': undefined,
+                'name': undefined,
+                'active': undefined,
+                'deposit': undefined,
+                'withdraw': undefined,
+                'fee': undefined,
                 'precision': this.safeNumber (entry, 'tick'),
-                'available': undefined,
-                'minAmount': undefined,
-                'maxAmount': undefined,
+                'limits': {
+                    'amount': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'withdraw': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'deposit': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
                 'created': this.safeTimestamp (entry, 'createdTime'),
             };
         }
