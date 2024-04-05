@@ -2290,6 +2290,14 @@ export default class okx extends Exchange {
         return this.filterBySymbolSinceLimit (sorted, market['symbol'], since, limit) as FundingRateHistory[];
     }
 
+    parseBalanceByType (type, response) {
+        if (type === 'funding') {
+            return this.parseFundingBalance (response);
+        } else {
+            return this.parseTradingBalance (response);
+        }
+    }
+
     parseTradingBalance (response) {
         const result = { 'info': response };
         const data = this.safeList (response, 'data', []);
