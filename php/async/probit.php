@@ -352,7 +352,7 @@ class probit extends Exchange {
         );
     }
 
-    public function fetch_currencies($params = array ()) {
+    public function fetch_currencies($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * @see https://docs-en.probit.com/reference/currency

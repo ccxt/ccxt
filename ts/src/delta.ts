@@ -2699,6 +2699,7 @@ export default class delta extends Exchange {
             'info': data,
             'symbol': market['symbol'],
             'type': undefined,
+            'marginMode': 'isolated',
             'amount': undefined,
             'total': this.safeNumber (data, 'margin'),
             'code': undefined,

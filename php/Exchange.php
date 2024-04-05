@@ -36,9 +36,10 @@ use Web3\Contracts\TypedDataEncoder;
 use Elliptic\EC;
 use Elliptic\EdDSA;
 use BN\BN;
+use Sop\ASN1\Type\UnspecifiedType;
 use Exception;
 
-$version = '4.2.88';
+$version = '4.2.90';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -57,7 +58,7 @@ const PAD_WITH_ZERO = 6;
 
 class Exchange {
 
-    const VERSION = '4.2.88';
+    const VERSION = '4.2.90';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -1241,15 +1242,32 @@ class Exchange {
         return $hmac;
     }
 
-    public static function jwt($request, $secret, $algorithm = 'sha256', $is_rsa = false) {
+    public static function jwt($request, $secret, $algorithm = 'sha256', $is_rsa = false, $opts = []) {
         $alg = ($is_rsa ? 'RS' : 'HS') . mb_substr($algorithm, 3, 3);
-        $encodedHeader = static::urlencodeBase64(json_encode(array('alg' => $alg, 'typ' => 'JWT')));
+        if (array_key_exists('alg', $opts)) {
+            $alg = $opts['alg'];
+        }
+        $headerOptions = array(
+            'alg' => $alg,
+            'typ' => 'JWT',
+        );
+        if (array_key_exists('kid', $opts)) {
+            $headerOptions['kid'] = $opts['kid'];
+        }
+        if (array_key_exists('nonce', $opts)) {
+            $headerOptions['nonce'] = $opts['nonce'];
+        }
+        $encodedHeader = static::urlencodeBase64(json_encode($headerOptions));
         $encodedData = static::urlencodeBase64(json_encode($request, JSON_UNESCAPED_SLASHES));
         $token = $encodedHeader . '.' . $encodedData;
-        if ($is_rsa) {
+        $algoType = mb_substr($alg, 0, 2);
+        if ($is_rsa || $algoType === 'RS') {
             $signature = \base64_decode(static::rsa($token, $secret, $algorithm));
+        } else if ($algoType === 'ES') {
+            $signed = static::ecdsa($token, $secret, 'p256', $algorithm);
+            $signature = hex2bin($signed['r'] . $signed['s']);
         } else {
-            $signature =  static::hmac($token, $secret, $algorithm, 'binary');
+            $signature = static::hmac($token, $secret, $algorithm, 'binary');
         }
         return $token . '.' . static::urlencodeBase64($signature);
     }
@@ -1273,6 +1291,21 @@ class Exchange {
         $digest = $request;
         if ($hash !== null) {
             $digest = static::hash($request, $hash, 'hex');
+        }
+        if (preg_match('/^-----BEGIN EC PRIVATE KEY-----\s([\w\d+=\/\s]+)\s-----END EC PRIVATE KEY-----/', $secret, $match) >= 1) {
+            $pemKey = $match[1];
+            $decodedPemKey = UnspecifiedType::fromDER(base64_decode($pemKey))->asSequence();
+            $secret = bin2hex($decodedPemKey->at(1)->asOctetString()->string());
+            if ($decodedPemKey->hasTagged(0)) {
+                $params = $decodedPemKey->getTagged(0)->asExplicit();
+                $oid = $params->asObjectIdentifier()->oid();
+                $supportedCurve = array(
+                    '1.3.132.0.10' => 'secp256k1',
+                    '1.2.840.10045.3.1.7' => 'p256',
+                );
+                if (!array_key_exists($oid, $supportedCurve)) throw new Exception('Unsupported curve');
+                $algorithm = $supportedCurve[$oid];
+            }
         }
         $ec = new EC(strtolower($algorithm));
         $key = $ec->keyFromPrivate(ltrim($secret, '0x'));
@@ -1306,6 +1339,10 @@ class Exchange {
         $hex_secret = substr(bin2hex(base64_decode($match[1])), 32);
         $signature = $curve->sign(bin2hex(static::encode($request)), $hex_secret);
         return static::binary_to_base64(static::base16_to_binary($signature->toHex()));
+    }
+
+    public static function random_bytes($length) {
+        return bin2hex(random_bytes($length));
     }
 
     public function eth_abi_encode($types, $args) {
@@ -2828,6 +2865,19 @@ class Exchange {
 
     public function set_margin(string $symbol, float $amount, $params = array ()) {
         throw new NotSupported($this->id . ' setMargin() is not supported yet');
+    }
+
+    public function fetch_margin_adjustment_history(?string $symbol = null, ?string $type = null, ?float $since = null, ?float $limit = null, $params = array ()) {
+        /**
+         * fetches the history of margin added or reduced from contract isolated positions
+         * @param {string} [$symbol] unified market $symbol
+         * @param {string} [$type] "add" or "reduce"
+         * @param {int} [$since] timestamp in ms of the earliest change to fetch
+         * @param {int} [$limit] the maximum amount of changes to fetch
+         * @param {array} $params extra parameters specific to the exchange api endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=margin-loan-structure margin structures~
+         */
+        throw new NotSupported($this->id . ' fetchMarginAdjustmentHistory() is not supported yet');
     }
 
     public function set_margin_mode(string $marginMode, ?string $symbol = null, $params = array ()) {
@@ -4620,11 +4670,11 @@ class Exchange {
         if ($currencyId !== null) {
             $code = $this->common_currency_code(strtoupper($currencyId));
         }
-        return array(
+        return $this->safe_currency_structure(array(
             'id' => $currencyId,
             'code' => $code,
             'precision' => null,
-        );
+        ));
     }
 
     public function safe_market(?string $marketId, ?array $market = null, ?string $delimiter = null, ?string $marketType = null) {
@@ -5442,11 +5492,18 @@ class Exchange {
         );
     }
 
-    public function common_currency_code(string $currency) {
+    public function common_currency_code(string $code) {
         if (!$this->substituteCommonCurrencyCodes) {
-            return $currency;
+            return $code;
         }
-        return $this->safe_string($this->commonCurrencies, $currency, $currency);
+        // if the provided $code already $exists value in $commonCurrencies dict, then we should not again transform it
+        // more details at => https://github.com/ccxt/ccxt/issues/21112#issuecomment-2031293691
+        $commonCurrencies = is_array($this->commonCurrencies) ? array_values($this->commonCurrencies) : array();
+        $exists = $this->in_array($code, $commonCurrencies);
+        if ($exists) {
+            return $code;
+        }
+        return $this->safe_string($this->commonCurrencies, $code, $code);
     }
 
     public function currency(string $code) {
@@ -5942,7 +5999,8 @@ class Exchange {
         if (!$this->has['fetchTradingFees']) {
             throw new NotSupported($this->id . ' fetchTradingFee() is not supported yet');
         }
-        return $this->fetch_trading_fees($params);
+        $fees = $this->fetch_trading_fees($params);
+        return $this->safe_dict($fees, $symbol);
     }
 
     public function parse_open_interest($interest, ?array $market = null) {
@@ -6717,5 +6775,22 @@ class Exchange {
         $day = mb_substr($date, 5, 7 - 5);
         $reconstructedDate = $day . $month . $year;
         return $reconstructedDate;
+    }
+
+    public function parse_margin_modification($data, ?array $market = null) {
+        throw new NotSupported($this->id . ' parseMarginModification() is not supported yet');
+    }
+
+    public function parse_margin_modifications(mixed $response, ?array $symbols = null, ?string $symbolKey = null, ?string $marketType = null) {
+        $marginModifications = array();
+        for ($i = 0; $i < count($response); $i++) {
+            $info = $response[$i];
+            $marketId = $this->safe_string($info, $symbolKey);
+            $market = $this->safe_market($marketId, null, null, $marketType);
+            if (($symbols === null) || $this->in_array($market['symbol'], $symbols)) {
+                $marginModifications[] = $this->parse_margin_modification($info, $market);
+            }
+        }
+        return $marginModifications;
     }
 }

@@ -84,6 +84,7 @@ class bitget extends bitget$1 {
                 'fetchLeverage': true,
                 'fetchLeverageTiers': false,
                 'fetchLiquidations': false,
+                'fetchMarginAdjustmentHistory': false,
                 'fetchMarginMode': true,
                 'fetchMarketLeverageTiers': true,
                 'fetchMarkets': true,
@@ -2624,7 +2625,11 @@ class bitget extends bitget$1 {
         //
         const marketId = this.safeString(ticker, 'symbol');
         const close = this.safeString(ticker, 'lastPr');
-        const timestamp = this.safeInteger(ticker, 'ts');
+        const timestampString = this.omitZero(this.safeString(ticker, 'ts')); // exchange sometimes provided 0
+        let timestamp = undefined;
+        if (timestampString !== undefined) {
+            timestamp = this.parseToInt(timestampString);
+        }
         const change = this.safeString(ticker, 'change24h');
         const open24 = this.safeString(ticker, 'open24');
         const open = this.safeString(ticker, 'open');
@@ -3277,6 +3282,8 @@ class bitget extends bitget$1 {
             'symbol': this.safeSymbol(marketId, market),
             'maker': this.safeNumber(data, 'makerFeeRate'),
             'taker': this.safeNumber(data, 'takerFeeRate'),
+            'percentage': undefined,
+            'tierBased': undefined,
         };
     }
     parseOHLCV(ohlcv, market = undefined) {
@@ -6978,6 +6985,7 @@ class bitget extends bitget$1 {
             'info': data,
             'symbol': market['symbol'],
             'type': undefined,
+            'marginMode': 'isolated',
             'amount': undefined,
             'total': undefined,
             'code': market['settle'],

@@ -4062,6 +4062,7 @@ class phemex extends phemex$1 {
             'info': data,
             'symbol': this.safeSymbol(undefined, market),
             'type': 'set',
+            'marginMode': 'isolated',
             'amount': undefined,
             'total': undefined,
             'code': market[codeCurrency],

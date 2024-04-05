@@ -1662,10 +1662,10 @@ public partial class binance
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchTradingFee(string symbol, Dictionary<string, object> parameters = null)
+    public async Task<TradingFeeInterface> FetchTradingFee(string symbol, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchTradingFee(symbol, parameters);
-        return ((Dictionary<string, object>)res);
+        return new TradingFeeInterface(res);
     }
     /// <summary>
     /// fetch the trading fees for multiple markets
@@ -1690,10 +1690,10 @@ public partial class binance
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols.</returns>
-    public async Task<Dictionary<string, object>> FetchTradingFees(Dictionary<string, object> parameters = null)
+    public async Task<TradingFees> FetchTradingFees(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchTradingFees(parameters);
-        return ((Dictionary<string, object>)res);
+        return new TradingFees(res);
     }
     /// <summary>
     /// fetch the current funding rate
@@ -2626,5 +2626,12 @@ public partial class binance
     {
         var res = await this.fetchOption(symbol, parameters);
         return new Option(res);
+    }
+    public async Task<List<MarginModification>> FetchMarginAdjustmentHistory(string symbol = null, string type = null, double? since2 = 0, double? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.fetchMarginAdjustmentHistory(symbol, type, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new MarginModification(item)).ToList<MarginModification>();
     }
 }

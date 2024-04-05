@@ -894,6 +894,8 @@ class luno extends luno$1 {
             'symbol': symbol,
             'maker': this.safeNumber(response, 'maker_fee'),
             'taker': this.safeNumber(response, 'taker_fee'),
+            'percentage': undefined,
+            'tierBased': undefined,
         };
     }
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {

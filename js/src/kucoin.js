@@ -76,6 +76,7 @@ export default class kucoin extends Exchange {
                 'fetchL3OrderBook': true,
                 'fetchLedger': true,
                 'fetchLeverageTiers': false,
+                'fetchMarginAdjustmentHistory': false,
                 'fetchMarginMode': false,
                 'fetchMarketLeverageTiers': false,
                 'fetchMarkets': true,
@@ -3527,9 +3528,9 @@ export default class kucoin extends Exchange {
     }
     parseBalanceHelper(entry) {
         const account = this.account();
-        account['used'] = this.safeString(entry, 'holdBalance');
-        account['free'] = this.safeString(entry, 'availableBalance');
-        account['total'] = this.safeString(entry, 'totalBalance');
+        account['used'] = this.safeString2(entry, 'holdBalance', 'hold');
+        account['free'] = this.safeString2(entry, 'availableBalance', 'available');
+        account['total'] = this.safeString2(entry, 'totalBalance', 'total');
         const debt = this.safeString(entry, 'liability');
         const interest = this.safeString(entry, 'interest');
         account['debt'] = Precise.stringAdd(debt, interest);
@@ -3587,7 +3588,7 @@ export default class kucoin extends Exchange {
             response = await this.privateGetAccounts(this.extend(request, query));
         }
         //
-        // Spot and Cross
+        // Spot
         //
         //    {
         //        "code": "200000",
@@ -3603,35 +3604,59 @@ export default class kucoin extends Exchange {
         //        ]
         //    }
         //
+        // Cross
+        //
+        //     {
+        //         "code": "200000",
+        //         "data": {
+        //             "debtRatio": "0",
+        //             "accounts": [
+        //                 {
+        //                     "currency": "USDT",
+        //                     "totalBalance": "5",
+        //                     "availableBalance": "5",
+        //                     "holdBalance": "0",
+        //                     "liability": "0",
+        //                     "maxBorrowSize": "20"
+        //                 },
+        //             ]
+        //         }
+        //     }
+        //
         // Isolated
         //
         //    {
         //        "code": "200000",
         //        "data": {
-        //            "totalConversionBalance": "0",
-        //            "liabilityConversionBalance": "0",
+        //            "totalAssetOfQuoteCurrency": "0",
+        //            "totalLiabilityOfQuoteCurrency": "0",
+        //            "timestamp": 1712085661155,
         //            "assets": [
         //                {
         //                    "symbol": "MANA-USDT",
-        //                    "status": "CLEAR",
+        //                    "status": "EFFECTIVE",
         //                    "debtRatio": "0",
         //                    "baseAsset": {
         //                        "currency": "MANA",
-        //                        "totalBalance": "0",
-        //                        "holdBalance": "0",
-        //                        "availableBalance": "0",
+        //                        "borrowEnabled": true,
+        //                        "transferInEnabled": true,
+        //                        "total": "0",
+        //                        "hold": "0",
+        //                        "available": "0",
         //                        "liability": "0",
         //                        "interest": "0",
-        //                        "borrowableAmount": "0"
+        //                        "maxBorrowSize": "0"
         //                    },
         //                    "quoteAsset": {
         //                        "currency": "USDT",
-        //                        "totalBalance": "0",
-        //                        "holdBalance": "0",
-        //                        "availableBalance": "0",
+        //                        "borrowEnabled": true,
+        //                        "transferInEnabled": true,
+        //                        "total": "0",
+        //                        "hold": "0",
+        //                        "available": "0",
         //                        "liability": "0",
         //                        "interest": "0",
-        //                        "borrowableAmount": "0"
+        //                        "maxBorrowSize": "0"
         //                    }
         //                },
         //                ...

@@ -392,7 +392,7 @@ class ascendex extends Exchange {
         return $this->capitalize($lowercaseAccount);
     }
 
-    public function fetch_currencies($params = array ()) {
+    public function fetch_currencies($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches all available currencies on an exchange
@@ -1456,7 +1456,7 @@ class ascendex extends Exchange {
         ), $market);
     }
 
-    public function fetch_trading_fees($params = array ()) {
+    public function fetch_trading_fees($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetch the trading $fees for multiple markets
@@ -1500,6 +1500,8 @@ class ascendex extends Exchange {
                     'symbol' => $symbol,
                     'maker' => $this->safe_number($takerMaker, 'maker'),
                     'taker' => $this->safe_number($takerMaker, 'taker'),
+                    'percentage' => null,
+                    'tierBased' => null,
                 );
             }
             return $result;
@@ -2907,6 +2909,7 @@ class ascendex extends Exchange {
             'info' => $data,
             'symbol' => $market['symbol'],
             'type' => null,
+            'marginMode' => 'isolated',
             'amount' => null,
             'total' => null,
             'code' => $market['quote'],

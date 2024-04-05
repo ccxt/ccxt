@@ -29,6 +29,7 @@ interface Exchange {
     swapV1PrivateGetPositionSideDual(params?: {}): Promise<implicitReturnType>;
     swapV1PrivateGetMarketMarkPriceKlines(params?: {}): Promise<implicitReturnType>;
     swapV1PrivateGetTradeBatchCancelReplace(params?: {}): Promise<implicitReturnType>;
+    swapV1PrivateGetTradeFullOrder(params?: {}): Promise<implicitReturnType>;
     swapV1PrivatePostTradeCancelReplace(params?: {}): Promise<implicitReturnType>;
     swapV1PrivatePostPositionSideDual(params?: {}): Promise<implicitReturnType>;
     swapV1PrivatePostTradeClosePosition(params?: {}): Promise<implicitReturnType>;
@@ -96,6 +97,7 @@ interface Exchange {
     copyTradingV1PrivateGetSwapTraceCurrentTrack(params?: {}): Promise<implicitReturnType>;
     copyTradingV1PrivatePostSwapTraceCloseTrackOrder(params?: {}): Promise<implicitReturnType>;
     copyTradingV1PrivatePostSwapTraceSetTPSL(params?: {}): Promise<implicitReturnType>;
+    copyTradingV1PrivatePostSpotTraderSellOrder(params?: {}): Promise<implicitReturnType>;
     apiV3PrivateGetAssetTransfer(params?: {}): Promise<implicitReturnType>;
     apiV3PrivateGetCapitalDepositHisrec(params?: {}): Promise<implicitReturnType>;
     apiV3PrivateGetCapitalWithdrawHistory(params?: {}): Promise<implicitReturnType>;

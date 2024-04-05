@@ -70,6 +70,7 @@ class kucoin extends Exchange {
                 'fetchL3OrderBook' => true,
                 'fetchLedger' => true,
                 'fetchLeverageTiers' => false,
+                'fetchMarginAdjustmentHistory' => false,
                 'fetchMarginMode' => false,
                 'fetchMarketLeverageTiers' => false,
                 'fetchMarkets' => true,
@@ -1115,7 +1116,7 @@ class kucoin extends Exchange {
         return $result;
     }
 
-    public function fetch_currencies($params = array ()) {
+    public function fetch_currencies($params = array ()): array {
         /**
          * fetches all available currencies on an exchange
          * @see https://docs.kucoin.com/#get-currencies
@@ -3075,7 +3076,7 @@ class kucoin extends Exchange {
         ), $market);
     }
 
-    public function fetch_trading_fee(string $symbol, $params = array ()) {
+    public function fetch_trading_fee(string $symbol, $params = array ()): array {
         /**
          * fetch the trading fees for a $market
          * @see https://docs.kucoin.com/#actual-fee-rate-of-the-trading-pair
@@ -3457,9 +3458,9 @@ class kucoin extends Exchange {
 
     public function parse_balance_helper($entry) {
         $account = $this->account();
-        $account['used'] = $this->safe_string($entry, 'holdBalance');
-        $account['free'] = $this->safe_string($entry, 'availableBalance');
-        $account['total'] = $this->safe_string($entry, 'totalBalance');
+        $account['used'] = $this->safe_string_2($entry, 'holdBalance', 'hold');
+        $account['free'] = $this->safe_string_2($entry, 'availableBalance', 'available');
+        $account['total'] = $this->safe_string_2($entry, 'totalBalance', 'total');
         $debt = $this->safe_string($entry, 'liability');
         $interest = $this->safe_string($entry, 'interest');
         $account['debt'] = Precise::string_add($debt, $interest);
@@ -3514,7 +3515,7 @@ class kucoin extends Exchange {
             $response = $this->privateGetAccounts (array_merge($request, $query));
         }
         //
-        // Spot and Cross
+        // Spot
         //
         //    {
         //        "code" => "200000",
@@ -3530,35 +3531,59 @@ class kucoin extends Exchange {
         //        )
         //    }
         //
+        // Cross
+        //
+        //     {
+        //         "code" => "200000",
+        //         "data" => {
+        //             "debtRatio" => "0",
+        //             "accounts" => array(
+        //                 array(
+        //                     "currency" => "USDT",
+        //                     "totalBalance" => "5",
+        //                     "availableBalance" => "5",
+        //                     "holdBalance" => "0",
+        //                     "liability" => "0",
+        //                     "maxBorrowSize" => "20"
+        //                 ),
+        //             )
+        //         }
+        //     }
+        //
         // Isolated
         //
         //    {
         //        "code" => "200000",
         //        "data" => {
-        //            "totalConversionBalance" => "0",
-        //            "liabilityConversionBalance" => "0",
+        //            "totalAssetOfQuoteCurrency" => "0",
+        //            "totalLiabilityOfQuoteCurrency" => "0",
+        //            "timestamp" => 1712085661155,
         //            "assets" => array(
         //                {
         //                    "symbol" => "MANA-USDT",
-        //                    "status" => "CLEAR",
+        //                    "status" => "EFFECTIVE",
         //                    "debtRatio" => "0",
         //                    "baseAsset" => array(
         //                        "currency" => "MANA",
-        //                        "totalBalance" => "0",
-        //                        "holdBalance" => "0",
-        //                        "availableBalance" => "0",
+        //                        "borrowEnabled" => true,
+        //                        "transferInEnabled" => true,
+        //                        "total" => "0",
+        //                        "hold" => "0",
+        //                        "available" => "0",
         //                        "liability" => "0",
         //                        "interest" => "0",
-        //                        "borrowableAmount" => "0"
+        //                        "maxBorrowSize" => "0"
         //                    ),
         //                    "quoteAsset" => array(
         //                        "currency" => "USDT",
-        //                        "totalBalance" => "0",
-        //                        "holdBalance" => "0",
-        //                        "availableBalance" => "0",
+        //                        "borrowEnabled" => true,
+        //                        "transferInEnabled" => true,
+        //                        "total" => "0",
+        //                        "hold" => "0",
+        //                        "available" => "0",
         //                        "liability" => "0",
         //                        "interest" => "0",
-        //                        "borrowableAmount" => "0"
+        //                        "maxBorrowSize" => "0"
         //                    }
         //                ),
         //                ...

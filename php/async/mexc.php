@@ -81,6 +81,7 @@ class mexc extends Exchange {
                 'fetchLeverage' => true,
                 'fetchLeverages' => false,
                 'fetchLeverageTiers' => true,
+                'fetchMarginAdjustmentHistory' => false,
                 'fetchMarginMode' => false,
                 'fetchMarketLeverageTiers' => null,
                 'fetchMarkets' => true,
@@ -999,7 +1000,7 @@ class mexc extends Exchange {
         }) ();
     }
 
-    public function fetch_currencies($params = array ()) {
+    public function fetch_currencies($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches all available currencies on an exchange
@@ -3561,7 +3562,7 @@ class mexc extends Exchange {
         }) ();
     }
 
-    public function fetch_trading_fees($params = array ()) {
+    public function fetch_trading_fees($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetch the trading fees for multiple markets
@@ -4314,8 +4315,9 @@ class mexc extends Exchange {
     public function fetch_leverage_tiers(?array $symbols = null, $params = array ()) {
         return Async\async(function () use ($symbols, $params) {
             /**
-             * retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
-             * @param {string[]|null} $symbols list of unified market $symbols
+             * retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes, if a market has a leverage tier of 0, then the leverage tiers cannot be obtained for this market
+             * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-contract-information
+             * @param {string[]} [$symbols] list of unified market $symbols
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=leverage-tiers-structure leverage tiers structures~, indexed by market $symbols
              */
@@ -4373,10 +4375,44 @@ class mexc extends Exchange {
     }
 
     public function parse_market_leverage_tiers($info, ?array $market = null) {
-        /**
-            @param $info {object} Exchange response for 1 $market
-            @param $market {object} CCXT $market
-         */
+        //
+        //    {
+        //        "symbol" => "BTC_USDT",
+        //        "displayName" => "BTC_USDT永续",
+        //        "displayNameEn" => "BTC_USDT SWAP",
+        //        "positionOpenType" => 3,
+        //        "baseCoin" => "BTC",
+        //        "quoteCoin" => "USDT",
+        //        "settleCoin" => "USDT",
+        //        "contractSize" => 0.0001,
+        //        "minLeverage" => 1,
+        //        "maxLeverage" => 125,
+        //        "priceScale" => 2,
+        //        "volScale" => 0,
+        //        "amountScale" => 4,
+        //        "priceUnit" => 0.5,
+        //        "volUnit" => 1,
+        //        "minVol" => 1,
+        //        "maxVol" => 1000000,
+        //        "bidLimitPriceRate" => 0.1,
+        //        "askLimitPriceRate" => 0.1,
+        //        "takerFeeRate" => 0.0006,
+        //        "makerFeeRate" => 0.0002,
+        //        "maintenanceMarginRate" => 0.004,
+        //        "initialMarginRate" => 0.008,
+        //        "riskBaseVol" => 10000,
+        //        "riskIncrVol" => 200000,
+        //        "riskIncrMmr" => 0.004,
+        //        "riskIncrImr" => 0.004,
+        //        "riskLevelLimit" => 5,
+        //        "priceCoefficientVariation" => 0.1,
+        //        "indexOrigin" => ["BINANCE","GATEIO","HUOBI","MXC"],
+        //        "state" => 0, // 0 enabled, 1 delivery, 2 completed, 3 offline, 4 pause
+        //        "isNew" => false,
+        //        "isHot" => true,
+        //        "isHidden" => false
+        //    }
+        //
         $maintenanceMarginRate = $this->safe_string($info, 'maintenanceMarginRate');
         $initialMarginRate = $this->safe_string($info, 'initialMarginRate');
         $maxVol = $this->safe_string($info, 'maxVol');
@@ -4386,6 +4422,19 @@ class mexc extends Exchange {
         $floor = '0';
         $tiers = array();
         $quoteId = $this->safe_string($info, 'quoteCoin');
+        if ($riskIncrVol === '0') {
+            return array(
+                array(
+                    'tier' => 0,
+                    'currency' => $this->safe_currency_code($quoteId),
+                    'notionalFloor' => null,
+                    'notionalCap' => null,
+                    'maintenanceMarginRate' => null,
+                    'maxLeverage' => $this->safe_number($info, 'maxLeverage'),
+                    'info' => $info,
+                ),
+            );
+        }
         while (Precise::string_lt($floor, $maxVol)) {
             $cap = Precise::string_add($floor, $riskIncrVol);
             $tiers[] = array(

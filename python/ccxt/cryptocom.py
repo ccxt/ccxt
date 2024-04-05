@@ -81,6 +81,7 @@ class cryptocom(Exchange, ImplicitAPI):
                 'fetchLedger': True,
                 'fetchLeverage': False,
                 'fetchLeverageTiers': False,
+                'fetchMarginAdjustmentHistory': False,
                 'fetchMarginMode': False,
                 'fetchMarketLeverageTiers': False,
                 'fetchMarkets': True,

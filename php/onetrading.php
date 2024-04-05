@@ -313,7 +313,7 @@ class onetrading extends Exchange {
         return $this->safe_integer($response, 'epoch_millis');
     }
 
-    public function fetch_currencies($params = array ()) {
+    public function fetch_currencies($params = array ()): array {
         /**
          * fetches all available currencies on an exchange
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -435,7 +435,7 @@ class onetrading extends Exchange {
         );
     }
 
-    public function fetch_trading_fees($params = array ()) {
+    public function fetch_trading_fees($params = array ()): array {
         /**
          * fetch the trading fees for multiple markets
          * @param {array} [$params] extra parameters specific to the exchange API endpoint

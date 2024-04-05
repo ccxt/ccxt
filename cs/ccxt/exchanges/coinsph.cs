@@ -1670,6 +1670,8 @@ public partial class coinsph : Exchange
             { "symbol", symbol },
             { "maker", this.safeNumber(fee, "makerCommission") },
             { "taker", this.safeNumber(fee, "takerCommission") },
+            { "percentage", null },
+            { "tierBased", null },
         };
     }
 

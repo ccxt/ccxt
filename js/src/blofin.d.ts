@@ -1,5 +1,5 @@
 import Exchange from './abstract/blofin.js';
-import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, Str, Transaction, Ticker, OrderBook, Balances, Tickers, Market, Strings, Currency, Position, TransferEntry, Leverage, Leverages, MarginMode, Num } from './base/types.js';
+import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, Str, Transaction, Ticker, OrderBook, Balances, Tickers, Market, Strings, Currency, Position, TransferEntry, Leverage, Leverages, MarginMode, Num, TradingFeeInterface } from './base/types.js';
 /**
  * @class blofin
  * @augments Exchange
@@ -58,12 +58,7 @@ export default class blofin extends Exchange {
     parseBalanceByType(type: any, response: any): Balances;
     parseTradingBalance(response: any): Balances;
     parseFundingBalance(response: any): Balances;
-    parseTradingFee(fee: any, market?: Market): {
-        info: any;
-        symbol: string;
-        maker: number;
-        taker: number;
-    };
+    parseTradingFee(fee: any, market?: Market): TradingFeeInterface;
     fetchBalance(params?: {}): Promise<Balances>;
     createOrderRequest(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): any;
     parseOrderStatus(status: any): string;

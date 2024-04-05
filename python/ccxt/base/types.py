@@ -410,6 +410,7 @@ class MarginModification(TypedDict):
     info: Dict[str, any]
     symbol: str
     type: Optional[Literal['add', 'reduce', 'set']]
+    marginMode: Optional[Literal['isolated', 'cross']]
     amount: Optional[float]
     code: Str
     status: Str

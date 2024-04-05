@@ -1,5 +1,5 @@
 import Exchange from './abstract/bitvavo.js';
-import type { Balances, Currency, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import type { Balances, Currencies, Currency, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction } from './base/types.js';
 /**
  * @class bitvavo
  * @augments Exchange
@@ -12,14 +12,14 @@ export default class bitvavo extends Exchange {
     fetchTime(params?: {}): Promise<number>;
     fetchMarkets(params?: {}): Promise<Market[]>;
     parseMarkets(markets: any): any[];
-    fetchCurrencies(params?: {}): Promise<{}>;
+    fetchCurrencies(params?: {}): Promise<Currencies>;
     parseCurrencies(currencies: any): {};
     fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
     parseTicker(ticker: any, market?: Market): Ticker;
     fetchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     parseTrade(trade: any, market?: Market): Trade;
-    fetchTradingFees(params?: {}): Promise<{}>;
+    fetchTradingFees(params?: {}): Promise<TradingFees>;
     parseTradingFees(fees: any, market?: any): {};
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     parseOHLCV(ohlcv: any, market?: Market): OHLCV;

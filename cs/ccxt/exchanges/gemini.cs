@@ -91,6 +91,7 @@ public partial class gemini : Exchange
                     { "public", "https://api.sandbox.gemini.com" },
                     { "private", "https://api.sandbox.gemini.com" },
                     { "web", "https://docs.gemini.com" },
+                    { "webExchange", "https://exchange.gemini.com" },
                 } },
                 { "fees", new List<object>() {"https://gemini.com/api-fee-schedule", "https://gemini.com/trading-fees", "https://gemini.com/transfer-fees"} },
             } },
@@ -651,7 +652,7 @@ public partial class gemini : Exchange
         object quoteId = null;
         object settleId = null;
         object tickSize = null;
-        object increment = null;
+        object amountPrecision = null;
         object minSize = null;
         object status = null;
         object swap = false;
@@ -663,9 +664,9 @@ public partial class gemini : Exchange
         if (isTrue(!isTrue(isString) && !isTrue(isArray)))
         {
             marketId = this.safeStringLower(response, "symbol");
+            amountPrecision = this.safeNumber(response, "tick_size"); // right, exchange has an imperfect naming and this turns out to be an amount-precision
+            tickSize = this.safeNumber(response, "quote_increment"); // this is tick-size actually
             minSize = this.safeNumber(response, "min_order_size");
-            tickSize = this.safeNumber(response, "tick_size");
-            increment = this.safeNumber(response, "quote_increment");
             status = this.parseMarketActive(this.safeString(response, "status"));
             baseId = this.safeString(response, "base_currency");
             quoteId = this.safeString(response, "quote_currency");
@@ -679,9 +680,9 @@ public partial class gemini : Exchange
             } else
             {
                 marketId = this.safeStringLower(response, 0);
-                minSize = this.safeNumber(response, 3);
-                tickSize = this.parseNumber(this.parsePrecision(this.safeString(response, 1)));
-                increment = this.parseNumber(this.parsePrecision(this.safeString(response, 2)));
+                tickSize = this.parseNumber(this.parsePrecision(this.safeString(response, 1))); // priceTickDecimalPlaces
+                amountPrecision = this.parseNumber(this.parsePrecision(this.safeString(response, 2))); // quantityTickDecimalPlaces
+                minSize = this.safeNumber(response, 3); // quantityMinimum
             }
             object marketIdUpper = ((string)marketId).ToUpper();
             object isPerp = (isGreaterThanOrEqual(getIndexOf(marketIdUpper, "PERP"), 0));
@@ -740,8 +741,8 @@ public partial class gemini : Exchange
             { "strike", null },
             { "optionType", null },
             { "precision", new Dictionary<string, object>() {
-                { "price", increment },
-                { "amount", tickSize },
+                { "price", tickSize },
+                { "amount", amountPrecision },
             } },
             { "limits", new Dictionary<string, object>() {
                 { "leverage", new Dictionary<string, object>() {
@@ -1935,7 +1936,7 @@ public partial class gemini : Exchange
             {
                 throw new AuthenticationError ((string)add(this.id, " sign() requires an account-key, master-keys are not-supported")) ;
             }
-            object nonce = this.nonce();
+            object nonce = ((object)this.nonce()).ToString();
             object request = this.extend(new Dictionary<string, object>() {
                 { "request", url },
                 { "nonce", nonce },

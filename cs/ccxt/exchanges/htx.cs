@@ -77,6 +77,7 @@ public partial class htx : Exchange
                 { "fetchLeverage", false },
                 { "fetchLeverageTiers", true },
                 { "fetchLiquidations", true },
+                { "fetchMarginAdjustmentHistory", false },
                 { "fetchMarketLeverageTiers", true },
                 { "fetchMarkets", true },
                 { "fetchMarkOHLCV", true },
@@ -1420,6 +1421,8 @@ public partial class htx : Exchange
             { "symbol", this.safeSymbol(marketId, market) },
             { "maker", this.safeNumber(fee, "actualMakerRate") },
             { "taker", this.safeNumber(fee, "actualTakerRate") },
+            { "percentage", null },
+            { "tierBased", null },
         };
     }
 

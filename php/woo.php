@@ -65,6 +65,7 @@ class woo extends Exchange {
                 'fetchIndexOHLCV' => false,
                 'fetchLedger' => true,
                 'fetchLeverage' => true,
+                'fetchMarginAdjustmentHistory' => false,
                 'fetchMarginMode' => false,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
@@ -621,7 +622,7 @@ class woo extends Exchange {
         return $fee;
     }
 
-    public function fetch_trading_fees($params = array ()) {
+    public function fetch_trading_fees($params = array ()): array {
         /**
          * fetch the trading fees for multiple markets
          * @see https://docs.woo.org/#get-account-information-new
@@ -676,7 +677,7 @@ class woo extends Exchange {
         return $result;
     }
 
-    public function fetch_currencies($params = array ()) {
+    public function fetch_currencies($params = array ()): array {
         /**
          * fetches all available currencies on an exchange
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
