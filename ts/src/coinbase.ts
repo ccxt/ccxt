@@ -3844,8 +3844,11 @@ export default class coinbase extends Exchange {
                 // https://docs.cloud.coinbase.com/advanced-trade-api/docs/auth#example-request
                 // v2: 'GET' require payload in the signature
                 // https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-key-authentication
-                const isCloudAPiKey = (this.apiKey.indexOf ('organizations/') >= 0);
+                const isCloudAPiKey = (this.apiKey.indexOf ('organizations/') >= 0) || (this.secret.startsWith ('-----BEGIN'));
                 if (isCloudAPiKey) {
+                    if (this.apiKey.startsWith ('-----BEGIN')) {
+                        throw new ArgumentsRequired (this.id + ' apiKey should contain the name (eg: organizations/3b910e93....) and not the public key');
+                    }
                     // it may not work for v2
                     let uri = method + ' ' + url.replace ('https://', '');
                     const quesPos = uri.indexOf ('?');
