@@ -1923,8 +1923,10 @@ export default class htx extends Exchange {
         if (symbolOrMarketId in this.markets) {
             return symbolOrMarketId;
         }
-        // from "Tickers" endpoint, futures market-ids format (BTC-USDT-CW or BTC_CW) is not standard and differs
-        // from "fetchMarkets", so down below we have to map the futures market-ids to symbols
+        // only on "future" market type (inverse & linear), market-id differs between "fetchMarkets" and "fetchTicker"
+        // so we have to create a mapping
+        // - market-id from fetchMarkts:    `BTC-USDT-240419` (linear future) or `BTC240412` (inverse future)
+        // - market-id from fetchTciker[s]: `BTC-USDT-CW`     (linear future) or `BTC_CW`    (inverse future)
         if (!('futureMarketIdsForSymbols' in this.options)) {
             this.options['futureMarketIdsForSymbols'] = {};
         }
@@ -1932,7 +1934,7 @@ export default class htx extends Exchange {
         if (symbolOrMarketId in futureMarketIdsForSymbols) {
             return futureMarketIdsForSymbols[symbolOrMarketId];
         }
-        const futureMarkets = this.getMarketsForMarketType ('future', 'linear');
+        const futureMarkets = this.getMarketsForMarketType ('future');
         const futuresCharsMaps = {
             'this_week': 'CW',
             'next_week': 'NW',
@@ -1944,7 +1946,7 @@ export default class htx extends Exchange {
             const info = this.safeValue (market, 'info', {});
             const contractType = this.safeString (info, 'contract_type');
             const contractSuffix = futuresCharsMaps[contractType];
-            // ticker market id formats: `BTC-USDT-CW` (linear future) or `BTC_CW` (inverse future)
+            // see comment on formats a bit above
             const constructedId = market['linear'] ? market['base'] + '-' + market['quote'] + '-' + contractSuffix : market['base'] + '_' + contractSuffix;
             if (constructedId === symbolOrMarketId) {
                 const symbol = market['symbol'];
