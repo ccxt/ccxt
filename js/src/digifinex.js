@@ -3369,6 +3369,8 @@ export default class digifinex extends Exchange {
             'symbol': symbol,
             'maker': this.safeNumber(fee, 'maker_fee_rate'),
             'taker': this.safeNumber(fee, 'taker_fee_rate'),
+            'percentage': undefined,
+            'tierBased': undefined,
         };
     }
     async fetchPositions(symbols = undefined, params = {}) {

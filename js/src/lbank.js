@@ -1244,6 +1244,8 @@ export default class lbank extends Exchange {
             'symbol': symbol,
             'maker': this.safeNumber(fee, 'makerCommission'),
             'taker': this.safeNumber(fee, 'takerCommission'),
+            'percentage': undefined,
+            'tierBased': undefined,
         };
     }
     async fetchTradingFee(symbol, params = {}) {
@@ -1258,7 +1260,7 @@ export default class lbank extends Exchange {
          */
         const market = this.market(symbol);
         const result = await this.fetchTradingFees(this.extend(params, { 'category': market['id'] }));
-        return result;
+        return this.safeDict(result, symbol);
     }
     async fetchTradingFees(params = {}) {
         /**

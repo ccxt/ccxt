@@ -383,6 +383,29 @@ public partial class bitstamp : Exchange
             { "commonCurrencies", new Dictionary<string, object>() {
                 { "UST", "USTC" },
             } },
+            { "options", new Dictionary<string, object>() {
+                { "networksById", new Dictionary<string, object>() {
+                    { "bitcoin-cash", "BCH" },
+                    { "bitcoin", "BTC" },
+                    { "ethereum", "ERC20" },
+                    { "litecoin", "LTC" },
+                    { "stellar", "XLM" },
+                    { "xrpl", "XRP" },
+                    { "tron", "TRC20" },
+                    { "algorand", "ALGO" },
+                    { "flare", "FLR" },
+                    { "hedera", "HBAR" },
+                    { "cardana", "ADA" },
+                    { "songbird", "FLR" },
+                    { "avalanche-c-chain", "AVAX" },
+                    { "solana", "SOL" },
+                    { "polkadot", "DOT" },
+                    { "near", "NEAR" },
+                    { "doge", "DOGE" },
+                    { "sui", "SUI" },
+                    { "casper", "CSRP" },
+                } },
+            } },
             { "exceptions", new Dictionary<string, object>() {
                 { "exact", new Dictionary<string, object>() {
                     { "No permission found", typeof(PermissionDenied) },
@@ -1217,6 +1240,8 @@ public partial class bitstamp : Exchange
             { "symbol", this.safeSymbol(marketId, market) },
             { "maker", this.safeNumber(fees, "maker") },
             { "taker", this.safeNumber(fees, "taker") },
+            { "percentage", null },
+            { "tierBased", null },
         };
     }
 
@@ -1272,69 +1297,46 @@ public partial class bitstamp : Exchange
         * @name bitstamp#fetchTransactionFees
         * @deprecated
         * @description please use fetchDepositWithdrawFees instead
-        * @see https://www.bitstamp.net/api/#balance
+        * @see https://www.bitstamp.net/api/#tag/Fees
         * @param {string[]|undefined} codes list of unified currency codes
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object[]} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object balance = await this.privatePostBalance(parameters);
-        return this.parseTransactionFees(balance);
+        object response = await this.privatePostFeesWithdrawal(parameters);
+        //
+        //     [
+        //         {
+        //             "currency": "btc",
+        //             "fee": "0.00015000",
+        //             "network": "bitcoin"
+        //         }
+        //         ...
+        //     ]
+        //
+        return this.parseTransactionFees(response);
     }
 
     public virtual object parseTransactionFees(object response, object codes = null)
     {
-        //
-        //  {
-        //     "yfi_available": "0.00000000",
-        //     "yfi_balance": "0.00000000",
-        //     "yfi_reserved": "0.00000000",
-        //     "yfi_withdrawal_fee": "0.00070000",
-        //     "yfieur_fee": "0.000",
-        //     "yfiusd_fee": "0.000",
-        //     "zrx_available": "0.00000000",
-        //     "zrx_balance": "0.00000000",
-        //     "zrx_reserved": "0.00000000",
-        //     "zrx_withdrawal_fee": "12.00000000",
-        //     "zrxeur_fee": "0.000",
-        //     "zrxusd_fee": "0.000",
-        //     ...
-        //  }
-        //
-        if (isTrue(isEqual(codes, null)))
-        {
-            codes = new List<object>(((IDictionary<string,object>)this.currencies).Keys);
-        }
         object result = new Dictionary<string, object>() {};
-        object mainCurrencyId = null;
-        object ids = new List<object>(((IDictionary<string,object>)response).Keys);
+        object currencies = this.indexBy(response, "currency");
+        object ids = new List<object>(((IDictionary<string,object>)currencies).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(ids)); postFixIncrement(ref i))
         {
             object id = getValue(ids, i);
-            object currencyId = getValue(((string)id).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>(), 0);
-            object code = this.safeCurrencyCode(currencyId);
-            if (isTrue(isTrue(!isEqual(codes, null)) && !isTrue(this.inArray(code, codes))))
+            object fees = this.safeValue(response, i, new Dictionary<string, object>() {});
+            object code = this.safeCurrencyCode(id);
+            if (isTrue(isTrue((!isEqual(codes, null))) && !isTrue(this.inArray(code, codes))))
             {
                 continue;
             }
-            if (isTrue(isGreaterThanOrEqual(getIndexOf(id, "_available"), 0)))
-            {
-                mainCurrencyId = currencyId;
-                ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
-                    { "deposit", null },
-                    { "withdraw", null },
-                    { "info", new Dictionary<string, object>() {} },
-                };
-            }
-            if (isTrue(isEqual(currencyId, mainCurrencyId)))
-            {
-                ((IDictionary<string,object>)getValue(getValue(result, code), "info"))[(string)id] = this.safeNumber(response, id);
-            }
-            if (isTrue(isGreaterThanOrEqual(getIndexOf(id, "_withdrawal_fee"), 0)))
-            {
-                ((IDictionary<string,object>)getValue(result, code))["withdraw"] = this.safeNumber(response, id);
-            }
+            ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
+                { "withdraw_fee", this.safeNumber(fees, "fee") },
+                { "deposit", new Dictionary<string, object>() {} },
+                { "info", this.safeDict(currencies, id) },
+            };
         }
         return result;
     }
@@ -1352,71 +1354,44 @@ public partial class bitstamp : Exchange
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object response = await this.privatePostBalance(parameters);
+        object response = await this.privatePostFeesWithdrawal(parameters);
         //
-        //    {
-        //        "yfi_available": "0.00000000",
-        //        "yfi_balance": "0.00000000",
-        //        "yfi_reserved": "0.00000000",
-        //        "yfi_withdrawal_fee": "0.00070000",
-        //        "yfieur_fee": "0.000",
-        //        "yfiusd_fee": "0.000",
-        //        "zrx_available": "0.00000000",
-        //        "zrx_balance": "0.00000000",
-        //        "zrx_reserved": "0.00000000",
-        //        "zrx_withdrawal_fee": "12.00000000",
-        //        "zrxeur_fee": "0.000",
-        //        "zrxusd_fee": "0.000",
-        //        ...
-        //    }
+        //     [
+        //         {
+        //             "currency": "btc",
+        //             "fee": "0.00015000",
+        //             "network": "bitcoin"
+        //         }
+        //         ...
+        //     ]
         //
-        return this.parseDepositWithdrawFees(response, codes);
+        object responseByCurrencyId = this.groupBy(response, "currency");
+        return this.parseDepositWithdrawFees(responseByCurrencyId, codes);
     }
 
-    public override object parseDepositWithdrawFees(object response, object codes = null, object currencyIdKey = null)
+    public override object parseDepositWithdrawFee(object fee, object currency = null)
     {
-        //
-        //    {
-        //        "yfi_available": "0.00000000",
-        //        "yfi_balance": "0.00000000",
-        //        "yfi_reserved": "0.00000000",
-        //        "yfi_withdrawal_fee": "0.00070000",
-        //        "yfieur_fee": "0.000",
-        //        "yfiusd_fee": "0.000",
-        //        "zrx_available": "0.00000000",
-        //        "zrx_balance": "0.00000000",
-        //        "zrx_reserved": "0.00000000",
-        //        "zrx_withdrawal_fee": "12.00000000",
-        //        "zrxeur_fee": "0.000",
-        //        "zrxusd_fee": "0.000",
-        //        ...
-        //    }
-        //
-        object result = new Dictionary<string, object>() {};
-        object ids = new List<object>(((IDictionary<string,object>)response).Keys);
-        for (object i = 0; isLessThan(i, getArrayLength(ids)); postFixIncrement(ref i))
+        object result = this.depositWithdrawFee(fee);
+        for (object j = 0; isLessThan(j, getArrayLength(fee)); postFixIncrement(ref j))
         {
-            object id = getValue(ids, i);
-            object currencyId = getValue(((string)id).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>(), 0);
-            object code = this.safeCurrencyCode(currencyId);
-            object dictValue = this.safeNumber(response, id);
-            if (isTrue(isTrue(!isEqual(codes, null)) && !isTrue(this.inArray(code, codes))))
-            {
-                continue;
-            }
-            if (isTrue(isGreaterThanOrEqual(getIndexOf(id, "_available"), 0)))
-            {
-                ((IDictionary<string,object>)result)[(string)code] = this.depositWithdrawFee(new Dictionary<string, object>() {});
-            }
-            if (isTrue(isGreaterThanOrEqual(getIndexOf(id, "_withdrawal_fee"), 0)))
-            {
-                ((IDictionary<string,object>)getValue(getValue(result, code), "withdraw"))["fee"] = dictValue;
-            }
-            object resultValue = this.safeValue(result, code);
-            if (isTrue(!isEqual(resultValue, null)))
-            {
-                ((IDictionary<string,object>)getValue(getValue(result, code), "info"))[(string)id] = dictValue;
-            }
+            object networkEntry = getValue(fee, j);
+            object networkId = this.safeString(networkEntry, "network");
+            object networkCode = this.networkIdToCode(networkId);
+            object withdrawFee = this.safeNumber(networkEntry, "fee");
+            ((IDictionary<string,object>)result)["withdraw"] = new Dictionary<string, object>() {
+                { "fee", withdrawFee },
+                { "percentage", null },
+            };
+            ((IDictionary<string,object>)getValue(result, "networks"))[(string)networkCode] = new Dictionary<string, object>() {
+                { "withdraw", new Dictionary<string, object>() {
+                    { "fee", withdrawFee },
+                    { "percentage", null },
+                } },
+                { "deposit", new Dictionary<string, object>() {
+                    { "fee", null },
+                    { "percentage", null },
+                } },
+            };
         }
         return result;
     }

@@ -101,6 +101,7 @@ export default class binance extends Exchange {
                 'fetchLeverages': true,
                 'fetchLeverageTiers': true,
                 'fetchLiquidations': false,
+                'fetchMarginAdjustmentHistory': true,
                 'fetchMarginMode': 'emulated',
                 'fetchMarginModes': true,
                 'fetchMarketLeverageTiers': 'emulated',
@@ -11051,21 +11052,37 @@ export default class binance extends Exchange {
         //         "type": 1
         //     }
         //
+        // fetchMarginAdjustmentHistory
+        //
+        //    {
+        //        symbol: "XRPUSDT",
+        //        type: "1",
+        //        deltaType: "TRADE",
+        //        amount: "2.57148240",
+        //        asset: "USDT",
+        //        time: "1711046271555",
+        //        positionSide: "BOTH",
+        //        clientTranId: ""
+        //    }
+        //
         const rawType = this.safeInteger (data, 'type');
-        const resultType = (rawType === 1) ? 'add' : 'reduce';
-        const resultAmount = this.safeNumber (data, 'amount');
         const errorCode = this.safeString (data, 'code');
-        const status = (errorCode === '200') ? 'ok' : 'failed';
+        const marketId = this.safeString (data, 'symbol');
+        const timestamp = this.safeInteger (data, 'time');
+        market = this.safeMarket (marketId, market, undefined, 'swap');
+        const noErrorCode = errorCode === undefined;
+        const success = errorCode === '200';
         return {
             'info': data,
             'symbol': market['symbol'],
-            'type': resultType,
-            'amount': resultAmount,
+            'type': (rawType === 1) ? 'add' : 'reduce',
+            'marginMode': 'isolated',
+            'amount': this.safeNumber (data, 'amount'),
+            'code': this.safeString (data, 'asset'),
             'total': undefined,
-            'code': undefined,
-            'status': status,
-            'timestamp': undefined,
-            'datetime': undefined,
+            'status': (success || noErrorCode) ? 'ok' : 'failed',
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
         };
     }
 
@@ -12337,40 +12354,98 @@ export default class binance extends Exchange {
         };
     }
 
+    async fetchMarginAdjustmentHistory (symbol: Str = undefined, type: Str = undefined, since: Num = undefined, limit: Num = undefined, params = {}): Promise<MarginModification[]> {
+        /**
+         * @method
+         * @description fetches the history of margin added or reduced from contract isolated positions
+         * @see https://binance-docs.github.io/apidocs/futures/en/#get-position-margin-change-history-trade
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#get-position-margin-change-history-trade
+         * @param {string} symbol unified market symbol
+         * @param {string} [type] "add" or "reduce"
+         * @param {int} [since] timestamp in ms of the earliest change to fetch
+         * @param {int} [limit] the maximum amount of changes to fetch
+         * @param {object} params extra parameters specific to the exchange api endpoint
+         * @param {int} [params.until] timestamp in ms of the latest change to fetch
+         * @returns {object[]} a list of [margin structures]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
+         */
+        await this.loadMarkets ();
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchMarginAdjustmentHistory () requires a symbol argument');
+        }
+        const market = this.market (symbol);
+        const until = this.safeInteger (params, 'until');
+        params = this.omit (params, 'until');
+        const request = {
+            'symbol': market['id'],
+        };
+        if (type !== undefined) {
+            request['type'] = (type === 'add') ? 1 : 2;
+        }
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        if (until !== undefined) {
+            request['endTime'] = until;
+        }
+        let response = undefined;
+        if (market['linear']) {
+            response = await this.fapiPrivateGetPositionMarginHistory (this.extend (request, params));
+        } else if (market['inverse']) {
+            response = await this.dapiPrivateGetPositionMarginHistory (this.extend (request, params));
+        } else {
+            throw new BadRequest (this.id + 'fetchMarginAdjustmentHistory () is not supported for markets of type ' + market['type']);
+        }
+        //
+        //    [
+        //        {
+        //            symbol: "XRPUSDT",
+        //            type: "1",
+        //            deltaType: "TRADE",
+        //            amount: "2.57148240",
+        //            asset: "USDT",
+        //            time: "1711046271555",
+        //            positionSide: "BOTH",
+        //            clientTranId: ""
+        //        }
+        //        ...
+        //    ]
+        //
+        const modifications = this.parseMarginModifications (response);
+        return this.filterBySymbolSinceLimit (modifications, symbol, since, limit);
+    }
+
     async fetchConvertCurrencies (params = {}): Promise<Currencies> {
         /**
          * @method
-         * @name binance#fetchConvertCurrencies
+         * @name okx#fetchConvertCurrencies
          * @description fetches all available currencies that can be converted
-         * @see https://binance-docs.github.io/apidocs/spot/en/#get-assets-that-can-be-converted-into-bnb-user_data
+         * @see https://www.okx.com/docs-v5/en/#funding-account-rest-api-get-convert-currencies
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an associative dictionary of currencies
          */
         await this.loadMarkets ();
-        const response = await this.sapiPostAssetDustBtc (params);
+        const response = await this.privateGetAssetConvertCurrencies (params);
         //
         //     {
-        //         "details": [
+        //         "code": "0",
+        //         "data": [
         //             {
-        //                 "asset": "ADA",
-        //                 "assetFullName": "ADA",
-        //                 "amountFree": "6.21",   //Convertible amount
-        //                 "toBTC": "0.00016848",  //BTC amount
-        //                 "toBNB": "0.01777302",  //BNB amount（Not deducted commission fee）
-        //                 "toBNBOffExchange": "0.01741756", //BNB amount（Deducted commission fee）
-        //                 "exchange": "0.00035546" //Commission fee
-        //             }
+        //                 "ccy": "BTC",
+        //                 "max": "",
+        //                 "min": ""
+        //             },
         //         ],
-        //         "totalTransferBtc": "0.00016848",
-        //         "totalTransferBNB": "0.01777302",
-        //         "dribbletPercentage": "0.02"     //Commission fee
+        //         "msg": ""
         //     }
         //
         const result = {};
-        const data = this.safeList (response, 'details', []);
+        const data = this.safeList (response, 'data', []);
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
-            const id = this.safeString (entry, 'asset');
+            const id = this.safeString (entry, 'ccy');
             const code = this.safeCurrencyCode (id);
             result[code] = {
                 'info': entry,
@@ -12381,13 +12456,13 @@ export default class binance extends Exchange {
                 'name': undefined,
                 'active': undefined,
                 'deposit': undefined,
-                'withdraw': this.safeNumber (entry, 'amountFree'),
+                'withdraw': undefined,
                 'fee': undefined,
                 'precision': undefined,
                 'limits': {
                     'amount': {
-                        'min': undefined,
-                        'max': undefined,
+                        'min': this.safeNumber (entry, 'min'),
+                        'max': this.safeNumber (entry, 'max'),
                     },
                     'withdraw': {
                         'min': undefined,

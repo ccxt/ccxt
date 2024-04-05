@@ -42,11 +42,11 @@ use React\EventLoop\Loop;
 
 use Exception;
 
-$version = '4.2.88';
+$version = '4.2.89';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.2.88';
+    const VERSION = '4.2.89';
 
     public $browser;
     public $marketsLoading = null;
@@ -2781,11 +2781,11 @@ class Exchange extends \ccxt\Exchange {
         if ($currencyId !== null) {
             $code = $this->common_currency_code(strtoupper($currencyId));
         }
-        return array(
+        return $this->safe_currency_structure(array(
             'id' => $currencyId,
             'code' => $code,
             'precision' => null,
-        );
+        ));
     }
 
     public function safe_market(?string $marketId, ?array $market = null, ?string $delimiter = null, ?string $marketType = null) {
@@ -3653,11 +3653,18 @@ class Exchange extends \ccxt\Exchange {
         );
     }
 
-    public function common_currency_code(string $currency) {
+    public function common_currency_code(string $code) {
         if (!$this->substituteCommonCurrencyCodes) {
-            return $currency;
+            return $code;
         }
-        return $this->safe_string($this->commonCurrencies, $currency, $currency);
+        // if the provided $code already $exists value in $commonCurrencies dict, then we should not again transform it
+        // more details at => https://github.com/ccxt/ccxt/issues/21112#issuecomment-2031293691
+        $commonCurrencies = is_array($this->commonCurrencies) ? array_values($this->commonCurrencies) : array();
+        $exists = $this->in_array($code, $commonCurrencies);
+        if ($exists) {
+            return $code;
+        }
+        return $this->safe_string($this->commonCurrencies, $code, $code);
     }
 
     public function currency(string $code) {
@@ -4180,7 +4187,8 @@ class Exchange extends \ccxt\Exchange {
             if (!$this->has['fetchTradingFees']) {
                 throw new NotSupported($this->id . ' fetchTradingFee() is not supported yet');
             }
-            return Async\await($this->fetch_trading_fees($params));
+            $fees = Async\await($this->fetch_trading_fees($params));
+            return $this->safe_dict($fees, $symbol);
         }) ();
     }
 

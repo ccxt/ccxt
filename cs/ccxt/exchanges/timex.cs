@@ -1152,6 +1152,8 @@ public partial class timex : Exchange
             { "symbol", this.safeSymbol(marketId, market) },
             { "maker", rate },
             { "taker", rate },
+            { "percentage", null },
+            { "tierBased", null },
         };
     }
 
