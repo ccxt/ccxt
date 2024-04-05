@@ -443,7 +443,8 @@ export default class kucoinfutures extends kucoinfuturesRest {
             messageHashes.push ('trades:' + symbol);
             subscriptionHashes.push ('/contractMarket/execution:' + marketId);
         }
-        const trades = await this.subscribeMultiple (url, messageHashes, topic, subscriptionHashes, params);
+        const subscription = {};
+        const trades = await this.subscribeMultiple (url, messageHashes, topic, subscriptionHashes, subscription, params);
         if (this.newUpdates) {
             const first = this.safeValue (trades, 0);
             const tradeSymbol = this.safeString (first, 'symbol');
