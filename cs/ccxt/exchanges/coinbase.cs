@@ -4050,36 +4050,17 @@ public partial class coinbase : Exchange
         if (isTrue(signed))
         {
             object authorization = this.safeString(this.headers, "Authorization");
+            object authorizationString = null;
             if (isTrue(!isEqual(authorization, null)))
             {
-                headers = new Dictionary<string, object>() {
-                    { "Authorization", authorization },
-                    { "Content-Type", "application/json" },
-                };
-                if (isTrue(!isEqual(method, "GET")))
-                {
-                    if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys))))
-                    {
-                        body = this.json(query);
-                    }
-                }
+                authorizationString = authorization;
             } else if (isTrue(isTrue(this.token) && !isTrue(this.checkRequiredCredentials(false))))
             {
-                headers = new Dictionary<string, object>() {
-                    { "Authorization", add("Bearer ", this.token) },
-                    { "Content-Type", "application/json" },
-                };
-                if (isTrue(!isEqual(method, "GET")))
-                {
-                    if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys))))
-                    {
-                        body = this.json(query);
-                    }
-                }
+                authorizationString = add("Bearer ", this.token);
             } else
             {
                 this.checkRequiredCredentials();
-                object timestampString = ((object)this.seconds()).ToString();
+                object seconds = this.seconds();
                 object payload = "";
                 if (isTrue(!isEqual(method, "GET")))
                 {
@@ -4102,14 +4083,62 @@ public partial class coinbase : Exchange
                 // https://docs.cloud.coinbase.com/advanced-trade-api/docs/auth#example-request
                 // v2: 'GET' require payload in the signature
                 // https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-key-authentication
-                object auth = add(add(add(timestampString, method), savedPath), payload);
-                object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
+                object isCloudAPiKey = isTrue((isGreaterThanOrEqual(getIndexOf(this.apiKey, "organizations/"), 0))) || isTrue((((string)this.secret).StartsWith(((string)"-----BEGIN"))));
+                if (isTrue(isCloudAPiKey))
+                {
+                    if (isTrue(((string)this.apiKey).StartsWith(((string)"-----BEGIN"))))
+                    {
+                        throw new ArgumentsRequired ((string)add(this.id, " apiKey should contain the name (eg: organizations/3b910e93....) and not the public key")) ;
+                    }
+                    // it may not work for v2
+                    object uri = add(add(method, " "), ((string)url).Replace((string)"https://", (string)""));
+                    object quesPos = getIndexOf(uri, "?");
+                    if (isTrue(isGreaterThanOrEqual(quesPos, 0)))
+                    {
+                        uri = slice(uri, 0, quesPos);
+                    }
+                    object nonce = this.randomBytes(16);
+                    object request = new Dictionary<string, object>() {
+                        { "aud", new List<object>() {"retail_rest_api_proxy"} },
+                        { "iss", "coinbase-cloud" },
+                        { "nbf", seconds },
+                        { "exp", add(seconds, 120) },
+                        { "sub", this.apiKey },
+                        { "uri", uri },
+                        { "iat", seconds },
+                    };
+                    object token = jwt(request, this.encode(this.secret), sha256, false, new Dictionary<string, object>() {
+                        { "kid", this.apiKey },
+                        { "nonce", nonce },
+                        { "alg", "ES256" },
+                    });
+                    authorizationString = add("Bearer ", token);
+                } else
+                {
+                    object timestampString = ((object)this.seconds()).ToString();
+                    object auth = add(add(add(timestampString, method), savedPath), payload);
+                    object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
+                    headers = new Dictionary<string, object>() {
+                        { "CB-ACCESS-KEY", this.apiKey },
+                        { "CB-ACCESS-SIGN", signature },
+                        { "CB-ACCESS-TIMESTAMP", timestampString },
+                        { "Content-Type", "application/json" },
+                    };
+                }
+            }
+            if (isTrue(!isEqual(authorizationString, null)))
+            {
                 headers = new Dictionary<string, object>() {
-                    { "CB-ACCESS-KEY", this.apiKey },
-                    { "CB-ACCESS-SIGN", signature },
-                    { "CB-ACCESS-TIMESTAMP", timestampString },
+                    { "Authorization", authorizationString },
                     { "Content-Type", "application/json" },
                 };
+                if (isTrue(!isEqual(method, "GET")))
+                {
+                    if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys))))
+                    {
+                        body = this.json(query);
+                    }
+                }
             }
         }
         return new Dictionary<string, object>() {

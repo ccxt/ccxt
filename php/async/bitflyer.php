@@ -524,7 +524,7 @@ class bitflyer extends Exchange {
         }) ();
     }
 
-    public function fetch_trading_fee(string $symbol, $params = array ()) {
+    public function fetch_trading_fee(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch the trading fees for a $market
@@ -550,6 +550,8 @@ class bitflyer extends Exchange {
                 'symbol' => $market['symbol'],
                 'maker' => $fee,
                 'taker' => $fee,
+                'percentage' => null,
+                'tierBased' => null,
             );
         }) ();
     }

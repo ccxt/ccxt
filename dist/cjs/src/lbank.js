@@ -1241,6 +1241,8 @@ class lbank extends lbank$1 {
             'symbol': symbol,
             'maker': this.safeNumber(fee, 'makerCommission'),
             'taker': this.safeNumber(fee, 'takerCommission'),
+            'percentage': undefined,
+            'tierBased': undefined,
         };
     }
     async fetchTradingFee(symbol, params = {}) {
@@ -1255,7 +1257,7 @@ class lbank extends lbank$1 {
          */
         const market = this.market(symbol);
         const result = await this.fetchTradingFees(this.extend(params, { 'category': market['id'] }));
-        return result;
+        return this.safeDict(result, symbol);
     }
     async fetchTradingFees(params = {}) {
         /**

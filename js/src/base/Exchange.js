@@ -23,6 +23,7 @@ import { axolotl } from './functions/crypto.js';
 import totp from './functions/totp.js';
 import ethers from '../static_dependencies/ethers/index.js';
 import { TypedDataEncoder } from '../static_dependencies/ethers/hash/index.js';
+import { SecureRandom } from "../static_dependencies/jsencrypt/lib/jsbn/rng.js";
 // ----------------------------------------------------------------------------
 /**
  * @class Exchange
@@ -88,7 +89,7 @@ export default class Exchange {
         this.markets_by_id = undefined;
         this.symbols = undefined;
         this.ids = undefined;
-        this.currencies = undefined;
+        this.currencies = {};
         this.baseCurrencies = undefined;
         this.quoteCurrencies = undefined;
         this.currencies_by_id = undefined;
@@ -426,6 +427,7 @@ export default class Exchange {
                 'fetchIndexOHLCV': undefined,
                 'fetchIsolatedBorrowRate': undefined,
                 'fetchIsolatedBorrowRates': undefined,
+                'fetchMarginAdjustmentHistory': undefined,
                 'fetchIsolatedPositions': undefined,
                 'fetchL2OrderBook': true,
                 'fetchL3OrderBook': undefined,
@@ -1432,6 +1434,13 @@ export default class Exchange {
     createSafeDictionary() {
         return {};
     }
+    randomBytes(length) {
+        const rng = new SecureRandom();
+        const x = [];
+        x.length = length;
+        rng.nextBytes(x);
+        return Buffer.from(x).toString('hex');
+    }
     /* eslint-enable */
     // ------------------------------------------------------------------------
     // ########################################################################
@@ -2037,6 +2046,20 @@ export default class Exchange {
     }
     async setMargin(symbol, amount, params = {}) {
         throw new NotSupported(this.id + ' setMargin() is not supported yet');
+    }
+    async fetchMarginAdjustmentHistory(symbol = undefined, type = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name exchange#fetchMarginAdjustmentHistory
+         * @description fetches the history of margin added or reduced from contract isolated positions
+         * @param {string} [symbol] unified market symbol
+         * @param {string} [type] "add" or "reduce"
+         * @param {int} [since] timestamp in ms of the earliest change to fetch
+         * @param {int} [limit] the maximum amount of changes to fetch
+         * @param {object} params extra parameters specific to the exchange api endpoint
+         * @returns {object[]} a list of [margin structures]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
+         */
+        throw new NotSupported(this.id + ' fetchMarginAdjustmentHistory() is not supported yet');
     }
     async setMarginMode(marginMode, symbol = undefined, params = {}) {
         throw new NotSupported(this.id + ' setMarginMode() is not supported yet');
@@ -3775,11 +3798,11 @@ export default class Exchange {
         if (currencyId !== undefined) {
             code = this.commonCurrencyCode(currencyId.toUpperCase());
         }
-        return {
+        return this.safeCurrencyStructure({
             'id': currencyId,
             'code': code,
             'precision': undefined,
-        };
+        });
     }
     safeMarket(marketId, market = undefined, delimiter = undefined, marketType = undefined) {
         const result = this.safeMarketStructure({
@@ -4548,11 +4571,18 @@ export default class Exchange {
             'total': undefined,
         };
     }
-    commonCurrencyCode(currency) {
+    commonCurrencyCode(code) {
         if (!this.substituteCommonCurrencyCodes) {
-            return currency;
+            return code;
         }
-        return this.safeString(this.commonCurrencies, currency, currency);
+        // if the provided code already exists as a value in commonCurrencies dict, then we should not again transform it
+        // more details at: https://github.com/ccxt/ccxt/issues/21112#issuecomment-2031293691
+        const commonCurrencies = Object.values(this.commonCurrencies);
+        const exists = this.inArray(code, commonCurrencies);
+        if (exists) {
+            return code;
+        }
+        return this.safeString(this.commonCurrencies, code, code);
     }
     currency(code) {
         if (this.currencies === undefined) {
@@ -5015,7 +5045,8 @@ export default class Exchange {
         if (!this.has['fetchTradingFees']) {
             throw new NotSupported(this.id + ' fetchTradingFee() is not supported yet');
         }
-        return await this.fetchTradingFees(params);
+        const fees = await this.fetchTradingFees(params);
+        return this.safeDict(fees, symbol);
     }
     parseOpenInterest(interest, market = undefined) {
         throw new NotSupported(this.id + ' parseOpenInterest () is not supported yet');
@@ -5792,6 +5823,21 @@ export default class Exchange {
         const day = date.slice(5, 7);
         const reconstructedDate = day + month + year;
         return reconstructedDate;
+    }
+    parseMarginModification(data, market = undefined) {
+        throw new NotSupported(this.id + ' parseMarginModification() is not supported yet');
+    }
+    parseMarginModifications(response, symbols = undefined, symbolKey = undefined, marketType = undefined) {
+        const marginModifications = [];
+        for (let i = 0; i < response.length; i++) {
+            const info = response[i];
+            const marketId = this.safeString(info, symbolKey);
+            const market = this.safeMarket(marketId, undefined, undefined, marketType);
+            if ((symbols === undefined) || this.inArray(market['symbol'], symbols)) {
+                marginModifications.push(this.parseMarginModification(info, market));
+            }
+        }
+        return marginModifications;
     }
 }
 export { Exchange, };

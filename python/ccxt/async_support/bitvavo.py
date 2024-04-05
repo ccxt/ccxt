@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.bitvavo import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Currencies, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -414,7 +414,7 @@ class bitvavo(Exchange, ImplicitAPI):
             }))
         return result
 
-    async def fetch_currencies(self, params={}):
+    async def fetch_currencies(self, params={}) -> Currencies:
         """
         :see: https://docs.bitvavo.com/#tag/General/paths/~1assets/get
         fetches all available currencies on an exchange
@@ -805,7 +805,7 @@ class bitvavo(Exchange, ImplicitAPI):
             'fee': fee,
         }, market)
 
-    async def fetch_trading_fees(self, params={}):
+    async def fetch_trading_fees(self, params={}) -> TradingFees:
         """
         :see: https://docs.bitvavo.com/#tag/Account/paths/~1account/get
         fetch the trading fees for multiple markets

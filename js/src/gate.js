@@ -123,6 +123,7 @@ export default class gate extends Exchange {
                 'fetchLeverages': true,
                 'fetchLeverageTiers': true,
                 'fetchLiquidations': true,
+                'fetchMarginAdjustmentHistory': false,
                 'fetchMarginMode': false,
                 'fetchMarketLeverageTiers': true,
                 'fetchMarkets': true,
@@ -2074,6 +2075,8 @@ export default class gate extends Exchange {
             'symbol': this.safeString(market, 'symbol'),
             'maker': this.safeNumber(info, makerKey),
             'taker': this.safeNumber(info, takerKey),
+            'percentage': undefined,
+            'tierBased': undefined,
         };
     }
     async fetchTransactionFees(codes = undefined, params = {}) {
@@ -6120,6 +6123,7 @@ export default class gate extends Exchange {
             'info': data,
             'symbol': market['symbol'],
             'type': undefined,
+            'marginMode': 'isolated',
             'amount': undefined,
             'total': total,
             'code': this.safeValue(market, 'quote'),

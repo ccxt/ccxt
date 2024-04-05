@@ -942,7 +942,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         $client->resolve ($deposits, $messageHash);
     }
 
-    public function fetch_trading_fees_ws($params = array ()) {
+    public function fetch_trading_fees_ws($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * @see https://docs.bitvavo.com/#tag/Account/paths/~1account/get

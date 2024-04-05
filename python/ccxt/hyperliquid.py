@@ -5,7 +5,7 @@
 
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.hyperliquid import ImplicitAPI
-from ccxt.base.types import Balances, Int, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Trade, TransferEntry
+from ccxt.base.types import Balances, Currencies, Int, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Trade, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
@@ -207,7 +207,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         super(hyperliquid, self).set_sandbox_mode(enabled)
         self.options['sandboxMode'] = enabled
 
-    def fetch_currencies(self, params={}):
+    def fetch_currencies(self, params={}) -> Currencies:
         """
         fetches all available currencies on an exchange
         :see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-exchange-metadata
@@ -2024,6 +2024,7 @@ class hyperliquid(Exchange, ImplicitAPI):
             'info': data,
             'symbol': self.safe_symbol(None, market),
             'type': None,
+            'marginMode': 'isolated',
             'amount': None,
             'total': None,
             'code': self.safe_string(market, 'settle'),

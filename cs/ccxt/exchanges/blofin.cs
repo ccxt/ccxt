@@ -997,6 +997,8 @@ public partial class blofin : Exchange
             { "symbol", this.safeSymbol(null, market) },
             { "maker", this.parseNumber(Precise.stringNeg(this.safeString2(fee, "maker", "makerU"))) },
             { "taker", this.parseNumber(Precise.stringNeg(this.safeString2(fee, "taker", "takerU"))) },
+            { "percentage", null },
+            { "tierBased", null },
         };
     }
 

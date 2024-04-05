@@ -76,7 +76,7 @@ build_and_test_all () {
       #   cd python
       #   if ! tox run-parallel; then
       #     exit 1
-      #   fi 
+      #   fi
       #   cd  ..
       # fi
     fi
@@ -87,7 +87,7 @@ build_and_test_all () {
     if [[ "$last_commit_message" == *"skip-tests"* ]]; then
         echo "[SKIP-TESTS] Will skip tests!"
         exit
-    fi
+    fi 
     run_tests
   fi
   exit

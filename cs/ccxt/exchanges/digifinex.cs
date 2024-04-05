@@ -3569,6 +3569,8 @@ public partial class digifinex : Exchange
             { "symbol", symbol },
             { "maker", this.safeNumber(fee, "maker_fee_rate") },
             { "taker", this.safeNumber(fee, "taker_fee_rate") },
+            { "percentage", null },
+            { "tierBased", null },
         };
     }
 
@@ -4424,7 +4426,7 @@ public partial class digifinex : Exchange
         });
     }
 
-    public virtual object parseMarginModification(object data, object market = null)
+    public override object parseMarginModification(object data, object market = null)
     {
         //
         //     {
@@ -4440,6 +4442,7 @@ public partial class digifinex : Exchange
             { "info", data },
             { "symbol", this.safeSymbol(marketId, market, null, "swap") },
             { "type", ((bool) isTrue((isEqual(rawType, 1)))) ? "add" : "reduce" },
+            { "marginMode", "isolated" },
             { "amount", this.safeNumber(data, "amount") },
             { "total", null },
             { "code", getValue(market, "settle") },

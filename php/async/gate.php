@@ -129,6 +129,7 @@ class gate extends Exchange {
                 'fetchLeverages' => true,
                 'fetchLeverageTiers' => true,
                 'fetchLiquidations' => true,
+                'fetchMarginAdjustmentHistory' => false,
                 'fetchMarginMode' => false,
                 'fetchMarketLeverageTiers' => true,
                 'fetchMarkets' => true,
@@ -1561,7 +1562,7 @@ class gate extends Exchange {
         return $this->safe_value($fetchMarketsContractOptions, 'settlementCurrencies', $defaultSettle);
     }
 
-    public function fetch_currencies($params = array ()) {
+    public function fetch_currencies($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches all available currencies on an exchange
@@ -2000,7 +2001,7 @@ class gate extends Exchange {
         }) ();
     }
 
-    public function fetch_trading_fee(string $symbol, $params = array ()) {
+    public function fetch_trading_fee(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch the trading fees for a $market
@@ -2033,7 +2034,7 @@ class gate extends Exchange {
         }) ();
     }
 
-    public function fetch_trading_fees($params = array ()) {
+    public function fetch_trading_fees($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetch the trading fees for multiple markets
@@ -2097,6 +2098,8 @@ class gate extends Exchange {
             'symbol' => $this->safe_string($market, 'symbol'),
             'maker' => $this->safe_number($info, $makerKey),
             'taker' => $this->safe_number($info, $takerKey),
+            'percentage' => null,
+            'tierBased' => null,
         );
     }
 
@@ -6096,6 +6099,7 @@ class gate extends Exchange {
             'info' => $data,
             'symbol' => $market['symbol'],
             'type' => null,
+            'marginMode' => 'isolated',
             'amount' => null,
             'total' => $total,
             'code' => $this->safe_value($market, 'quote'),

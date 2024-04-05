@@ -114,6 +114,7 @@ public partial class gate : Exchange
                 { "fetchLeverages", true },
                 { "fetchLeverageTiers", true },
                 { "fetchLiquidations", true },
+                { "fetchMarginAdjustmentHistory", false },
                 { "fetchMarginMode", false },
                 { "fetchMarketLeverageTiers", true },
                 { "fetchMarkets", true },
@@ -2098,6 +2099,8 @@ public partial class gate : Exchange
             { "symbol", this.safeString(market, "symbol") },
             { "maker", this.safeNumber(info, makerKey) },
             { "taker", this.safeNumber(info, takerKey) },
+            { "percentage", null },
+            { "tierBased", null },
         };
     }
 
@@ -6531,7 +6534,7 @@ public partial class gate : Exchange
         return this.parseMarginModification(response, market);
     }
 
-    public virtual object parseMarginModification(object data, object market = null)
+    public override object parseMarginModification(object data, object market = null)
     {
         //
         //     {
@@ -6567,6 +6570,7 @@ public partial class gate : Exchange
             { "info", data },
             { "symbol", getValue(market, "symbol") },
             { "type", null },
+            { "marginMode", "isolated" },
             { "amount", null },
             { "total", total },
             { "code", this.safeValue(market, "quote") },

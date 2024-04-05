@@ -68,6 +68,7 @@ public partial class mexc : Exchange
                 { "fetchLeverage", true },
                 { "fetchLeverages", false },
                 { "fetchLeverageTiers", true },
+                { "fetchMarginAdjustmentHistory", false },
                 { "fetchMarginMode", false },
                 { "fetchMarketLeverageTiers", null },
                 { "fetchMarkets", true },
@@ -4260,8 +4261,9 @@ public partial class mexc : Exchange
         /**
         * @method
         * @name mexc#fetchLeverageTiers
-        * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
-        * @param {string[]|undefined} symbols list of unified market symbols
+        * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes, if a market has a leverage tier of 0, then the leverage tiers cannot be obtained for this market
+        * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-contract-information
+        * @param {string[]} [symbols] list of unified market symbols
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}, indexed by market symbols
         */
@@ -4320,10 +4322,44 @@ public partial class mexc : Exchange
 
     public override object parseMarketLeverageTiers(object info, object market = null)
     {
-        /**
-        @param info {object} Exchange response for 1 market
-        @param market {object} CCXT market
-         */
+        //
+        //    {
+        //        "symbol": "BTC_USDT",
+        //        "displayName": "BTC_USDT永续",
+        //        "displayNameEn": "BTC_USDT SWAP",
+        //        "positionOpenType": 3,
+        //        "baseCoin": "BTC",
+        //        "quoteCoin": "USDT",
+        //        "settleCoin": "USDT",
+        //        "contractSize": 0.0001,
+        //        "minLeverage": 1,
+        //        "maxLeverage": 125,
+        //        "priceScale": 2,
+        //        "volScale": 0,
+        //        "amountScale": 4,
+        //        "priceUnit": 0.5,
+        //        "volUnit": 1,
+        //        "minVol": 1,
+        //        "maxVol": 1000000,
+        //        "bidLimitPriceRate": 0.1,
+        //        "askLimitPriceRate": 0.1,
+        //        "takerFeeRate": 0.0006,
+        //        "makerFeeRate": 0.0002,
+        //        "maintenanceMarginRate": 0.004,
+        //        "initialMarginRate": 0.008,
+        //        "riskBaseVol": 10000,
+        //        "riskIncrVol": 200000,
+        //        "riskIncrMmr": 0.004,
+        //        "riskIncrImr": 0.004,
+        //        "riskLevelLimit": 5,
+        //        "priceCoefficientVariation": 0.1,
+        //        "indexOrigin": ["BINANCE","GATEIO","HUOBI","MXC"],
+        //        "state": 0, // 0 enabled, 1 delivery, 2 completed, 3 offline, 4 pause
+        //        "isNew": false,
+        //        "isHot": true,
+        //        "isHidden": false
+        //    }
+        //
         object maintenanceMarginRate = this.safeString(info, "maintenanceMarginRate");
         object initialMarginRate = this.safeString(info, "initialMarginRate");
         object maxVol = this.safeString(info, "maxVol");
@@ -4333,6 +4369,18 @@ public partial class mexc : Exchange
         object floor = "0";
         object tiers = new List<object>() {};
         object quoteId = this.safeString(info, "quoteCoin");
+        if (isTrue(isEqual(riskIncrVol, "0")))
+        {
+            return new List<object>() {new Dictionary<string, object>() {
+    { "tier", 0 },
+    { "currency", this.safeCurrencyCode(quoteId) },
+    { "notionalFloor", null },
+    { "notionalCap", null },
+    { "maintenanceMarginRate", null },
+    { "maxLeverage", this.safeNumber(info, "maxLeverage") },
+    { "info", info },
+}};
+        }
         while (Precise.stringLt(floor, maxVol))
         {
             object cap = Precise.stringAdd(floor, riskIncrVol);

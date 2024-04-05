@@ -8,7 +8,7 @@ from ccxt.abstract.bitget import ImplicitAPI
 import asyncio
 import hashlib
 import json
-from ccxt.base.types import Balances, Currency, FundingHistory, Int, Liquidation, Leverage, MarginMode, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
+from ccxt.base.types import Balances, Currencies, Currency, FundingHistory, Int, Liquidation, Leverage, MarginMode, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -106,6 +106,7 @@ class bitget(Exchange, ImplicitAPI):
                 'fetchLeverage': True,
                 'fetchLeverageTiers': False,
                 'fetchLiquidations': False,
+                'fetchMarginAdjustmentHistory': False,
                 'fetchMarginMode': True,
                 'fetchMarketLeverageTiers': True,
                 'fetchMarkets': True,
@@ -1814,7 +1815,7 @@ class bitget(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', [])
         return self.parse_markets(data)
 
-    async def fetch_currencies(self, params={}):
+    async def fetch_currencies(self, params={}) -> Currencies:
         """
         fetches all available currencies on an exchange
         :see: https://www.bitget.com/api-doc/spot/market/Get-Coin-List
@@ -2558,7 +2559,10 @@ class bitget(Exchange, ImplicitAPI):
         #
         marketId = self.safe_string(ticker, 'symbol')
         close = self.safe_string(ticker, 'lastPr')
-        timestamp = self.safe_integer(ticker, 'ts')
+        timestampString = self.omit_zero(self.safe_string(ticker, 'ts'))  # exchange sometimes provided 0
+        timestamp = None
+        if timestampString is not None:
+            timestamp = self.parse_to_int(timestampString)
         change = self.safe_string(ticker, 'change24h')
         open24 = self.safe_string(ticker, 'open24')
         open = self.safe_string(ticker, 'open')
@@ -3005,7 +3009,7 @@ class bitget(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_trades(data, market, since, limit)
 
-    async def fetch_trading_fee(self, symbol: str, params={}):
+    async def fetch_trading_fee(self, symbol: str, params={}) -> TradingFeeInterface:
         """
         fetch the trading fees for a market
         :see: https://www.bitget.com/api-doc/common/public/Get-Trade-Rate
@@ -3043,7 +3047,7 @@ class bitget(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', {})
         return self.parse_trading_fee(data, market)
 
-    async def fetch_trading_fees(self, params={}):
+    async def fetch_trading_fees(self, params={}) -> TradingFees:
         """
         fetch the trading fees for multiple markets
         :see: https://www.bitget.com/api-doc/spot/market/Get-Symbols
@@ -3163,6 +3167,8 @@ class bitget(Exchange, ImplicitAPI):
             'symbol': self.safe_symbol(marketId, market),
             'maker': self.safe_number(data, 'makerFeeRate'),
             'taker': self.safe_number(data, 'takerFeeRate'),
+            'percentage': None,
+            'tierBased': None,
         }
 
     def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
@@ -6481,6 +6487,7 @@ class bitget(Exchange, ImplicitAPI):
             'info': data,
             'symbol': market['symbol'],
             'type': None,
+            'marginMode': 'isolated',
             'amount': None,
             'total': None,
             'code': market['settle'],

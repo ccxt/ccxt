@@ -42,11 +42,11 @@ use React\EventLoop\Loop;
 
 use Exception;
 
-$version = '4.2.88';
+$version = '4.2.90';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.2.88';
+    const VERSION = '4.2.90';
 
     public $browser;
     public $marketsLoading = null;
@@ -965,6 +965,19 @@ class Exchange extends \ccxt\Exchange {
 
     public function set_margin(string $symbol, float $amount, $params = array ()) {
         throw new NotSupported($this->id . ' setMargin() is not supported yet');
+    }
+
+    public function fetch_margin_adjustment_history(?string $symbol = null, ?string $type = null, ?float $since = null, ?float $limit = null, $params = array ()) {
+        /**
+         * fetches the history of margin added or reduced from contract isolated positions
+         * @param {string} [$symbol] unified market $symbol
+         * @param {string} [$type] "add" or "reduce"
+         * @param {int} [$since] timestamp in ms of the earliest change to fetch
+         * @param {int} [$limit] the maximum amount of changes to fetch
+         * @param {array} $params extra parameters specific to the exchange api endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=margin-loan-structure margin structures~
+         */
+        throw new NotSupported($this->id . ' fetchMarginAdjustmentHistory() is not supported yet');
     }
 
     public function set_margin_mode(string $marginMode, ?string $symbol = null, $params = array ()) {
@@ -2781,11 +2794,11 @@ class Exchange extends \ccxt\Exchange {
         if ($currencyId !== null) {
             $code = $this->common_currency_code(strtoupper($currencyId));
         }
-        return array(
+        return $this->safe_currency_structure(array(
             'id' => $currencyId,
             'code' => $code,
             'precision' => null,
-        );
+        ));
     }
 
     public function safe_market(?string $marketId, ?array $market = null, ?string $delimiter = null, ?string $marketType = null) {
@@ -3653,11 +3666,18 @@ class Exchange extends \ccxt\Exchange {
         );
     }
 
-    public function common_currency_code(string $currency) {
+    public function common_currency_code(string $code) {
         if (!$this->substituteCommonCurrencyCodes) {
-            return $currency;
+            return $code;
         }
-        return $this->safe_string($this->commonCurrencies, $currency, $currency);
+        // if the provided $code already $exists value in $commonCurrencies dict, then we should not again transform it
+        // more details at => https://github.com/ccxt/ccxt/issues/21112#issuecomment-2031293691
+        $commonCurrencies = is_array($this->commonCurrencies) ? array_values($this->commonCurrencies) : array();
+        $exists = $this->in_array($code, $commonCurrencies);
+        if ($exists) {
+            return $code;
+        }
+        return $this->safe_string($this->commonCurrencies, $code, $code);
     }
 
     public function currency(string $code) {
@@ -4180,7 +4200,8 @@ class Exchange extends \ccxt\Exchange {
             if (!$this->has['fetchTradingFees']) {
                 throw new NotSupported($this->id . ' fetchTradingFee() is not supported yet');
             }
-            return Async\await($this->fetch_trading_fees($params));
+            $fees = Async\await($this->fetch_trading_fees($params));
+            return $this->safe_dict($fees, $symbol);
         }) ();
     }
 
@@ -4976,5 +4997,22 @@ class Exchange extends \ccxt\Exchange {
         $day = mb_substr($date, 5, 7 - 5);
         $reconstructedDate = $day . $month . $year;
         return $reconstructedDate;
+    }
+
+    public function parse_margin_modification($data, ?array $market = null) {
+        throw new NotSupported($this->id . ' parseMarginModification() is not supported yet');
+    }
+
+    public function parse_margin_modifications(mixed $response, ?array $symbols = null, ?string $symbolKey = null, ?string $marketType = null) {
+        $marginModifications = array();
+        for ($i = 0; $i < count($response); $i++) {
+            $info = $response[$i];
+            $marketId = $this->safe_string($info, $symbolKey);
+            $market = $this->safe_market($marketId, null, null, $marketType);
+            if (($symbols === null) || $this->in_array($market['symbol'], $symbols)) {
+                $marginModifications[] = $this->parse_margin_modification($info, $market);
+            }
+        }
+        return $marginModifications;
     }
 }

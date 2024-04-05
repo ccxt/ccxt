@@ -2134,6 +2134,84 @@
                     }
                 }
             }
+        ],
+        "fetchMarginAdjustmentHistory": [
+            {
+                "description": "fetch margin adjustment history",
+                "method": "fetchMarginAdjustmentHistory",
+                "input": [
+                  "XRP/USDT:USDT",
+                  null,
+                  null,
+                  2
+                ],
+                "httpResponse": [
+                  {
+                    "symbol": "XRPUSDT",
+                    "type": "1",
+                    "deltaType": "TRADE",
+                    "amount": "2.57148240",
+                    "asset": "USDT",
+                    "time": "1711046271555",
+                    "positionSide": "BOTH",
+                    "clientTranId": ""
+                  },
+                  {
+                    "symbol": "XRPUSDT",
+                    "type": "1",
+                    "deltaType": "USER_ADJUST",
+                    "amount": "10.00000000",
+                    "asset": "USDT",
+                    "time": "1711046323584",
+                    "positionSide": "BOTH",
+                    "clientTranId": ""
+                  }
+                ],
+                "parsedResponse": [
+                  {
+                    "info": {
+                      "symbol": "XRPUSDT",
+                      "type": "1",
+                      "deltaType": "TRADE",
+                      "amount": "2.57148240",
+                      "asset": "USDT",
+                      "time": "1711046271555",
+                      "positionSide": "BOTH",
+                      "clientTranId": ""
+                    },
+                    "symbol": "XRP/USDT:USDT",
+                    "type": "add",
+                    "marginMode": "isolated",
+                    "amount": 2.5714824,
+                    "code": "USDT",
+                    "total": null,
+                    "status": "ok",
+                    "timestamp": 1711046271555,
+                    "datetime": "2024-03-21T18:37:51.555Z"
+                  },
+                  {
+                    "info": {
+                      "symbol": "XRPUSDT",
+                      "type": "1",
+                      "deltaType": "USER_ADJUST",
+                      "amount": "10.00000000",
+                      "asset": "USDT",
+                      "time": "1711046323584",
+                      "positionSide": "BOTH",
+                      "clientTranId": ""
+                    },
+                    "symbol": "XRP/USDT:USDT",
+                    "type": "add",
+                    "marginMode": "isolated",
+                    "amount": 10,
+                    "code": "USDT",
+                    "total": null,
+                    "status": "ok",
+                    "timestamp": 1711046323584,
+                    "datetime": "2024-03-21T18:38:43.584Z"
+                  }
+                ]
+            }
         ]
     }
 }

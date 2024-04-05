@@ -77,6 +77,7 @@ public partial class bitget : Exchange
                 { "fetchLeverage", true },
                 { "fetchLeverageTiers", false },
                 { "fetchLiquidations", false },
+                { "fetchMarginAdjustmentHistory", false },
                 { "fetchMarginMode", true },
                 { "fetchMarketLeverageTiers", true },
                 { "fetchMarkets", true },
@@ -2699,7 +2700,12 @@ public partial class bitget : Exchange
         //
         object marketId = this.safeString(ticker, "symbol");
         object close = this.safeString(ticker, "lastPr");
-        object timestamp = this.safeInteger(ticker, "ts");
+        object timestampString = this.omitZero(this.safeString(ticker, "ts")); // exchange sometimes provided 0
+        object timestamp = null;
+        if (isTrue(!isEqual(timestampString, null)))
+        {
+            timestamp = this.parseToInt(timestampString);
+        }
         object change = this.safeString(ticker, "change24h");
         object open24 = this.safeString(ticker, "open24");
         object open = this.safeString(ticker, "open");
@@ -3415,6 +3421,8 @@ public partial class bitget : Exchange
             { "symbol", this.safeSymbol(marketId, market) },
             { "maker", this.safeNumber(data, "makerFeeRate") },
             { "taker", this.safeNumber(data, "takerFeeRate") },
+            { "percentage", null },
+            { "tierBased", null },
         };
     }
 
@@ -7494,7 +7502,7 @@ public partial class bitget : Exchange
         });
     }
 
-    public virtual object parseMarginModification(object data, object market = null)
+    public override object parseMarginModification(object data, object market = null)
     {
         //
         // addMargin/reduceMargin
@@ -7512,6 +7520,7 @@ public partial class bitget : Exchange
             { "info", data },
             { "symbol", getValue(market, "symbol") },
             { "type", null },
+            { "marginMode", "isolated" },
             { "amount", null },
             { "total", null },
             { "code", getValue(market, "settle") },

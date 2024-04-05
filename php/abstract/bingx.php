@@ -91,6 +91,9 @@ abstract class bingx extends \ccxt\Exchange {
     public function swap_v1_private_get_trade_batchcancelreplace($params = array()) {
         return $this->request('trade/batchCancelReplace', array('swap', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
+    public function swap_v1_private_get_trade_fullorder($params = array()) {
+        return $this->request('trade/fullOrder', array('swap', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
     public function swap_v1_private_post_trade_cancelreplace($params = array()) {
         return $this->request('trade/cancelReplace', array('swap', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
@@ -292,6 +295,9 @@ abstract class bingx extends \ccxt\Exchange {
     public function copytrading_v1_private_post_swap_trace_settpsl($params = array()) {
         return $this->request('swap/trace/setTPSL', array('copyTrading', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
+    public function copytrading_v1_private_post_spot_trader_sellorder($params = array()) {
+        return $this->request('spot/trader/sellOrder', array('copyTrading', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
     public function api_v3_private_get_asset_transfer($params = array()) {
         return $this->request('asset/transfer', array('api', 'v3', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
@@ -387,6 +393,9 @@ abstract class bingx extends \ccxt\Exchange {
     }
     public function swapV1PrivateGetTradeBatchCancelReplace($params = array()) {
         return $this->request('trade/batchCancelReplace', array('swap', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function swapV1PrivateGetTradeFullOrder($params = array()) {
+        return $this->request('trade/fullOrder', array('swap', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
     public function swapV1PrivatePostTradeCancelReplace($params = array()) {
         return $this->request('trade/cancelReplace', array('swap', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 1));
@@ -588,6 +597,9 @@ abstract class bingx extends \ccxt\Exchange {
     }
     public function copyTradingV1PrivatePostSwapTraceSetTPSL($params = array()) {
         return $this->request('swap/trace/setTPSL', array('copyTrading', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function copyTradingV1PrivatePostSpotTraderSellOrder($params = array()) {
+        return $this->request('spot/trader/sellOrder', array('copyTrading', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
     public function apiV3PrivateGetAssetTransfer($params = array()) {
         return $this->request('asset/transfer', array('api', 'v3', 'private'), 'GET', $params, null, null, array("cost" => 1));

@@ -356,7 +356,7 @@ class digifinex extends Exchange {
         ));
     }
 
-    public function fetch_currencies($params = array ()) {
+    public function fetch_currencies($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches all available currencies on an exchange
@@ -3312,7 +3312,7 @@ class digifinex extends Exchange {
         }) ();
     }
 
-    public function fetch_trading_fee(string $symbol, $params = array ()) {
+    public function fetch_trading_fee(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch the trading fees for a $market
@@ -3345,7 +3345,7 @@ class digifinex extends Exchange {
         }) ();
     }
 
-    public function parse_trading_fee($fee, ?array $market = null) {
+    public function parse_trading_fee($fee, ?array $market = null): array {
         //
         //     {
         //         "instrument_id" => "BTCUSDTPERP",
@@ -3360,6 +3360,8 @@ class digifinex extends Exchange {
             'symbol' => $symbol,
             'maker' => $this->safe_number($fee, 'maker_fee_rate'),
             'taker' => $this->safe_number($fee, 'taker_fee_rate'),
+            'percentage' => null,
+            'tierBased' => null,
         );
     }
 
@@ -4160,6 +4162,7 @@ class digifinex extends Exchange {
             'info' => $data,
             'symbol' => $this->safe_symbol($marketId, $market, null, 'swap'),
             'type' => ($rawType === 1) ? 'add' : 'reduce',
+            'marginMode' => 'isolated',
             'amount' => $this->safe_number($data, 'amount'),
             'total' => null,
             'code' => $market['settle'],

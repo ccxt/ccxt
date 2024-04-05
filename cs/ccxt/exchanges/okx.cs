@@ -77,6 +77,7 @@ public partial class okx : Exchange
                 { "fetchLedgerEntry", null },
                 { "fetchLeverage", true },
                 { "fetchLeverageTiers", false },
+                { "fetchMarginAdjustmentHistory", true },
                 { "fetchMarketLeverageTiers", true },
                 { "fetchMarkets", true },
                 { "fetchMarkOHLCV", true },
@@ -2398,6 +2399,8 @@ public partial class okx : Exchange
             { "symbol", this.safeSymbol(null, market) },
             { "maker", this.parseNumber(Precise.stringNeg(this.safeString2(fee, "maker", "makerU"))) },
             { "taker", this.parseNumber(Precise.stringNeg(this.safeString2(fee, "taker", "takerU"))) },
+            { "percentage", null },
+            { "tierBased", null },
         };
     }
 
@@ -6743,14 +6746,14 @@ public partial class okx : Exchange
         //     }
         //
         object data = this.safeList(response, "data", new List<object>() {});
+        object entry = this.safeDict(data, 0, new Dictionary<string, object>() {});
         object errorCode = this.safeString(response, "code");
-        object item = this.safeDict(data, 0, new Dictionary<string, object>() {});
-        return this.extend(this.parseMarginModification(item, market), new Dictionary<string, object>() {
+        return this.extend(this.parseMarginModification(entry, market), new Dictionary<string, object>() {
             { "status", ((bool) isTrue((isEqual(errorCode, "0")))) ? "ok" : "failed" },
         });
     }
 
-    public virtual object parseMarginModification(object data, object market = null)
+    public override object parseMarginModification(object data, object market = null)
     {
         //
         // addMargin/reduceMargin
@@ -6762,22 +6765,69 @@ public partial class okx : Exchange
         //        "type": "reduce"
         //    }
         //
-        object amountRaw = this.safeNumber(data, "amt");
+        // fetchMarginAdjustmentHistory
+        //
+        //    {
+        //        bal: '67621.4325135010619812',
+        //        balChg: '-10.0000000000000000',
+        //        billId: '691293628710342659',
+        //        ccy: 'USDT',
+        //        clOrdId: '',
+        //        execType: '',
+        //        fee: '0',
+        //        fillFwdPx: '',
+        //        fillIdxPx: '',
+        //        fillMarkPx: '',
+        //        fillMarkVol: '',
+        //        fillPxUsd: '',
+        //        fillPxVol: '',
+        //        fillTime: '1711089244850',
+        //        from: '',
+        //        instId: 'XRP-USDT-SWAP',
+        //        instType: 'SWAP',
+        //        interest: '0',
+        //        mgnMode: 'isolated',
+        //        notes: '',
+        //        ordId: '',
+        //        pnl: '0',
+        //        posBal: '73.12',
+        //        posBalChg: '10.00',
+        //        px: '',
+        //        subType: '160',
+        //        sz: '10',
+        //        tag: '',
+        //        to: '',
+        //        tradeId: '0',
+        //        ts: '1711089244699',
+        //        type: '6'
+        //    }
+        //
+        object amountRaw = this.safeString2(data, "amt", "posBalChg");
         object typeRaw = this.safeString(data, "type");
-        object type = ((bool) isTrue((isEqual(typeRaw, "reduce")))) ? "reduce" : "add";
+        object type = null;
+        if (isTrue(isEqual(typeRaw, "6")))
+        {
+            type = ((bool) isTrue(Precise.stringGt(amountRaw, "0"))) ? "add" : "reduce";
+        } else
+        {
+            type = typeRaw;
+        }
+        object amount = Precise.stringAbs(amountRaw);
         object marketId = this.safeString(data, "instId");
         object responseMarket = this.safeMarket(marketId, market);
         object code = ((bool) isTrue(getValue(responseMarket, "inverse"))) ? getValue(responseMarket, "base") : getValue(responseMarket, "quote");
+        object timestamp = this.safeInteger(data, "ts");
         return new Dictionary<string, object>() {
             { "info", data },
             { "symbol", getValue(responseMarket, "symbol") },
             { "type", type },
-            { "amount", amountRaw },
-            { "total", null },
+            { "marginMode", "isolated" },
+            { "amount", this.parseNumber(amount) },
             { "code", code },
+            { "total", null },
             { "status", null },
-            { "timestamp", null },
-            { "datetime", null },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
         };
     }
 
@@ -8000,5 +8050,117 @@ public partial class okx : Exchange
             throw new ExchangeError ((string)feedback) ;
         }
         return null;
+    }
+
+    public async override Task<object> fetchMarginAdjustmentHistory(object symbol = null, object type = null, object since = null, object limit = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name okx#fetchMarginAdjustmentHistory
+        * @description fetches the history of margin added or reduced from contract isolated positions
+        * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-bills-details-last-7-days
+        * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-bills-details-last-3-months
+        * @param {string} [symbol] not used by okx fetchMarginAdjustmentHistory
+        * @param {string} [type] "add" or "reduce"
+        * @param {object} params extra parameters specific to the exchange api endpoint
+        * @param {boolean} [params.auto] true if fetching auto margin increases
+        * @returns {object[]} a list of [margin structures]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object auto = this.safeBool(parameters, "auto");
+        if (isTrue(isEqual(type, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " fetchMarginAdjustmentHistory () requires a type argument")) ;
+        }
+        object isAdd = isEqual(type, "add");
+        object subType = ((bool) isTrue(isAdd)) ? "160" : "161";
+        if (isTrue(auto))
+        {
+            if (isTrue(isAdd))
+            {
+                subType = "162";
+            } else
+            {
+                throw new BadRequest ((string)add(add(this.id, " cannot fetch margin adjustments for type "), type)) ;
+            }
+        }
+        object request = new Dictionary<string, object>() {
+            { "subType", subType },
+            { "mgnMode", "isolated" },
+        };
+        object until = this.safeInteger(parameters, "until");
+        parameters = this.omit(parameters, "until");
+        if (isTrue(!isEqual(since, null)))
+        {
+            ((IDictionary<string,object>)request)["startTime"] = since;
+        }
+        if (isTrue(!isEqual(limit, null)))
+        {
+            ((IDictionary<string,object>)request)["limit"] = limit;
+        }
+        if (isTrue(!isEqual(until, null)))
+        {
+            ((IDictionary<string,object>)request)["endTime"] = until;
+        }
+        object response = null;
+        object now = this.milliseconds();
+        object oneWeekAgo = subtract(now, 604800000);
+        object threeMonthsAgo = subtract(now, 7776000000);
+        if (isTrue(isTrue((isEqual(since, null))) || isTrue((isGreaterThan(since, oneWeekAgo)))))
+        {
+            response = await this.privateGetAccountBills(this.extend(request, parameters));
+        } else if (isTrue(isGreaterThan(since, threeMonthsAgo)))
+        {
+            response = await this.privateGetAccountBillsArchive(this.extend(request, parameters));
+        } else
+        {
+            throw new BadRequest ((string)add(this.id, " fetchMarginAdjustmentHistory () cannot fetch margin adjustments older than 3 months")) ;
+        }
+        //
+        //    {
+        //        code: '0',
+        //        data: [
+        //            {
+        //                bal: '67621.4325135010619812',
+        //                balChg: '-10.0000000000000000',
+        //                billId: '691293628710342659',
+        //                ccy: 'USDT',
+        //                clOrdId: '',
+        //                execType: '',
+        //                fee: '0',
+        //                fillFwdPx: '',
+        //                fillIdxPx: '',
+        //                fillMarkPx: '',
+        //                fillMarkVol: '',
+        //                fillPxUsd: '',
+        //                fillPxVol: '',
+        //                fillTime: '1711089244850',
+        //                from: '',
+        //                instId: 'XRP-USDT-SWAP',
+        //                instType: 'SWAP',
+        //                interest: '0',
+        //                mgnMode: 'isolated',
+        //                notes: '',
+        //                ordId: '',
+        //                pnl: '0',
+        //                posBal: '73.12',
+        //                posBalChg: '10.00',
+        //                px: '',
+        //                subType: '160',
+        //                sz: '10',
+        //                tag: '',
+        //                to: '',
+        //                tradeId: '0',
+        //                ts: '1711089244699',
+        //                type: '6'
+        //            }
+        //        ],
+        //        msg: ''
+        //    }
+        //
+        object data = this.safeList(response, "data");
+        object modifications = this.parseMarginModifications(data);
+        return this.filterBySymbolSinceLimit(modifications, symbol, since, limit);
     }
 }

@@ -120,6 +120,7 @@ class gate extends gate$1 {
                 'fetchLeverages': true,
                 'fetchLeverageTiers': true,
                 'fetchLiquidations': true,
+                'fetchMarginAdjustmentHistory': false,
                 'fetchMarginMode': false,
                 'fetchMarketLeverageTiers': true,
                 'fetchMarkets': true,
@@ -2071,6 +2072,8 @@ class gate extends gate$1 {
             'symbol': this.safeString(market, 'symbol'),
             'maker': this.safeNumber(info, makerKey),
             'taker': this.safeNumber(info, takerKey),
+            'percentage': undefined,
+            'tierBased': undefined,
         };
     }
     async fetchTransactionFees(codes = undefined, params = {}) {
@@ -6117,6 +6120,7 @@ class gate extends gate$1 {
             'info': data,
             'symbol': market['symbol'],
             'type': undefined,
+            'marginMode': 'isolated',
             'amount': undefined,
             'total': total,
             'code': this.safeValue(market, 'quote'),
