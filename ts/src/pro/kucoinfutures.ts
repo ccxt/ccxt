@@ -158,14 +158,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
             'topic': topic,
             'response': true,
         };
-        const message = this.extend (request, params);
-        let subscriptionRequest = {
-            'id': requestId,
-        };
-        if (subscriptionArgs !== undefined) {
-            subscriptionRequest = this.extend (subscriptionRequest, subscriptionArgs);
-        }
-        return await this.watchMultiple (url, messageHashes, message, subscriptionHashes, subscriptionRequest);
+        return await this.watchMultiple (url, messageHashes, this.extend (request, params), subscriptionHashes, subscriptionArgs);
     }
 
     async watchTicker (symbol: string, params = {}): Promise<Ticker> {
@@ -531,7 +524,6 @@ export default class kucoinfutures extends kucoinfuturesRest {
         const url = await this.negotiate (false);
         const topic = '/contractMarket/level2:' + marketIds.join (',');
         const subscriptionArgs = {
-            'symbols': symbols,
             'limit': limit,
         };
         const subscriptionHashes = [];
