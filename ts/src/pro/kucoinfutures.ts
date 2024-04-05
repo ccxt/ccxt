@@ -197,7 +197,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
-        const ticker = await this.watchMultiHelper ('watchTickers', '/contractMarket/ticker:', symbols, params);
+        const ticker = await this.watchMultiRequest ('watchTickers', '/contractMarket/ticker:', symbols, params);
         if (this.newUpdates) {
             const tickers = {};
             tickers[ticker['symbol']] = ticker;
@@ -246,7 +246,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
-        const ticker = await this.watchMultiHelper ('watchBidsAsks', '/contractMarket/tickerV2:', symbols, params);
+        const ticker = await this.watchMultiRequest ('watchBidsAsks', '/contractMarket/tickerV2:', symbols, params);
         if (this.newUpdates) {
             const tickers = {};
             tickers[ticker['symbol']] = ticker;
@@ -255,7 +255,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
         return this.filterByArray (this.bidsasks, 'symbol', symbols);
     }
 
-    async watchMultiHelper (methodName, channelName: string, symbols: Strings = undefined, params = {}) {
+    async watchMultiRequest (methodName, channelName: string, symbols: Strings = undefined, params = {}) {
         await this.loadMarkets ();
         [ methodName, params ] = this.handleParamString (params, 'callerMethodName', methodName);
         const isBidsAsks = (methodName === 'watchBidsAsks');
@@ -281,7 +281,10 @@ export default class kucoinfutures extends kucoinfuturesRest {
             'topic': channelName + joined,
             'response': true,
         };
-        return await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes);
+        const subscription = {
+            'id': requestId,
+        };
+        return await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes, subscription);
     }
 
     handleBidAsk (client: Client, message) {
