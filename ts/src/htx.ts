@@ -1611,7 +1611,8 @@ export default class htx extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} an array of objects representing market data
          */
-        const types = this.handleOptionAndParams (params, 'fetchMarkets', 'types', {});
+        let types = undefined;
+        [ types, params ] = this.handleOptionAndParams (params, 'fetchMarkets', 'types', {});
         let allMarkets = [];
         let promises = [];
         const keys = Object.keys (types);
@@ -1921,10 +1922,37 @@ export default class htx extends Exchange {
         return result;
     }
 
-    trySetSymbolFromFutureMarkets (symbol, marketId) {
+    trySetSymbolFromFutureMarkets (tickerMarketId: string) {
+        // from "Tickers" endpoint, futures market-ids format (BTC-USDT-CW or BTC_CW) is not standard and differs
+        // from "fetchMarkets", so down below we have to map the futures market-ids to symbols
+        if (!('futureMarketIdsForSymbols' in this.options)) {
+            this.options['futureMarketIdsForSymbols'] = {};
+        }
         const futureMarketIdsForSymbols = this.safeDict (this.options, 'futureMarketIdsForSymbols', {});
-        symbol = this.safeString (futureMarketIdsForSymbols, symbol, symbol);
-        return symbol;
+        if (tickerMarketId in futureMarketIdsForSymbols) {
+            return futureMarketIdsForSymbols[tickerMarketId];
+        }
+        const futureMarkets = this.getMarketsForMarketType ('future', 'linear');
+        const futuresCharsMaps = {
+            'this_week': 'CW',
+            'next_week': 'NW',
+            'quarter': 'CQ',
+            'next_quarter': 'NQ',
+        };
+        for (let i = 0; i < futureMarkets.length; i++) {
+            const market = futureMarkets[i];
+            const info = this.safeValue (market, 'info', {});
+            const contractType = this.safeString (info, 'contract_type');
+            const contractSuffix = futuresCharsMaps[contractType];
+            // ticker market id formats: `BTC-USDT-CW` (linear future) or `BTC_CW` (inverse future)
+            const constructedId = market['linear'] ? market['base'] + '-' + market['quote'] + '-' + contractSuffix : market['base'] + '_' + contractSuffix;
+            if (constructedId === tickerMarketId) {
+                const symbol = market['symbol'];
+                this.options['futureMarketIdsForSymbols'][tickerMarketId] = symbol;
+                return symbol;
+            }
+        }
+        return tickerMarketId;
     }
 
     parseTicker (ticker, market: Market = undefined): Ticker {
@@ -1976,7 +2004,7 @@ export default class htx extends Exchange {
         const marketId = this.safeString2 (ticker, 'symbol', 'contract_code');
         let symbol = this.safeSymbol (marketId, market);
         if (!(symbol in this.markets)) {
-            symbol = this.trySetSymbolFromFutureMarkets (symbol, marketId);
+            symbol = this.trySetSymbolFromFutureMarkets (marketId);
         }
         const timestamp = this.safeInteger2 (ticker, 'ts', 'quoteTime');
         let bid = undefined;
@@ -2218,14 +2246,6 @@ export default class htx extends Exchange {
         const rawTickers = this.safeList2 (response, 'data', 'ticks', []);
         const tickers = this.parseTickers (rawTickers, symbols, params);
         return this.filterByArrayTickers (tickers, 'symbol', symbols);
-    }
-
-    async defineFutureMarketIdSymbols () {
-        // to find out more about this function, see comment aside line where "futureMarketIdsForSymbols" is defined.
-        if (!this.safeBool (this.options, 'futureMarketIdsForSymbolsDefined', false)) {
-            await this.fetchMarketsByTypeAndSubType ('future', 'linear', { 'business_type': 'futures' });
-            this.options['futureMarketIdsForSymbolsDefined'] = true;
-        }
     }
 
     async fetchLastPrices (symbols: Strings = undefined, params = {}) {
