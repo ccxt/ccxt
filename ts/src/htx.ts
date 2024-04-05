@@ -1934,7 +1934,7 @@ export default class htx extends Exchange {
         if (symbolOrMarketId in futureMarketIdsForSymbols) {
             return futureMarketIdsForSymbols[symbolOrMarketId];
         }
-        const futureMarkets = this.getMarketsForMarketType ('future');
+        const futureMarkets = this.filterBy (this.markets, 'future', true);
         const futuresCharsMaps = {
             'this_week': 'CW',
             'next_week': 'NW',

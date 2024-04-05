@@ -3981,12 +3981,7 @@ export default class Exchange {
         return results;
     }
 
-    getSymbolsForMarketType (marketType: Str = undefined, subType: Str = undefined, symbolWithActiveStatus: boolean = true, symbolWithUnknownStatus: boolean = true, symbolWithInactiveStatus: boolean = true) {
-        const filteredMarkets = this.getMarketsForMarketType (marketType, subType, symbolWithActiveStatus, symbolWithUnknownStatus, symbolWithInactiveStatus);
-        return this.getListFromObjectValues (filteredMarkets, 'symbol');
-    }
-
-    getMarketsForMarketType (marketType: Str = undefined, subType: Str = undefined, symbolWithActiveStatus: boolean = true, symbolWithUnknownStatus: boolean = true, symbolWithInactiveStatus: boolean = true) {
+    getSymbolsForMarketType (marketType: Str = undefined, subType: Str = undefined, symbolWithActiveStatus: boolean = true, symbolWithUnknownStatus: boolean = true) {
         let filteredMarkets = this.markets;
         if (marketType !== undefined) {
             filteredMarkets = this.filterBy (filteredMarkets, 'type', marketType);
@@ -3999,14 +3994,11 @@ export default class Exchange {
         if (symbolWithActiveStatus) {
             activeStatuses.push (true);
         }
-        if (symbolWithInactiveStatus) {
-            activeStatuses.push (false);
-        }
         if (symbolWithUnknownStatus) {
             activeStatuses.push (undefined);
         }
         filteredMarkets = this.filterByArray (filteredMarkets, 'active', activeStatuses, false);
-        return filteredMarkets;
+        return this.getListFromObjectValues (filteredMarkets, 'symbol');
     }
 
     filterByArray (objects, key: IndexType, values = undefined, indexed = true) {
