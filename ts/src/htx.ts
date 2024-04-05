@@ -1750,7 +1750,7 @@ export default class htx extends Exchange {
             let settleId = undefined;
             let id = undefined;
             let lowercaseId = undefined;
-            const contract = 'contract_code' in market;
+            const contract = ('contract_code' in market);
             const spot = !contract;
             let swap = false;
             let future = false;
