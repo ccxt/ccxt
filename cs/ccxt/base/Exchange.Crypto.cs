@@ -7,6 +7,7 @@ using System.IO;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.OpenSsl;
 using Org.BouncyCastle.Asn1.Nist;
+using Org.BouncyCastle.Crypto.Signers;
 
 namespace ccxt;
 
@@ -174,7 +175,7 @@ public partial class Exchange
         }
         else if (algoType == "ES")
         {
-            var ec = Ecdsa(data, secret, p256, hash) as Dictionary<string, object>;
+            var ec = Ecdsa(token, secret, p256, hash) as Dictionary<string, object>;
             var r = ec["r"] as string;
             var s = ec["s"] as string;
             signature = Exchange.Base64urlEncode(Exchange.binaryToBase64(Exchange.ConvertHexStringToByteArray(r + s)));
@@ -391,7 +392,7 @@ public partial class Exchange
         }
         else
         {
-            sig = SignP256(Encoding.UTF8.GetBytes(Exchange.Json(request)), secret.ToString(), hashName, out recoveryId);
+            sig = SignP256(request, secret as string, hashName, out recoveryId); // handle strings only for testing
         }
 
         var rBytes = sig.Take(32).ToArray();
@@ -610,18 +611,22 @@ public partial class Exchange
     }
 
 
-    public static byte[] SignP256(byte[] msg, string pemPrivateKey, string hashName, out int recoveryId)
+    public static byte[] SignP256(object msg, string pemPrivateKey, string hashName, out int recoveryId)
     {
-        var algo = HashAlgorithmName.SHA256;
-        if (hashName == "sha512")
-        {
-            algo = HashAlgorithmName.SHA512; // handle other scenarios later
-        }
+
+        string algoDelegate() => hashName as string;
         var curveParams = NistNamedCurves.GetByName("P-256");
+        var rawBytes = Encoding.UTF8.GetBytes((string)msg);
         var ecPrivateKeyParameters = ReadPemPrivateKey(pemPrivateKey, curveParams);
         ECDsa ecdsa = ConvertToECDsa(ecPrivateKeyParameters);
-        byte[] signature = ecdsa.SignData(msg, HashAlgorithmName.SHA256);
+        byte[] signature = ecdsa.SignData(rawBytes, HashAlgorithmName.SHA256);
+
+        var hashed = HashBytes(msg, algoDelegate);
+        var signer = new ECDsaSigner();
+
         recoveryId = 0; // check this later;
+        var r = signature.Take(32).ToArray();
+        var s = signature.Skip(32).ToArray();
         return signature;
     }
     private static ECPrivateKeyParameters ReadPemPrivateKey(string pemContents, Org.BouncyCastle.Asn1.X9.X9ECParameters curveParameters)
@@ -637,6 +642,27 @@ public partial class Exchange
                 // return keyPair.Private as ECPrivateKeyParameters;
                 var privateKeyParameters = keyPair.Private as ECPrivateKeyParameters;
                 return new ECPrivateKeyParameters(privateKeyParameters.D, new ECDomainParameters(curveParameters.Curve, curveParameters.G, curveParameters.N, curveParameters.H, curveParameters.GetSeed()));
+            }
+            else
+            {
+                throw new InvalidCastException("The PEM file does not contain an EC private key in an expected format.");
+            }
+        }
+    }
+
+    private static ECPublicKeyParameters ReadPemPublicKey(string pemContents, Org.BouncyCastle.Asn1.X9.X9ECParameters curveParameters)
+    {
+        using (TextReader textReader = new StringReader(pemContents))
+        {
+            PemReader pemReader = new PemReader(textReader);
+            object pemObject = pemReader.ReadObject();
+
+            // Handling AsymmetricCipherKeyPair
+            if (pemObject is Org.BouncyCastle.Crypto.AsymmetricCipherKeyPair keyPair)
+            {
+                // return keyPair.Private as ECPrivateKeyParameters;
+                var privateKeyParameters = keyPair.Public as ECPublicKeyParameters;
+                return new ECPublicKeyParameters(privateKeyParameters.Q, new ECDomainParameters(curveParameters.Curve, curveParameters.G, curveParameters.N, curveParameters.H, curveParameters.GetSeed()));
             }
             else
             {
@@ -661,6 +687,30 @@ public partial class Exchange
             {
                 X = point.AffineXCoord.GetEncoded(),
                 Y = point.AffineYCoord.GetEncoded()
+            }
+        });
+
+        return ecdsa;
+    }
+
+    public static ECDsa ConvertToECDsa(ECPublicKeyParameters publicKeyParameters)
+    {
+        // Extract the public key point
+        var q = publicKeyParameters.Q;
+
+        // Convert BouncyCastle's BigIntegers to byte arrays
+        var x = q.AffineXCoord.GetEncoded();
+        var y = q.AffineYCoord.GetEncoded();
+
+        // Create an ECDsa instance and initialize it with the public key parameters
+        ECDsa ecdsa = ECDsa.Create();
+        ecdsa.ImportParameters(new ECParameters
+        {
+            Curve = ECCurve.NamedCurves.nistP256, // Ensure this matches your actual curve
+            Q = new ECPoint
+            {
+                X = x,
+                Y = y
             }
         });
 
