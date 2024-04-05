@@ -1247,12 +1247,17 @@ class Exchange {
         if ($opts['alg']) {
             $alg = $opts['alg'];
         }
-        $encodedHeader = static::urlencodeBase64(json_encode(array(
+        $headerOptions = array(
             'alg' => $alg,
             'typ' => 'JWT',
-            'kid' => $opts['kid'],
-            'nonce'=> $opts['nonce']
-        )));
+        );
+        if ($opts['kid']) {
+            $headerOptions['kid'] = $opts['kid'];
+        }
+        if ($opts['nonce']) {
+            $headerOptions['nonce'] = $opts['nonce'];
+        }
+        $encodedHeader = static::urlencodeBase64(json_encode($headerOptions));
         $encodedData = static::urlencodeBase64(json_encode($request, JSON_UNESCAPED_SLASHES));
         $token = $encodedHeader . '.' . $encodedData;
         $algoType = mb_substr($alg, 0, 2);
