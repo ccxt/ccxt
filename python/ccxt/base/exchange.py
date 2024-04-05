@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.2.87'
+__version__ = '4.2.89'
 
 # -----------------------------------------------------------------------------
 
@@ -3732,11 +3732,11 @@ class Exchange(object):
         code = currencyId
         if currencyId is not None:
             code = self.common_currency_code(currencyId.upper())
-        return {
+        return self.safe_currency_structure({
             'id': currencyId,
             'code': code,
             'precision': None,
-        }
+        })
 
     def safe_market(self, marketId: Str, market: Market = None, delimiter: Str = None, marketType: Str = None):
         result = self.safe_market_structure({
@@ -4390,10 +4390,16 @@ class Exchange(object):
             'total': None,
         }
 
-    def common_currency_code(self, currency: str):
+    def common_currency_code(self, code: str):
         if not self.substituteCommonCurrencyCodes:
-            return currency
-        return self.safe_string(self.commonCurrencies, currency, currency)
+            return code
+        # if the provided code already exists value in commonCurrencies dict, then we should not again transform it
+        # more details at: https://github.com/ccxt/ccxt/issues/21112#issuecomment-2031293691
+        commonCurrencies = list(self.commonCurrencies.values())
+        exists = self.in_array(code, commonCurrencies)
+        if exists:
+            return code
+        return self.safe_string(self.commonCurrencies, code, code)
 
     def currency(self, code: str):
         if self.currencies is None:
@@ -4524,6 +4530,25 @@ class Exchange(object):
         for i in range(0, precisionNumber - 1):
             parsedPrecision = parsedPrecision + '0'
         return parsedPrecision + '1'
+
+    def integer_precision_to_amount(self, precision: Str):
+        """
+         * @ignore
+        handles positive & negative numbers too. parsePrecision() does not handle negative numbers, but self method handles
+        :param str precision: The number of digits to the right of the decimal
+        :returns str: a string number equal to 1e-precision
+        """
+        if precision is None:
+            return None
+        if Precise.string_ge(precision, '0'):
+            return self.parse_precision(precision)
+        else:
+            positivePrecisionString = Precise.string_abs(precision)
+            positivePrecision = int(positivePrecisionString)
+            parsedPrecision = '1'
+            for i in range(0, positivePrecision - 1):
+                parsedPrecision = parsedPrecision + '0'
+            return parsedPrecision + '0'
 
     def load_time_difference(self, params={}):
         serverTime = self.fetch_time(params)
@@ -4772,7 +4797,8 @@ class Exchange(object):
     def fetch_trading_fee(self, symbol: str, params={}):
         if not self.has['fetchTradingFees']:
             raise NotSupported(self.id + ' fetchTradingFee() is not supported yet')
-        return self.fetch_trading_fees(params)
+        fees = self.fetch_trading_fees(params)
+        return self.safe_dict(fees, symbol)
 
     def parse_open_interest(self, interest, market: Market = None):
         raise NotSupported(self.id + ' parseOpenInterest() is not supported yet')
@@ -4935,8 +4961,8 @@ class Exchange(object):
             entry = responseKeys[i]
             dictionary = entry if isArray else response[entry]
             currencyId = self.safe_string(dictionary, currencyIdKey) if isArray else entry
-            currency = self.safe_value(self.currencies_by_id, currencyId)
-            code = self.safe_string(currency, 'code', currencyId)
+            currency = self.safe_currency(currencyId)
+            code = self.safe_string(currency, 'code')
             if (codes is None) or (self.in_array(code, codes)):
                 depositWithdrawFees[code] = self.parseDepositWithdrawFee(dictionary, currency)
         return depositWithdrawFees

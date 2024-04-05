@@ -1292,6 +1292,7 @@ class bitget extends Exchange {
             'commonCurrencies' => array(
                 'JADE' => 'Jade Protocol',
                 'DEGEN' => 'DegenReborn',
+                'TONCOIN' => 'TON',
             ),
             'options' => array(
                 'timeframes' => array(
@@ -1817,7 +1818,7 @@ class bitget extends Exchange {
         return $this->parse_markets($data);
     }
 
-    public function fetch_currencies($params = array ()) {
+    public function fetch_currencies($params = array ()): array {
         /**
          * fetches all available currencies on an exchange
          * @see https://www.bitget.com/api-doc/spot/market/Get-Coin-List
@@ -1858,8 +1859,8 @@ class bitget extends Exchange {
         $data = $this->safe_value($response, 'data', array());
         for ($i = 0; $i < count($data); $i++) {
             $entry = $data[$i];
-            $id = $this->safe_string($entry, 'coinId');
-            $code = $this->safe_currency_code($this->safe_string($entry, 'coin'));
+            $id = $this->safe_string($entry, 'coin'); // we don't use 'coinId' has no use. it is 'coin' field that needs to be used in currency related endpoints ($deposit, $withdraw, etc..)
+            $code = $this->safe_currency_code($id);
             $chains = $this->safe_value($entry, 'chains', array());
             $networks = array();
             $deposit = false;
@@ -1984,7 +1985,7 @@ class bitget extends Exchange {
             }
             $params = $this->omit($params, 'code');
             $currency = $this->currency($code);
-            $request['coin'] = $currency['code'];
+            $request['coin'] = $currency['id'];
             $response = $this->privateMarginGetV2MarginCrossedTierData (array_merge($request, $params));
         } else {
             throw new BadRequest($this->id . ' fetchMarketLeverageTiers() $symbol does not support $market ' . $market['symbol']);
@@ -2139,7 +2140,7 @@ class bitget extends Exchange {
             $since = $this->milliseconds() - 7776000000; // 90 days
         }
         $request = array(
-            'coin' => $currency['code'],
+            'coin' => $currency['id'],
             'startTime' => $since,
             'endTime' => $this->milliseconds(),
         );
@@ -2197,7 +2198,7 @@ class bitget extends Exchange {
         $currency = $this->currency($code);
         $networkId = $this->network_code_to_id($chain);
         $request = array(
-            'coin' => $currency['code'],
+            'coin' => $currency['id'],
             'address' => $address,
             'chain' => $networkId,
             'size' => $amount,
@@ -2282,7 +2283,7 @@ class bitget extends Exchange {
             $since = $this->milliseconds() - 7776000000; // 90 days
         }
         $request = array(
-            'coin' => $currency['code'],
+            'coin' => $currency['id'],
             'startTime' => $since,
             'endTime' => $this->milliseconds(),
         );
@@ -2426,7 +2427,7 @@ class bitget extends Exchange {
         }
         $currency = $this->currency($code);
         $request = array(
-            'coin' => $currency['code'],
+            'coin' => $currency['id'],
         );
         if ($networkId !== null) {
             $request['chain'] = $networkId;
@@ -2600,7 +2601,11 @@ class bitget extends Exchange {
         //
         $marketId = $this->safe_string($ticker, 'symbol');
         $close = $this->safe_string($ticker, 'lastPr');
-        $timestamp = $this->safe_integer($ticker, 'ts');
+        $timestampString = $this->omit_zero($this->safe_string($ticker, 'ts')); // exchange sometimes provided 0
+        $timestamp = null;
+        if ($timestampString !== null) {
+            $timestamp = $this->parse_to_int($timestampString);
+        }
         $change = $this->safe_string($ticker, 'change24h');
         $open24 = $this->safe_string($ticker, 'open24');
         $open = $this->safe_string($ticker, 'open');
@@ -3067,7 +3072,7 @@ class bitget extends Exchange {
         return $this->parse_trades($data, $market, $since, $limit);
     }
 
-    public function fetch_trading_fee(string $symbol, $params = array ()) {
+    public function fetch_trading_fee(string $symbol, $params = array ()): array {
         /**
          * fetch the trading fees for a $market
          * @see https://www.bitget.com/api-doc/common/public/Get-Trade-Rate
@@ -3108,7 +3113,7 @@ class bitget extends Exchange {
         return $this->parse_trading_fee($data, $market);
     }
 
-    public function fetch_trading_fees($params = array ()) {
+    public function fetch_trading_fees($params = array ()): array {
         /**
          * fetch the trading fees for multiple markets
          * @see https://www.bitget.com/api-doc/spot/market/Get-Symbols
@@ -3232,6 +3237,8 @@ class bitget extends Exchange {
             'symbol' => $this->safe_symbol($marketId, $market),
             'maker' => $this->safe_number($data, 'makerFeeRate'),
             'taker' => $this->safe_number($data, 'takerFeeRate'),
+            'percentage' => null,
+            'tierBased' => null,
         );
     }
 
@@ -5750,7 +5757,7 @@ class bitget extends Exchange {
         $request = array();
         if ($code !== null) {
             $currency = $this->currency($code);
-            $request['coin'] = $currency['code'];
+            $request['coin'] = $currency['id'];
         }
         list($request, $params) = $this->handle_until_option('endTime', $request, $params);
         if ($since !== null) {
@@ -7156,7 +7163,7 @@ class bitget extends Exchange {
         $type = $this->safe_string($accountsByType, $fromAccount);
         $currency = $this->currency($code);
         $request = array(
-            'coin' => $currency['code'],
+            'coin' => $currency['id'],
             'fromType' => $type,
         );
         if ($since !== null) {
@@ -7214,7 +7221,7 @@ class bitget extends Exchange {
             'fromType' => $fromType,
             'toType' => $toType,
             'amount' => $amount,
-            'coin' => $currency['code'],
+            'coin' => $currency['id'],
         );
         $symbol = $this->safe_string($params, 'symbol');
         $params = $this->omit($params, 'symbol');
@@ -7402,7 +7409,7 @@ class bitget extends Exchange {
         $this->load_markets();
         $currency = $this->currency($code);
         $request = array(
-            'coin' => $currency['code'],
+            'coin' => $currency['id'],
             'borrowAmount' => $this->currency_to_precision($code, $amount),
         );
         $response = $this->privateMarginPostV2MarginCrossedAccountBorrow (array_merge($request, $params));
@@ -7436,7 +7443,7 @@ class bitget extends Exchange {
         $currency = $this->currency($code);
         $market = $this->market($symbol);
         $request = array(
-            'coin' => $currency['code'],
+            'coin' => $currency['id'],
             'borrowAmount' => $this->currency_to_precision($code, $amount),
             'symbol' => $market['id'],
         );
@@ -7472,7 +7479,7 @@ class bitget extends Exchange {
         $currency = $this->currency($code);
         $market = $this->market($symbol);
         $request = array(
-            'coin' => $currency['code'],
+            'coin' => $currency['id'],
             'repayAmount' => $this->currency_to_precision($code, $amount),
             'symbol' => $market['id'],
         );
@@ -7507,7 +7514,7 @@ class bitget extends Exchange {
         $this->load_markets();
         $currency = $this->currency($code);
         $request = array(
-            'coin' => $currency['code'],
+            'coin' => $currency['id'],
             'repayAmount' => $this->currency_to_precision($code, $amount),
         );
         $response = $this->privateMarginPostV2MarginCrossedAccountRepay (array_merge($request, $params));
@@ -7867,7 +7874,7 @@ class bitget extends Exchange {
         $this->load_markets();
         $currency = $this->currency($code);
         $request = array(
-            'coin' => $currency['code'],
+            'coin' => $currency['id'],
         );
         $response = $this->privateMarginGetV2MarginCrossedInterestRateAndLimit (array_merge($request, $params));
         //
@@ -7962,7 +7969,7 @@ class bitget extends Exchange {
         $currency = null;
         if ($code !== null) {
             $currency = $this->currency($code);
-            $request['coin'] = $currency['code'];
+            $request['coin'] = $currency['id'];
         }
         if ($since !== null) {
             $request['startTime'] = $since;

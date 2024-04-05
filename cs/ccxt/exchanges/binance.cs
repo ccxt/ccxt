@@ -1812,7 +1812,7 @@ public partial class binance : Exchange
                         { "-4140", typeof(BadRequest) },
                         { "-4141", typeof(OperationRejected) },
                         { "-4144", typeof(BadSymbol) },
-                        { "-4164", typeof(OperationRejected) },
+                        { "-4164", typeof(InvalidOrder) },
                         { "-4165", typeof(BadRequest) },
                         { "-4167", typeof(BadRequest) },
                         { "-4168", typeof(BadRequest) },
@@ -8979,6 +8979,8 @@ public partial class binance : Exchange
             { "symbol", symbol },
             { "maker", this.safeNumber2(fee, "makerCommission", "makerCommissionRate") },
             { "taker", this.safeNumber2(fee, "takerCommission", "takerCommissionRate") },
+            { "percentage", null },
+            { "tierBased", null },
         };
     }
 
@@ -9524,8 +9526,9 @@ public partial class binance : Exchange
         };
     }
 
-    public virtual object parseAccountPositions(object account)
+    public virtual object parseAccountPositions(object account, object filterClosed = null)
     {
+        filterClosed ??= false;
         object positions = this.safeList(account, "positions");
         object assets = this.safeList(account, "assets", new List<object>() {});
         object balances = new Dictionary<string, object>() {};
@@ -9550,7 +9553,8 @@ public partial class binance : Exchange
             object code = ((bool) isTrue(getValue(market, "linear"))) ? getValue(market, "quote") : getValue(market, "base");
             object maintenanceMargin = this.safeString(position, "maintMargin");
             // check for maintenance margin so empty positions are not returned
-            if (isTrue(isTrue((!isEqual(maintenanceMargin, "0"))) && isTrue((!isEqual(maintenanceMargin, "0.00000000")))))
+            object isPositionOpen = isTrue((!isEqual(maintenanceMargin, "0"))) && isTrue((!isEqual(maintenanceMargin, "0.00000000")));
+            if (isTrue(!isTrue(filterClosed) || isTrue(isPositionOpen)))
             {
                 // sometimes not all the codes are correctly returned...
                 if (isTrue(inOp(balances, code)))
@@ -10472,10 +10476,11 @@ public partial class binance : Exchange
         * @see https://binance-docs.github.io/apidocs/delivery/en/#account-information-user_data
         * @see https://binance-docs.github.io/apidocs/pm/en/#get-um-account-detail-user_data
         * @see https://binance-docs.github.io/apidocs/pm/en/#get-cm-account-detail-user_data
-        * @param {string[]|undefined} symbols list of unified market symbols
+        * @param {string[]} [symbols] list of unified market symbols
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch positions in a portfolio margin account
         * @param {string} [params.subType] "linear" or "inverse"
+        * @param {boolean} [params.filterClosed] set to true if you would like to filter out closed positions, default is false
         * @returns {object} data on account positions
         */
         parameters ??= new Dictionary<string, object>();
@@ -10522,7 +10527,11 @@ public partial class binance : Exchange
         {
             throw new NotSupported ((string)add(this.id, " fetchPositions() supports linear and inverse contracts only")) ;
         }
-        object result = this.parseAccountPositions(response);
+        object filterClosed = null;
+        var filterClosedparametersVariable = this.handleOptionAndParams(parameters, "fetchAccountPositions", "filterClosed", false);
+        filterClosed = ((IList<object>)filterClosedparametersVariable)[0];
+        parameters = ((IList<object>)filterClosedparametersVariable)[1];
+        object result = this.parseAccountPositions(response, filterClosed);
         symbols = this.marketSymbols(symbols);
         return this.filterByArrayPositions(result, "symbol", symbols, false);
     }
@@ -11860,7 +11869,7 @@ public partial class binance : Exchange
         }
         await this.loadMarkets();
         object market = this.market(symbol);
-        amount = this.costToPrecision(symbol, amount);
+        amount = this.amountToPrecision(symbol, amount);
         object request = new Dictionary<string, object>() {
             { "type", addOrReduce },
             { "symbol", getValue(market, "id") },

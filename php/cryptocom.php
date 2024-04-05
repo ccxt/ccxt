@@ -2702,7 +2702,7 @@ class cryptocom extends Exchange {
         //
         $result = $this->safe_dict($response, 'result', array());
         $data = $this->safe_list($result, 'data', array());
-        return $this->parse_position($data[0], $market);
+        return $this->parse_position($this->safe_dict($data, 0), $market);
     }
 
     public function fetch_positions(?array $symbols = null, $params = array ()) {

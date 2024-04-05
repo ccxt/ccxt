@@ -352,7 +352,8 @@ class krakenfutures extends krakenfutures$1 {
             // swap == perpetual
             let settle = undefined;
             let settleId = undefined;
-            const amountPrecision = this.parseNumber(this.parsePrecision(this.safeString(market, 'contractValueTradePrecision', '0')));
+            const cvtp = this.safeString(market, 'contractValueTradePrecision');
+            const amountPrecision = this.parseNumber(this.integerPrecisionToAmount(cvtp));
             const pricePrecision = this.safeNumber(market, 'tickSize');
             const contract = (swap || future || index);
             const swapOrFutures = (swap || future);

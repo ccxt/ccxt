@@ -1273,6 +1273,8 @@ public partial class lbank : Exchange
             { "symbol", symbol },
             { "maker", this.safeNumber(fee, "makerCommission") },
             { "taker", this.safeNumber(fee, "takerCommission") },
+            { "percentage", null },
+            { "tierBased", null },
         };
     }
 
@@ -1292,7 +1294,7 @@ public partial class lbank : Exchange
         object result = await this.fetchTradingFees(this.extend(parameters, new Dictionary<string, object>() {
             { "category", getValue(market, "id") },
         }));
-        return result;
+        return this.safeDict(result, symbol);
     }
 
     public async override Task<object> fetchTradingFees(object parameters = null)

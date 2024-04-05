@@ -32,6 +32,35 @@
                 "output": "foo=bar"
             }
         ],
+        "fetchTransactionFees": [
+            {
+                "description": "Fetch transaction fees",
+                "method": "fetchTransactionFees",
+                "url": "https://www.bitstamp.net/api/v2/fees/withdrawal/",
+                "input": [],
+                "output": "foo=bar"
+            }
+        ],
+        "fetchDepositWithdrawFees": [
+            {
+                "description": "Fetch deposit withdraw fees",
+                "method": "fetchDepositWithdrawFees",
+                "url": "https://www.bitstamp.net/api/v2/fees/withdrawal/",
+                "input": [],
+                "output": "foo=bar"
+            }
+        ],
+        "fetchDepositWithdrawFee": [
+            {
+                "description": "Fetch deposit withdraw fee",
+                "method": "fetchDepositWithdrawFee",
+                "url": "https://www.bitstamp.net/api/v2/fees/withdrawal/",
+                "input": [
+                    "USDC"
+                ],
+                "output": "foo=bar"
+            }
+        ],
         "fetchLedger": [
             {
                 "description": "fetch USDT ledger",

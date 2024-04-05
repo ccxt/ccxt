@@ -8,7 +8,7 @@ from ccxt.abstract.binance import ImplicitAPI
 import asyncio
 import hashlib
 import json
-from ccxt.base.types import Balances, Currency, Greeks, Int, Leverage, Leverages, MarginMode, MarginModes, MarginModification, Market, MarketInterface, Num, Option, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
+from ccxt.base.types import Balances, Currencies, Currency, Greeks, Int, Leverage, Leverages, MarginMode, MarginModes, MarginModification, Market, MarketInterface, Num, Option, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -1883,7 +1883,7 @@ class binance(Exchange, ImplicitAPI):
                         '-4140': BadRequest,  # Invalid symbol status for opening position
                         '-4141': OperationRejected,  # Symbol is closed
                         '-4144': BadSymbol,  # Invalid pair
-                        '-4164': OperationRejected,  # Leverage reduction is not supported in Isolated Margin Mode with open positions
+                        '-4164': InvalidOrder,  # {"code":-4164,"msg":"Order's notional must be no smaller than 20(unless you choose reduce only)."}
                         '-4165': BadRequest,  # Invalid time interval
                         '-4167': BadRequest,  # Unable to adjust to Multi-Assets mode with symbols of USDⓈ-M Futures under isolated-margin mode.
                         '-4168': BadRequest,  # Unable to adjust to isolated-margin mode under the Multi-Assets mode.
@@ -2593,7 +2593,7 @@ class binance(Exchange, ImplicitAPI):
             response = await self.publicGetTime(query)
         return self.safe_integer(response, 'serverTime')
 
-    async def fetch_currencies(self, params={}):
+    async def fetch_currencies(self, params={}) -> Currencies:
         """
         fetches all available currencies on an exchange
         :see: https://binance-docs.github.io/apidocs/spot/en/#all-coins-39-information-user_data
@@ -8037,7 +8037,7 @@ class binance(Exchange, ImplicitAPI):
         #     {id: '9a67628b16ba4988ae20d329333f16bc'}
         return self.parse_transaction(response, currency)
 
-    def parse_trading_fee(self, fee, market: Market = None):
+    def parse_trading_fee(self, fee, market: Market = None) -> TradingFeeInterface:
         #
         # spot
         #     [
@@ -8062,9 +8062,11 @@ class binance(Exchange, ImplicitAPI):
             'symbol': symbol,
             'maker': self.safe_number_2(fee, 'makerCommission', 'makerCommissionRate'),
             'taker': self.safe_number_2(fee, 'takerCommission', 'takerCommissionRate'),
+            'percentage': None,
+            'tierBased': None,
         }
 
-    async def fetch_trading_fee(self, symbol: str, params={}):
+    async def fetch_trading_fee(self, symbol: str, params={}) -> TradingFeeInterface:
         """
         fetch the trading fees for a market
         :see: https://binance-docs.github.io/apidocs/spot/en/#trade-fee-user_data
@@ -8127,7 +8129,7 @@ class binance(Exchange, ImplicitAPI):
             data = self.safe_dict(data, 0, {})
         return self.parse_trading_fee(data, market)
 
-    async def fetch_trading_fees(self, params={}):
+    async def fetch_trading_fees(self, params={}) -> TradingFees:
         """
         fetch the trading fees for multiple markets
         :see: https://binance-docs.github.io/apidocs/spot/en/#trade-fee-user_data
@@ -8500,7 +8502,7 @@ class binance(Exchange, ImplicitAPI):
             'previousFundingDatetime': None,
         }
 
-    def parse_account_positions(self, account):
+    def parse_account_positions(self, account, filterClosed=False):
         positions = self.safe_list(account, 'positions')
         assets = self.safe_list(account, 'assets', [])
         balances = {}
@@ -8522,7 +8524,8 @@ class binance(Exchange, ImplicitAPI):
             code = market['quote'] if market['linear'] else market['base']
             maintenanceMargin = self.safe_string(position, 'maintMargin')
             # check for maintenance margin so empty positions are not returned
-            if (maintenanceMargin != '0') and (maintenanceMargin != '0.00000000'):
+            isPositionOpen = (maintenanceMargin != '0') and (maintenanceMargin != '0.00000000')
+            if not filterClosed or isPositionOpen:
                 # sometimes not all the codes are correctly returned...
                 if code in balances:
                     parsed = self.parse_account_position(self.extend(position, {
@@ -9288,10 +9291,11 @@ class binance(Exchange, ImplicitAPI):
         :see: https://binance-docs.github.io/apidocs/delivery/en/#account-information-user_data
         :see: https://binance-docs.github.io/apidocs/pm/en/#get-um-account-detail-user_data
         :see: https://binance-docs.github.io/apidocs/pm/en/#get-cm-account-detail-user_data
-        :param str[]|None symbols: list of unified market symbols
+        :param str[] [symbols]: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.portfolioMargin]: set to True if you would like to fetch positions in a portfolio margin account
         :param str [params.subType]: "linear" or "inverse"
+        :param boolean [params.filterClosed]: set to True if you would like to filter out closed positions, default is False
         :returns dict: data on account positions
         """
         if symbols is not None:
@@ -9319,7 +9323,9 @@ class binance(Exchange, ImplicitAPI):
                 response = await self.dapiPrivateGetAccount(params)
         else:
             raise NotSupported(self.id + ' fetchPositions() supports linear and inverse contracts only')
-        result = self.parse_account_positions(response)
+        filterClosed = None
+        filterClosed, params = self.handle_option_and_params(params, 'fetchAccountPositions', 'filterClosed', False)
+        result = self.parse_account_positions(response, filterClosed)
         symbols = self.market_symbols(symbols)
         return self.filter_by_array_positions(result, 'symbol', symbols, False)
 
@@ -10287,7 +10293,7 @@ class binance(Exchange, ImplicitAPI):
             raise NotSupported(self.id + ' add / reduce margin only supported with type future or delivery')
         await self.load_markets()
         market = self.market(symbol)
-        amount = self.cost_to_precision(symbol, amount)
+        amount = self.amount_to_precision(symbol, amount)
         request = {
             'type': addOrReduce,
             'symbol': market['id'],

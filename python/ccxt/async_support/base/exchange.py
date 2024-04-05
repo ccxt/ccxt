@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.2.87'
+__version__ = '4.2.89'
 
 # -----------------------------------------------------------------------------
 
@@ -1406,7 +1406,8 @@ class Exchange(BaseExchange):
     async def fetch_trading_fee(self, symbol: str, params={}):
         if not self.has['fetchTradingFees']:
             raise NotSupported(self.id + ' fetchTradingFee() is not supported yet')
-        return await self.fetch_trading_fees(params)
+        fees = await self.fetch_trading_fees(params)
+        return self.safe_dict(fees, symbol)
 
     async def fetch_funding_rate(self, symbol: str, params={}):
         if self.has['fetchFundingRates']:

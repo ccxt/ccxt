@@ -42,11 +42,11 @@ use React\EventLoop\Loop;
 
 use Exception;
 
-$version = '4.2.87';
+$version = '4.2.89';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.2.87';
+    const VERSION = '4.2.89';
 
     public $browser;
     public $marketsLoading = null;
@@ -2781,11 +2781,11 @@ class Exchange extends \ccxt\Exchange {
         if ($currencyId !== null) {
             $code = $this->common_currency_code(strtoupper($currencyId));
         }
-        return array(
+        return $this->safe_currency_structure(array(
             'id' => $currencyId,
             'code' => $code,
             'precision' => null,
-        );
+        ));
     }
 
     public function safe_market(?string $marketId, ?array $market = null, ?string $delimiter = null, ?string $marketType = null) {
@@ -3653,11 +3653,18 @@ class Exchange extends \ccxt\Exchange {
         );
     }
 
-    public function common_currency_code(string $currency) {
+    public function common_currency_code(string $code) {
         if (!$this->substituteCommonCurrencyCodes) {
-            return $currency;
+            return $code;
         }
-        return $this->safe_string($this->commonCurrencies, $currency, $currency);
+        // if the provided $code already $exists value in $commonCurrencies dict, then we should not again transform it
+        // more details at => https://github.com/ccxt/ccxt/issues/21112#issuecomment-2031293691
+        $commonCurrencies = is_array($this->commonCurrencies) ? array_values($this->commonCurrencies) : array();
+        $exists = $this->in_array($code, $commonCurrencies);
+        if ($exists) {
+            return $code;
+        }
+        return $this->safe_string($this->commonCurrencies, $code, $code);
     }
 
     public function currency(string $code) {
@@ -3840,6 +3847,29 @@ class Exchange extends \ccxt\Exchange {
             $parsedPrecision = $parsedPrecision . '0';
         }
         return $parsedPrecision . '1';
+    }
+
+    public function integer_precision_to_amount(?string $precision) {
+        /**
+         * @ignore
+         * handles positive & negative numbers too. parsePrecision() does not handle negative numbers, but this method handles
+         * @param {string} $precision The number of digits to the right of the decimal
+         * @return {string} a string number equal to 1e-$precision
+         */
+        if ($precision === null) {
+            return null;
+        }
+        if (Precise::string_ge($precision, '0')) {
+            return $this->parse_precision($precision);
+        } else {
+            $positivePrecisionString = Precise::string_abs($precision);
+            $positivePrecision = intval($positivePrecisionString);
+            $parsedPrecision = '1';
+            for ($i = 0; $i < $positivePrecision - 1; $i++) {
+                $parsedPrecision = $parsedPrecision . '0';
+            }
+            return $parsedPrecision . '0';
+        }
     }
 
     public function load_time_difference($params = array ()) {
@@ -4157,7 +4187,8 @@ class Exchange extends \ccxt\Exchange {
             if (!$this->has['fetchTradingFees']) {
                 throw new NotSupported($this->id . ' fetchTradingFee() is not supported yet');
             }
-            return Async\await($this->fetch_trading_fees($params));
+            $fees = Async\await($this->fetch_trading_fees($params));
+            return $this->safe_dict($fees, $symbol);
         }) ();
     }
 
@@ -4354,8 +4385,8 @@ class Exchange extends \ccxt\Exchange {
             $entry = $responseKeys[$i];
             $dictionary = $isArray ? $entry : $response[$entry];
             $currencyId = $isArray ? $this->safe_string($dictionary, $currencyIdKey) : $entry;
-            $currency = $this->safe_value($this->currencies_by_id, $currencyId);
-            $code = $this->safe_string($currency, 'code', $currencyId);
+            $currency = $this->safe_currency($currencyId);
+            $code = $this->safe_string($currency, 'code');
             if (($codes === null) || ($this->in_array($code, $codes))) {
                 $depositWithdrawFees[$code] = $this->parseDepositWithdrawFee ($dictionary, $currency);
             }

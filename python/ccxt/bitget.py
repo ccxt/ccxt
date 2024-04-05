@@ -7,7 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.abstract.bitget import ImplicitAPI
 import hashlib
 import json
-from ccxt.base.types import Balances, Currency, FundingHistory, Int, Liquidation, Leverage, MarginMode, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
+from ccxt.base.types import Balances, Currencies, Currency, FundingHistory, Int, Liquidation, Leverage, MarginMode, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -1316,6 +1316,7 @@ class bitget(Exchange, ImplicitAPI):
             'commonCurrencies': {
                 'JADE': 'Jade Protocol',
                 'DEGEN': 'DegenReborn',
+                'TONCOIN': 'TON',
             },
             'options': {
                 'timeframes': {
@@ -1812,7 +1813,7 @@ class bitget(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', [])
         return self.parse_markets(data)
 
-    def fetch_currencies(self, params={}):
+    def fetch_currencies(self, params={}) -> Currencies:
         """
         fetches all available currencies on an exchange
         :see: https://www.bitget.com/api-doc/spot/market/Get-Coin-List
@@ -1853,8 +1854,8 @@ class bitget(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', [])
         for i in range(0, len(data)):
             entry = data[i]
-            id = self.safe_string(entry, 'coinId')
-            code = self.safe_currency_code(self.safe_string(entry, 'coin'))
+            id = self.safe_string(entry, 'coin')  # we don't use 'coinId' has no use. it is 'coin' field that needs to be used in currency related endpoints(deposit, withdraw, etc..)
+            code = self.safe_currency_code(id)
             chains = self.safe_value(entry, 'chains', [])
             networks = {}
             deposit = False
@@ -1971,7 +1972,7 @@ class bitget(Exchange, ImplicitAPI):
                 raise ArgumentsRequired(self.id + ' fetchMarketLeverageTiers() requires a code argument')
             params = self.omit(params, 'code')
             currency = self.currency(code)
-            request['coin'] = currency['code']
+            request['coin'] = currency['id']
             response = self.privateMarginGetV2MarginCrossedTierData(self.extend(request, params))
         else:
             raise BadRequest(self.id + ' fetchMarketLeverageTiers() symbol does not support market ' + market['symbol'])
@@ -2118,7 +2119,7 @@ class bitget(Exchange, ImplicitAPI):
         if since is None:
             since = self.milliseconds() - 7776000000  # 90 days
         request = {
-            'coin': currency['code'],
+            'coin': currency['id'],
             'startTime': since,
             'endTime': self.milliseconds(),
         }
@@ -2173,7 +2174,7 @@ class bitget(Exchange, ImplicitAPI):
         currency = self.currency(code)
         networkId = self.network_code_to_id(chain)
         request = {
-            'coin': currency['code'],
+            'coin': currency['id'],
             'address': address,
             'chain': networkId,
             'size': amount,
@@ -2252,7 +2253,7 @@ class bitget(Exchange, ImplicitAPI):
         if since is None:
             since = self.milliseconds() - 7776000000  # 90 days
         request = {
-            'coin': currency['code'],
+            'coin': currency['id'],
             'startTime': since,
             'endTime': self.milliseconds(),
         }
@@ -2390,7 +2391,7 @@ class bitget(Exchange, ImplicitAPI):
             networkId = self.network_code_to_id(networkCode, code)
         currency = self.currency(code)
         request = {
-            'coin': currency['code'],
+            'coin': currency['id'],
         }
         if networkId is not None:
             request['chain'] = networkId
@@ -2556,7 +2557,10 @@ class bitget(Exchange, ImplicitAPI):
         #
         marketId = self.safe_string(ticker, 'symbol')
         close = self.safe_string(ticker, 'lastPr')
-        timestamp = self.safe_integer(ticker, 'ts')
+        timestampString = self.omit_zero(self.safe_string(ticker, 'ts'))  # exchange sometimes provided 0
+        timestamp = None
+        if timestampString is not None:
+            timestamp = self.parse_to_int(timestampString)
         change = self.safe_string(ticker, 'change24h')
         open24 = self.safe_string(ticker, 'open24')
         open = self.safe_string(ticker, 'open')
@@ -3003,7 +3007,7 @@ class bitget(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_trades(data, market, since, limit)
 
-    def fetch_trading_fee(self, symbol: str, params={}):
+    def fetch_trading_fee(self, symbol: str, params={}) -> TradingFeeInterface:
         """
         fetch the trading fees for a market
         :see: https://www.bitget.com/api-doc/common/public/Get-Trade-Rate
@@ -3041,7 +3045,7 @@ class bitget(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', {})
         return self.parse_trading_fee(data, market)
 
-    def fetch_trading_fees(self, params={}):
+    def fetch_trading_fees(self, params={}) -> TradingFees:
         """
         fetch the trading fees for multiple markets
         :see: https://www.bitget.com/api-doc/spot/market/Get-Symbols
@@ -3161,6 +3165,8 @@ class bitget(Exchange, ImplicitAPI):
             'symbol': self.safe_symbol(marketId, market),
             'maker': self.safe_number(data, 'makerFeeRate'),
             'taker': self.safe_number(data, 'takerFeeRate'),
+            'percentage': None,
+            'tierBased': None,
         }
 
     def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
@@ -5492,7 +5498,7 @@ class bitget(Exchange, ImplicitAPI):
         request = {}
         if code is not None:
             currency = self.currency(code)
-            request['coin'] = currency['code']
+            request['coin'] = currency['id']
         request, params = self.handle_until_option('endTime', request, params)
         if since is not None:
             request['startTime'] = since
@@ -6806,7 +6812,7 @@ class bitget(Exchange, ImplicitAPI):
         type = self.safe_string(accountsByType, fromAccount)
         currency = self.currency(code)
         request = {
-            'coin': currency['code'],
+            'coin': currency['id'],
             'fromType': type,
         }
         if since is not None:
@@ -6861,7 +6867,7 @@ class bitget(Exchange, ImplicitAPI):
             'fromType': fromType,
             'toType': toType,
             'amount': amount,
-            'coin': currency['code'],
+            'coin': currency['id'],
         }
         symbol = self.safe_string(params, 'symbol')
         params = self.omit(params, 'symbol')
@@ -7041,7 +7047,7 @@ class bitget(Exchange, ImplicitAPI):
         self.load_markets()
         currency = self.currency(code)
         request = {
-            'coin': currency['code'],
+            'coin': currency['id'],
             'borrowAmount': self.currency_to_precision(code, amount),
         }
         response = self.privateMarginPostV2MarginCrossedAccountBorrow(self.extend(request, params))
@@ -7074,7 +7080,7 @@ class bitget(Exchange, ImplicitAPI):
         currency = self.currency(code)
         market = self.market(symbol)
         request = {
-            'coin': currency['code'],
+            'coin': currency['id'],
             'borrowAmount': self.currency_to_precision(code, amount),
             'symbol': market['id'],
         }
@@ -7109,7 +7115,7 @@ class bitget(Exchange, ImplicitAPI):
         currency = self.currency(code)
         market = self.market(symbol)
         request = {
-            'coin': currency['code'],
+            'coin': currency['id'],
             'repayAmount': self.currency_to_precision(code, amount),
             'symbol': market['id'],
         }
@@ -7143,7 +7149,7 @@ class bitget(Exchange, ImplicitAPI):
         self.load_markets()
         currency = self.currency(code)
         request = {
-            'coin': currency['code'],
+            'coin': currency['id'],
             'repayAmount': self.currency_to_precision(code, amount),
         }
         response = self.privateMarginPostV2MarginCrossedAccountRepay(self.extend(request, params))
@@ -7489,7 +7495,7 @@ class bitget(Exchange, ImplicitAPI):
         self.load_markets()
         currency = self.currency(code)
         request = {
-            'coin': currency['code'],
+            'coin': currency['id'],
         }
         response = self.privateMarginGetV2MarginCrossedInterestRateAndLimit(self.extend(request, params))
         #
@@ -7580,7 +7586,7 @@ class bitget(Exchange, ImplicitAPI):
         currency = None
         if code is not None:
             currency = self.currency(code)
-            request['coin'] = currency['code']
+            request['coin'] = currency['id']
         if since is not None:
             request['startTime'] = since
         else:

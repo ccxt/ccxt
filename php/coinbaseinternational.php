@@ -1102,7 +1102,7 @@ class coinbaseinternational extends Exchange {
         );
     }
 
-    public function fetch_currencies($params = array ()): mixed {
+    public function fetch_currencies($params = array ()): array {
         /**
          * fetches all available $currencies on an exchange
          * @see https://docs.cloud.coinbase.com/intx/reference/getassets

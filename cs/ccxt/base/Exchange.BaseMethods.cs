@@ -3041,11 +3041,11 @@ public partial class Exchange
         {
             code = this.commonCurrencyCode(((string)currencyId).ToUpper());
         }
-        return new Dictionary<string, object>() {
+        return this.safeCurrencyStructure(new Dictionary<string, object>() {
             { "id", currencyId },
             { "code", code },
             { "precision", null },
-        };
+        });
     }
 
     public virtual object safeMarket(object marketId, object market = null, object delimiter = null, object marketType = null)
@@ -4136,13 +4136,21 @@ public partial class Exchange
         };
     }
 
-    public virtual object commonCurrencyCode(object currency)
+    public virtual object commonCurrencyCode(object code)
     {
         if (!isTrue(this.substituteCommonCurrencyCodes))
         {
-            return currency;
+            return code;
         }
-        return this.safeString(this.commonCurrencies, currency, currency);
+        // if the provided code already exists as a value in commonCurrencies dict, then we should not again transform it
+        // more details at: https://github.com/ccxt/ccxt/issues/21112#issuecomment-2031293691
+        object commonCurrencies = new List<object>(((IDictionary<string,object>)this.commonCurrencies).Values);
+        object exists = this.inArray(code, commonCurrencies);
+        if (isTrue(exists))
+        {
+            return code;
+        }
+        return this.safeString(this.commonCurrencies, code, code);
     }
 
     public virtual object currency(object code)
@@ -4364,6 +4372,35 @@ public partial class Exchange
             parsedPrecision = add(parsedPrecision, "0");
         }
         return add(parsedPrecision, "1");
+    }
+
+    public virtual object integerPrecisionToAmount(object precision)
+    {
+        /**
+         * @ignore
+         * @method
+         * @description handles positive & negative numbers too. parsePrecision() does not handle negative numbers, but this method handles
+         * @param {string} precision The number of digits to the right of the decimal
+         * @returns {string} a string number equal to 1e-precision
+         */
+        if (isTrue(isEqual(precision, null)))
+        {
+            return null;
+        }
+        if (isTrue(Precise.stringGe(precision, "0")))
+        {
+            return this.parsePrecision(precision);
+        } else
+        {
+            object positivePrecisionString = Precise.stringAbs(precision);
+            object positivePrecision = parseInt(positivePrecisionString);
+            object parsedPrecision = "1";
+            for (object i = 0; isLessThan(i, subtract(positivePrecision, 1)); postFixIncrement(ref i))
+            {
+                parsedPrecision = add(parsedPrecision, "0");
+            }
+            return add(parsedPrecision, "0");
+        }
     }
 
     public async virtual Task<object> loadTimeDifference(object parameters = null)
@@ -4762,7 +4799,8 @@ public partial class Exchange
         {
             throw new NotSupported ((string)add(this.id, " fetchTradingFee() is not supported yet")) ;
         }
-        return await this.fetchTradingFees(parameters);
+        object fees = await this.fetchTradingFees(parameters);
+        return this.safeDict(fees, symbol);
     }
 
     public virtual object parseOpenInterest(object interest, object market = null)
@@ -5004,8 +5042,8 @@ public partial class Exchange
             object entry = getValue(responseKeys, i);
             object dictionary = ((bool) isTrue(isArray)) ? entry : getValue(response, entry);
             object currencyId = ((bool) isTrue(isArray)) ? this.safeString(dictionary, currencyIdKey) : entry;
-            object currency = this.safeValue(this.currencies_by_id, currencyId);
-            object code = this.safeString(currency, "code", currencyId);
+            object currency = this.safeCurrency(currencyId);
+            object code = this.safeString(currency, "code");
             if (isTrue(isTrue((isEqual(codes, null))) || isTrue((this.inArray(code, codes)))))
             {
                 ((IDictionary<string,object>)depositWithdrawFees)[(string)code] = this.parseDepositWithdrawFee(dictionary, currency);

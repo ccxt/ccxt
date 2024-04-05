@@ -2993,7 +2993,7 @@ public partial class cryptocom : Exchange
         //
         object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         object data = this.safeList(result, "data", new List<object>() {});
-        return this.parsePosition(getValue(data, 0), market);
+        return this.parsePosition(this.safeDict(data, 0), market);
     }
 
     public async override Task<object> fetchPositions(object symbols = null, object parameters = null)

@@ -7794,6 +7794,8 @@ public partial class bybit : Exchange
             { "symbol", symbol },
             { "maker", this.safeNumber(fee, "makerFeeRate") },
             { "taker", this.safeNumber(fee, "takerFeeRate") },
+            { "percentage", null },
+            { "tierBased", null },
         };
     }
 

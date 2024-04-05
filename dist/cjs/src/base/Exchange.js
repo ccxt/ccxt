@@ -109,7 +109,7 @@ class Exchange {
         this.markets_by_id = undefined;
         this.symbols = undefined;
         this.ids = undefined;
-        this.currencies = undefined;
+        this.currencies = {};
         this.baseCurrencies = undefined;
         this.quoteCurrencies = undefined;
         this.currencies_by_id = undefined;
@@ -3788,11 +3788,11 @@ class Exchange {
         if (currencyId !== undefined) {
             code = this.commonCurrencyCode(currencyId.toUpperCase());
         }
-        return {
+        return this.safeCurrencyStructure({
             'id': currencyId,
             'code': code,
             'precision': undefined,
-        };
+        });
     }
     safeMarket(marketId, market = undefined, delimiter = undefined, marketType = undefined) {
         const result = this.safeMarketStructure({
@@ -4561,11 +4561,18 @@ class Exchange {
             'total': undefined,
         };
     }
-    commonCurrencyCode(currency) {
+    commonCurrencyCode(code) {
         if (!this.substituteCommonCurrencyCodes) {
-            return currency;
+            return code;
         }
-        return this.safeString(this.commonCurrencies, currency, currency);
+        // if the provided code already exists as a value in commonCurrencies dict, then we should not again transform it
+        // more details at: https://github.com/ccxt/ccxt/issues/21112#issuecomment-2031293691
+        const commonCurrencies = Object.values(this.commonCurrencies);
+        const exists = this.inArray(code, commonCurrencies);
+        if (exists) {
+            return code;
+        }
+        return this.safeString(this.commonCurrencies, code, code);
     }
     currency(code) {
         if (this.currencies === undefined) {
@@ -4719,6 +4726,30 @@ class Exchange {
             parsedPrecision = parsedPrecision + '0';
         }
         return parsedPrecision + '1';
+    }
+    integerPrecisionToAmount(precision) {
+        /**
+         * @ignore
+         * @method
+         * @description handles positive & negative numbers too. parsePrecision() does not handle negative numbers, but this method handles
+         * @param {string} precision The number of digits to the right of the decimal
+         * @returns {string} a string number equal to 1e-precision
+         */
+        if (precision === undefined) {
+            return undefined;
+        }
+        if (Precise["default"].stringGe(precision, '0')) {
+            return this.parsePrecision(precision);
+        }
+        else {
+            const positivePrecisionString = Precise["default"].stringAbs(precision);
+            const positivePrecision = parseInt(positivePrecisionString);
+            let parsedPrecision = '1';
+            for (let i = 0; i < positivePrecision - 1; i++) {
+                parsedPrecision = parsedPrecision + '0';
+            }
+            return parsedPrecision + '0';
+        }
     }
     async loadTimeDifference(params = {}) {
         const serverTime = await this.fetchTime(params);
@@ -5004,7 +5035,8 @@ class Exchange {
         if (!this.has['fetchTradingFees']) {
             throw new errors.NotSupported(this.id + ' fetchTradingFee() is not supported yet');
         }
-        return await this.fetchTradingFees(params);
+        const fees = await this.fetchTradingFees(params);
+        return this.safeDict(fees, symbol);
     }
     parseOpenInterest(interest, market = undefined) {
         throw new errors.NotSupported(this.id + ' parseOpenInterest () is not supported yet');
@@ -5200,8 +5232,8 @@ class Exchange {
             const entry = responseKeys[i];
             const dictionary = isArray ? entry : response[entry];
             const currencyId = isArray ? this.safeString(dictionary, currencyIdKey) : entry;
-            const currency = this.safeValue(this.currencies_by_id, currencyId);
-            const code = this.safeString(currency, 'code', currencyId);
+            const currency = this.safeCurrency(currencyId);
+            const code = this.safeString(currency, 'code');
             if ((codes === undefined) || (this.inArray(code, codes))) {
                 depositWithdrawFees[code] = this.parseDepositWithdrawFee(dictionary, currency);
             }

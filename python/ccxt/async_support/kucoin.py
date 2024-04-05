@@ -9,7 +9,7 @@ import asyncio
 import hashlib
 import math
 import json
-from ccxt.base.types import Account, Balances, Currency, Int, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
+from ccxt.base.types import Account, Balances, Currencies, Currency, Int, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -1131,7 +1131,7 @@ class kucoin(Exchange, ImplicitAPI):
             })
         return result
 
-    async def fetch_currencies(self, params={}):
+    async def fetch_currencies(self, params={}) -> Currencies:
         """
         fetches all available currencies on an exchange
         :see: https://docs.kucoin.com/#get-currencies
@@ -2961,7 +2961,7 @@ class kucoin(Exchange, ImplicitAPI):
             'fee': fee,
         }, market)
 
-    async def fetch_trading_fee(self, symbol: str, params={}):
+    async def fetch_trading_fee(self, symbol: str, params={}) -> TradingFeeInterface:
         """
         fetch the trading fees for a market
         :see: https://docs.kucoin.com/#actual-fee-rate-of-the-trading-pair
@@ -3315,9 +3315,9 @@ class kucoin(Exchange, ImplicitAPI):
 
     def parse_balance_helper(self, entry):
         account = self.account()
-        account['used'] = self.safe_string(entry, 'holdBalance')
-        account['free'] = self.safe_string(entry, 'availableBalance')
-        account['total'] = self.safe_string(entry, 'totalBalance')
+        account['used'] = self.safe_string_2(entry, 'holdBalance', 'hold')
+        account['free'] = self.safe_string_2(entry, 'availableBalance', 'available')
+        account['total'] = self.safe_string_2(entry, 'totalBalance', 'total')
         debt = self.safe_string(entry, 'liability')
         interest = self.safe_string(entry, 'interest')
         account['debt'] = Precise.string_add(debt, interest)
@@ -3326,9 +3326,9 @@ class kucoin(Exchange, ImplicitAPI):
     async def fetch_balance(self, params={}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
-        :see: https://docs.kucoin.com/#list-accounts
         :see: https://www.kucoin.com/docs/rest/account/basic-info/get-account-list-spot-margin-trade_hf
-        :see: https://docs.kucoin.com/#query-isolated-margin-account-info
+        :see: https://www.kucoin.com/docs/rest/funding/funding-overview/get-account-detail-margin
+        :see: https://www.kucoin.com/docs/rest/funding/funding-overview/get-account-detail-isolated-margin
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param dict [params.marginMode]: 'cross' or 'isolated', margin type for fetching margin balance
         :param dict [params.type]: extra parameters specific to the exchange API endpoint
@@ -3353,7 +3353,7 @@ class kucoin(Exchange, ImplicitAPI):
         response = None
         request = {}
         isolated = (marginMode == 'isolated') or (type == 'isolated')
-        cross = (marginMode == 'cross') or (type == 'cross')
+        cross = (marginMode == 'cross') or (type == 'margin')
         if isolated:
             if currency is not None:
                 request['balanceCurrency'] = currency['id']
@@ -3366,7 +3366,7 @@ class kucoin(Exchange, ImplicitAPI):
             request['type'] = type
             response = await self.privateGetAccounts(self.extend(request, query))
         #
-        # Spot and Cross
+        # Spot
         #
         #    {
         #        "code": "200000",
@@ -3382,35 +3382,59 @@ class kucoin(Exchange, ImplicitAPI):
         #        ]
         #    }
         #
+        # Cross
+        #
+        #     {
+        #         "code": "200000",
+        #         "data": {
+        #             "debtRatio": "0",
+        #             "accounts": [
+        #                 {
+        #                     "currency": "USDT",
+        #                     "totalBalance": "5",
+        #                     "availableBalance": "5",
+        #                     "holdBalance": "0",
+        #                     "liability": "0",
+        #                     "maxBorrowSize": "20"
+        #                 },
+        #             ]
+        #         }
+        #     }
+        #
         # Isolated
         #
         #    {
         #        "code": "200000",
         #        "data": {
-        #            "totalConversionBalance": "0",
-        #            "liabilityConversionBalance": "0",
+        #            "totalAssetOfQuoteCurrency": "0",
+        #            "totalLiabilityOfQuoteCurrency": "0",
+        #            "timestamp": 1712085661155,
         #            "assets": [
         #                {
         #                    "symbol": "MANA-USDT",
-        #                    "status": "CLEAR",
+        #                    "status": "EFFECTIVE",
         #                    "debtRatio": "0",
         #                    "baseAsset": {
         #                        "currency": "MANA",
-        #                        "totalBalance": "0",
-        #                        "holdBalance": "0",
-        #                        "availableBalance": "0",
+        #                        "borrowEnabled": True,
+        #                        "transferInEnabled": True,
+        #                        "total": "0",
+        #                        "hold": "0",
+        #                        "available": "0",
         #                        "liability": "0",
         #                        "interest": "0",
-        #                        "borrowableAmount": "0"
+        #                        "maxBorrowSize": "0"
         #                    },
         #                    "quoteAsset": {
         #                        "currency": "USDT",
-        #                        "totalBalance": "0",
-        #                        "holdBalance": "0",
-        #                        "availableBalance": "0",
+        #                        "borrowEnabled": True,
+        #                        "transferInEnabled": True,
+        #                        "total": "0",
+        #                        "hold": "0",
+        #                        "available": "0",
         #                        "liability": "0",
         #                        "interest": "0",
-        #                        "borrowableAmount": "0"
+        #                        "maxBorrowSize": "0"
         #                    }
         #                },
         #                ...
@@ -3418,13 +3442,14 @@ class kucoin(Exchange, ImplicitAPI):
         #        }
         #    }
         #
-        data = self.safe_list(response, 'data', [])
+        data = None
         result = {
             'info': response,
             'timestamp': None,
             'datetime': None,
         }
         if isolated:
+            data = self.safe_dict(response, 'data', {})
             assets = self.safe_value(data, 'assets', data)
             for i in range(0, len(assets)):
                 entry = assets[i]
@@ -3439,6 +3464,7 @@ class kucoin(Exchange, ImplicitAPI):
                 subResult[quoteCode] = self.parse_balance_helper(quote)
                 result[symbol] = self.safe_balance(subResult)
         elif cross:
+            data = self.safe_dict(response, 'data', {})
             accounts = self.safe_list(data, 'accounts', [])
             for i in range(0, len(accounts)):
                 balance = accounts[i]
@@ -3446,6 +3472,7 @@ class kucoin(Exchange, ImplicitAPI):
                 codeInner = self.safe_currency_code(currencyId)
                 result[codeInner] = self.parse_balance_helper(balance)
         else:
+            data = self.safe_list(response, 'data', [])
             for i in range(0, len(data)):
                 balance = data[i]
                 balanceType = self.safe_string(balance, 'type')
