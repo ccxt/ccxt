@@ -610,7 +610,7 @@ class probit extends \ccxt\async\probit {
                     'type' => 'authorization',
                     'token' => $accessToken,
                 );
-                $future = $this->watch($url, $messageHash, array_merge($request, $params));
+                $future = Async\await($this->watch($url, $messageHash, array_merge($request, $params), $messageHash));
                 $client->subscriptions[$messageHash] = $future;
             }
             return $future;

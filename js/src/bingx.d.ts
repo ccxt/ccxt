@@ -1,5 +1,5 @@
 import Exchange from './abstract/bingx.js';
-import type { TransferEntry, Int, OrderSide, OHLCV, FundingRateHistory, Order, OrderType, OrderRequest, Str, Trade, Balances, Transaction, Ticker, OrderBook, Tickers, Market, Strings, Currency, Position, Dict, Leverage, MarginMode, Num } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OHLCV, FundingRateHistory, Order, OrderType, OrderRequest, Str, Trade, Balances, Transaction, Ticker, OrderBook, Tickers, Market, Strings, Currency, Position, Dict, Leverage, MarginMode, Num, MarginModification, Currencies } from './base/types.js';
 /**
  * @class bingx
  * @augments Exchange
@@ -7,11 +7,11 @@ import type { TransferEntry, Int, OrderSide, OHLCV, FundingRateHistory, Order, O
 export default class bingx extends Exchange {
     describe(): any;
     fetchTime(params?: {}): Promise<number>;
-    fetchCurrencies(params?: {}): Promise<{}>;
+    fetchCurrencies(params?: {}): Promise<Currencies>;
     fetchSpotMarkets(params: any): Promise<import("./base/types.js").MarketInterface[]>;
     fetchSwapMarkets(params: any): Promise<import("./base/types.js").MarketInterface[]>;
     parseMarket(market: any): Market;
-    fetchMarkets(params?: {}): Promise<any>;
+    fetchMarkets(params?: {}): Promise<Market[]>;
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     parseOHLCV(ohlcv: any, market?: Market): OHLCV;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
@@ -109,7 +109,10 @@ export default class bingx extends Exchange {
     parseTransaction(transaction: any, currency?: Currency): Transaction;
     parseTransactionStatus(status: string): string;
     setMarginMode(marginMode: string, symbol?: Str, params?: {}): Promise<any>;
-    setMargin(symbol: string, amount: number, params?: {}): Promise<any>;
+    addMargin(symbol: string, amount: number, params?: {}): Promise<MarginModification>;
+    reduceMargin(symbol: string, amount: number, params?: {}): Promise<MarginModification>;
+    setMargin(symbol: string, amount: number, params?: {}): Promise<MarginModification>;
+    parseMarginModification(data: any, market?: Market): MarginModification;
     fetchLeverage(symbol: string, params?: {}): Promise<Leverage>;
     parseLeverage(leverage: any, market?: any): Leverage;
     setLeverage(leverage: Int, symbol?: Str, params?: {}): Promise<any>;

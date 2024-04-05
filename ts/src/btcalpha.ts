@@ -155,7 +155,7 @@ export default class btcalpha extends Exchange {
         });
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name btcalpha#fetchMarkets

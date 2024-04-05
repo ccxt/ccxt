@@ -222,7 +222,8 @@
             "fetchCurrencies": {
                 "precision": "not provided",
                 "withdraw": "not provided",
-                "deposit": "not provided"
+                "deposit": "not provided",
+                "currencyIdAndCode": "broken currencies"
             },
             "ticker": {
                 "bid":"broken bid-ask",
@@ -232,12 +233,16 @@
         }
     },
     "bithumb": {
+        "skipWs": "timeouts",
         "skipMethods": {
             "ticker": {
                 "baseVolume": "quoteVolume >= baseVolume * low is failing"
             },
             "orderBook": {
                 "bid": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269273148#L4074"
+            },
+            "watchTrades":{
+                "timestamp": "it could be ahead of the current time"
             }
         }
     },
@@ -265,6 +270,9 @@
             "watchTrades":{
                 "side": "not set https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L4312",
                 "timestamp": "messed order coming from exchange"
+            },
+            "ohlcv": {
+                "roundTimestamp": "are not rounded: https://app.travis-ci.com/github/ccxt/ccxt/builds/269583057#L4318"
             }
         }
     },
@@ -282,7 +290,8 @@
                 "high": "same",
                 "previousClose": "same",
                 "vwap": "same",
-                "baseVolume":"temp"
+                "baseVolume":"temp",
+                "spread": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269724413#L3725"
             },
             "fetchPositions": {
                 "stopLossPrice": "undefined",
@@ -341,8 +350,7 @@
         }
     },
     "onetrading": {
-        "skip": true,
-        "until": "2024-03-28",
+        "skip": "Api changed, as mentioned https://github.com/ccxt/ccxt/pull/21991",
         "skipWs": true,
         "skipMethods": {
             "fetchCurrencies": {
@@ -561,10 +569,14 @@
     "coinbasepro": {
         "skipWs": "needs auth",
         "skipMethods": {
+            "loadMarkets":{
+                "currencyIdAndCode": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269568596#L3551"
+            },
             "fetchStatus": "request timeout",
             "fetchCurrencies": {
                 "withdraw": "not provided",
-                "deposit": "not provided"
+                "deposit": "not provided",
+                "currencyIdAndCode": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269568596#L3551"
             }
         }
     },
@@ -585,6 +597,9 @@
         "skipMethods": {
             "fetchTrades": {
                 "side":"side is undefined"
+            },
+            "ticker": {
+                "spread": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269687705#L3745"
             }
         }
     },
@@ -625,7 +640,7 @@
         }
     },
     "cex": {
-        "skipWs": "timeouts",
+        "preferredSpotSymbol": "BTC/USD",
         "skipMethods": {
             "proxies": "probably they do not permit our proxy location",
             "loadMarkets": {
@@ -639,6 +654,7 @@
                 "deposit": "not provided",
                 "networks": "missing"
             },
+            "watchOHLCV": "does not work for 1min",
             "fetchOHLCV": "unexpected issue"
         }
     },
@@ -719,8 +735,7 @@
         }
     },
     "delta": {
-        "skip": "frequent timeouts https://app.travis-ci.com/github/ccxt/ccxt/builds/269273148#L4301",
-        "until": "2024-03-19",
+        "skipCSharp": "frequent timeouts https://app.travis-ci.com/github/ccxt/ccxt/builds/269273148#L4301 https://app.travis-ci.com/github/ccxt/ccxt/builds/269533613#L3622",
         "skipMethods": {
             "loadMarkets": "expiryDatetime must be equal to expiry in iso8601 format",
             "orderBook": {
@@ -729,6 +744,9 @@
             "ticker": {
                 "baseVolume": "quoteVolume >= baseVolume * low is failing",
                 "bid": "failing the test"
+            },
+            "fetchOHLCV": {
+                "4":"https://app.travis-ci.com/github/ccxt/ccxt/builds/269542746#L3512"
             }
         }
     },
@@ -946,6 +964,7 @@
     },
     "idex": {
         "skipWs": "timeouts",
+        "skipCSharp": "for some reasons, frequent rate limits only in C#",
         "skipMethods": {
             "fetchCurrencies": {
                 "withdraw":"not provided",
@@ -1010,6 +1029,9 @@
             },
             "fetchPositions": {
                 "percentage": "percentage is not provided"
+            },
+            "fetchTickers": {
+                "baseVolume": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269634788#L1898"
             },
             "watchOrderBook": {
                 "spread": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269407124#L3464"
@@ -1242,7 +1264,12 @@
         }
     },
     "poloniexfutures": {
-        "skipCSharp": "too flaky, check the reason later"
+        "skipCSharp": "too flaky, check the reason later",
+        "skipMethods": {
+            "watchOrderBook": {
+                "spread": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269769010#L3644"
+            }
+        }
     },
     "okx": {
         "skipCSharp": true,
@@ -1281,6 +1308,7 @@
         "skipMethods": {
             "loadMarkets" :{
                 "active": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269484317#L4502",
+                "contractSize":"https://app.travis-ci.com/github/ccxt/ccxt/builds/269640396#L3857",
                 "currencyIdAndCode": "messed"
             },
             "fetchCurrencies": {
@@ -1392,13 +1420,15 @@
             "loadMarkets": {
                 "taker": "is undefined",
                 "maker": "is undefined",
+                "contractSize": "returns zero for BTC/USDT:USDT https://app.travis-ci.com/github/ccxt/ccxt/builds/269614608#L3778",
                 "currencyIdAndCode": "not all currencies are available"
             },
             "fetchTrades": {
                 "side": "undefined"
             },
             "ticker": {
-                "baseVolume": "not supported"
+                "baseVolume": "not supported",
+                "spread": "same bid-ask https://app.travis-ci.com/github/ccxt/ccxt/builds/269550508#L3581"
             },
             "fetchOHLCV": "spot not supported",
             "fetchCurrencies": {

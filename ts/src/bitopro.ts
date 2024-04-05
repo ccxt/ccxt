@@ -6,7 +6,7 @@ import { ExchangeError, ArgumentsRequired, AuthenticationError, InvalidOrder, In
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha384 } from './static_dependencies/noble-hashes/sha512.js';
-import type { Balances, Currency, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import type { Balances, Currencies, Currency, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -215,7 +215,7 @@ export default class bitopro extends Exchange {
         });
     }
 
-    async fetchCurrencies (params = {}) {
+    async fetchCurrencies (params = {}): Promise<Currencies> {
         /**
          * @method
          * @name bitopro#fetchCurrencies
@@ -279,7 +279,7 @@ export default class bitopro extends Exchange {
         return result;
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name bitopro#fetchMarkets
@@ -642,7 +642,7 @@ export default class bitopro extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    async fetchTradingFees (params = {}) {
+    async fetchTradingFees (params = {}): Promise<TradingFees> {
         /**
          * @method
          * @name bitopro#fetchTradingFees
@@ -767,6 +767,8 @@ export default class bitopro extends Exchange {
         // we need to have a limit argument because "to" and "from" are required
         if (limit === undefined) {
             limit = 500;
+        } else {
+            limit = Math.min (limit, 75000); // supports slightly more than 75k candles atm, but limit here to avoid errors
         }
         const timeframeInSeconds = this.parseTimeframe (timeframe);
         let alignedSince = undefined;
@@ -1690,7 +1692,7 @@ export default class bitopro extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         return this.parseDepositWithdrawFees (data, codes, 'currency');
     }
 

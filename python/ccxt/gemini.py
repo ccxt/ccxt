@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.gemini import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Currencies, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -263,6 +263,7 @@ class gemini(Exchange, ImplicitAPI):
                 'broad': {
                     'The Gemini Exchange is currently undergoing maintenance.': OnMaintenance,  # The Gemini Exchange is currently undergoing maintenance. Please check https://status.gemini.com/ for more information.
                     'We are investigating technical issues with the Gemini Exchange.': ExchangeNotAvailable,  # We are investigating technical issues with the Gemini Exchange. Please check https://status.gemini.com/ for more information.
+                    'Internal Server Error': ExchangeNotAvailable,
                 },
             },
             'options': {
@@ -301,7 +302,7 @@ class gemini(Exchange, ImplicitAPI):
             },
         })
 
-    def fetch_currencies(self, params={}):
+    def fetch_currencies(self, params={}) -> Currencies:
         """
         fetches all available currencies on an exchange
         :param dict [params]: extra parameters specific to the endpoint
@@ -399,7 +400,7 @@ class gemini(Exchange, ImplicitAPI):
             }
         return result
 
-    def fetch_markets(self, params={}):
+    def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for gemini
         :see: https://docs.gemini.com/rest-api/#symbols
@@ -1047,7 +1048,7 @@ class gemini(Exchange, ImplicitAPI):
             result[code] = account
         return self.safe_balance(result)
 
-    def fetch_trading_fees(self, params={}):
+    def fetch_trading_fees(self, params={}) -> TradingFees:
         """
         fetch the trading fees for multiple markets
         :see: https://docs.gemini.com/rest-api/#get-notional-volume

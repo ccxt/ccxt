@@ -365,7 +365,7 @@ export default class btcmarkets extends Exchange {
         };
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name btcmarkets#fetchMarkets
@@ -554,7 +554,7 @@ export default class btcmarkets extends Exchange {
             request['from'] = this.iso8601 (since);
         }
         if (limit !== undefined) {
-            request['limit'] = limit; // default is 10, max 200
+            request['limit'] = Math.min (limit, 200); // default is 10, max 200
         }
         const response = await this.publicGetMarketsMarketIdCandles (this.extend (request, params));
         //

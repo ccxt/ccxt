@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.woo import ImplicitAPI
 import hashlib
-from ccxt.base.types import Account, Balances, Bool, Currency, Int, Leverage, Market, MarketType, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Trade, Transaction, TransferEntry
+from ccxt.base.types import Account, Balances, Bool, Currencies, Currency, Int, Leverage, Market, MarketType, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Trade, TradingFees, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
@@ -65,7 +65,7 @@ class woo(Exchange, ImplicitAPI):
                 'fetchBalance': True,
                 'fetchCanceledOrders': False,
                 'fetchClosedOrder': False,
-                'fetchClosedOrders': False,
+                'fetchClosedOrders': True,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
@@ -84,7 +84,7 @@ class woo(Exchange, ImplicitAPI):
                 'fetchOHLCV': True,
                 'fetchOpenInterestHistory': False,
                 'fetchOpenOrder': False,
-                'fetchOpenOrders': False,
+                'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrders': True,
@@ -387,7 +387,7 @@ class woo(Exchange, ImplicitAPI):
         #
         return self.safe_integer(response, 'timestamp')
 
-    def fetch_markets(self, params={}):
+    def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for woo
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -620,7 +620,7 @@ class woo(Exchange, ImplicitAPI):
             }
         return fee
 
-    def fetch_trading_fees(self, params={}):
+    def fetch_trading_fees(self, params={}) -> TradingFees:
         """
         fetch the trading fees for multiple markets
         :see: https://docs.woo.org/#get-account-information-new
@@ -673,7 +673,7 @@ class woo(Exchange, ImplicitAPI):
             }
         return result
 
-    def fetch_currencies(self, params={}):
+    def fetch_currencies(self, params={}) -> Currencies:
         """
         fetches all available currencies on an exchange
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -1258,7 +1258,7 @@ class woo(Exchange, ImplicitAPI):
         #     ]
         # }
         #
-        orders = self.safe_value(response, 'data', response)
+        orders = self.safe_dict(response, 'data', response)
         return self.parse_order(orders, market)
 
     def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
@@ -1274,9 +1274,14 @@ class woo(Exchange, ImplicitAPI):
         :param boolean [params.isTriggered]: whether the order has been triggered(False by default)
         :param str [params.side]: 'buy' or 'sell'
         :param boolean [params.trailing]: set to True if you want to fetch trailing orders
+        :param boolean [params.paginate]: set to True if you want to fetch orders with pagination
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchOrders', 'paginate')
+        if paginate:
+            return self.fetch_paginated_call_incremental('fetchOrders', symbol, since, limit, params, 'page', 500)
         request = {}
         market: Market = None
         stop = self.safe_bool_2(params, 'stop', 'trigger')
@@ -1290,6 +1295,10 @@ class woo(Exchange, ImplicitAPI):
                 request['createdTimeStart'] = since
             else:
                 request['start_t'] = since
+        if limit is not None:
+            request['size'] = limit
+        else:
+            request['size'] = 500
         if stop:
             request['algoType'] = 'stop'
         elif trailing:
@@ -1332,7 +1341,47 @@ class woo(Exchange, ImplicitAPI):
         #
         data = self.safe_value(response, 'data', response)
         orders = self.safe_list(data, 'rows')
-        return self.parse_orders(orders, market, since, limit, params)
+        return self.parse_orders(orders, market, since, limit)
+
+    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+        """
+        fetches information on multiple orders made by the user
+        :see: https://docs.woo.org/#get-orders
+        :see: https://docs.woo.org/#get-algo-orders
+        :param str symbol: unified market symbol of the market orders were made in
+        :param int [since]: the earliest time in ms to fetch orders for
+        :param int [limit]: the maximum number of order structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param boolean [params.stop]: whether the order is a stop/algo order
+        :param boolean [params.isTriggered]: whether the order has been triggered(False by default)
+        :param str [params.side]: 'buy' or 'sell'
+        :param boolean [params.trailing]: set to True if you want to fetch trailing orders
+        :param boolean [params.paginate]: set to True if you want to fetch orders with pagination
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        self.load_markets()
+        extendedParams = self.extend(params, {'status': 'INCOMPLETE'})
+        return self.fetch_orders(symbol, since, limit, extendedParams)
+
+    def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+        """
+        fetches information on multiple orders made by the user
+        :see: https://docs.woo.org/#get-orders
+        :see: https://docs.woo.org/#get-algo-orders
+        :param str symbol: unified market symbol of the market orders were made in
+        :param int [since]: the earliest time in ms to fetch orders for
+        :param int [limit]: the maximum number of order structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param boolean [params.stop]: whether the order is a stop/algo order
+        :param boolean [params.isTriggered]: whether the order has been triggered(False by default)
+        :param str [params.side]: 'buy' or 'sell'
+        :param boolean [params.trailing]: set to True if you want to fetch trailing orders
+        :param boolean [params.paginate]: set to True if you want to fetch orders with pagination
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        self.load_markets()
+        extendedParams = self.extend(params, {'status': 'COMPLETED'})
+        return self.fetch_orders(symbol, since, limit, extendedParams)
 
     def parse_time_in_force(self, timeInForce):
         timeInForces = {
@@ -1633,14 +1682,20 @@ class woo(Exchange, ImplicitAPI):
 
     def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
+        :see: https://docs.woo.org/#get-trades
         fetch all trades made by the user
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trades structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param boolean [params.paginate]: set to True if you want to fetch trades with pagination
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         self.load_markets()
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchMyTrades', 'paginate')
+        if paginate:
+            return self.fetch_paginated_call_incremental('fetchMyTrades', symbol, since, limit, params, 'page', 500)
         request = {}
         market: Market = None
         if symbol is not None:
@@ -1648,6 +1703,10 @@ class woo(Exchange, ImplicitAPI):
             request['symbol'] = market['id']
         if since is not None:
             request['start_t'] = since
+        if limit is not None:
+            request['size'] = limit
+        else:
+            request['size'] = 500
         response = self.v1PrivateGetClientTrades(self.extend(request, params))
         # {
         #     "success": True,

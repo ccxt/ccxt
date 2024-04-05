@@ -149,6 +149,205 @@
                   70000.234234324
                 ],
                 "output": "{\"action\":{\"type\":\"order\",\"orders\":[{\"a\":0,\"b\":true,\"p\":\"73500\",\"s\":\"0.00146\",\"r\":false,\"t\":{\"limit\":{\"tif\":\"Ioc\"}}}],\"grouping\":\"na\",\"brokerCode\":1},\"nonce\":1710527621347,\"signature\":{\"r\":\"0xba8575938a44e3e291085efb8e9682af3e9da54d5fbcbf49316c89b4ae84dba4\",\"s\":\"0x1d20dc5973f66161f4cd856d50611543d11f65f59a1bc53e33b01e1a4874b555\",\"v\":28}}"
+            },
+            {
+                "description": "Order with timeInForce",
+                "method": "createOrder",
+                "url": "https://api.hyperliquid-testnet.xyz/exchange",
+                "input": [
+                  "BTC/USDC:USDC",
+                  "limit",
+                  "buy",
+                  0.0014646006034154486,
+                  60000.234234324,
+                  {
+                    "timeInForce": "GTC"
+                  }
+                ],
+                "output": "{\"action\":{\"type\":\"order\",\"orders\":[{\"a\":0,\"b\":true,\"p\":\"60000\",\"s\":\"0.00146\",\"r\":false,\"t\":{\"limit\":{\"tif\":\"Gtc\"}}}],\"grouping\":\"na\",\"brokerCode\":1},\"nonce\":1710929482709,\"signature\":{\"r\":\"0xdae9324db6a93f1c2062d24107f12e1549ec03f3313a6c4d7547e2f11c72b623\",\"s\":\"0x1e42a0c6edd18fe34c41d5c5e891e163449e66df27f537df0a79e5495cd273b1\",\"v\":28}}"
+            },
+            {
+                "description": "stopLossprice order on longPosition",
+                "method": "createOrder",
+                "url": "https://api.hyperliquid-testnet.xyz/exchange",
+                "input": [
+                  "SOL/USDC:USDC",
+                  "market",
+                  "sell",
+                  3.34,
+                  100,
+                  {
+                    "stopLossPrice": 100
+                  }
+                ],
+                "output": "{\"action\":{\"type\":\"order\",\"orders\":[{\"a\":5,\"b\":false,\"p\":\"95\",\"s\":\"3.34\",\"r\":false,\"t\":{\"trigger\":{\"isMarket\":true,\"triggerPx\":\"100\",\"tpsl\":\"sl\"}}}],\"grouping\":\"na\",\"brokerCode\":1},\"nonce\":1711102975419,\"signature\":{\"r\":\"0x5e780e469a7ee4ffdd5bc5c3d01499d1bdffb7b903e3059fb3f92e8990a889ab\",\"s\":\"0xe8597e10a0bc540a025a946fb67abe82dca4a29620677b51e9441752829760c\",\"v\":27}}"
+            },
+            {
+                "description": "takeProfit order on long position",
+                "method": "createOrder",
+                "url": "https://api.hyperliquid-testnet.xyz/exchange",
+                "input": [
+                  "SOL/USDC:USDC",
+                  "market",
+                  "buy",
+                  3.34,
+                  500,
+                  {
+                    "takeProfitPrice": 500
+                  }
+                ],
+                "output": "{\"action\":{\"type\":\"order\",\"orders\":[{\"a\":5,\"b\":true,\"p\":\"525\",\"s\":\"3.34\",\"r\":false,\"t\":{\"trigger\":{\"isMarket\":true,\"triggerPx\":\"500\",\"tpsl\":\"tp\"}}}],\"grouping\":\"na\",\"brokerCode\":1},\"nonce\":1711103051433,\"signature\":{\"r\":\"0x75cdfd6d0db428983f9b474ab19902c276423864de1889f5615e4e6208931be9\",\"s\":\"0x1be579fb6c6730c4da2095156c7c7d4ed77367cbe999eae9281320fcd04b187c\",\"v\":28}}"
+            },
+            {
+                "description": "open short position",
+                "method": "createOrder",
+                "url": "https://api.hyperliquid-testnet.xyz/exchange",
+                "input": [
+                  "SOL/USDC:USDC",
+                  "market",
+                  "sell",
+                  2,
+                  175
+                ],
+                "output": "{\"action\":{\"type\":\"order\",\"orders\":[{\"a\":5,\"b\":false,\"p\":\"166.25\",\"s\":\"2\",\"r\":false,\"t\":{\"limit\":{\"tif\":\"Ioc\"}}}],\"grouping\":\"na\",\"brokerCode\":1},\"nonce\":1711103381494,\"signature\":{\"r\":\"0xf5ae090a22d3045ebbbe5b077e05dd41d98f2c4927f43cb352e49fcf63c3289e\",\"s\":\"0x380b7591b5ad4a8851c86d9818aed79fde4abbb197fe78aed17b228bde8dc80c\",\"v\":27}}"
+            },
+            {
+                "description": "takeProfitPrice on a short position",
+                "method": "createOrder",
+                "url": "https://api.hyperliquid-testnet.xyz/exchange",
+                "input": [
+                  "SOL/USDC:USDC",
+                  "market",
+                  "buy",
+                  3.34,
+                  100,
+                  {
+                    "takeProfitPrice": 100
+                  }
+                ],
+                "output": "{\"action\":{\"type\":\"order\",\"orders\":[{\"a\":5,\"b\":true,\"p\":\"105\",\"s\":\"3.34\",\"r\":false,\"t\":{\"trigger\":{\"isMarket\":true,\"triggerPx\":\"100\",\"tpsl\":\"tp\"}}}],\"grouping\":\"na\",\"brokerCode\":1},\"nonce\":1711103408170,\"signature\":{\"r\":\"0x188d6cc5cc5b3f069b1be089a514df4dbdd2365839ff17cb13e66b37da213133\",\"s\":\"0x22843e7032ff62a8bff6cd934013f44261c205114be8185fe0848deae0820a99\",\"v\":28}}"
+            },
+            {
+                "description": "stopLossPrice on short position",
+                "method": "createOrder",
+                "url": "https://api.hyperliquid-testnet.xyz/exchange",
+                "input": [
+                  "SOL/USDC:USDC",
+                  "market",
+                  "buy",
+                  3.34,
+                  300,
+                  {
+                    "stopLossPrice": 300
+                  }
+                ],
+                "output": "{\"action\":{\"type\":\"order\",\"orders\":[{\"a\":5,\"b\":true,\"p\":\"315\",\"s\":\"3.34\",\"r\":false,\"t\":{\"trigger\":{\"isMarket\":true,\"triggerPx\":\"300\",\"tpsl\":\"sl\"}}}],\"grouping\":\"na\",\"brokerCode\":1},\"nonce\":1711103459750,\"signature\":{\"r\":\"0x896488134a2e05705029dad89e7918b6969ef6bb7ca9e85216ff4fe7e2625e75\",\"s\":\"0x5ae03833be91f209c2aa0b08dc061fef155affbf64a968e2f444feec87a09178\",\"v\":28}}"
+            },
+            {
+                "description": "order in a vault",
+                "method": "createOrder",
+                "url": "https://api.hyperliquid-testnet.xyz/exchange",
+                "input": [
+                  "SOL/USDC:USDC",
+                  "market",
+                  "buy",
+                  0.1,
+                  175,
+                  {
+                    "vaultAddress": "eba57e1d6bd242ba5f41b61ff1d30b481a535b58"
+                  }
+                ],
+                "output": "{\"action\":{\"type\":\"order\",\"orders\":[{\"a\":5,\"b\":true,\"p\":\"183.75\",\"s\":\"0.1\",\"r\":false,\"t\":{\"limit\":{\"tif\":\"Ioc\"}}}],\"grouping\":\"na\"},\"nonce\":1711104140105,\"signature\":{\"r\":\"0xf389ba0e2bd5f1384e80e4fba5e337273bd02d40b19127206dea14ffe6c7e0af\",\"s\":\"0xc4089eac6cc70d6834f595acce82d32252f11c9459e4a3868548b6fc3087043\",\"v\":27},\"vaultAddress\":\"eba57e1d6bd242ba5f41b61ff1d30b481a535b58\"}"
+            },
+            {
+                "description": "order in vaultadress with 0x",
+                "method": "createOrder",
+                "url": "https://api.hyperliquid-testnet.xyz/exchange",
+                "input": [
+                  "SOL/USDC:USDC",
+                  "market",
+                  "buy",
+                  0.1,
+                  175,
+                  {
+                    "vaultAddress": "0xeba57e1d6bd242ba5f41b61ff1d30b481a535b58"
+                  }
+                ],
+                "output": "{\"action\":{\"type\":\"order\",\"orders\":[{\"a\":5,\"b\":true,\"p\":\"183.75\",\"s\":\"0.1\",\"r\":false,\"t\":{\"limit\":{\"tif\":\"Ioc\"}}}],\"grouping\":\"na\"},\"nonce\":1711105150669,\"signature\":{\"r\":\"0xc10726b93896904251f8b6ec474ed428c448e5029a2d549d0e00a9f6580ac493\",\"s\":\"0x759e02cc811372410582ee28dc5b8c965bbdd87606570e8d2a8f31663f268ed0\",\"v\":27},\"vaultAddress\":\"eba57e1d6bd242ba5f41b61ff1d30b481a535b58\"}"
+            },
+            {
+                "description": "order with custom params",
+                "method": "createOrder",
+                "url": "https://api.hyperliquid-testnet.xyz/exchange",
+                "input": [
+                  "SOL/USDC:USDC",
+                  "market",
+                  "buy",
+                  0.1,
+                  175,
+                  {
+                    "r": true
+                  }
+                ],
+                "output": "{\"action\":{\"type\":\"order\",\"orders\":[{\"a\":5,\"b\":true,\"p\":\"183.75\",\"s\":\"0.1\",\"r\":true,\"t\":{\"limit\":{\"tif\":\"Ioc\"}}}],\"grouping\":\"na\",\"brokerCode\":1},\"nonce\":1711107892157,\"signature\":{\"r\":\"0x1d1c230fb2d472d613b875c24f83527ed788180b90468be9bfb22d36e8259c71\",\"s\":\"0x3682f2286381b7f20ee1e703f48addb42554348cda438bab9da0d51eb5081938\",\"v\":27}}"
+            },
+            {
+                "description": "order with reduceOnly",
+                "method": "createOrder",
+                "url": "https://api.hyperliquid-testnet.xyz/exchange",
+                "input": [
+                  "SOL/USDC:USDC",
+                  "market",
+                  "buy",
+                  0.1,
+                  175,
+                  {
+                    "reduceOnly": true
+                  }
+                ],
+                "output": "{\"action\":{\"type\":\"order\",\"orders\":[{\"a\":5,\"b\":true,\"p\":\"183.75\",\"s\":\"0.1\",\"r\":true,\"t\":{\"limit\":{\"tif\":\"Ioc\"}}}],\"grouping\":\"na\",\"brokerCode\":1},\"nonce\":1711269186132,\"signature\":{\"r\":\"0x3bd6ec400ce752dc85c4d3a72559f46960ba692b6dd7b750ef45cf6ed6dbd527\",\"s\":\"0x298f5ea4cfb6b7b756b137e64e20ac84cd4a18e6d0def82929f21145a8cd58ec\",\"v\":27}}"
+            },
+            {
+                "description": "post only order",
+                "method": "createOrder",
+                "url": "https://api.hyperliquid-testnet.xyz/exchange",
+                "input": [
+                  "SOL/USDC:USDC",
+                  "limit",
+                  "buy",
+                  0.1,
+                  170,
+                  {
+                    "postOnly": true
+                  }
+                ],
+                "output": "{\"action\":{\"type\":\"order\",\"orders\":[{\"a\":5,\"b\":true,\"p\":\"170\",\"s\":\"0.1\",\"r\":false,\"t\":{\"limit\":{\"tif\":\"Alo\"}}}],\"grouping\":\"na\",\"brokerCode\":1},\"nonce\":1711269437173,\"signature\":{\"r\":\"0x7ad22203bcece7b94016458e6080be8bee0724807186bcb7a64f1a9f9a83c1b9\",\"s\":\"0x1ae3889c08d3a9ce6bf50260b9e4b2947e55a10fe8c6640e6254a0ab829febb9\",\"v\":28}}"
+            },
+            {
+                "description": "spot market order",
+                "method": "createOrder",
+                "url": "https://api.hyperliquid-testnet.xyz/exchange",
+                "input": [
+                  "PURR/USDC",
+                  "market",
+                  "buy",
+                  1000,
+                  0.019
+                ],
+                "output": "{\"action\":{\"type\":\"order\",\"orders\":[{\"a\":10000,\"b\":true,\"p\":\"0.01995\",\"s\":\"1000\",\"r\":false,\"t\":{\"limit\":{\"tif\":\"Ioc\"}}}],\"grouping\":\"na\",\"brokerCode\":1},\"nonce\":1711797846550,\"signature\":{\"r\":\"0x8a9f3b96eef951af6235ed41f4adc9bae2781cb617f98a48cc7e2159775ba1d0\",\"s\":\"0x38d23e9c00707dc20b6d8ba15bf0a37b72602e72be861bcc25494c1df3c0aaed\",\"v\":27}}"
+            },
+            {
+                "description": "spot limit order",
+                "method": "createOrder",
+                "url": "https://api.hyperliquid-testnet.xyz/exchange",
+                "input": [
+                  "PURR/USDC",
+                  "limit",
+                  "buy",
+                  700,
+                  0.015
+                ],
+                "output": "{\"action\":{\"type\":\"order\",\"orders\":[{\"a\":10000,\"b\":true,\"p\":\"0.015\",\"s\":\"700\",\"r\":false,\"t\":{\"limit\":{\"tif\":\"Gtc\"}}}],\"grouping\":\"na\",\"brokerCode\":1},\"nonce\":1711798239311,\"signature\":{\"r\":\"0x6b1d91dcedb64e423ef45336abc3b287ce8d3619ef87f8e28152160ecd026c65\",\"s\":\"0xbae493bf733566e9a734f8665879b3435bb0fd1b0f879e3717259a313437562\",\"v\":28}}"
             }
         ],
         "createOrders": [
@@ -191,6 +390,23 @@
                     100
                 ],
                 "output": "{\"action\":{\"type\":\"batchModify\",\"modifies\":[{\"oid\":6530857127,\"order\":{\"a\":5,\"b\":true,\"p\":\"100\",\"s\":\"0.7\",\"r\":false,\"t\":{\"limit\":{\"tif\":\"Gtc\"}}}}]},\"nonce\":1709643553938,\"signature\":{\"r\":\"0x5455e138164fb02c23fae78d26bcfff278ebbd7d0ad4bfdd450685221135bcbb\",\"s\":\"0x2eb7ab67b84d7614c195fe42f50ebfa83822237abd1b68c44ab547a2f8acdd1a\",\"v\":27}}"
+            },
+            {
+                "description": "edit order on a vault",
+                "method": "editOrder",
+                "url": "https://api.hyperliquid-testnet.xyz/exchange",
+                "input": [
+                  "8553833906",
+                  "SOL/USDC:USDC",
+                  "limit",
+                  "buy",
+                  0.2,
+                  151,
+                  {
+                    "vaultAddress": "0xeba57e1d6bd242ba5f41b61ff1d30b481a535b58"
+                  }
+                ],
+                "output": "{\"action\":{\"type\":\"batchModify\",\"modifies\":[{\"oid\":8553833906,\"order\":{\"a\":5,\"b\":true,\"p\":\"151\",\"s\":\"0.2\",\"r\":false,\"t\":{\"limit\":{\"tif\":\"Gtc\"}}}}]},\"nonce\":1711105489002,\"signature\":{\"r\":\"0x1d07b1ae45cc8551b3d6d610780cc32d12a263cdabbe4013f4f927122215dfa8\",\"s\":\"0x33df2aea44f821de5e3b80e290ce2da30d8bd35f0358e04fec4c0daf60811f03\",\"v\":27},\"vaultAddress\":\"eba57e1d6bd242ba5f41b61ff1d30b481a535b58\"}"
             }
         ],
         "cancelOrder": [
@@ -203,6 +419,16 @@
                     "SOL/USDC:USDC"
                 ],
                 "output": "{\"nonce\":1709205271182,\"action\":{\"type\":\"cancel\",\"cancels\":[{\"a\":5,\"o\":6466108935}]},\"signature\":{\"r\":\"0xba035847994c83ffeaadf906639c0f82548cbcae8195c527f74e3cb50148cd6b\",\"s\":\"0x64098742b1d2fdac9a11973c991de69b8adbcee4e461acb7dd06f41decf4995d\",\"v\":27}}"
+            },
+            {
+                "description": "cancel spot order",
+                "method": "cancelOrder",
+                "url": "https://api.hyperliquid-testnet.xyz/exchange",
+                "input": [
+                  "9078231563",
+                  "PURR/USDC"
+                ],
+                "output": "{\"nonce\":1711798403045,\"action\":{\"type\":\"cancel\",\"cancels\":[{\"a\":10000,\"o\":9078231563}]},\"signature\":{\"r\":\"0xfe4aeec522ca718c78cf5e3b1775f2256edbcf1f92ad2b17bf40a5dd0872022d\",\"s\":\"0x67bc84c7445ab5abb1f06523775845755a35b4d9d6f728c0d7de9337d55eb51a\",\"v\":28}}"
             }
         ],
         "cancelOrders": [
@@ -220,15 +446,6 @@
                 "output": "{\"nonce\":1709652626969,\"action\":{\"type\":\"cancel\",\"cancels\":[{\"a\":5,\"o\":6927265353},{\"a\":5,\"o\":6927351467}]},\"signature\":{\"r\":\"0x546bc0dcf536756b5cce7206528aadf03a44d1b2a9b0a48c2e85fd21b1692b6f\",\"s\":\"0x5088740b9decdc966025ba75f127eb6cbb097eaab1835238dab8d95cfe101040\",\"v\":27}}"
             }
         ],
-        "fetchMarkets": [
-            {
-                "description": "fetchMarkets",
-                "method": "fetchMarkets",
-                "url": "https://api.hyperliquid.xyz/info",
-                "input": [],
-                "output": "{\"type\":\"metaAndAssetCtxs\"}"
-            }
-        ],
         "fetchBalance": [
             {
                 "description": "fetchBalance",
@@ -240,6 +457,18 @@
                     }
                 ],
                 "output": "{\"type\":\"clearinghouseState\",\"user\":\"0x15f43D1f2DeE81424aFd891943262aa90F22cc2A\"}"
+            },
+            {
+                "description": "fetch spot balance",
+                "method": "fetchBalance",
+                "url": "https://api.hyperliquid.xyz/info",
+                "input": [
+                  {
+                    "type": "spot",
+                    "user": "0x3B3741c0EFf9C6b556Ec813e70589161F416662A"
+                  }
+                ],
+                "output": "{\"type\":\"spotClearinghouseState\",\"user\":\"0x3B3741c0EFf9C6b556Ec813e70589161F416662A\"}"
             }
         ],
         "fetchOrderBook": [
@@ -397,6 +626,73 @@
                     "BTC/USDC:USDC"
                 ],
                 "output": "{\"action\":{\"type\":\"updateLeverage\",\"asset\":0,\"isCross\":true,\"leverage\":5},\"nonce\":1709652347195,\"signature\":{\"r\":\"0x5a9023d51d2c2d0d6eb243a423473a270b8ad80bb7284bc6d9d7a9007201026\",\"s\":\"0x3bd6c3257be38a5aac22bf5ecefe63ba0c5e4c39c9ac78d5d059e1dfe69dedd\",\"v\":27}}"
+            },
+            {
+                "description": "set leverage on a vault",
+                "method": "setLeverage",
+                "url": "https://api.hyperliquid-testnet.xyz/exchange",
+                "input": [
+                  5,
+                  "SOL/USDC:USDC",
+                  {
+                    "vaultAddress": "0xeba57e1d6bd242ba5f41b61ff1d30b481a535b58"
+                  }
+                ],
+                "output": "{\"action\":{\"type\":\"updateLeverage\",\"asset\":5,\"isCross\":true,\"leverage\":5},\"nonce\":1711105382021,\"signature\":{\"r\":\"0xafbc0ef20e0b277cf4722f4ceb4fcf2f085c55a1ed41fa1a21fb9429772c5aa5\",\"s\":\"0x1975ac7cc0a533162ac24bb1457c4785d531f46e59eef33bf4a4131f1ea4b249\",\"v\":28},\"vaultAddress\":\"eba57e1d6bd242ba5f41b61ff1d30b481a535b58\"}"
+            }
+        ],
+        "setMarginMode": [
+            {
+                "description": "set cross margin mode",
+                "method": "setMarginMode",
+                "url": "https://api.hyperliquid-testnet.xyz/exchange",
+                "input": [
+                  "cross",
+                  "SOL/USDC:USDC",
+                  {
+                    "leverage": 5
+                  }
+                ],
+                "output": "{\"action\":{\"type\":\"updateLeverage\",\"asset\":5,\"isCross\":true,\"leverage\":5},\"nonce\":1711360550230,\"signature\":{\"r\":\"0x4ecdba9896ecf5c2e3a8b00502039aff269d0878371953f505a4d70795893fa6\",\"s\":\"0x10a2b8fc5448ab711bcacadd24929c1d31d20fc8f45d3fd45e6f86e4c9e724ac\",\"v\":28}}"
+            },
+            {
+                "description": "set isolated margin mode",
+                "method": "setMarginMode",
+                "url": "https://api.hyperliquid-testnet.xyz/exchange",
+                "input": [
+                  "isolated",
+                  "SOL/USDC:USDC",
+                  {
+                    "leverage": 5
+                  }
+                ],
+                "output": "{\"action\":{\"type\":\"updateLeverage\",\"asset\":5,\"isCross\":false,\"leverage\":5},\"nonce\":1711360592621,\"signature\":{\"r\":\"0x233801ff1dc0ce66c1ee523317721e282f52ee3542a9195d3467430d1c70cad1\",\"s\":\"0x2c01401e469679d99893ceaaf5603c2e28279fd83c7802f43603ec6b3b4019b9\",\"v\":28}}"
+            }
+        ],
+        "transfer": [
+            {
+                "description": "transfer from spot to swap",
+                "method": "transfer",
+                "url": "https://api.hyperliquid-testnet.xyz/exchange",
+                "input": [
+                  "USDC",
+                  100,
+                  "spot",
+                  "swap"
+                ],
+                "output": "{\"action\":{\"type\":\"spotUser\",\"classTransfer\":{\"usdc\":100,\"toPerp\":true}},\"nonce\":1711801354232,\"signature\":{\"r\":\"0x4452aeee97fc1be0e1ace46fdcaa2c5bf10741c9868769ee5ad22a12ec89666a\",\"s\":\"0x231a723de53d2a6b4009f4139b2f58a0729761d462c57faf9b5704118019bd8d\",\"v\":28}}"
+            },
+            {
+                "description": "transfer from swap to spot",
+                "method": "transfer",
+                "url": "https://api.hyperliquid-testnet.xyz/exchange",
+                "input": [
+                  "USDC",
+                  100,
+                  "swap",
+                  "spot"
+                ],
+                "output": "{\"action\":{\"type\":\"spotUser\",\"classTransfer\":{\"usdc\":100,\"toPerp\":false}},\"nonce\":1711801415155,\"signature\":{\"r\":\"0x22acd4b8767652694c314361f83496cfbed25bb1297c6dd63e257a4106c9d715\",\"s\":\"0x28df849bd7b8604df860a8c78a353898cbcf670184df430deeeb1baec78902b3\",\"v\":27}}"
             }
         ]
     }

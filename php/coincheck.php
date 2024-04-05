@@ -480,7 +480,7 @@ class coincheck extends Exchange {
         //                  )
         //      }
         //
-        $transactions = $this->safe_value($response, 'data', array());
+        $transactions = $this->safe_list($response, 'data', array());
         return $this->parse_trades($transactions, $market, $since, $limit);
     }
 
@@ -513,11 +513,11 @@ class coincheck extends Exchange {
         //          "created_at" => "2021-12-08T14:10:33.000Z"
         //      }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_list($response, 'data', array());
         return $this->parse_trades($data, $market, $since, $limit);
     }
 
-    public function fetch_trading_fees($params = array ()) {
+    public function fetch_trading_fees($params = array ()): array {
         /**
          * fetch the trading $fees for multiple markets
          * @see https://coincheck.com/documents/exchange/api#account-info
@@ -657,7 +657,7 @@ class coincheck extends Exchange {
         //     }
         //   )
         // }
-        $data = $this->safe_value($response, 'deposits', array());
+        $data = $this->safe_list($response, 'deposits', array());
         return $this->parse_transactions($data, $currency, $since, $limit, array( 'type' => 'deposit' ));
     }
 
@@ -702,7 +702,7 @@ class coincheck extends Exchange {
         //     }
         //   )
         // }
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_list($response, 'data', array());
         return $this->parse_transactions($data, $currency, $since, $limit, array( 'type' => 'withdrawal' ));
     }
 

@@ -7,7 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.phemex import ImplicitAPI
 import hashlib
 import numbers
-from ccxt.base.types import Balances, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
+from ccxt.base.types import Balances, Currencies, Currency, Int, MarginModification, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -747,7 +747,7 @@ class phemex(Exchange, ImplicitAPI):
             'info': market,
         })
 
-    async def fetch_markets(self, params={}):
+    async def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for phemex
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -971,7 +971,7 @@ class phemex(Exchange, ImplicitAPI):
             result.append(market)
         return result
 
-    async def fetch_currencies(self, params={}):
+    async def fetch_currencies(self, params={}) -> Currencies:
         """
         fetches all available currencies on an exchange
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -1266,7 +1266,7 @@ class phemex(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_value(response, 'data', {})
-        rows = self.safe_value(data, 'rows', [])
+        rows = self.safe_list(data, 'rows', [])
         return self.parse_ohlcvs(rows, market, timeframe, since, userLimit)
 
     def parse_ticker(self, ticker, market: Market = None) -> Ticker:
@@ -1422,7 +1422,7 @@ class phemex(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        result = self.safe_value(response, 'result', {})
+        result = self.safe_dict(response, 'result', {})
         return self.parse_ticker(result, market)
 
     async def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
@@ -1452,7 +1452,7 @@ class phemex(Exchange, ImplicitAPI):
             response = await self.v1GetMdTicker24hrAll(query)
         else:
             response = await self.v2GetMdV2Ticker24hrAll(query)
-        result = self.safe_value(response, 'result', [])
+        result = self.safe_list(response, 'result', [])
         return self.parse_tickers(result, symbols)
 
     async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
@@ -2587,7 +2587,7 @@ class phemex(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        data = self.safe_value(response, 'data', {})
+        data = self.safe_dict(response, 'data', {})
         return self.parse_order(data, market)
 
     async def edit_order(self, id: str, symbol: str, type: OrderType = None, side: OrderSide = None, amount: Num = None, price: Num = None, params={}):
@@ -2648,7 +2648,7 @@ class phemex(Exchange, ImplicitAPI):
             response = await self.privatePutOrdersReplace(self.extend(request, params))
         else:
             response = await self.privatePutSpotOrders(self.extend(request, params))
-        data = self.safe_value(response, 'data', {})
+        data = self.safe_dict(response, 'data', {})
         return self.parse_order(data, market)
 
     async def cancel_order(self, id: str, symbol: Str = None, params={}):
@@ -2684,7 +2684,7 @@ class phemex(Exchange, ImplicitAPI):
             response = await self.privateDeleteOrdersCancel(self.extend(request, params))
         else:
             response = await self.privateDeleteSpotOrders(self.extend(request, params))
-        data = self.safe_value(response, 'data', {})
+        data = self.safe_dict(response, 'data', {})
         return self.parse_order(data, market)
 
     async def cancel_all_orders(self, symbol: Str = None, params={}):
@@ -2782,7 +2782,7 @@ class phemex(Exchange, ImplicitAPI):
         else:
             response = await self.privateGetSpotOrders(self.extend(request, params))
         data = self.safe_value(response, 'data', {})
-        rows = self.safe_value(data, 'rows', data)
+        rows = self.safe_list(data, 'rows', data)
         return self.parse_orders(rows, market, since, limit)
 
     async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
@@ -2821,7 +2821,7 @@ class phemex(Exchange, ImplicitAPI):
         if isinstance(data, list):
             return self.parse_orders(data, market, since, limit)
         else:
-            rows = self.safe_value(data, 'rows', [])
+            rows = self.safe_list(data, 'rows', [])
             return self.parse_orders(rows, market, since, limit)
 
     async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
@@ -2898,7 +2898,7 @@ class phemex(Exchange, ImplicitAPI):
         if isinstance(data, list):
             return self.parse_orders(data, market, since, limit)
         else:
-            rows = self.safe_value(data, 'rows', [])
+            rows = self.safe_list(data, 'rows', [])
             return self.parse_orders(rows, market, since, limit)
 
     async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
@@ -3744,7 +3744,7 @@ class phemex(Exchange, ImplicitAPI):
             'previousFundingDatetime': None,
         }
 
-    async def set_margin(self, symbol: str, amount: float, params={}):
+    async def set_margin(self, symbol: str, amount: float, params={}) -> MarginModification:
         """
         Either adds or reduces margin in an isolated position in order to set the margin to a specific value
         :see: https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md#assign-position-balance-in-isolated-marign-mode
@@ -3777,7 +3777,7 @@ class phemex(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_margin_modification(self, data, market: Market = None):
+    def parse_margin_modification(self, data, market: Market = None) -> MarginModification:
         #
         #     {
         #         "code": 0,
@@ -3790,12 +3790,14 @@ class phemex(Exchange, ImplicitAPI):
         codeCurrency = 'base' if inverse else 'quote'
         return {
             'info': data,
+            'symbol': self.safe_symbol(None, market),
             'type': 'set',
             'amount': None,
             'total': None,
             'code': market[codeCurrency],
-            'symbol': self.safe_symbol(None, market),
             'status': self.parse_margin_status(self.safe_string(data, 'code')),
+            'timestamp': None,
+            'datetime': None,
         }
 
     async def set_margin_mode(self, marginMode: str, symbol: Str = None, params={}):
@@ -3942,7 +3944,7 @@ class phemex(Exchange, ImplicitAPI):
         #
         #
         data = self.safe_value(response, 'data', {})
-        riskLimits = self.safe_value(data, 'riskLimits')
+        riskLimits = self.safe_list(data, 'riskLimits')
         return self.parse_leverage_tiers(riskLimits, symbols, 'symbol')
 
     def parse_market_leverage_tiers(self, info, market: Market = None):
@@ -4173,7 +4175,7 @@ class phemex(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_value(response, 'data', {})
-        transfers = self.safe_value(data, 'rows', [])
+        transfers = self.safe_list(data, 'rows', [])
         return self.parse_transfers(transfers, currency, since, limit)
 
     def parse_transfer(self, transfer, currency: Currency = None):
@@ -4375,7 +4377,7 @@ class phemex(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        data = self.safe_value(response, 'data', {})
+        data = self.safe_dict(response, 'data', {})
         return self.parse_transaction(data, currency)
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):

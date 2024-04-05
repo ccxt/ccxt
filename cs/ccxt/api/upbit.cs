@@ -46,6 +46,11 @@ public partial class upbit : Exchange
         return await this.callAsync ("publicGetCandlesMinutes5",parameters);
     }
 
+    public async Task<object> publicGetCandlesMinutes10 (object parameters = null)
+    {
+        return await this.callAsync ("publicGetCandlesMinutes10",parameters);
+    }
+
     public async Task<object> publicGetCandlesMinutes15 (object parameters = null)
     {
         return await this.callAsync ("publicGetCandlesMinutes15",parameters);

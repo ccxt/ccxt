@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.idex import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Currencies, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import BadRequest
@@ -173,13 +173,15 @@ class idex(Exchange, ImplicitAPI):
                 'network': 'MATIC',
             },
             'exceptions': {
-                'INVALID_ORDER_QUANTITY': InvalidOrder,
-                'INSUFFICIENT_FUNDS': InsufficientFunds,
-                'SERVICE_UNAVAILABLE': ExchangeNotAvailable,
-                'EXCEEDED_RATE_LIMIT': DDoSProtection,
-                'INVALID_PARAMETER': BadRequest,
-                'WALLET_NOT_ASSOCIATED': InvalidAddress,
-                'INVALID_WALLET_SIGNATURE': AuthenticationError,
+                'exact': {
+                    'INVALID_ORDER_QUANTITY': InvalidOrder,
+                    'INSUFFICIENT_FUNDS': InsufficientFunds,
+                    'SERVICE_UNAVAILABLE': ExchangeNotAvailable,
+                    'EXCEEDED_RATE_LIMIT': DDoSProtection,
+                    'INVALID_PARAMETER': BadRequest,
+                    'WALLET_NOT_ASSOCIATED': InvalidAddress,
+                    'INVALID_WALLET_SIGNATURE': AuthenticationError,
+                },
             },
             'requiredCredentials': {
                 'walletAddress': True,
@@ -204,7 +206,7 @@ class idex(Exchange, ImplicitAPI):
         price = self.decimal_to_precision(price, ROUND, market['precision']['price'], self.precisionMode)
         return self.decimal_to_precision(price, TRUNCATE, quoteAssetPrecision, DECIMAL_PLACES, PAD_WITH_ZERO)
 
-    async def fetch_markets(self, params={}):
+    async def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for idex
         :see: https://api-docs-v3.idex.io/#get-markets
@@ -363,7 +365,7 @@ class idex(Exchange, ImplicitAPI):
         #   }
         # ]
         response = await self.publicGetTickers(self.extend(request, params))
-        ticker = self.safe_value(response, 0)
+        ticker = self.safe_dict(response, 0)
         return self.parse_ticker(ticker, market)
 
     async def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
@@ -461,7 +463,7 @@ class idex(Exchange, ImplicitAPI):
         if since is not None:
             request['start'] = since
         if limit is not None:
-            request['limit'] = limit
+            request['limit'] = min(limit, 1000)
         response = await self.publicGetCandles(self.extend(request, params))
         if isinstance(response, list):
             # [
@@ -607,7 +609,7 @@ class idex(Exchange, ImplicitAPI):
             'fee': fee,
         }, market)
 
-    async def fetch_trading_fees(self, params={}):
+    async def fetch_trading_fees(self, params={}) -> TradingFees:
         """
         fetch the trading fees for multiple markets
         :see: https://api-docs-v3.idex.io/#get-api-account
@@ -710,7 +712,7 @@ class idex(Exchange, ImplicitAPI):
         descending = side == 'bids'
         return self.sort_by(result, 0, descending)
 
-    async def fetch_currencies(self, params={}):
+    async def fetch_currencies(self, params={}) -> Currencies:
         """
         fetches all available currencies on an exchange
         :see: https://api-docs-v3.idex.io/#get-assets
@@ -1407,16 +1409,14 @@ class idex(Exchange, ImplicitAPI):
         }
         # [{orderId: "688336f0-ec50-11ea-9842-b332f8a34d0e"}]
         response = await self.privateDeleteOrders(self.extend(request, params))
-        canceledOrder = self.safe_value(response, 0)
+        canceledOrder = self.safe_dict(response, 0)
         return self.parse_order(canceledOrder, market)
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         errorCode = self.safe_string(response, 'code')
         message = self.safe_string(response, 'message')
-        if errorCode in self.exceptions:
-            Exception = self.exceptions[errorCode]
-            raise Exception(self.id + ' ' + message)
         if errorCode is not None:
+            self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, message)
             raise ExchangeError(self.id + ' ' + message)
         return None
 

@@ -997,6 +997,8 @@ public partial class blofin : Exchange
             { "symbol", this.safeSymbol(null, market) },
             { "maker", this.parseNumber(Precise.stringNeg(this.safeString2(fee, "maker", "makerU"))) },
             { "taker", this.parseNumber(Precise.stringNeg(this.safeString2(fee, "taker", "takerU"))) },
+            { "percentage", null },
+            { "tierBased", null },
         };
     }
 
@@ -1347,6 +1349,7 @@ public partial class blofin : Exchange
         * @param {string} id order id
         * @param {string} symbol unified symbol of the market the order was made in
         * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {boolean} [params.trigger] True if cancelling a trigger/conditional order/tp sl orders
         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
@@ -1359,15 +1362,28 @@ public partial class blofin : Exchange
         object request = new Dictionary<string, object>() {
             { "instId", getValue(market, "id") },
         };
+        object isTrigger = this.safeBoolN(parameters, new List<object>() {"stop", "trigger", "tpsl"}, false);
         object clientOrderId = this.safeString(parameters, "clientOrderId");
         if (isTrue(!isEqual(clientOrderId, null)))
         {
             ((IDictionary<string,object>)request)["clientOrderId"] = clientOrderId;
         } else
         {
-            ((IDictionary<string,object>)request)["orderId"] = id;
+            if (!isTrue(isTrigger))
+            {
+                ((IDictionary<string,object>)request)["orderId"] = ((object)id).ToString();
+            } else
+            {
+                ((IDictionary<string,object>)request)["tpslId"] = ((object)id).ToString();
+            }
         }
-        object query = this.omit(parameters, new List<object>() {"orderId", "clientOrderId"});
+        object query = this.omit(parameters, new List<object>() {"orderId", "clientOrderId", "stop", "trigger", "tpsl"});
+        if (isTrue(isTrigger))
+        {
+            object tpslResponse = await this.cancelOrders(new List<object>() {id}, symbol, parameters);
+            object first = this.safeDict(tpslResponse, 0);
+            return first;
+        }
         object response = await this.privatePostTradeCancelOrder(this.extend(request, query));
         object data = this.safeList(response, "data", new List<object>() {});
         object order = this.safeDict(data, 0);

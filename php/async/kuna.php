@@ -424,7 +424,7 @@ class kuna extends Exchange {
         }) ();
     }
 
-    public function fetch_currencies($params = array ()) {
+    public function fetch_currencies($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches all available currencies on an exchange
@@ -522,7 +522,7 @@ class kuna extends Exchange {
         );
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * retrieves $data on all $markets for kuna
@@ -661,7 +661,7 @@ class kuna extends Exchange {
             //          }
             //      }
             //
-            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_dict($response, 'data', array());
             return $this->parse_order_book($data, $market['symbol'], null, 'bids', 'asks', 0, 1);
         }) ();
     }
@@ -744,7 +744,7 @@ class kuna extends Exchange {
             //        )
             //    }
             //
-            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_list($response, 'data', array());
             return $this->parse_tickers($data, $symbols, $params);
         }) ();
     }
@@ -785,7 +785,7 @@ class kuna extends Exchange {
             //    }
             //
             $data = $this->safe_value($response, 'data', array());
-            $ticker = $this->safe_value($data, 0);
+            $ticker = $this->safe_dict($data, 0);
             return $this->parse_ticker($ticker, $market);
         }) ();
     }
@@ -1008,7 +1008,7 @@ class kuna extends Exchange {
             //        }
             //    }
             //
-            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_dict($response, 'data', array());
             return $this->parse_order($data, $market);
         }) ();
     }
@@ -1070,7 +1070,7 @@ class kuna extends Exchange {
             //        )
             //    }
             //
-            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_list($response, 'data', array());
             return $this->parse_orders($data);
         }) ();
     }
@@ -1218,7 +1218,7 @@ class kuna extends Exchange {
             //        }
             //    }
             //
-            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_dict($response, 'data', array());
             return $this->parse_order($data);
         }) ();
     }
@@ -1279,7 +1279,7 @@ class kuna extends Exchange {
             //        )
             //    }
             //
-            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_list($response, 'data', array());
             return $this->parse_orders($data, $market, $since, $limit);
         }) ();
     }
@@ -1365,7 +1365,7 @@ class kuna extends Exchange {
             //        )
             //    }
             //
-            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_list($response, 'data', array());
             return $this->parse_orders($data, $market, $since, $limit);
         }) ();
     }
@@ -1412,7 +1412,7 @@ class kuna extends Exchange {
             //        )
             //    }
             //
-            $data = $this->safe_value($response, 'data');
+            $data = $this->safe_list($response, 'data');
             return $this->parse_trades($data, $market, $since, $limit);
         }) ();
     }
@@ -1465,7 +1465,7 @@ class kuna extends Exchange {
             //        }
             //    }
             //
-            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_dict($response, 'data', array());
             return $this->parse_transaction($data, $currency);
         }) ();
     }
@@ -1534,7 +1534,7 @@ class kuna extends Exchange {
             //        )
             //    }
             //
-            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_list($response, 'data', array());
             return $this->parse_transactions($data, $currency);
         }) ();
     }
@@ -1575,7 +1575,7 @@ class kuna extends Exchange {
             //        }
             //    }
             //
-            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_dict($response, 'data', array());
             return $this->parse_transaction($data);
         }) ();
     }
@@ -1604,7 +1604,7 @@ class kuna extends Exchange {
             //        }
             //    }
             //
-            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_dict($response, 'data', array());
             return $this->parse_deposit_address($data, $currency);
         }) ();
     }
@@ -1633,7 +1633,7 @@ class kuna extends Exchange {
             //        }
             //    }
             //
-            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_dict($response, 'data', array());
             return $this->parse_deposit_address($data, $currency);
         }) ();
     }
@@ -1734,7 +1734,7 @@ class kuna extends Exchange {
             //        )
             //    }
             //
-            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_list($response, 'data', array());
             return $this->parse_transactions($data, $currency);
         }) ();
     }
@@ -1779,7 +1779,7 @@ class kuna extends Exchange {
             //        }
             //    }
             //
-            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_dict($response, 'data', array());
             return $this->parse_transaction($data, $currency);
         }) ();
     }

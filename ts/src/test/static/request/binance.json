@@ -2280,6 +2280,17 @@
                         "subType": "inverse"
                     }
                 ]
+            },
+            {
+                "description": "account positions with filterClosed option",
+                "method": "fetchAccountPositions",
+                "url": "https://testnet.binancefuture.com/fapi/v2/account?timestamp=1711968805532&filterClosed=true&recvWindow=10000&signature=d70e7146e12dff30106d51e77574cda0b75aa353c505746b1a78a5c086a7ac19",
+                "input": [
+                  null,
+                  {
+                    "filterClosed": true
+                  }
+                ]
             }
         ],
         "fetchOpenInterest": [
@@ -2896,6 +2907,60 @@
                 "input": [
                     "BTC/USDT"
                 ]
+            }
+        ],
+        "fetchOption": [
+            {
+                "description": "Fetch an option contract",
+                "method": "fetchOption",
+                "url": "https://eapi.binance.com/eapi/v1/ticker?symbol=BTC-241227-80000-C",
+                "input": [
+                  "BTC/USDT:USDT-241227-80000-C"
+                ]
+            }
+        ],
+        "addMargin": [
+            {
+                "description": "add margin",
+                "method": "addMargin",
+                "url": "https://testnet.binancefuture.com/fapi/v1/positionMargin",
+                "input": [
+                  "XRP/USDT:USDT",
+                  5.243432
+                ],
+                "output": "timestamp=1712047896974&type=1&symbol=XRPUSDT&amount=5.2&recvWindow=10000&signature=ab7e4525180db9134418a3b410029cc1a055a4542cb4ebe1d60cc6f0134a2fce"
+            },
+            {
+                "description": "add small amount of margin",
+                "method": "addMargin",
+                "url": "https://testnet.binancefuture.com/fapi/v1/positionMargin",
+                "input": [
+                  "XRP/USDT:USDT",
+                  0.2
+                ],
+                "output": "timestamp=1712047853481&type=1&symbol=XRPUSDT&amount=0.2&recvWindow=10000&signature=09954975fbbf5de734a82d26144d77d6929802345e183c212e6fc49722e34696"
+            }
+        ],
+        "reduceMargin": [
+            {
+                "description": "reduce margin",
+                "method": "reduceMargin",
+                "url": "https://testnet.binancefuture.com/fapi/v1/positionMargin",
+                "input": [
+                  "XRP/USDT:USDT",
+                  5.243432
+                ],
+                "output": "timestamp=1712047923923&type=2&symbol=XRPUSDT&amount=5.2&recvWindow=10000&signature=db336b746bf1266fbe2f3d8887e105ce714f1a8ebbab733610722ee22b9a6fe7"
+            },
+            {
+                "description": "reduce small amount of margin",
+                "method": "reduceMargin",
+                "url": "https://testnet.binancefuture.com/fapi/v1/positionMargin",
+                "input": [
+                  "XRP/USDT:USDT",
+                  0.2
+                ],
+                "output": "timestamp=1712047946547&type=2&symbol=XRPUSDT&amount=0.2&recvWindow=10000&signature=e8c53af6d974c388ca6ff5ec820a4c2ac813fcbaec55b1a50c60779da56be00b"
             }
         ]
     }

@@ -459,11 +459,11 @@ class kraken extends Exchange {
         return $this->decimal_to_precision($fee, TRUNCATE, $this->markets[$symbol]['precision']['amount'], $this->precisionMode);
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * retrieves data on all $markets for kraken
-             * @see https://docs.kraken.com/rest/#tag/Market-Data/operation/getTradableAssetPairs
+             * @see https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getTradableAssetPairs
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} an array of objects representing $market data
              */
@@ -648,11 +648,11 @@ class kraken extends Exchange {
         return $result;
     }
 
-    public function fetch_currencies($params = array ()) {
+    public function fetch_currencies($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches all available $currencies on an exchange
-             * @see https://docs.kraken.com/rest/#tag/Market-Data/operation/getAssetInfo
+             * @see https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getAssetInfo
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an associative dictionary of $currencies
              */
@@ -708,7 +708,7 @@ class kraken extends Exchange {
         }) ();
     }
 
-    public function fetch_trading_fee(string $symbol, $params = array ()) {
+    public function fetch_trading_fee(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch the trading fees for a $market
@@ -784,7 +784,7 @@ class kraken extends Exchange {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-             * @see https://docs.kraken.com/rest/#tag/Market-Data/operation/getOrderBook
+             * @see https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getOrderBook
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -888,7 +888,7 @@ class kraken extends Exchange {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches price $tickers for multiple markets, statistical information calculated over the past 24 hours for each $market
-             * @see https://docs.kraken.com/rest/#tag/Market-Data/operation/getTickerInformation
+             * @see https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getTickerInformation
              * @param {string[]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all $market $tickers are returned if not assigned
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?$id=$ticker-structure $ticker structures~
@@ -926,7 +926,7 @@ class kraken extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
-             * @see https://docs.kraken.com/rest/#tag/Market-Data/operation/getTickerInformation
+             * @see https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getTickerInformation
              * @param {string} $symbol unified $symbol of the $market to fetch the $ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structure~
@@ -973,7 +973,7 @@ class kraken extends Exchange {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
-             * @see https://docs.kraken.com/rest/#tag/Market-Data/operation/getOHLCData
+             * @see https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getOHLCData
              * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
              * @param {string} $timeframe the length of time each candle represents
              * @param {int} [$since] timestamp in ms of the earliest candle to fetch
@@ -1018,7 +1018,7 @@ class kraken extends Exchange {
             //         }
             //     }
             $result = $this->safe_value($response, 'result', array());
-            $ohlcvs = $this->safe_value($result, $market['id'], array());
+            $ohlcvs = $this->safe_list($result, $market['id'], array());
             return $this->parse_ohlcvs($ohlcvs, $market, $timeframe, $since, $limit);
         }) ();
     }
@@ -1277,7 +1277,7 @@ class kraken extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a particular $symbol
-             * @see https://docs.kraken.com/rest/#tag/Market-Data/operation/getRecentTrades
+             * @see https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getRecentTrades
              * @param {string} $symbol unified $symbol of the $market to fetch $trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
@@ -1417,7 +1417,7 @@ class kraken extends Exchange {
             //         }
             //     }
             //
-            $result = $this->safe_value($response, 'result');
+            $result = $this->safe_dict($response, 'result');
             return $this->parse_order($result);
         }) ();
     }
@@ -1843,7 +1843,7 @@ class kraken extends Exchange {
             //         }
             //     }
             //
-            $data = $this->safe_value($response, 'result', array());
+            $data = $this->safe_dict($response, 'result', array());
             return $this->parse_order($data, $market);
         }) ();
     }
@@ -2185,8 +2185,8 @@ class kraken extends Exchange {
             if ($symbol !== null) {
                 $market = $this->market($symbol);
             }
-            $result = $this->safe_value($response, 'result', array());
-            $orders = $this->safe_value($result, 'open', array());
+            $result = $this->safe_dict($response, 'result', array());
+            $orders = $this->safe_dict($result, 'open', array());
             return $this->parse_orders($orders, $market, $since, $limit);
         }) ();
     }
@@ -2259,8 +2259,8 @@ class kraken extends Exchange {
             if ($symbol !== null) {
                 $market = $this->market($symbol);
             }
-            $result = $this->safe_value($response, 'result', array());
-            $orders = $this->safe_value($result, 'closed', array());
+            $result = $this->safe_dict($response, 'result', array());
+            $orders = $this->safe_dict($result, 'closed', array());
             return $this->parse_orders($orders, $market, $since, $limit);
         }) ();
     }
@@ -2449,7 +2449,7 @@ class kraken extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * fetches the current integer timestamp in milliseconds from the exchange server
-             * @see https://docs.kraken.com/rest/#tag/Market-Data/operation/getServerTime
+             * @see https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getServerTime
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {int} the current integer timestamp in milliseconds from the exchange server
              */
@@ -2732,7 +2732,7 @@ class kraken extends Exchange {
                 //         }
                 //     }
                 //
-                $result = $this->safe_value($response, 'result', array());
+                $result = $this->safe_dict($response, 'result', array());
                 return $this->parse_transaction($result, $currency);
             }
             throw new ExchangeError($this->id . " withdraw() requires a 'key' parameter (withdrawal key name, up on your account)");

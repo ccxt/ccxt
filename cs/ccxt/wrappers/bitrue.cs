@@ -755,9 +755,9 @@ public partial class bitrue
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> A [margin structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#add-margin-structure}.</returns>
-    public async Task<Dictionary<string, object>> SetMargin(string symbol, double amount, Dictionary<string, object> parameters = null)
+    public async Task<MarginModification> SetMargin(string symbol, double amount, Dictionary<string, object> parameters = null)
     {
         var res = await this.setMargin(symbol, amount, parameters);
-        return ((Dictionary<string, object>)res);
+        return new MarginModification(res);
     }
 }

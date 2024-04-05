@@ -354,7 +354,7 @@ class btcmarkets extends Exchange {
         );
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): array {
         /**
          * retrieves data on all markets for btcmarkets
          * @see https://docs.btcmarkets.net/v3/#tag/Market-Data-APIs/paths/{1v3}1markets/get
@@ -535,7 +535,7 @@ class btcmarkets extends Exchange {
             $request['from'] = $this->iso8601($since);
         }
         if ($limit !== null) {
-            $request['limit'] = $limit; // default is 10, max 200
+            $request['limit'] = min ($limit, 200); // default is 10, max 200
         }
         $response = $this->publicGetMarketsMarketIdCandles (array_merge($request, $params));
         //

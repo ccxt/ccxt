@@ -7,7 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.coinbase import ImplicitAPI
 import asyncio
 import hashlib
-from ccxt.base.types import Account, Balances, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Account, Balances, Currencies, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
@@ -1031,7 +1031,7 @@ class coinbase(Exchange, ImplicitAPI):
             },
         })
 
-    async def fetch_markets(self, params={}):
+    async def fetch_markets(self, params={}) -> List[Market]:
         """
         :see: https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getproducts
         :see: https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-currencies#get-fiat-currencies
@@ -1041,7 +1041,9 @@ class coinbase(Exchange, ImplicitAPI):
         :returns dict[]: an array of objects representing market data
         """
         method = self.safe_string(self.options, 'fetchMarkets', 'fetchMarketsV3')
-        return await getattr(self, method)(params)
+        if method == 'fetchMarketsV3':
+            return await self.fetch_markets_v3(params)
+        return await self.fetch_markets_v2(params)
 
     async def fetch_markets_v2(self, params={}):
         response = await self.fetch_currencies_from_cache(params)
@@ -1113,7 +1115,13 @@ class coinbase(Exchange, ImplicitAPI):
         return result
 
     async def fetch_markets_v3(self, params={}):
-        response = await self.v3PrivateGetBrokerageProducts(params)
+        promisesUnresolved = [
+            self.v3PrivateGetBrokerageProducts(params),
+            self.v3PrivateGetBrokerageTransactionSummary(params),
+        ]
+        # response = await self.v3PrivateGetBrokerageProducts(params)
+        promises = await asyncio.gather(*promisesUnresolved)
+        response = self.safe_dict(promises, 0, {})
         #
         #     [
         #         {
@@ -1148,7 +1156,8 @@ class coinbase(Exchange, ImplicitAPI):
         #         ...
         #     ]
         #
-        fees = await self.v3PrivateGetBrokerageTransactionSummary(params)
+        # fees = await self.v3PrivateGetBrokerageTransactionSummary(params)
+        fees = self.safe_dict(promises, 1, {})
         #
         #     {
         #         "total_volume": 0,
@@ -1279,7 +1288,7 @@ class coinbase(Exchange, ImplicitAPI):
             })
         return self.safe_dict(self.options, 'fetchCurrencies', {})
 
-    async def fetch_currencies(self, params={}):
+    async def fetch_currencies(self, params={}) -> Currencies:
         """
         fetches all available currencies on an exchange
         :see: https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-currencies#get-fiat-currencies
@@ -1832,6 +1841,8 @@ class coinbase(Exchange, ImplicitAPI):
         response = await self.v2PrivateGetAccountsAccountIdTransactions(self.extend(request, params))
         ledger = self.parse_ledger(response['data'], currency, since, limit)
         length = len(ledger)
+        if length == 0:
+            return ledger
         lastIndex = length - 1
         last = self.safe_dict(ledger, lastIndex)
         pagination = self.safe_dict(response, 'pagination', {})
@@ -2165,9 +2176,9 @@ class coinbase(Exchange, ImplicitAPI):
             'fee': fee,
         }
 
-    async def find_account_id(self, code):
+    async def find_account_id(self, code, params={}):
         await self.load_markets()
-        await self.load_accounts()
+        await self.load_accounts(False, params)
         for i in range(0, len(self.accounts)):
             account = self.accounts[i]
             if account['code'] == code:
@@ -2191,7 +2202,7 @@ class coinbase(Exchange, ImplicitAPI):
         if accountId is None:
             if code is None:
                 raise ArgumentsRequired(self.id + ' prepareAccountRequestWithCurrencyCode() method requires an account_id(or accountId) parameter OR a currency code argument')
-            accountId = await self.find_account_id(code)
+            accountId = await self.find_account_id(code, params)
             if accountId is None:
                 raise ExchangeError(self.id + ' prepareAccountRequestWithCurrencyCode() could not find account id for ' + code)
         request = {
@@ -2744,7 +2755,7 @@ class coinbase(Exchange, ImplicitAPI):
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchOrders', 'paginate')
         if paginate:
-            return await self.fetch_paginated_call_cursor('fetchOrders', symbol, since, limit, params, 'cursor', 'cursor', None, 100)
+            return await self.fetch_paginated_call_cursor('fetchOrders', symbol, since, limit, params, 'cursor', 'cursor', None, 1000)
         market = None
         if symbol is not None:
             market = self.market(symbol)
@@ -3220,7 +3231,7 @@ class coinbase(Exchange, ImplicitAPI):
         if accountId is None:
             if code is None:
                 raise ArgumentsRequired(self.id + ' withdraw() requires an account_id(or accountId) parameter OR a currency code argument')
-            accountId = await self.find_account_id(code)
+            accountId = await self.find_account_id(code, params)
             if accountId is None:
                 raise ExchangeError(self.id + ' withdraw() could not find account id for ' + code)
         request = {
@@ -3437,7 +3448,7 @@ class coinbase(Exchange, ImplicitAPI):
         if accountId is None:
             if code is None:
                 raise ArgumentsRequired(self.id + ' deposit() requires an account_id(or accountId) parameter OR a currency code argument')
-            accountId = await self.find_account_id(code)
+            accountId = await self.find_account_id(code, params)
             if accountId is None:
                 raise ExchangeError(self.id + ' deposit() could not find account id for ' + code)
         request = {
@@ -3502,7 +3513,7 @@ class coinbase(Exchange, ImplicitAPI):
         if accountId is None:
             if code is None:
                 raise ArgumentsRequired(self.id + ' fetchDeposit() requires an account_id(or accountId) parameter OR a currency code argument')
-            accountId = await self.find_account_id(code)
+            accountId = await self.find_account_id(code, params)
             if accountId is None:
                 raise ExchangeError(self.id + ' fetchDeposit() could not find account id for ' + code)
         request = {

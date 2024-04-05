@@ -7,7 +7,7 @@ import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { jwt } from './base/functions/rsa.js';
-import type { Int, OrderSide, OrderType, Order, Trade, OHLCV, Ticker, OrderBook, Str, Transaction, Balances, Tickers, Strings, Market, Currency, Num, Account } from './base/types.js';
+import type { Int, OrderSide, OrderType, Order, Trade, OHLCV, Ticker, OrderBook, Str, Transaction, Balances, Tickers, Strings, Market, Currency, Num, Account, Currencies } from './base/types.js';
 
 // ----------------------------------------------------------------------------
 
@@ -1070,7 +1070,7 @@ export default class coinbase extends Exchange {
         });
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name coinbase#fetchMarkets
@@ -1082,7 +1082,10 @@ export default class coinbase extends Exchange {
          * @returns {object[]} an array of objects representing market data
          */
         const method = this.safeString (this.options, 'fetchMarkets', 'fetchMarketsV3');
-        return await this[method] (params);
+        if (method === 'fetchMarketsV3') {
+            return await this.fetchMarketsV3 (params);
+        }
+        return await this.fetchMarketsV2 (params);
     }
 
     async fetchMarketsV2 (params = {}) {
@@ -1159,7 +1162,13 @@ export default class coinbase extends Exchange {
     }
 
     async fetchMarketsV3 (params = {}) {
-        const response = await this.v3PrivateGetBrokerageProducts (params);
+        const promisesUnresolved = [
+            this.v3PrivateGetBrokerageProducts (params),
+            this.v3PrivateGetBrokerageTransactionSummary (params),
+        ];
+        // const response = await this.v3PrivateGetBrokerageProducts (params);
+        const promises = await Promise.all (promisesUnresolved);
+        const response = this.safeDict (promises, 0, {});
         //
         //     [
         //         {
@@ -1194,7 +1203,8 @@ export default class coinbase extends Exchange {
         //         ...
         //     ]
         //
-        const fees = await this.v3PrivateGetBrokerageTransactionSummary (params);
+        // const fees = await this.v3PrivateGetBrokerageTransactionSummary (params);
+        const fees = this.safeDict (promises, 1, {});
         //
         //     {
         //         "total_volume": 0,
@@ -1329,7 +1339,7 @@ export default class coinbase extends Exchange {
         return this.safeDict (this.options, 'fetchCurrencies', {});
     }
 
-    async fetchCurrencies (params = {}) {
+    async fetchCurrencies (params = {}): Promise<Currencies> {
         /**
          * @method
          * @name coinbase#fetchCurrencies
@@ -1919,6 +1929,9 @@ export default class coinbase extends Exchange {
         const response = await this.v2PrivateGetAccountsAccountIdTransactions (this.extend (request, params));
         const ledger = this.parseLedger (response['data'], currency, since, limit);
         const length = ledger.length;
+        if (length === 0) {
+            return ledger;
+        }
         const lastIndex = length - 1;
         const last = this.safeDict (ledger, lastIndex);
         const pagination = this.safeDict (response, 'pagination', {});
@@ -2261,9 +2274,9 @@ export default class coinbase extends Exchange {
         };
     }
 
-    async findAccountId (code) {
+    async findAccountId (code, params = {}) {
         await this.loadMarkets ();
-        await this.loadAccounts ();
+        await this.loadAccounts (false, params);
         for (let i = 0; i < this.accounts.length; i++) {
             const account = this.accounts[i];
             if (account['code'] === code) {
@@ -2294,7 +2307,7 @@ export default class coinbase extends Exchange {
             if (code === undefined) {
                 throw new ArgumentsRequired (this.id + ' prepareAccountRequestWithCurrencyCode() method requires an account_id (or accountId) parameter OR a currency code argument');
             }
-            accountId = await this.findAccountId (code);
+            accountId = await this.findAccountId (code, params);
             if (accountId === undefined) {
                 throw new ExchangeError (this.id + ' prepareAccountRequestWithCurrencyCode() could not find account id for ' + code);
             }
@@ -2905,7 +2918,7 @@ export default class coinbase extends Exchange {
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOrders', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallCursor ('fetchOrders', symbol, since, limit, params, 'cursor', 'cursor', undefined, 100) as Order[];
+            return await this.fetchPaginatedCallCursor ('fetchOrders', symbol, since, limit, params, 'cursor', 'cursor', undefined, 1000) as Order[];
         }
         let market = undefined;
         if (symbol !== undefined) {
@@ -3441,7 +3454,7 @@ export default class coinbase extends Exchange {
             if (code === undefined) {
                 throw new ArgumentsRequired (this.id + ' withdraw() requires an account_id (or accountId) parameter OR a currency code argument');
             }
-            accountId = await this.findAccountId (code);
+            accountId = await this.findAccountId (code, params);
             if (accountId === undefined) {
                 throw new ExchangeError (this.id + ' withdraw() could not find account id for ' + code);
             }
@@ -3669,7 +3682,7 @@ export default class coinbase extends Exchange {
             if (code === undefined) {
                 throw new ArgumentsRequired (this.id + ' deposit() requires an account_id (or accountId) parameter OR a currency code argument');
             }
-            accountId = await this.findAccountId (code);
+            accountId = await this.findAccountId (code, params);
             if (accountId === undefined) {
                 throw new ExchangeError (this.id + ' deposit() could not find account id for ' + code);
             }
@@ -3740,7 +3753,7 @@ export default class coinbase extends Exchange {
             if (code === undefined) {
                 throw new ArgumentsRequired (this.id + ' fetchDeposit() requires an account_id (or accountId) parameter OR a currency code argument');
             }
-            accountId = await this.findAccountId (code);
+            accountId = await this.findAccountId (code, params);
             if (accountId === undefined) {
                 throw new ExchangeError (this.id + ' fetchDeposit() could not find account id for ' + code);
             }
@@ -3834,7 +3847,7 @@ export default class coinbase extends Exchange {
                 const isCloudAPiKey = (this.apiKey.indexOf ('organizations/') >= 0);
                 if (isCloudAPiKey) {
                     // it may not work for v2
-                    let uri = method + ' ' + url.replace('https://', '');
+                    let uri = method + ' ' + url.replace ('https://', '');
                     const quesPos = uri.indexOf ('?');
                     if (quesPos >= 0) {
                         uri = uri.slice (0, quesPos);

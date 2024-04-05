@@ -274,7 +274,7 @@ class coinspot(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        ticker = self.safe_value(prices, id)
+        ticker = self.safe_dict(prices, id)
         return self.parse_ticker(ticker, market)
 
     def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
@@ -340,7 +340,7 @@ class coinspot(Exchange, ImplicitAPI):
         #         ],
         #     }
         #
-        trades = self.safe_value(response, 'orders', [])
+        trades = self.safe_list(response, 'orders', [])
         return self.parse_trades(trades, market, since, limit)
 
     def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):

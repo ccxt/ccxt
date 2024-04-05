@@ -5,7 +5,7 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.coinmetro import ImplicitAPI
-from ccxt.base.types import Balances, Currency, IndexType, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Balances, Currencies, Currency, IndexType, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -256,7 +256,7 @@ class coinmetro(Exchange, ImplicitAPI):
             },
         })
 
-    async def fetch_currencies(self, params={}):
+    async def fetch_currencies(self, params={}) -> Currencies:
         """
         fetches all available currencies on an exchange
         :see: https://documenter.getpostman.com/view/3653795/SVfWN6KS#d5876d43-a3fe-4479-8c58-24d0f044edfb
@@ -339,7 +339,7 @@ class coinmetro(Exchange, ImplicitAPI):
             self.options['currencyIdsListForParseMarket'] = list(currenciesById.keys())
         return result
 
-    async def fetch_markets(self, params={}):
+    async def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for coinmetro
         :see: https://documenter.getpostman.com/view/3653795/SVfWN6KS#9fd18008-338e-4863-b07d-722878a46832
@@ -532,7 +532,7 @@ class coinmetro(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        candleHistory = self.safe_value(response, 'candleHistory', [])
+        candleHistory = self.safe_list(response, 'candleHistory', [])
         return self.parse_ohlcvs(candleHistory, market, timeframe, since, limit)
 
     def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
@@ -594,7 +594,7 @@ class coinmetro(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        tickHistory = self.safe_value(response, 'tickHistory', [])
+        tickHistory = self.safe_list(response, 'tickHistory', [])
         return self.parse_trades(tickHistory, market, since, limit)
 
     async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
@@ -851,7 +851,7 @@ class coinmetro(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         response = await self.publicGetExchangePrices(params)
-        latestPrices = self.safe_value(response, 'latestPrices', [])
+        latestPrices = self.safe_list(response, 'latestPrices', [])
         return self.parse_tickers(latestPrices, symbols)
 
     def parse_ticker(self, ticker, market: Market = None) -> Ticker:

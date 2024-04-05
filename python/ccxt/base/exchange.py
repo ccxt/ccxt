@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.2.76'
+__version__ = '4.2.89'
 
 # -----------------------------------------------------------------------------
 
@@ -31,7 +31,7 @@ from ccxt.base.decimal_to_precision import decimal_to_precision
 from ccxt.base.decimal_to_precision import DECIMAL_PLACES, TICK_SIZE, NO_PADDING, TRUNCATE, ROUND, ROUND_UP, ROUND_DOWN, SIGNIFICANT_DIGITS
 from ccxt.base.decimal_to_precision import number_to_string
 from ccxt.base.precise import Precise
-from ccxt.base.types import BalanceAccount, Currency, IndexType, OrderSide, OrderType, Trade, OrderRequest, Market, MarketType, Str, Num
+from ccxt.base.types import BalanceAccount, Currency, IndexType, OrderSide, OrderType, Trade, OrderRequest, Market, MarketType, Str, Num, Strings
 
 # -----------------------------------------------------------------------------
 
@@ -322,8 +322,6 @@ class Exchange(object):
         'fetchDepositAddresses': None,
         'fetchDepositAddressesByNetwork': None,
         'fetchDeposits': None,
-        'fetchFundingFee': None,
-        'fetchFundingFees': None,
         'fetchFundingHistory': None,
         'fetchFundingRate': None,
         'fetchFundingRateHistory': None,
@@ -1172,7 +1170,7 @@ class Exchange(object):
             return None
 
         try:
-            utc = datetime.datetime.utcfromtimestamp(timestamp // 1000)
+            utc = datetime.datetime.fromtimestamp(timestamp // 1000, datetime.timezone.utc)
             return utc.strftime('%Y-%m-%dT%H:%M:%S.%f')[:-6] + "{:03d}".format(int(timestamp) % 1000) + 'Z'
         except (TypeError, OverflowError, OSError):
             return None
@@ -1188,13 +1186,13 @@ class Exchange(object):
 
     @staticmethod
     def dmy(timestamp, infix='-'):
-        utc_datetime = datetime.datetime.utcfromtimestamp(int(round(timestamp / 1000)))
+        utc_datetime = datetime.datetime.fromtimestamp(int(round(timestamp / 1000)), datetime.timezone.utc)
         return utc_datetime.strftime('%m' + infix + '%d' + infix + '%Y')
 
     @staticmethod
     def ymd(timestamp, infix='-', fullYear=True):
         year_format = '%Y' if fullYear else '%y'
-        utc_datetime = datetime.datetime.utcfromtimestamp(int(round(timestamp / 1000)))
+        utc_datetime = datetime.datetime.fromtimestamp(int(round(timestamp / 1000)), datetime.timezone.utc)
         return utc_datetime.strftime(year_format + infix + '%m' + infix + '%d')
 
     @staticmethod
@@ -1207,7 +1205,7 @@ class Exchange(object):
 
     @staticmethod
     def ymdhms(timestamp, infix=' '):
-        utc_datetime = datetime.datetime.utcfromtimestamp(int(round(timestamp / 1000)))
+        utc_datetime = datetime.datetime.fromtimestamp(int(round(timestamp / 1000)), datetime.timezone.utc)
         return utc_datetime.strftime('%Y-%m-%d' + infix + '%H:%M:%S')
 
     @staticmethod
@@ -1515,13 +1513,6 @@ class Exchange(object):
         markets = self.fetch_markets(params)
         return self.set_markets(markets, currencies)
 
-    def load_fees(self, reload=False):
-        if not reload:
-            if self.loaded_fees != Exchange.loaded_fees:
-                return self.loaded_fees
-        self.loaded_fees = self.deep_extend(self.loaded_fees, self.fetch_fees())
-        return self.loaded_fees
-
     def fetch_markets(self, params={}):
         # markets are returned as a list
         # currencies are returned as a dict
@@ -1745,6 +1736,12 @@ class Exchange(object):
         modifiedContent = modifiedContent.replace('"{', '{')
         modifiedContent = modifiedContent.replace('}"', '}')
         return modifiedContent
+
+    def extend_exchange_options(self, newOptions):
+        self.options = self.extend(self.options, newOptions)
+
+    def create_safe_dictionary(self):
+        return {}
 
     # ########################################################################
     # ########################################################################
@@ -2305,7 +2302,7 @@ class Exchange(object):
             return float(stringVersion)
         return int(stringVersion)
 
-    def is_round_number(self, value):
+    def is_round_number(self, value: float):
         # self method is similar to isInteger, but self is more loyal and does not check for types.
         # i.e. isRoundNumber(1.000) returns True, while isInteger(1.000) returns False
         res = self.parse_to_numeric((value % 1))
@@ -3127,7 +3124,7 @@ class Exchange(object):
     def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}):
         raise NotSupported(self.id + ' watchOHLCV() is not supported yet')
 
-    def convert_trading_view_to_ohlcv(self, ohlcvs, timestamp='t', open='o', high='h', low='l', close='c', volume='v', ms=False):
+    def convert_trading_view_to_ohlcv(self, ohlcvs: List[List[float]], timestamp='t', open='o', high='h', low='l', close='c', volume='v', ms=False):
         result = []
         timestamps = self.safe_list(ohlcvs, timestamp, [])
         opens = self.safe_list(ohlcvs, open, [])
@@ -3146,7 +3143,7 @@ class Exchange(object):
             ])
         return result
 
-    def convert_ohlcv_to_trading_view(self, ohlcvs, timestamp='t', open='o', high='h', low='l', close='c', volume='v', ms=False):
+    def convert_ohlcv_to_trading_view(self, ohlcvs: List[List[float]], timestamp='t', open='o', high='h', low='l', close='c', volume='v', ms=False):
         result = {}
         result[timestamp] = []
         result[open] = []
@@ -3205,7 +3202,7 @@ class Exchange(object):
         else:
             raise BadResponse(errorMessage)
 
-    def market_ids(self, symbols):
+    def market_ids(self, symbols: Strings = None):
         if symbols is None:
             return symbols
         result = []
@@ -3213,7 +3210,7 @@ class Exchange(object):
             result.append(self.market_id(symbols[i]))
         return result
 
-    def market_symbols(self, symbols, type: Str = None, allowEmpty=True, sameTypeOnly=False, sameSubTypeOnly=False):
+    def market_symbols(self, symbols: Strings = None, type: Str = None, allowEmpty=True, sameTypeOnly=False, sameSubTypeOnly=False):
         if symbols is None:
             if not allowEmpty:
                 raise ArgumentsRequired(self.id + ' empty list of symbols is not supported')
@@ -3243,7 +3240,7 @@ class Exchange(object):
             result.append(symbol)
         return result
 
-    def market_codes(self, codes):
+    def market_codes(self, codes: Strings = None):
         if codes is None:
             return codes
         result = []
@@ -3753,11 +3750,11 @@ class Exchange(object):
         code = currencyId
         if currencyId is not None:
             code = self.common_currency_code(currencyId.upper())
-        return {
+        return self.safe_currency_structure({
             'id': currencyId,
             'code': code,
             'precision': None,
-        }
+        })
 
     def safe_market(self, marketId: Str, market: Market = None, delimiter: Str = None, marketType: Str = None):
         result = self.safe_market_structure({
@@ -3845,18 +3842,6 @@ class Exchange(object):
 
     def fetch_status(self, params={}):
         raise NotSupported(self.id + ' fetchStatus() is not supported yet')
-
-    def fetch_funding_fee(self, code: str, params={}):
-        warnOnFetchFundingFee = self.safe_bool(self.options, 'warnOnFetchFundingFee', True)
-        if warnOnFetchFundingFee:
-            raise NotSupported(self.id + ' fetchFundingFee() method is deprecated, it will be removed in July 2022, please, use fetchTransactionFee() or set exchange.options["warnOnFetchFundingFee"] = False to suppress self warning')
-        return self.fetch_transaction_fee(code, params)
-
-    def fetch_funding_fees(self, codes: List[str] = None, params={}):
-        warnOnFetchFundingFees = self.safe_bool(self.options, 'warnOnFetchFundingFees', True)
-        if warnOnFetchFundingFees:
-            raise NotSupported(self.id + ' fetchFundingFees() method is deprecated, it will be removed in July 2022. Please, use fetchTransactionFees() or set exchange.options["warnOnFetchFundingFees"] = False to suppress self warning')
-        return self.fetch_transaction_fees(codes, params)
 
     def fetch_transaction_fee(self, code: str, params={}):
         if not self.has['fetchTransactionFees']:
@@ -4042,6 +4027,9 @@ class Exchange(object):
 
     def fetch_order_books(self, symbols: List[str] = None, limit: Int = None, params={}):
         raise NotSupported(self.id + ' fetchOrderBooks() is not supported yet')
+
+    def watch_bids_asks(self, symbols: Strings = None, params={}):
+        raise NotSupported(self.id + ' watchBidsAsks() is not supported yet')
 
     def watch_tickers(self, symbols: List[str] = None, params={}):
         raise NotSupported(self.id + ' watchTickers() is not supported yet')
@@ -4345,6 +4333,12 @@ class Exchange(object):
     def fetch_greeks(self, symbol: str, params={}):
         raise NotSupported(self.id + ' fetchGreeks() is not supported yet')
 
+    def fetch_option_chain(self, code: str, params={}):
+        raise NotSupported(self.id + ' fetchOptionChain() is not supported yet')
+
+    def fetch_option(self, symbol: str, params={}):
+        raise NotSupported(self.id + ' fetchOption() is not supported yet')
+
     def fetch_deposits_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch history of deposits and withdrawals
@@ -4414,10 +4408,16 @@ class Exchange(object):
             'total': None,
         }
 
-    def common_currency_code(self, currency: str):
+    def common_currency_code(self, code: str):
         if not self.substituteCommonCurrencyCodes:
-            return currency
-        return self.safe_string(self.commonCurrencies, currency, currency)
+            return code
+        # if the provided code already exists value in commonCurrencies dict, then we should not again transform it
+        # more details at: https://github.com/ccxt/ccxt/issues/21112#issuecomment-2031293691
+        commonCurrencies = list(self.commonCurrencies.values())
+        exists = self.in_array(code, commonCurrencies)
+        if exists:
+            return code
+        return self.safe_string(self.commonCurrencies, code, code)
 
     def currency(self, code: str):
         if self.currencies is None:
@@ -4548,6 +4548,25 @@ class Exchange(object):
         for i in range(0, precisionNumber - 1):
             parsedPrecision = parsedPrecision + '0'
         return parsedPrecision + '1'
+
+    def integer_precision_to_amount(self, precision: Str):
+        """
+         * @ignore
+        handles positive & negative numbers too. parsePrecision() does not handle negative numbers, but self method handles
+        :param str precision: The number of digits to the right of the decimal
+        :returns str: a string number equal to 1e-precision
+        """
+        if precision is None:
+            return None
+        if Precise.string_ge(precision, '0'):
+            return self.parse_precision(precision)
+        else:
+            positivePrecisionString = Precise.string_abs(precision)
+            positivePrecision = int(positivePrecisionString)
+            parsedPrecision = '1'
+            for i in range(0, positivePrecision - 1):
+                parsedPrecision = parsedPrecision + '0'
+            return parsedPrecision + '0'
 
     def load_time_difference(self, params={}):
         serverTime = self.fetch_time(params)
@@ -4796,7 +4815,8 @@ class Exchange(object):
     def fetch_trading_fee(self, symbol: str, params={}):
         if not self.has['fetchTradingFees']:
             raise NotSupported(self.id + ' fetchTradingFee() is not supported yet')
-        return self.fetch_trading_fees(params)
+        fees = self.fetch_trading_fees(params)
+        return self.safe_dict(fees, symbol)
 
     def parse_open_interest(self, interest, market: Market = None):
         raise NotSupported(self.id + ' parseOpenInterest() is not supported yet')
@@ -4959,8 +4979,8 @@ class Exchange(object):
             entry = responseKeys[i]
             dictionary = entry if isArray else response[entry]
             currencyId = self.safe_string(dictionary, currencyIdKey) if isArray else entry
-            currency = self.safe_value(self.currencies_by_id, currencyId)
-            code = self.safe_string(currency, 'code', currencyId)
+            currency = self.safe_currency(currencyId)
+            code = self.safe_string(currency, 'code')
             if (codes is None) or (self.in_array(code, codes)):
                 depositWithdrawFees[code] = self.parseDepositWithdrawFee(dictionary, currency)
         return depositWithdrawFees
@@ -5342,6 +5362,20 @@ class Exchange(object):
     def parse_greeks(self, greeks, market: Market = None):
         raise NotSupported(self.id + ' parseGreeks() is not supported yet')
 
+    def parse_option(self, chain, currency: Currency = None, market: Market = None):
+        raise NotSupported(self.id + ' parseOption() is not supported yet')
+
+    def parse_option_chain(self, response: List[object], currencyKey: Str = None, symbolKey: Str = None):
+        optionStructures = {}
+        for i in range(0, len(response)):
+            info = response[i]
+            currencyId = self.safe_string(info, currencyKey)
+            currency = self.safe_currency(currencyId)
+            marketId = self.safe_string(info, symbolKey)
+            market = self.safe_market(marketId, None, None, 'option')
+            optionStructures[market['symbol']] = self.parseOption(info, currency, market)
+        return optionStructures
+
     def parse_margin_modes(self, response: List[object], symbols: List[str] = None, symbolKey: Str = None, marketType: MarketType = None):
         marginModeStructures = {}
         for i in range(0, len(response)):
@@ -5367,3 +5401,67 @@ class Exchange(object):
 
     def parse_leverage(self, leverage, market: Market = None):
         raise NotSupported(self.id + ' parseLeverage() is not supported yet')
+
+    def convert_expire_date(self, date: str):
+        # parse YYMMDD to datetime string
+        year = date[0:2]
+        month = date[2:4]
+        day = date[4:6]
+        reconstructedDate = '20' + year + '-' + month + '-' + day + 'T00:00:00Z'
+        return reconstructedDate
+
+    def convert_expire_date_to_market_id_date(self, date: str):
+        # parse 240119 to 19JAN24
+        year = date[0:2]
+        monthRaw = date[2:4]
+        month = None
+        day = date[4:6]
+        if monthRaw == '01':
+            month = 'JAN'
+        elif monthRaw == '02':
+            month = 'FEB'
+        elif monthRaw == '03':
+            month = 'MAR'
+        elif monthRaw == '04':
+            month = 'APR'
+        elif monthRaw == '05':
+            month = 'MAY'
+        elif monthRaw == '06':
+            month = 'JUN'
+        elif monthRaw == '07':
+            month = 'JUL'
+        elif monthRaw == '08':
+            month = 'AUG'
+        elif monthRaw == '09':
+            month = 'SEP'
+        elif monthRaw == '10':
+            month = 'OCT'
+        elif monthRaw == '11':
+            month = 'NOV'
+        elif monthRaw == '12':
+            month = 'DEC'
+        reconstructedDate = day + month + year
+        return reconstructedDate
+
+    def convert_market_id_expire_date(self, date: str):
+        # parse 19JAN24 to 240119
+        monthMappping = {
+            'JAN': '01',
+            'FEB': '02',
+            'MAR': '03',
+            'APR': '04',
+            'MAY': '05',
+            'JUN': '06',
+            'JUL': '07',
+            'AUG': '08',
+            'SEP': '09',
+            'OCT': '10',
+            'NOV': '11',
+            'DEC': '12',
+        }
+        year = date[0:2]
+        monthName = date[2:5]
+        month = self.safe_string(monthMappping, monthName)
+        day = date[5:7]
+        reconstructedDate = day + month + year
+        return reconstructedDate

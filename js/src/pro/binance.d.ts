@@ -24,9 +24,13 @@ export default class binance extends binanceRest {
     handleFetchOHLCV(client: Client, message: any): void;
     watchTicker(symbol: string, params?: {}): Promise<Ticker>;
     watchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
+    watchBidsAsks(symbols?: Strings, params?: {}): Promise<Tickers>;
+    watchMultiTickerHelper(methodName: any, channelName: string, symbols?: Strings, params?: {}): Promise<any>;
     parseWsTicker(message: any, marketType: any): Ticker;
-    handleTicker(client: Client, message: any): void;
+    handleBidsAsks(client: Client, message: any): void;
     handleTickers(client: Client, message: any): void;
+    handleTickersAndBidsAsks(client: Client, message: any, methodType: any): void;
+    getMessageHash(channelName: string, symbol: Str, isBidAsk: boolean): string;
     signParams(params?: {}): any;
     authenticate(params?: {}): Promise<void>;
     keepAliveListenKey(params?: {}): Promise<void>;

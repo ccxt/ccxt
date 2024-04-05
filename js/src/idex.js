@@ -165,13 +165,15 @@ export default class idex extends Exchange {
                 'network': 'MATIC',
             },
             'exceptions': {
-                'INVALID_ORDER_QUANTITY': InvalidOrder,
-                'INSUFFICIENT_FUNDS': InsufficientFunds,
-                'SERVICE_UNAVAILABLE': ExchangeNotAvailable,
-                'EXCEEDED_RATE_LIMIT': DDoSProtection,
-                'INVALID_PARAMETER': BadRequest,
-                'WALLET_NOT_ASSOCIATED': InvalidAddress,
-                'INVALID_WALLET_SIGNATURE': AuthenticationError,
+                'exact': {
+                    'INVALID_ORDER_QUANTITY': InvalidOrder,
+                    'INSUFFICIENT_FUNDS': InsufficientFunds,
+                    'SERVICE_UNAVAILABLE': ExchangeNotAvailable,
+                    'EXCEEDED_RATE_LIMIT': DDoSProtection,
+                    'INVALID_PARAMETER': BadRequest,
+                    'WALLET_NOT_ASSOCIATED': InvalidAddress,
+                    'INVALID_WALLET_SIGNATURE': AuthenticationError,
+                },
             },
             'requiredCredentials': {
                 'walletAddress': true,
@@ -361,7 +363,7 @@ export default class idex extends Exchange {
         //   }
         // ]
         const response = await this.publicGetTickers(this.extend(request, params));
-        const ticker = this.safeValue(response, 0);
+        const ticker = this.safeDict(response, 0);
         return this.parseTicker(ticker, market);
     }
     async fetchTickers(symbols = undefined, params = {}) {
@@ -464,7 +466,7 @@ export default class idex extends Exchange {
             request['start'] = since;
         }
         if (limit !== undefined) {
-            request['limit'] = limit;
+            request['limit'] = Math.min(limit, 1000);
         }
         const response = await this.publicGetCandles(this.extend(request, params));
         if (Array.isArray(response)) {
@@ -1491,17 +1493,14 @@ export default class idex extends Exchange {
         };
         // [ { orderId: "688336f0-ec50-11ea-9842-b332f8a34d0e" } ]
         const response = await this.privateDeleteOrders(this.extend(request, params));
-        const canceledOrder = this.safeValue(response, 0);
+        const canceledOrder = this.safeDict(response, 0);
         return this.parseOrder(canceledOrder, market);
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         const errorCode = this.safeString(response, 'code');
         const message = this.safeString(response, 'message');
-        if (errorCode in this.exceptions) {
-            const Exception = this.exceptions[errorCode];
-            throw new Exception(this.id + ' ' + message);
-        }
         if (errorCode !== undefined) {
+            this.throwExactlyMatchedException(this.exceptions['exact'], errorCode, message);
             throw new ExchangeError(this.id + ' ' + message);
         }
         return undefined;

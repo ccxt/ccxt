@@ -1034,7 +1034,7 @@ export default class ascendex extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         return this.parseTicker(data, market);
     }
     async fetchTickers(symbols = undefined, params = {}) {
@@ -1173,7 +1173,7 @@ export default class ascendex extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseOHLCVs(data, market, timeframe, since, limit);
     }
     parseTrade(trade, market = undefined) {
@@ -1246,7 +1246,7 @@ export default class ascendex extends Exchange {
         //     }
         //
         const records = this.safeValue(response, 'data', []);
-        const trades = this.safeValue(records, 'data', []);
+        const trades = this.safeList(records, 'data', []);
         return this.parseTrades(trades, market, since, limit);
     }
     parseOrderStatus(status) {
@@ -1486,6 +1486,8 @@ export default class ascendex extends Exchange {
                 'symbol': symbol,
                 'maker': this.safeNumber(takerMaker, 'maker'),
                 'taker': this.safeNumber(takerMaker, 'taker'),
+                'percentage': undefined,
+                'tierBased': undefined,
             };
         }
         return result;
@@ -1774,7 +1776,7 @@ export default class ascendex extends Exchange {
         //     }
         //
         const data = this.safeValue(response, 'data', {});
-        const info = this.safeValue(data, 'info', []);
+        const info = this.safeList(data, 'info', []);
         return this.parseOrders(info, market);
     }
     async fetchOrder(id, symbol = undefined, params = {}) {
@@ -1882,7 +1884,7 @@ export default class ascendex extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         return this.parseOrder(data, market);
     }
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -2572,7 +2574,7 @@ export default class ascendex extends Exchange {
         //     }
         //
         const data = this.safeValue(response, 'data', {});
-        const transactions = this.safeValue(data, 'data', []);
+        const transactions = this.safeList(data, 'data', []);
         return this.parseTransactions(transactions, currency, since, limit);
     }
     parseTransactionStatus(status) {
@@ -2876,15 +2878,25 @@ export default class ascendex extends Exchange {
         });
     }
     parseMarginModification(data, market = undefined) {
+        //
+        // addMargin/reduceMargin
+        //
+        //     {
+        //          "code": 0
+        //     }
+        //
         const errorCode = this.safeString(data, 'code');
         const status = (errorCode === '0') ? 'ok' : 'failed';
         return {
             'info': data,
+            'symbol': market['symbol'],
             'type': undefined,
             'amount': undefined,
+            'total': undefined,
             'code': market['quote'],
-            'symbol': market['symbol'],
             'status': status,
+            'timestamp': undefined,
+            'datetime': undefined,
         };
     }
     async reduceMargin(symbol, amount, params = {}) {
@@ -3131,7 +3143,7 @@ export default class ascendex extends Exchange {
          */
         await this.loadMarkets();
         const response = await this.v2PublicGetAssets(params);
-        const data = this.safeValue(response, 'data');
+        const data = this.safeList(response, 'data');
         return this.parseDepositWithdrawFees(data, codes, 'assetCode');
     }
     async transfer(code, amount, fromAccount, toAccount, params = {}) {
@@ -3257,7 +3269,7 @@ export default class ascendex extends Exchange {
         //     }
         //
         const data = this.safeValue(response, 'data', {});
-        const rows = this.safeValue(data, 'data', []);
+        const rows = this.safeList(data, 'data', []);
         return this.parseIncomes(rows, market, since, limit);
     }
     parseIncome(income, market = undefined) {

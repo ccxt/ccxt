@@ -276,7 +276,7 @@ class bitmex extends Exchange {
         ));
     }
 
-    public function fetch_currencies($params = array ()) {
+    public function fetch_currencies($params = array ()): array {
         /**
          * fetches all available currencies on an exchange
          * @see https://www.bitmex.com/api/explorer/#!/Wallet/Wallet_getAssetsConfig
@@ -454,7 +454,7 @@ class bitmex extends Exchange {
         return $this->convert_from_raw_quantity($symbol, $rawQuantity, 'quote');
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): array {
         /**
          * retrieves data on all markets for bitmex
          * @see https://www.bitmex.com/api/explorer/#!/Instrument/Instrument_getActive

@@ -1,5 +1,5 @@
 import Exchange from './abstract/latoken.js';
-import type { TransferEntry, Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Num } from './base/types.js';
+import type { TransferEntry, Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Num, TradingFeeInterface, Currencies } from './base/types.js';
 /**
  * @class latoken
  * @augments Exchange
@@ -8,9 +8,9 @@ export default class latoken extends Exchange {
     describe(): any;
     nonce(): number;
     fetchTime(params?: {}): Promise<number>;
-    fetchMarkets(params?: {}): Promise<any[]>;
+    fetchMarkets(params?: {}): Promise<Market[]>;
     fetchCurrenciesFromCache(params?: {}): Promise<any>;
-    fetchCurrencies(params?: {}): Promise<{}>;
+    fetchCurrencies(params?: {}): Promise<Currencies>;
     fetchBalance(params?: {}): Promise<Balances>;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     parseTicker(ticker: any, market?: Market): Ticker;
@@ -18,23 +18,22 @@ export default class latoken extends Exchange {
     fetchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
     parseTrade(trade: any, market?: Market): Trade;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
-    fetchTradingFee(symbol: string, params?: {}): Promise<{
-        info: any;
-        symbol: string;
-        maker: number;
-        taker: number;
-    }>;
+    fetchTradingFee(symbol: string, params?: {}): Promise<TradingFeeInterface>;
     fetchPublicTradingFee(symbol: string, params?: {}): Promise<{
         info: any;
         symbol: string;
         maker: number;
         taker: number;
+        percentage: any;
+        tierBased: any;
     }>;
     fetchPrivateTradingFee(symbol: string, params?: {}): Promise<{
         info: any;
         symbol: string;
         maker: number;
         taker: number;
+        percentage: any;
+        tierBased: any;
     }>;
     fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     parseOrderStatus(status: any): string;

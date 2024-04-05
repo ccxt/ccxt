@@ -981,7 +981,7 @@ export default class ascendex extends ascendexRest {
                 'key': this.apiKey,
                 'sig': signature,
             };
-            future = this.watch (url, messageHash, this.extend (request, params));
+            future = await this.watch (url, messageHash, this.extend (request, params), messageHash);
             client.subscriptions[messageHash] = future;
         }
         return future;

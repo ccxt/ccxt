@@ -814,6 +814,164 @@
                         "TRX": 0
                     }
                 }
+            },
+            {
+                "description": "cross balance",
+                "method": "fetchBalance",
+                "input": [
+                  {
+                    "marginMode": "cross"
+                  }
+                ],
+                "httpResponse": {
+                  "code": "200000",
+                  "data": {
+                    "debtRatio": "0",
+                    "accounts": [
+                      {
+                        "currency": "USDT",
+                        "totalBalance": "5",
+                        "availableBalance": "5",
+                        "holdBalance": "0",
+                        "liability": "0",
+                        "maxBorrowSize": "20"
+                      }
+                    ]
+                  }
+                },
+                "parsedResponse": {
+                  "info": {
+                    "code": "200000",
+                    "data": {
+                      "debtRatio": "0",
+                      "accounts": [
+                        {
+                          "currency": "USDT",
+                          "totalBalance": "5",
+                          "availableBalance": "5",
+                          "holdBalance": "0",
+                          "liability": "0",
+                          "maxBorrowSize": "20"
+                        }
+                      ]
+                    }
+                  },
+                  "timestamp": null,
+                  "datetime": null,
+                  "USDT": {
+                    "free": 5,
+                    "used": 0,
+                    "total": 5,
+                    "debt": 0
+                  },
+                  "free": {
+                    "USDT": 5
+                  },
+                  "used": {
+                    "USDT": 0
+                  },
+                  "total": {
+                    "USDT": 5
+                  },
+                  "debt": {
+                    "USDT": 0
+                  }
+                }
+            },
+            {
+                "description": "isolated balance",
+                "method": "fetchBalance",
+                "input": [
+                  {
+                    "marginMode": "isolated"
+                  }
+                ],
+                "httpResponse": {
+                    "code": "200000",
+                    "data": {
+                        "totalAssetOfQuoteCurrency": "5",
+                        "totalLiabilityOfQuoteCurrency": "0",
+                        "timestamp": 1712086569939,
+                        "assets": [
+                            {
+                                "symbol": "LTC-USDT",
+                                "status": "EFFECTIVE",
+                                "debtRatio": "0",
+                                "baseAsset": {
+                                    "currency": "LTC",
+                                    "borrowEnabled": true,
+                                    "transferInEnabled": true,
+                                    "total": "0",
+                                    "hold": "0",
+                                    "available": "0",
+                                    "liability": "0",
+                                    "interest": "0",
+                                    "maxBorrowSize": "0.4"
+                                },
+                                "quoteAsset": {
+                                    "currency": "USDT",
+                                    "borrowEnabled": true,
+                                    "transferInEnabled": true,
+                                    "total": "5",
+                                    "hold": "0",
+                                    "available": "5",
+                                    "liability": "0",
+                                    "interest": "0",
+                                    "maxBorrowSize": "45"
+                                }
+                            }
+                        ]
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "code": "200000",
+                        "data": {
+                            "totalAssetOfQuoteCurrency": "5",
+                            "totalLiabilityOfQuoteCurrency": "0",
+                            "timestamp": 1712086569939,
+                            "assets": [
+                                {
+                                    "symbol": "LTC-USDT",
+                                    "status": "EFFECTIVE",
+                                    "debtRatio": "0",
+                                    "baseAsset": {
+                                        "currency": "LTC",
+                                        "borrowEnabled": true,
+                                        "transferInEnabled": true,
+                                        "total": "0",
+                                        "hold": "0",
+                                        "available": "0",
+                                        "liability": "0",
+                                        "interest": "0",
+                                        "maxBorrowSize": "0.4"
+                                    },
+                                    "quoteAsset": {
+                                        "currency": "USDT",
+                                        "borrowEnabled": true,
+                                        "transferInEnabled": true,
+                                        "total": "5",
+                                        "hold": "0",
+                                        "available": "5",
+                                        "liability": "0",
+                                        "interest": "0",
+                                        "maxBorrowSize": "45"
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "timestamp": null,
+                    "datetime": null,
+                    "LTC/USDT": {
+                        "LTC":{"free":0,"used":0,"total":0,"debt":0},
+                        "USDT":{"free":5,"used":0,"total":5,"debt":0},
+                        "free":{"LTC":0,"USDT":5},
+                        "used":{"LTC":0,"USDT":0},
+                        "total":{"LTC":0,"USDT":5},
+                        "debt":{"LTC":0,"USDT":0}
+                    }
+                }
             }
         ],
         "fetchOrderBook": [

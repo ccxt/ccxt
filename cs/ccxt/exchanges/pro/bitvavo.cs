@@ -1379,7 +1379,7 @@ public partial class bitvavo : ccxt.bitvavo
                 { "timestamp", timestamp },
             };
             object message = this.extend(request, parameters);
-            future = this.watch(url, messageHash, message);
+            future = await this.watch(url, messageHash, message, messageHash);
             ((IDictionary<string,object>)((WebSocketClient)client).subscriptions)[(string)messageHash] = future;
         }
         return future;

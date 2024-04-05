@@ -109,7 +109,7 @@ class Exchange {
         this.markets_by_id = undefined;
         this.symbols = undefined;
         this.ids = undefined;
-        this.currencies = undefined;
+        this.currencies = {};
         this.baseCurrencies = undefined;
         this.quoteCurrencies = undefined;
         this.currencies_by_id = undefined;
@@ -468,6 +468,8 @@ class Exchange {
                 'fetchOpenOrder': undefined,
                 'fetchOpenOrders': undefined,
                 'fetchOpenOrdersWs': undefined,
+                'fetchOption': undefined,
+                'fetchOptionChain': undefined,
                 'fetchOrder': undefined,
                 'fetchOrderBook': true,
                 'fetchOrderBooks': undefined,
@@ -1436,6 +1438,12 @@ class Exchange {
     }
     intToBase16(elem) {
         return elem.toString(16);
+    }
+    extendExchangeOptions(newOptions) {
+        this.options = this.extend(this.options, newOptions);
+    }
+    createSafeDictionary() {
+        return {};
     }
     /* eslint-enable */
     // ------------------------------------------------------------------------
@@ -3137,7 +3145,7 @@ class Exchange {
             throw new errors.BadResponse(errorMessage);
         }
     }
-    marketIds(symbols) {
+    marketIds(symbols = undefined) {
         if (symbols === undefined) {
             return symbols;
         }
@@ -3147,7 +3155,7 @@ class Exchange {
         }
         return result;
     }
-    marketSymbols(symbols, type = undefined, allowEmpty = true, sameTypeOnly = false, sameSubTypeOnly = false) {
+    marketSymbols(symbols = undefined, type = undefined, allowEmpty = true, sameTypeOnly = false, sameSubTypeOnly = false) {
         if (symbols === undefined) {
             if (!allowEmpty) {
                 throw new errors.ArgumentsRequired(this.id + ' empty list of symbols is not supported');
@@ -3188,7 +3196,7 @@ class Exchange {
         }
         return result;
     }
-    marketCodes(codes) {
+    marketCodes(codes = undefined) {
         if (codes === undefined) {
             return codes;
         }
@@ -3780,11 +3788,11 @@ class Exchange {
         if (currencyId !== undefined) {
             code = this.commonCurrencyCode(currencyId.toUpperCase());
         }
-        return {
+        return this.safeCurrencyStructure({
             'id': currencyId,
             'code': code,
             'precision': undefined,
-        };
+        });
     }
     safeMarket(marketId, market = undefined, delimiter = undefined, marketType = undefined) {
         const result = this.safeMarketStructure({
@@ -3837,6 +3845,12 @@ class Exchange {
         return result;
     }
     checkRequiredCredentials(error = true) {
+        /**
+         * @ignore
+         * @method
+         * @param {boolean} error throw an error that a credential is required if true
+         * @returns {boolean} true if all required credentials have been set, otherwise false or an error is thrown is param error=true
+         */
         const keys = Object.keys(this.requiredCredentials);
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
@@ -3886,20 +3900,6 @@ class Exchange {
     }
     async fetchStatus(params = {}) {
         throw new errors.NotSupported(this.id + ' fetchStatus() is not supported yet');
-    }
-    async fetchFundingFee(code, params = {}) {
-        const warnOnFetchFundingFee = this.safeBool(this.options, 'warnOnFetchFundingFee', true);
-        if (warnOnFetchFundingFee) {
-            throw new errors.NotSupported(this.id + ' fetchFundingFee() method is deprecated, it will be removed in July 2022, please, use fetchTransactionFee() or set exchange.options["warnOnFetchFundingFee"] = false to suppress this warning');
-        }
-        return await this.fetchTransactionFee(code, params);
-    }
-    async fetchFundingFees(codes = undefined, params = {}) {
-        const warnOnFetchFundingFees = this.safeBool(this.options, 'warnOnFetchFundingFees', true);
-        if (warnOnFetchFundingFees) {
-            throw new errors.NotSupported(this.id + ' fetchFundingFees() method is deprecated, it will be removed in July 2022. Please, use fetchTransactionFees() or set exchange.options["warnOnFetchFundingFees"] = false to suppress this warning');
-        }
-        return await this.fetchTransactionFees(codes, params);
     }
     async fetchTransactionFee(code, params = {}) {
         if (!this.has['fetchTransactionFees']) {
@@ -4121,6 +4121,9 @@ class Exchange {
     }
     async fetchOrderBooks(symbols = undefined, limit = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' fetchOrderBooks() is not supported yet');
+    }
+    async watchBidsAsks(symbols = undefined, params = {}) {
+        throw new errors.NotSupported(this.id + ' watchBidsAsks() is not supported yet');
     }
     async watchTickers(symbols = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' watchTickers() is not supported yet');
@@ -4474,6 +4477,12 @@ class Exchange {
     async fetchGreeks(symbol, params = {}) {
         throw new errors.NotSupported(this.id + ' fetchGreeks() is not supported yet');
     }
+    async fetchOptionChain(code, params = {}) {
+        throw new errors.NotSupported(this.id + ' fetchOptionChain() is not supported yet');
+    }
+    async fetchOption(symbol, params = {}) {
+        throw new errors.NotSupported(this.id + ' fetchOption() is not supported yet');
+    }
     async fetchDepositsWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
@@ -4552,11 +4561,18 @@ class Exchange {
             'total': undefined,
         };
     }
-    commonCurrencyCode(currency) {
+    commonCurrencyCode(code) {
         if (!this.substituteCommonCurrencyCodes) {
-            return currency;
+            return code;
         }
-        return this.safeString(this.commonCurrencies, currency, currency);
+        // if the provided code already exists as a value in commonCurrencies dict, then we should not again transform it
+        // more details at: https://github.com/ccxt/ccxt/issues/21112#issuecomment-2031293691
+        const commonCurrencies = Object.values(this.commonCurrencies);
+        const exists = this.inArray(code, commonCurrencies);
+        if (exists) {
+            return code;
+        }
+        return this.safeString(this.commonCurrencies, code, code);
     }
     currency(code) {
         if (this.currencies === undefined) {
@@ -4710,6 +4726,30 @@ class Exchange {
             parsedPrecision = parsedPrecision + '0';
         }
         return parsedPrecision + '1';
+    }
+    integerPrecisionToAmount(precision) {
+        /**
+         * @ignore
+         * @method
+         * @description handles positive & negative numbers too. parsePrecision() does not handle negative numbers, but this method handles
+         * @param {string} precision The number of digits to the right of the decimal
+         * @returns {string} a string number equal to 1e-precision
+         */
+        if (precision === undefined) {
+            return undefined;
+        }
+        if (Precise["default"].stringGe(precision, '0')) {
+            return this.parsePrecision(precision);
+        }
+        else {
+            const positivePrecisionString = Precise["default"].stringAbs(precision);
+            const positivePrecision = parseInt(positivePrecisionString);
+            let parsedPrecision = '1';
+            for (let i = 0; i < positivePrecision - 1; i++) {
+                parsedPrecision = parsedPrecision + '0';
+            }
+            return parsedPrecision + '0';
+        }
     }
     async loadTimeDifference(params = {}) {
         const serverTime = await this.fetchTime(params);
@@ -4995,7 +5035,8 @@ class Exchange {
         if (!this.has['fetchTradingFees']) {
             throw new errors.NotSupported(this.id + ' fetchTradingFee() is not supported yet');
         }
-        return await this.fetchTradingFees(params);
+        const fees = await this.fetchTradingFees(params);
+        return this.safeDict(fees, symbol);
     }
     parseOpenInterest(interest, market = undefined) {
         throw new errors.NotSupported(this.id + ' parseOpenInterest () is not supported yet');
@@ -5191,8 +5232,8 @@ class Exchange {
             const entry = responseKeys[i];
             const dictionary = isArray ? entry : response[entry];
             const currencyId = isArray ? this.safeString(dictionary, currencyIdKey) : entry;
-            const currency = this.safeValue(this.currencies_by_id, currencyId);
-            const code = this.safeString(currency, 'code', currencyId);
+            const currency = this.safeCurrency(currencyId);
+            const code = this.safeString(currency, 'code');
             if ((codes === undefined) || (this.inArray(code, codes))) {
                 depositWithdrawFees[code] = this.parseDepositWithdrawFee(dictionary, currency);
             }
@@ -5652,6 +5693,21 @@ class Exchange {
     parseGreeks(greeks, market = undefined) {
         throw new errors.NotSupported(this.id + ' parseGreeks () is not supported yet');
     }
+    parseOption(chain, currency = undefined, market = undefined) {
+        throw new errors.NotSupported(this.id + ' parseOption () is not supported yet');
+    }
+    parseOptionChain(response, currencyKey = undefined, symbolKey = undefined) {
+        const optionStructures = {};
+        for (let i = 0; i < response.length; i++) {
+            const info = response[i];
+            const currencyId = this.safeString(info, currencyKey);
+            const currency = this.safeCurrency(currencyId);
+            const marketId = this.safeString(info, symbolKey);
+            const market = this.safeMarket(marketId, undefined, undefined, 'option');
+            optionStructures[market['symbol']] = this.parseOption(info, currency, market);
+        }
+        return optionStructures;
+    }
     parseMarginModes(response, symbols = undefined, symbolKey = undefined, marketType = undefined) {
         const marginModeStructures = {};
         for (let i = 0; i < response.length; i++) {
@@ -5681,6 +5737,82 @@ class Exchange {
     }
     parseLeverage(leverage, market = undefined) {
         throw new errors.NotSupported(this.id + ' parseLeverage() is not supported yet');
+    }
+    convertExpireDate(date) {
+        // parse YYMMDD to datetime string
+        const year = date.slice(0, 2);
+        const month = date.slice(2, 4);
+        const day = date.slice(4, 6);
+        const reconstructedDate = '20' + year + '-' + month + '-' + day + 'T00:00:00Z';
+        return reconstructedDate;
+    }
+    convertExpireDateToMarketIdDate(date) {
+        // parse 240119 to 19JAN24
+        const year = date.slice(0, 2);
+        const monthRaw = date.slice(2, 4);
+        let month = undefined;
+        const day = date.slice(4, 6);
+        if (monthRaw === '01') {
+            month = 'JAN';
+        }
+        else if (monthRaw === '02') {
+            month = 'FEB';
+        }
+        else if (monthRaw === '03') {
+            month = 'MAR';
+        }
+        else if (monthRaw === '04') {
+            month = 'APR';
+        }
+        else if (monthRaw === '05') {
+            month = 'MAY';
+        }
+        else if (monthRaw === '06') {
+            month = 'JUN';
+        }
+        else if (monthRaw === '07') {
+            month = 'JUL';
+        }
+        else if (monthRaw === '08') {
+            month = 'AUG';
+        }
+        else if (monthRaw === '09') {
+            month = 'SEP';
+        }
+        else if (monthRaw === '10') {
+            month = 'OCT';
+        }
+        else if (monthRaw === '11') {
+            month = 'NOV';
+        }
+        else if (monthRaw === '12') {
+            month = 'DEC';
+        }
+        const reconstructedDate = day + month + year;
+        return reconstructedDate;
+    }
+    convertMarketIdExpireDate(date) {
+        // parse 19JAN24 to 240119
+        const monthMappping = {
+            'JAN': '01',
+            'FEB': '02',
+            'MAR': '03',
+            'APR': '04',
+            'MAY': '05',
+            'JUN': '06',
+            'JUL': '07',
+            'AUG': '08',
+            'SEP': '09',
+            'OCT': '10',
+            'NOV': '11',
+            'DEC': '12',
+        };
+        const year = date.slice(0, 2);
+        const monthName = date.slice(2, 5);
+        const month = this.safeString(monthMappping, monthName);
+        const day = date.slice(5, 7);
+        const reconstructedDate = day + month + year;
+        return reconstructedDate;
     }
 }
 

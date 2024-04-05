@@ -1,14 +1,13 @@
 import Exchange from './abstract/delta.js';
-import type { Balances, Currency, Greeks, Int, Market, MarketInterface, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Position, Leverage, MarginMode, Num } from './base/types.js';
+import type { Balances, Currency, Greeks, Int, Market, MarketInterface, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Position, Leverage, MarginMode, Num, Option, MarginModification, Currencies } from './base/types.js';
 /**
  * @class delta
  * @augments Exchange
  */
 export default class delta extends Exchange {
     describe(): any;
-    convertExpireDate(date: any): string;
     createExpiredOptionMarket(symbol: string): MarketInterface;
-    safeMarket(marketId?: any, market?: any, delimiter?: any, marketType?: any): MarketInterface;
+    safeMarket(marketId?: Str, market?: Market, delimiter?: Str, marketType?: Str): MarketInterface;
     fetchTime(params?: {}): Promise<number>;
     fetchStatus(params?: {}): Promise<{
         status: string;
@@ -17,9 +16,10 @@ export default class delta extends Exchange {
         url: any;
         info: any;
     }>;
-    fetchCurrencies(params?: {}): Promise<{}>;
+    fetchCurrencies(params?: {}): Promise<Currencies>;
     loadMarkets(reload?: boolean, params?: {}): Promise<import("./base/types.js").Dictionary<MarketInterface>>;
-    fetchMarkets(params?: {}): Promise<any[]>;
+    indexByStringifiedNumericId(input: any): {};
+    fetchMarkets(params?: {}): Promise<Market[]>;
     parseTicker(ticker: any, market?: Market): Ticker;
     fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
     fetchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
@@ -115,42 +115,10 @@ export default class delta extends Exchange {
         previousFundingTimestamp: any;
         previousFundingDatetime: any;
     };
-    addMargin(symbol: string, amount: any, params?: {}): Promise<{
-        info: any;
-        type: any;
-        amount: any;
-        total: number;
-        code: any;
-        symbol: string;
-        status: any;
-    }>;
-    reduceMargin(symbol: string, amount: any, params?: {}): Promise<{
-        info: any;
-        type: any;
-        amount: any;
-        total: number;
-        code: any;
-        symbol: string;
-        status: any;
-    }>;
-    modifyMarginHelper(symbol: string, amount: any, type: any, params?: {}): Promise<{
-        info: any;
-        type: any;
-        amount: any;
-        total: number;
-        code: any;
-        symbol: string;
-        status: any;
-    }>;
-    parseMarginModification(data: any, market?: Market): {
-        info: any;
-        type: any;
-        amount: any;
-        total: number;
-        code: any;
-        symbol: string;
-        status: any;
-    };
+    addMargin(symbol: string, amount: any, params?: {}): Promise<MarginModification>;
+    reduceMargin(symbol: string, amount: any, params?: {}): Promise<MarginModification>;
+    modifyMarginHelper(symbol: string, amount: any, type: any, params?: {}): Promise<MarginModification>;
+    parseMarginModification(data: any, market?: Market): MarginModification;
     fetchOpenInterest(symbol: string, params?: {}): Promise<import("./base/types.js").OpenInterest>;
     parseOpenInterest(interest: any, market?: Market): import("./base/types.js").OpenInterest;
     fetchLeverage(symbol: string, params?: {}): Promise<Leverage>;
@@ -190,6 +158,26 @@ export default class delta extends Exchange {
     closeAllPositions(params?: {}): Promise<Position[]>;
     fetchMarginMode(symbol: string, params?: {}): Promise<MarginMode>;
     parseMarginMode(marginMode: any, market?: any): MarginMode;
+    fetchOption(symbol: string, params?: {}): Promise<Option>;
+    parseOption(chain: any, currency?: Currency, market?: Market): {
+        info: any;
+        currency: any;
+        symbol: string;
+        timestamp: number;
+        datetime: string;
+        impliedVolatility: number;
+        openInterest: number;
+        bidPrice: number;
+        askPrice: number;
+        midPrice: number;
+        markPrice: number;
+        lastPrice: any;
+        underlyingPrice: number;
+        change: any;
+        percentage: any;
+        baseVolume: number;
+        quoteVolume: any;
+    };
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;
         method: string;

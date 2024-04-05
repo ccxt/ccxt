@@ -1,56 +1,24 @@
 import Exchange from './abstract/exmo.js';
-import type { Dictionary, Int, Order, OrderSide, OrderType, Trade, OrderBook, OHLCV, Balances, Str, Transaction, Ticker, Tickers, Strings, Market, Currency, Num } from './base/types.js';
+import type { Dictionary, Int, Order, OrderSide, OrderType, Trade, OrderBook, OHLCV, Balances, Str, Transaction, Ticker, Tickers, Strings, Market, Currency, Num, MarginModification, Currencies, TradingFees } from './base/types.js';
 /**
  * @class exmo
  * @augments Exchange
  */
 export default class exmo extends Exchange {
     describe(): any;
-    modifyMarginHelper(symbol: string, amount: any, type: any, params?: {}): Promise<{
-        info: any;
-        type: any;
-        amount: any;
-        code: any;
-        symbol: string;
-        total: any;
-        status: string;
-    }>;
-    parseMarginModification(data: any, market?: Market): {
-        info: any;
-        type: any;
-        amount: any;
-        code: any;
-        symbol: string;
-        total: any;
-        status: string;
-    };
-    reduceMargin(symbol: string, amount: any, params?: {}): Promise<{
-        info: any;
-        type: any;
-        amount: any;
-        code: any;
-        symbol: string;
-        total: any;
-        status: string;
-    }>;
-    addMargin(symbol: string, amount: any, params?: {}): Promise<{
-        info: any;
-        type: any;
-        amount: any;
-        code: any;
-        symbol: string;
-        total: any;
-        status: string;
-    }>;
-    fetchTradingFees(params?: {}): Promise<{}>;
+    modifyMarginHelper(symbol: string, amount: any, type: any, params?: {}): Promise<MarginModification>;
+    parseMarginModification(data: any, market?: Market): MarginModification;
+    reduceMargin(symbol: string, amount: any, params?: {}): Promise<MarginModification>;
+    addMargin(symbol: string, amount: any, params?: {}): Promise<MarginModification>;
+    fetchTradingFees(params?: {}): Promise<TradingFees>;
     fetchPrivateTradingFees(params?: {}): Promise<{}>;
     fetchPublicTradingFees(params?: {}): Promise<{}>;
     parseFixedFloatValue(input: any): number;
     fetchTransactionFees(codes?: string[], params?: {}): Promise<{}>;
     fetchDepositWithdrawFees(codes?: Strings, params?: {}): Promise<any>;
     parseDepositWithdrawFee(fee: any, currency?: Currency): any;
-    fetchCurrencies(params?: {}): Promise<{}>;
-    fetchMarkets(params?: {}): Promise<any[]>;
+    fetchCurrencies(params?: {}): Promise<Currencies>;
+    fetchMarkets(params?: {}): Promise<Market[]>;
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     parseOHLCV(ohlcv: any, market?: Market): OHLCV;
     parseBalance(response: any): Balances;

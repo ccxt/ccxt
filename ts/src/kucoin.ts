@@ -4,9 +4,9 @@
 import Exchange from './abstract/kucoin.js';
 import { ExchangeError, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, AccountSuspended, InvalidNonce, NotSupported, BadRequest, AuthenticationError, BadSymbol, RateLimitExceeded, PermissionDenied, InvalidAddress, ArgumentsRequired } from './base/errors.js';
 import { Precise } from './base/Precise.js';
-import { TICK_SIZE } from './base/functions/number.js';
+import { TICK_SIZE, TRUNCATE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { TransferEntry, Int, OrderSide, OrderType, Order, OHLCV, Trade, Balances, OrderRequest, Str, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, Market, Num, Account } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, Order, OHLCV, Trade, Balances, OrderRequest, Str, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, Market, Num, Account, TradingFeeInterface, Currencies } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -425,6 +425,7 @@ export default class kucoin extends Exchange {
                     'Order size below the minimum requirement.': InvalidOrder, // {"code":"400100","msg":"Order size below the minimum requirement."}
                     'The withdrawal amount is below the minimum requirement.': ExchangeError, // {"code":"400100","msg":"The withdrawal amount is below the minimum requirement."}
                     'Unsuccessful! Exceeded the max. funds out-transfer limit': InsufficientFunds, // {"code":"200000","msg":"Unsuccessful! Exceeded the max. funds out-transfer limit"}
+                    'The amount increment is invalid.': BadRequest,
                     '400': BadRequest,
                     '401': AuthenticationError,
                     '403': NotSupported,
@@ -448,6 +449,56 @@ export default class kucoin extends Exchange {
                     '130202': ExchangeError, // The system is renewing the loan automatically. Please try again later
                     '130203': InsufficientFunds, // Insufficient account balance
                     '130204': BadRequest, // As the total lending amount for platform leverage reaches the platform's maximum position limit, the system suspends the borrowing function of leverage
+                    '130301': InsufficientFunds, // Insufficient account balance
+                    '130302': PermissionDenied, // Your relevant permission rights have been restricted, you can contact customer service for processing
+                    '130303': NotSupported, // The current trading pair does not support isolated positions
+                    '130304': NotSupported, // The trading function of the current trading pair is not enabled
+                    '130305': NotSupported, // The current trading pair does not support cross position
+                    '130306': NotSupported, // The account has not opened leveraged trading
+                    '130307': NotSupported, // Please reopen the leverage agreement
+                    '130308': InvalidOrder, // Position renewal freeze
+                    '130309': InvalidOrder, // Position forced liquidation freeze
+                    '130310': ExchangeError, // Abnormal leverage account status
+                    '130311': InvalidOrder, // Failed to place an order, triggering buy limit
+                    '130312': InvalidOrder, // Trigger global position limit, suspend buying
+                    '130313': InvalidOrder, // Trigger global position limit, suspend selling
+                    '130314': InvalidOrder, // Trigger the global position limit and prompt the remaining quantity available for purchase
+                    '130315': NotSupported, // This feature has been suspended due to country restrictions
+                    '126000': ExchangeError, // Abnormal margin trading
+                    '126001': NotSupported, // Users currently do not support high frequency
+                    '126002': ExchangeError, // There is a risk problem in your account and transactions are temporarily not allowed!
+                    '126003': InvalidOrder, // The commission amount is less than the minimum transaction amount for a single commission
+                    '126004': ExchangeError, // Trading pair does not exist or is prohibited
+                    '126005': PermissionDenied, // This trading pair requires advanced KYC certification before trading
+                    '126006': ExchangeError, // Trading pair is not available
+                    '126007': ExchangeError, // Trading pair suspended
+                    '126009': ExchangeError, // Trading pair is suspended from creating orders
+                    '126010': ExchangeError, // Trading pair suspended order cancellation
+                    '126011': ExchangeError, // There are too many orders in the order
+                    '126013': InsufficientFunds, // Insufficient account balance
+                    '126015': ExchangeError, // It is prohibited to place orders on this trading pair
+                    '126021': NotSupported, // This digital asset does not support user participation in your region, thank you for your understanding!
+                    '126022': InvalidOrder, // The final transaction price of your order will trigger the price protection strategy. To protect the price from deviating too much, please place an order again.
+                    '126027': InvalidOrder, // Only limit orders are supported
+                    '126028': InvalidOrder, // Only limit orders are supported before the specified time
+                    '126029': InvalidOrder, // The maximum order price is: xxx
+                    '126030': InvalidOrder, // The minimum order price is: xxx
+                    '126033': InvalidOrder, // Duplicate order
+                    '126034': InvalidOrder, // Failed to create take profit and stop loss order
+                    '126036': InvalidOrder, // Failed to create margin order
+                    '126037': ExchangeError, // Due to country and region restrictions, this function has been suspended!
+                    '126038': ExchangeError, // Third-party service call failed (internal exception)
+                    '126039': ExchangeError, // Third-party service call failed, reason: xxx
+                    '126041': ExchangeError, // clientTimestamp parameter error
+                    '126042': ExchangeError, // Exceeded maximum position limit
+                    '126043': OrderNotFound, // Order does not exist
+                    '126044': InvalidOrder, // clientOid duplicate
+                    '126045': NotSupported, // This digital asset does not support user participation in your region, thank you for your understanding!
+                    '126046': NotSupported, // This digital asset does not support your IP region, thank you for your understanding!
+                    '126047': PermissionDenied, // Please complete identity verification
+                    '126048': PermissionDenied, // Please complete authentication for the master account
+                    '135005': ExchangeError, // Margin order query business abnormality
+                    '135018': ExchangeError, // Margin order query service abnormality
                     '200004': InsufficientFunds,
                     '210014': InvalidOrder, // {"code":"210014","msg":"Exceeds the max. borrowing amount, the remaining amount you can borrow: 0USDT"}
                     '210021': InsufficientFunds, // {"code":"210021","msg":"Balance not enough"}
@@ -469,10 +520,12 @@ export default class kucoin extends Exchange {
                     '400350': InvalidOrder, // {"code":"400350","msg":"Upper limit for holding: 10,000USDT, you can still buy 10,000USDT worth of coin."}
                     '400370': InvalidOrder, // {"code":"400370","msg":"Max. price: 0.02500000000000000000"}
                     '400400': BadRequest, // Parameter error
+                    '400401': AuthenticationError, // User is not logged in
                     '400500': InvalidOrder, // {"code":"400500","msg":"Your located country/region is currently not supported for the trading of this token"}
                     '400600': BadSymbol, // {"code":"400600","msg":"validation.createOrder.symbolNotAvailable"}
                     '400760': InvalidOrder, // {"code":"400760","msg":"order price should be more than XX"}
                     '401000': BadRequest, // {"code":"401000","msg":"The interface has been deprecated"}
+                    '408000': BadRequest, // Network timeout, please try again later
                     '411100': AccountSuspended,
                     '415000': BadRequest, // {"code":"415000","msg":"Unsupported Media Type"}
                     '400303': PermissionDenied, // {"msg":"To enjoy the full range of our products and services, we kindly request you complete the identity verification process.","code":"400303"}
@@ -931,7 +984,7 @@ export default class kucoin extends Exchange {
         };
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name kucoin#fetchMarkets
@@ -1073,7 +1126,7 @@ export default class kucoin extends Exchange {
         return result;
     }
 
-    async fetchCurrencies (params = {}) {
+    async fetchCurrencies (params = {}): Promise<Currencies> {
         /**
          * @method
          * @name kucoin#fetchCurrencies
@@ -2125,6 +2178,15 @@ export default class kucoin extends Exchange {
         return this.parseOrders (data);
     }
 
+    marketOrderAmountToPrecision (symbol: string, amount) {
+        const market = this.market (symbol);
+        const result = this.decimalToPrecision (amount, TRUNCATE, market['info']['quoteIncrement'], this.precisionMode, this.paddingMode);
+        if (result === '0') {
+            throw new InvalidOrder (this.id + ' amount of ' + market['symbol'] + ' must be greater than minimum amount precision of ' + this.numberToString (market['precision']['amount']));
+        }
+        return result;
+    }
+
     createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         const market = this.market (symbol);
         // required param, cannot be used twice
@@ -2145,7 +2207,7 @@ export default class kucoin extends Exchange {
             if (quoteAmount !== undefined) {
                 params = this.omit (params, [ 'cost', 'funds' ]);
                 // kucoin uses base precision even for quote values
-                costString = this.amountToPrecision (symbol, quoteAmount);
+                costString = this.marketOrderAmountToPrecision (symbol, quoteAmount);
                 request['funds'] = costString;
             } else {
                 amountString = this.amountToPrecision (symbol, amount);
@@ -2448,8 +2510,12 @@ export default class kucoin extends Exchange {
         //             ]
         //         }
         //    }
+        const listData = this.safeList (response, 'data');
+        if (listData !== undefined) {
+            return this.parseOrders (listData, market, since, limit);
+        }
         const responseData = this.safeDict (response, 'data', {});
-        const orders = this.safeValue (responseData, 'items', responseData);
+        const orders = this.safeList (responseData, 'items', []);
         return this.parseOrders (orders, market, since, limit);
     }
 
@@ -3072,7 +3138,7 @@ export default class kucoin extends Exchange {
         }, market);
     }
 
-    async fetchTradingFee (symbol: string, params = {}) {
+    async fetchTradingFee (symbol: string, params = {}): Promise<TradingFeeInterface> {
         /**
          * @method
          * @name kucoin#fetchTradingFee
@@ -3462,9 +3528,9 @@ export default class kucoin extends Exchange {
 
     parseBalanceHelper (entry) {
         const account = this.account ();
-        account['used'] = this.safeString (entry, 'holdBalance');
-        account['free'] = this.safeString (entry, 'availableBalance');
-        account['total'] = this.safeString (entry, 'totalBalance');
+        account['used'] = this.safeString2 (entry, 'holdBalance', 'hold');
+        account['free'] = this.safeString2 (entry, 'availableBalance', 'available');
+        account['total'] = this.safeString2 (entry, 'totalBalance', 'total');
         const debt = this.safeString (entry, 'liability');
         const interest = this.safeString (entry, 'interest');
         account['debt'] = Precise.stringAdd (debt, interest);
@@ -3476,9 +3542,9 @@ export default class kucoin extends Exchange {
          * @method
          * @name kucoin#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @see https://docs.kucoin.com/#list-accounts
          * @see https://www.kucoin.com/docs/rest/account/basic-info/get-account-list-spot-margin-trade_hf
-         * @see https://docs.kucoin.com/#query-isolated-margin-account-info
+         * @see https://www.kucoin.com/docs/rest/funding/funding-overview/get-account-detail-margin
+         * @see https://www.kucoin.com/docs/rest/funding/funding-overview/get-account-detail-isolated-margin
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {object} [params.marginMode] 'cross' or 'isolated', margin type for fetching margin balance
          * @param {object} [params.type] extra parameters specific to the exchange API endpoint
@@ -3505,7 +3571,7 @@ export default class kucoin extends Exchange {
         let response = undefined;
         const request = {};
         const isolated = (marginMode === 'isolated') || (type === 'isolated');
-        const cross = (marginMode === 'cross') || (type === 'cross');
+        const cross = (marginMode === 'cross') || (type === 'margin');
         if (isolated) {
             if (currency !== undefined) {
                 request['balanceCurrency'] = currency['id'];
@@ -3521,7 +3587,7 @@ export default class kucoin extends Exchange {
             response = await this.privateGetAccounts (this.extend (request, query));
         }
         //
-        // Spot and Cross
+        // Spot
         //
         //    {
         //        "code": "200000",
@@ -3537,35 +3603,59 @@ export default class kucoin extends Exchange {
         //        ]
         //    }
         //
+        // Cross
+        //
+        //     {
+        //         "code": "200000",
+        //         "data": {
+        //             "debtRatio": "0",
+        //             "accounts": [
+        //                 {
+        //                     "currency": "USDT",
+        //                     "totalBalance": "5",
+        //                     "availableBalance": "5",
+        //                     "holdBalance": "0",
+        //                     "liability": "0",
+        //                     "maxBorrowSize": "20"
+        //                 },
+        //             ]
+        //         }
+        //     }
+        //
         // Isolated
         //
         //    {
         //        "code": "200000",
         //        "data": {
-        //            "totalConversionBalance": "0",
-        //            "liabilityConversionBalance": "0",
+        //            "totalAssetOfQuoteCurrency": "0",
+        //            "totalLiabilityOfQuoteCurrency": "0",
+        //            "timestamp": 1712085661155,
         //            "assets": [
         //                {
         //                    "symbol": "MANA-USDT",
-        //                    "status": "CLEAR",
+        //                    "status": "EFFECTIVE",
         //                    "debtRatio": "0",
         //                    "baseAsset": {
         //                        "currency": "MANA",
-        //                        "totalBalance": "0",
-        //                        "holdBalance": "0",
-        //                        "availableBalance": "0",
+        //                        "borrowEnabled": true,
+        //                        "transferInEnabled": true,
+        //                        "total": "0",
+        //                        "hold": "0",
+        //                        "available": "0",
         //                        "liability": "0",
         //                        "interest": "0",
-        //                        "borrowableAmount": "0"
+        //                        "maxBorrowSize": "0"
         //                    },
         //                    "quoteAsset": {
         //                        "currency": "USDT",
-        //                        "totalBalance": "0",
-        //                        "holdBalance": "0",
-        //                        "availableBalance": "0",
+        //                        "borrowEnabled": true,
+        //                        "transferInEnabled": true,
+        //                        "total": "0",
+        //                        "hold": "0",
+        //                        "available": "0",
         //                        "liability": "0",
         //                        "interest": "0",
-        //                        "borrowableAmount": "0"
+        //                        "maxBorrowSize": "0"
         //                    }
         //                },
         //                ...
@@ -3573,13 +3663,14 @@ export default class kucoin extends Exchange {
         //        }
         //    }
         //
-        const data = this.safeList (response, 'data', []);
+        let data = undefined;
         const result = {
             'info': response,
             'timestamp': undefined,
             'datetime': undefined,
         };
         if (isolated) {
+            data = this.safeDict (response, 'data', {});
             const assets = this.safeValue (data, 'assets', data);
             for (let i = 0; i < assets.length; i++) {
                 const entry = assets[i];
@@ -3595,6 +3686,7 @@ export default class kucoin extends Exchange {
                 result[symbol] = this.safeBalance (subResult);
             }
         } else if (cross) {
+            data = this.safeDict (response, 'data', {});
             const accounts = this.safeList (data, 'accounts', []);
             for (let i = 0; i < accounts.length; i++) {
                 const balance = accounts[i];
@@ -3603,6 +3695,7 @@ export default class kucoin extends Exchange {
                 result[codeInner] = this.parseBalanceHelper (balance);
             }
         } else {
+            data = this.safeList (response, 'data', []);
             for (let i = 0; i < data.length; i++) {
                 const balance = data[i];
                 const balanceType = this.safeString (balance, 'type');

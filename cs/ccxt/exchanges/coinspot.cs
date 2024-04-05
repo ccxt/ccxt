@@ -394,7 +394,7 @@ public partial class coinspot : Exchange
         //         }
         //     }
         //
-        object ticker = this.safeValue(prices, id);
+        object ticker = this.safeDict(prices, id);
         return this.parseTicker(ticker, market);
     }
 
@@ -474,7 +474,7 @@ public partial class coinspot : Exchange
         //         ],
         //     }
         //
-        object trades = this.safeValue(response, "orders", new List<object>() {});
+        object trades = this.safeList(response, "orders", new List<object>() {});
         return this.parseTrades(trades, market, since, limit);
     }
 

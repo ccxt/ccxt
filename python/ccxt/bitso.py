@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.bitso import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Trade, Transaction
+from ccxt.base.types import Balances, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Trade, TradingFees, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
@@ -338,7 +338,7 @@ class bitso(Exchange, ImplicitAPI):
             'info': item,
         }, currency)
 
-    def fetch_markets(self, params={}):
+    def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for bitso
         :see: https://docs.bitso.com/bitso-api/docs/list-available-books
@@ -670,7 +670,7 @@ class bitso(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        payload = self.safe_value(response, 'payload', [])
+        payload = self.safe_list(response, 'payload', [])
         return self.parse_ohlcvs(payload, market, timeframe, since, limit)
 
     def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
@@ -814,7 +814,7 @@ class bitso(Exchange, ImplicitAPI):
         response = self.publicGetTrades(self.extend(request, params))
         return self.parse_trades(response['payload'], market, since, limit)
 
-    def fetch_trading_fees(self, params={}):
+    def fetch_trading_fees(self, params={}) -> TradingFees:
         """
         fetch the trading fees for multiple markets
         :see: https://docs.bitso.com/bitso-api/docs/list-fees
@@ -1183,7 +1183,7 @@ class bitso(Exchange, ImplicitAPI):
         #     }
         #
         transactions = self.safe_value(response, 'payload', [])
-        first = self.safe_value(transactions, 0, {})
+        first = self.safe_dict(transactions, 0, {})
         return self.parse_transaction(first)
 
     def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
@@ -1224,7 +1224,7 @@ class bitso(Exchange, ImplicitAPI):
         #         }]
         #     }
         #
-        transactions = self.safe_value(response, 'payload', [])
+        transactions = self.safe_list(response, 'payload', [])
         return self.parse_transactions(transactions, currency, since, limit, params)
 
     def fetch_deposit_address(self, code: str, params={}):
@@ -1396,7 +1396,7 @@ class bitso(Exchange, ImplicitAPI):
         #        }
         #    }
         #
-        payload = self.safe_value(response, 'payload', {})
+        payload = self.safe_list(response, 'payload', [])
         return self.parse_deposit_withdraw_fees(payload, codes)
 
     def parse_deposit_withdraw_fees(self, response, codes=None, currencyIdKey=None):
@@ -1524,7 +1524,7 @@ class bitso(Exchange, ImplicitAPI):
         #     }
         #
         payload = self.safe_value(response, 'payload', [])
-        first = self.safe_value(payload, 0)
+        first = self.safe_dict(payload, 0)
         return self.parse_transaction(first, currency)
 
     def safe_network(self, networkId):
