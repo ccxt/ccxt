@@ -1739,208 +1739,208 @@ export default class htx extends Exchange {
         //         "ts":1637474595140
         //     }
         //
-        const data = this.safeList (response, 'data', []);
-        return this.parseMarkets (data);
-    }
-
-    parseMarket (market): Market {
-        let baseId = undefined;
-        let quoteId = undefined;
-        let settleId = undefined;
-        let lowercaseId = undefined;
-        let id = undefined;
-        const contractId = this.safeString (market, 'contract_code');
-        const contract = contractId !== undefined;
-        const spot = !contract;
-        let swap = false;
-        let future = false;
-        let linear = undefined;
-        let inverse = undefined;
-        // check if parsed market is contract
-        if (contract) {
-            id = contractId;
-            lowercaseId = id.toLowerCase ();
-            const delivery_date = this.safeString (market, 'delivery_date');
-            const business_type = this.safeString (market, 'business_type');
-            future = delivery_date !== undefined;
-            swap = !future;
-            linear = business_type !== undefined;
-            inverse = !linear;
-            if (swap) {
-                const parts = id.split ('-');
-                baseId = this.safeStringLower (market, 'symbol');
-                quoteId = this.safeStringLower (parts, 1);
-                settleId = inverse ? baseId : quoteId;
-            } else if (future) {
-                baseId = this.safeStringLower (market, 'symbol');
-                if (inverse) {
-                    quoteId = 'USD';
-                    settleId = baseId;
-                } else {
-                    const pair = this.safeString (market, 'pair');
-                    const parts = pair.split ('-');
+        const markets = this.safeList (response, 'data', []);
+        const numMarkets = markets.length;
+        if (numMarkets < 1) {
+            throw new OperationFailed (this.id + ' fetchMarkets() returned an empty response: ' + this.json (response));
+        }
+        const result = [];
+        for (let i = 0; i < markets.length; i++) {
+            const market = markets[i];
+            let baseId = undefined;
+            let quoteId = undefined;
+            let settleId = undefined;
+            let lowercaseId = undefined;
+            let id = undefined;
+            const contractId = this.safeString (market, 'contract_code');
+            const contract = contractId !== undefined;
+            const spot = !contract;
+            let swap = false;
+            let future = false;
+            let linear = undefined;
+            let inverse = undefined;
+            // check if parsed market is contract
+            if (contract) {
+                id = contractId;
+                lowercaseId = id.toLowerCase ();
+                const delivery_date = this.safeString (market, 'delivery_date');
+                const business_type = this.safeString (market, 'business_type');
+                future = delivery_date !== undefined;
+                swap = !future;
+                linear = business_type !== undefined;
+                inverse = !linear;
+                if (swap) {
+                    type = 'swap';
+                    const parts = id.split ('-');
+                    baseId = this.safeStringLower (market, 'symbol');
                     quoteId = this.safeStringLower (parts, 1);
-                    settleId = quoteId;
+                    settleId = inverse ? baseId : quoteId;
+                } else if (future) {
+                    type = 'future';
+                    baseId = this.safeStringLower (market, 'symbol');
+                    if (inverse) {
+                        quoteId = 'USD';
+                        settleId = baseId;
+                    } else {
+                        const pair = this.safeString (market, 'pair');
+                        const parts = pair.split ('-');
+                        quoteId = this.safeStringLower (parts, 1);
+                        settleId = quoteId;
+                    }
+                }
+            } else {
+                type = 'spot';
+                baseId = this.safeString (market, 'base-currency');
+                quoteId = this.safeString (market, 'quote-currency');
+                id = baseId + quoteId;
+                lowercaseId = id.toLowerCase ();
+            }
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
+            const settle = this.safeCurrencyCode (settleId);
+            let symbol = base + '/' + quote;
+            let expiry = undefined;
+            if (contract) {
+                if (inverse) {
+                    symbol += ':' + base;
+                } else if (linear) {
+                    symbol += ':' + quote;
+                }
+                if (future) {
+                    expiry = this.safeInteger (market, 'delivery_time');
+                    symbol += '-' + this.yymmdd (expiry);
+                    // from "Tickers" endpoint, futures market-ids format (BTC-USDT-CW or BTC_CW) is not standard and differs
+                    // from "fetchMarkets", so down below we have to map the futures market-ids to symbols
+                    const futuresCharsMaps = {
+                        'this_week': 'CW',
+                        'next_week': 'NW',
+                        'quarter': 'CQ',
+                        'next_quarter': 'NQ',
+                    };
+                    const contractType = this.safeString (market, 'contract_type');
+                    let marketId = undefined;
+                    if (linear) {
+                        // linear future, i.e. `BTC-USDT-CW`
+                        marketId = base + '-' + quote + '-' + futuresCharsMaps[contractType];
+                    } else {
+                        // inverse future, i.e. `BTC_CW`
+                        marketId = base + '_' + futuresCharsMaps[contractType];
+                    }
+                    if ('futureMarketIdsForSymbols' in this.options) {
+                        this.options['futureMarketIdsForSymbols'] = {};
+                    }
+                    this.options['futureMarketIdsForSymbols'][marketId] = symbol;
                 }
             }
-        } else {
-            baseId = this.safeString (market, 'base-currency');
-            quoteId = this.safeString (market, 'quote-currency');
-            id = baseId + quoteId;
-            lowercaseId = id.toLowerCase ();
-        }
-        const base = this.safeCurrencyCode (baseId);
-        const quote = this.safeCurrencyCode (quoteId);
-        const settle = this.safeCurrencyCode (settleId);
-        let symbol = base + '/' + quote;
-        let expiry = undefined;
-        if (contract) {
-            if (inverse) {
-                symbol += ':' + base;
-            } else if (linear) {
-                symbol += ':' + quote;
-            }
-            if (future) {
-                expiry = this.safeInteger (market, 'delivery_time');
-                symbol += '-' + this.yymmdd (expiry);
-                // from "Tickers" endpoint, futures market-ids format (BTC-USDT-CW or BTC_CW) is not standard and differs
-                // from "fetchMarkets", so down below we have to map the futures market-ids to symbols
-                const futuresCharsMaps = {
-                    'this_week': 'CW',
-                    'next_week': 'NW',
-                    'quarter': 'CQ',
-                    'next_quarter': 'NQ',
-                };
-                const contractType = this.safeString (market, 'contract_type');
-                let marketId = undefined;
+            const contractSize = this.safeNumber (market, 'contract_size');
+            let minCost = this.safeNumber (market, 'min-order-value');
+            const maxAmount = this.safeNumber (market, 'max-order-amt');
+            let minAmount = this.safeNumber (market, 'min-order-amt');
+            if (contract) {
                 if (linear) {
-                    // linear future, i.e. `BTC-USDT-CW`
-                    marketId = base + '-' + quote + '-' + futuresCharsMaps[contractType];
-                } else {
-                    // inverse future, i.e. `BTC_CW`
-                    marketId = base + '_' + futuresCharsMaps[contractType];
+                    minAmount = contractSize;
+                } else if (inverse) {
+                    minCost = contractSize;
                 }
-                if ('futureMarketIdsForSymbols' in this.options) {
-                    this.options['futureMarketIdsForSymbols'] = {};
-                }
-                this.options['futureMarketIdsForSymbols'][marketId] = symbol;
             }
-        }
-        const contractSize = this.safeNumber (market, 'contract_size');
-        let minCost = this.safeNumber (market, 'min-order-value');
-        const maxAmount = this.safeNumber (market, 'max-order-amt');
-        let minAmount = this.safeNumber (market, 'min-order-amt');
-        if (contract) {
-            if (linear) {
-                minAmount = contractSize;
-            } else if (inverse) {
-                minCost = contractSize;
+            let pricePrecision = undefined;
+            let amountPrecision = undefined;
+            let costPrecision = undefined;
+            let maker = undefined;
+            let taker = undefined;
+            let active = undefined;
+            if (spot) {
+                pricePrecision = this.parseNumber (this.parsePrecision (this.safeString (market, 'price-precision')));
+                amountPrecision = this.parseNumber (this.parsePrecision (this.safeString (market, 'amount-precision')));
+                costPrecision = this.parseNumber (this.parsePrecision (this.safeString (market, 'value-precision')));
+                maker = this.parseNumber ('0.002');
+                taker = this.parseNumber ('0.002');
+                const state = this.safeString (market, 'state');
+                active = (state === 'online');
+            } else {
+                pricePrecision = this.safeNumber (market, 'price_tick');
+                amountPrecision = this.parseNumber ('1'); // other markets have step size of 1 contract
+                maker = this.parseNumber ('0.0002');
+                taker = this.parseNumber ('0.0005');
+                const contractStatus = this.safeInteger (market, 'contract_status');
+                active = (contractStatus === 1);
             }
-        }
-        let pricePrecision = undefined;
-        let amountPrecision = undefined;
-        let costPrecision = undefined;
-        let maker = undefined;
-        let taker = undefined;
-        let active = undefined;
-        if (spot) {
-            pricePrecision = this.parseNumber (this.parsePrecision (this.safeString (market, 'price-precision')));
-            amountPrecision = this.parseNumber (this.parsePrecision (this.safeString (market, 'amount-precision')));
-            costPrecision = this.parseNumber (this.parsePrecision (this.safeString (market, 'value-precision')));
-            maker = this.parseNumber ('0.002');
-            taker = this.parseNumber ('0.002');
-            const state = this.safeString (market, 'state');
-            active = (state === 'online');
-        } else {
-            pricePrecision = this.safeNumber (market, 'price_tick');
-            amountPrecision = this.parseNumber ('1'); // other markets have step size of 1 contract
-            maker = this.parseNumber ('0.0002');
-            taker = this.parseNumber ('0.0005');
-            const contractStatus = this.safeInteger (market, 'contract_status');
-            active = (contractStatus === 1);
-        }
-        const leverageRatio = this.safeString (market, 'leverage-ratio', '1');
-        const superLeverageRatio = this.safeString (market, 'super-margin-leverage-ratio', '1');
-        const hasLeverage = Precise.stringGt (leverageRatio, '1') || Precise.stringGt (superLeverageRatio, '1');
-        // 0 Delisting
-        // 1 Listing
-        // 2 Pending Listing
-        // 3 Suspension
-        // 4 Suspending of Listing
-        // 5 In Settlement
-        // 6 Delivering
-        // 7 Settlement Completed
-        // 8 Delivered
-        // 9 Suspending of Trade
-        let created = undefined;
-        let createdDate = this.safeString (market, 'create_date'); // i.e 20230101
-        if (createdDate !== undefined) {
-            const createdArray = this.stringToCharsArray (createdDate);
-            createdDate = createdArray[0] + createdArray[1] + createdArray[2] + createdArray[3] + '-' + createdArray[4] + createdArray[5] + '-' + createdArray[6] + createdArray[7] + ' 00:00:00';
-            created = this.parse8601 (createdDate);
-        }
-        let marketType = undefined;
-        if (spot) {
-            marketType = 'spot';
-        } else if (swap) {
-            marketType = 'swap';
-        } else if (future) {
-            marketType = 'future';
-        }
-        return {
-            'id': id,
-            'lowercaseId': lowercaseId,
-            'symbol': symbol,
-            'base': base,
-            'quote': quote,
-            'settle': settle,
-            'baseId': baseId,
-            'quoteId': quoteId,
-            'settleId': settleId,
-            'type': marketType,
-            'spot': spot,
-            'margin': (spot && hasLeverage),
-            'swap': swap,
-            'future': future,
-            'option': false,
-            'active': active,
-            'contract': contract,
-            'linear': linear,
-            'inverse': inverse,
-            'taker': taker,
-            'maker': maker,
-            'contractSize': contractSize,
-            'expiry': expiry,
-            'expiryDatetime': this.iso8601 (expiry),
-            'strike': undefined,
-            'optionType': undefined,
-            'precision': {
-                'amount': amountPrecision,
-                'price': pricePrecision,
-                'cost': costPrecision,
-            },
-            'limits': {
-                'leverage': {
-                    'min': this.parseNumber ('1'),
-                    'max': this.parseNumber (leverageRatio),
-                    'superMax': this.parseNumber (superLeverageRatio),
+            const leverageRatio = this.safeString (market, 'leverage-ratio', '1');
+            const superLeverageRatio = this.safeString (market, 'super-margin-leverage-ratio', '1');
+            const hasLeverage = Precise.stringGt (leverageRatio, '1') || Precise.stringGt (superLeverageRatio, '1');
+            // 0 Delisting
+            // 1 Listing
+            // 2 Pending Listing
+            // 3 Suspension
+            // 4 Suspending of Listing
+            // 5 In Settlement
+            // 6 Delivering
+            // 7 Settlement Completed
+            // 8 Delivered
+            // 9 Suspending of Trade
+            let created = undefined;
+            let createdDate = this.safeString (market, 'create_date'); // i.e 20230101
+            if (createdDate !== undefined) {
+                const createdArray = this.stringToCharsArray (createdDate);
+                createdDate = createdArray[0] + createdArray[1] + createdArray[2] + createdArray[3] + '-' + createdArray[4] + createdArray[5] + '-' + createdArray[6] + createdArray[7] + ' 00:00:00';
+                created = this.parse8601 (createdDate);
+            }
+            result.push ({
+                'id': id,
+                'lowercaseId': lowercaseId,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'settle': settle,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'settleId': settleId,
+                'type': type,
+                'spot': spot,
+                'margin': (spot && hasLeverage),
+                'swap': swap,
+                'future': future,
+                'option': false,
+                'active': active,
+                'contract': contract,
+                'linear': linear,
+                'inverse': inverse,
+                'taker': taker,
+                'maker': maker,
+                'contractSize': contractSize,
+                'expiry': expiry,
+                'expiryDatetime': this.iso8601 (expiry),
+                'strike': undefined,
+                'optionType': undefined,
+                'precision': {
+                    'amount': amountPrecision,
+                    'price': pricePrecision,
+                    'cost': costPrecision,
                 },
-                'amount': {
-                    'min': minAmount,
-                    'max': maxAmount,
+                'limits': {
+                    'leverage': {
+                        'min': this.parseNumber ('1'),
+                        'max': this.parseNumber (leverageRatio),
+                        'superMax': this.parseNumber (superLeverageRatio),
+                    },
+                    'amount': {
+                        'min': minAmount,
+                        'max': maxAmount,
+                    },
+                    'price': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'cost': {
+                        'min': minCost,
+                        'max': undefined,
+                    },
                 },
-                'price': {
-                    'min': undefined,
-                    'max': undefined,
-                },
-                'cost': {
-                    'min': minCost,
-                    'max': undefined,
-                },
-            },
-            'created': created,
-            'info': market,
-        };
+                'created': created,
+                'info': market,
+            });
+        }
+        return result;
     }
 
     parseTicker (ticker, market: Market = undefined): Ticker {
