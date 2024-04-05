@@ -1677,6 +1677,8 @@ export default class kucoinfutures extends kucoin {
         const request = {};
         if (!stop) {
             request['status'] = status;
+        } else if (status !== 'active') {
+            throw new BadRequest (this.id + ' fetchOrdersByStatus() can only fetch untriggered stop orders');
         }
         let market = undefined;
         if (symbol !== undefined) {
