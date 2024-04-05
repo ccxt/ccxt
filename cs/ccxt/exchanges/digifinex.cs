@@ -4426,7 +4426,7 @@ public partial class digifinex : Exchange
         });
     }
 
-    public virtual object parseMarginModification(object data, object market = null)
+    public override object parseMarginModification(object data, object market = null)
     {
         //
         //     {
@@ -4442,6 +4442,7 @@ public partial class digifinex : Exchange
             { "info", data },
             { "symbol", this.safeSymbol(marketId, market, null, "swap") },
             { "type", ((bool) isTrue((isEqual(rawType, 1)))) ? "add" : "reduce" },
+            { "marginMode", "isolated" },
             { "amount", this.safeNumber(data, "amount") },
             { "total", null },
             { "code", getValue(market, "settle") },

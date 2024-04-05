@@ -3082,6 +3082,7 @@ class hitbtc(Exchange, ImplicitAPI):
             'info': data,
             'symbol': market['symbol'],
             'type': None,
+            'marginMode': 'isolated',
             'amount': None,
             'total': None,
             'code': self.safe_string(currencyInfo, 'code'),

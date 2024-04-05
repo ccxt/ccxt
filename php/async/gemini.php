@@ -112,6 +112,7 @@ class gemini extends Exchange {
                     // https://github.com/ccxt/ccxt/issues/7874
                     // https://github.com/ccxt/ccxt/issues/7894
                     'web' => 'https://docs.gemini.com',
+                    'webExchange' => 'https://exchange.gemini.com',
                 ),
                 'fees' => array(
                     'https://gemini.com/api-fee-schedule',
@@ -661,7 +662,7 @@ class gemini extends Exchange {
         $quoteId = null;
         $settleId = null;
         $tickSize = null;
-        $increment = null;
+        $amountPrecision = null;
         $minSize = null;
         $status = null;
         $swap = false;
@@ -672,9 +673,9 @@ class gemini extends Exchange {
         $isArray = (gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)));
         if (!$isString && !$isArray) {
             $marketId = $this->safe_string_lower($response, 'symbol');
+            $amountPrecision = $this->safe_number($response, 'tick_size'); // right, exchange has an imperfect naming and this turns out to be an amount-precision
+            $tickSize = $this->safe_number($response, 'quote_increment'); // this is tick-size actually
             $minSize = $this->safe_number($response, 'min_order_size');
-            $tickSize = $this->safe_number($response, 'tick_size');
-            $increment = $this->safe_number($response, 'quote_increment');
             $status = $this->parse_market_active($this->safe_string($response, 'status'));
             $baseId = $this->safe_string($response, 'base_currency');
             $quoteId = $this->safe_string($response, 'quote_currency');
@@ -685,9 +686,9 @@ class gemini extends Exchange {
                 $marketId = $response;
             } else {
                 $marketId = $this->safe_string_lower($response, 0);
-                $minSize = $this->safe_number($response, 3);
-                $tickSize = $this->parse_number($this->parse_precision($this->safe_string($response, 1)));
-                $increment = $this->parse_number($this->parse_precision($this->safe_string($response, 2)));
+                $tickSize = $this->parse_number($this->parse_precision($this->safe_string($response, 1))); // priceTickDecimalPlaces
+                $amountPrecision = $this->parse_number($this->parse_precision($this->safe_string($response, 2))); // quantityTickDecimalPlaces
+                $minSize = $this->safe_number($response, 3); // quantityMinimum
             }
             $marketIdUpper = strtoupper($marketId);
             $isPerp = (mb_strpos($marketIdUpper, 'PERP') !== false);
@@ -742,8 +743,8 @@ class gemini extends Exchange {
             'strike' => null,
             'optionType' => null,
             'precision' => array(
-                'price' => $increment,
-                'amount' => $tickSize,
+                'price' => $tickSize,
+                'amount' => $amountPrecision,
             ),
             'limits' => array(
                 'leverage' => array(
@@ -1842,7 +1843,7 @@ class gemini extends Exchange {
             if (mb_strpos($apiKey, 'account') === false) {
                 throw new AuthenticationError($this->id . ' sign() requires an account-key, master-keys are not-supported');
             }
-            $nonce = $this->nonce();
+            $nonce = (string) $this->nonce();
             $request = array_merge(array(
                 'request' => $url,
                 'nonce' => $nonce,

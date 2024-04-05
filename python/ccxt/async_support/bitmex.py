@@ -75,6 +75,7 @@ class bitmex(Exchange, ImplicitAPI):
                 'fetchLeverages': True,
                 'fetchLeverageTiers': False,
                 'fetchLiquidations': True,
+                'fetchMarginAdjustmentHistory': False,
                 'fetchMarketLeverageTiers': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,

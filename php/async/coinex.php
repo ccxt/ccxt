@@ -86,6 +86,7 @@ class coinex extends Exchange {
                 'fetchLeverage' => 'emulated',
                 'fetchLeverages' => true,
                 'fetchLeverageTiers' => true,
+                'fetchMarginAdjustmentHistory' => true,
                 'fetchMarketLeverageTiers' => 'emulated',
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
@@ -4240,11 +4241,10 @@ class coinex extends Exchange {
             //         "message":"OK"
             //     }
             //
+            $data = $this->safe_dict($response, 'data');
             $status = $this->safe_string($response, 'message');
-            $type = ($addOrReduce === 1) ? 'add' : 'reduce';
-            return array_merge($this->parse_margin_modification($response, $market), array(
+            return array_merge($this->parse_margin_modification($data, $market), array(
                 'amount' => $this->parse_number($amount),
-                'type' => $type,
                 'status' => $status,
             ));
         }) ();
@@ -4306,13 +4306,34 @@ class coinex extends Exchange {
         //        "user_id" => 3620173
         //    }
         //
-        $timestamp = $this->safe_integer_product($data, 'update_time', 1000);
+        // fetchMarginAdjustmentHistory
+        //
+        //    {
+        //        bkr_price => '0',
+        //        leverage => '3',
+        //        liq_price => '0',
+        //        margin_amount => '5.33236666666666666666',
+        //        margin_change => '3',
+        //        $market => 'XRPUSDT',
+        //        position_amount => '11',
+        //        position_id => '297155652',
+        //        position_type => '2',
+        //        settle_price => '0.6361',
+        //        time => '1711050906.382891',
+        //        $type => '1',
+        //        user_id => '3685860'
+        //    }
+        //
+        $marketId = $this->safe_string($data, 'market');
+        $type = $this->safe_string($data, 'type');
+        $timestamp = $this->safe_integer_product_2($data, 'time', 'update_time', 1000);
         return array(
             'info' => $data,
-            'symbol' => $this->safe_symbol(null, $market),
-            'type' => null,
-            'amount' => $this->safe_number($data, 'margin_amount'),
-            'total' => null,
+            'symbol' => $this->safe_symbol($marketId, $market, null, 'swap'),
+            'type' => ($type === '1') ? 'add' : 'reduce',
+            'marginMode' => 'isolated',
+            'amount' => $this->safe_number($data, 'margin_change'),
+            'total' => $this->safe_number($data, 'position_amount'),
             'code' => $market['quote'],
             'status' => null,
             'timestamp' => $timestamp,
@@ -4971,6 +4992,7 @@ class coinex extends Exchange {
         $currencyId = $this->safe_string($transfer, 'asset');
         $currencyCode = $this->safe_currency_code($currencyId, $currency);
         return array(
+            'info' => $transfer,
             'id' => $this->safe_integer($transfer, 'id'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -5813,5 +5835,78 @@ class coinex extends Exchange {
             throw new ExchangeError($feedback);
         }
         return null;
+    }
+
+    public function fetch_margin_adjustment_history(?string $symbol = null, ?string $type = null, ?float $since = null, ?float $limit = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $type, $since, $limit, $params) {
+            /**
+             * fetches the history of margin added or reduced from contract isolated positions
+             * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http046_position_margin_history
+             * @param {string} [$symbol] unified $market $symbol
+             * @param {string} [$type] not used by coinex fetchMarginAdjustmentHistory
+             * @param {int} [$since] timestamp in ms of the earliest change to fetch
+             * @param {int} [$limit] the maximum amount of changes to fetch, default=100, max=100
+             * @param {array} $params extra parameters specific to the exchange api endpoint
+             * @param {int} [$params->until] timestamp in ms of the latest change to fetch
+             *
+             * EXCHANGE SPECIFIC PARAMETERS
+             * @param {int} [$params->offset] offset
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=margin-loan-structure margin structures~
+             */
+            Async\await($this->load_markets());
+            $until = $this->safe_integer($params, 'until');
+            $params = $this->omit($params, 'until');
+            if ($limit === null) {
+                $limit = 100;
+            }
+            $request = array(
+                'market' => '',
+                'position_id' => 0,
+                'offset' => 0,
+                'limit' => $limit,
+            );
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+                $request['market'] = $market['id'];
+            }
+            if ($since !== null) {
+                $request['start_time'] = $since;
+            }
+            if ($until !== null) {
+                $request['end_time'] = $until;
+            }
+            $response = Async\await($this->v1PerpetualPrivateGetPositionMarginHistory (array_merge($request, $params)));
+            //
+            //    {
+            //        code => '0',
+            //        $data => {
+            //            $limit => '100',
+            //            offset => '0',
+            //            $records => array(
+            //                array(
+            //                    bkr_price => '0',
+            //                    leverage => '3',
+            //                    liq_price => '0',
+            //                    margin_amount => '5.33236666666666666666',
+            //                    margin_change => '3',
+            //                    $market => 'XRPUSDT',
+            //                    position_amount => '11',
+            //                    position_id => '297155652',
+            //                    position_type => '2',
+            //                    settle_price => '0.6361',
+            //                    time => '1711050906.382891',
+            //                    $type => '1',
+            //                    user_id => '3685860'
+            //                }
+            //            )
+            //        ),
+            //        message => 'OK'
+            //    }
+            //
+            $data = $this->safe_dict($response, 'data', array());
+            $records = $this->safe_list($data, 'records', array());
+            $modifications = $this->parse_margin_modifications($records, null, 'market', 'swap');
+            return $this->filter_by_symbol_since_limit($modifications, $symbol, $since, $limit);
+        }) ();
     }
 }
