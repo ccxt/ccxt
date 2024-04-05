@@ -150,7 +150,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
         return await this.watch (url, messageHash, message, subscriptionHash, subscription);
     }
 
-    async subscribeMultiple (url, messageHashes, topic, subscriptionHashes, subscription, params = {}) {
+    async subscribeMultiple (url, messageHashes, topic, subscriptionHashes, subscriptionArgs, params = {}) {
         const requestId = this.requestId ().toString ();
         const request = {
             'id': requestId,
@@ -159,15 +159,13 @@ export default class kucoinfutures extends kucoinfuturesRest {
             'response': true,
         };
         const message = this.extend (request, params);
-        const subscriptionRequest = {
+        let subscriptionRequest = {
             'id': requestId,
         };
-        if (subscription === undefined) {
-            subscription = subscriptionRequest;
-        } else {
-            subscription = this.extend (subscriptionRequest, subscription);
+        if (subscriptionArgs !== undefined) {
+            subscriptionRequest = this.extend (subscriptionRequest, subscriptionArgs);
         }
-        return await this.watchMultiple (url, messageHashes, message, subscriptionHashes, subscription);
+        return await this.watchMultiple (url, messageHashes, message, subscriptionHashes, subscriptionRequest);
     }
 
     async watchTicker (symbol: string, params = {}): Promise<Ticker> {
@@ -443,8 +441,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
             messageHashes.push ('trades:' + symbol);
             subscriptionHashes.push ('/contractMarket/execution:' + marketId);
         }
-        const subscription = {};
-        const trades = await this.subscribeMultiple (url, messageHashes, topic, subscriptionHashes, subscription, params);
+        const trades = await this.subscribeMultiple (url, messageHashes, topic, subscriptionHashes, undefined, params);
         if (this.newUpdates) {
             const first = this.safeValue (trades, 0);
             const tradeSymbol = this.safeString (first, 'symbol');
@@ -533,7 +530,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
         const marketIds = this.marketIds (symbols);
         const url = await this.negotiate (false);
         const topic = '/contractMarket/level2:' + marketIds.join (',');
-        const subscription = {
+        const subscriptionArgs = {
             'method': this.handleOrderBookSubscription,
             'symbols': symbols,
             'limit': limit,
@@ -546,7 +543,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
             messageHashes.push ('orderbook:' + symbol);
             subscriptionHashes.push ('/contractMarket/level2:' + marketId);
         }
-        const orderbook = await this.subscribeMultiple (url, messageHashes, topic, subscriptionHashes, subscription, params);
+        const orderbook = await this.subscribeMultiple (url, messageHashes, topic, subscriptionHashes, subscriptionArgs, params);
         return orderbook.limit ();
     }
 
