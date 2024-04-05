@@ -942,10 +942,7 @@ export default class htx extends Exchange {
                     'types': {
                         'spot': true,
                         'linear': true,
-                        'inverse': {
-                            'future': true,
-                            'swap': true,
-                        },
+                        'inverse': true,
                     },
                 },
                 'fetchOHLCV': {
@@ -1618,7 +1615,7 @@ export default class htx extends Exchange {
         const keys = Object.keys (types);
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
-            if (this.safeBool (types, keys[i])) {
+            if (this.safeBool (types, key)) {
                 if (key === 'spot') {
                     promises.push (this.fetchMarketsByTypeAndSubType ('spot', undefined, params));
                 } else if (key === 'linear') {
