@@ -15,6 +15,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
                 'ws': true,
                 'watchTicker': true,
                 'watchTickers': true,
+                'watchBidsAsks': true,
                 'watchTrades': true,
                 'watchOrderBook': true,
                 'watchOrders': true,
@@ -24,7 +25,6 @@ export default class kucoinfutures extends kucoinfuturesRest {
                 'watchPositionForSymbols': false,
                 'watchTradesForSymbols': true,
                 'watchOrderBookForSymbols': true,
-                'watchBidsAsks': true,
             },
             'options': {
                 'accountsByType': {
@@ -781,7 +781,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
         //
         const id = this.safeString (message, 'id');
         const subscriptionsById = this.indexBy (client.subscriptions, 'id');
-        if (!(id in client.subscriptions)) {
+        if (!(id in subscriptionsById)) {
             return;
         }
         const subscription = this.safeValue (subscriptionsById, id, {});
