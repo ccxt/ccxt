@@ -4009,7 +4009,6 @@ export default class Exchange {
         return filteredMarkets;
     }
 
-
     filterByArray (objects, key: IndexType, values = undefined, indexed = true) {
         objects = this.toArray (objects);
         // return all of them if no values were passed
