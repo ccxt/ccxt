@@ -36,6 +36,7 @@ use Web3\Contracts\TypedDataEncoder;
 use Elliptic\EC;
 use Elliptic\EdDSA;
 use BN\BN;
+use Sop\ASN1\Type\UnspecifiedType;
 use Exception;
 
 $version = '4.2.89';
@@ -1241,15 +1242,32 @@ class Exchange {
         return $hmac;
     }
 
-    public static function jwt($request, $secret, $algorithm = 'sha256', $is_rsa = false) {
+    public static function jwt($request, $secret, $algorithm = 'sha256', $is_rsa = false, $opts = []) {
         $alg = ($is_rsa ? 'RS' : 'HS') . mb_substr($algorithm, 3, 3);
-        $encodedHeader = static::urlencodeBase64(json_encode(array('alg' => $alg, 'typ' => 'JWT')));
+        if (array_key_exists('alg', $opts)) {
+            $alg = $opts['alg'];
+        }
+        $headerOptions = array(
+            'alg' => $alg,
+            'typ' => 'JWT',
+        );
+        if (array_key_exists('kid', $opts)) {
+            $headerOptions['kid'] = $opts['kid'];
+        }
+        if (array_key_exists('nonce', $opts)) {
+            $headerOptions['nonce'] = $opts['nonce'];
+        }
+        $encodedHeader = static::urlencodeBase64(json_encode($headerOptions));
         $encodedData = static::urlencodeBase64(json_encode($request, JSON_UNESCAPED_SLASHES));
         $token = $encodedHeader . '.' . $encodedData;
-        if ($is_rsa) {
+        $algoType = mb_substr($alg, 0, 2);
+        if ($is_rsa || $algoType === 'RS') {
             $signature = \base64_decode(static::rsa($token, $secret, $algorithm));
+        } else if ($algoType === 'ES') {
+            $signed = static::ecdsa($token, $secret, 'p256', $algorithm);
+            $signature = hex2bin($signed['r'] . $signed['s']);
         } else {
-            $signature =  static::hmac($token, $secret, $algorithm, 'binary');
+            $signature = static::hmac($token, $secret, $algorithm, 'binary');
         }
         return $token . '.' . static::urlencodeBase64($signature);
     }
@@ -1273,6 +1291,21 @@ class Exchange {
         $digest = $request;
         if ($hash !== null) {
             $digest = static::hash($request, $hash, 'hex');
+        }
+        if (preg_match('/^-----BEGIN EC PRIVATE KEY-----\s([\w\d+=\/\s]+)\s-----END EC PRIVATE KEY-----/', $secret, $match) >= 1) {
+            $pemKey = $match[1];
+            $decodedPemKey = UnspecifiedType::fromDER(base64_decode($pemKey))->asSequence();
+            $secret = bin2hex($decodedPemKey->at(1)->asOctetString()->string());
+            if ($decodedPemKey->hasTagged(0)) {
+                $params = $decodedPemKey->getTagged(0)->asExplicit();
+                $oid = $params->asObjectIdentifier()->oid();
+                $supportedCurve = array(
+                    '1.3.132.0.10' => 'secp256k1',
+                    '1.2.840.10045.3.1.7' => 'p256',
+                );
+                if (!array_key_exists($oid, $supportedCurve)) throw new Exception('Unsupported curve');
+                $algorithm = $supportedCurve[$oid];
+            }
         }
         $ec = new EC(strtolower($algorithm));
         $key = $ec->keyFromPrivate(ltrim($secret, '0x'));
@@ -1306,6 +1339,10 @@ class Exchange {
         $hex_secret = substr(bin2hex(base64_decode($match[1])), 32);
         $signature = $curve->sign(bin2hex(static::encode($request)), $hex_secret);
         return static::binary_to_base64(static::base16_to_binary($signature->toHex()));
+    }
+
+    public static function random_bytes($length) {
+        return bin2hex(random_bytes($length));
     }
 
     public function eth_abi_encode($types, $args) {

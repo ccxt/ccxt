@@ -39,6 +39,7 @@ from ccxt.base.types import BalanceAccount, Currency, IndexType, OrderSide, Orde
 from cryptography.hazmat import backends
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import padding
+# from cryptography.hazmat.primitives.asymmetric.utils import decode_dss_signature
 from cryptography.hazmat.primitives.serialization import load_pem_private_key
 
 # -----------------------------------------------------------------------------
@@ -1314,22 +1315,33 @@ class Exchange(object):
         return Exchange.decode(base64.b64decode(s))
 
     @staticmethod
-    def jwt(request, secret, algorithm='sha256', is_rsa=False):
+    def jwt(request, secret, algorithm='sha256', is_rsa=False, opts={}):
         algos = {
             'sha256': hashlib.sha256,
             'sha384': hashlib.sha384,
             'sha512': hashlib.sha512,
         }
         alg = ('RS' if is_rsa else 'HS') + algorithm[3:]
-        header = Exchange.encode(Exchange.json({
+        if 'alg' in opts and opts['alg'] is not None:
+            alg = opts['alg']
+        header_opts = {
             'alg': alg,
             'typ': 'JWT',
-        }))
+        }
+        if 'kid' in opts and opts['kid'] is not None:
+            header_opts['kid'] = opts['kid']
+        if 'nonce' in opts and opts['nonce'] is not None:
+            header_opts['nonce'] = opts['nonce']
+        header = Exchange.encode(Exchange.json(header_opts))
         encoded_header = Exchange.base64urlencode(header)
         encoded_data = Exchange.base64urlencode(Exchange.encode(Exchange.json(request)))
         token = encoded_header + '.' + encoded_data
-        if is_rsa:
+        algoType = alg[0:2]
+        if is_rsa or algoType == 'RS':
             signature = Exchange.base64_to_binary(Exchange.rsa(token, Exchange.decode(secret), algorithm))
+        elif algoType == 'ES':
+            rawSignature = Exchange.ecdsa(token, secret, 'p256', algorithm)
+            signature = Exchange.base16_to_binary(rawSignature['r'] + rawSignature['s'])
         else:
             signature = Exchange.hmac(Exchange.encode(token), secret, algos[algorithm], 'binary')
         return token + '.' + Exchange.base64urlencode(signature)
@@ -1363,6 +1375,10 @@ class Exchange(object):
         return "%0.2X" % num
 
     @staticmethod
+    def random_bytes(length):
+        return format(random.getrandbits(length * 8), 'x')
+
+    @staticmethod
     def ecdsa(request, secret, algorithm='p256', hash=None, fixed_length=False):
         # your welcome - frosty00
         algorithms = {
@@ -1382,7 +1398,12 @@ class Exchange(object):
             digest = Exchange.hash(encoded_request, hash, 'binary')
         else:
             digest = base64.b16decode(encoded_request, casefold=True)
-        key = ecdsa.SigningKey.from_string(base64.b16decode(Exchange.encode(secret),
+        if isinstance(secret, str):
+            secret = Exchange.encode(secret)
+        if secret.find(b'-----BEGIN EC PRIVATE KEY-----') > -1:
+            key = ecdsa.SigningKey.from_pem(secret, hash_function)
+        else:
+            key = ecdsa.SigningKey.from_string(base64.b16decode(secret,
                                                             casefold=True), curve=curve_info[0])
         r_binary, s_binary, v = key.sign_digest_deterministic(digest, hashfunc=hash_function,
                                                               sigencode=ecdsa.util.sigencode_strings_canonize)
