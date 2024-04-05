@@ -1244,17 +1244,17 @@ class Exchange {
 
     public static function jwt($request, $secret, $algorithm = 'sha256', $is_rsa = false, $opts = []) {
         $alg = ($is_rsa ? 'RS' : 'HS') . mb_substr($algorithm, 3, 3);
-        if ($opts['alg']) {
+        if (array_key_exists('alg', $opts)) {
             $alg = $opts['alg'];
         }
         $headerOptions = array(
             'alg' => $alg,
             'typ' => 'JWT',
         );
-        if ($opts['kid']) {
+        if (array_key_exists('kid', $opts)) {
             $headerOptions['kid'] = $opts['kid'];
         }
-        if ($opts['nonce']) {
+        if (array_key_exists('nonce', $opts)) {
             $headerOptions['nonce'] = $opts['nonce'];
         }
         $encodedHeader = static::urlencodeBase64(json_encode($headerOptions));
