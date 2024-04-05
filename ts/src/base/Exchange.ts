@@ -5561,6 +5561,10 @@ export default class Exchange {
         return this.safeDict (fees, symbol) as TradingFeeInterface;
     }
 
+    async fetchConvertCurrencies (params = {}): Promise<Currencies> {
+        throw new NotSupported (this.id + ' fetchConvertCurrencies() is not supported yet');
+    }
+
     parseOpenInterest (interest, market: Market = undefined): OpenInterest {
         throw new NotSupported (this.id + ' parseOpenInterest () is not supported yet');
     }
