@@ -1922,15 +1922,18 @@ export default class htx extends Exchange {
         return result;
     }
 
-    trySetSymbolFromFutureMarkets (tickerMarketId: string) {
+    trySetSymbolFromFutureMarkets (symbolOrMarketId: string) {
+        if (symbolOrMarketId in this.markets) {
+            return symbolOrMarketId;
+        }
         // from "Tickers" endpoint, futures market-ids format (BTC-USDT-CW or BTC_CW) is not standard and differs
         // from "fetchMarkets", so down below we have to map the futures market-ids to symbols
         if (!('futureMarketIdsForSymbols' in this.options)) {
             this.options['futureMarketIdsForSymbols'] = {};
         }
         const futureMarketIdsForSymbols = this.safeDict (this.options, 'futureMarketIdsForSymbols', {});
-        if (tickerMarketId in futureMarketIdsForSymbols) {
-            return futureMarketIdsForSymbols[tickerMarketId];
+        if (symbolOrMarketId in futureMarketIdsForSymbols) {
+            return futureMarketIdsForSymbols[symbolOrMarketId];
         }
         const futureMarkets = this.getMarketsForMarketType ('future', 'linear');
         const futuresCharsMaps = {
@@ -1946,13 +1949,13 @@ export default class htx extends Exchange {
             const contractSuffix = futuresCharsMaps[contractType];
             // ticker market id formats: `BTC-USDT-CW` (linear future) or `BTC_CW` (inverse future)
             const constructedId = market['linear'] ? market['base'] + '-' + market['quote'] + '-' + contractSuffix : market['base'] + '_' + contractSuffix;
-            if (constructedId === tickerMarketId) {
+            if (constructedId === symbolOrMarketId) {
                 const symbol = market['symbol'];
-                this.options['futureMarketIdsForSymbols'][tickerMarketId] = symbol;
+                this.options['futureMarketIdsForSymbols'][symbolOrMarketId] = symbol;
                 return symbol;
             }
         }
-        return tickerMarketId;
+        return symbolOrMarketId;
     }
 
     parseTicker (ticker, market: Market = undefined): Ticker {
@@ -2003,9 +2006,7 @@ export default class htx extends Exchange {
         //
         const marketId = this.safeString2 (ticker, 'symbol', 'contract_code');
         let symbol = this.safeSymbol (marketId, market);
-        if (!(symbol in this.markets)) {
-            symbol = this.trySetSymbolFromFutureMarkets (marketId);
-        }
+        symbol = this.trySetSymbolFromFutureMarkets (symbol);
         const timestamp = this.safeInteger2 (ticker, 'ts', 'quoteTime');
         let bid = undefined;
         let bidVolume = undefined;
