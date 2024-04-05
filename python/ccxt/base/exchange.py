@@ -1322,14 +1322,17 @@ class Exchange(object):
             'sha512': hashlib.sha512,
         }
         alg = ('RS' if is_rsa else 'HS') + algorithm[3:]
-        if opts['alg'] is not None:
+        if 'alg' in opts and opts['alg'] is not None:
             alg = opts['alg']
-        header = Exchange.encode(Exchange.json({
+        header_opts = {
             'alg': alg,
             'typ': 'JWT',
-            'kid': opts['kid'],
-            'nonce': opts['nonce']
-        }))
+        }
+        if 'kid' in opts and opts['kid'] is not None:
+            header_opts['kid'] = opts['kid']
+        if 'nonce' in opts and opts['nonce'] is not None:
+            header_opts['nonce'] = opts['nonce']
+        header = Exchange.encode(Exchange.json(header_opts))
         encoded_header = Exchange.base64urlencode(header)
         encoded_data = Exchange.base64urlencode(Exchange.encode(Exchange.json(request)))
         token = encoded_header + '.' + encoded_data
@@ -1397,7 +1400,7 @@ class Exchange(object):
             digest = base64.b16decode(encoded_request, casefold=True)
         if isinstance(secret, str):
             secret = Exchange.encode(secret)
-        if secret.index(b'-----BEGIN EC PRIVATE KEY-----') >= 0:
+        if secret.find(b'-----BEGIN EC PRIVATE KEY-----') > -1:
             key = ecdsa.SigningKey.from_pem(secret, hash_function)
         else:
             key = ecdsa.SigningKey.from_string(base64.b16decode(secret,
