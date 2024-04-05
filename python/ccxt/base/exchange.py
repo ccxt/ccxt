@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.2.88'
+__version__ = '4.2.89'
 
 # -----------------------------------------------------------------------------
 
@@ -3732,11 +3732,11 @@ class Exchange(object):
         code = currencyId
         if currencyId is not None:
             code = self.common_currency_code(currencyId.upper())
-        return {
+        return self.safe_currency_structure({
             'id': currencyId,
             'code': code,
             'precision': None,
-        }
+        })
 
     def safe_market(self, marketId: Str, market: Market = None, delimiter: Str = None, marketType: Str = None):
         result = self.safe_market_structure({
@@ -4390,10 +4390,16 @@ class Exchange(object):
             'total': None,
         }
 
-    def common_currency_code(self, currency: str):
+    def common_currency_code(self, code: str):
         if not self.substituteCommonCurrencyCodes:
-            return currency
-        return self.safe_string(self.commonCurrencies, currency, currency)
+            return code
+        # if the provided code already exists value in commonCurrencies dict, then we should not again transform it
+        # more details at: https://github.com/ccxt/ccxt/issues/21112#issuecomment-2031293691
+        commonCurrencies = list(self.commonCurrencies.values())
+        exists = self.in_array(code, commonCurrencies)
+        if exists:
+            return code
+        return self.safe_string(self.commonCurrencies, code, code)
 
     def currency(self, code: str):
         if self.currencies is None:
@@ -4791,7 +4797,8 @@ class Exchange(object):
     def fetch_trading_fee(self, symbol: str, params={}):
         if not self.has['fetchTradingFees']:
             raise NotSupported(self.id + ' fetchTradingFee() is not supported yet')
-        return self.fetch_trading_fees(params)
+        fees = self.fetch_trading_fees(params)
+        return self.safe_dict(fees, symbol)
 
     def parse_open_interest(self, interest, market: Market = None):
         raise NotSupported(self.id + ' parseOpenInterest() is not supported yet')

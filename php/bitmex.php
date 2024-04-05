@@ -276,7 +276,7 @@ class bitmex extends Exchange {
         ));
     }
 
-    public function fetch_currencies($params = array ()) {
+    public function fetch_currencies($params = array ()): array {
         /**
          * fetches all available currencies on an exchange
          * @see https://www.bitmex.com/api/explorer/#!/Wallet/Wallet_getAssetsConfig

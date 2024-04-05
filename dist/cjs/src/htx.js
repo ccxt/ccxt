@@ -1500,6 +1500,8 @@ class htx extends htx$1 {
             'symbol': this.safeSymbol(marketId, market),
             'maker': this.safeNumber(fee, 'actualMakerRate'),
             'taker': this.safeNumber(fee, 'actualTakerRate'),
+            'percentage': undefined,
+            'tierBased': undefined,
         };
     }
     async fetchTradingFee(symbol, params = {}) {

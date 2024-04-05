@@ -1503,6 +1503,8 @@ export default class htx extends Exchange {
             'symbol': this.safeSymbol(marketId, market),
             'maker': this.safeNumber(fee, 'actualMakerRate'),
             'taker': this.safeNumber(fee, 'actualTakerRate'),
+            'percentage': undefined,
+            'tierBased': undefined,
         };
     }
     async fetchTradingFee(symbol, params = {}) {

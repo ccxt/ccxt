@@ -1834,7 +1834,7 @@ class bitget extends Exchange {
         }) ();
     }
 
-    public function fetch_currencies($params = array ()) {
+    public function fetch_currencies($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches all available currencies on an exchange
@@ -2631,7 +2631,11 @@ class bitget extends Exchange {
         //
         $marketId = $this->safe_string($ticker, 'symbol');
         $close = $this->safe_string($ticker, 'lastPr');
-        $timestamp = $this->safe_integer($ticker, 'ts');
+        $timestampString = $this->omit_zero($this->safe_string($ticker, 'ts')); // exchange sometimes provided 0
+        $timestamp = null;
+        if ($timestampString !== null) {
+            $timestamp = $this->parse_to_int($timestampString);
+        }
         $change = $this->safe_string($ticker, 'change24h');
         $open24 = $this->safe_string($ticker, 'open24');
         $open = $this->safe_string($ticker, 'open');
@@ -3104,7 +3108,7 @@ class bitget extends Exchange {
         }) ();
     }
 
-    public function fetch_trading_fee(string $symbol, $params = array ()) {
+    public function fetch_trading_fee(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch the trading fees for a $market
@@ -3147,7 +3151,7 @@ class bitget extends Exchange {
         }) ();
     }
 
-    public function fetch_trading_fees($params = array ()) {
+    public function fetch_trading_fees($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetch the trading fees for multiple markets
@@ -3273,6 +3277,8 @@ class bitget extends Exchange {
             'symbol' => $this->safe_symbol($marketId, $market),
             'maker' => $this->safe_number($data, 'makerFeeRate'),
             'taker' => $this->safe_number($data, 'takerFeeRate'),
+            'percentage' => null,
+            'tierBased' => null,
         );
     }
 

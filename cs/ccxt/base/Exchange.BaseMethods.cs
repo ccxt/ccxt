@@ -3041,11 +3041,11 @@ public partial class Exchange
         {
             code = this.commonCurrencyCode(((string)currencyId).ToUpper());
         }
-        return new Dictionary<string, object>() {
+        return this.safeCurrencyStructure(new Dictionary<string, object>() {
             { "id", currencyId },
             { "code", code },
             { "precision", null },
-        };
+        });
     }
 
     public virtual object safeMarket(object marketId, object market = null, object delimiter = null, object marketType = null)
@@ -4136,13 +4136,21 @@ public partial class Exchange
         };
     }
 
-    public virtual object commonCurrencyCode(object currency)
+    public virtual object commonCurrencyCode(object code)
     {
         if (!isTrue(this.substituteCommonCurrencyCodes))
         {
-            return currency;
+            return code;
         }
-        return this.safeString(this.commonCurrencies, currency, currency);
+        // if the provided code already exists as a value in commonCurrencies dict, then we should not again transform it
+        // more details at: https://github.com/ccxt/ccxt/issues/21112#issuecomment-2031293691
+        object commonCurrencies = new List<object>(((IDictionary<string,object>)this.commonCurrencies).Values);
+        object exists = this.inArray(code, commonCurrencies);
+        if (isTrue(exists))
+        {
+            return code;
+        }
+        return this.safeString(this.commonCurrencies, code, code);
     }
 
     public virtual object currency(object code)
@@ -4791,7 +4799,8 @@ public partial class Exchange
         {
             throw new NotSupported ((string)add(this.id, " fetchTradingFee() is not supported yet")) ;
         }
-        return await this.fetchTradingFees(parameters);
+        object fees = await this.fetchTradingFees(parameters);
+        return this.safeDict(fees, symbol);
     }
 
     public virtual object parseOpenInterest(object interest, object market = null)

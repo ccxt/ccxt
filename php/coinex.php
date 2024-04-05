@@ -474,7 +474,7 @@ class coinex extends Exchange {
         ));
     }
 
-    public function fetch_currencies($params = array ()) {
+    public function fetch_currencies($params = array ()): array {
         $response = $this->v1PublicGetCommonAssetConfig ($params);
         //     {
         //         "code" => 0,
@@ -1324,7 +1324,7 @@ class coinex extends Exchange {
         return $this->parse_trades($response['data'], $market, $since, $limit);
     }
 
-    public function fetch_trading_fee(string $symbol, $params = array ()) {
+    public function fetch_trading_fee(string $symbol, $params = array ()): array {
         /**
          * fetch the trading fees for a $market
          * @see https://docs.coinex.com/api/v2/spot/market/http/list-$market
@@ -1390,7 +1390,7 @@ class coinex extends Exchange {
         return $this->parse_trading_fee($result, $market);
     }
 
-    public function fetch_trading_fees($params = array ()) {
+    public function fetch_trading_fees($params = array ()): array {
         /**
          * fetch the trading fees for multiple markets
          * @see https://docs.coinex.com/api/v2/spot/market/http/list-$market
@@ -1460,7 +1460,7 @@ class coinex extends Exchange {
         return $result;
     }
 
-    public function parse_trading_fee($fee, ?array $market = null) {
+    public function parse_trading_fee($fee, ?array $market = null): array {
         $marketId = $this->safe_value($fee, 'market');
         $symbol = $this->safe_symbol($marketId, $market);
         return array(
