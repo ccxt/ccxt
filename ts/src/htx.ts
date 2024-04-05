@@ -1697,20 +1697,20 @@ export default class htx extends Exchange {
         //         "status":"ok",
         //         "data":[
         //             {
-        //                 "symbol": "BTC",
-        //                 "contract_code": "BTC-USDT", // or "BTC-USDT-240329"
-        //                 "pair": "BTC-USDT",
-        //                 "contract_size": 0.001,
-        //                 "price_tick": 0.1,
-        //                 "delivery_date": "", // has value if "futures"
-        //                 "delivery_time": "",
-        //                 "create_date": "20201021",
-        //                 "contract_status": 1,
-        //                 "settlement_date": "1711641600000",
-        //                 "trade_partition": "USDT",
-        //                 "business_type": "swap", // swap | futures
-        //                 "contract_type": "swap", // swap | this_week | next_week | quarter
-        //                 "support_margin_mode": "all", // all | cross
+        //                 "symbol":"BTC",
+        //                 "contract_code":"BTC-USDT", // or "BTC-USDT-240329"
+        //                 "pair":"BTC-USDT",
+        //                 "contract_size":0.001,
+        //                 "price_tick":0.1,
+        //                 "delivery_date":"", // has value if "futures"
+        //                 "delivery_time":"",
+        //                 "create_date":"20201021",
+        //                 "contract_status":1,
+        //                 "settlement_date":"1711641600000",
+        //                 "trade_partition":"USDT",
+        //                 "business_type":"swap", // swap | futures
+        //                 "contract_type":"swap", // swap | this_week | next_week | quarter
+        //                 "support_margin_mode":"all", // all | cross
         //             }
         //         ],
         //         "ts":1640736207263
@@ -1719,17 +1719,17 @@ export default class htx extends Exchange {
         // inverse (swap & future)
         //
         //     {
-        //         "status": "ok",
-        //         "data": [
+        //         "status":"ok",
+        //         "data":[
         //             {
-        //                 "symbol": "BTC",
-        //                 "contract_code": "BTC-USD",
-        //                 "contract_size": 100,
-        //                 "price_tick": 0.1,
-        //                 "delivery_time": "",
-        //                 "create_date": "20200325",
-        //                 "contract_status": 1,
-        //                 "settlement_date": "1711641600000" // only in inverse swap
+        //                 "symbol":"BTC",
+        //                 "contract_code":"BTC-USD",
+        //                 "contract_size":100,
+        //                 "price_tick":0.1,
+        //                 "delivery_time":"",
+        //                 "create_date":"20200325",
+        //                 "contract_status":1,
+        //                 "settlement_date":"1711641600000" // only in inverse swap
         //                 "delivery_date":"20240329", // only in inverse future
         //                 "contract_type":"this_week", // only in inverse future
         //                 "settlement_time":"1711699200000" // only in inverse future
