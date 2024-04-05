@@ -531,7 +531,6 @@ export default class kucoinfutures extends kucoinfuturesRest {
         const url = await this.negotiate (false);
         const topic = '/contractMarket/level2:' + marketIds.join (',');
         const subscriptionArgs = {
-            'method': this.handleOrderBookSubscription,
             'symbols': symbols,
             'limit': limit,
         };
@@ -596,11 +595,11 @@ export default class kucoinfutures extends kucoinfuturesRest {
         const marketId = this.safeString (topicParts, 1);
         const symbol = this.safeSymbol (marketId, undefined, '-');
         const messageHash = 'orderbook:' + symbol;
-        const storedOrderBook = this.safeValue (this.orderbooks, symbol);
-        const nonce = this.safeInteger (storedOrderBook, 'nonce');
-        if (storedOrderBook === undefined) {
-            return; // this shouldn't be needed, but for some reason sometimes this runs before handleOrderBookSubscription in c#
+        if (!(symbol in this.orderbooks)) {
+            this.orderbooks[symbol] = this.orderBook ({}, undefined);
         }
+        const storedOrderBook = this.orderbooks[symbol];
+        const nonce = this.safeInteger (storedOrderBook, 'nonce');
         const deltaEnd = this.safeInteger (data, 'sequence');
         if (nonce === undefined) {
             const cacheLength = storedOrderBook.cache.length;
@@ -645,40 +644,6 @@ export default class kucoinfutures extends kucoinfuturesRest {
             }
         }
         return cache.length;
-    }
-
-    handleOrderBookSubscription (client: Client, message, subscription) {
-        const limit = this.safeInteger (subscription, 'limit');
-        const symbols = this.safeValue (subscription, 'symbols');
-        if (symbols === undefined) {
-            const symbol = this.safeString (subscription, 'symbol');
-            this.orderbooks[symbol] = this.orderBook ({}, limit);
-        } else {
-            for (let i = 0; i < symbols.length; i++) {
-                const symbol = symbols[i];
-                this.orderbooks[symbol] = this.orderBook ({}, limit);
-            }
-        }
-        // moved snapshot initialization to handleOrderBook to fix
-        // https://github.com/ccxt/ccxt/issues/6820
-        // the general idea is to fetch the snapshot after the first delta
-        // but not before, because otherwise we cannot synchronize the feed
-    }
-
-    handleSubscriptionStatus (client: Client, message) {
-        //
-        //     {
-        //         "id": "1578090438322",
-        //         "type": "ack"
-        //     }
-        //
-        const id = this.safeString (message, 'id');
-        const subscriptionsById = this.indexBy (client.subscriptions, 'id');
-        const subscription = this.safeValue (subscriptionsById, id, {});
-        const method = this.safeValue (subscription, 'method');
-        if (method !== undefined) {
-            method.call (this, client, message, subscription);
-        }
     }
 
     handleSystemStatus (client: Client, message) {
@@ -1005,7 +970,6 @@ export default class kucoinfutures extends kucoinfuturesRest {
         const methods = {
             // 'heartbeat': this.handleHeartbeat,
             'welcome': this.handleSystemStatus,
-            'ack': this.handleSubscriptionStatus,
             'message': this.handleSubject,
             'pong': this.handlePong,
             'error': this.handleErrorMessage,
