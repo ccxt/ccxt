@@ -596,7 +596,9 @@ export default class kucoinfutures extends kucoinfuturesRest {
         const symbol = this.safeSymbol (marketId, undefined, '-');
         const messageHash = 'orderbook:' + symbol;
         if (!(symbol in this.orderbooks)) {
-            this.orderbooks[symbol] = this.orderBook ({}, undefined);
+            const subscriptionArgs = this.safeDict (client.subscriptions, topic, {});
+            const limit = this.safeInteger (subscriptionArgs, 'limit');
+            this.orderbooks[symbol] = this.orderBook ({}, limit);
         }
         const storedOrderBook = this.orderbooks[symbol];
         const nonce = this.safeInteger (storedOrderBook, 'nonce');
