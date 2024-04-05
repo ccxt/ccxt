@@ -3,7 +3,6 @@ using System.Security.Cryptography;
 using System.IO.Compression;
 using Cryptography.ECDSA;
 using Nethereum.Util;
-using System.IO;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.OpenSsl;
 using Org.BouncyCastle.Asn1.Nist;
