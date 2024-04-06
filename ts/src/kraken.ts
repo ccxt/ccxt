@@ -654,8 +654,13 @@ export default class kraken extends Exchange {
         //     {
         //         "error": [],
         //         "result": {
-        //             "ADA": { "aclass": "currency", "altname": "ADA", "decimals": 8, "display_decimals": 6 },
-        //             "BCH": { "aclass": "currency", "altname": "BCH", "decimals": 10, "display_decimals": 5 },
+        //             "BCH": {
+        //                 "aclass": "currency",
+        //                 "altname": "BCH",
+        //                 "decimals": 10,
+        //                 "display_decimals": 5
+        //                 "status": "enabled",
+        //             },
         //             ...
         //         },
         //     }
@@ -673,13 +678,12 @@ export default class kraken extends Exchange {
             const code = this.safeCurrencyCode (id);
             const precision = this.parseNumber (this.parsePrecision (this.safeString (currency, 'decimals')));
             // assumes all currencies are active except those listed above
-            const active = !this.inArray (code, this.options['inactiveCurrencies']);
+            const active = this.safeString (currency, 'status') === 'enabled';
             result[code] = {
                 'id': id,
                 'code': code,
-                'altname': this.safeString (currency, 'altname'),
                 'info': currency,
-                'name': code,
+                'name': this.safeString (currency, 'altname'),
                 'active': active,
                 'deposit': undefined,
                 'withdraw': undefined,
