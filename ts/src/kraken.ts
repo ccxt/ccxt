@@ -602,7 +602,7 @@ export default class kraken extends Exchange {
         if (currencyId !== undefined) {
             if (currencyId.length > 3) {
                 if ((currencyId.indexOf ('X') === 0) || (currencyId.indexOf ('Z') === 0)) {
-                    if (!(currencyId.indexOf ('.') > 0) && this.inArray (currencyId, this.options['sliceAllowedForCurrencyIds'])) {
+                    if (!(currencyId.indexOf ('.') > 0)) {
                         currencyId = currencyId.slice (1);
                     }
                 }
@@ -674,11 +674,6 @@ export default class kraken extends Exchange {
             // see: https://support.kraken.com/hc/en-us/articles/201893608-What-are-the-withdrawal-fees-
             // to add support for multiple withdrawal/deposit methods and
             // differentiated fees for each particular method
-            const altname = this.safeString (currency, 'altname');
-            if (altname !== id) {
-                // only allow for them which has different altname (XBT) and id (XXBT)
-                this.options['sliceAllowedForCurrencyIds'].push (id);
-            }
             const code = this.safeCurrencyCode (id);
             const precision = this.parseNumber (this.parsePrecision (this.safeString (currency, 'decimals')));
             // assumes all currencies are active except those listed above
@@ -687,7 +682,7 @@ export default class kraken extends Exchange {
                 'id': id,
                 'code': code,
                 'info': currency,
-                'name': altname,
+                'name': this.safeString (currency, 'altname'),
                 'active': active,
                 'deposit': undefined,
                 'withdraw': undefined,
