@@ -2828,7 +2828,7 @@ export default class okx extends Exchange {
         return this.extend (request, params);
     }
 
-   async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         /**
          * @method
          * @name okx#createOrder
