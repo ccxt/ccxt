@@ -1006,6 +1006,7 @@ class Transpiler {
             'MarketInterface': /-> MarketInterface:/,
             'MarketType': /: MarketType/,
             'Num': /: Num =/,
+            'Objects': /: Objects:/,
             'Option': /-> Option:/,
             'OptionChain': /-> OptionChain:/,
             'Order': /-> (?:List\[)?Order\]?:/,
@@ -1674,6 +1675,7 @@ class Transpiler {
                 'OrderSide': 'string',
                 'Dictionary<any>': 'array',
                 'Dict': 'array',
+                'Objects': 'array',
             }
             const phpArrayRegex = /^(?:Market|Currency|Account|AccountStructure|BalanceAccount|object|OHLCV|Order|OrderBook|Tickers?|Trade|Transaction|Balances?|MarketInterface|TransferEntry|Leverages|Leverage|Greeks|MarginModes|MarginMode|MarginModification|LastPrice|LastPrices|TradingFeeInterface|Currencies|TradingFees)( \| undefined)?$|\w+\[\]/
             let phpArgs = args.map (x => {

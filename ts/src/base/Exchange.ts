@@ -146,7 +146,7 @@ import { OrderBook as WsOrderBook, IndexedOrderBook, CountedOrderBook } from './
 //
 import { axolotl } from './functions/crypto.js';
 // import types
-import type { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRate, DepositWithdrawFeeNetwork, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, BorrowRate, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks, Option, OptionChain, Str, Num, MarketInterface, CurrencyInterface, BalanceAccount, MarginModes, MarketType, Leverage, Leverages, LastPrice, LastPrices, Account, Strings, MarginModification, TradingFeeInterface, Currencies, TradingFees } from './types.js';
+import type { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRate, DepositWithdrawFeeNetwork, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, BorrowRate, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks, Option, OptionChain, Str, Num, MarketInterface, CurrencyInterface, BalanceAccount, MarginModes, MarketType, Leverage, Leverages, LastPrice, LastPrices, Account, Strings, MarginModification, TradingFeeInterface, Currencies, TradingFees, Objects } from './types.js';
 // export {Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRateHistory, Liquidation, FundingHistory} from './types.js'
 // import { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRateHistory, OpenInterest, Liquidation, OrderRequest, FundingHistory, MarginMode, Tickers, Greeks, Str, Num, MarketInterface, CurrencyInterface, Account } from './types.js';
 export type { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, BorrowRate, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks, Option, OptionChain, Str, Num, MarketInterface, CurrencyInterface, BalanceAccount, MarginModes, MarketType, Leverage, Leverages, LastPrice, LastPrices, Account, Strings } from './types.js'
@@ -3038,7 +3038,7 @@ export default class Exchange {
         });
     }
 
-    parseOrders (orders: object[] | object, market: Market = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Order[] {
+    parseOrders (orders: Objects, market: Market = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Order[] {
         //
         // the value of orders is either a dict or a list
         //
@@ -3605,7 +3605,7 @@ export default class Exchange {
         return result;
     }
 
-    parseOHLCV (ohlcv, market: Market = undefined) : OHLCV {
+    parseOHLCV (ohlcv: Objects, market: Market = undefined) : OHLCV {
         if (Array.isArray (ohlcv)) {
             return [
                 this.safeInteger (ohlcv, 0), // timestamp
@@ -3616,7 +3616,7 @@ export default class Exchange {
                 this.safeNumber (ohlcv, 5), // volume
             ];
         }
-        return ohlcv;
+        return ohlcv as OHLCV;
     }
 
     networkCodeToId (networkCode: string, currencyCode: Str = undefined): string {
@@ -3786,7 +3786,7 @@ export default class Exchange {
         } as any;
     }
 
-    parseOHLCVs (ohlcvs: object[], market: any = undefined, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined): OHLCV[] {
+    parseOHLCVs (ohlcvs: number[][], market: any = undefined, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined): OHLCV[] {
         const results = [];
         for (let i = 0; i < ohlcvs.length; i++) {
             results.push (this.parseOHLCV (ohlcvs[i], market));
@@ -3853,7 +3853,7 @@ export default class Exchange {
         return position as Position;
     }
 
-    parsePositions (positions: object[] | object, symbols: string[] = undefined, params = {}): Position[] {
+    parsePositions (positions: Objects, symbols: string[] = undefined, params = {}): Position[] {
         symbols = this.marketSymbols (symbols);
         const arrPositions = this.toArray (positions);
         const result = [];
@@ -3864,7 +3864,7 @@ export default class Exchange {
         return this.filterByArrayPositions (result, 'symbol', symbols, false);
     }
 
-    parseAccounts (accounts: object[] | object, params = {}): Account[] {
+    parseAccounts (accounts: Objects, params = {}): Account[] {
         const arrAccounts = this.toArray (accounts);
         const result = [];
         for (let i = 0; i < arrAccounts.length; i++) {
@@ -3874,7 +3874,7 @@ export default class Exchange {
         return result;
     }
 
-    parseTrades (trades: object[] | object, market: Market = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Trade[] {
+    parseTrades (trades: Objects, market: Market = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Trade[] {
         const arrTrades = this.toArray (trades);
         let result = [];
         for (let i = 0; i < arrTrades.length; i++) {
@@ -3886,7 +3886,7 @@ export default class Exchange {
         return this.filterBySymbolSinceLimit (result, symbol, since, limit) as Trade[];
     }
 
-    parseTransactions (transactions: object[] | object, currency: Currency = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Transaction[] {
+    parseTransactions (transactions: Objects, currency: Currency = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Transaction[] {
         const arrTransactions = this.toArray (transactions);
         let result = [];
         for (let i = 0; i < arrTransactions.length; i++) {
@@ -3898,7 +3898,7 @@ export default class Exchange {
         return this.filterByCurrencySinceLimit (result, code, since, limit);
     }
 
-    parseTransfers (transfers: object[] | object, currency: Currency = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    parseTransfers (transfers: Objects, currency: Currency = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         const arrTransfers = this.toArray (transfers);
         let result = [];
         for (let i = 0; i < arrTransfers.length; i++) {
@@ -3910,7 +3910,7 @@ export default class Exchange {
         return this.filterByCurrencySinceLimit (result, code, since, limit);
     }
 
-    parseLedger (data: object[] | object, currency: Currency = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    parseLedger (data: Objects, currency: Currency = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         let result = [];
         const arrayData = this.toArray (data);
         for (let i = 0; i < arrayData.length; i++) {
@@ -4096,7 +4096,7 @@ export default class Exchange {
         return ohlcvs;
     }
 
-    parseTradingViewOHLCV (ohlcvs: object[], market = undefined, timeframe = '1m', since: Int = undefined, limit: Int = undefined) {
+    parseTradingViewOHLCV (ohlcvs: number[][], market = undefined, timeframe = '1m', since: Int = undefined, limit: Int = undefined) {
         const result = this.convertTradingViewToOHLCV (ohlcvs);
         return this.parseOHLCVs (result, market, timeframe, since, limit);
     }
@@ -5378,7 +5378,7 @@ export default class Exchange {
         return this.filterByArray (results, 'symbol', symbols);
     }
 
-    parseTickers (tickers: object[] | object, symbols: string[] = undefined, params = {}): Dictionary<Ticker> {
+    parseTickers (tickers: Objects, symbols: string[] = undefined, params = {}): Dictionary<Ticker> {
         //
         // the value of tickers is either a dict or a list
         //
@@ -5736,7 +5736,7 @@ export default class Exchange {
         }
     }
 
-    parseDepositWithdrawFees (response, codes: string[] = undefined, currencyIdKey = undefined): any {
+    parseDepositWithdrawFees (response: Objects, codes: string[] = undefined, currencyIdKey = undefined): any {
         /**
          * @ignore
          * @method
@@ -5748,9 +5748,11 @@ export default class Exchange {
         const depositWithdrawFees = {};
         codes = this.marketCodes (codes);
         const isArray = Array.isArray (response);
-        let responseKeys = response;
+        let responseKeys: any[] = undefined;
         if (!isArray) {
             responseKeys = Object.keys (response);
+        } else {
+            responseKeys = response;
         }
         for (let i = 0; i < responseKeys.length; i++) {
             const entry = responseKeys[i];
@@ -6229,11 +6231,11 @@ export default class Exchange {
         return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
     }
 
-    parseGreeks (greeks, market: Market = undefined): Greeks {
+    parseGreeks (greeks: object, market: Market = undefined): Greeks {
         throw new NotSupported (this.id + ' parseGreeks () is not supported yet');
     }
 
-    parseOption (chain, currency: Currency = undefined, market: Market = undefined): Option {
+    parseOption (chain: object, currency: Currency = undefined, market: Market = undefined): Option {
         throw new NotSupported (this.id + ' parseOption () is not supported yet');
     }
 
