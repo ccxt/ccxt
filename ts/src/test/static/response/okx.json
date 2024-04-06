@@ -1829,7 +1829,7 @@
                   "realizedPnl": -0.0154998159554622,
                   "percentage": 225.6425763531902,
                   "contracts": 2,
-                  "contractSize": 0.001,
+                  "contractSize": 1,
                   "markPrice": 101.33,
                   "lastPrice": null,
                   "side": "long",
