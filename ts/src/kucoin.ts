@@ -1153,8 +1153,10 @@ export default class kucoin extends Exchange {
         //              "chains":[
         //                 {
         //                    "chainName":"ERC20",
-        //                    "chain":"eth",
+        //                    "chainId": "eth"
         //                    "withdrawalMinSize":"2999",
+        //                    "depositMinSize":null,
+        //                    "withdrawFeeRate":"0",
         //                    "withdrawalMinFee":"2999",
         //                    "isWithdrawEnabled":false,
         //                    "isDepositEnabled":false,
@@ -1260,7 +1262,7 @@ export default class kucoin extends Exchange {
                             'max': undefined,
                         },
                         'deposit': {
-                            'min': this.safeNumber (chainExtraData, 'depositMinSize'),
+                            'min': this.safeNumber (chain, 'depositMinSize'),
                             'max': undefined,
                         },
                     },
