@@ -150,7 +150,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
         return await this.watch (url, messageHash, message, subscriptionHash, subscription);
     }
 
-    async subscribeMultiple (url, messageHashes, topic, subscriptionHashes, subscription, params = {}) {
+    async subscribeMultiple (url, messageHashes, topic, subscriptionHashes, subscriptionArgs, params = {}) {
         const requestId = this.requestId ().toString ();
         const request = {
             'id': requestId,
@@ -158,16 +158,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
             'topic': topic,
             'response': true,
         };
-        const message = this.extend (request, params);
-        const subscriptionRequest = {
-            'id': requestId,
-        };
-        if (subscription === undefined) {
-            subscription = subscriptionRequest;
-        } else {
-            subscription = this.extend (subscriptionRequest, subscription);
-        }
-        return await this.watchMultiple (url, messageHashes, message, subscriptionHashes, subscription);
+        return await this.watchMultiple (url, messageHashes, this.extend (request, params), subscriptionHashes, subscriptionArgs);
     }
 
     async watchTicker (symbol: string, params = {}): Promise<Ticker> {
@@ -443,7 +434,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
             messageHashes.push ('trades:' + symbol);
             subscriptionHashes.push ('/contractMarket/execution:' + marketId);
         }
-        const trades = await this.subscribeMultiple (url, messageHashes, topic, subscriptionHashes, params);
+        const trades = await this.subscribeMultiple (url, messageHashes, topic, subscriptionHashes, undefined, params);
         if (this.newUpdates) {
             const first = this.safeValue (trades, 0);
             const tradeSymbol = this.safeString (first, 'symbol');
@@ -532,9 +523,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
         const marketIds = this.marketIds (symbols);
         const url = await this.negotiate (false);
         const topic = '/contractMarket/level2:' + marketIds.join (',');
-        const subscription = {
-            'method': this.handleOrderBookSubscription,
-            'symbols': symbols,
+        const subscriptionArgs = {
             'limit': limit,
         };
         const subscriptionHashes = [];
@@ -545,7 +534,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
             messageHashes.push ('orderbook:' + symbol);
             subscriptionHashes.push ('/contractMarket/level2:' + marketId);
         }
-        const orderbook = await this.subscribeMultiple (url, messageHashes, topic, subscriptionHashes, subscription, params);
+        const orderbook = await this.subscribeMultiple (url, messageHashes, topic, subscriptionHashes, subscriptionArgs, params);
         return orderbook.limit ();
     }
 
@@ -598,11 +587,13 @@ export default class kucoinfutures extends kucoinfuturesRest {
         const marketId = this.safeString (topicParts, 1);
         const symbol = this.safeSymbol (marketId, undefined, '-');
         const messageHash = 'orderbook:' + symbol;
-        const storedOrderBook = this.safeValue (this.orderbooks, symbol);
-        const nonce = this.safeInteger (storedOrderBook, 'nonce');
-        if (storedOrderBook === undefined) {
-            return; // this shouldn't be needed, but for some reason sometimes this runs before handleOrderBookSubscription in c#
+        if (!(symbol in this.orderbooks)) {
+            const subscriptionArgs = this.safeDict (client.subscriptions, topic, {});
+            const limit = this.safeInteger (subscriptionArgs, 'limit');
+            this.orderbooks[symbol] = this.orderBook ({}, limit);
         }
+        const storedOrderBook = this.orderbooks[symbol];
+        const nonce = this.safeInteger (storedOrderBook, 'nonce');
         const deltaEnd = this.safeInteger (data, 'sequence');
         if (nonce === undefined) {
             const cacheLength = storedOrderBook.cache.length;
@@ -647,40 +638,6 @@ export default class kucoinfutures extends kucoinfuturesRest {
             }
         }
         return cache.length;
-    }
-
-    handleOrderBookSubscription (client: Client, message, subscription) {
-        const limit = this.safeInteger (subscription, 'limit');
-        const symbols = this.safeValue (subscription, 'symbols');
-        if (symbols === undefined) {
-            const symbol = this.safeString (subscription, 'symbol');
-            this.orderbooks[symbol] = this.orderBook ({}, limit);
-        } else {
-            for (let i = 0; i < symbols.length; i++) {
-                const symbol = symbols[i];
-                this.orderbooks[symbol] = this.orderBook ({}, limit);
-            }
-        }
-        // moved snapshot initialization to handleOrderBook to fix
-        // https://github.com/ccxt/ccxt/issues/6820
-        // the general idea is to fetch the snapshot after the first delta
-        // but not before, because otherwise we cannot synchronize the feed
-    }
-
-    handleSubscriptionStatus (client: Client, message) {
-        //
-        //     {
-        //         "id": "1578090438322",
-        //         "type": "ack"
-        //     }
-        //
-        const id = this.safeString (message, 'id');
-        const subscriptionsById = this.indexBy (client.subscriptions, 'id');
-        const subscription = this.safeValue (subscriptionsById, id, {});
-        const method = this.safeValue (subscription, 'method');
-        if (method !== undefined) {
-            method.call (this, client, message, subscription);
-        }
     }
 
     handleSystemStatus (client: Client, message) {
@@ -1007,7 +964,6 @@ export default class kucoinfutures extends kucoinfuturesRest {
         const methods = {
             // 'heartbeat': this.handleHeartbeat,
             'welcome': this.handleSystemStatus,
-            'ack': this.handleSubscriptionStatus,
             'message': this.handleSubject,
             'pong': this.handlePong,
             'error': this.handleErrorMessage,
