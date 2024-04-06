@@ -7576,7 +7576,7 @@ export default class okx extends Exchange {
         };
     }
 
-    async fetchConvertQuote (fromCode: string, toCode: string, amount: number = undefined, params = {}): Promise<Conversion> {
+    async fetchConvertQuote (fromCode: string, toCode: string, amount: Num = undefined, params = {}): Promise<Conversion> {
         /**
          * @method
          * @name okx#fetchConvertQuote

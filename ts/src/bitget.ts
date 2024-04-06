@@ -8367,7 +8367,7 @@ export default class bitget extends Exchange {
         } as MarginMode;
     }
 
-    async fetchConvertQuote (fromCode: string, toCode: string, amount: number = undefined, params = {}): Promise<Conversion> {
+    async fetchConvertQuote (fromCode: string, toCode: string, amount: Num = undefined, params = {}): Promise<Conversion> {
         /**
          * @method
          * @name bitget#fetchConvertQuote

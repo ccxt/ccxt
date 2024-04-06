@@ -4959,7 +4959,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' fetchOption() is not supported yet');
     }
 
-    async fetchConvertQuote (fromCode: string, toCode: string, amount: number = undefined, params = {}): Promise<Conversion> {
+    async fetchConvertQuote (fromCode: string, toCode: string, amount: Num = undefined, params = {}): Promise<Conversion> {
         throw new NotSupported (this.id + ' fetchConvertQuote() is not supported yet');
     }
 
