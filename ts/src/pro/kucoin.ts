@@ -21,6 +21,7 @@ export default class kucoin extends kucoinRest {
                 'cancelOrderWs': false,
                 'cancelOrdersWs': false,
                 'cancelAllOrdersWs': false,
+                'watchBidsAsks': true,
                 'watchOrderBook': true,
                 'watchOrders': true,
                 'watchMyTrades': true,
@@ -292,6 +293,96 @@ export default class kucoin extends kucoinRest {
                 client.resolve (tickers, currentMessageHash);
             }
         }
+    }
+
+    async watchBidsAsks (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        /**
+         * @method
+         * @name kucoin#watchBidsAsks
+         * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level1-bbo-market-data
+         * @description watches best bid & ask for symbols
+         * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        const ticker = await this.watchMultiHelper ('watchBidsAsks', '/spotMarket/level1:', symbols, params);
+        if (this.newUpdates) {
+            const tickers = {};
+            tickers[ticker['symbol']] = ticker;
+            return tickers;
+        }
+        return this.filterByArray (this.bidsasks, 'symbol', symbols);
+    }
+
+    async watchMultiHelper (methodName, channelName: string, symbols: Strings = undefined, params = {}) {
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols, undefined, false, true, false);
+        const length = symbols.length;
+        if (length > 100) {
+            throw new ArgumentsRequired (this.id + ' ' + methodName + '() accepts a maximum of 100 symbols');
+        }
+        const messageHashes = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            const market = this.market (symbol);
+            messageHashes.push ('bidask@' + market['symbol']);
+        }
+        const url = await this.negotiate (false);
+        const marketIds = this.marketIds (symbols);
+        const joined = marketIds.join (',');
+        const requestId = this.requestId ().toString ();
+        const request = {
+            'id': requestId,
+            'type': 'subscribe',
+            'topic': channelName + joined,
+            'response': true,
+        };
+        const message = this.extend (request, params);
+        return await this.watchMultiple (url, messageHashes, message, messageHashes);
+    }
+
+    handleBidAsk (client: Client, message) {
+        //
+        // arrives one symbol dict
+        //
+        //     {
+        //         topic: '/spotMarket/level1:ETH-USDT',
+        //         type: 'message',
+        //         data: {
+        //             asks: [ '3347.42', '2.0778387' ],
+        //             bids: [ '3347.41', '6.0411697' ],
+        //             timestamp: 1712231142085
+        //         },
+        //         subject: 'level1'
+        //     }
+        //
+        const parsedTicker = this.parseWsBidAsk (message);
+        const symbol = parsedTicker['symbol'];
+        this.bidsasks[symbol] = parsedTicker;
+        const messageHash = 'bidask@' + symbol;
+        client.resolve (parsedTicker, messageHash);
+    }
+
+    parseWsBidAsk (ticker, market = undefined) {
+        const topic = this.safeString (ticker, 'topic');
+        const parts = topic.split (':');
+        const marketId = parts[1];
+        market = this.safeMarket (marketId, market);
+        const symbol = this.safeString (market, 'symbol');
+        const data = this.safeDict (ticker, 'data', {});
+        const ask = this.safeList (data, 'asks', []);
+        const bid = this.safeList (data, 'bids', []);
+        const timestamp = this.safeInteger (data, 'timestamp');
+        return this.safeTicker ({
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'ask': this.safeNumber (ask, 0),
+            'askVolume': this.safeNumber (ask, 1),
+            'bid': this.safeNumber (bid, 0),
+            'bidVolume': this.safeNumber (bid, 1),
+            'info': ticker,
+        }, market);
     }
 
     async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
@@ -693,6 +784,9 @@ export default class kucoin extends kucoinRest {
         //     }
         //
         const id = this.safeString (message, 'id');
+        if (!(id in client.subscriptions)) {
+            return;
+        }
         const subscriptionHash = this.safeString (client.subscriptions, id);
         const subscription = this.safeValue (client.subscriptions, subscriptionHash);
         delete client.subscriptions[id];
@@ -1077,6 +1171,7 @@ export default class kucoin extends kucoinRest {
         }
         const subject = this.safeString (message, 'subject');
         const methods = {
+            'level1': this.handleBidAsk,
             'level2': this.handleOrderBook,
             'trade.l2update': this.handleOrderBook,
             'trade.ticker': this.handleTicker,
