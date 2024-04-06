@@ -449,7 +449,8 @@ export default class gemini extends Exchange {
             //         '<td>0.01 USD', // quote currency price increment
             //         '</tr>'
             //     ]
-            const marketId = cells[0].replace ('<td>', '');
+            let marketId = cells[0].replace ('<td>', '');
+            marketId = marketId.replace ('*', '');
             // const base = this.safeCurrencyCode (baseId);
             const minAmountString = cells[1].replace ('<td>', '');
             const minAmountParts = minAmountString.split (' ');
