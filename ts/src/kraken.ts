@@ -220,7 +220,6 @@ export default class kraken extends Exchange {
             'commonCurrencies': {
                 'LUNA': 'LUNC',
                 'LUNA2': 'LUNA',
-                'REPV2': 'REP',
                 'REP': 'REPV1',
                 'UST': 'USTC',
                 'XBT': 'BTC',
