@@ -85,6 +85,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
                 'fetchLedger': False,
                 'fetchLeverage': False,
                 'fetchLeverageTiers': False,
+                'fetchMarginAdjustmentHistory': False,
                 'fetchMarginMode': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,

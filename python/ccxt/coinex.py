@@ -92,6 +92,7 @@ class coinex(Exchange, ImplicitAPI):
                 'fetchLeverage': 'emulated',
                 'fetchLeverages': True,
                 'fetchLeverageTiers': True,
+                'fetchMarginAdjustmentHistory': True,
                 'fetchMarketLeverageTiers': 'emulated',
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
@@ -3966,11 +3967,10 @@ class coinex(Exchange, ImplicitAPI):
         #         "message":"OK"
         #     }
         #
+        data = self.safe_dict(response, 'data')
         status = self.safe_string(response, 'message')
-        type = 'add' if (addOrReduce == 1) else 'reduce'
-        return self.extend(self.parse_margin_modification(response, market), {
+        return self.extend(self.parse_margin_modification(data, market), {
             'amount': self.parse_number(amount),
-            'type': type,
             'status': status,
         })
 
@@ -4030,13 +4030,34 @@ class coinex(Exchange, ImplicitAPI):
         #        "user_id": 3620173
         #    }
         #
-        timestamp = self.safe_integer_product(data, 'update_time', 1000)
+        # fetchMarginAdjustmentHistory
+        #
+        #    {
+        #        bkr_price: '0',
+        #        leverage: '3',
+        #        liq_price: '0',
+        #        margin_amount: '5.33236666666666666666',
+        #        margin_change: '3',
+        #        market: 'XRPUSDT',
+        #        position_amount: '11',
+        #        position_id: '297155652',
+        #        position_type: '2',
+        #        settle_price: '0.6361',
+        #        time: '1711050906.382891',
+        #        type: '1',
+        #        user_id: '3685860'
+        #    }
+        #
+        marketId = self.safe_string(data, 'market')
+        type = self.safe_string(data, 'type')
+        timestamp = self.safe_integer_product_2(data, 'time', 'update_time', 1000)
         return {
             'info': data,
-            'symbol': self.safe_symbol(None, market),
-            'type': None,
-            'amount': self.safe_number(data, 'margin_amount'),
-            'total': None,
+            'symbol': self.safe_symbol(marketId, market, None, 'swap'),
+            'type': 'add' if (type == '1') else 'reduce',
+            'marginMode': 'isolated',
+            'amount': self.safe_number(data, 'margin_change'),
+            'total': self.safe_number(data, 'position_amount'),
             'code': market['quote'],
             'status': None,
             'timestamp': timestamp,
@@ -4644,6 +4665,7 @@ class coinex(Exchange, ImplicitAPI):
         currencyId = self.safe_string(transfer, 'asset')
         currencyCode = self.safe_currency_code(currencyId, currency)
         return {
+            'info': transfer,
             'id': self.safe_integer(transfer, 'id'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -5410,3 +5432,69 @@ class coinex(Exchange, ImplicitAPI):
             self.throw_exactly_matched_exception(self.exceptions['exact'], code, feedback)
             raise ExchangeError(feedback)
         return None
+
+    def fetch_margin_adjustment_history(self, symbol: Str = None, type: Str = None, since: Num = None, limit: Num = None, params={}) -> List[MarginModification]:
+        """
+        fetches the history of margin added or reduced from contract isolated positions
+        :see: https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http046_position_margin_history
+        :param str [symbol]: unified market symbol
+        :param str [type]: not used by coinex fetchMarginAdjustmentHistory
+        :param int [since]: timestamp in ms of the earliest change to fetch
+        :param int [limit]: the maximum amount of changes to fetch, default=100, max=100
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :param int [params.until]: timestamp in ms of the latest change to fetch
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+        :param int [params.offset]: offset
+        :returns dict[]: a list of `margin structures <https://docs.ccxt.com/#/?id=margin-loan-structure>`
+        """
+        self.load_markets()
+        until = self.safe_integer(params, 'until')
+        params = self.omit(params, 'until')
+        if limit is None:
+            limit = 100
+        request = {
+            'market': '',
+            'position_id': 0,
+            'offset': 0,
+            'limit': limit,
+        }
+        if symbol is not None:
+            market = self.market(symbol)
+            request['market'] = market['id']
+        if since is not None:
+            request['start_time'] = since
+        if until is not None:
+            request['end_time'] = until
+        response = self.v1PerpetualPrivateGetPositionMarginHistory(self.extend(request, params))
+        #
+        #    {
+        #        code: '0',
+        #        data: {
+        #            limit: '100',
+        #            offset: '0',
+        #            records: [
+        #                {
+        #                    bkr_price: '0',
+        #                    leverage: '3',
+        #                    liq_price: '0',
+        #                    margin_amount: '5.33236666666666666666',
+        #                    margin_change: '3',
+        #                    market: 'XRPUSDT',
+        #                    position_amount: '11',
+        #                    position_id: '297155652',
+        #                    position_type: '2',
+        #                    settle_price: '0.6361',
+        #                    time: '1711050906.382891',
+        #                    type: '1',
+        #                    user_id: '3685860'
+        #                }
+        #            ]
+        #        },
+        #        message: 'OK'
+        #    }
+        #
+        data = self.safe_dict(response, 'data', {})
+        records = self.safe_list(data, 'records', [])
+        modifications = self.parse_margin_modifications(records, None, 'market', 'swap')
+        return self.filter_by_symbol_since_limit(modifications, symbol, since, limit)

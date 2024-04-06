@@ -87,7 +87,7 @@ build_and_test_all () {
     if [[ "$last_commit_message" == *"skip-tests"* ]]; then
         echo "[SKIP-TESTS] Will skip tests!"
         exit
-    fi
+    fi 
     run_tests
   fi
   exit

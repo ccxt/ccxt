@@ -2644,6 +2644,7 @@ class delta extends Exchange {
             'info' => $data,
             'symbol' => $market['symbol'],
             'type' => null,
+            'marginMode' => 'isolated',
             'amount' => null,
             'total' => $this->safe_number($data, 'margin'),
             'code' => null,

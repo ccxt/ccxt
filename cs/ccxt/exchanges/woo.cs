@@ -61,6 +61,7 @@ public partial class woo : Exchange
                 { "fetchIndexOHLCV", false },
                 { "fetchLedger", true },
                 { "fetchLeverage", true },
+                { "fetchMarginAdjustmentHistory", false },
                 { "fetchMarginMode", false },
                 { "fetchMarkets", true },
                 { "fetchMarkOHLCV", false },

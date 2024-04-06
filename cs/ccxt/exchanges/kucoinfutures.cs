@@ -61,6 +61,7 @@ public partial class kucoinfutures : kucoin
                 { "fetchL3OrderBook", true },
                 { "fetchLedger", true },
                 { "fetchLeverageTiers", false },
+                { "fetchMarginAdjustmentHistory", false },
                 { "fetchMarginMode", false },
                 { "fetchMarketLeverageTiers", true },
                 { "fetchMarkets", true },
@@ -1612,7 +1613,7 @@ public partial class kucoinfutures : kucoin
         });
     }
 
-    public virtual object parseMarginModification(object info, object market = null)
+    public override object parseMarginModification(object info, object market = null)
     {
         //
         //    {
@@ -1665,14 +1666,18 @@ public partial class kucoinfutures : kucoin
         object crossMode = this.safeValue(info, "crossMode");
         object mode = ((bool) isTrue(crossMode)) ? "cross" : "isolated";
         object marketId = this.safeString(market, "symbol");
+        object timestamp = this.safeInteger(info, "currentTimestamp");
         return new Dictionary<string, object>() {
             { "info", info },
-            { "direction", null },
-            { "mode", mode },
-            { "amount", null },
-            { "code", this.safeCurrencyCode(currencyId) },
             { "symbol", this.safeSymbol(marketId, market) },
+            { "type", null },
+            { "marginMode", mode },
+            { "amount", null },
+            { "total", null },
+            { "code", this.safeCurrencyCode(currencyId) },
             { "status", null },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
         };
     }
 
@@ -1830,6 +1835,38 @@ public partial class kucoinfutures : kucoin
             return await this.fetchPaginatedCallDynamic("fetchClosedOrders", symbol, since, limit, parameters);
         }
         return await this.fetchOrdersByStatus("done", symbol, since, limit, parameters);
+    }
+
+    public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name kucoinfutures#fetchOpenOrders
+        * @description fetches information on multiple open orders made by the user
+        * @see https://docs.kucoin.com/futures/#get-order-list
+        * @see https://docs.kucoin.com/futures/#get-untriggered-stop-order-list
+        * @param {string} symbol unified market symbol of the market orders were made in
+        * @param {int} [since] the earliest time in ms to fetch orders for
+        * @param {int} [limit] the maximum number of order structures to retrieve
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {int} [params.till] end time in ms
+        * @param {string} [params.side] buy or sell
+        * @param {string} [params.type] limit, or market
+        * @param {boolean} [params.trigger] set to true to retrieve untriggered stop orders
+        * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object paginate = false;
+        var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchOpenOrders", "paginate");
+        paginate = ((IList<object>)paginateparametersVariable)[0];
+        parameters = ((IList<object>)paginateparametersVariable)[1];
+        if (isTrue(paginate))
+        {
+            return await this.fetchPaginatedCallDynamic("fetchOpenOrders", symbol, since, limit, parameters);
+        }
+        return await this.fetchOrdersByStatus("open", symbol, since, limit, parameters);
     }
 
     public async override Task<object> fetchOrder(object id = null, object symbol = null, object parameters = null)

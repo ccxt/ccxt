@@ -87,6 +87,7 @@ public partial class binance : Exchange
                 { "fetchLeverages", true },
                 { "fetchLeverageTiers", true },
                 { "fetchLiquidations", false },
+                { "fetchMarginAdjustmentHistory", true },
                 { "fetchMarginMode", "emulated" },
                 { "fetchMarginModes", true },
                 { "fetchMarketLeverageTiers", "emulated" },
@@ -11899,7 +11900,7 @@ public partial class binance : Exchange
         });
     }
 
-    public virtual object parseMarginModification(object data, object market = null)
+    public override object parseMarginModification(object data, object market = null)
     {
         //
         // add/reduce margin
@@ -11911,21 +11912,37 @@ public partial class binance : Exchange
         //         "type": 1
         //     }
         //
+        // fetchMarginAdjustmentHistory
+        //
+        //    {
+        //        symbol: "XRPUSDT",
+        //        type: "1",
+        //        deltaType: "TRADE",
+        //        amount: "2.57148240",
+        //        asset: "USDT",
+        //        time: "1711046271555",
+        //        positionSide: "BOTH",
+        //        clientTranId: ""
+        //    }
+        //
         object rawType = this.safeInteger(data, "type");
-        object resultType = ((bool) isTrue((isEqual(rawType, 1)))) ? "add" : "reduce";
-        object resultAmount = this.safeNumber(data, "amount");
         object errorCode = this.safeString(data, "code");
-        object status = ((bool) isTrue((isEqual(errorCode, "200")))) ? "ok" : "failed";
+        object marketId = this.safeString(data, "symbol");
+        object timestamp = this.safeInteger(data, "time");
+        market = this.safeMarket(marketId, market, null, "swap");
+        object noErrorCode = isEqual(errorCode, null);
+        object success = isEqual(errorCode, "200");
         return new Dictionary<string, object>() {
             { "info", data },
             { "symbol", getValue(market, "symbol") },
-            { "type", resultType },
-            { "amount", resultAmount },
+            { "type", ((bool) isTrue((isEqual(rawType, 1)))) ? "add" : "reduce" },
+            { "marginMode", "isolated" },
+            { "amount", this.safeNumber(data, "amount") },
+            { "code", this.safeString(data, "asset") },
             { "total", null },
-            { "code", null },
-            { "status", status },
-            { "timestamp", null },
-            { "datetime", null },
+            { "status", ((bool) isTrue((isTrue(success) || isTrue(noErrorCode)))) ? "ok" : "failed" },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
         };
     }
 
@@ -13217,5 +13234,78 @@ public partial class binance : Exchange
             { "baseVolume", this.safeNumber(chain, "volume") },
             { "quoteVolume", null },
         };
+    }
+
+    public async override Task<object> fetchMarginAdjustmentHistory(object symbol = null, object type = null, object since = null, object limit = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @description fetches the history of margin added or reduced from contract isolated positions
+        * @see https://binance-docs.github.io/apidocs/futures/en/#get-position-margin-change-history-trade
+        * @see https://binance-docs.github.io/apidocs/delivery/en/#get-position-margin-change-history-trade
+        * @param {string} symbol unified market symbol
+        * @param {string} [type] "add" or "reduce"
+        * @param {int} [since] timestamp in ms of the earliest change to fetch
+        * @param {int} [limit] the maximum amount of changes to fetch
+        * @param {object} params extra parameters specific to the exchange api endpoint
+        * @param {int} [params.until] timestamp in ms of the latest change to fetch
+        * @returns {object[]} a list of [margin structures]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        if (isTrue(isEqual(symbol, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " fetchMarginAdjustmentHistory () requires a symbol argument")) ;
+        }
+        object market = this.market(symbol);
+        object until = this.safeInteger(parameters, "until");
+        parameters = this.omit(parameters, "until");
+        object request = new Dictionary<string, object>() {
+            { "symbol", getValue(market, "id") },
+        };
+        if (isTrue(!isEqual(type, null)))
+        {
+            ((IDictionary<string,object>)request)["type"] = ((bool) isTrue((isEqual(type, "add")))) ? 1 : 2;
+        }
+        if (isTrue(!isEqual(since, null)))
+        {
+            ((IDictionary<string,object>)request)["startTime"] = since;
+        }
+        if (isTrue(!isEqual(limit, null)))
+        {
+            ((IDictionary<string,object>)request)["limit"] = limit;
+        }
+        if (isTrue(!isEqual(until, null)))
+        {
+            ((IDictionary<string,object>)request)["endTime"] = until;
+        }
+        object response = null;
+        if (isTrue(getValue(market, "linear")))
+        {
+            response = await this.fapiPrivateGetPositionMarginHistory(this.extend(request, parameters));
+        } else if (isTrue(getValue(market, "inverse")))
+        {
+            response = await this.dapiPrivateGetPositionMarginHistory(this.extend(request, parameters));
+        } else
+        {
+            throw new BadRequest ((string)add(add(this.id, "fetchMarginAdjustmentHistory () is not supported for markets of type "), getValue(market, "type"))) ;
+        }
+        //
+        //    [
+        //        {
+        //            symbol: "XRPUSDT",
+        //            type: "1",
+        //            deltaType: "TRADE",
+        //            amount: "2.57148240",
+        //            asset: "USDT",
+        //            time: "1711046271555",
+        //            positionSide: "BOTH",
+        //            clientTranId: ""
+        //        }
+        //        ...
+        //    ]
+        //
+        object modifications = this.parseMarginModifications(response);
+        return this.filterBySymbolSinceLimit(modifications, symbol, since, limit);
     }
 }

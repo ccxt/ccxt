@@ -389,6 +389,7 @@ public struct MarginModification
 {
     public string symbol; 
     public string? type;
+    public string? marginMode;
     public double? amount;
     public double? total;
     public string? code;
@@ -402,6 +403,7 @@ public struct MarginModification
         var marginModification = (Dictionary<string, object>)marginModification2;
         symbol = Exchange.SafeString(marginModification, "symbol");
         type = Exchange.SafeString(marginModification, "type");
+        marginMode = Exchange.SafeString(marginModification, "marginMode");
         amount = Exchange.SafeFloat(marginModification, "amount");
         total = Exchange.SafeFloat(marginModification, "total");
         code = Exchange.SafeString(marginModification, "code");
