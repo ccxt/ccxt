@@ -1155,6 +1155,18 @@
                 ]
             }
         ],
+        "setLeverage": [
+            {
+                "description": "set leverage",
+                "method": "setLeverage",
+                "url": "https://www.okx.com/api/v5/account/set-leverage",
+                "input": [
+                  5,
+                  "LTC/USDT:USDT"
+                ],
+                "output": "{\"lever\":5,\"mgnMode\":\"cross\",\"instId\":\"LTC-USDT-SWAP\"}"
+            }
+        ],
         "transfer": [
             {
                 "description": "transfer from spot to funding",
