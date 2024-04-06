@@ -68,6 +68,7 @@ public partial class mexc : Exchange
                 { "fetchLeverage", true },
                 { "fetchLeverages", false },
                 { "fetchLeverageTiers", true },
+                { "fetchMarginAdjustmentHistory", false },
                 { "fetchMarginMode", false },
                 { "fetchMarketLeverageTiers", null },
                 { "fetchMarkets", true },

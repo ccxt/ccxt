@@ -3242,6 +3242,7 @@ class hitbtc extends Exchange {
             'info' => $data,
             'symbol' => $market['symbol'],
             'type' => null,
+            'marginMode' => 'isolated',
             'amount' => null,
             'total' => null,
             'code' => $this->safe_string($currencyInfo, 'code'),

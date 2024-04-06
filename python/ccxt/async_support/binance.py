@@ -121,6 +121,7 @@ class binance(Exchange, ImplicitAPI):
                 'fetchLeverages': True,
                 'fetchLeverageTiers': True,
                 'fetchLiquidations': False,
+                'fetchMarginAdjustmentHistory': True,
                 'fetchMarginMode': 'emulated',
                 'fetchMarginModes': True,
                 'fetchMarketLeverageTiers': 'emulated',
@@ -10330,21 +10331,37 @@ class binance(Exchange, ImplicitAPI):
         #         "type": 1
         #     }
         #
+        # fetchMarginAdjustmentHistory
+        #
+        #    {
+        #        symbol: "XRPUSDT",
+        #        type: "1",
+        #        deltaType: "TRADE",
+        #        amount: "2.57148240",
+        #        asset: "USDT",
+        #        time: "1711046271555",
+        #        positionSide: "BOTH",
+        #        clientTranId: ""
+        #    }
+        #
         rawType = self.safe_integer(data, 'type')
-        resultType = 'add' if (rawType == 1) else 'reduce'
-        resultAmount = self.safe_number(data, 'amount')
         errorCode = self.safe_string(data, 'code')
-        status = 'ok' if (errorCode == '200') else 'failed'
+        marketId = self.safe_string(data, 'symbol')
+        timestamp = self.safe_integer(data, 'time')
+        market = self.safe_market(marketId, market, None, 'swap')
+        noErrorCode = errorCode is None
+        success = errorCode == '200'
         return {
             'info': data,
             'symbol': market['symbol'],
-            'type': resultType,
-            'amount': resultAmount,
+            'type': 'add' if (rawType == 1) else 'reduce',
+            'marginMode': 'isolated',
+            'amount': self.safe_number(data, 'amount'),
+            'code': self.safe_string(data, 'asset'),
             'total': None,
-            'code': None,
-            'status': status,
-            'timestamp': None,
-            'datetime': None,
+            'status': 'ok' if (success or noErrorCode) else 'failed',
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
         }
 
     async def reduce_margin(self, symbol: str, amount, params={}) -> MarginModification:
@@ -11506,3 +11523,58 @@ class binance(Exchange, ImplicitAPI):
             'baseVolume': self.safe_number(chain, 'volume'),
             'quoteVolume': None,
         }
+
+    async def fetch_margin_adjustment_history(self, symbol: Str = None, type: Str = None, since: Num = None, limit: Num = None, params={}) -> List[MarginModification]:
+        """
+        fetches the history of margin added or reduced from contract isolated positions
+        :see: https://binance-docs.github.io/apidocs/futures/en/#get-position-margin-change-history-trade
+        :see: https://binance-docs.github.io/apidocs/delivery/en/#get-position-margin-change-history-trade
+        :param str symbol: unified market symbol
+        :param str [type]: "add" or "reduce"
+        :param int [since]: timestamp in ms of the earliest change to fetch
+        :param int [limit]: the maximum amount of changes to fetch
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :param int [params.until]: timestamp in ms of the latest change to fetch
+        :returns dict[]: a list of `margin structures <https://docs.ccxt.com/#/?id=margin-loan-structure>`
+        """
+        await self.load_markets()
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchMarginAdjustmentHistory() requires a symbol argument')
+        market = self.market(symbol)
+        until = self.safe_integer(params, 'until')
+        params = self.omit(params, 'until')
+        request = {
+            'symbol': market['id'],
+        }
+        if type is not None:
+            request['type'] = 1 if (type == 'add') else 2
+        if since is not None:
+            request['startTime'] = since
+        if limit is not None:
+            request['limit'] = limit
+        if until is not None:
+            request['endTime'] = until
+        response = None
+        if market['linear']:
+            response = await self.fapiPrivateGetPositionMarginHistory(self.extend(request, params))
+        elif market['inverse']:
+            response = await self.dapiPrivateGetPositionMarginHistory(self.extend(request, params))
+        else:
+            raise BadRequest(self.id + 'fetchMarginAdjustmentHistory() is not supported for markets of type ' + market['type'])
+        #
+        #    [
+        #        {
+        #            symbol: "XRPUSDT",
+        #            type: "1",
+        #            deltaType: "TRADE",
+        #            amount: "2.57148240",
+        #            asset: "USDT",
+        #            time: "1711046271555",
+        #            positionSide: "BOTH",
+        #            clientTranId: ""
+        #        }
+        #        ...
+        #    ]
+        #
+        modifications = self.parse_margin_modifications(response)
+        return self.filter_by_symbol_since_limit(modifications, symbol, since, limit)

@@ -96,6 +96,7 @@ class bybit(Exchange, ImplicitAPI):
                 'fetchLedger': True,
                 'fetchLeverage': True,
                 'fetchLeverageTiers': True,
+                'fetchMarginAdjustmentHistory': False,
                 'fetchMarketLeverageTiers': True,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': True,
@@ -165,6 +166,13 @@ class bybit(Exchange, ImplicitAPI):
                     'v2': 'https://api.{hostname}',
                     'public': 'https://api.{hostname}',
                     'private': 'https://api.{hostname}',
+                },
+                'demotrading': {
+                    'spot': 'https://api-demo.{hostname}',
+                    'futures': 'https://api-demo.{hostname}',
+                    'v2': 'https://api-demo.{hostname}',
+                    'public': 'https://api-demo.{hostname}',
+                    'private': 'https://api-demo.{hostname}',
                 },
                 'www': 'https://www.bybit.com',
                 'doc': [
@@ -354,6 +362,7 @@ class bybit(Exchange, ImplicitAPI):
                         'v5/user/get-member-type': 5,
                         'v5/user/aff-customer-info': 5,
                         'v5/user/del-submember': 5,
+                        'v5/user/submembers': 5,
                         # spot leverage token
                         'v5/spot-lever-token/order-record': 1,  # 50/s => cost = 50 / 50 = 1
                         # spot margin trade
@@ -514,6 +523,8 @@ class bybit(Exchange, ImplicitAPI):
                         'v5/lending/redeem-cancel': 5,
                         'v5/account/set-collateral-switch': 5,
                         'v5/account/set-collateral-switch-batch': 5,
+                        # demo trading
+                        'v5/account/demo-apply-money': 5,
                     },
                 },
             },
@@ -980,6 +991,8 @@ class bybit(Exchange, ImplicitAPI):
             },
             'precisionMode': TICK_SIZE,
             'options': {
+                'sandboxMode': False,
+                'enableDemoTrading': False,
                 'fetchMarkets': ['spot', 'linear', 'inverse', 'option'],
                 'createOrder': {
                     'method': 'privatePostV5OrderCreate',  # 'privatePostV5PositionTradingStop'
@@ -1063,6 +1076,32 @@ class bybit(Exchange, ImplicitAPI):
             },
         })
 
+    def set_sandbox_mode(self, enable: bool):
+        """
+        enables or disables sandbox mode
+        :param boolean [enable]: True if demo trading should be enabled, False otherwise
+        """
+        super(bybit, self).set_sandbox_mode(enable)
+        self.options['sandboxMode'] = enable
+
+    def enable_demo_trading(self, enable: bool):
+        """
+        enables or disables demo trading mode
+        :see: https://bybit-exchange.github.io/docs/v5/demo
+        :param boolean [enable]: True if demo trading should be enabled, False otherwise
+        """
+        if self.options['sandboxMode']:
+            raise NotSupported(self.id + ' demo trading does not support in sandbox environment')
+        # enable demo trading in bybit, see: https://bybit-exchange.github.io/docs/v5/demo
+        if enable:
+            self.urls['apiBackupDemoTrading'] = self.urls['api']
+            self.urls['api'] = self.urls['demotrading']
+        elif 'apiBackupDemoTrading' in self.urls:
+            self.urls['api'] = self.urls['apiBackupDemoTrading']
+            newUrls = self.omit(self.urls, 'apiBackupDemoTrading')
+            self.urls = newUrls
+        self.options['enableDemoTrading'] = enable
+
     def nonce(self):
         return self.milliseconds() - self.options['timeDifference']
 
@@ -1078,12 +1117,21 @@ class bybit(Exchange, ImplicitAPI):
         return data
 
     async def is_unified_enabled(self, params={}):
+        """
+        returns [enableUnifiedMargin, enableUnifiedAccount] so the user can check if unified account is enabled
+        """
         # The API key of user id must own one of permissions will be allowed to call following API endpoints.
         # SUB UID: "Account Transfer"
         # MASTER UID: "Account Transfer", "Subaccount Transfer", "Withdrawal"
         enableUnifiedMargin = self.safe_value(self.options, 'enableUnifiedMargin')
         enableUnifiedAccount = self.safe_value(self.options, 'enableUnifiedAccount')
         if enableUnifiedMargin is None or enableUnifiedAccount is None:
+            if self.options['enableDemoTrading']:
+                # info endpoint is not available in demo trading
+                # so we're assuming UTA is enabled
+                self.options['enableUnifiedMargin'] = False
+                self.options['enableUnifiedAccount'] = True
+                return [self.options['enableUnifiedMargin'], self.options['enableUnifiedAccount']]
             response = await self.privateGetV5UserQueryApi(params)
             #
             #     {
@@ -1242,6 +1290,8 @@ class bybit(Exchange, ImplicitAPI):
         :returns dict: an associative dictionary of currencies
         """
         if not self.check_required_credentials(False):
+            return None
+        if self.options['enableDemoTrading']:
             return None
         response = await self.privateGetV5AssetCoinQueryInfo(params)
         #

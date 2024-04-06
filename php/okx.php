@@ -81,6 +81,7 @@ class okx extends Exchange {
                 'fetchLedgerEntry' => null,
                 'fetchLeverage' => true,
                 'fetchLeverageTiers' => false,
+                'fetchMarginAdjustmentHistory' => true,
                 'fetchMarketLeverageTiers' => true,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => true,
@@ -6357,9 +6358,9 @@ class okx extends Exchange {
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
+        $entry = $this->safe_dict($data, 0, array());
         $errorCode = $this->safe_string($response, 'code');
-        $item = $this->safe_dict($data, 0, array());
-        return array_merge($this->parse_margin_modification($item, $market), array(
+        return array_merge($this->parse_margin_modification($entry, $market), array(
             'status' => ($errorCode === '0') ? 'ok' : 'failed',
         ));
     }
@@ -6375,22 +6376,67 @@ class okx extends Exchange {
         //        "type" => "reduce"
         //    }
         //
-        $amountRaw = $this->safe_number($data, 'amt');
+        // fetchMarginAdjustmentHistory
+        //
+        //    {
+        //        bal => '67621.4325135010619812',
+        //        balChg => '-10.0000000000000000',
+        //        billId => '691293628710342659',
+        //        ccy => 'USDT',
+        //        clOrdId => '',
+        //        execType => '',
+        //        fee => '0',
+        //        fillFwdPx => '',
+        //        fillIdxPx => '',
+        //        fillMarkPx => '',
+        //        fillMarkVol => '',
+        //        fillPxUsd => '',
+        //        fillPxVol => '',
+        //        fillTime => '1711089244850',
+        //        from => '',
+        //        instId => 'XRP-USDT-SWAP',
+        //        instType => 'SWAP',
+        //        interest => '0',
+        //        mgnMode => 'isolated',
+        //        notes => '',
+        //        ordId => '',
+        //        pnl => '0',
+        //        posBal => '73.12',
+        //        posBalChg => '10.00',
+        //        px => '',
+        //        subType => '160',
+        //        sz => '10',
+        //        tag => '',
+        //        to => '',
+        //        tradeId => '0',
+        //        ts => '1711089244699',
+        //        $type => '6'
+        //    }
+        //
+        $amountRaw = $this->safe_string_2($data, 'amt', 'posBalChg');
         $typeRaw = $this->safe_string($data, 'type');
-        $type = ($typeRaw === 'reduce') ? 'reduce' : 'add';
+        $type = null;
+        if ($typeRaw === '6') {
+            $type = Precise::string_gt($amountRaw, '0') ? 'add' : 'reduce';
+        } else {
+            $type = $typeRaw;
+        }
+        $amount = Precise::string_abs($amountRaw);
         $marketId = $this->safe_string($data, 'instId');
         $responseMarket = $this->safe_market($marketId, $market);
         $code = $responseMarket['inverse'] ? $responseMarket['base'] : $responseMarket['quote'];
+        $timestamp = $this->safe_integer($data, 'ts');
         return array(
             'info' => $data,
             'symbol' => $responseMarket['symbol'],
             'type' => $type,
-            'amount' => $amountRaw,
-            'total' => null,
+            'marginMode' => 'isolated',
+            'amount' => $this->parse_number($amount),
             'code' => $code,
+            'total' => null,
             'status' => null,
-            'timestamp' => null,
-            'datetime' => null,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
         );
     }
 
@@ -7479,5 +7525,103 @@ class okx extends Exchange {
             throw new ExchangeError($feedback); // unknown $message
         }
         return null;
+    }
+
+    public function fetch_margin_adjustment_history(?string $symbol = null, ?string $type = null, ?float $since = null, ?float $limit = null, $params = array ()): array {
+        /**
+         * fetches the history of margin added or reduced from contract isolated positions
+         * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-bills-details-last-7-days
+         * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-bills-details-last-3-months
+         * @param {string} [$symbol] not used by okx fetchMarginAdjustmentHistory
+         * @param {string} [$type] "add" or "reduce"
+         * @param {array} $params extra parameters specific to the exchange api endpoint
+         * @param {boolean} [$params->auto] true if fetching $auto margin increases
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=margin-loan-structure margin structures~
+         */
+        $this->load_markets();
+        $auto = $this->safe_bool($params, 'auto');
+        if ($type === null) {
+            throw new ArgumentsRequired($this->id . ' fetchMarginAdjustmentHistory () requires a $type argument');
+        }
+        $isAdd = $type === 'add';
+        $subType = $isAdd ? '160' : '161';
+        if ($auto) {
+            if ($isAdd) {
+                $subType = '162';
+            } else {
+                throw new BadRequest($this->id . ' cannot fetch margin adjustments for $type ' . $type);
+            }
+        }
+        $request = array(
+            'subType' => $subType,
+            'mgnMode' => 'isolated',
+        );
+        $until = $this->safe_integer($params, 'until');
+        $params = $this->omit($params, 'until');
+        if ($since !== null) {
+            $request['startTime'] = $since;
+        }
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        if ($until !== null) {
+            $request['endTime'] = $until;
+        }
+        $response = null;
+        $now = $this->milliseconds();
+        $oneWeekAgo = $now - 604800000;
+        $threeMonthsAgo = $now - 7776000000;
+        if (($since === null) || ($since > $oneWeekAgo)) {
+            $response = $this->privateGetAccountBills (array_merge($request, $params));
+        } elseif ($since > $threeMonthsAgo) {
+            $response = $this->privateGetAccountBillsArchive (array_merge($request, $params));
+        } else {
+            throw new BadRequest($this->id . ' fetchMarginAdjustmentHistory () cannot fetch margin adjustments older than 3 months');
+        }
+        //
+        //    {
+        //        code => '0',
+        //        $data => array(
+        //            {
+        //                bal => '67621.4325135010619812',
+        //                balChg => '-10.0000000000000000',
+        //                billId => '691293628710342659',
+        //                ccy => 'USDT',
+        //                clOrdId => '',
+        //                execType => '',
+        //                fee => '0',
+        //                fillFwdPx => '',
+        //                fillIdxPx => '',
+        //                fillMarkPx => '',
+        //                fillMarkVol => '',
+        //                fillPxUsd => '',
+        //                fillPxVol => '',
+        //                fillTime => '1711089244850',
+        //                from => '',
+        //                instId => 'XRP-USDT-SWAP',
+        //                instType => 'SWAP',
+        //                interest => '0',
+        //                mgnMode => 'isolated',
+        //                notes => '',
+        //                ordId => '',
+        //                pnl => '0',
+        //                posBal => '73.12',
+        //                posBalChg => '10.00',
+        //                px => '',
+        //                $subType => '160',
+        //                sz => '10',
+        //                tag => '',
+        //                to => '',
+        //                tradeId => '0',
+        //                ts => '1711089244699',
+        //                $type => '6'
+        //            }
+        //        ),
+        //        msg => ''
+        //    }
+        //
+        $data = $this->safe_list($response, 'data');
+        $modifications = $this->parse_margin_modifications($data);
+        return $this->filter_by_symbol_since_limit($modifications, $symbol, $since, $limit);
     }
 }

@@ -369,6 +369,7 @@ export default class Exchange {
             fetchIndexOHLCV: any;
             fetchIsolatedBorrowRate: any;
             fetchIsolatedBorrowRates: any;
+            fetchMarginAdjustmentHistory: any;
             fetchIsolatedPositions: any;
             fetchL2OrderBook: boolean;
             fetchL3OrderBook: any;
@@ -625,6 +626,7 @@ export default class Exchange {
     intToBase16(elem: any): string;
     extendExchangeOptions(newOptions: any): void;
     createSafeDictionary(): {};
+    randomBytes(length: any): string;
     safeBoolN(dictionaryOrList: any, keys: IndexType[], defaultValue?: boolean): boolean | undefined;
     safeBool2(dictionary: any, key1: IndexType, key2: IndexType, defaultValue?: boolean): boolean | undefined;
     safeBool(dictionary: any, key: IndexType, defaultValue?: boolean): boolean | undefined;
@@ -700,6 +702,7 @@ export default class Exchange {
     addMargin(symbol: string, amount: number, params?: {}): Promise<MarginModification>;
     reduceMargin(symbol: string, amount: number, params?: {}): Promise<MarginModification>;
     setMargin(symbol: string, amount: number, params?: {}): Promise<{}>;
+    fetchMarginAdjustmentHistory(symbol?: Str, type?: Str, since?: Num, limit?: Num, params?: {}): Promise<MarginModification[]>;
     setMarginMode(marginMode: string, symbol?: Str, params?: {}): Promise<{}>;
     fetchDepositAddressesByNetwork(code: string, params?: {}): Promise<{}>;
     fetchOpenInterestHistory(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OpenInterest[]>;
@@ -1015,5 +1018,7 @@ export default class Exchange {
     convertExpireDate(date: string): string;
     convertExpireDateToMarketIdDate(date: string): string;
     convertMarketIdExpireDate(date: string): string;
+    parseMarginModification(data: any, market?: Market): MarginModification;
+    parseMarginModifications(response: object[], symbols?: string[], symbolKey?: Str, marketType?: MarketType): MarginModification[];
 }
 export { Exchange, };

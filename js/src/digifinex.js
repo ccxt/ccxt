@@ -4165,6 +4165,7 @@ export default class digifinex extends Exchange {
             'info': data,
             'symbol': this.safeSymbol(marketId, market, undefined, 'swap'),
             'type': (rawType === 1) ? 'add' : 'reduce',
+            'marginMode': 'isolated',
             'amount': this.safeNumber(data, 'amount'),
             'total': undefined,
             'code': market['settle'],

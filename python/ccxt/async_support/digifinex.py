@@ -3851,6 +3851,7 @@ class digifinex(Exchange, ImplicitAPI):
             'info': data,
             'symbol': self.safe_symbol(marketId, market, None, 'swap'),
             'type': 'add' if (rawType == 1) else 'reduce',
+            'marginMode': 'isolated',
             'amount': self.safe_number(data, 'amount'),
             'total': None,
             'code': market['settle'],

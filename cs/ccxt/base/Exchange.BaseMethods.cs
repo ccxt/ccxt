@@ -828,6 +828,12 @@ public partial class Exchange
         throw new NotSupported ((string)add(this.id, " setMargin() is not supported yet")) ;
     }
 
+    public async virtual Task<object> fetchMarginAdjustmentHistory(object symbol = null, object type = null, object since = null, object limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " fetchMarginAdjustmentHistory() is not supported yet")) ;
+    }
+
     public async virtual Task<object> setMarginMode(object marginMode, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
@@ -5795,6 +5801,27 @@ public partial class Exchange
         object day = slice(date, 5, 7);
         object reconstructedDate = add(add(day, month), year);
         return reconstructedDate;
+    }
+
+    public virtual object parseMarginModification(object data, object market = null)
+    {
+        throw new NotSupported ((string)add(this.id, " parseMarginModification() is not supported yet")) ;
+    }
+
+    public virtual object parseMarginModifications(object response, object symbols = null, object symbolKey = null, object marketType = null)
+    {
+        object marginModifications = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        {
+            object info = getValue(response, i);
+            object marketId = this.safeString(info, symbolKey);
+            object market = this.safeMarket(marketId, null, null, marketType);
+            if (isTrue(isTrue((isEqual(symbols, null))) || isTrue(this.inArray(getValue(market, "symbol"), symbols))))
+            {
+                ((IList<object>)marginModifications).Add(this.parseMarginModification(info, market));
+            }
+        }
+        return marginModifications;
     }
 }
 

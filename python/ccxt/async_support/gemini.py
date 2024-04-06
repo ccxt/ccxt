@@ -122,6 +122,7 @@ class gemini(Exchange, ImplicitAPI):
                     # https://github.com/ccxt/ccxt/issues/7874
                     # https://github.com/ccxt/ccxt/issues/7894
                     'web': 'https://docs.gemini.com',
+                    'webExchange': 'https://exchange.gemini.com',
                 },
                 'fees': [
                     'https://gemini.com/api-fee-schedule',
@@ -630,7 +631,7 @@ class gemini(Exchange, ImplicitAPI):
         quoteId = None
         settleId = None
         tickSize = None
-        increment = None
+        amountPrecision = None
         minSize = None
         status = None
         swap = False
@@ -641,9 +642,9 @@ class gemini(Exchange, ImplicitAPI):
         isArray = (isinstance(response, list))
         if not isString and not isArray:
             marketId = self.safe_string_lower(response, 'symbol')
+            amountPrecision = self.safe_number(response, 'tick_size')  # right, exchange has an imperfect naming and self turns out to be an amount-precision
+            tickSize = self.safe_number(response, 'quote_increment')  # self is tick-size actually
             minSize = self.safe_number(response, 'min_order_size')
-            tickSize = self.safe_number(response, 'tick_size')
-            increment = self.safe_number(response, 'quote_increment')
             status = self.parse_market_active(self.safe_string(response, 'status'))
             baseId = self.safe_string(response, 'base_currency')
             quoteId = self.safe_string(response, 'quote_currency')
@@ -654,9 +655,9 @@ class gemini(Exchange, ImplicitAPI):
                 marketId = response
             else:
                 marketId = self.safe_string_lower(response, 0)
-                minSize = self.safe_number(response, 3)
-                tickSize = self.parse_number(self.parse_precision(self.safe_string(response, 1)))
-                increment = self.parse_number(self.parse_precision(self.safe_string(response, 2)))
+                tickSize = self.parse_number(self.parse_precision(self.safe_string(response, 1)))  # priceTickDecimalPlaces
+                amountPrecision = self.parse_number(self.parse_precision(self.safe_string(response, 2)))  # quantityTickDecimalPlaces
+                minSize = self.safe_number(response, 3)  # quantityMinimum
             marketIdUpper = marketId.upper()
             isPerp = (marketIdUpper.find('PERP') >= 0)
             marketIdWithoutPerp = marketIdUpper.replace('PERP', '')
@@ -705,8 +706,8 @@ class gemini(Exchange, ImplicitAPI):
             'strike': None,
             'optionType': None,
             'precision': {
-                'price': increment,
-                'amount': tickSize,
+                'price': tickSize,
+                'amount': amountPrecision,
             },
             'limits': {
                 'leverage': {
@@ -1708,7 +1709,7 @@ class gemini(Exchange, ImplicitAPI):
             apiKey = self.apiKey
             if apiKey.find('account') < 0:
                 raise AuthenticationError(self.id + ' sign() requires an account-key, master-keys are not-supported')
-            nonce = self.nonce()
+            nonce = str(self.nonce())
             request = self.extend({
                 'request': url,
                 'nonce': nonce,
