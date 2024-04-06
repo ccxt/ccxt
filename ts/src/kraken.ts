@@ -221,7 +221,7 @@ export default class kraken extends Exchange {
                 'LUNA': 'LUNC',
                 'LUNA2': 'LUNA',
                 'REPV2': 'REP',
-                'XREP': 'REPV1',
+                'REP': 'REPV1',
                 'UST': 'USTC',
                 'XBT': 'BTC',
                 'XBT.M': 'BTC.M', // https://support.kraken.com/hc/en-us/articles/360039879471-What-is-Asset-S-and-Asset-M-
