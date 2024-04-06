@@ -1623,7 +1623,7 @@ export default class okx extends Exchange {
         //        "msg": ""
         //    }
         //
-        const data = this.safeDict (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         const result = {};
         const dataByCurrencyId = this.groupBy (data, 'ccy');
         const currencyIds = Object.keys (dataByCurrencyId);
