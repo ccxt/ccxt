@@ -232,7 +232,6 @@ export default class kraken extends Exchange {
                 'delistedMarketsById': {},
                 // cannot withdraw/deposit these
                 'inactiveCurrencies': [ 'CAD', 'USD', 'JPY', 'GBP' ],
-                'sliceAllowedForCurrencyIds': [],
                 'networks': {
                     'ETH': 'ERC20',
                     'TRX': 'TRC20',
