@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.currencycom import ImplicitAPI
 import hashlib
-from ccxt.base.types import Account, Balances, Currency, Int, Leverage, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Account, Balances, Currencies, Currency, Int, Leverage, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
@@ -326,7 +326,7 @@ class currencycom(Exchange, ImplicitAPI):
         #
         return self.safe_integer(response, 'serverTime')
 
-    def fetch_currencies(self, params={}):
+    def fetch_currencies(self, params={}) -> Currencies:
         """
         fetches all available currencies on an exchange
         :see: https://apitradedoc.currency.com/swagger-ui.html#/rest-api/getCurrenciesUsingGET
@@ -628,7 +628,7 @@ class currencycom(Exchange, ImplicitAPI):
             })
         return result
 
-    def fetch_trading_fees(self, params={}):
+    def fetch_trading_fees(self, params={}) -> TradingFees:
         """
         fetch the trading fees for multiple markets
         :see: https://apitradedoc.currency.com/swagger-ui.html#/rest-api/accountUsingGET

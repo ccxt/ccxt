@@ -3366,6 +3366,8 @@ class digifinex extends digifinex$1 {
             'symbol': symbol,
             'maker': this.safeNumber(fee, 'maker_fee_rate'),
             'taker': this.safeNumber(fee, 'taker_fee_rate'),
+            'percentage': undefined,
+            'tierBased': undefined,
         };
     }
     async fetchPositions(symbols = undefined, params = {}) {

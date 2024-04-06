@@ -388,7 +388,7 @@ class whitebit extends Exchange {
         );
     }
 
-    public function fetch_currencies($params = array ()) {
+    public function fetch_currencies($params = array ()): array {
         /**
          * fetches all available currencies on an exchange
          * @see https://docs.whitebit.com/public/http-v4/#asset-status-list
@@ -650,7 +650,7 @@ class whitebit extends Exchange {
         return $depositWithdrawFees;
     }
 
-    public function fetch_trading_fees($params = array ()) {
+    public function fetch_trading_fees($params = array ()): array {
         /**
          * fetch the trading fees for multiple markets
          * @see https://docs.whitebit.com/public/http-v4/#asset-status-list

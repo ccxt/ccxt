@@ -1,5 +1,5 @@
 import Exchange from './abstract/kraken.js';
-import type { IndexType, Int, OrderSide, OrderType, OHLCV, Trade, Order, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, Market, TransferEntry, Num } from './base/types.js';
+import type { IndexType, Int, OrderSide, OrderType, OHLCV, Trade, Order, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, Market, TransferEntry, Num, TradingFeeInterface, Currencies } from './base/types.js';
 /**
  * @class kraken
  * @augments Exchange
@@ -11,15 +11,8 @@ export default class kraken extends Exchange {
     fetchMarkets(params?: {}): Promise<Market[]>;
     safeCurrency(currencyId: any, currency?: Currency): import("./base/types.js").CurrencyInterface;
     appendInactiveMarkets(result: any): any;
-    fetchCurrencies(params?: {}): Promise<{}>;
-    fetchTradingFee(symbol: string, params?: {}): Promise<{
-        info: any;
-        symbol: any;
-        maker: number;
-        taker: number;
-        percentage: boolean;
-        tierBased: boolean;
-    }>;
+    fetchCurrencies(params?: {}): Promise<Currencies>;
+    fetchTradingFee(symbol: string, params?: {}): Promise<TradingFeeInterface>;
     parseTradingFee(response: any, market: any): {
         info: any;
         symbol: any;

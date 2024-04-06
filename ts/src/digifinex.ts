@@ -6,7 +6,7 @@ import { AccountSuspended, BadRequest, BadResponse, NetworkError, DDoSProtection
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { FundingRateHistory, Int, OHLCV, Order, OrderSide, OrderType, OrderRequest, Trade, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Strings, Market, Currency, TransferEntry, Num, MarginModification } from './base/types.js';
+import type { FundingRateHistory, Int, OHLCV, Order, OrderSide, OrderType, OrderRequest, Trade, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Strings, Market, Currency, TransferEntry, Num, MarginModification, TradingFeeInterface, Currencies } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -349,7 +349,7 @@ export default class digifinex extends Exchange {
         });
     }
 
-    async fetchCurrencies (params = {}) {
+    async fetchCurrencies (params = {}): Promise<Currencies> {
         /**
          * @method
          * @name digifinex#fetchCurrencies
@@ -3299,7 +3299,7 @@ export default class digifinex extends Exchange {
         return this.filterBySymbolSinceLimit (sorted, symbol, since, limit) as FundingRateHistory[];
     }
 
-    async fetchTradingFee (symbol: string, params = {}) {
+    async fetchTradingFee (symbol: string, params = {}): Promise<TradingFeeInterface> {
         /**
          * @method
          * @name digifinex#fetchTradingFee
@@ -3332,7 +3332,7 @@ export default class digifinex extends Exchange {
         return this.parseTradingFee (data, market);
     }
 
-    parseTradingFee (fee, market: Market = undefined) {
+    parseTradingFee (fee, market: Market = undefined): TradingFeeInterface {
         //
         //     {
         //         "instrument_id": "BTCUSDTPERP",
@@ -3347,6 +3347,8 @@ export default class digifinex extends Exchange {
             'symbol': symbol,
             'maker': this.safeNumber (fee, 'maker_fee_rate'),
             'taker': this.safeNumber (fee, 'taker_fee_rate'),
+            'percentage': undefined,
+            'tierBased': undefined,
         };
     }
 

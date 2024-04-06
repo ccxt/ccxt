@@ -2590,7 +2590,7 @@ class binance extends Exchange {
         return $this->safe_integer($response, 'serverTime');
     }
 
-    public function fetch_currencies($params = array ()) {
+    public function fetch_currencies($params = array ()): array {
         /**
          * fetches all available currencies on an exchange
          * @see https://binance-docs.github.io/apidocs/spot/en/#all-coins-39-information-user_data
@@ -8409,7 +8409,7 @@ class binance extends Exchange {
         return $this->parse_transaction($response, $currency);
     }
 
-    public function parse_trading_fee($fee, ?array $market = null) {
+    public function parse_trading_fee($fee, ?array $market = null): array {
         //
         // spot
         //     array(
@@ -8434,10 +8434,12 @@ class binance extends Exchange {
             'symbol' => $symbol,
             'maker' => $this->safe_number_2($fee, 'makerCommission', 'makerCommissionRate'),
             'taker' => $this->safe_number_2($fee, 'takerCommission', 'takerCommissionRate'),
+            'percentage' => null,
+            'tierBased' => null,
         );
     }
 
-    public function fetch_trading_fee(string $symbol, $params = array ()) {
+    public function fetch_trading_fee(string $symbol, $params = array ()): array {
         /**
          * fetch the trading fees for a $market
          * @see https://binance-docs.github.io/apidocs/spot/en/#trade-fee-user_data
@@ -8505,7 +8507,7 @@ class binance extends Exchange {
         return $this->parse_trading_fee($data, $market);
     }
 
-    public function fetch_trading_fees($params = array ()) {
+    public function fetch_trading_fees($params = array ()): array {
         /**
          * fetch the trading fees for multiple markets
          * @see https://binance-docs.github.io/apidocs/spot/en/#trade-$fee-user_data

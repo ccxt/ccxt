@@ -622,7 +622,7 @@ class bitfinex2 extends Exchange {
         return $result;
     }
 
-    public function fetch_currencies($params = array ()) {
+    public function fetch_currencies($params = array ()): array {
         /**
          * fetches all available currencies on an exchange
          * @see https://docs.bitfinex.com/reference/rest-public-conf
@@ -2358,7 +2358,7 @@ class bitfinex2 extends Exchange {
         );
     }
 
-    public function fetch_trading_fees($params = array ()) {
+    public function fetch_trading_fees($params = array ()): array {
         /**
          * fetch the trading fees for multiple markets
          * @see https://docs.bitfinex.com/reference/rest-auth-summary

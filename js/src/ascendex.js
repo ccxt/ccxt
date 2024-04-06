@@ -1486,6 +1486,8 @@ export default class ascendex extends Exchange {
                 'symbol': symbol,
                 'maker': this.safeNumber(takerMaker, 'maker'),
                 'taker': this.safeNumber(takerMaker, 'taker'),
+                'percentage': undefined,
+                'tierBased': undefined,
             };
         }
         return result;

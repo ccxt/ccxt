@@ -1239,7 +1239,7 @@ class lbank extends Exchange {
         }) ();
     }
 
-    public function parse_trading_fee($fee, ?array $market = null) {
+    public function parse_trading_fee($fee, ?array $market = null): array {
         //
         //      {
         //          "symbol":"skt_usdt",
@@ -1254,10 +1254,12 @@ class lbank extends Exchange {
             'symbol' => $symbol,
             'maker' => $this->safe_number($fee, 'makerCommission'),
             'taker' => $this->safe_number($fee, 'takerCommission'),
+            'percentage' => null,
+            'tierBased' => null,
         );
     }
 
-    public function fetch_trading_fee(string $symbol, $params = array ()) {
+    public function fetch_trading_fee(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch the trading fees for a $market
@@ -1268,11 +1270,11 @@ class lbank extends Exchange {
              */
             $market = $this->market($symbol);
             $result = Async\await($this->fetch_trading_fees(array_merge($params, array( 'category' => $market['id'] ))));
-            return $result;
+            return $this->safe_dict($result, $symbol);
         }) ();
     }
 
-    public function fetch_trading_fees($params = array ()) {
+    public function fetch_trading_fees($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetch the trading $fees for multiple markets

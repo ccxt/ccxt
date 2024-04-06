@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.ascendex import ImplicitAPI
 import hashlib
-from ccxt.base.types import Account, Balances, Currency, Int, Leverage, Leverages, MarginMode, MarginModes, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
+from ccxt.base.types import Account, Balances, Currencies, Currency, Int, Leverage, Leverages, MarginMode, MarginModes, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -395,7 +395,7 @@ class ascendex(Exchange, ImplicitAPI):
         lowercaseAccount = account.lower()
         return self.capitalize(lowercaseAccount)
 
-    def fetch_currencies(self, params={}):
+    def fetch_currencies(self, params={}) -> Currencies:
         """
         fetches all available currencies on an exchange
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -1394,7 +1394,7 @@ class ascendex(Exchange, ImplicitAPI):
             'trades': None,
         }, market)
 
-    def fetch_trading_fees(self, params={}):
+    def fetch_trading_fees(self, params={}) -> TradingFees:
         """
         fetch the trading fees for multiple markets
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -1437,6 +1437,8 @@ class ascendex(Exchange, ImplicitAPI):
                 'symbol': symbol,
                 'maker': self.safe_number(takerMaker, 'maker'),
                 'taker': self.safe_number(takerMaker, 'taker'),
+                'percentage': None,
+                'tierBased': None,
             }
         return result
 

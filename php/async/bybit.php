@@ -1245,7 +1245,7 @@ class bybit extends Exchange {
         }) ();
     }
 
-    public function fetch_currencies($params = array ()) {
+    public function fetch_currencies($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches all available currencies on an exchange
@@ -7273,7 +7273,7 @@ class bybit extends Exchange {
         }) ();
     }
 
-    public function parse_trading_fee($fee, ?array $market = null) {
+    public function parse_trading_fee($fee, ?array $market = null): array {
         //
         //     {
         //         "symbol" => "ETHUSDT",
@@ -7289,10 +7289,12 @@ class bybit extends Exchange {
             'symbol' => $symbol,
             'maker' => $this->safe_number($fee, 'makerFeeRate'),
             'taker' => $this->safe_number($fee, 'takerFeeRate'),
+            'percentage' => null,
+            'tierBased' => null,
         );
     }
 
-    public function fetch_trading_fee(string $symbol, $params = array ()) {
+    public function fetch_trading_fee(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch the trading $fees for a $market
@@ -7342,7 +7344,7 @@ class bybit extends Exchange {
         }) ();
     }
 
-    public function fetch_trading_fees($params = array ()) {
+    public function fetch_trading_fees($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetch the trading $fees for multiple markets

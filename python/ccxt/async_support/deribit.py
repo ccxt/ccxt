@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.deribit import ImplicitAPI
 import hashlib
-from ccxt.base.types import Account, Balances, Currency, Greeks, Int, Market, MarketInterface, Num, Option, OptionChain, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
+from ccxt.base.types import Account, Balances, Currencies, Currency, Greeks, Int, Market, MarketInterface, Num, Option, OptionChain, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -518,7 +518,7 @@ class deribit(Exchange, ImplicitAPI):
         #
         return self.safe_integer(response, 'result')
 
-    async def fetch_currencies(self, params={}):
+    async def fetch_currencies(self, params={}) -> Currencies:
         """
         fetches all available currencies on an exchange
         :see: https://docs.deribit.com/#public-get_currencies
@@ -1435,7 +1435,7 @@ class deribit(Exchange, ImplicitAPI):
         trades = self.safe_list(result, 'trades', [])
         return self.parse_trades(trades, market, since, limit)
 
-    async def fetch_trading_fees(self, params={}):
+    async def fetch_trading_fees(self, params={}) -> TradingFees:
         """
         fetch the trading fees for multiple markets
         :see: https://docs.deribit.com/#private-get_account_summary

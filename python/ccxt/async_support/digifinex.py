@@ -8,7 +8,7 @@ from ccxt.abstract.digifinex import ImplicitAPI
 import asyncio
 import hashlib
 import json
-from ccxt.base.types import Balances, Currency, Int, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
+from ccxt.base.types import Balances, Currencies, Currency, Int, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -366,7 +366,7 @@ class digifinex(Exchange, ImplicitAPI):
             },
         })
 
-    async def fetch_currencies(self, params={}):
+    async def fetch_currencies(self, params={}) -> Currencies:
         """
         fetches all available currencies on an exchange
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -3076,7 +3076,7 @@ class digifinex(Exchange, ImplicitAPI):
         sorted = self.sort_by(rates, 'timestamp')
         return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
 
-    async def fetch_trading_fee(self, symbol: str, params={}):
+    async def fetch_trading_fee(self, symbol: str, params={}) -> TradingFeeInterface:
         """
         fetch the trading fees for a market
         :see: https://docs.digifinex.com/en-ww/swap/v2/rest.html#tradingfee
@@ -3105,7 +3105,7 @@ class digifinex(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', {})
         return self.parse_trading_fee(data, market)
 
-    def parse_trading_fee(self, fee, market: Market = None):
+    def parse_trading_fee(self, fee, market: Market = None) -> TradingFeeInterface:
         #
         #     {
         #         "instrument_id": "BTCUSDTPERP",
@@ -3120,6 +3120,8 @@ class digifinex(Exchange, ImplicitAPI):
             'symbol': symbol,
             'maker': self.safe_number(fee, 'maker_fee_rate'),
             'taker': self.safe_number(fee, 'taker_fee_rate'),
+            'percentage': None,
+            'tierBased': None,
         }
 
     async def fetch_positions(self, symbols: Strings = None, params={}):

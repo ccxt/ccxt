@@ -508,7 +508,7 @@ class bitflyer extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function fetch_trading_fee(string $symbol, $params = array ()) {
+    public function fetch_trading_fee(string $symbol, $params = array ()): array {
         /**
          * fetch the trading fees for a $market
          * @see https://lightning.bitflyer.com/docs?lang=en#get-trading-commission
@@ -533,6 +533,8 @@ class bitflyer extends Exchange {
             'symbol' => $market['symbol'],
             'maker' => $fee,
             'taker' => $fee,
+            'percentage' => null,
+            'tierBased' => null,
         );
     }
 

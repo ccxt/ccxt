@@ -44,6 +44,28 @@ public struct Fee
     }
 }
 
+public struct TradingFeeInterface
+{
+
+    public string? symbol;
+    public double? maker;
+    public double? taker;
+    public bool? percentage;
+    public bool? tierBased;
+    public Dictionary<string, object> info;
+
+    public TradingFeeInterface(object tradingFeeInterface2)
+    {
+        var tradingFeeInterface = (Dictionary<string, object>)tradingFeeInterface2;
+        symbol = Exchange.SafeString(tradingFeeInterface, "symbol");
+        maker = Exchange.SafeFloat(tradingFeeInterface, "maker");
+        taker = Exchange.SafeFloat(tradingFeeInterface, "taker");
+        percentage = tradingFeeInterface.ContainsKey("percentage") && tradingFeeInterface["percentage"] != null ? (bool)tradingFeeInterface["percentage"] : null;
+        tierBased = tradingFeeInterface.ContainsKey("tierBased") && tradingFeeInterface["tierBased"] != null ? (bool)tradingFeeInterface["tierBased"] : null;
+        info = tradingFeeInterface.ContainsKey("info") ? (Dictionary<string, object>)tradingFeeInterface["info"] : null;
+    }
+}
+
 public struct Limits
 {
     public MinMax? amount;
@@ -425,6 +447,84 @@ public struct LastPrices
         set
         {
             lastPrices[key] = value;
+        }
+    }
+}
+
+public struct Currencies
+{
+    public Dictionary<string, object> info;
+    public Dictionary<string, Currency> currencies;
+
+    public Currencies(object currencies2)
+    {
+        var currencies = (Dictionary<string, object>)currencies2;
+
+        info = currencies.ContainsKey("info") ? (Dictionary<string, object>)currencies["info"] : null;
+        this.currencies = new Dictionary<string, Currency>();
+        foreach (var currency in currencies)
+        {
+            if (currency.Key != "info")
+                this.currencies.Add(currency.Key, new Currency(currency.Value));
+        }
+    }
+
+    // Indexer
+    public Currency this[string key]
+    {
+        get
+        {
+            if (currencies.ContainsKey(key))
+            {
+                return currencies[key];
+            }
+            else
+            {
+                throw new KeyNotFoundException($"The key '{key}' was not found in the currencies.");
+            }
+        }
+        set
+        {
+            currencies[key] = value;
+        }
+    }
+}
+
+public struct TradingFees
+{
+    public Dictionary<string, object> info;
+    public Dictionary<string, TradingFeeInterface> tradingFees;
+
+    public TradingFees(object tradingFees2)
+    {
+        var tradingFees = (Dictionary<string, object>)tradingFees2;
+
+        info = tradingFees.ContainsKey("info") ? (Dictionary<string, object>)tradingFees["info"] : null;
+        this.tradingFees = new Dictionary<string, TradingFeeInterface>();
+        foreach (var tradingFee in tradingFees)
+        {
+            if (tradingFee.Key != "info")
+                this.tradingFees.Add(tradingFee.Key, new TradingFeeInterface(tradingFee.Value));
+        }
+    }
+
+    // Indexer
+    public TradingFeeInterface this[string key]
+    {
+        get
+        {
+            if (tradingFees.ContainsKey(key))
+            {
+                return tradingFees[key];
+            }
+            else
+            {
+                throw new KeyNotFoundException($"The key '{key}' was not found in the tradingFees.");
+            }
+        }
+        set
+        {
+            tradingFees[key] = value;
         }
     }
 }
@@ -1226,6 +1326,17 @@ public struct MarketInterface
 
 }
 
+public struct CurrencyLimits{
+    public MinMax? amount;
+    public MinMax? withdraw;
+    public CurrencyLimits(object currencyLimits2)
+    {
+        var currencyLimits = (Dictionary<string, object>)currencyLimits2;
+        amount = currencyLimits.ContainsKey("amount") ? new MinMax(currencyLimits["amount"]) : null;
+        withdraw = currencyLimits.ContainsKey("amount") ? new MinMax(currencyLimits["amount"]) : null;
+    }
+}
+
 
 public struct Currency
 {
@@ -1241,6 +1352,10 @@ public struct Currency
 
     public bool? deposit;
     public bool? withdraw;
+    public Int64? numericId;
+    public string? type;
+    public bool? margin;
+    public CurrencyLimits? limits;
     public Dictionary<string, Network>? networks;
 
     public Currency(object currency)
@@ -1271,7 +1386,11 @@ public struct Currency
         active = Exchange.SafeValue(currency, "active") != null ? (bool)Exchange.SafeValue(currency, "active") : null;
         deposit = Exchange.SafeValue(currency, "deposit") != null ? (bool)Exchange.SafeValue(currency, "deposit") : null;
         withdraw = Exchange.SafeValue(currency, "withdraw") != null ? (bool)Exchange.SafeValue(currency, "withdraw") : null;
+        numericId = Exchange.SafeInteger(currency, "numericId");
+        type = Exchange.SafeString(currency, "type");
+        margin = Exchange.SafeValue(currency, "margin") != null ? (bool)Exchange.SafeValue(currency, "margin") : null;
         networks = new Dictionary<string, Network>();
+        limits = (currency as IDictionary<string, object>).ContainsKey("limits") ? new CurrencyLimits((currency as IDictionary<string, object>)["limits"]) : null;
         if (Exchange.SafeValue(currency, "networks") != null)
         {
             var networks2 = (Dictionary<string, object>)Exchange.SafeValue(currency, "networks");

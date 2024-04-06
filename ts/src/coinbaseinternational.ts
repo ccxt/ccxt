@@ -6,7 +6,7 @@ import { ExchangeError, ArgumentsRequired, BadRequest, InvalidOrder, PermissionD
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Int, OrderSide, OrderType, Order, Trade, Ticker, Str, Transaction, Balances, Tickers, Strings, Market, Currency, TransferEntry, Position, FundingRateHistory } from './base/types.js';
+import type { Int, OrderSide, OrderType, Order, Trade, Ticker, Str, Transaction, Balances, Tickers, Strings, Market, Currency, TransferEntry, Position, FundingRateHistory, Currencies } from './base/types.js';
 
 // ----------------------------------------------------------------------------
 
@@ -1142,7 +1142,7 @@ export default class coinbaseinternational extends Exchange {
         };
     }
 
-    async fetchCurrencies (params = {}): Promise<any> {
+    async fetchCurrencies (params = {}): Promise<Currencies> {
         /**
          * @method
          * @name coinbaseinternational#fetchCurrencies

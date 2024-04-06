@@ -1818,7 +1818,7 @@ class bitget extends Exchange {
         return $this->parse_markets($data);
     }
 
-    public function fetch_currencies($params = array ()) {
+    public function fetch_currencies($params = array ()): array {
         /**
          * fetches all available currencies on an exchange
          * @see https://www.bitget.com/api-doc/spot/market/Get-Coin-List
@@ -2601,7 +2601,11 @@ class bitget extends Exchange {
         //
         $marketId = $this->safe_string($ticker, 'symbol');
         $close = $this->safe_string($ticker, 'lastPr');
-        $timestamp = $this->safe_integer($ticker, 'ts');
+        $timestampString = $this->omit_zero($this->safe_string($ticker, 'ts')); // exchange sometimes provided 0
+        $timestamp = null;
+        if ($timestampString !== null) {
+            $timestamp = $this->parse_to_int($timestampString);
+        }
         $change = $this->safe_string($ticker, 'change24h');
         $open24 = $this->safe_string($ticker, 'open24');
         $open = $this->safe_string($ticker, 'open');
@@ -3068,7 +3072,7 @@ class bitget extends Exchange {
         return $this->parse_trades($data, $market, $since, $limit);
     }
 
-    public function fetch_trading_fee(string $symbol, $params = array ()) {
+    public function fetch_trading_fee(string $symbol, $params = array ()): array {
         /**
          * fetch the trading fees for a $market
          * @see https://www.bitget.com/api-doc/common/public/Get-Trade-Rate
@@ -3109,7 +3113,7 @@ class bitget extends Exchange {
         return $this->parse_trading_fee($data, $market);
     }
 
-    public function fetch_trading_fees($params = array ()) {
+    public function fetch_trading_fees($params = array ()): array {
         /**
          * fetch the trading fees for multiple markets
          * @see https://www.bitget.com/api-doc/spot/market/Get-Symbols
@@ -3233,6 +3237,8 @@ class bitget extends Exchange {
             'symbol' => $this->safe_symbol($marketId, $market),
             'maker' => $this->safe_number($data, 'makerFeeRate'),
             'taker' => $this->safe_number($data, 'takerFeeRate'),
+            'percentage' => null,
+            'tierBased' => null,
         );
     }
 
