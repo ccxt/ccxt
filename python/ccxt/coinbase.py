@@ -4,20 +4,37 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
+from ccxt.abstract.coinbase import ImplicitAPI
+import hashlib
+from ccxt.base.types import Account, Balances, Currencies, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from typing import List
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
+from ccxt.base.errors import BadRequest
+from ccxt.base.errors import InvalidOrder
+from ccxt.base.errors import OrderNotFound
+from ccxt.base.errors import NotSupported
 from ccxt.base.errors import RateLimitExceeded
+from ccxt.base.errors import InvalidNonce
+from ccxt.base.errors import AuthenticationError
+from ccxt.base.decimal_to_precision import TICK_SIZE
+from ccxt.base.precise import Precise
 
 
-class coinbase(Exchange):
+class coinbase(Exchange, ImplicitAPI):
 
     def describe(self):
         return self.deep_extend(super(coinbase, self).describe(), {
             'id': 'coinbase',
             'name': 'Coinbase',
             'countries': ['US'],
-            'rateLimit': 400,  # 10k calls per hour
+            'pro': True,
+            # rate-limits:
+            # ADVANCED API: https://docs.cloud.coinbase.com/advanced-trade-api/docs/rest-api-rate-limits
+            # - max 30 req/second for private data, 10 req/s for public data
+            # DATA API    : https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/rate-limiting
+            # - max 10000 req/hour(to prevent userland mistakes we apply ~3 req/second RL per call
+            'rateLimit': 34,
             'version': 'v2',
             'userAgent': self.userAgents['chrome'],
             'headers': {
@@ -25,41 +42,102 @@ class coinbase(Exchange):
             },
             'has': {
                 'CORS': True,
-                'cancelOrder': False,
+                'spot': True,
+                'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
+                'addMargin': False,
+                'cancelOrder': True,
+                'cancelOrders': True,
+                'closeAllPositions': False,
+                'closePosition': False,
                 'createDepositAddress': True,
-                'createOrder': False,
-                'deposit': False,
+                'createLimitBuyOrder': True,
+                'createLimitSellOrder': True,
+                'createMarketBuyOrder': True,
+                'createMarketBuyOrderWithCost': True,
+                'createMarketOrderWithCost': False,
+                'createMarketSellOrder': True,
+                'createMarketSellOrderWithCost': False,
+                'createOrder': True,
+                'createPostOnlyOrder': True,
+                'createReduceOnlyOrder': False,
+                'createStopLimitOrder': True,
+                'createStopMarketOrder': False,
+                'createStopOrder': True,
+                'deposit': True,
+                'editOrder': True,
+                'fetchAccounts': True,
                 'fetchBalance': True,
-                'fetchClosedOrders': False,
+                'fetchBidsAsks': True,
+                'fetchBorrowRateHistories': False,
+                'fetchBorrowRateHistory': False,
+                'fetchCanceledOrders': True,
+                'fetchClosedOrders': True,
+                'fetchCrossBorrowRate': False,
+                'fetchCrossBorrowRates': False,
                 'fetchCurrencies': True,
-                'fetchDepositAddress': False,
-                'fetchMarkets': True,
-                'fetchMyTrades': False,
-                'fetchOHLCV': False,
-                'fetchOpenOrders': False,
-                'fetchOrder': False,
-                'fetchOrderBook': False,
+                'fetchDeposit': True,
+                'fetchDepositAddress': 'emulated',
+                'fetchDepositAddresses': False,
+                'fetchDepositAddressesByNetwork': True,
+                'fetchDeposits': True,
+                'fetchFundingHistory': False,
+                'fetchFundingRate': False,
+                'fetchFundingRateHistory': False,
+                'fetchFundingRates': False,
+                'fetchIndexOHLCV': False,
+                'fetchIsolatedBorrowRate': False,
+                'fetchIsolatedBorrowRates': False,
                 'fetchL2OrderBook': False,
                 'fetchLedger': True,
-                'fetchOrders': False,
-                'fetchTicker': True,
-                'fetchTickers': False,
-                'fetchTime': True,
-                'fetchBidsAsks': False,
-                'fetchTrades': False,
-                'withdraw': False,
-                'fetchTransactions': False,
-                'fetchDeposits': True,
-                'fetchWithdrawals': True,
-                'fetchMySells': True,
+                'fetchLeverage': False,
+                'fetchLeverageTiers': False,
+                'fetchMarginMode': False,
+                'fetchMarkets': True,
+                'fetchMarkOHLCV': False,
                 'fetchMyBuys': True,
+                'fetchMySells': True,
+                'fetchMyTrades': True,
+                'fetchOHLCV': True,
+                'fetchOpenInterestHistory': False,
+                'fetchOpenOrders': True,
+                'fetchOrder': True,
+                'fetchOrderBook': True,
+                'fetchOrders': True,
+                'fetchPosition': False,
+                'fetchPositionMode': False,
+                'fetchPositions': False,
+                'fetchPositionsRisk': False,
+                'fetchPremiumIndexOHLCV': False,
+                'fetchTicker': True,
+                'fetchTickers': True,
+                'fetchTime': True,
+                'fetchTrades': True,
+                'fetchTradingFee': False,
+                'fetchTradingFees': False,
+                'fetchWithdrawals': True,
+                'reduceMargin': False,
+                'setLeverage': False,
+                'setMarginMode': False,
+                'setPositionMode': False,
+                'withdraw': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/40811661-b6eceae2-653a-11e8-829e-10bfadb078cf.jpg',
-                'api': 'https://api.coinbase.com',
+                'api': {
+                    'rest': 'https://api.coinbase.com',
+                },
                 'www': 'https://www.coinbase.com',
-                'doc': 'https://developers.coinbase.com/api/v2',
-                'fees': 'https://support.coinbase.com/customer/portal/articles/2109597-buy-sell-bank-transfer-fees',
+                'doc': [
+                    'https://developers.coinbase.com/api/v2',
+                    'https://docs.cloud.coinbase.com/advanced-trade-api/docs/welcome',
+                ],
+                'fees': [
+                    'https://support.coinbase.com/customer/portal/articles/2109597-buy-sell-bank-transfer-fees',
+                    'https://www.coinbase.com/advanced-fees',
+                ],
                 'referral': 'https://www.coinbase.com/join/58cbe25a355148797479dbd2',
             },
             'requiredCredentials': {
@@ -67,85 +145,200 @@ class coinbase(Exchange):
                 'secret': True,
             },
             'api': {
-                'public': {
-                    'get': [
-                        'currencies',
-                        'time',
-                        'exchange-rates',
-                        'users/{user_id}',
-                        'prices/{symbol}/buy',
-                        'prices/{symbol}/sell',
-                        'prices/{symbol}/spot',
-                    ],
+                'v2': {
+                    'public': {
+                        'get': {
+                            'currencies': 10.6,
+                            'currencies/crypto': 10.6,
+                            'time': 10.6,
+                            'exchange-rates': 10.6,
+                            'users/{user_id}': 10.6,
+                            'prices/{symbol}/buy': 10.6,
+                            'prices/{symbol}/sell': 10.6,
+                            'prices/{symbol}/spot': 10.6,
+                        },
+                    },
+                    'private': {
+                        'get': {
+                            'accounts': 10.6,
+                            'accounts/{account_id}': 10.6,
+                            'accounts/{account_id}/addresses': 10.6,
+                            'accounts/{account_id}/addresses/{address_id}': 10.6,
+                            'accounts/{account_id}/addresses/{address_id}/transactions': 10.6,
+                            'accounts/{account_id}/transactions': 10.6,
+                            'accounts/{account_id}/transactions/{transaction_id}': 10.6,
+                            'accounts/{account_id}/buys': 10.6,
+                            'accounts/{account_id}/buys/{buy_id}': 10.6,
+                            'accounts/{account_id}/sells': 10.6,
+                            'accounts/{account_id}/sells/{sell_id}': 10.6,
+                            'accounts/{account_id}/deposits': 10.6,
+                            'accounts/{account_id}/deposits/{deposit_id}': 10.6,
+                            'accounts/{account_id}/withdrawals': 10.6,
+                            'accounts/{account_id}/withdrawals/{withdrawal_id}': 10.6,
+                            'payment-methods': 10.6,
+                            'payment-methods/{payment_method_id}': 10.6,
+                            'user': 10.6,
+                            'user/auth': 10.6,
+                        },
+                        'post': {
+                            'accounts': 10.6,
+                            'accounts/{account_id}/primary': 10.6,
+                            'accounts/{account_id}/addresses': 10.6,
+                            'accounts/{account_id}/transactions': 10.6,
+                            'accounts/{account_id}/transactions/{transaction_id}/complete': 10.6,
+                            'accounts/{account_id}/transactions/{transaction_id}/resend': 10.6,
+                            'accounts/{account_id}/buys': 10.6,
+                            'accounts/{account_id}/buys/{buy_id}/commit': 10.6,
+                            'accounts/{account_id}/sells': 10.6,
+                            'accounts/{account_id}/sells/{sell_id}/commit': 10.6,
+                            'accounts/{account_id}/deposits': 10.6,
+                            'accounts/{account_id}/deposits/{deposit_id}/commit': 10.6,
+                            'accounts/{account_id}/withdrawals': 10.6,
+                            'accounts/{account_id}/withdrawals/{withdrawal_id}/commit': 10.6,
+                        },
+                        'put': {
+                            'accounts/{account_id}': 10.6,
+                            'user': 10.6,
+                        },
+                        'delete': {
+                            'accounts/{id}': 10.6,
+                            'accounts/{account_id}/transactions/{transaction_id}': 10.6,
+                        },
+                    },
                 },
-                'private': {
-                    'get': [
-                        'accounts',
-                        'accounts/{account_id}',
-                        'accounts/{account_id}/addresses',
-                        'accounts/{account_id}/addresses/{address_id}',
-                        'accounts/{account_id}/addresses/{address_id}/transactions',
-                        'accounts/{account_id}/transactions',
-                        'accounts/{account_id}/transactions/{transaction_id}',
-                        'accounts/{account_id}/buys',
-                        'accounts/{account_id}/buys/{buy_id}',
-                        'accounts/{account_id}/sells',
-                        'accounts/{account_id}/sells/{sell_id}',
-                        'accounts/{account_id}/deposits',
-                        'accounts/{account_id}/deposits/{deposit_id}',
-                        'accounts/{account_id}/withdrawals',
-                        'accounts/{account_id}/withdrawals/{withdrawal_id}',
-                        'payment-methods',
-                        'payment-methods/{payment_method_id}',
-                        'user',
-                        'user/auth',
-                    ],
-                    'post': [
-                        'accounts',
-                        'accounts/{account_id}/primary',
-                        'accounts/{account_id}/addresses',
-                        'accounts/{account_id}/transactions',
-                        'accounts/{account_id}/transactions/{transaction_id}/complete',
-                        'accounts/{account_id}/transactions/{transaction_id}/resend',
-                        'accounts/{account_id}/buys',
-                        'accounts/{account_id}/buys/{buy_id}/commit',
-                        'accounts/{account_id}/sells',
-                        'accounts/{account_id}/sells/{sell_id}/commit',
-                        'accounts/{account_id}/deposists',
-                        'accounts/{account_id}/deposists/{deposit_id}/commit',
-                        'accounts/{account_id}/withdrawals',
-                        'accounts/{account_id}/withdrawals/{withdrawal_id}/commit',
-                    ],
-                    'put': [
-                        'accounts/{account_id}',
-                        'user',
-                    ],
-                    'delete': [
-                        'accounts/{id}',
-                        'accounts/{account_id}/transactions/{transaction_id}',
-                    ],
+                'v3': {
+                    'public': {
+                        'get': {
+                            'brokerage/time': 3,
+                        },
+                    },
+                    'private': {
+                        'get': {
+                            'brokerage/accounts': 1,
+                            'brokerage/accounts/{account_uuid}': 1,
+                            'brokerage/orders/historical/batch': 1,
+                            'brokerage/orders/historical/fills': 1,
+                            'brokerage/orders/historical/{order_id}': 1,
+                            'brokerage/products': 3,
+                            'brokerage/products/{product_id}': 3,
+                            'brokerage/products/{product_id}/candles': 3,
+                            'brokerage/products/{product_id}/ticker': 3,
+                            'brokerage/best_bid_ask': 3,
+                            'brokerage/product_book': 3,
+                            'brokerage/transaction_summary': 3,
+                            'brokerage/portfolios': 1,
+                            'brokerage/portfolios/{portfolio_uuid}': 1,
+                            'brokerage/convert/trade/{trade_id}': 1,
+                            'brokerage/cfm/balance_summary': 1,
+                            'brokerage/cfm/positions': 1,
+                            'brokerage/cfm/positions/{product_id}': 1,
+                            'brokerage/cfm/sweeps': 1,
+                            'brokerage/intx/portfolio/{portfolio_uuid}': 1,
+                            'brokerage/intx/positions/{portfolio_uuid}': 1,
+                            'brokerage/intx/positions/{portfolio_uuid}/{symbol}': 1,
+                            'brokerage/payment_methods': 1,
+                            'brokerage/payment_methods/{payment_method_id}': 1,
+                        },
+                        'post': {
+                            'brokerage/orders': 1,
+                            'brokerage/orders/batch_cancel': 1,
+                            'brokerage/orders/edit': 1,
+                            'brokerage/orders/edit_preview': 1,
+                            'brokerage/orders/preview': 1,
+                            'brokerage/portfolios': 1,
+                            'brokerage/portfolios/move_funds': 1,
+                            'brokerage/convert/quote': 1,
+                            'brokerage/convert/trade/{trade_id}': 1,
+                            'brokerage/cfm/sweeps/schedule': 1,
+                            'brokerage/intx/allocate': 1,
+                        },
+                        'put': {
+                            'brokerage/portfolios/{portfolio_uuid}': 1,
+                        },
+                        'delete': {
+                            'brokerage/portfolios/{portfolio_uuid}': 1,
+                            'brokerage/cfm/sweeps': 1,
+                        },
+                    },
                 },
             },
+            'fees': {
+                'trading': {
+                    'taker': self.parse_number('0.006'),
+                    'maker': self.parse_number('0.004'),
+                    'tierBased': True,
+                    'percentage': True,
+                    'tiers': {
+                        'taker': [
+                            [self.parse_number('0'), self.parse_number('0.006')],
+                            [self.parse_number('10000'), self.parse_number('0.004')],
+                            [self.parse_number('50000'), self.parse_number('0.0025')],
+                            [self.parse_number('100000'), self.parse_number('0.002')],
+                            [self.parse_number('1000000'), self.parse_number('0.0018')],
+                            [self.parse_number('15000000'), self.parse_number('0.0016')],
+                            [self.parse_number('75000000'), self.parse_number('0.0012')],
+                            [self.parse_number('250000000'), self.parse_number('0.0008')],
+                            [self.parse_number('400000000'), self.parse_number('0.0005')],
+                        ],
+                        'maker': [
+                            [self.parse_number('0'), self.parse_number('0.004')],
+                            [self.parse_number('10000'), self.parse_number('0.0025')],
+                            [self.parse_number('50000'), self.parse_number('0.0015')],
+                            [self.parse_number('100000'), self.parse_number('0.001')],
+                            [self.parse_number('1000000'), self.parse_number('0.0008')],
+                            [self.parse_number('15000000'), self.parse_number('0.0006')],
+                            [self.parse_number('75000000'), self.parse_number('0.0003')],
+                            [self.parse_number('250000000'), self.parse_number('0.0')],
+                            [self.parse_number('400000000'), self.parse_number('0.0')],
+                        ],
+                    },
+                },
+            },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
-                'two_factor_required': AuthenticationError,  # 402 When sending money over 2fa limit
-                'param_required': ExchangeError,  # 400 Missing parameter
-                'validation_error': ExchangeError,  # 400 Unable to validate POST/PUT
-                'invalid_request': ExchangeError,  # 400 Invalid request
-                'personal_details_required': AuthenticationError,  # 400 User’s personal detail required to complete self request
-                'identity_verification_required': AuthenticationError,  # 400 Identity verification is required to complete self request
-                'jumio_verification_required': AuthenticationError,  # 400 Document verification is required to complete self request
-                'jumio_face_match_verification_required': AuthenticationError,  # 400 Document verification including face match is required to complete self request
-                'unverified_email': AuthenticationError,  # 400 User has not verified their email
-                'authentication_error': AuthenticationError,  # 401 Invalid auth(generic)
-                'invalid_token': AuthenticationError,  # 401 Invalid Oauth token
-                'revoked_token': AuthenticationError,  # 401 Revoked Oauth token
-                'expired_token': AuthenticationError,  # 401 Expired Oauth token
-                'invalid_scope': AuthenticationError,  # 403 User hasn’t authenticated necessary scope
-                'not_found': ExchangeError,  # 404 Resource not found
-                'rate_limit_exceeded': RateLimitExceeded,  # 429 Rate limit exceeded
-                'internal_server_error': ExchangeError,  # 500 Internal server error
+                'exact': {
+                    'two_factor_required': AuthenticationError,  # 402 When sending money over 2fa limit
+                    'param_required': ExchangeError,  # 400 Missing parameter
+                    'validation_error': ExchangeError,  # 400 Unable to validate POST/PUT
+                    'invalid_request': ExchangeError,  # 400 Invalid request
+                    'personal_details_required': AuthenticationError,  # 400 User’s personal detail required to complete self request
+                    'identity_verification_required': AuthenticationError,  # 400 Identity verification is required to complete self request
+                    'jumio_verification_required': AuthenticationError,  # 400 Document verification is required to complete self request
+                    'jumio_face_match_verification_required': AuthenticationError,  # 400 Document verification including face match is required to complete self request
+                    'unverified_email': AuthenticationError,  # 400 User has not verified their email
+                    'authentication_error': AuthenticationError,  # 401 Invalid auth(generic)
+                    'invalid_authentication_method': AuthenticationError,  # 401 API access is blocked for deleted users.
+                    'invalid_token': AuthenticationError,  # 401 Invalid Oauth token
+                    'revoked_token': AuthenticationError,  # 401 Revoked Oauth token
+                    'expired_token': AuthenticationError,  # 401 Expired Oauth token
+                    'invalid_scope': AuthenticationError,  # 403 User hasn’t authenticated necessary scope
+                    'not_found': ExchangeError,  # 404 Resource not found
+                    'rate_limit_exceeded': RateLimitExceeded,  # 429 Rate limit exceeded
+                    'internal_server_error': ExchangeError,  # 500 Internal server error
+                    'UNSUPPORTED_ORDER_CONFIGURATION': BadRequest,
+                    'INSUFFICIENT_FUND': BadRequest,
+                },
+                'broad': {
+                    'request timestamp expired': InvalidNonce,  # {"errors":[{"id":"authentication_error","message":"request timestamp expired"}]}
+                    'order with self orderID was not found': OrderNotFound,  # {"error":"unknown","error_details":"order with self orderID was not found","message":"order with self orderID was not found"}
+                },
+            },
+            'timeframes': {
+                '1m': 'ONE_MINUTE',
+                '5m': 'FIVE_MINUTE',
+                '15m': 'FIFTEEN_MINUTE',
+                '30m': 'THIRTY_MINUTE',
+                '1h': 'ONE_HOUR',
+                '2h': 'TWO_HOUR',
+                '6h': 'SIX_HOUR',
+                '1d': 'ONE_DAY',
+            },
+            'commonCurrencies': {
+                'CGLD': 'CELO',
             },
             'options': {
+                'brokerId': 'ccxt',
+                'stablePairs': ['BUSD-USD', 'CBETH-ETH', 'DAI-USD', 'GUSD-USD', 'GYEN-USD', 'PAX-USD', 'PAX-USDT', 'USDC-EUR', 'USDC-GBP', 'USDT-EUR', 'USDT-GBP', 'USDT-USD', 'USDT-USDC', 'WBTC-BTC'],
                 'fetchCurrencies': {
                     'expires': 5000,
                 },
@@ -154,24 +347,193 @@ class coinbase(Exchange):
                     'fiat',
                     # 'vault',
                 ],
+                'v3Accounts': [
+                    'ACCOUNT_TYPE_CRYPTO',
+                    'ACCOUNT_TYPE_FIAT',
+                ],
+                'networks': {
+                    'ERC20': 'ethereum',
+                    'XLM': 'stellar',
+                },
+                'createMarketBuyOrderRequiresPrice': True,
+                'advanced': True,  # set to True if using any v3 endpoints from the advanced trade API
+                'fetchMarkets': 'fetchMarketsV3',  # 'fetchMarketsV3' or 'fetchMarketsV2'
+                'fetchTicker': 'fetchTickerV3',  # 'fetchTickerV3' or 'fetchTickerV2'
+                'fetchTickers': 'fetchTickersV3',  # 'fetchTickersV3' or 'fetchTickersV2'
+                'fetchAccounts': 'fetchAccountsV3',  # 'fetchAccountsV3' or 'fetchAccountsV2'
+                'fetchBalance': 'v2PrivateGetAccounts',  # 'v2PrivateGetAccounts' or 'v3PrivateGetBrokerageAccounts'
+                'fetchTime': 'v2PublicGetTime',  # 'v2PublicGetTime' or 'v3PublicGetBrokerageTime'
+                'user_native_currency': 'USD',  # needed to get fees for v3
             },
         })
 
     def fetch_time(self, params={}):
-        response = self.publicGetTime(params)
+        """
+        fetches the current integer timestamp in milliseconds from the exchange server
+        :see: https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-time#http-request
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.method]: 'v2PublicGetTime' or 'v3PublicGetBrokerageTime' default is 'v2PublicGetTime'
+        :returns int: the current integer timestamp in milliseconds from the exchange server
+        """
+        defaultMethod = self.safe_string(self.options, 'fetchTime', 'v2PublicGetTime')
+        method = self.safe_string(params, 'method', defaultMethod)
+        params = self.omit(params, 'method')
+        response = None
+        if method == 'v2PublicGetTime':
+            response = self.v2PublicGetTime(params)
+            #
+            #     {
+            #         "data": {
+            #             "epoch": 1589295679,
+            #             "iso": "2020-05-12T15:01:19Z"
+            #         }
+            #     }
+            #
+            response = self.safe_dict(response, 'data', {})
+        else:
+            response = self.v3PublicGetBrokerageTime(params)
+            #
+            #     {
+            #         "iso": "2024-02-27T03:37:14Z",
+            #         "epochSeconds": "1709005034",
+            #         "epochMillis": "1709005034333"
+            #     }
+            #
+        return self.safe_timestamp_2(response, 'epoch', 'epochSeconds')
+
+    def fetch_accounts(self, params={}) -> List[Account]:
+        """
+        fetch all the accounts associated with a profile
+        :see: https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getaccounts
+        :see: https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-accounts#list-accounts
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        :returns dict: a dictionary of `account structures <https://docs.ccxt.com/#/?id=account-structure>` indexed by the account type
+        """
+        method = self.safe_string(self.options, 'fetchAccounts', 'fetchAccountsV3')
+        if method == 'fetchAccountsV3':
+            return self.fetch_accounts_v3(params)
+        return self.fetch_accounts_v2(params)
+
+    def fetch_accounts_v2(self, params={}) -> List[Account]:
+        self.load_markets()
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchAccounts', 'paginate')
+        if paginate:
+            return self.fetch_paginated_call_cursor('fetchAccounts', None, None, None, params, 'next_starting_after', 'starting_after', None, 100)
+        request = {
+            'limit': 100,
+        }
+        response = self.v2PrivateGetAccounts(self.extend(request, params))
         #
         #     {
-        #         "data": {
-        #             "epoch": 1589295679,
-        #             "iso": "2020-05-12T15:01:19Z"
-        #         }
+        #         "pagination": {
+        #             "ending_before": null,
+        #             "starting_after": null,
+        #             "previous_ending_before": null,
+        #             "next_starting_after": null,
+        #             "limit": 244,
+        #             "order": "desc",
+        #             "previous_uri": null,
+        #             "next_uri": null
+        #         },
+        #         "data": [
+        #             {
+        #                 "id": "XLM",
+        #                 "name": "XLM Wallet",
+        #                 "primary": False,
+        #                 "type": "wallet",
+        #                 "currency": {
+        #                     "code": "XLM",
+        #                     "name": "Stellar Lumens",
+        #                     "color": "#000000",
+        #                     "sort_index": 127,
+        #                     "exponent": 7,
+        #                     "type": "crypto",
+        #                     "address_regex": "^G[A-Z2-7]{55}$",
+        #                     "asset_id": "13b83335-5ede-595b-821e-5bcdfa80560f",
+        #                     "destination_tag_name": "XLM Memo ID",
+        #                     "destination_tag_regex": "^[-~]{1,28}$"
+        #                 },
+        #                 "balance": {
+        #                     "amount": "0.0000000",
+        #                     "currency": "XLM"
+        #                 },
+        #                 "created_at": null,
+        #                 "updated_at": null,
+        #                 "resource": "account",
+        #                 "resource_path": "/v2/accounts/XLM",
+        #                 "allow_deposits": True,
+        #                 "allow_withdrawals": True
+        #             },
+        #         ]
         #     }
         #
-        data = self.safe_value(response, 'data', {})
-        return self.safe_timestamp(data, 'epoch')
+        data = self.safe_list(response, 'data', [])
+        pagination = self.safe_dict(response, 'pagination', {})
+        cursor = self.safe_string(pagination, 'next_starting_after')
+        accounts = self.safe_list(response, 'data', [])
+        length = len(accounts)
+        lastIndex = length - 1
+        last = self.safe_dict(accounts, lastIndex)
+        if (cursor is not None) and (cursor != ''):
+            last['next_starting_after'] = cursor
+            accounts[lastIndex] = last
+        return self.parse_accounts(data, params)
 
-    def fetch_accounts(self, params={}):
-        response = self.privateGetAccounts(params)
+    def fetch_accounts_v3(self, params={}) -> List[Account]:
+        self.load_markets()
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchAccounts', 'paginate')
+        if paginate:
+            return self.fetch_paginated_call_cursor('fetchAccounts', None, None, None, params, 'cursor', 'cursor', None, 100)
+        request = {
+            'limit': 100,
+        }
+        response = self.v3PrivateGetBrokerageAccounts(self.extend(request, params))
+        #
+        #     {
+        #         "accounts": [
+        #             {
+        #                 "uuid": "11111111-1111-1111-1111-111111111111",
+        #                 "name": "USDC Wallet",
+        #                 "currency": "USDC",
+        #                 "available_balance": {
+        #                     "value": "0.0000000000000000",
+        #                     "currency": "USDC"
+        #                 },
+        #                 "default": True,
+        #                 "active": True,
+        #                 "created_at": "2023-01-04T06:20:06.456Z",
+        #                 "updated_at": "2023-01-04T06:20:07.181Z",
+        #                 "deleted_at": null,
+        #                 "type": "ACCOUNT_TYPE_CRYPTO",
+        #                 "ready": False,
+        #                 "hold": {
+        #                     "value": "0.0000000000000000",
+        #                     "currency": "USDC"
+        #                 }
+        #             },
+        #             ...
+        #         ],
+        #         "has_next": False,
+        #         "cursor": "",
+        #         "size": 9
+        #     }
+        #
+        accounts = self.safe_list(response, 'accounts', [])
+        length = len(accounts)
+        lastIndex = length - 1
+        last = self.safe_dict(accounts, lastIndex)
+        cursor = self.safe_string(response, 'cursor')
+        if (cursor is not None) and (cursor != ''):
+            last['cursor'] = cursor
+            accounts[lastIndex] = last
+        return self.parse_accounts(accounts, params)
+
+    def parse_account(self, account):
+        #
+        # fetchAccountsV2
         #
         #     {
         #         "id": "XLM",
@@ -202,22 +564,51 @@ class coinbase(Exchange):
         #         "allow_withdrawals": True
         #     }
         #
-        data = self.safe_value(response, 'data', [])
-        result = []
-        for i in range(0, len(data)):
-            account = data[i]
-            currency = self.safe_value(account, 'currency', {})
-            currencyId = self.safe_string(currency, 'code')
-            code = self.safe_currency_code(currencyId)
-            result.append({
-                'id': self.safe_string(account, 'id'),
-                'type': self.safe_string(account, 'type'),
-                'code': code,
-                'info': account,
-            })
-        return result
+        # fetchAccountsV3
+        #
+        #     {
+        #         "uuid": "11111111-1111-1111-1111-111111111111",
+        #         "name": "USDC Wallet",
+        #         "currency": "USDC",
+        #         "available_balance": {
+        #             "value": "0.0000000000000000",
+        #             "currency": "USDC"
+        #         },
+        #         "default": True,
+        #         "active": True,
+        #         "created_at": "2023-01-04T06:20:06.456Z",
+        #         "updated_at": "2023-01-04T06:20:07.181Z",
+        #         "deleted_at": null,
+        #         "type": "ACCOUNT_TYPE_CRYPTO",
+        #         "ready": False,
+        #         "hold": {
+        #             "value": "0.0000000000000000",
+        #             "currency": "USDC"
+        #         }
+        #     }
+        #
+        active = self.safe_bool(account, 'active')
+        currencyIdV3 = self.safe_string(account, 'currency')
+        currency = self.safe_dict(account, 'currency', {})
+        currencyId = self.safe_string(currency, 'code', currencyIdV3)
+        typeV3 = self.safe_string(account, 'name')
+        typeV2 = self.safe_string(account, 'type')
+        parts = typeV3.split(' ')
+        return {
+            'id': self.safe_string_2(account, 'id', 'uuid'),
+            'type': self.safe_string_lower(parts, 1) if (active is not None) else typeV2,
+            'code': self.safe_currency_code(currencyId),
+            'info': account,
+        }
 
-    def create_deposit_address(self, code, params={}):
+    def create_deposit_address(self, code: str, params={}):
+        """
+        create a currency deposit address
+        :see: https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-addresses#create-address
+        :param str code: unified currency code of the currency for the deposit address
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
+        """
         accountId = self.safe_string(params, 'account_id')
         params = self.omit(params, 'account_id')
         if accountId is None:
@@ -228,11 +619,11 @@ class coinbase(Exchange):
                     accountId = account['id']
                     break
         if accountId is None:
-            raise ExchangeError(self.id + ' createDepositAddress could not find the account with matching currency code, specify an `account_id` extra param')
+            raise ExchangeError(self.id + ' createDepositAddress() could not find the account with matching currency code, specify an `account_id` extra param')
         request = {
             'account_id': accountId,
         }
-        response = self.privatePostAccountsAccountIdAddresses(self.extend(request, params))
+        response = self.v2PrivatePostAccountsAccountIdAddresses(self.extend(request, params))
         #
         #     {
         #         "data": {
@@ -269,7 +660,7 @@ class coinbase(Exchange):
         #         }
         #     }
         #
-        data = self.safe_value(response, 'data', {})
+        data = self.safe_dict(response, 'data', {})
         tag = self.safe_string(data, 'destination_tag')
         address = self.safe_string(data, 'address')
         return {
@@ -279,36 +670,74 @@ class coinbase(Exchange):
             'info': response,
         }
 
-    def fetch_my_sells(self, symbol=None, since=None, limit=None, params={}):
-        # they don't have an endpoint for all historical trades
+    def fetch_my_sells(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+        """
+         * @ignore
+        fetch sells
+        :see: https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-sells#list-sells
+        :param str symbol: not used by coinbase fetchMySells()
+        :param int [since]: timestamp in ms of the earliest sell, default is None
+        :param int [limit]: max number of sells to return, default is None
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `list of order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        # v2 did't have an endpoint for all historical trades
         request = self.prepare_account_request(limit, params)
         self.load_markets()
         query = self.omit(params, ['account_id', 'accountId'])
-        sells = self.privateGetAccountsAccountIdSells(self.extend(request, query))
+        sells = self.v2PrivateGetAccountsAccountIdSells(self.extend(request, query))
         return self.parse_trades(sells['data'], None, since, limit)
 
-    def fetch_my_buys(self, symbol=None, since=None, limit=None, params={}):
-        # they don't have an endpoint for all historical trades
+    def fetch_my_buys(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+        """
+         * @ignore
+        fetch buys
+        :see: https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-buys#list-buys
+        :param str symbol: not used by coinbase fetchMyBuys()
+        :param int [since]: timestamp in ms of the earliest buy, default is None
+        :param int [limit]: max number of buys to return, default is None
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a list of  `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        # v2 did't have an endpoint for all historical trades
         request = self.prepare_account_request(limit, params)
         self.load_markets()
         query = self.omit(params, ['account_id', 'accountId'])
-        buys = self.privateGetAccountsAccountIdBuys(self.extend(request, query))
+        buys = self.v2PrivateGetAccountsAccountIdBuys(self.extend(request, query))
         return self.parse_trades(buys['data'], None, since, limit)
 
-    def fetch_transactions_with_method(self, method, code=None, since=None, limit=None, params={}):
-        request = self.prepare_account_request_with_currency_code(code, limit, params)
+    def fetch_transactions_with_method(self, method, code: Str = None, since: Int = None, limit: Int = None, params={}):
+        request = None
+        request, params = self.prepare_account_request_with_currency_code(code, limit, params)
         self.load_markets()
-        query = self.omit(params, ['account_id', 'accountId'])
-        response = getattr(self, method)(self.extend(request, query))
+        response = getattr(self, method)(self.extend(request, params))
         return self.parse_transactions(response['data'], None, since, limit)
 
-    def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
+    def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+        """
+        fetch all withdrawals made from an account
+        :see: https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-withdrawals#list-withdrawals
+        :param str code: unified currency code
+        :param int [since]: the earliest time in ms to fetch withdrawals for
+        :param int [limit]: the maximum number of withdrawals structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
+        """
         # fiat only, for crypto transactions use fetchLedger
-        return self.fetch_transactions_with_method('privateGetAccountsAccountIdWithdrawals', code, since, limit, params)
+        return self.fetch_transactions_with_method('v2PrivateGetAccountsAccountIdWithdrawals', code, since, limit, params)
 
-    def fetch_deposits(self, code=None, since=None, limit=None, params={}):
+    def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+        """
+        fetch all deposits made to an account
+        :see: https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-deposits#list-deposits
+        :param str code: unified currency code
+        :param int [since]: the earliest time in ms to fetch deposits for
+        :param int [limit]: the maximum number of deposits structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
+        """
         # fiat only, for crypto transactions use fetchLedger
-        return self.fetch_transactions_with_method('privateGetAccountsAccountIdDeposits', code, since, limit, params)
+        return self.fetch_transactions_with_method('v2PrivateGetAccountsAccountIdDeposits', code, since, limit, params)
 
     def parse_transaction_status(self, status):
         statuses = {
@@ -318,7 +747,7 @@ class coinbase(Exchange):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_transaction(self, transaction, market=None):
+    def parse_transaction(self, transaction, currency: Currency = None) -> Transaction:
         #
         # fiat deposit
         #
@@ -382,43 +811,104 @@ class coinbase(Exchange):
         #         "next_step": null
         #     }
         #
-        subtotalObject = self.safe_value(transaction, 'subtotal', {})
-        feeObject = self.safe_value(transaction, 'fee', {})
-        id = self.safe_string(transaction, 'id')
-        timestamp = self.parse8601(self.safe_value(transaction, 'created_at'))
-        updated = self.parse8601(self.safe_value(transaction, 'updated_at'))
-        type = self.safe_string(transaction, 'resource')
-        amount = self.safe_float(subtotalObject, 'amount')
-        currencyId = self.safe_string(subtotalObject, 'currency')
-        currency = self.safe_currency_code(currencyId)
-        feeCost = self.safe_float(feeObject, 'amount')
-        feeCurrencyId = self.safe_string(feeObject, 'currency')
-        feeCurrency = self.safe_currency_code(feeCurrencyId)
-        fee = {
-            'cost': feeCost,
-            'currency': feeCurrency,
-        }
+        # withdraw
+        #
+        #     {
+        #         "id": "a1794ecf-5693-55fa-70cf-ef731748ed82",
+        #         "type": "send",
+        #         "status": "pending",
+        #         "amount": {
+        #             "amount": "-14.008308",
+        #             "currency": "USDC"
+        #         },
+        #         "native_amount": {
+        #             "amount": "-18.74",
+        #             "currency": "CAD"
+        #         },
+        #         "description": null,
+        #         "created_at": "2024-01-12T01:27:31Z",
+        #         "updated_at": "2024-01-12T01:27:31Z",
+        #         "resource": "transaction",
+        #         "resource_path": "/v2/accounts/a34bgfad-ed67-538b-bffc-730c98c10da0/transactions/a1794ecf-5693-55fa-70cf-ef731748ed82",
+        #         "instant_exchange": False,
+        #         "network": {
+        #             "status": "pending",
+        #             "status_description": "Pending(est. less than 10 minutes)",
+        #             "transaction_fee": {
+        #                 "amount": "4.008308",
+        #                 "currency": "USDC"
+        #             },
+        #             "transaction_amount": {
+        #                 "amount": "10.000000",
+        #                 "currency": "USDC"
+        #             },
+        #             "confirmations": 0
+        #         },
+        #         "to": {
+        #             "resource": "ethereum_address",
+        #             "address": "0x9...",
+        #             "currency": "USDC",
+        #             "address_info": {
+        #                 "address": "0x9..."
+        #             }
+        #         },
+        #         "idem": "748d8591-dg9a-7831-a45b-crd61dg78762",
+        #         "details": {
+        #             "title": "Sent USDC",
+        #             "subtitle": "To USDC address on Ethereum network",
+        #             "header": "Sent 14.008308 USDC($18.74)",
+        #             "health": "warning"
+        #         },
+        #         "hide_native_amount": False
+        #     }
+        #
+        transactionType = self.safe_string(transaction, 'type')
+        amountAndCurrencyObject = None
+        feeObject = None
+        if transactionType == 'send':
+            network = self.safe_dict(transaction, 'network', {})
+            amountAndCurrencyObject = self.safe_dict(network, 'transaction_amount', {})
+            feeObject = self.safe_dict(network, 'transaction_fee', {})
+        else:
+            amountAndCurrencyObject = self.safe_dict(transaction, 'subtotal', {})
+            feeObject = self.safe_dict(transaction, 'fee', {})
         status = self.parse_transaction_status(self.safe_string(transaction, 'status'))
         if status is None:
-            committed = self.safe_value(transaction, 'committed')
+            committed = self.safe_bool(transaction, 'committed')
             status = 'ok' if committed else 'pending'
+        id = self.safe_string(transaction, 'id')
+        currencyId = self.safe_string(amountAndCurrencyObject, 'currency')
+        feeCurrencyId = self.safe_string(feeObject, 'currency')
+        datetime = self.safe_string(transaction, 'created_at')
+        toObject = self.safe_dict(transaction, 'to', {})
+        toAddress = self.safe_string(toObject, 'address')
         return {
             'info': transaction,
             'id': id,
             'txid': id,
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
-            'address': None,
+            'timestamp': self.parse8601(datetime),
+            'datetime': datetime,
+            'network': None,
+            'address': toAddress,
+            'addressTo': toAddress,
+            'addressFrom': None,
             'tag': None,
-            'type': type,
-            'amount': amount,
-            'currency': currency,
+            'tagTo': None,
+            'tagFrom': None,
+            'type': self.safe_string(transaction, 'resource'),
+            'amount': self.safe_number(amountAndCurrencyObject, 'amount'),
+            'currency': self.safe_currency_code(currencyId, currency),
             'status': status,
-            'updated': updated,
-            'fee': fee,
+            'updated': self.parse8601(self.safe_string(transaction, 'updated_at')),
+            'fee': {
+                'cost': self.safe_number(feeObject, 'amount'),
+                'currency': self.safe_currency_code(feeCurrencyId),
+            },
         }
 
-    def parse_trade(self, trade, market=None):
+    def parse_trade(self, trade, market: Market = None) -> Trade:
+        #
+        # fetchMyBuys, fetchMySells
         #
         #     {
         #         "id": "67e0eaec-07d7-54c4-a72c-2e92826897df",
@@ -446,59 +936,122 @@ class coinbase(Exchange):
         #         "payout_at": "2015-02-18T16:54:00-08:00"
         #     }
         #
+        # fetchTrades
+        #
+        #     {
+        #         "trade_id": "10092327",
+        #         "product_id": "BTC-USDT",
+        #         "price": "17488.12",
+        #         "size": "0.0000623",
+        #         "time": "2023-01-11T00:52:37.557001Z",
+        #         "side": "BUY",
+        #         "bid": "",
+        #         "ask": ""
+        #     }
+        #
+        # fetchMyTrades
+        #
+        #     {
+        #         "entry_id": "b88b82cc89e326a2778874795102cbafd08dd979a2a7a3c69603fc4c23c2e010",
+        #         "trade_id": "cdc39e45-bbd3-44ec-bf02-61742dfb16a1",
+        #         "order_id": "813a53c5-3e39-47bb-863d-2faf685d22d8",
+        #         "trade_time": "2023-01-18T01:37:38.091377090Z",
+        #         "trade_type": "FILL",
+        #         "price": "21220.64",
+        #         "size": "0.0046830664333996",
+        #         "commission": "0.0000280983986004",
+        #         "product_id": "BTC-USDT",
+        #         "sequence_timestamp": "2023-01-18T01:37:38.092520Z",
+        #         "liquidity_indicator": "UNKNOWN_LIQUIDITY_INDICATOR",
+        #         "size_in_quote": True,
+        #         "user_id": "1111111-1111-1111-1111-111111111111",
+        #         "side": "BUY"
+        #     }
+        #
         symbol = None
-        totalObject = self.safe_value(trade, 'total', {})
-        amountObject = self.safe_value(trade, 'amount', {})
-        subtotalObject = self.safe_value(trade, 'subtotal', {})
-        feeObject = self.safe_value(trade, 'fee', {})
-        id = self.safe_string(trade, 'id')
-        timestamp = self.parse8601(self.safe_value(trade, 'created_at'))
-        if market is None:
+        totalObject = self.safe_dict(trade, 'total', {})
+        amountObject = self.safe_dict(trade, 'amount', {})
+        subtotalObject = self.safe_dict(trade, 'subtotal', {})
+        feeObject = self.safe_dict(trade, 'fee', {})
+        marketId = self.safe_string(trade, 'product_id')
+        market = self.safe_market(marketId, market, '-')
+        if market is not None:
+            symbol = market['symbol']
+        else:
             baseId = self.safe_string(amountObject, 'currency')
             quoteId = self.safe_string(totalObject, 'currency')
             if (baseId is not None) and (quoteId is not None):
                 base = self.safe_currency_code(baseId)
                 quote = self.safe_currency_code(quoteId)
                 symbol = base + '/' + quote
-        orderId = None
-        side = self.safe_string(trade, 'resource')
-        type = None
-        cost = self.safe_float(subtotalObject, 'amount')
-        amount = self.safe_float(amountObject, 'amount')
-        price = None
-        if cost is not None:
-            if (amount is not None) and (amount > 0):
-                price = cost / amount
-        feeCost = self.safe_float(feeObject, 'amount')
+        sizeInQuote = self.safe_bool(trade, 'size_in_quote')
+        v3Price = self.safe_string(trade, 'price')
+        v3Cost = None
+        v3Amount = self.safe_string(trade, 'size')
+        if sizeInQuote:
+            # calculate base size
+            v3Cost = v3Amount
+            v3Amount = Precise.string_div(v3Amount, v3Price)
+        v3FeeCost = self.safe_string(trade, 'commission')
+        amountString = self.safe_string(amountObject, 'amount', v3Amount)
+        costString = self.safe_string(subtotalObject, 'amount', v3Cost)
+        priceString = None
+        cost = None
+        if (costString is not None) and (amountString is not None):
+            priceString = Precise.string_div(costString, amountString)
+        else:
+            priceString = v3Price
+        if (priceString is not None) and (amountString is not None):
+            cost = Precise.string_mul(priceString, amountString)
+        else:
+            cost = costString
         feeCurrencyId = self.safe_string(feeObject, 'currency')
-        feeCurrency = self.safe_currency_code(feeCurrencyId)
-        fee = {
-            'cost': feeCost,
-            'currency': feeCurrency,
-        }
-        return {
+        feeCost = self.safe_number(feeObject, 'amount', self.parse_number(v3FeeCost))
+        if (feeCurrencyId is None) and (market is not None) and (feeCost is not None):
+            feeCurrencyId = market['quote']
+        datetime = self.safe_string_n(trade, ['created_at', 'trade_time', 'time'])
+        side = self.safe_string_lower_2(trade, 'resource', 'side')
+        takerOrMaker = self.safe_string_lower(trade, 'liquidity_indicator')
+        return self.safe_trade({
             'info': trade,
-            'id': id,
-            'order': orderId,
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
+            'id': self.safe_string_2(trade, 'id', 'trade_id'),
+            'order': self.safe_string(trade, 'order_id'),
+            'timestamp': self.parse8601(datetime),
+            'datetime': datetime,
             'symbol': symbol,
-            'type': type,
-            'side': side,
-            'takerOrMaker': None,
-            'price': price,
-            'amount': amount,
+            'type': None,
+            'side': None if (side == 'unknown_order_side') else side,
+            'takerOrMaker': None if (takerOrMaker == 'unknown_liquidity_indicator') else takerOrMaker,
+            'price': priceString,
+            'amount': amountString,
             'cost': cost,
-            'fee': fee,
-        }
+            'fee': {
+                'cost': feeCost,
+                'currency': self.safe_currency_code(feeCurrencyId),
+            },
+        })
 
-    def fetch_markets(self, params={}):
+    def fetch_markets(self, params={}) -> List[Market]:
+        """
+        :see: https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getproducts
+        :see: https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-currencies#get-fiat-currencies
+        :see: https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-exchange-rates#get-exchange-rates
+        retrieves data on all markets for coinbase
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: an array of objects representing market data
+        """
+        method = self.safe_string(self.options, 'fetchMarkets', 'fetchMarketsV3')
+        if method == 'fetchMarketsV3':
+            return self.fetch_markets_v3(params)
+        return self.fetch_markets_v2(params)
+
+    def fetch_markets_v2(self, params={}):
         response = self.fetch_currencies_from_cache(params)
-        currencies = self.safe_value(response, 'currencies', {})
-        exchangeRates = self.safe_value(response, 'exchangeRates', {})
-        data = self.safe_value(currencies, 'data', [])
+        currencies = self.safe_dict(response, 'currencies', {})
+        exchangeRates = self.safe_dict(response, 'exchangeRates', {})
+        data = self.safe_list(currencies, 'data', [])
         dataById = self.index_by(data, 'id')
-        rates = self.safe_value(self.safe_value(exchangeRates, 'data', {}), 'rates', {})
+        rates = self.safe_dict(self.safe_dict(exchangeRates, 'data', {}), 'rates', {})
         baseIds = list(rates.keys())
         result = []
         for i in range(0, len(baseIds)):
@@ -511,22 +1064,39 @@ class coinbase(Exchange):
                     quoteCurrency = data[j]
                     quoteId = self.safe_string(quoteCurrency, 'id')
                     quote = self.safe_currency_code(quoteId)
-                    symbol = base + '/' + quote
-                    id = baseId + '-' + quoteId
                     result.append({
-                        'id': id,
-                        'symbol': symbol,
+                        'id': baseId + '-' + quoteId,
+                        'symbol': base + '/' + quote,
                         'base': base,
                         'quote': quote,
+                        'settle': None,
                         'baseId': baseId,
                         'quoteId': quoteId,
+                        'settleId': None,
+                        'type': 'spot',
+                        'spot': True,
+                        'margin': False,
+                        'swap': False,
+                        'future': False,
+                        'option': False,
                         'active': None,
-                        'info': quoteCurrency,
+                        'contract': False,
+                        'linear': None,
+                        'inverse': None,
+                        'contractSize': None,
+                        'expiry': None,
+                        'expiryDatetime': None,
+                        'strike': None,
+                        'optionType': None,
                         'precision': {
                             'amount': None,
                             'price': None,
                         },
                         'limits': {
+                            'leverage': {
+                                'min': None,
+                                'max': None,
+                            },
                             'amount': {
                                 'min': None,
                                 'max': None,
@@ -536,44 +1106,220 @@ class coinbase(Exchange):
                                 'max': None,
                             },
                             'cost': {
-                                'min': self.safe_float(quoteCurrency, 'min_size'),
+                                'min': self.safe_number(quoteCurrency, 'min_size'),
                                 'max': None,
                             },
                         },
+                        'info': quoteCurrency,
                     })
         return result
 
+    def fetch_markets_v3(self, params={}):
+        promisesUnresolved = [
+            self.v3PrivateGetBrokerageProducts(params),
+            self.v3PrivateGetBrokerageTransactionSummary(params),
+        ]
+        # response = self.v3PrivateGetBrokerageProducts(params)
+        promises = promisesUnresolved
+        response = self.safe_dict(promises, 0, {})
+        #
+        #     [
+        #         {
+        #             "product_id": "TONE-USD",
+        #             "price": "0.01523",
+        #             "price_percentage_change_24h": "1.94109772423025",
+        #             "volume_24h": "19773129",
+        #             "volume_percentage_change_24h": "437.0170530929949",
+        #             "base_increment": "1",
+        #             "quote_increment": "0.00001",
+        #             "quote_min_size": "1",
+        #             "quote_max_size": "10000000",
+        #             "base_min_size": "26.7187147229469674",
+        #             "base_max_size": "267187147.2294696735908216",
+        #             "base_name": "TE-FOOD",
+        #             "quote_name": "US Dollar",
+        #             "watched": False,
+        #             "is_disabled": False,
+        #             "new": False,
+        #             "status": "online",
+        #             "cancel_only": False,
+        #             "limit_only": False,
+        #             "post_only": False,
+        #             "trading_disabled": False,
+        #             "auction_mode": False,
+        #             "product_type": "SPOT",
+        #             "quote_currency_id": "USD",
+        #             "base_currency_id": "TONE",
+        #             "fcm_trading_session_details": null,
+        #             "mid_market_price": ""
+        #         },
+        #         ...
+        #     ]
+        #
+        # fees = self.v3PrivateGetBrokerageTransactionSummary(params)
+        fees = self.safe_dict(promises, 1, {})
+        #
+        #     {
+        #         "total_volume": 0,
+        #         "total_fees": 0,
+        #         "fee_tier": {
+        #             "pricing_tier": "",
+        #             "usd_from": "0",
+        #             "usd_to": "10000",
+        #             "taker_fee_rate": "0.006",
+        #             "maker_fee_rate": "0.004"
+        #         },
+        #         "margin_rate": null,
+        #         "goods_and_services_tax": null,
+        #         "advanced_trade_only_volume": 0,
+        #         "advanced_trade_only_fees": 0,
+        #         "coinbase_pro_volume": 0,
+        #         "coinbase_pro_fees": 0
+        #     }
+        #
+        feeTier = self.safe_dict(fees, 'fee_tier', {})
+        data = self.safe_list(response, 'products', [])
+        result = []
+        for i in range(0, len(data)):
+            market = data[i]
+            id = self.safe_string(market, 'product_id')
+            baseId = self.safe_string(market, 'base_currency_id')
+            quoteId = self.safe_string(market, 'quote_currency_id')
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
+            marketType = self.safe_string_lower(market, 'product_type')
+            tradingDisabled = self.safe_bool(market, 'trading_disabled')
+            stablePairs = self.safe_list(self.options, 'stablePairs', [])
+            result.append({
+                'id': id,
+                'symbol': base + '/' + quote,
+                'base': base,
+                'quote': quote,
+                'settle': None,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'settleId': None,
+                'type': marketType,
+                'spot': (marketType == 'spot'),
+                'margin': None,
+                'swap': False,
+                'future': False,
+                'option': False,
+                'active': not tradingDisabled,
+                'contract': False,
+                'linear': None,
+                'inverse': None,
+                'taker': 0.00001 if self.in_array(id, stablePairs) else self.safe_number(feeTier, 'taker_fee_rate'),
+                'maker': 0.0 if self.in_array(id, stablePairs) else self.safe_number(feeTier, 'maker_fee_rate'),
+                'contractSize': None,
+                'expiry': None,
+                'expiryDatetime': None,
+                'strike': None,
+                'optionType': None,
+                'precision': {
+                    'amount': self.safe_number(market, 'base_increment'),
+                    'price': self.safe_number_2(market, 'price_increment', 'quote_increment'),
+                },
+                'limits': {
+                    'leverage': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'amount': {
+                        'min': self.safe_number(market, 'base_min_size'),
+                        'max': self.safe_number(market, 'base_max_size'),
+                    },
+                    'price': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'cost': {
+                        'min': self.safe_number(market, 'quote_min_size'),
+                        'max': self.safe_number(market, 'quote_max_size'),
+                    },
+                },
+                'created': None,
+                'info': market,
+            })
+        return result
+
     def fetch_currencies_from_cache(self, params={}):
-        options = self.safe_value(self.options, 'fetchCurrencies', {})
+        options = self.safe_dict(self.options, 'fetchCurrencies', {})
         timestamp = self.safe_integer(options, 'timestamp')
         expires = self.safe_integer(options, 'expires', 1000)
         now = self.milliseconds()
         if (timestamp is None) or ((now - timestamp) > expires):
-            currencies = self.publicGetCurrencies(params)
-            exchangeRates = self.publicGetExchangeRates(params)
+            promises = [
+                self.v2PublicGetCurrencies(params),
+                self.v2PublicGetCurrenciesCrypto(params),
+            ]
+            promisesResult = promises
+            fiatResponse = self.safe_dict(promisesResult, 0, {})
+            #
+            #    [
+            #        "data": {
+            #            id: 'IMP',
+            #            name: 'Isle of Man Pound',
+            #            min_size: '0.01'
+            #        },
+            #        ...
+            #    ]
+            #
+            cryptoResponse = self.safe_dict(promisesResult, 1, {})
+            #
+            #    {
+            #        asset_id: '9476e3be-b731-47fa-82be-347fabc573d9',
+            #        code: 'AERO',
+            #        name: 'Aerodrome Finance',
+            #        color: '#0433FF',
+            #        sort_index: '340',
+            #        exponent: '8',
+            #        type: 'crypto',
+            #        address_regex: '^(?:0x)?[0-9a-fA-F]{40}$'
+            #    }
+            #
+            fiatData = self.safe_list(fiatResponse, 'data', [])
+            cryptoData = self.safe_list(cryptoResponse, 'data', [])
+            exchangeRates = self.v2PublicGetExchangeRates(params)
             self.options['fetchCurrencies'] = self.extend(options, {
-                'currencies': currencies,
+                'currencies': self.array_concat(fiatData, cryptoData),
                 'exchangeRates': exchangeRates,
                 'timestamp': now,
             })
-        return self.safe_value(self.options, 'fetchCurrencies', {})
+        return self.safe_dict(self.options, 'fetchCurrencies', {})
 
-    def fetch_currencies(self, params={}):
+    def fetch_currencies(self, params={}) -> Currencies:
+        """
+        fetches all available currencies on an exchange
+        :see: https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-currencies#get-fiat-currencies
+        :see: https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-exchange-rates#get-exchange-rates
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an associative dictionary of currencies
+        """
         response = self.fetch_currencies_from_cache(params)
-        currencies = self.safe_value(response, 'currencies', {})
+        currencies = self.safe_list(response, 'currencies', [])
         #
-        #     {
-        #         "data":[
-        #             {"id":"AED","name":"United Arab Emirates Dirham","min_size":"0.01000000"},
-        #             {"id":"AFN","name":"Afghan Afghani","min_size":"0.01000000"},
-        #             {"id":"ALL","name":"Albanian Lek","min_size":"0.01000000"},
-        #             {"id":"AMD","name":"Armenian Dram","min_size":"0.01000000"},
-        #             {"id":"ANG","name":"Netherlands Antillean Gulden","min_size":"0.01000000"},
-        #             # ...
-        #         ],
-        #     }
+        # fiat
         #
-        exchangeRates = self.safe_value(response, 'exchangeRates', {})
+        #    {
+        #        id: 'IMP',
+        #        name: 'Isle of Man Pound',
+        #        min_size: '0.01'
+        #    },
+        #
+        # crypto
+        #
+        #    {
+        #        asset_id: '9476e3be-b731-47fa-82be-347fabc573d9',
+        #        code: 'AERO',
+        #        name: 'Aerodrome Finance',
+        #        color: '#0433FF',
+        #        sort_index: '340',
+        #        exponent: '8',
+        #        type: 'crypto',
+        #        address_regex: '^(?:0x)?[0-9a-fA-F]{40}$'
+        #    }
+        #
         #
         #     {
         #         "data":{
@@ -584,43 +1330,36 @@ class coinbase(Exchange):
         #                 "ALL":"110.42",
         #                 "AMD":"474.18",
         #                 "ANG":"1.75",
-        #                 # ...
+        #                 ...
         #             },
         #         }
         #     }
         #
-        data = self.safe_value(currencies, 'data', [])
-        dataById = self.index_by(data, 'id')
-        rates = self.safe_value(self.safe_value(exchangeRates, 'data', {}), 'rates', {})
-        keys = list(rates.keys())
         result = {}
-        for i in range(0, len(keys)):
-            key = keys[i]
-            type = 'fiat' if (key in dataById) else 'crypto'
-            currency = self.safe_value(dataById, key, {})
-            id = self.safe_string(currency, 'id', key)
-            name = self.safe_string(currency, 'name')
+        networks = {}
+        networksById = {}
+        for i in range(0, len(currencies)):
+            currency = currencies[i]
+            assetId = self.safe_string(currency, 'asset_id')
+            id = self.safe_string_2(currency, 'id', 'code')
             code = self.safe_currency_code(id)
+            name = self.safe_string(currency, 'name')
+            self.options['networks'][code] = name.lower()
+            self.options['networksById'][code] = name.lower()
             result[code] = {
+                'info': currency,  # the original payload
                 'id': id,
                 'code': code,
-                'info': currency,  # the original payload
-                'type': type,
-                'name': name,
+                'type': 'crypto' if (assetId is not None) else 'fiat',
+                'name': self.safe_string(currency, 'name'),
                 'active': True,
+                'deposit': None,
+                'withdraw': None,
                 'fee': None,
                 'precision': None,
                 'limits': {
                     'amount': {
-                        'min': self.safe_float(currency, 'min_size'),
-                        'max': None,
-                    },
-                    'price': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'cost': {
-                        'min': None,
+                        'min': self.safe_number(currency, 'min_size'),
                         'max': None,
                     },
                     'withdraw': {
@@ -629,86 +1368,489 @@ class coinbase(Exchange):
                     },
                 },
             }
+            if assetId is not None:
+                lowerCaseName = name.lower()
+                networks[code] = lowerCaseName
+                networksById[lowerCaseName] = code
+        self.options['networks'] = self.extend(networks, self.options['networks'])
+        self.options['networksById'] = self.extend(networksById, self.options['networksById'])
         return result
 
-    def fetch_ticker(self, symbol, params={}):
+    def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
+        """
+        fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+        :see: https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getproducts
+        :see: https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-exchange-rates#get-exchange-rates
+        :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
+        """
+        method = self.safe_string(self.options, 'fetchTickers', 'fetchTickersV3')
+        if method == 'fetchTickersV3':
+            return self.fetch_tickers_v3(symbols, params)
+        return self.fetch_tickers_v2(symbols, params)
+
+    def fetch_tickers_v2(self, symbols: Strings = None, params={}):
         self.load_markets()
-        timestamp = self.seconds()
+        symbols = self.market_symbols(symbols)
+        request = {
+            # 'currency': 'USD',
+        }
+        response = self.v2PublicGetExchangeRates(self.extend(request, params))
+        #
+        #     {
+        #         "data":{
+        #             "currency":"USD",
+        #             "rates":{
+        #                 "AED":"3.6731",
+        #                 "AFN":"103.163942",
+        #                 "ALL":"106.973038",
+        #             }
+        #         }
+        #     }
+        #
+        data = self.safe_dict(response, 'data', {})
+        rates = self.safe_dict(data, 'rates', {})
+        quoteId = self.safe_string(data, 'currency')
+        result = {}
+        baseIds = list(rates.keys())
+        delimiter = '-'
+        for i in range(0, len(baseIds)):
+            baseId = baseIds[i]
+            marketId = baseId + delimiter + quoteId
+            market = self.safe_market(marketId, None, delimiter)
+            symbol = market['symbol']
+            result[symbol] = self.parse_ticker(rates[baseId], market)
+        return self.filter_by_array_tickers(result, 'symbol', symbols)
+
+    def fetch_tickers_v3(self, symbols: Strings = None, params={}):
+        self.load_markets()
+        symbols = self.market_symbols(symbols)
+        request = {}
+        if symbols is not None:
+            request['product_ids'] = self.market_ids(symbols)
+        response = self.v3PrivateGetBrokerageProducts(self.extend(request, params))
+        #
+        #     {
+        #         "products": [
+        #             {
+        #                 "product_id": "TONE-USD",
+        #                 "price": "0.01523",
+        #                 "price_percentage_change_24h": "1.94109772423025",
+        #                 "volume_24h": "19773129",
+        #                 "volume_percentage_change_24h": "437.0170530929949",
+        #                 "base_increment": "1",
+        #                 "quote_increment": "0.00001",
+        #                 "quote_min_size": "1",
+        #                 "quote_max_size": "10000000",
+        #                 "base_min_size": "26.7187147229469674",
+        #                 "base_max_size": "267187147.2294696735908216",
+        #                 "base_name": "TE-FOOD",
+        #                 "quote_name": "US Dollar",
+        #                 "watched": False,
+        #                 "is_disabled": False,
+        #                 "new": False,
+        #                 "status": "online",
+        #                 "cancel_only": False,
+        #                 "limit_only": False,
+        #                 "post_only": False,
+        #                 "trading_disabled": False,
+        #                 "auction_mode": False,
+        #                 "product_type": "SPOT",
+        #                 "quote_currency_id": "USD",
+        #                 "base_currency_id": "TONE",
+        #                 "fcm_trading_session_details": null,
+        #                 "mid_market_price": ""
+        #             },
+        #             ...
+        #         ],
+        #         "num_products": 549
+        #     }
+        #
+        data = self.safe_list(response, 'products', [])
+        result = {}
+        for i in range(0, len(data)):
+            entry = data[i]
+            marketId = self.safe_string(entry, 'product_id')
+            market = self.safe_market(marketId, None, '-')
+            symbol = market['symbol']
+            result[symbol] = self.parse_ticker(entry, market)
+        return self.filter_by_array_tickers(result, 'symbol', symbols)
+
+    def fetch_ticker(self, symbol: str, params={}) -> Ticker:
+        """
+        fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        :see: https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getmarkettrades
+        :see: https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-prices#get-spot-price
+        :see: https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-prices#get-buy-price
+        :see: https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-prices#get-sell-price
+        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        """
+        method = self.safe_string(self.options, 'fetchTicker', 'fetchTickerV3')
+        if method == 'fetchTickerV3':
+            return self.fetch_ticker_v3(symbol, params)
+        return self.fetch_ticker_v2(symbol, params)
+
+    def fetch_ticker_v2(self, symbol: str, params={}):
+        self.load_markets()
         market = self.market(symbol)
         request = self.extend({
             'symbol': market['id'],
         }, params)
-        buy = self.publicGetPricesSymbolBuy(request)
-        sell = self.publicGetPricesSymbolSell(request)
-        spot = self.publicGetPricesSymbolSpot(request)
-        ask = self.safe_float(buy['data'], 'amount')
-        bid = self.safe_float(sell['data'], 'amount')
-        last = self.safe_float(spot['data'], 'amount')
-        return {
-            'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
+        spot = self.v2PublicGetPricesSymbolSpot(request)
+        #
+        #     {"data":{"base":"BTC","currency":"USD","amount":"48691.23"}}
+        #
+        ask = self.v2PublicGetPricesSymbolBuy(request)
+        #
+        #     {"data":{"base":"BTC","currency":"USD","amount":"48691.23"}}
+        #
+        bid = self.v2PublicGetPricesSymbolSell(request)
+        #
+        #     {"data":{"base":"BTC","currency":"USD","amount":"48691.23"}}
+        #
+        spotData = self.safe_dict(spot, 'data', {})
+        askData = self.safe_dict(ask, 'data', {})
+        bidData = self.safe_dict(bid, 'data', {})
+        bidAskLast = {
+            'bid': self.safe_number(bidData, 'amount'),
+            'ask': self.safe_number(askData, 'amount'),
+            'price': self.safe_number(spotData, 'amount'),
+        }
+        return self.parse_ticker(bidAskLast, market)
+
+    def fetch_ticker_v3(self, symbol: str, params={}):
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'product_id': market['id'],
+            'limit': 1,
+        }
+        response = self.v3PrivateGetBrokerageProductsProductIdTicker(self.extend(request, params))
+        #
+        #     {
+        #         "trades": [
+        #             {
+        #                 "trade_id": "518078013",
+        #                 "product_id": "BTC-USD",
+        #                 "price": "28208.1",
+        #                 "size": "0.00659179",
+        #                 "time": "2023-04-04T23:05:34.492746Z",
+        #                 "side": "BUY",
+        #                 "bid": "",
+        #                 "ask": ""
+        #             }
+        #         ],
+        #         "best_bid": "28208.61",
+        #         "best_ask": "28208.62"
+        #     }
+        #
+        data = self.safe_list(response, 'trades', [])
+        ticker = self.parse_ticker(data[0], market)
+        ticker['bid'] = self.safe_number(response, 'best_bid')
+        ticker['ask'] = self.safe_number(response, 'best_ask')
+        return ticker
+
+    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
+        #
+        # fetchTickerV2
+        #
+        #     {
+        #         "bid": 20713.37,
+        #         "ask": 20924.65,
+        #         "price": 20809.83
+        #     }
+        #
+        # fetchTickerV3
+        #
+        #     {
+        #         "trade_id": "10209805",
+        #         "product_id": "BTC-USDT",
+        #         "price": "19381.27",
+        #         "size": "0.1",
+        #         "time": "2023-01-13T20:35:41.865970Z",
+        #         "side": "BUY",
+        #         "bid": "",
+        #         "ask": ""
+        #     }
+        #
+        # fetchTickersV2
+        #
+        #     "48691.23"
+        #
+        # fetchTickersV3
+        #
+        #     [
+        #         {
+        #             "product_id": "TONE-USD",
+        #             "price": "0.01523",
+        #             "price_percentage_change_24h": "1.94109772423025",
+        #             "volume_24h": "19773129",
+        #             "volume_percentage_change_24h": "437.0170530929949",
+        #             "base_increment": "1",
+        #             "quote_increment": "0.00001",
+        #             "quote_min_size": "1",
+        #             "quote_max_size": "10000000",
+        #             "base_min_size": "26.7187147229469674",
+        #             "base_max_size": "267187147.2294696735908216",
+        #             "base_name": "TE-FOOD",
+        #             "quote_name": "US Dollar",
+        #             "watched": False,
+        #             "is_disabled": False,
+        #             "new": False,
+        #             "status": "online",
+        #             "cancel_only": False,
+        #             "limit_only": False,
+        #             "post_only": False,
+        #             "trading_disabled": False,
+        #             "auction_mode": False,
+        #             "product_type": "SPOT",
+        #             "quote_currency_id": "USD",
+        #             "base_currency_id": "TONE",
+        #             "fcm_trading_session_details": null,
+        #             "mid_market_price": ""
+        #         },
+        #         ...
+        #     ]
+        #
+        # fetchBidsAsks
+        #
+        #     {
+        #         "product_id": "TRAC-EUR",
+        #         "bids": [
+        #             {
+        #                 "price": "0.2384",
+        #                 "size": "386.1"
+        #             }
+        #         ],
+        #         "asks": [
+        #             {
+        #                 "price": "0.2406",
+        #                 "size": "672"
+        #             }
+        #         ],
+        #         "time": "2023-06-30T07:15:24.656044Z"
+        #     }
+        #
+        bid = self.safe_number(ticker, 'bid')
+        ask = self.safe_number(ticker, 'ask')
+        bidVolume = None
+        askVolume = None
+        if ('bids' in ticker):
+            bids = self.safe_list(ticker, 'bids', [])
+            asks = self.safe_list(ticker, 'asks', [])
+            bid = self.safe_number(bids[0], 'price')
+            bidVolume = self.safe_number(bids[0], 'size')
+            ask = self.safe_number(asks[0], 'price')
+            askVolume = self.safe_number(asks[0], 'size')
+        marketId = self.safe_string(ticker, 'product_id')
+        last = self.safe_number(ticker, 'price')
+        datetime = self.safe_string(ticker, 'time')
+        return self.safe_ticker({
+            'symbol': self.safe_symbol(marketId, market),
+            'timestamp': self.parse8601(datetime),
+            'datetime': datetime,
             'bid': bid,
             'ask': ask,
             'last': last,
             'high': None,
             'low': None,
-            'bidVolume': None,
-            'askVolume': None,
+            'bidVolume': bidVolume,
+            'askVolume': askVolume,
             'vwap': None,
             'open': None,
             'close': last,
             'previousClose': None,
             'change': None,
-            'percentage': None,
+            'percentage': self.safe_number(ticker, 'price_percentage_change_24h'),
             'average': None,
             'baseVolume': None,
             'quoteVolume': None,
-            'info': {
-                'buy': buy,
-                'sell': sell,
-                'spot': spot,
-            },
-        }
+            'info': ticker,
+        }, market)
 
-    def fetch_balance(self, params={}):
-        self.load_markets()
-        response = self.privateGetAccounts(params)
-        balances = self.safe_value(response, 'data')
-        accounts = self.safe_value(params, 'type', self.options['accounts'])
+    def parse_custom_balance(self, response, params={}):
+        balances = self.safe_list_2(response, 'data', 'accounts', [])
+        accounts = self.safe_list(params, 'type', self.options['accounts'])
+        v3Accounts = self.safe_list(params, 'type', self.options['v3Accounts'])
         result = {'info': response}
         for b in range(0, len(balances)):
             balance = balances[b]
-            if self.in_array(balance['type'], accounts):
-                currencyId = self.safe_string(balance['balance'], 'currency')
-                code = self.safe_currency_code(currencyId)
-                total = self.safe_float(balance['balance'], 'amount')
-                free = total
-                used = None
-                if code in result:
-                    result[code]['free'] = self.sum(result[code]['free'], total)
-                    result[code]['total'] = self.sum(result[code]['total'], total)
-                else:
-                    account = {
-                        'free': free,
-                        'used': used,
-                        'total': total,
-                    }
+            type = self.safe_string(balance, 'type')
+            if self.in_array(type, accounts):
+                value = self.safe_dict(balance, 'balance')
+                if value is not None:
+                    currencyId = self.safe_string(value, 'currency')
+                    code = self.safe_currency_code(currencyId)
+                    total = self.safe_string(value, 'amount')
+                    free = total
+                    account = self.safe_dict(result, code)
+                    if account is None:
+                        account = self.account()
+                        account['free'] = free
+                        account['total'] = total
+                    else:
+                        account['free'] = Precise.string_add(account['free'], total)
+                        account['total'] = Precise.string_add(account['total'], total)
                     result[code] = account
-        return self.parse_balance(result)
+            elif self.in_array(type, v3Accounts):
+                available = self.safe_dict(balance, 'available_balance')
+                hold = self.safe_dict(balance, 'hold')
+                if available is not None and hold is not None:
+                    currencyId = self.safe_string(available, 'currency')
+                    code = self.safe_currency_code(currencyId)
+                    used = self.safe_string(hold, 'value')
+                    free = self.safe_string(available, 'value')
+                    total = Precise.string_add(used, free)
+                    account = self.safe_dict(result, code)
+                    if account is None:
+                        account = self.account()
+                        account['free'] = free
+                        account['used'] = used
+                        account['total'] = total
+                    else:
+                        account['free'] = Precise.string_add(account['free'], free)
+                        account['used'] = Precise.string_add(account['used'], used)
+                        account['total'] = Precise.string_add(account['total'], total)
+                    result[code] = account
+        return self.safe_balance(result)
 
-    def fetch_ledger(self, code=None, since=None, limit=None, params={}):
+    def fetch_balance(self, params={}) -> Balances:
+        """
+        query for balance and get the amount of funds available for trading or funds locked in orders
+        :see: https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getaccounts
+        :see: https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-accounts#list-accounts
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param boolean [params.v3]: default False, set True to use v3 api endpoint
+        :param dict [params.type]: "spot"(default) or "swap"
+        :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
+        """
         self.load_markets()
+        request = {}
+        response = None
+        isV3 = self.safe_bool(params, 'v3', False)
+        type = self.safe_string(params, 'type')
+        params = self.omit(params, ['v3', 'type'])
+        method = self.safe_string(self.options, 'fetchBalance', 'v3PrivateGetBrokerageAccounts')
+        if (isV3) or (method == 'v3PrivateGetBrokerageAccounts'):
+            request['limit'] = 250
+            response = self.v3PrivateGetBrokerageAccounts(self.extend(request, params))
+        else:
+            request['limit'] = 100
+            response = self.v2PrivateGetAccounts(self.extend(request, params))
+        #
+        # v2PrivateGetAccounts
+        #     {
+        #         "pagination":{
+        #             "ending_before":null,
+        #             "starting_after":null,
+        #             "previous_ending_before":null,
+        #             "next_starting_after":"6b17acd6-2e68-5eb0-9f45-72d67cef578b",
+        #             "limit":100,
+        #             "order":"desc",
+        #             "previous_uri":null,
+        #             "next_uri":"/v2/accounts?limit=100\u0026starting_after=6b17acd6-2e68-5eb0-9f45-72d67cef578b"
+        #         },
+        #         "data":[
+        #             {
+        #                 "id":"94ad58bc-0f15-5309-b35a-a4c86d7bad60",
+        #                 "name":"MINA Wallet",
+        #                 "primary":false,
+        #                 "type":"wallet",
+        #                 "currency":{
+        #                     "code":"MINA",
+        #                     "name":"Mina",
+        #                     "color":"#EA6B48",
+        #                     "sort_index":397,
+        #                     "exponent":9,
+        #                     "type":"crypto",
+        #                     "address_regex":"^(B62)[A-Za-z0-9]{52}$",
+        #                     "asset_id":"a4ffc575-942c-5e26-b70c-cb3befdd4229",
+        #                     "slug":"mina"
+        #                 },
+        #                 "balance":{"amount":"0.000000000","currency":"MINA"},
+        #                 "created_at":"2022-03-25T00:36:16Z",
+        #                 "updated_at":"2022-03-25T00:36:16Z",
+        #                 "resource":"account",
+        #                 "resource_path":"/v2/accounts/94ad58bc-0f15-5309-b35a-a4c86d7bad60",
+        #                 "allow_deposits":true,
+        #                 "allow_withdrawals":true
+        #             },
+        #         ]
+        #     }
+        #
+        # v3PrivateGetBrokerageAccounts
+        #     {
+        #         "accounts": [
+        #             {
+        #                 "uuid": "11111111-1111-1111-1111-111111111111",
+        #                 "name": "USDC Wallet",
+        #                 "currency": "USDC",
+        #                 "available_balance": {
+        #                     "value": "0.0000000000000000",
+        #                     "currency": "USDC"
+        #                 },
+        #                 "default": True,
+        #                 "active": True,
+        #                 "created_at": "2023-01-04T06:20:06.456Z",
+        #                 "updated_at": "2023-01-04T06:20:07.181Z",
+        #                 "deleted_at": null,
+        #                 "type": "ACCOUNT_TYPE_CRYPTO",
+        #                 "ready": False,
+        #                 "hold": {
+        #                     "value": "0.0000000000000000",
+        #                     "currency": "USDC"
+        #                 }
+        #             },
+        #             ...
+        #         ],
+        #         "has_next": False,
+        #         "cursor": "",
+        #         "size": 9
+        #     }
+        #
+        params['type'] = type
+        return self.parse_custom_balance(response, params)
+
+    def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
+        """
+        fetch the history of changes, actions done by the user or operations that altered balance of the user
+        :see: https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-transactions#list-transactions
+        :param str code: unified currency code, default is None
+        :param int [since]: timestamp in ms of the earliest ledger entry, default is None
+        :param int [limit]: max number of ledger entrys to return, default is None
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger-structure>`
+        """
+        self.load_markets()
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchLedger', 'paginate')
+        if paginate:
+            return self.fetch_paginated_call_cursor('fetchLedger', code, since, limit, params, 'next_starting_after', 'starting_after', None, 100)
         currency = None
         if code is not None:
             currency = self.currency(code)
-        request = self.prepare_account_request_with_currency_code(code, limit, params)
-        query = self.omit(params, ['account_id', 'accountId'])
+        request = None
+        request, params = self.prepare_account_request_with_currency_code(code, limit, params)
         # for pagination use parameter 'starting_after'
         # the value for the next page can be obtained from the result of the previous call in the 'pagination' field
         # eg: instance.last_json_response.pagination.next_starting_after
-        response = self.privateGetAccountsAccountIdTransactions(self.extend(request, query))
-        return self.parse_ledger(response['data'], currency, since, limit)
+        response = self.v2PrivateGetAccountsAccountIdTransactions(self.extend(request, params))
+        ledger = self.parse_ledger(response['data'], currency, since, limit)
+        length = len(ledger)
+        if length == 0:
+            return ledger
+        lastIndex = length - 1
+        last = self.safe_dict(ledger, lastIndex)
+        pagination = self.safe_dict(response, 'pagination', {})
+        cursor = self.safe_string(pagination, 'next_starting_after')
+        if (cursor is not None) and (cursor != ''):
+            last['next_starting_after'] = cursor
+            ledger[lastIndex] = last
+        return ledger
 
     def parse_ledger_entry_status(self, status):
         types = {
@@ -730,256 +1872,256 @@ class coinbase(Exchange):
         }
         return self.safe_string(types, type, type)
 
-    def parse_ledger_entry(self, item, currency=None):
+    def parse_ledger_entry(self, item, currency: Currency = None):
         #
         # crypto deposit transaction
         #
         #     {
-        #         id: '34e4816b-4c8c-5323-a01c-35a9fa26e490',
-        #         type: 'send',
-        #         status: 'completed',
-        #         amount: {amount: '28.31976528', currency: 'BCH'},
-        #         native_amount: {amount: '2799.65', currency: 'GBP'},
-        #         description: null,
-        #         created_at: '2019-02-28T12:35:20Z',
-        #         updated_at: '2019-02-28T12:43:24Z',
-        #         resource: 'transaction',
-        #         resource_path: '/v2/accounts/c01d7364-edd7-5f3a-bd1d-de53d4cbb25e/transactions/34e4816b-4c8c-5323-a01c-35a9fa26e490',
-        #         instant_exchange: False,
-        #         network: {
-        #             status: 'confirmed',
-        #             hash: '56222d865dae83774fccb2efbd9829cf08c75c94ce135bfe4276f3fb46d49701',
-        #             transaction_url: 'https://bch.btc.com/56222d865dae83774fccb2efbd9829cf08c75c94ce135bfe4276f3fb46d49701'
+        #         "id": "34e4816b-4c8c-5323-a01c-35a9fa26e490",
+        #         "type": "send",
+        #         "status": "completed",
+        #         "amount": {amount: "28.31976528", currency: "BCH"},
+        #         "native_amount": {amount: "2799.65", currency: "GBP"},
+        #         "description": null,
+        #         "created_at": "2019-02-28T12:35:20Z",
+        #         "updated_at": "2019-02-28T12:43:24Z",
+        #         "resource": "transaction",
+        #         "resource_path": "/v2/accounts/c01d7364-edd7-5f3a-bd1d-de53d4cbb25e/transactions/34e4816b-4c8c-5323-a01c-35a9fa26e490",
+        #         "instant_exchange": False,
+        #         "network": {
+        #             "status": "confirmed",
+        #             "hash": "56222d865dae83774fccb2efbd9829cf08c75c94ce135bfe4276f3fb46d49701",
+        #             "transaction_url": "https://bch.btc.com/56222d865dae83774fccb2efbd9829cf08c75c94ce135bfe4276f3fb46d49701"
         #         },
-        #         from: {resource: 'bitcoin_cash_network', currency: 'BCH'},
-        #         details: {title: 'Received Bitcoin Cash', subtitle: 'From Bitcoin Cash address'}
+        #         "from": {resource: "bitcoin_cash_network", currency: "BCH"},
+        #         "details": {title: 'Received Bitcoin Cash', subtitle: "From Bitcoin Cash address"}
         #     }
         #
         # crypto withdrawal transaction
         #
         #     {
-        #         id: '459aad99-2c41-5698-ac71-b6b81a05196c',
-        #         type: 'send',
-        #         status: 'completed',
-        #         amount: {amount: '-0.36775642', currency: 'BTC'},
-        #         native_amount: {amount: '-1111.65', currency: 'GBP'},
-        #         description: null,
-        #         created_at: '2019-03-20T08:37:07Z',
-        #         updated_at: '2019-03-20T08:49:33Z',
-        #         resource: 'transaction',
-        #         resource_path: '/v2/accounts/c6afbd34-4bd0-501e-8616-4862c193cd84/transactions/459aad99-2c41-5698-ac71-b6b81a05196c',
-        #         instant_exchange: False,
-        #         network: {
-        #             status: 'confirmed',
-        #             hash: '2732bbcf35c69217c47b36dce64933d103895277fe25738ffb9284092701e05b',
-        #             transaction_url: 'https://blockchain.info/tx/2732bbcf35c69217c47b36dce64933d103895277fe25738ffb9284092701e05b',
-        #             transaction_fee: {amount: '0.00000000', currency: 'BTC'},
-        #             transaction_amount: {amount: '0.36775642', currency: 'BTC'},
-        #             confirmations: 15682
+        #         "id": "459aad99-2c41-5698-ac71-b6b81a05196c",
+        #         "type": "send",
+        #         "status": "completed",
+        #         "amount": {amount: "-0.36775642", currency: "BTC"},
+        #         "native_amount": {amount: "-1111.65", currency: "GBP"},
+        #         "description": null,
+        #         "created_at": "2019-03-20T08:37:07Z",
+        #         "updated_at": "2019-03-20T08:49:33Z",
+        #         "resource": "transaction",
+        #         "resource_path": "/v2/accounts/c6afbd34-4bd0-501e-8616-4862c193cd84/transactions/459aad99-2c41-5698-ac71-b6b81a05196c",
+        #         "instant_exchange": False,
+        #         "network": {
+        #             "status": "confirmed",
+        #             "hash": "2732bbcf35c69217c47b36dce64933d103895277fe25738ffb9284092701e05b",
+        #             "transaction_url": "https://blockchain.info/tx/2732bbcf35c69217c47b36dce64933d103895277fe25738ffb9284092701e05b",
+        #             "transaction_fee": {amount: "0.00000000", currency: "BTC"},
+        #             "transaction_amount": {amount: "0.36775642", currency: "BTC"},
+        #             "confirmations": 15682
         #         },
-        #         to: {
-        #             resource: 'bitcoin_address',
-        #             address: '1AHnhqbvbYx3rnZx8uC7NbFZaTe4tafFHX',
-        #             currency: 'BTC',
-        #             address_info: {address: '1AHnhqbvbYx3rnZx8uC7NbFZaTe4tafFHX'}
+        #         "to": {
+        #             "resource": "bitcoin_address",
+        #             "address": "1AHnhqbvbYx3rnZx8uC7NbFZaTe4tafFHX",
+        #             "currency": "BTC",
+        #             "address_info": {address: "1AHnhqbvbYx3rnZx8uC7NbFZaTe4tafFHX"}
         #         },
-        #         idem: 'da0a2f14-a2af-4c5a-a37e-d4484caf582bsend',
-        #         application: {
-        #             id: '5756ab6e-836b-553b-8950-5e389451225d',
-        #             resource: 'application',
-        #             resource_path: '/v2/applications/5756ab6e-836b-553b-8950-5e389451225d'
+        #         "idem": "da0a2f14-a2af-4c5a-a37e-d4484caf582bsend",
+        #         "application": {
+        #             "id": "5756ab6e-836b-553b-8950-5e389451225d",
+        #             "resource": "application",
+        #             "resource_path": "/v2/applications/5756ab6e-836b-553b-8950-5e389451225d"
         #         },
-        #         details: {title: 'Sent Bitcoin', subtitle: 'To Bitcoin address'}
+        #         "details": {title: 'Sent Bitcoin', subtitle: "To Bitcoin address"}
         #     }
         #
         # withdrawal transaction from coinbase to coinbasepro
         #
         #     {
-        #         id: '5b1b9fb8-5007-5393-b923-02903b973fdc',
-        #         type: 'pro_deposit',
-        #         status: 'completed',
-        #         amount: {amount: '-0.00001111', currency: 'BCH'},
-        #         native_amount: {amount: '0.00', currency: 'GBP'},
-        #         description: null,
-        #         created_at: '2019-02-28T13:31:58Z',
-        #         updated_at: '2019-02-28T13:31:58Z',
-        #         resource: 'transaction',
-        #         resource_path: '/v2/accounts/c01d7364-edd7-5f3a-bd1d-de53d4cbb25e/transactions/5b1b9fb8-5007-5393-b923-02903b973fdc',
-        #         instant_exchange: False,
-        #         application: {
-        #             id: '5756ab6e-836b-553b-8950-5e389451225d',
-        #             resource: 'application',
-        #             resource_path: '/v2/applications/5756ab6e-836b-553b-8950-5e389451225d'
+        #         "id": "5b1b9fb8-5007-5393-b923-02903b973fdc",
+        #         "type": "pro_deposit",
+        #         "status": "completed",
+        #         "amount": {amount: "-0.00001111", currency: "BCH"},
+        #         "native_amount": {amount: "0.00", currency: "GBP"},
+        #         "description": null,
+        #         "created_at": "2019-02-28T13:31:58Z",
+        #         "updated_at": "2019-02-28T13:31:58Z",
+        #         "resource": "transaction",
+        #         "resource_path": "/v2/accounts/c01d7364-edd7-5f3a-bd1d-de53d4cbb25e/transactions/5b1b9fb8-5007-5393-b923-02903b973fdc",
+        #         "instant_exchange": False,
+        #         "application": {
+        #             "id": "5756ab6e-836b-553b-8950-5e389451225d",
+        #             "resource": "application",
+        #             "resource_path": "/v2/applications/5756ab6e-836b-553b-8950-5e389451225d"
         #         },
-        #         details: {title: 'Transferred Bitcoin Cash', subtitle: 'To Coinbase Pro'}
+        #         "details": {title: 'Transferred Bitcoin Cash', subtitle: "To Coinbase Pro"}
         #     }
         #
         # withdrawal transaction from coinbase to gdax
         #
         #     {
-        #         id: 'badb7313-a9d3-5c07-abd0-00f8b44199b1',
-        #         type: 'exchange_deposit',
-        #         status: 'completed',
-        #         amount: {amount: '-0.43704149', currency: 'BCH'},
-        #         native_amount: {amount: '-51.90', currency: 'GBP'},
-        #         description: null,
-        #         created_at: '2019-03-19T10:30:40Z',
-        #         updated_at: '2019-03-19T10:30:40Z',
-        #         resource: 'transaction',
-        #         resource_path: '/v2/accounts/c01d7364-edd7-5f3a-bd1d-de53d4cbb25e/transactions/badb7313-a9d3-5c07-abd0-00f8b44199b1',
-        #         instant_exchange: False,
-        #         details: {title: 'Transferred Bitcoin Cash', subtitle: 'To GDAX'}
+        #         "id": "badb7313-a9d3-5c07-abd0-00f8b44199b1",
+        #         "type": "exchange_deposit",
+        #         "status": "completed",
+        #         "amount": {amount: "-0.43704149", currency: "BCH"},
+        #         "native_amount": {amount: "-51.90", currency: "GBP"},
+        #         "description": null,
+        #         "created_at": "2019-03-19T10:30:40Z",
+        #         "updated_at": "2019-03-19T10:30:40Z",
+        #         "resource": "transaction",
+        #         "resource_path": "/v2/accounts/c01d7364-edd7-5f3a-bd1d-de53d4cbb25e/transactions/badb7313-a9d3-5c07-abd0-00f8b44199b1",
+        #         "instant_exchange": False,
+        #         "details": {title: 'Transferred Bitcoin Cash', subtitle: "To GDAX"}
         #     }
         #
         # deposit transaction from gdax to coinbase
         #
         #     {
-        #         id: '9c4b642c-8688-58bf-8962-13cef64097de',
-        #         type: 'exchange_withdrawal',
-        #         status: 'completed',
-        #         amount: {amount: '0.57729420', currency: 'BTC'},
-        #         native_amount: {amount: '4418.72', currency: 'GBP'},
-        #         description: null,
-        #         created_at: '2018-02-17T11:33:33Z',
-        #         updated_at: '2018-02-17T11:33:33Z',
-        #         resource: 'transaction',
-        #         resource_path: '/v2/accounts/c6afbd34-4bd0-501e-8616-4862c193cd84/transactions/9c4b642c-8688-58bf-8962-13cef64097de',
-        #         instant_exchange: False,
-        #         details: {title: 'Transferred Bitcoin', subtitle: 'From GDAX'}
+        #         "id": "9c4b642c-8688-58bf-8962-13cef64097de",
+        #         "type": "exchange_withdrawal",
+        #         "status": "completed",
+        #         "amount": {amount: "0.57729420", currency: "BTC"},
+        #         "native_amount": {amount: "4418.72", currency: "GBP"},
+        #         "description": null,
+        #         "created_at": "2018-02-17T11:33:33Z",
+        #         "updated_at": "2018-02-17T11:33:33Z",
+        #         "resource": "transaction",
+        #         "resource_path": "/v2/accounts/c6afbd34-4bd0-501e-8616-4862c193cd84/transactions/9c4b642c-8688-58bf-8962-13cef64097de",
+        #         "instant_exchange": False,
+        #         "details": {title: 'Transferred Bitcoin', subtitle: "From GDAX"}
         #     }
         #
         # deposit transaction from coinbasepro to coinbase
         #
         #     {
-        #         id: '8d6dd0b9-3416-568a-889d-8f112fae9e81',
-        #         type: 'pro_withdrawal',
-        #         status: 'completed',
-        #         amount: {amount: '0.40555386', currency: 'BTC'},
-        #         native_amount: {amount: '1140.27', currency: 'GBP'},
-        #         description: null,
-        #         created_at: '2019-03-04T19:41:58Z',
-        #         updated_at: '2019-03-04T19:41:58Z',
-        #         resource: 'transaction',
-        #         resource_path: '/v2/accounts/c6afbd34-4bd0-501e-8616-4862c193cd84/transactions/8d6dd0b9-3416-568a-889d-8f112fae9e81',
-        #         instant_exchange: False,
-        #         application: {
-        #             id: '5756ab6e-836b-553b-8950-5e389451225d',
-        #             resource: 'application',
-        #             resource_path: '/v2/applications/5756ab6e-836b-553b-8950-5e389451225d'
+        #         "id": "8d6dd0b9-3416-568a-889d-8f112fae9e81",
+        #         "type": "pro_withdrawal",
+        #         "status": "completed",
+        #         "amount": {amount: "0.40555386", currency: "BTC"},
+        #         "native_amount": {amount: "1140.27", currency: "GBP"},
+        #         "description": null,
+        #         "created_at": "2019-03-04T19:41:58Z",
+        #         "updated_at": "2019-03-04T19:41:58Z",
+        #         "resource": "transaction",
+        #         "resource_path": "/v2/accounts/c6afbd34-4bd0-501e-8616-4862c193cd84/transactions/8d6dd0b9-3416-568a-889d-8f112fae9e81",
+        #         "instant_exchange": False,
+        #         "application": {
+        #             "id": "5756ab6e-836b-553b-8950-5e389451225d",
+        #             "resource": "application",
+        #             "resource_path": "/v2/applications/5756ab6e-836b-553b-8950-5e389451225d"
         #         },
-        #         details: {title: 'Transferred Bitcoin', subtitle: 'From Coinbase Pro'}
+        #         "details": {title: 'Transferred Bitcoin', subtitle: "From Coinbase Pro"}
         #     }
         #
         # sell trade
         #
         #     {
-        #         id: 'a9409207-df64-585b-97ab-a50780d2149e',
-        #         type: 'sell',
-        #         status: 'completed',
-        #         amount: {amount: '-9.09922880', currency: 'BTC'},
-        #         native_amount: {amount: '-7285.73', currency: 'GBP'},
-        #         description: null,
-        #         created_at: '2017-03-27T15:38:34Z',
-        #         updated_at: '2017-03-27T15:38:34Z',
-        #         resource: 'transaction',
-        #         resource_path: '/v2/accounts/c6afbd34-4bd0-501e-8616-4862c193cd84/transactions/a9409207-df64-585b-97ab-a50780d2149e',
-        #         instant_exchange: False,
-        #         sell: {
-        #             id: 'e3550b4d-8ae6-5de3-95fe-1fb01ba83051',
-        #             resource: 'sell',
-        #             resource_path: '/v2/accounts/c6afbd34-4bd0-501e-8616-4862c193cd84/sells/e3550b4d-8ae6-5de3-95fe-1fb01ba83051'
+        #         "id": "a9409207-df64-585b-97ab-a50780d2149e",
+        #         "type": "sell",
+        #         "status": "completed",
+        #         "amount": {amount: "-9.09922880", currency: "BTC"},
+        #         "native_amount": {amount: "-7285.73", currency: "GBP"},
+        #         "description": null,
+        #         "created_at": "2017-03-27T15:38:34Z",
+        #         "updated_at": "2017-03-27T15:38:34Z",
+        #         "resource": "transaction",
+        #         "resource_path": "/v2/accounts/c6afbd34-4bd0-501e-8616-4862c193cd84/transactions/a9409207-df64-585b-97ab-a50780d2149e",
+        #         "instant_exchange": False,
+        #         "sell": {
+        #             "id": "e3550b4d-8ae6-5de3-95fe-1fb01ba83051",
+        #             "resource": "sell",
+        #             "resource_path": "/v2/accounts/c6afbd34-4bd0-501e-8616-4862c193cd84/sells/e3550b4d-8ae6-5de3-95fe-1fb01ba83051"
         #         },
-        #         details: {
-        #             title: 'Sold Bitcoin',
-        #             subtitle: 'Using EUR Wallet',
-        #             payment_method_name: 'EUR Wallet'
+        #         "details": {
+        #             "title": "Sold Bitcoin",
+        #             "subtitle": "Using EUR Wallet",
+        #             "payment_method_name": "EUR Wallet"
         #         }
         #     }
         #
         # buy trade
         #
         #     {
-        #         id: '63eeed67-9396-5912-86e9-73c4f10fe147',
-        #         type: 'buy',
-        #         status: 'completed',
-        #         amount: {amount: '2.39605772', currency: 'ETH'},
-        #         native_amount: {amount: '98.31', currency: 'GBP'},
-        #         description: null,
-        #         created_at: '2017-03-27T09:07:56Z',
-        #         updated_at: '2017-03-27T09:07:57Z',
-        #         resource: 'transaction',
-        #         resource_path: '/v2/accounts/8902f85d-4a69-5d74-82fe-8e390201bda7/transactions/63eeed67-9396-5912-86e9-73c4f10fe147',
-        #         instant_exchange: False,
-        #         buy: {
-        #             id: '20b25b36-76c6-5353-aa57-b06a29a39d82',
-        #             resource: 'buy',
-        #             resource_path: '/v2/accounts/8902f85d-4a69-5d74-82fe-8e390201bda7/buys/20b25b36-76c6-5353-aa57-b06a29a39d82'
+        #         "id": "63eeed67-9396-5912-86e9-73c4f10fe147",
+        #         "type": "buy",
+        #         "status": "completed",
+        #         "amount": {amount: "2.39605772", currency: "ETH"},
+        #         "native_amount": {amount: "98.31", currency: "GBP"},
+        #         "description": null,
+        #         "created_at": "2017-03-27T09:07:56Z",
+        #         "updated_at": "2017-03-27T09:07:57Z",
+        #         "resource": "transaction",
+        #         "resource_path": "/v2/accounts/8902f85d-4a69-5d74-82fe-8e390201bda7/transactions/63eeed67-9396-5912-86e9-73c4f10fe147",
+        #         "instant_exchange": False,
+        #         "buy": {
+        #             "id": "20b25b36-76c6-5353-aa57-b06a29a39d82",
+        #             "resource": "buy",
+        #             "resource_path": "/v2/accounts/8902f85d-4a69-5d74-82fe-8e390201bda7/buys/20b25b36-76c6-5353-aa57-b06a29a39d82"
         #         },
-        #         details: {
-        #             title: 'Bought Ethereum',
-        #             subtitle: 'Using EUR Wallet',
-        #             payment_method_name: 'EUR Wallet'
+        #         "details": {
+        #             "title": "Bought Ethereum",
+        #             "subtitle": "Using EUR Wallet",
+        #             "payment_method_name": "EUR Wallet"
         #         }
         #     }
         #
         # fiat deposit transaction
         #
         #     {
-        #         id: '04ed4113-3732-5b0c-af86-b1d2146977d0',
-        #         type: 'fiat_deposit',
-        #         status: 'completed',
-        #         amount: {amount: '114.02', currency: 'EUR'},
-        #         native_amount: {amount: '97.23', currency: 'GBP'},
-        #         description: null,
-        #         created_at: '2017-02-09T07:01:21Z',
-        #         updated_at: '2017-02-09T07:01:22Z',
-        #         resource: 'transaction',
-        #         resource_path: '/v2/accounts/91cd2d36-3a91-55b6-a5d4-0124cf105483/transactions/04ed4113-3732-5b0c-af86-b1d2146977d0',
-        #         instant_exchange: False,
-        #         fiat_deposit: {
-        #             id: 'f34c19f3-b730-5e3d-9f72-96520448677a',
-        #             resource: 'fiat_deposit',
-        #             resource_path: '/v2/accounts/91cd2d36-3a91-55b6-a5d4-0124cf105483/deposits/f34c19f3-b730-5e3d-9f72-96520448677a'
+        #         "id": "04ed4113-3732-5b0c-af86-b1d2146977d0",
+        #         "type": "fiat_deposit",
+        #         "status": "completed",
+        #         "amount": {amount: "114.02", currency: "EUR"},
+        #         "native_amount": {amount: "97.23", currency: "GBP"},
+        #         "description": null,
+        #         "created_at": "2017-02-09T07:01:21Z",
+        #         "updated_at": "2017-02-09T07:01:22Z",
+        #         "resource": "transaction",
+        #         "resource_path": "/v2/accounts/91cd2d36-3a91-55b6-a5d4-0124cf105483/transactions/04ed4113-3732-5b0c-af86-b1d2146977d0",
+        #         "instant_exchange": False,
+        #         "fiat_deposit": {
+        #             "id": "f34c19f3-b730-5e3d-9f72-96520448677a",
+        #             "resource": "fiat_deposit",
+        #             "resource_path": "/v2/accounts/91cd2d36-3a91-55b6-a5d4-0124cf105483/deposits/f34c19f3-b730-5e3d-9f72-96520448677a"
         #         },
-        #         details: {
-        #             title: 'Deposited funds',
-        #             subtitle: 'From SEPA Transfer(GB47 BARC 20..., reference CBADVI)',
-        #             payment_method_name: 'SEPA Transfer(GB47 BARC 20..., reference CBADVI)'
+        #         "details": {
+        #             "title": "Deposited funds",
+        #             "subtitle": "From SEPA Transfer(GB47 BARC 20..., reference CBADVI)",
+        #             "payment_method_name": "SEPA Transfer(GB47 BARC 20..., reference CBADVI)"
         #         }
         #     }
         #
         # fiat withdrawal transaction
         #
         #     {
-        #         id: '957d98e2-f80e-5e2f-a28e-02945aa93079',
-        #         type: 'fiat_withdrawal',
-        #         status: 'completed',
-        #         amount: {amount: '-11000.00', currency: 'EUR'},
-        #         native_amount: {amount: '-9698.22', currency: 'GBP'},
-        #         description: null,
-        #         created_at: '2017-12-06T13:19:19Z',
-        #         updated_at: '2017-12-06T13:19:19Z',
-        #         resource: 'transaction',
-        #         resource_path: '/v2/accounts/91cd2d36-3a91-55b6-a5d4-0124cf105483/transactions/957d98e2-f80e-5e2f-a28e-02945aa93079',
-        #         instant_exchange: False,
-        #         fiat_withdrawal: {
-        #             id: 'f4bf1fd9-ab3b-5de7-906d-ed3e23f7a4e7',
-        #             resource: 'fiat_withdrawal',
-        #             resource_path: '/v2/accounts/91cd2d36-3a91-55b6-a5d4-0124cf105483/withdrawals/f4bf1fd9-ab3b-5de7-906d-ed3e23f7a4e7'
+        #         "id": "957d98e2-f80e-5e2f-a28e-02945aa93079",
+        #         "type": "fiat_withdrawal",
+        #         "status": "completed",
+        #         "amount": {amount: "-11000.00", currency: "EUR"},
+        #         "native_amount": {amount: "-9698.22", currency: "GBP"},
+        #         "description": null,
+        #         "created_at": "2017-12-06T13:19:19Z",
+        #         "updated_at": "2017-12-06T13:19:19Z",
+        #         "resource": "transaction",
+        #         "resource_path": "/v2/accounts/91cd2d36-3a91-55b6-a5d4-0124cf105483/transactions/957d98e2-f80e-5e2f-a28e-02945aa93079",
+        #         "instant_exchange": False,
+        #         "fiat_withdrawal": {
+        #             "id": "f4bf1fd9-ab3b-5de7-906d-ed3e23f7a4e7",
+        #             "resource": "fiat_withdrawal",
+        #             "resource_path": "/v2/accounts/91cd2d36-3a91-55b6-a5d4-0124cf105483/withdrawals/f4bf1fd9-ab3b-5de7-906d-ed3e23f7a4e7"
         #         },
-        #         details: {
-        #             title: 'Withdrew funds',
-        #             subtitle: 'To HSBC BANK PLC(GB74 MIDL...)',
-        #             payment_method_name: 'HSBC BANK PLC(GB74 MIDL...)'
+        #         "details": {
+        #             "title": "Withdrew funds",
+        #             "subtitle": "To HSBC BANK PLC(GB74 MIDL...)",
+        #             "payment_method_name": "HSBC BANK PLC(GB74 MIDL...)"
         #         }
         #     }
         #
-        amountInfo = self.safe_value(item, 'amount', {})
-        amount = self.safe_float(amountInfo, 'amount')
+        amountInfo = self.safe_dict(item, 'amount', {})
+        amount = self.safe_string(amountInfo, 'amount')
         direction = None
-        if amount < 0:
+        if Precise.string_lt(amount, '0'):
             direction = 'out'
-            amount = -amount
+            amount = Precise.string_neg(amount)
         else:
             direction = 'in'
         currencyId = self.safe_string(amountInfo, 'currency')
@@ -994,18 +2136,18 @@ class coinbase(Exchange):
         #     txid = None
         #
         fee = None
-        networkInfo = self.safe_value(item, 'network', {})
+        networkInfo = self.safe_dict(item, 'network', {})
         # txid = network['hash']  # txid does not belong to the unified ledger structure
-        feeInfo = self.safe_value(networkInfo, 'transaction_fee')
+        feeInfo = self.safe_dict(networkInfo, 'transaction_fee')
         if feeInfo is not None:
             feeCurrencyId = self.safe_string(feeInfo, 'currency')
             feeCurrencyCode = self.safe_currency_code(feeCurrencyId, currency)
-            feeAmount = self.safe_float(feeInfo, 'amount')
+            feeAmount = self.safe_number(feeInfo, 'amount')
             fee = {
                 'cost': feeAmount,
                 'currency': feeCurrencyCode,
             }
-        timestamp = self.parse8601(self.safe_value(item, 'created_at'))
+        timestamp = self.parse8601(self.safe_string(item, 'created_at'))
         id = self.safe_string(item, 'id')
         type = self.parse_ledger_entry_type(self.safe_string(item, 'type'))
         status = self.parse_ledger_entry_status(self.safe_string(item, 'status'))
@@ -1027,26 +2169,26 @@ class coinbase(Exchange):
             'referenceAccount': None,
             'type': type,
             'currency': code,
-            'amount': amount,
+            'amount': self.parse_number(amount),
             'before': None,
             'after': None,
             'status': status,
             'fee': fee,
         }
 
-    def find_account_id(self, code):
+    def find_account_id(self, code, params={}):
         self.load_markets()
-        self.load_accounts()
+        self.load_accounts(False, params)
         for i in range(0, len(self.accounts)):
             account = self.accounts[i]
             if account['code'] == code:
                 return account['id']
         return None
 
-    def prepare_account_request(self, limit=None, params={}):
+    def prepare_account_request(self, limit: Int = None, params={}):
         accountId = self.safe_string_2(params, 'account_id', 'accountId')
         if accountId is None:
-            raise ArgumentsRequired(self.id + ' method requires an account_id(or accountId) parameter')
+            raise ArgumentsRequired(self.id + ' prepareAccountRequest() method requires an account_id(or accountId) parameter')
         request = {
             'account_id': accountId,
         }
@@ -1054,49 +2196,1450 @@ class coinbase(Exchange):
             request['limit'] = limit
         return request
 
-    def prepare_account_request_with_currency_code(self, code=None, limit=None, params={}):
+    def prepare_account_request_with_currency_code(self, code: Str = None, limit: Int = None, params={}):
         accountId = self.safe_string_2(params, 'account_id', 'accountId')
+        params = self.omit(params, ['account_id', 'accountId'])
         if accountId is None:
             if code is None:
-                raise ArgumentsRequired(self.id + ' method requires an account_id(or accountId) parameter OR a currency code argument')
-            accountId = self.find_account_id(code)
+                raise ArgumentsRequired(self.id + ' prepareAccountRequestWithCurrencyCode() method requires an account_id(or accountId) parameter OR a currency code argument')
+            accountId = self.find_account_id(code, params)
             if accountId is None:
-                raise ExchangeError(self.id + ' could not find account id for ' + code)
+                raise ExchangeError(self.id + ' prepareAccountRequestWithCurrencyCode() could not find account id for ' + code)
         request = {
             'account_id': accountId,
         }
         if limit is not None:
             request['limit'] = limit
-        return request
+        return [request, params]
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        fullPath = '/' + self.version + '/' + self.implode_params(path, params)
+    def create_market_buy_order_with_cost(self, symbol: str, cost: float, params={}):
+        """
+        create a market buy order by providing the symbol and cost
+        :see: https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_postorder
+        :param str symbol: unified symbol of the market to create an order in
+        :param float cost: how much you want to trade in units of the quote currency
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        self.load_markets()
+        market = self.market(symbol)
+        if not market['spot']:
+            raise NotSupported(self.id + ' createMarketBuyOrderWithCost() supports spot orders only')
+        params['createMarketBuyOrderRequiresPrice'] = False
+        return self.create_order(symbol, 'market', 'buy', cost, None, params)
+
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
+        """
+        create a trade order
+        :see: https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_postorder
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much you want to trade in units of the base currency, quote currency for 'market' 'buy' orders
+        :param float [price]: the price to fulfill the order, in units of the quote currency, ignored in market orders
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param float [params.stopPrice]: price to trigger stop orders
+        :param float [params.triggerPrice]: price to trigger stop orders
+        :param float [params.stopLossPrice]: price to trigger stop-loss orders
+        :param float [params.takeProfitPrice]: price to trigger take-profit orders
+        :param bool [params.postOnly]: True or False
+        :param str [params.timeInForce]: 'GTC', 'IOC', 'GTD' or 'PO'
+        :param str [params.stop_direction]: 'UNKNOWN_STOP_DIRECTION', 'STOP_DIRECTION_STOP_UP', 'STOP_DIRECTION_STOP_DOWN' the direction the stopPrice is triggered from
+        :param str [params.end_time]: '2023-05-25T17:01:05.092Z' for 'GTD' orders
+        :param float [params.cost]: *spot market buy only* the quote quantity that can be used alternative for the amount
+        :param boolean [params.preview]: default to False, wether to use the test/preview endpoint or not
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        self.load_markets()
+        market = self.market(symbol)
+        id = self.safe_string(self.options, 'brokerId', 'ccxt')
+        request = {
+            'client_order_id': id + '-' + self.uuid(),
+            'product_id': market['id'],
+            'side': side.upper(),
+        }
+        stopPrice = self.safe_number_n(params, ['stopPrice', 'stop_price', 'triggerPrice'])
+        stopLossPrice = self.safe_number(params, 'stopLossPrice')
+        takeProfitPrice = self.safe_number(params, 'takeProfitPrice')
+        isStop = stopPrice is not None
+        isStopLoss = stopLossPrice is not None
+        isTakeProfit = takeProfitPrice is not None
+        timeInForce = self.safe_string(params, 'timeInForce')
+        postOnly = True if (timeInForce == 'PO') else self.safe_bool_2(params, 'postOnly', 'post_only', False)
+        endTime = self.safe_string(params, 'end_time')
+        stopDirection = self.safe_string(params, 'stop_direction')
+        if type == 'limit':
+            if isStop:
+                if stopDirection is None:
+                    stopDirection = 'STOP_DIRECTION_STOP_DOWN' if (side == 'buy') else 'STOP_DIRECTION_STOP_UP'
+                if (timeInForce == 'GTD') or (endTime is not None):
+                    if endTime is None:
+                        raise ExchangeError(self.id + ' createOrder() requires an end_time parameter for a GTD order')
+                    request['order_configuration'] = {
+                        'stop_limit_stop_limit_gtd': {
+                            'base_size': self.amount_to_precision(symbol, amount),
+                            'limit_price': self.price_to_precision(symbol, price),
+                            'stop_price': self.price_to_precision(symbol, stopPrice),
+                            'stop_direction': stopDirection,
+                            'end_time': endTime,
+                        },
+                    }
+                else:
+                    request['order_configuration'] = {
+                        'stop_limit_stop_limit_gtc': {
+                            'base_size': self.amount_to_precision(symbol, amount),
+                            'limit_price': self.price_to_precision(symbol, price),
+                            'stop_price': self.price_to_precision(symbol, stopPrice),
+                            'stop_direction': stopDirection,
+                        },
+                    }
+            elif isStopLoss or isTakeProfit:
+                triggerPrice = None
+                if isStopLoss:
+                    if stopDirection is None:
+                        stopDirection = 'STOP_DIRECTION_STOP_UP' if (side == 'buy') else 'STOP_DIRECTION_STOP_DOWN'
+                    triggerPrice = self.price_to_precision(symbol, stopLossPrice)
+                else:
+                    if stopDirection is None:
+                        stopDirection = 'STOP_DIRECTION_STOP_DOWN' if (side == 'buy') else 'STOP_DIRECTION_STOP_UP'
+                    triggerPrice = self.price_to_precision(symbol, takeProfitPrice)
+                request['order_configuration'] = {
+                    'stop_limit_stop_limit_gtc': {
+                        'base_size': self.amount_to_precision(symbol, amount),
+                        'limit_price': self.price_to_precision(symbol, price),
+                        'stop_price': triggerPrice,
+                        'stop_direction': stopDirection,
+                    },
+                }
+            else:
+                if (timeInForce == 'GTD') or (endTime is not None):
+                    if endTime is None:
+                        raise ExchangeError(self.id + ' createOrder() requires an end_time parameter for a GTD order')
+                    request['order_configuration'] = {
+                        'limit_limit_gtd': {
+                            'base_size': self.amount_to_precision(symbol, amount),
+                            'limit_price': self.price_to_precision(symbol, price),
+                            'end_time': endTime,
+                            'post_only': postOnly,
+                        },
+                    }
+                elif timeInForce == 'IOC':
+                    request['order_configuration'] = {
+                        'sor_limit_ioc': {
+                            'base_size': self.amount_to_precision(symbol, amount),
+                            'limit_price': self.price_to_precision(symbol, price),
+                        },
+                    }
+                else:
+                    request['order_configuration'] = {
+                        'limit_limit_gtc': {
+                            'base_size': self.amount_to_precision(symbol, amount),
+                            'limit_price': self.price_to_precision(symbol, price),
+                            'post_only': postOnly,
+                        },
+                    }
+        else:
+            if isStop or isStopLoss or isTakeProfit:
+                raise NotSupported(self.id + ' createOrder() only stop limit orders are supported')
+            if side == 'buy':
+                total = None
+                createMarketBuyOrderRequiresPrice = True
+                createMarketBuyOrderRequiresPrice, params = self.handle_option_and_params(params, 'createOrder', 'createMarketBuyOrderRequiresPrice', True)
+                cost = self.safe_number(params, 'cost')
+                params = self.omit(params, 'cost')
+                if cost is not None:
+                    total = self.cost_to_precision(symbol, cost)
+                elif createMarketBuyOrderRequiresPrice:
+                    if price is None:
+                        raise InvalidOrder(self.id + ' createOrder() requires a price argument for market buy orders on spot markets to calculate the total amount to spend(amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to False and pass the cost to spend in the amount argument')
+                    else:
+                        amountString = self.number_to_string(amount)
+                        priceString = self.number_to_string(price)
+                        costRequest = Precise.string_mul(amountString, priceString)
+                        total = self.cost_to_precision(symbol, costRequest)
+                else:
+                    total = self.cost_to_precision(symbol, amount)
+                request['order_configuration'] = {
+                    'market_market_ioc': {
+                        'quote_size': total,
+                    },
+                }
+            else:
+                request['order_configuration'] = {
+                    'market_market_ioc': {
+                        'base_size': self.amount_to_precision(symbol, amount),
+                    },
+                }
+        params = self.omit(params, ['timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'stopPrice', 'stop_price', 'stopDirection', 'stop_direction', 'clientOrderId', 'postOnly', 'post_only', 'end_time'])
+        preview = self.safe_bool_2(params, 'preview', 'test', False)
+        response = None
+        if preview:
+            params = self.omit(params, ['preview', 'test'])
+            request = self.omit(request, 'client_order_id')
+            response = self.v3PrivatePostBrokerageOrdersPreview(self.extend(request, params))
+        else:
+            response = self.v3PrivatePostBrokerageOrders(self.extend(request, params))
+        #
+        # successful order
+        #
+        #     {
+        #         "success": True,
+        #         "failure_reason": "UNKNOWN_FAILURE_REASON",
+        #         "order_id": "52cfe5e2-0b29-4c19-a245-a6a773de5030",
+        #         "success_response": {
+        #             "order_id": "52cfe5e2-0b29-4c19-a245-a6a773de5030",
+        #             "product_id": "LTC-BTC",
+        #             "side": "SELL",
+        #             "client_order_id": "4d760580-6fca-4094-a70b-ebcca8626288"
+        #         },
+        #         "order_configuration": null
+        #     }
+        #
+        # failed order
+        #
+        #     {
+        #         "success": False,
+        #         "failure_reason": "UNKNOWN_FAILURE_REASON",
+        #         "order_id": "",
+        #         "error_response": {
+        #             "error": "UNSUPPORTED_ORDER_CONFIGURATION",
+        #             "message": "source is not enabled for trading",
+        #             "error_details": "",
+        #             "new_order_failure_reason": "UNSUPPORTED_ORDER_CONFIGURATION"
+        #         },
+        #         "order_configuration": {
+        #             "limit_limit_gtc": {
+        #                 "base_size": "100",
+        #                 "limit_price": "40000",
+        #                 "post_only": False
+        #             }
+        #         }
+        #     }
+        #
+        success = self.safe_bool(response, 'success')
+        if success is not True:
+            errorResponse = self.safe_dict(response, 'error_response')
+            errorTitle = self.safe_string(errorResponse, 'error')
+            errorMessage = self.safe_string(errorResponse, 'message')
+            if errorResponse is not None:
+                self.throw_exactly_matched_exception(self.exceptions['exact'], errorTitle, errorMessage)
+                self.throw_broadly_matched_exception(self.exceptions['broad'], errorTitle, errorMessage)
+                raise ExchangeError(errorMessage)
+        data = self.safe_dict(response, 'success_response', {})
+        return self.parse_order(data, market)
+
+    def parse_order(self, order, market: Market = None) -> Order:
+        #
+        # createOrder
+        #
+        #     {
+        #         "order_id": "52cfe5e2-0b29-4c19-a245-a6a773de5030",
+        #         "product_id": "LTC-BTC",
+        #         "side": "SELL",
+        #         "client_order_id": "4d760580-6fca-4094-a70b-ebcca8626288"
+        #     }
+        #
+        # cancelOrder, cancelOrders
+        #
+        #     {
+        #         "success": True,
+        #         "failure_reason": "UNKNOWN_CANCEL_FAILURE_REASON",
+        #         "order_id": "bb8851a3-4fda-4a2c-aa06-9048db0e0f0d"
+        #     }
+        #
+        # fetchOrder, fetchOrders, fetchOpenOrders, fetchClosedOrders, fetchCanceledOrders
+        #
+        #     {
+        #         "order_id": "9bc1eb3b-5b46-4b71-9628-ae2ed0cca75b",
+        #         "product_id": "LTC-BTC",
+        #         "user_id": "1111111-1111-1111-1111-111111111111",
+        #         "order_configuration": {
+        #             "limit_limit_gtc": {
+        #                 "base_size": "0.2",
+        #                 "limit_price": "0.006",
+        #                 "post_only": False
+        #             },
+        #             "stop_limit_stop_limit_gtc": {
+        #                 "base_size": "48.54",
+        #                 "limit_price": "6.998",
+        #                 "stop_price": "7.0687",
+        #                 "stop_direction": "STOP_DIRECTION_STOP_DOWN"
+        #             }
+        #         },
+        #         "side": "SELL",
+        #         "client_order_id": "e5fe8482-05bb-428f-ad4d-dbc8ce39239c",
+        #         "status": "OPEN",
+        #         "time_in_force": "GOOD_UNTIL_CANCELLED",
+        #         "created_time": "2023-01-16T23:37:23.947030Z",
+        #         "completion_percentage": "0",
+        #         "filled_size": "0",
+        #         "average_filled_price": "0",
+        #         "fee": "",
+        #         "number_of_fills": "0",
+        #         "filled_value": "0",
+        #         "pending_cancel": False,
+        #         "size_in_quote": False,
+        #         "total_fees": "0",
+        #         "size_inclusive_of_fees": False,
+        #         "total_value_after_fees": "0",
+        #         "trigger_status": "INVALID_ORDER_TYPE",
+        #         "order_type": "LIMIT",
+        #         "reject_reason": "REJECT_REASON_UNSPECIFIED",
+        #         "settled": False,
+        #         "product_type": "SPOT",
+        #         "reject_message": "",
+        #         "cancel_message": ""
+        #     }
+        #
+        marketId = self.safe_string(order, 'product_id')
+        symbol = self.safe_symbol(marketId, market, '-')
+        if symbol is not None:
+            market = self.market(symbol)
+        orderConfiguration = self.safe_dict(order, 'order_configuration', {})
+        limitGTC = self.safe_dict(orderConfiguration, 'limit_limit_gtc')
+        limitGTD = self.safe_dict(orderConfiguration, 'limit_limit_gtd')
+        limitIOC = self.safe_dict(orderConfiguration, 'sor_limit_ioc')
+        stopLimitGTC = self.safe_dict(orderConfiguration, 'stop_limit_stop_limit_gtc')
+        stopLimitGTD = self.safe_dict(orderConfiguration, 'stop_limit_stop_limit_gtd')
+        marketIOC = self.safe_dict(orderConfiguration, 'market_market_ioc')
+        isLimit = ((limitGTC is not None) or (limitGTD is not None) or (limitIOC is not None))
+        isStop = ((stopLimitGTC is not None) or (stopLimitGTD is not None))
+        price = None
+        amount = None
+        postOnly = None
+        triggerPrice = None
+        if isLimit:
+            target = None
+            if limitGTC is not None:
+                target = limitGTC
+            elif limitGTD is not None:
+                target = limitGTD
+            else:
+                target = limitIOC
+            price = self.safe_string(target, 'limit_price')
+            amount = self.safe_string(target, 'base_size')
+            postOnly = self.safe_bool(target, 'post_only')
+        elif isStop:
+            stopTarget = stopLimitGTC if (stopLimitGTC is not None) else stopLimitGTD
+            price = self.safe_string(stopTarget, 'limit_price')
+            amount = self.safe_string(stopTarget, 'base_size')
+            postOnly = self.safe_bool(stopTarget, 'post_only')
+            triggerPrice = self.safe_string(stopTarget, 'stop_price')
+        else:
+            amount = self.safe_string(marketIOC, 'base_size')
+        datetime = self.safe_string(order, 'created_time')
+        totalFees = self.safe_string(order, 'total_fees')
+        currencyFee = None
+        if (totalFees is not None) and (market is not None):
+            currencyFee = market['quote']
+        return self.safe_order({
+            'info': order,
+            'id': self.safe_string(order, 'order_id'),
+            'clientOrderId': self.safe_string(order, 'client_order_id'),
+            'timestamp': self.parse8601(datetime),
+            'datetime': datetime,
+            'lastTradeTimestamp': None,
+            'symbol': symbol,
+            'type': self.parse_order_type(self.safe_string(order, 'order_type')),
+            'timeInForce': self.parse_time_in_force(self.safe_string(order, 'time_in_force')),
+            'postOnly': postOnly,
+            'side': self.safe_string_lower(order, 'side'),
+            'price': price,
+            'stopPrice': triggerPrice,
+            'triggerPrice': triggerPrice,
+            'amount': amount,
+            'filled': self.safe_string(order, 'filled_size'),
+            'remaining': None,
+            'cost': None,
+            'average': self.safe_string(order, 'average_filled_price'),
+            'status': self.parse_order_status(self.safe_string(order, 'status')),
+            'fee': {
+                'cost': self.safe_string(order, 'total_fees'),
+                'currency': currencyFee,
+            },
+            'trades': None,
+        }, market)
+
+    def parse_order_status(self, status):
+        statuses = {
+            'OPEN': 'open',
+            'FILLED': 'closed',
+            'CANCELLED': 'canceled',
+            'EXPIRED': 'canceled',
+            'FAILED': 'canceled',
+            'UNKNOWN_ORDER_STATUS': None,
+        }
+        return self.safe_string(statuses, status, status)
+
+    def parse_order_type(self, type):
+        if type == 'UNKNOWN_ORDER_TYPE':
+            return None
+        types = {
+            'MARKET': 'market',
+            'LIMIT': 'limit',
+            'STOP': 'limit',
+            'STOP_LIMIT': 'limit',
+        }
+        return self.safe_string(types, type, type)
+
+    def parse_time_in_force(self, timeInForce):
+        timeInForces = {
+            'GOOD_UNTIL_CANCELLED': 'GTC',
+            'GOOD_UNTIL_DATE_TIME': 'GTD',
+            'IMMEDIATE_OR_CANCEL': 'IOC',
+            'FILL_OR_KILL': 'FOK',
+            'UNKNOWN_TIME_IN_FORCE': None,
+        }
+        return self.safe_string(timeInForces, timeInForce, timeInForce)
+
+    def cancel_order(self, id: str, symbol: Str = None, params={}):
+        """
+        cancels an open order
+        :see: https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_cancelorders
+        :param str id: order id
+        :param str symbol: not used by coinbase cancelOrder()
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        self.load_markets()
+        orders = self.cancel_orders([id], symbol, params)
+        return self.safe_dict(orders, 0, {})
+
+    def cancel_orders(self, ids, symbol: Str = None, params={}):
+        """
+        cancel multiple orders
+        :see: https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_cancelorders
+        :param str[] ids: order ids
+        :param str symbol: not used by coinbase cancelOrders()
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        self.load_markets()
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+        request = {
+            'order_ids': ids,
+        }
+        response = self.v3PrivatePostBrokerageOrdersBatchCancel(self.extend(request, params))
+        #
+        #     {
+        #         "results": [
+        #             {
+        #                 "success": True,
+        #                 "failure_reason": "UNKNOWN_CANCEL_FAILURE_REASON",
+        #                 "order_id": "bb8851a3-4fda-4a2c-aa06-9048db0e0f0d"
+        #             }
+        #         ]
+        #     }
+        #
+        orders = self.safe_list(response, 'results', [])
+        for i in range(0, len(orders)):
+            success = self.safe_bool(orders[i], 'success')
+            if success is not True:
+                raise BadRequest(self.id + ' cancelOrders() has failed, check your arguments and parameters')
+        return self.parse_orders(orders, market)
+
+    def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}):
+        """
+        edit a trade order
+        :see: https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_editorder
+        :param str id: cancel order id
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much of currency you want to trade in units of base currency
+        :param float [price]: the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param boolean [params.preview]: default to False, wether to use the test/preview endpoint or not
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'order_id': id,
+        }
+        if amount is not None:
+            request['size'] = self.amount_to_precision(symbol, amount)
+        if price is not None:
+            request['price'] = self.price_to_precision(symbol, price)
+        preview = self.safe_bool_2(params, 'preview', 'test', False)
+        response = None
+        if preview:
+            params = self.omit(params, ['preview', 'test'])
+            response = self.v3PrivatePostBrokerageOrdersEditPreview(self.extend(request, params))
+        else:
+            response = self.v3PrivatePostBrokerageOrdersEdit(self.extend(request, params))
+        #
+        #     {
+        #         "success": True,
+        #         "errors": {
+        #           "edit_failure_reason": "UNKNOWN_EDIT_ORDER_FAILURE_REASON",
+        #           "preview_failure_reason": "UNKNOWN_PREVIEW_FAILURE_REASON"
+        #         }
+        #     }
+        #
+        return self.parse_order(response, market)
+
+    def fetch_order(self, id: str, symbol: Str = None, params={}):
+        """
+        fetches information on an order made by the user
+        :see: https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_gethistoricalorder
+        :param str id: the order id
+        :param str symbol: unified market symbol that the order was made in
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        self.load_markets()
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+        request = {
+            'order_id': id,
+        }
+        response = self.v3PrivateGetBrokerageOrdersHistoricalOrderId(self.extend(request, params))
+        #
+        #     {
+        #         "order": {
+        #             "order_id": "9bc1eb3b-5b46-4b71-9628-ae2ed0cca75b",
+        #             "product_id": "LTC-BTC",
+        #             "user_id": "1111111-1111-1111-1111-111111111111",
+        #             "order_configuration": {
+        #                 "limit_limit_gtc": {
+        #                     "base_size": "0.2",
+        #                     "limit_price": "0.006",
+        #                     "post_only": False
+        #                 }
+        #             },
+        #             "side": "SELL",
+        #             "client_order_id": "e5fe8482-05bb-428f-ad4d-dbc8ce39239c",
+        #             "status": "OPEN",
+        #             "time_in_force": "GOOD_UNTIL_CANCELLED",
+        #             "created_time": "2023-01-16T23:37:23.947030Z",
+        #             "completion_percentage": "0",
+        #             "filled_size": "0",
+        #             "average_filled_price": "0",
+        #             "fee": "",
+        #             "number_of_fills": "0",
+        #             "filled_value": "0",
+        #             "pending_cancel": False,
+        #             "size_in_quote": False,
+        #             "total_fees": "0",
+        #             "size_inclusive_of_fees": False,
+        #             "total_value_after_fees": "0",
+        #             "trigger_status": "INVALID_ORDER_TYPE",
+        #             "order_type": "LIMIT",
+        #             "reject_reason": "REJECT_REASON_UNSPECIFIED",
+        #             "settled": False,
+        #             "product_type": "SPOT",
+        #             "reject_message": "",
+        #             "cancel_message": ""
+        #         }
+        #     }
+        #
+        order = self.safe_dict(response, 'order', {})
+        return self.parse_order(order, market)
+
+    def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = 100, params={}) -> List[Order]:
+        """
+        fetches information on multiple orders made by the user
+        :see: https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_gethistoricalorders
+        :param str symbol: unified market symbol that the orders were made in
+        :param int [since]: the earliest time in ms to fetch orders
+        :param int [limit]: the maximum number of order structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.until]: the latest time in ms to fetch trades for
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        self.load_markets()
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchOrders', 'paginate')
+        if paginate:
+            return self.fetch_paginated_call_cursor('fetchOrders', symbol, since, limit, params, 'cursor', 'cursor', None, 1000)
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+        request = {}
+        if market is not None:
+            request['product_id'] = market['id']
+        if limit is not None:
+            request['limit'] = limit
+        if since is not None:
+            request['start_date'] = self.iso8601(since)
+        until = self.safe_integer_n(params, ['until', 'till'])
+        if until is not None:
+            params = self.omit(params, ['until', 'till'])
+            request['end_date'] = self.iso8601(until)
+        response = self.v3PrivateGetBrokerageOrdersHistoricalBatch(self.extend(request, params))
+        #
+        #     {
+        #         "orders": [
+        #             {
+        #                 "order_id": "813a53c5-3e39-47bb-863d-2faf685d22d8",
+        #                 "product_id": "BTC-USDT",
+        #                 "user_id": "1111111-1111-1111-1111-111111111111",
+        #                 "order_configuration": {
+        #                     "market_market_ioc": {
+        #                         "quote_size": "6.36"
+        #                     }
+        #                 },
+        #                 "side": "BUY",
+        #                 "client_order_id": "18eb9947-db49-4874-8e7b-39b8fe5f4317",
+        #                 "status": "FILLED",
+        #                 "time_in_force": "IMMEDIATE_OR_CANCEL",
+        #                 "created_time": "2023-01-18T01:37:37.975552Z",
+        #                 "completion_percentage": "100",
+        #                 "filled_size": "0.000297920684505",
+        #                 "average_filled_price": "21220.6399999973697697",
+        #                 "fee": "",
+        #                 "number_of_fills": "2",
+        #                 "filled_value": "6.3220675944333996",
+        #                 "pending_cancel": False,
+        #                 "size_in_quote": True,
+        #                 "total_fees": "0.0379324055666004",
+        #                 "size_inclusive_of_fees": True,
+        #                 "total_value_after_fees": "6.36",
+        #                 "trigger_status": "INVALID_ORDER_TYPE",
+        #                 "order_type": "MARKET",
+        #                 "reject_reason": "REJECT_REASON_UNSPECIFIED",
+        #                 "settled": True,
+        #                 "product_type": "SPOT",
+        #                 "reject_message": "",
+        #                 "cancel_message": "Internal error"
+        #             },
+        #         ],
+        #         "sequence": "0",
+        #         "has_next": False,
+        #         "cursor": ""
+        #     }
+        #
+        orders = self.safe_list(response, 'orders', [])
+        first = self.safe_dict(orders, 0)
+        cursor = self.safe_string(response, 'cursor')
+        if (cursor is not None) and (cursor != ''):
+            first['cursor'] = cursor
+            orders[0] = first
+        return self.parse_orders(orders, market, since, limit)
+
+    def fetch_orders_by_status(self, status, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+        self.load_markets()
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+        request = {
+            'order_status': status,
+        }
+        if market is not None:
+            request['product_id'] = market['id']
+        if limit is None:
+            limit = 100
+        request['limit'] = limit
+        if since is not None:
+            request['start_date'] = self.iso8601(since)
+        until = self.safe_integer_n(params, ['until', 'till'])
+        if until is not None:
+            params = self.omit(params, ['until', 'till'])
+            request['end_date'] = self.iso8601(until)
+        response = self.v3PrivateGetBrokerageOrdersHistoricalBatch(self.extend(request, params))
+        #
+        #     {
+        #         "orders": [
+        #             {
+        #                 "order_id": "813a53c5-3e39-47bb-863d-2faf685d22d8",
+        #                 "product_id": "BTC-USDT",
+        #                 "user_id": "1111111-1111-1111-1111-111111111111",
+        #                 "order_configuration": {
+        #                     "market_market_ioc": {
+        #                         "quote_size": "6.36"
+        #                     }
+        #                 },
+        #                 "side": "BUY",
+        #                 "client_order_id": "18eb9947-db49-4874-8e7b-39b8fe5f4317",
+        #                 "status": "FILLED",
+        #                 "time_in_force": "IMMEDIATE_OR_CANCEL",
+        #                 "created_time": "2023-01-18T01:37:37.975552Z",
+        #                 "completion_percentage": "100",
+        #                 "filled_size": "0.000297920684505",
+        #                 "average_filled_price": "21220.6399999973697697",
+        #                 "fee": "",
+        #                 "number_of_fills": "2",
+        #                 "filled_value": "6.3220675944333996",
+        #                 "pending_cancel": False,
+        #                 "size_in_quote": True,
+        #                 "total_fees": "0.0379324055666004",
+        #                 "size_inclusive_of_fees": True,
+        #                 "total_value_after_fees": "6.36",
+        #                 "trigger_status": "INVALID_ORDER_TYPE",
+        #                 "order_type": "MARKET",
+        #                 "reject_reason": "REJECT_REASON_UNSPECIFIED",
+        #                 "settled": True,
+        #                 "product_type": "SPOT",
+        #                 "reject_message": "",
+        #                 "cancel_message": "Internal error"
+        #             },
+        #         ],
+        #         "sequence": "0",
+        #         "has_next": False,
+        #         "cursor": ""
+        #     }
+        #
+        orders = self.safe_list(response, 'orders', [])
+        first = self.safe_dict(orders, 0)
+        cursor = self.safe_string(response, 'cursor')
+        if (cursor is not None) and (cursor != ''):
+            first['cursor'] = cursor
+            orders[0] = first
+        return self.parse_orders(orders, market, since, limit)
+
+    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+        """
+        fetches information on all currently open orders
+        :see: https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_gethistoricalorders
+        :param str symbol: unified market symbol of the orders
+        :param int [since]: timestamp in ms of the earliest order, default is None
+        :param int [limit]: the maximum number of open order structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        :param int [params.until]: the latest time in ms to fetch trades for
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        self.load_markets()
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchOpenOrders', 'paginate')
+        if paginate:
+            return self.fetch_paginated_call_cursor('fetchOpenOrders', symbol, since, limit, params, 'cursor', 'cursor', None, 100)
+        return self.fetch_orders_by_status('OPEN', symbol, since, limit, params)
+
+    def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+        """
+        fetches information on multiple closed orders made by the user
+        :see: https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_gethistoricalorders
+        :param str symbol: unified market symbol of the orders
+        :param int [since]: timestamp in ms of the earliest order, default is None
+        :param int [limit]: the maximum number of closed order structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        :param int [params.until]: the latest time in ms to fetch trades for
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        self.load_markets()
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchClosedOrders', 'paginate')
+        if paginate:
+            return self.fetch_paginated_call_cursor('fetchClosedOrders', symbol, since, limit, params, 'cursor', 'cursor', None, 100)
+        return self.fetch_orders_by_status('FILLED', symbol, since, limit, params)
+
+    def fetch_canceled_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+        """
+        fetches information on multiple canceled orders made by the user
+        :see: https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_gethistoricalorders
+        :param str symbol: unified market symbol of the orders
+        :param int [since]: timestamp in ms of the earliest order, default is None
+        :param int [limit]: the maximum number of canceled order structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        return self.fetch_orders_by_status('CANCELLED', symbol, since, limit, params)
+
+    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+        """
+        fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        :see: https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getcandles
+        :param str symbol: unified symbol of the market to fetch OHLCV data for
+        :param str timeframe: the length of time each candle represents
+        :param int [since]: timestamp in ms of the earliest candle to fetch
+        :param int [limit]: the maximum amount of candles to fetch, not used by coinbase
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.until]: the latest time in ms to fetch trades for
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        """
+        self.load_markets()
+        maxLimit = 300
+        limit = maxLimit if (limit is None) else min(limit, maxLimit)
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchOHLCV', 'paginate', False)
+        if paginate:
+            return self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, params, maxLimit - 1)
+        market = self.market(symbol)
+        request = {
+            'product_id': market['id'],
+            'granularity': self.safe_string(self.timeframes, timeframe, timeframe),
+        }
+        until = self.safe_integer_n(params, ['until', 'till', 'end'])
+        params = self.omit(params, ['until', 'till'])
+        duration = self.parse_timeframe(timeframe)
+        requestedDuration = limit * duration
+        sinceString = None
+        if since is not None:
+            sinceString = self.number_to_string(self.parse_to_int(since / 1000))
+        else:
+            now = str(self.seconds())
+            sinceString = Precise.string_sub(now, str(requestedDuration))
+        request['start'] = sinceString
+        endString = self.number_to_string(until)
+        if until is None:
+            # 300 candles max
+            endString = Precise.string_add(sinceString, str(requestedDuration))
+        request['end'] = endString
+        response = self.v3PrivateGetBrokerageProductsProductIdCandles(self.extend(request, params))
+        #
+        #     {
+        #         "candles": [
+        #             {
+        #                 "start": "1673391780",
+        #                 "low": "17414.36",
+        #                 "high": "17417.99",
+        #                 "open": "17417.74",
+        #                 "close": "17417.38",
+        #                 "volume": "1.87780853"
+        #             },
+        #         ]
+        #     }
+        #
+        candles = self.safe_list(response, 'candles', [])
+        return self.parse_ohlcvs(candles, market, timeframe, since, limit)
+
+    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
+        #
+        #     [
+        #         {
+        #             "start": "1673391780",
+        #             "low": "17414.36",
+        #             "high": "17417.99",
+        #             "open": "17417.74",
+        #             "close": "17417.38",
+        #             "volume": "1.87780853"
+        #         },
+        #     ]
+        #
+        return [
+            self.safe_timestamp(ohlcv, 'start'),
+            self.safe_number(ohlcv, 'open'),
+            self.safe_number(ohlcv, 'high'),
+            self.safe_number(ohlcv, 'low'),
+            self.safe_number(ohlcv, 'close'),
+            self.safe_number(ohlcv, 'volume'),
+        ]
+
+    def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+        """
+        get the list of most recent trades for a particular symbol
+        :see: https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getmarkettrades
+        :param str symbol: unified market symbol of the trades
+        :param int [since]: not used by coinbase fetchTrades
+        :param int [limit]: the maximum number of trade structures to fetch
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
+        """
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'product_id': market['id'],
+        }
+        if since is not None:
+            request['start'] = self.number_to_string(self.parse_to_int(since / 1000))
+        if limit is not None:
+            request['limit'] = min(limit, 1000)
+        until = None
+        until, params = self.handle_option_and_params(params, 'fetchTrades', 'until')
+        if until is not None:
+            request['end'] = self.number_to_string(self.parse_to_int(until / 1000))
+        elif since is not None:
+            raise ArgumentsRequired(self.id + ' fetchTrades() requires a `until` parameter when you use `since` argument')
+        response = self.v3PrivateGetBrokerageProductsProductIdTicker(self.extend(request, params))
+        #
+        #     {
+        #         "trades": [
+        #             {
+        #                 "trade_id": "10092327",
+        #                 "product_id": "BTC-USDT",
+        #                 "price": "17488.12",
+        #                 "size": "0.0000623",
+        #                 "time": "2023-01-11T00:52:37.557001Z",
+        #                 "side": "BUY",
+        #                 "bid": "",
+        #                 "ask": ""
+        #             },
+        #         ]
+        #     }
+        #
+        trades = self.safe_list(response, 'trades', [])
+        return self.parse_trades(trades, market, since, limit)
+
+    def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+        """
+        fetch all trades made by the user
+        :see: https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getfills
+        :param str symbol: unified market symbol of the trades
+        :param int [since]: timestamp in ms of the earliest order, default is None
+        :param int [limit]: the maximum number of trade structures to fetch
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.until]: the latest time in ms to fetch trades for
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        """
+        self.load_markets()
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchMyTrades', 'paginate')
+        if paginate:
+            return self.fetch_paginated_call_cursor('fetchMyTrades', symbol, since, limit, params, 'cursor', 'cursor', None, 100)
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+        request = {}
+        if market is not None:
+            request['product_id'] = market['id']
+        if limit is not None:
+            request['limit'] = limit
+        if since is not None:
+            request['start_sequence_timestamp'] = self.iso8601(since)
+        until = self.safe_integer_n(params, ['until', 'till'])
+        if until is not None:
+            params = self.omit(params, ['until', 'till'])
+            request['end_sequence_timestamp'] = self.iso8601(until)
+        response = self.v3PrivateGetBrokerageOrdersHistoricalFills(self.extend(request, params))
+        #
+        #     {
+        #         "fills": [
+        #             {
+        #                 "entry_id": "b88b82cc89e326a2778874795102cbafd08dd979a2a7a3c69603fc4c23c2e010",
+        #                 "trade_id": "cdc39e45-bbd3-44ec-bf02-61742dfb16a1",
+        #                 "order_id": "813a53c5-3e39-47bb-863d-2faf685d22d8",
+        #                 "trade_time": "2023-01-18T01:37:38.091377090Z",
+        #                 "trade_type": "FILL",
+        #                 "price": "21220.64",
+        #                 "size": "0.0046830664333996",
+        #                 "commission": "0.0000280983986004",
+        #                 "product_id": "BTC-USDT",
+        #                 "sequence_timestamp": "2023-01-18T01:37:38.092520Z",
+        #                 "liquidity_indicator": "UNKNOWN_LIQUIDITY_INDICATOR",
+        #                 "size_in_quote": True,
+        #                 "user_id": "1111111-1111-1111-1111-111111111111",
+        #                 "side": "BUY"
+        #             },
+        #         ],
+        #         "cursor": ""
+        #     }
+        #
+        trades = self.safe_list(response, 'fills', [])
+        first = self.safe_dict(trades, 0)
+        cursor = self.safe_string(response, 'cursor')
+        if (cursor is not None) and (cursor != ''):
+            first['cursor'] = cursor
+            trades[0] = first
+        return self.parse_trades(trades, market, since, limit)
+
+    def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
+        """
+        fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        :see: https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getproductbook
+        :param str symbol: unified symbol of the market to fetch the order book for
+        :param int [limit]: the maximum amount of order book entries to return
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        """
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'product_id': market['id'],
+        }
+        if limit is not None:
+            request['limit'] = limit
+        response = self.v3PrivateGetBrokerageProductBook(self.extend(request, params))
+        #
+        #     {
+        #         "pricebook": {
+        #             "product_id": "BTC-USDT",
+        #             "bids": [
+        #                 {
+        #                     "price": "30757.85",
+        #                     "size": "0.115"
+        #                 },
+        #             ],
+        #             "asks": [
+        #                 {
+        #                     "price": "30759.07",
+        #                     "size": "0.04877659"
+        #                 },
+        #             ],
+        #             "time": "2023-06-30T04:02:40.533606Z"
+        #         }
+        #     }
+        #
+        data = self.safe_dict(response, 'pricebook', {})
+        time = self.safe_string(data, 'time')
+        timestamp = self.parse8601(time)
+        return self.parse_order_book(data, symbol, timestamp, 'bids', 'asks', 'price', 'size')
+
+    def fetch_bids_asks(self, symbols: Strings = None, params={}):
+        """
+        fetches the bid and ask price and volume for multiple markets
+        :see: https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getbestbidask
+        :param str[] [symbols]: unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
+        """
+        self.load_markets()
+        symbols = self.market_symbols(symbols)
+        request = {}
+        if symbols is not None:
+            request['product_ids'] = self.market_ids(symbols)
+        response = self.v3PrivateGetBrokerageBestBidAsk(self.extend(request, params))
+        #
+        #     {
+        #         "pricebooks": [
+        #             {
+        #                 "product_id": "TRAC-EUR",
+        #                 "bids": [
+        #                     {
+        #                         "price": "0.2384",
+        #                         "size": "386.1"
+        #                     }
+        #                 ],
+        #                 "asks": [
+        #                     {
+        #                         "price": "0.2406",
+        #                         "size": "672"
+        #                     }
+        #                 ],
+        #                 "time": "2023-06-30T07:15:24.656044Z"
+        #             },
+        #         ]
+        #     }
+        #
+        tickers = self.safe_list(response, 'pricebooks', [])
+        return self.parse_tickers(tickers, symbols)
+
+    def withdraw(self, code: str, amount: float, address, tag=None, params={}):
+        """
+        make a withdrawal
+        :see: https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-transactions#send-money
+        :param str code: unified currency code
+        :param float amount: the amount to withdraw
+        :param str address: the address to withdraw to
+        :param str [tag]: an optional tag for the withdrawal
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
+        """
+        tag, params = self.handle_withdraw_tag_and_params(tag, params)
+        self.check_address(address)
+        self.load_markets()
+        currency = self.currency(code)
+        accountId = self.safe_string_2(params, 'account_id', 'accountId')
+        params = self.omit(params, ['account_id', 'accountId'])
+        if accountId is None:
+            if code is None:
+                raise ArgumentsRequired(self.id + ' withdraw() requires an account_id(or accountId) parameter OR a currency code argument')
+            accountId = self.find_account_id(code, params)
+            if accountId is None:
+                raise ExchangeError(self.id + ' withdraw() could not find account id for ' + code)
+        request = {
+            'account_id': accountId,
+            'type': 'send',
+            'to': address,
+            'amount': amount,
+            'currency': currency['id'],
+        }
+        if tag is not None:
+            request['destination_tag'] = tag
+        response = self.v2PrivatePostAccountsAccountIdTransactions(self.extend(request, params))
+        #
+        #     {
+        #         "data": {
+        #             "id": "a1794ecf-5693-55fa-70cf-ef731748ed82",
+        #             "type": "send",
+        #             "status": "pending",
+        #             "amount": {
+        #                 "amount": "-14.008308",
+        #                 "currency": "USDC"
+        #             },
+        #             "native_amount": {
+        #                 "amount": "-18.74",
+        #                 "currency": "CAD"
+        #             },
+        #             "description": null,
+        #             "created_at": "2024-01-12T01:27:31Z",
+        #             "updated_at": "2024-01-12T01:27:31Z",
+        #             "resource": "transaction",
+        #             "resource_path": "/v2/accounts/a34bgfad-ed67-538b-bffc-730c98c10da0/transactions/a1794ecf-5693-55fa-70cf-ef731748ed82",
+        #             "instant_exchange": False,
+        #             "network": {
+        #                 "status": "pending",
+        #                 "status_description": "Pending(est. less than 10 minutes)",
+        #                 "transaction_fee": {
+        #                     "amount": "4.008308",
+        #                     "currency": "USDC"
+        #                 },
+        #                 "transaction_amount": {
+        #                     "amount": "10.000000",
+        #                     "currency": "USDC"
+        #                 },
+        #                 "confirmations": 0
+        #             },
+        #             "to": {
+        #                 "resource": "ethereum_address",
+        #                 "address": "0x9...",
+        #                 "currency": "USDC",
+        #                 "address_info": {
+        #                     "address": "0x9..."
+        #                 }
+        #             },
+        #             "idem": "748d8591-dg9a-7831-a45b-crd61dg78762",
+        #             "details": {
+        #                 "title": "Sent USDC",
+        #                 "subtitle": "To USDC address on Ethereum network",
+        #                 "header": "Sent 14.008308 USDC($18.74)",
+        #                 "health": "warning"
+        #             },
+        #             "hide_native_amount": False
+        #         }
+        #     }
+        #
+        data = self.safe_dict(response, 'data', {})
+        return self.parse_transaction(data, currency)
+
+    def fetch_deposit_addresses_by_network(self, code: str, params={}):
+        """
+        fetch the deposit address for a currency associated with self account
+        :see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_postcoinbaseaccountaddresses
+        :param str code: unified currency code
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
+        """
+        self.load_markets()
+        currency = self.currency(code)
+        request = None
+        request, params = self.prepare_account_request_with_currency_code(currency['code'])
+        response = self.v2PrivateGetAccountsAccountIdAddresses(self.extend(request, params))
+        #
+        #    {
+        #        pagination: {
+        #            ending_before: null,
+        #            starting_after: null,
+        #            previous_ending_before: null,
+        #            next_starting_after: null,
+        #            limit: '25',
+        #            order: 'desc',
+        #            previous_uri: null,
+        #            next_uri: null
+        #        },
+        #        data: [
+        #            {
+        #                id: '64ceb5f1-5fa2-5310-a4ff-9fd46271003d',
+        #                address: '5xjPKeAXpnhA2kHyinvdVeui6RXVdEa3B2J3SCAwiKnk',
+        #                address_info: {address: '5xjPKeAXpnhA2kHyinvdVeui6RXVdEa3B2J3SCAwiKnk'},
+        #                name: null,
+        #                created_at: '2023-05-29T21:12:12Z',
+        #                updated_at: '2023-05-29T21:12:12Z',
+        #                network: 'solana',
+        #                uri_scheme: 'solana',
+        #                resource: 'address',
+        #                resource_path: '/v2/accounts/a7b3d387-bfb8-5ce7-b8da-1f507e81cf25/addresses/64ceb5f1-5fa2-5310-a4ff-9fd46271003d',
+        #                warnings: [
+        #                    {
+        #                    type: 'correct_address_warning',
+        #                    title: 'This is an ERC20 USDC address.',
+        #                    details: 'Only send ERC20 USD Coin(USDC) to self address.',
+        #                    image_url: 'https://www.coinbase.com/assets/addresses/global-receive-warning-a3d91807e61c717e5a38d270965003dcc025ca8a3cea40ec3d7835b7c86087fa.png',
+        #                    options: [{text: 'I understand', style: 'primary', id: 'dismiss'}]
+        #                    }
+        #                ],
+        #                qr_code_image_url: 'https://static-assets.coinbase.com/p2p/l2/asset_network_combinations/v5/usdc-solana.png',
+        #                address_label: 'USDC address(Solana)',
+        #                default_receive: True,
+        #                deposit_uri: 'solana:5xjPKeAXpnhA2kHyinvdVeui6RXVdEa3B2J3SCAwiKnk?spl-token=EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+        #                callback_url: null,
+        #                share_address_copy: {
+        #                    line1: '5xjPKeAXpnhA2kHyinvdVeui6RXVdEa3B2J3SCAwiKnk',
+        #                    line2: 'This address can only receive USDC-SPL from Solana network. Don’t send USDC from other networks, other SPL tokens or NFTs, or it may result in a loss of funds.'
+        #                },
+        #                receive_subtitle: 'ERC-20',
+        #                inline_warning: {
+        #                    text: 'This address can only receive USDC-SPL from Solana network. Don’t send USDC from other networks, other SPL tokens or NFTs, or it may result in a loss of funds.',
+        #                    tooltip: {
+        #                    title: 'USDC(Solana)',
+        #                    subtitle: 'This address can only receive USDC-SPL from Solana network.'
+        #                    }
+        #                }
+        #            },
+        #            ...
+        #        ]
+        #    }
+        #
+        data = self.safe_list(response, 'data', [])
+        addressStructures = self.parse_deposit_addresses(data, None, False)
+        return self.index_by(addressStructures, 'network')
+
+    def parse_deposit_address(self, depositAddress, currency: Currency = None):
+        #
+        #    {
+        #        id: '64ceb5f1-5fa2-5310-a4ff-9fd46271003d',
+        #        address: '5xjPKeAXpnhA2kHyinvdVeui6RXVdEa3B2J3SCAwiKnk',
+        #        address_info: {
+        #            address: 'GCF74576I7AQ56SLMKBQAP255EGUOWCRVII3S44KEXVNJEOIFVBDMXVL',
+        #            destination_tag: '3722061866'
+        #        },
+        #        name: null,
+        #        created_at: '2023-05-29T21:12:12Z',
+        #        updated_at: '2023-05-29T21:12:12Z',
+        #        network: 'solana',
+        #        uri_scheme: 'solana',
+        #        resource: 'address',
+        #        resource_path: '/v2/accounts/a7b3d387-bfb8-5ce7-b8da-1f507e81cf25/addresses/64ceb5f1-5fa2-5310-a4ff-9fd46271003d',
+        #        warnings: [
+        #            {
+        #            type: 'correct_address_warning',
+        #            title: 'This is an ERC20 USDC address.',
+        #            details: 'Only send ERC20 USD Coin(USDC) to self address.',
+        #            image_url: 'https://www.coinbase.com/assets/addresses/global-receive-warning-a3d91807e61c717e5a38d270965003dcc025ca8a3cea40ec3d7835b7c86087fa.png',
+        #            options: [{text: 'I understand', style: 'primary', id: 'dismiss'}]
+        #            }
+        #        ],
+        #        qr_code_image_url: 'https://static-assets.coinbase.com/p2p/l2/asset_network_combinations/v5/usdc-solana.png',
+        #        address_label: 'USDC address(Solana)',
+        #        default_receive: True,
+        #        deposit_uri: 'solana:5xjPKeAXpnhA2kHyinvdVeui6RXVdEa3B2J3SCAwiKnk?spl-token=EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+        #        callback_url: null,
+        #        share_address_copy: {
+        #            line1: '5xjPKeAXpnhA2kHyinvdVeui6RXVdEa3B2J3SCAwiKnk',
+        #            line2: 'This address can only receive USDC-SPL from Solana network. Don’t send USDC from other networks, other SPL tokens or NFTs, or it may result in a loss of funds.'
+        #        },
+        #        receive_subtitle: 'ERC-20',
+        #        inline_warning: {
+        #            text: 'This address can only receive USDC-SPL from Solana network. Don’t send USDC from other networks, other SPL tokens or NFTs, or it may result in a loss of funds.',
+        #            tooltip: {
+        #            title: 'USDC(Solana)',
+        #            subtitle: 'This address can only receive USDC-SPL from Solana network.'
+        #            }
+        #        }
+        #    }
+        #
+        address = self.safe_string(depositAddress, 'address')
+        self.check_address(address)
+        networkId = self.safe_string(depositAddress, 'network')
+        code = self.safe_currency_code(None, currency)
+        addressLabel = self.safe_string(depositAddress, 'address_label')
+        splitAddressLabel = addressLabel.split(' ')
+        marketId = self.safe_string(splitAddressLabel, 0)
+        addressInfo = self.safe_dict(depositAddress, 'address_info')
+        return {
+            'info': depositAddress,
+            'currency': self.safe_currency_code(marketId, currency),
+            'address': address,
+            'tag': self.safe_string(addressInfo, 'destination_tag'),
+            'network': self.network_id_to_code(networkId, code),
+        }
+
+    def deposit(self, code: str, amount: float, id: str, params={}):
+        """
+        make a deposit
+        :see: https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-deposits#deposit-funds
+        :param str code: unified currency code
+        :param float amount: the amount to deposit
+        :param str id: the payment method id to be used for the deposit, can be retrieved from v2PrivateGetPaymentMethods
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.accountId]: the id of the account to deposit into
+        :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
+        """
+        self.load_markets()
+        accountId = self.safe_string_2(params, 'account_id', 'accountId')
+        params = self.omit(params, ['account_id', 'accountId'])
+        if accountId is None:
+            if code is None:
+                raise ArgumentsRequired(self.id + ' deposit() requires an account_id(or accountId) parameter OR a currency code argument')
+            accountId = self.find_account_id(code, params)
+            if accountId is None:
+                raise ExchangeError(self.id + ' deposit() could not find account id for ' + code)
+        request = {
+            'account_id': accountId,
+            'amount': self.number_to_string(amount),
+            'currency': code.upper(),  # need to use code in case depositing USD etc.
+            'payment_method': id,
+        }
+        response = self.v2PrivatePostAccountsAccountIdDeposits(self.extend(request, params))
+        #
+        #     {
+        #         "data": {
+        #             "id": "67e0eaec-07d7-54c4-a72c-2e92826897df",
+        #             "status": "created",
+        #             "payment_method": {
+        #                 "id": "83562370-3e5c-51db-87da-752af5ab9559",
+        #                 "resource": "payment_method",
+        #                 "resource_path": "/v2/payment-methods/83562370-3e5c-51db-87da-752af5ab9559"
+        #             },
+        #             "transaction": {
+        #                 "id": "441b9494-b3f0-5b98-b9b0-4d82c21c252a",
+        #                 "resource": "transaction",
+        #                 "resource_path": "/v2/accounts/2bbf394c-193b-5b2a-9155-3b4732659ede/transactions/441b9494-b3f0-5b98-b9b0-4d82c21c252a"
+        #             },
+        #             "amount": {
+        #                 "amount": "10.00",
+        #                 "currency": "USD"
+        #             },
+        #             "subtotal": {
+        #                 "amount": "10.00",
+        #                 "currency": "USD"
+        #             },
+        #             "created_at": "2015-01-31T20:49:02Z",
+        #             "updated_at": "2015-02-11T16:54:02-08:00",
+        #             "resource": "deposit",
+        #             "resource_path": "/v2/accounts/2bbf394c-193b-5b2a-9155-3b4732659ede/deposits/67e0eaec-07d7-54c4-a72c-2e92826897df",
+        #             "committed": True,
+        #             "fee": {
+        #                 "amount": "0.00",
+        #                 "currency": "USD"
+        #             },
+        #             "payout_at": "2015-02-18T16:54:00-08:00"
+        #         }
+        #     }
+        #
+        data = self.safe_dict(response, 'data', {})
+        return self.parse_transaction(data)
+
+    def fetch_deposit(self, id: str, code: Str = None, params={}):
+        """
+        fetch information on a deposit, fiat only, for crypto transactions use fetchLedger
+        :see: https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-deposits#show-deposit
+        :param str id: deposit id
+        :param str [code]: unified currency code
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.accountId]: the id of the account that the funds were deposited into
+        :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
+        """
+        self.load_markets()
+        accountId = self.safe_string_2(params, 'account_id', 'accountId')
+        params = self.omit(params, ['account_id', 'accountId'])
+        if accountId is None:
+            if code is None:
+                raise ArgumentsRequired(self.id + ' fetchDeposit() requires an account_id(or accountId) parameter OR a currency code argument')
+            accountId = self.find_account_id(code, params)
+            if accountId is None:
+                raise ExchangeError(self.id + ' fetchDeposit() could not find account id for ' + code)
+        request = {
+            'account_id': accountId,
+            'deposit_id': id,
+        }
+        response = self.v2PrivateGetAccountsAccountIdDepositsDepositId(self.extend(request, params))
+        #
+        #     {
+        #         "data": {
+        #             "id": "67e0eaec-07d7-54c4-a72c-2e92826897df",
+        #             "status": "completed",
+        #             "payment_method": {
+        #                 "id": "83562370-3e5c-51db-87da-752af5ab9559",
+        #                 "resource": "payment_method",
+        #                 "resource_path": "/v2/payment-methods/83562370-3e5c-51db-87da-752af5ab9559"
+        #             },
+        #             "transaction": {
+        #                 "id": "441b9494-b3f0-5b98-b9b0-4d82c21c252a",
+        #                 "resource": "transaction",
+        #                 "resource_path": "/v2/accounts/2bbf394c-193b-5b2a-9155-3b4732659ede/transactions/441b9494-b3f0-5b98-b9b0-4d82c21c252a"
+        #             },
+        #             "amount": {
+        #                 "amount": "10.00",
+        #                 "currency": "USD"
+        #             },
+        #             "subtotal": {
+        #                 "amount": "10.00",
+        #                 "currency": "USD"
+        #             },
+        #             "created_at": "2015-01-31T20:49:02Z",
+        #             "updated_at": "2015-02-11T16:54:02-08:00",
+        #             "resource": "deposit",
+        #             "resource_path": "/v2/accounts/2bbf394c-193b-5b2a-9155-3b4732659ede/deposits/67e0eaec-07d7-54c4-a72c-2e92826897df",
+        #             "committed": True,
+        #             "fee": {
+        #                 "amount": "0.00",
+        #                 "currency": "USD"
+        #             },
+        #             "payout_at": "2015-02-18T16:54:00-08:00"
+        #         }
+        #     }
+        #
+        data = self.safe_dict(response, 'data', {})
+        return self.parse_transaction(data)
+
+    def sign(self, path, api=[], method='GET', params={}, headers=None, body=None):
+        version = api[0]
+        signed = api[1] == 'private'
+        isV3 = version == 'v3'
+        pathPart = 'api/v3' if (isV3) else 'v2'
+        fullPath = '/' + pathPart + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
+        savedPath = fullPath
         if method == 'GET':
             if query:
-                fullPath += '?' + self.urlencode(query)
-        url = self.urls['api'] + fullPath
-        if api == 'private':
-            self.check_required_credentials()
-            nonce = str(self.nonce())
-            payload = ''
-            if method != 'GET':
-                if query:
-                    body = self.json(query)
-                    payload = body
-            auth = nonce + method + fullPath + payload
-            signature = self.hmac(self.encode(auth), self.encode(self.secret))
-            headers = {
-                'CB-ACCESS-KEY': self.apiKey,
-                'CB-ACCESS-SIGN': signature,
-                'CB-ACCESS-TIMESTAMP': nonce,
-                'Content-Type': 'application/json',
-            }
+                fullPath += '?' + self.urlencode_with_array_repeat(query)
+        url = self.urls['api']['rest'] + fullPath
+        if signed:
+            authorization = self.safe_string(self.headers, 'Authorization')
+            authorizationString = None
+            if authorization is not None:
+                authorizationString = authorization
+            elif self.token and not self.check_required_credentials(False):
+                authorizationString = 'Bearer ' + self.token
+            else:
+                self.check_required_credentials()
+                seconds = self.seconds()
+                payload = ''
+                if method != 'GET':
+                    if query:
+                        body = self.json(query)
+                        payload = body
+                else:
+                    if not isV3:
+                        if query:
+                            payload += '?' + self.urlencode(query)
+                # v3: 'GET' doesn't need payload in the signature. inside url is enough
+                # https://docs.cloud.coinbase.com/advanced-trade-api/docs/auth#example-request
+                # v2: 'GET' require payload in the signature
+                # https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-key-authentication
+                isCloudAPiKey = (self.apiKey.find('organizations/') >= 0) or (self.secret.startswith('-----BEGIN'))
+                if isCloudAPiKey:
+                    if self.apiKey.startswith('-----BEGIN'):
+                        raise ArgumentsRequired(self.id + ' apiKey should contain the name(eg: organizations/3b910e93....) and not the public key')
+                    # it may not work for v2
+                    uri = method + ' ' + url.replace('https://', '')
+                    quesPos = uri.find('?')
+                    if quesPos >= 0:
+                        uri = uri[0:quesPos]
+                    nonce = self.random_bytes(16)
+                    request = {
+                        'aud': ['retail_rest_api_proxy'],
+                        'iss': 'coinbase-cloud',
+                        'nbf': seconds,
+                        'exp': seconds + 120,
+                        'sub': self.apiKey,
+                        'uri': uri,
+                        'iat': seconds,
+                    }
+                    token = self.jwt(request, self.encode(self.secret), 'sha256', False, {'kid': self.apiKey, 'nonce': nonce, 'alg': 'ES256'})
+                    authorizationString = 'Bearer ' + token
+                else:
+                    timestampString = str(self.seconds())
+                    auth = timestampString + method + savedPath + payload
+                    signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)
+                    headers = {
+                        'CB-ACCESS-KEY': self.apiKey,
+                        'CB-ACCESS-SIGN': signature,
+                        'CB-ACCESS-TIMESTAMP': timestampString,
+                        'Content-Type': 'application/json',
+                    }
+            if authorizationString is not None:
+                headers = {
+                    'Authorization': authorizationString,
+                    'Content-Type': 'application/json',
+                }
+                if method != 'GET':
+                    if query:
+                        body = self.json(query)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
-            return  # fallback to default error handler
+            return None  # fallback to default error handler
         feedback = self.id + ' ' + body
         #
         #    {"error": "invalid_request", "error_description": "The request is missing a required parameter, includes an unsupported parameter value, or is otherwise malformed."}
@@ -1114,17 +3657,22 @@ class coinbase(Exchange):
         #
         errorCode = self.safe_string(response, 'error')
         if errorCode is not None:
-            self.throw_exactly_matched_exception(self.exceptions, errorCode, feedback)
+            errorMessage = self.safe_string(response, 'error_description')
+            self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
+            self.throw_broadly_matched_exception(self.exceptions['broad'], errorMessage, feedback)
             raise ExchangeError(feedback)
-        errors = self.safe_value(response, 'errors')
+        errors = self.safe_list(response, 'errors')
         if errors is not None:
             if isinstance(errors, list):
                 numErrors = len(errors)
                 if numErrors > 0:
                     errorCode = self.safe_string(errors[0], 'id')
+                    errorMessage = self.safe_string(errors[0], 'message')
                     if errorCode is not None:
-                        self.throw_exactly_matched_exception(self.exceptions, errorCode, feedback)
+                        self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
+                        self.throw_broadly_matched_exception(self.exceptions['broad'], errorMessage, feedback)
                         raise ExchangeError(feedback)
-        data = self.safe_value(response, 'data')
-        if data is None:
+        advancedTrade = self.options['advanced']
+        if not ('data' in response) and (not advancedTrade):
             raise ExchangeError(self.id + ' failed due to a malformed response ' + self.json(response))
+        return None
