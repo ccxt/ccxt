@@ -875,7 +875,7 @@ public partial class Exchange
     {
         // Solve Common parseInt misuse ex: parseInt ((since / 1000).toString ())
         // using a number as parameter which is not valid in ts
-        object stringifiedNumber = ((object)number).ToString();
+        object stringifiedNumber = this.numberToString(number);
         object convertedNumber = ((object)parseFloat(stringifiedNumber));
         return parseInt(convertedNumber);
     }
@@ -4148,14 +4148,6 @@ public partial class Exchange
         {
             return code;
         }
-        // if the provided code already exists as a value in commonCurrencies dict, then we should not again transform it
-        // more details at: https://github.com/ccxt/ccxt/issues/21112#issuecomment-2031293691
-        object commonCurrencies = new List<object>(((IDictionary<string,object>)this.commonCurrencies).Values);
-        object exists = this.inArray(code, commonCurrencies);
-        if (isTrue(exists))
-        {
-            return code;
-        }
         return this.safeString(this.commonCurrencies, code, code);
     }
 
@@ -5036,7 +5028,6 @@ public partial class Exchange
          * @returns {object} objects with withdraw and deposit fees, indexed by currency codes
          */
         object depositWithdrawFees = new Dictionary<string, object>() {};
-        codes = this.marketCodes(codes);
         object isArray = ((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))));
         object responseKeys = response;
         if (!isTrue(isArray))

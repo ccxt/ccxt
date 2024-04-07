@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.2.90'
+__version__ = '4.2.91'
 
 # -----------------------------------------------------------------------------
 
@@ -2303,7 +2303,7 @@ class Exchange(object):
     def parse_to_int(self, number):
         # Solve Common intmisuse ex: int((since / str(1000)))
         # using a number which is not valid in ts
-        stringifiedNumber = str(number)
+        stringifiedNumber = self.number_to_string(number)
         convertedNumber = float(stringifiedNumber)
         return int(convertedNumber)
 
@@ -4426,12 +4426,6 @@ class Exchange(object):
     def common_currency_code(self, code: str):
         if not self.substituteCommonCurrencyCodes:
             return code
-        # if the provided code already exists value in commonCurrencies dict, then we should not again transform it
-        # more details at: https://github.com/ccxt/ccxt/issues/21112#issuecomment-2031293691
-        commonCurrencies = list(self.commonCurrencies.values())
-        exists = self.in_array(code, commonCurrencies)
-        if exists:
-            return code
         return self.safe_string(self.commonCurrencies, code, code)
 
     def currency(self, code: str):
@@ -4985,7 +4979,6 @@ class Exchange(object):
         :returns dict: objects with withdraw and deposit fees, indexed by currency codes
         """
         depositWithdrawFees = {}
-        codes = self.marketCodes(codes)
         isArray = isinstance(response, list)
         responseKeys = response
         if not isArray:

@@ -441,6 +441,7 @@ public partial class gemini : Exchange
             //         '</tr>'
             //     ]
             object marketId = ((string)getValue(cells, 0)).Replace((string)"<td>", (string)"");
+            marketId = ((string)marketId).Replace((string)"*", (string)"");
             // const base = this.safeCurrencyCode (baseId);
             object minAmountString = ((string)getValue(cells, 1)).Replace((string)"<td>", (string)"");
             object minAmountParts = ((string)minAmountString).Split(new [] {((string)" ")}, StringSplitOptions.None).ToList<object>();

@@ -609,9 +609,7 @@ class kraken extends Exchange {
         if ($currencyId !== null) {
             if (strlen($currencyId) > 3) {
                 if ((mb_strpos($currencyId, 'X') === 0) || (mb_strpos($currencyId, 'Z') === 0)) {
-                    if (mb_strpos($currencyId, '.') > 0) {
-                        return parent::safe_currency($currencyId, $currency);
-                    } else {
+                    if (!(mb_strpos($currencyId, '.') > 0)) {
                         $currencyId = mb_substr($currencyId, 1);
                     }
                 }
@@ -661,8 +659,13 @@ class kraken extends Exchange {
             //     {
             //         "error" => array(),
             //         "result" => array(
-            //             "ADA" => array( "aclass" => "currency", "altname" => "ADA", "decimals" => 8, "display_decimals" => 6 ),
-            //             "BCH" => array( "aclass" => "currency", "altname" => "BCH", "decimals" => 10, "display_decimals" => 5 ),
+            //             "BCH" => array(
+            //                 "aclass" => "currency",
+            //                 "altname" => "BCH",
+            //                 "decimals" => 10,
+            //                 "display_decimals" => 5
+            //                 "status" => "enabled",
+            //             ),
             //             ...
             //         ),
             //     }
@@ -677,15 +680,15 @@ class kraken extends Exchange {
                 // see => https://support.kraken.com/hc/en-us/articles/201893608-What-are-the-withdrawal-fees-
                 // to add support for multiple withdrawal/deposit methods and
                 // differentiated fees for each particular method
-                $code = $this->safe_currency_code($this->safe_string($currency, 'altname'));
+                $code = $this->safe_currency_code($id);
                 $precision = $this->parse_number($this->parse_precision($this->safe_string($currency, 'decimals')));
                 // assumes all $currencies are $active except those listed above
-                $active = !$this->in_array($code, $this->options['inactiveCurrencies']);
+                $active = $this->safe_string($currency, 'status') === 'enabled';
                 $result[$code] = array(
                     'id' => $id,
                     'code' => $code,
                     'info' => $currency,
-                    'name' => $code,
+                    'name' => $this->safe_string($currency, 'altname'),
                     'active' => $active,
                     'deposit' => null,
                     'withdraw' => null,

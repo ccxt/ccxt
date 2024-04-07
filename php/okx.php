@@ -1219,7 +1219,7 @@ class okx extends Exchange {
         //         )
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_list($response, 'data', array());
         $dataLength = count($data);
         $update = array(
             'updated' => null,
@@ -1263,8 +1263,8 @@ class okx extends Exchange {
         //         "msg" => ""
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
-        $first = $this->safe_value($data, 0, array());
+        $data = $this->safe_list($response, 'data', array());
+        $first = $this->safe_dict($data, 0, array());
         return $this->safe_integer($first, 'ts');
     }
 
@@ -1295,7 +1295,7 @@ class okx extends Exchange {
         //         "msg" => ""
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_list($response, 'data', array());
         $result = array();
         for ($i = 0; $i < count($data); $i++) {
             $account = $data[$i];
@@ -1319,7 +1319,7 @@ class okx extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing market data
          */
-        $types = $this->safe_value($this->options, 'fetchMarkets');
+        $types = $this->safe_list($this->options, 'fetchMarkets', array());
         $promises = array();
         $result = array();
         for ($i = 0; $i < count($types); $i++) {
@@ -1423,7 +1423,7 @@ class okx extends Exchange {
             }
         }
         $tickSize = $this->safe_string($market, 'tickSz');
-        $fees = $this->safe_value_2($this->fees, $type, 'trading', array());
+        $fees = $this->safe_dict_2($this->fees, $type, 'trading', array());
         $maxLeverage = $this->safe_string($market, 'lever', '1');
         $maxLeverage = Precise::string_max($maxLeverage, '1');
         $maxSpotCost = $this->safe_number($market, 'maxMktSz');
@@ -1483,7 +1483,7 @@ class okx extends Exchange {
             'instType' => $this->convert_to_instrument_type($type),
         );
         if ($type === 'option') {
-            $optionsUnderlying = $this->safe_value($this->options, 'defaultUnderlying', array( 'BTC-USD', 'ETH-USD' ));
+            $optionsUnderlying = $this->safe_list($this->options, 'defaultUnderlying', array( 'BTC-USD', 'ETH-USD' ));
             $promises = array();
             for ($i = 0; $i < count($optionsUnderlying); $i++) {
                 $underlying = $optionsUnderlying[$i];
@@ -1493,8 +1493,8 @@ class okx extends Exchange {
             $promisesResult = $promises;
             $markets = array();
             for ($i = 0; $i < count($promisesResult); $i++) {
-                $res = $this->safe_value($promisesResult, $i, array());
-                $options = $this->safe_value($res, 'data', array());
+                $res = $this->safe_dict($promisesResult, $i, array());
+                $options = $this->safe_list($res, 'data', array());
                 $markets = $this->array_concat($markets, $options);
             }
             return $this->parse_markets($markets);
@@ -1533,7 +1533,7 @@ class okx extends Exchange {
         //         "msg" => ""
         //     }
         //
-        $dataResponse = $this->safe_value($response, 'data', array());
+        $dataResponse = $this->safe_list($response, 'data', array());
         return $this->parse_markets($dataResponse);
     }
 
@@ -1610,7 +1610,7 @@ class okx extends Exchange {
         //        "msg" => ""
         //    }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_list($response, 'data', array());
         $result = array();
         $dataByCurrencyId = $this->group_by($data, 'ccy');
         $currencyIds = is_array($dataByCurrencyId) ? array_keys($dataByCurrencyId) : array();
@@ -1626,11 +1626,11 @@ class okx extends Exchange {
             $maxPrecision = null;
             for ($j = 0; $j < count($chains); $j++) {
                 $chain = $chains[$j];
-                $canDeposit = $this->safe_value($chain, 'canDep');
+                $canDeposit = $this->safe_bool($chain, 'canDep');
                 $depositEnabled = ($canDeposit) ? $canDeposit : $depositEnabled;
-                $canWithdraw = $this->safe_value($chain, 'canWd');
+                $canWithdraw = $this->safe_bool($chain, 'canWd');
                 $withdrawEnabled = ($canWithdraw) ? $canWithdraw : $withdrawEnabled;
-                $canInternal = $this->safe_value($chain, 'canInternal');
+                $canInternal = $this->safe_bool($chain, 'canInternal');
                 $active = ($canDeposit && $canWithdraw && $canInternal) ? true : false;
                 $currencyActive = ($active) ? $active : $currencyActive;
                 $networkId = $this->safe_string($chain, 'chain');
@@ -1662,7 +1662,7 @@ class okx extends Exchange {
                     );
                 }
             }
-            $firstChain = $this->safe_value($chains, 0);
+            $firstChain = $this->safe_dict($chains, 0, array());
             $result[$code] = array(
                 'info' => null,
                 'code' => $code,
@@ -1736,8 +1736,8 @@ class okx extends Exchange {
         //         ]
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
-        $first = $this->safe_value($data, 0, array());
+        $data = $this->safe_list($response, 'data', array());
+        $first = $this->safe_dict($data, 0, array());
         $timestamp = $this->safe_integer($first, 'ts');
         return $this->parse_order_book($first, $symbol, $timestamp);
     }
@@ -1838,7 +1838,7 @@ class okx extends Exchange {
         //         )
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_list($response, 'data', array());
         $first = $this->safe_dict($data, 0, array());
         return $this->parse_ticker($first, $market);
     }
@@ -1860,7 +1860,7 @@ class okx extends Exchange {
             'instType' => $this->convert_to_instrument_type($marketType),
         );
         if ($marketType === 'option') {
-            $defaultUnderlying = $this->safe_value($this->options, 'defaultUnderlying', 'BTC-USD');
+            $defaultUnderlying = $this->safe_string($this->options, 'defaultUnderlying', 'BTC-USD');
             $currencyId = $this->safe_string_2($params, 'uly', 'marketId', $defaultUnderlying);
             if ($currencyId === null) {
                 throw new ArgumentsRequired($this->id . ' fetchTickers() requires an underlying uly or marketId parameter for options markets');
@@ -2122,7 +2122,7 @@ class okx extends Exchange {
         }
         $price = $this->safe_string($params, 'price');
         $params = $this->omit($params, 'price');
-        $options = $this->safe_value($this->options, 'fetchOHLCV', array());
+        $options = $this->safe_dict($this->options, 'fetchOHLCV', array());
         $timezone = $this->safe_string($options, 'timezone', 'UTC');
         if ($limit === null) {
             $limit = 100; // default 100, max 100
@@ -2249,7 +2249,7 @@ class okx extends Exchange {
         //     }
         //
         $rates = array();
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_list($response, 'data', array());
         for ($i = 0; $i < count($data); $i++) {
             $rate = $data[$i];
             $timestamp = $this->safe_integer($rate, 'fundingTime');
@@ -2275,10 +2275,10 @@ class okx extends Exchange {
 
     public function parse_trading_balance($response) {
         $result = array( 'info' => $response );
-        $data = $this->safe_value($response, 'data', array());
-        $first = $this->safe_value($data, 0, array());
+        $data = $this->safe_list($response, 'data', array());
+        $first = $this->safe_dict($data, 0, array());
         $timestamp = $this->safe_integer($first, 'uTime');
-        $details = $this->safe_value($first, 'details', array());
+        $details = $this->safe_list($first, 'details', array());
         for ($i = 0; $i < count($details); $i++) {
             $balance = $details[$i];
             $currencyId = $this->safe_string($balance, 'ccy');
@@ -2303,7 +2303,7 @@ class okx extends Exchange {
 
     public function parse_funding_balance($response) {
         $result = array( 'info' => $response );
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_list($response, 'data', array());
         for ($i = 0; $i < count($data); $i++) {
             $balance = $data[$i];
             $currencyId = $this->safe_string($balance, 'ccy');
@@ -2385,8 +2385,8 @@ class okx extends Exchange {
         //         "msg" => ""
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
-        $first = $this->safe_value($data, 0, array());
+        $data = $this->safe_list($response, 'data', array());
+        $first = $this->safe_dict($data, 0, array());
         return $this->parse_trading_fee($first, $market);
     }
 
@@ -2847,8 +2847,8 @@ class okx extends Exchange {
         } else {
             $response = $this->privatePostTradeBatchOrders ($request);
         }
-        $data = $this->safe_value($response, 'data', array());
-        $first = $this->safe_value($data, 0);
+        $data = $this->safe_list($response, 'data', array());
+        $first = $this->safe_dict($data, 0, array());
         $order = $this->parse_order($first, $market);
         $order['type'] = $type;
         $order['side'] = $side;
@@ -4322,7 +4322,7 @@ class okx extends Exchange {
         //         )
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_list($response, 'data', array());
         return $this->parse_ledger($data, $currency, $since, $limit);
     }
 

@@ -39,7 +39,7 @@ use BN\BN;
 use Sop\ASN1\Type\UnspecifiedType;
 use Exception;
 
-$version = '4.2.90';
+$version = '4.2.91';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -58,7 +58,7 @@ const PAD_WITH_ZERO = 6;
 
 class Exchange {
 
-    const VERSION = '4.2.90';
+    const VERSION = '4.2.91';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -2907,7 +2907,7 @@ class Exchange {
     public function parse_to_int($number) {
         // Solve Common intvalmisuse ex => intval((since / (string) 1000))
         // using a $number which is not valid in ts
-        $stringifiedNumber = (string) $number;
+        $stringifiedNumber = $this->number_to_string($number);
         $convertedNumber = floatval($stringifiedNumber);
         return intval($convertedNumber);
     }
@@ -5496,13 +5496,6 @@ class Exchange {
         if (!$this->substituteCommonCurrencyCodes) {
             return $code;
         }
-        // if the provided $code already $exists value in $commonCurrencies dict, then we should not again transform it
-        // more details at => https://github.com/ccxt/ccxt/issues/21112#issuecomment-2031293691
-        $commonCurrencies = is_array($this->commonCurrencies) ? array_values($this->commonCurrencies) : array();
-        $exists = $this->in_array($code, $commonCurrencies);
-        if ($exists) {
-            return $code;
-        }
         return $this->safe_string($this->commonCurrencies, $code, $code);
     }
 
@@ -6178,7 +6171,6 @@ class Exchange {
          * @return {array} objects with withdraw and deposit fees, indexed by $currency $codes
          */
         $depositWithdrawFees = array();
-        $codes = $this->marketCodes ($codes);
         $isArray = gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response));
         $responseKeys = $response;
         if (!$isArray) {
