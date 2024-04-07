@@ -7253,7 +7253,7 @@ export default class okx extends Exchange {
         for (let i = 0; i < settlements.length; i++) {
             const entry = settlements[i];
             const timestamp = this.safeInteger (entry, 'ts');
-            const details = this.safeValue (entry, 'details', []);
+            const details = this.safeList (entry, 'details', []);
             for (let j = 0; j < details.length; j++) {
                 const settlement = this.parseSettlement (details[j], market);
                 result.push (this.extend (settlement, {
