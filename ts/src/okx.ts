@@ -4286,7 +4286,7 @@ export default class okx extends Exchange {
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchLedger', code, since, limit, params);
         }
-        const options = this.safeValue (this.options, 'fetchLedger', {});
+        const options = this.safeDict (this.options, 'fetchLedger', {});
         let method = this.safeString (options, 'method');
         method = this.safeString (params, 'method', method);
         params = this.omit (params, 'method');
