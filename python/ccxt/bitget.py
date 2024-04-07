@@ -5051,17 +5051,8 @@ class bitget(Exchange, ImplicitAPI):
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
-        market = None
-        if symbol is not None:
-            market = self.market(symbol)
         response = self.fetch_canceled_and_closed_orders(symbol, since, limit, params)
-        result = []
-        for i in range(0, len(response)):
-            entry = response[i]
-            status = self.parse_order_status(self.safe_string_n(entry, ['state', 'status', 'planStatus']))
-            if status == 'closed':
-                result.append(entry)
-        return self.parse_orders(result, market, since, limit)
+        return [order for order in response if order['status'] == 'closed']
 
     def fetch_canceled_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
@@ -5084,17 +5075,8 @@ class bitget(Exchange, ImplicitAPI):
         :returns dict: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
-        market = None
-        if symbol is not None:
-            market = self.market(symbol)
         response = self.fetch_canceled_and_closed_orders(symbol, since, limit, params)
-        result = []
-        for i in range(0, len(response)):
-            entry = response[i]
-            status = self.parse_order_status(self.safe_string_n(entry, ['state', 'status', 'planStatus']))
-            if status == 'canceled':
-                result.append(entry)
-        return self.parse_orders(result, market, since, limit)
+        return [order for order in response if order['status'] == 'canceled']
 
     def fetch_canceled_and_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         self.load_markets()
@@ -5907,6 +5889,16 @@ class bitget(Exchange, ImplicitAPI):
             data = self.safe_value(response, 'data', {})
             position = self.safe_value(data, 'list', [])
         result = []
+        if len(position) == 0:
+            position.append({})
+        elif len(position) == 1:
+            pos = position[0]
+            if pos['posMode'] == 'hedge_mode':
+                position.append({
+                    'holdSide': 'short' if pos['holdSide'] == 'long' else 'long',
+                    'marginMode': pos['marginMode'],
+                    'posMode': pos['posMode'],
+                })
         for i in range(0, len(position)):
             result.append(self.parse_position(position[i], market))
         symbols = self.market_symbols(symbols)
@@ -6044,8 +6036,8 @@ class bitget(Exchange, ImplicitAPI):
         feeToClose = Precise.string_mul(notional, calcTakerFeeRate)
         maintenanceMargin = Precise.string_add(Precise.string_mul(maintenanceMarginPercentage, notional), feeToClose)
         percentage = Precise.string_mul(Precise.string_div(unrealizedPnl, initialMargin, 4), '100')
-        is_long = side == 'long'
-        cornix_quantity = ((1 if is_long else -1) * self.parse_number(contracts, 0.))
+        is_long = None if side is None else side == 'long'
+        cornix_quantity = ((1 if is_long or is_long is None else -1) * self.parse_number(contracts, 0.))
         return self.safe_position({
             'info': position,
             'id': self.safe_string(position, 'orderId'),
