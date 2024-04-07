@@ -1119,7 +1119,7 @@ export default class okx extends Exchange {
     }
 
     convertToInstrumentType (type) {
-        const exchangeTypes = this.safeValue (this.options, 'exchangeType', {});
+        const exchangeTypes = this.safeDict (this.options, 'exchangeType', {});
         return this.safeString (exchangeTypes, type, type);
     }
 
