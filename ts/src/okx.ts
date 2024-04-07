@@ -6045,7 +6045,7 @@ export default class okx extends Exchange {
         //        "type": "8"
         //    }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         const result = [];
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
