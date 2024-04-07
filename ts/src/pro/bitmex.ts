@@ -1249,7 +1249,12 @@ export default class bitmex extends bitmexRest {
             'args': topics,
         };
         const trades = await this.watchMultiple (url, messageHashes, this.deepExtend (request, params), topics);
-        return trades;
+        if (this.newUpdates) {
+            const first = this.safeValue (trades, 0);
+            const tradeSymbol = this.safeString (first, 'symbol');
+            limit = trades.getLimit (tradeSymbol, limit);
+        }
+        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
     async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
