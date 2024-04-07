@@ -2456,7 +2456,7 @@ export default class Exchange {
     parseToInt (number) {
         // Solve Common parseInt misuse ex: parseInt ((since / 1000).toString ())
         // using a number as parameter which is not valid in ts
-        const stringifiedNumber = number.toString ();
+        const stringifiedNumber = this.numberToString (number);
         const convertedNumber = parseFloat (stringifiedNumber) as any;
         return parseInt (convertedNumber);
     }

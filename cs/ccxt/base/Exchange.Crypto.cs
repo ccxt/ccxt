@@ -463,17 +463,17 @@ public partial class Exchange
         // stub
     }
 
-    public int crc32(object str, object signed2 = null) => Crc32(str, signed2);
+    public Int64 crc32(object str, object signed2 = null) => Crc32(str, signed2);
 
-    public static int Crc32(object str, object signed2 = null)
+    public static Int64 Crc32(object str, object signed2 = null)
     {
         var signed = (signed2 == null) ? false : (bool)signed2;
         // var data = Encoding.UTF8.GetBytes((string)str);
-        var crc = CalculateCrc32((string)str);
+        var crc = CalculateCrc32((string)str, signed);
         return crc;
     }
 
-    public static int CalculateCrc32(string data, int? bound = null)
+    public static Int64 CalculateCrc32(string data, bool signed, int? bound = null)
     {
         // https://gist.github.com/martin31821/6a4736521043233bf7cdc05aa785149d
         var s_generator = 0xEDB88320;
@@ -493,7 +493,7 @@ public partial class Exchange
         var arrayOfBytes = Encoding.ASCII.GetBytes(data);
         var result = ~arrayOfBytes.Aggregate(0xFFFFFFFF, (checksumRegister, currentByte) =>
                       (m_checksumTable[(checksumRegister & 0xFF) ^ Convert.ToByte(currentByte)] ^ (checksumRegister >> 8)));
-        return (int)result;
+        return (!signed) ? Convert.ToInt64(result) : Convert.ToInt64((int)result);
     }
 
     private static RSACryptoServiceProvider DecodeRSAPrivateKey(byte[] privkey)
