@@ -63,6 +63,15 @@ class FeeInterface(TypedDict):
 Fee = Optional[FeeInterface]
 
 
+class TradingFeeInterface(TypedDict):
+    info: Dict[str, Any]
+    symbol: Str
+    maker: Num
+    taker: Num
+    percentage: Bool
+    tierBased: Bool
+
+
 class Balance(TypedDict):
     free: Num
     used: Num
@@ -306,6 +315,19 @@ class CurrencyInterface(TypedDict):
     code: Str
     precision: Num
 
+
+class LastPrice(TypedDict):
+    symbol: Str
+    timestamp: Int
+    datetime: Str
+    price: Num
+    side: OrderSide
+    info: Dict[str, Any]
+
+
+LastPrices = Dict[Str, LastPrice]
+Currencies = Dict[Str, CurrencyInterface]
+TradingFees = Dict[Str, TradingFeeInterface]
 
 Market = Optional[MarketInterface]
 Currency = Optional[CurrencyInterface]

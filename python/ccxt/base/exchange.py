@@ -8,7 +8,7 @@ __version__ = '4.0.106.30'
 
 # -----------------------------------------------------------------------------
 import random
-from typing import Optional, List
+from typing import Optional, List, Any
 
 from ccxt.base.errors import ExchangeError, InvalidOrder, NullResponse
 from ccxt.base.errors import NetworkError
@@ -37,7 +37,7 @@ from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.hazmat.primitives.serialization import load_pem_private_key
 
-from ccxt.base.types import IndexType
+from ccxt.base.types import IndexType, Market, Currency
 # -----------------------------------------------------------------------------
 
 # ecdsa signing
@@ -1807,9 +1807,6 @@ class Exchange(object):
     def fetch_accounts(self, params={}):
         raise NotSupported(self.id + ' fetchAccounts() is not supported yet')
 
-    def parse_position(self, position, market=None):
-        raise NotSupported(self.id + ' parsePosition() is not supported yet')
-
     def parse_ohlcv(self, ohlcv, market=None):
         return ohlcv[0:6] if isinstance(ohlcv, list) else ohlcv
 
@@ -2292,12 +2289,74 @@ class Exchange(object):
             result.append(self.parse_market(markets[i]))
         return result
 
+    def parse_ticker(self, ticker: object, market: Market = None):
+        raise NotSupported(self.id + ' parseTicker() is not supported yet')
+
+    def parse_deposit_address(self, depositAddress, currency: Currency = None):
+        raise NotSupported(self.id + ' parseDepositAddress() is not supported yet')
+
+    def parse_trade(self, trade: object, market: Market = None):
+        raise NotSupported(self.id + ' parseTrade() is not supported yet')
+
+    def parse_transaction(self, transaction, currency: Currency = None):
+        raise NotSupported(self.id + ' parseTransaction() is not supported yet')
+
+    def parse_transfer(self, transfer, currency: Currency = None):
+        raise NotSupported(self.id + ' parseTransfer() is not supported yet')
+
+    def parse_account(self, account):
+        raise NotSupported(self.id + ' parseAccount() is not supported yet')
+
+    def parse_ledger_entry(self, item, currency: Currency = None):
+        raise NotSupported(self.id + ' parseLedgerEntry() is not supported yet')
+
+    def parse_order(self, order, market: Market = None):
+        raise NotSupported(self.id + ' parseOrder() is not supported yet')
+
+    def fetch_cross_borrow_rates(self, params={}):
+        raise NotSupported(self.id + ' fetchCrossBorrowRates() is not supported yet')
+
+    def fetch_isolated_borrow_rates(self, params={}):
+        raise NotSupported(self.id + ' fetchIsolatedBorrowRates() is not supported yet')
+
+    def parse_market_leverage_tiers(self, info, market: Market = None):
+        raise NotSupported(self.id + ' parseMarketLeverageTiers() is not supported yet')
+
+    def fetch_leverage_tiers(self, symbols: List[str] = None, params={}):
+        raise NotSupported(self.id + ' fetchLeverageTiers() is not supported yet')
+
+    def parse_position(self, position, market: Market = None):
+        raise NotSupported(self.id + ' parsePosition() is not supported yet')
+
+    def parse_funding_rate_history(self, info, market: Market = None):
+        raise NotSupported(self.id + ' parseFundingRateHistory() is not supported yet')
+
+    def parse_borrow_interest(self, info, market: Market = None):
+        raise NotSupported(self.id + ' parseBorrowInterest() is not supported yet')
+
+    def parse_ws_trade(self, trade, market: Market = None):
+        raise NotSupported(self.id + ' parseWsTrade() is not supported yet')
+
+    def parse_ws_order(self, order, market: Market = None):
+        raise NotSupported(self.id + ' parseWsOrder() is not supported yet')
+
+    def parse_ws_order_trade(self, trade, market: Market = None):
+        raise NotSupported(self.id + ' parseWsOrderTrade() is not supported yet')
+
     def parse_tickers(self, tickers, symbols=None, params={}):
         result = []
         values = self.to_array(tickers)
         for i in range(0, len(values)):
             result.append(self.extend(self.parse_ticker(values[i]), params))
         return self.filter_by_array(result, 'symbol', symbols)
+
+    def parse_accounts(self, accounts: List[Any], params={}):
+        accounts = self.to_array(accounts)
+        result = []
+        for i in range(0, len(accounts)):
+            account = self.extend(self.parse_account(accounts[i]), params)
+            result.append(account)
+        return result
 
     def parse_trades(self, trades, market=None, since=None, limit=None, params={}):
         array = self.to_array(trades)
