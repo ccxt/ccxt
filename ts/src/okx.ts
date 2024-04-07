@@ -6386,7 +6386,7 @@ export default class okx extends Exchange {
         //         "msg": ""
         //     }
         //
-        const data = this.safeValue (response, 'data');
+        const data = this.safeList (response, 'data', []);
         return this.parseBorrowRateHistories (data, codes, since, limit);
     }
 
