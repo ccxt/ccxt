@@ -500,16 +500,19 @@ class Exchange(object):
             delay = self.rateLimit - elapsed
             time.sleep(delay / 1000.0)
 
-    def fetch2(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def fetch2(self, path, api='public', method='GET', params=None, headers=None, body=None, config=None):
         """A better wrapper over request for deferred signing"""
+        params = params or dict()
+        config = config or dict()
         if self.enableRateLimit:
             self.throttle()
         self.lastRestRequestTimestamp = self.milliseconds()
         request = self.sign(path, api, method, params, headers, body)
         return self.fetch(request['url'], request['method'], request['headers'], request['body'])
 
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def request(self, path, api='public', method='GET', params=None, headers=None, body=None):
         """Exchange.request is the entry point for all generated methods"""
+        params = params or dict()
         return self.fetch2(path, api, method, params, headers, body)
 
     @staticmethod
@@ -1332,6 +1335,10 @@ class Exchange(object):
     @staticmethod
     def binary_to_base64(s):
         return Exchange.decode(base64.standard_b64encode(s))
+
+    @staticmethod
+    def base64_to_binary(s):
+        return base64.standard_b64decode(s)
 
     @staticmethod
     def jwt(request, secret, alg='HS256'):
