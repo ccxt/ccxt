@@ -11,7 +11,7 @@ function rsa (request: string, secret: string, hash: CHash) {
     const digester = (input) => base16.encode (hash (input))
     RSA.setPrivateKey (secret)
     const name = (hash.create ()).constructor.name.toLowerCase ()
-    return RSA.sign (request, digester, name)
+    return RSA.sign (request, digester, name) as string;
 }
 
 function jwt (request: {}, secret: Uint8Array, hash: CHash, isRSA = false, opts = {}) {
