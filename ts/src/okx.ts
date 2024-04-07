@@ -6240,7 +6240,7 @@ export default class okx extends Exchange {
         //        ],
         //    }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         const rates = [];
         for (let i = 0; i < data.length; i++) {
             rates.push (this.parseBorrowRate (data[i]));
