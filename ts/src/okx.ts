@@ -6921,8 +6921,8 @@ export default class okx extends Exchange {
          * @param {int} [params.until] The time in ms of the latest record to retrieve as a unix timestamp
          * @returns An array of [open interest structures]{@link https://docs.ccxt.com/#/?id=open-interest-structure}
          */
-        const options = this.safeValue (this.options, 'fetchOpenInterestHistory', {});
-        const timeframes = this.safeValue (options, 'timeframes', {});
+        const options = this.safeDict (this.options, 'fetchOpenInterestHistory', {});
+        const timeframes = this.safeDict (options, 'timeframes', {});
         timeframe = this.safeString (timeframes, timeframe, timeframe);
         if (timeframe !== '5m' && timeframe !== '1H' && timeframe !== '1D') {
             throw new BadRequest (this.id + ' fetchOpenInterestHistory cannot only use the 5m, 1h, and 1d timeframe');
