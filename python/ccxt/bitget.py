@@ -5889,16 +5889,17 @@ class bitget(Exchange, ImplicitAPI):
             data = self.safe_value(response, 'data', {})
             position = self.safe_value(data, 'list', [])
         result = []
-        if len(position) == 0:
-            position.append({})
-        elif len(position) == 1:
-            pos = position[0]
-            if pos['posMode'] == 'hedge_mode':
-                position.append({
-                    'holdSide': 'short' if pos['holdSide'] == 'long' else 'long',
-                    'marginMode': pos['marginMode'],
-                    'posMode': pos['posMode'],
-                })
+        if symbols:
+            if len(position) == 0:
+                position.append({})
+            elif len(position) == 1:
+                pos = position[0]
+                if pos['posMode'] == 'hedge_mode':
+                    position.append({
+                        'holdSide': 'short' if pos['holdSide'] == 'long' else 'long',
+                        'marginMode': pos['marginMode'],
+                        'posMode': pos['posMode'],
+                    })
         for i in range(0, len(position)):
             result.append(self.parse_position(position[i], market))
         symbols = self.market_symbols(symbols)
