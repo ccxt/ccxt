@@ -5862,11 +5862,30 @@ reduceMargin (symbol, amount, params = {})
 setMargin (symbol, amount, params = {})
 ```
 
+
 Parameters
 
 - **symbol** (String) *required* Unified CCXT market symbol (e.g. `"BTC/USDT:USDT"`)
 - **amount** (String) *required* Amount of margin to add or reduce (e.g. `20`)
 - **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"leverage": 5}`)
+
+Returns
+
+- a [margin structure](#margin-structure)
+
+You can fetch the history of margin adjustments made using the methods above or automatically by the exchange using the following method
+
+```javascript
+fetchMarginAdjustmentHistory (symbol = undefined, type = undefined, since = undefined, limit = undefined, params = {})
+```
+
+Parameters
+
+- **symbol** (String) Unified CCXT market symbol (e.g. `"BTC/USDT:USDT"`)
+- **type** (String) "add" or "reduce"
+- **since** (Integer) Timestamp (ms) of the earliest time to retrieve margin adjustments for for (e.g. `1646940314000`)
+- **limit** (Integer) The number of [margin structures](#margin-structure) to retrieve (e.g. `5`)
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"auto": true}`)
 
 Returns
 

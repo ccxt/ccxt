@@ -81,6 +81,7 @@ class cryptocom(Exchange, ImplicitAPI):
                 'fetchLedger': True,
                 'fetchLeverage': False,
                 'fetchLeverageTiers': False,
+                'fetchMarginAdjustmentHistory': False,
                 'fetchMarginMode': False,
                 'fetchMarketLeverageTiers': False,
                 'fetchMarkets': True,
@@ -2565,7 +2566,7 @@ class cryptocom(Exchange, ImplicitAPI):
         #
         result = self.safe_dict(response, 'result', {})
         data = self.safe_list(result, 'data', [])
-        return self.parse_position(data[0], market)
+        return self.parse_position(self.safe_dict(data, 0), market)
 
     async def fetch_positions(self, symbols: Strings = None, params={}):
         """

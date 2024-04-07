@@ -63,6 +63,7 @@ public partial class coinex : Exchange
                 { "fetchLeverage", "emulated" },
                 { "fetchLeverages", true },
                 { "fetchLeverageTiers", true },
+                { "fetchMarginAdjustmentHistory", true },
                 { "fetchMarketLeverageTiers", "emulated" },
                 { "fetchMarkets", true },
                 { "fetchMarkOHLCV", false },
@@ -4446,16 +4447,15 @@ public partial class coinex : Exchange
         //         "message":"OK"
         //     }
         //
+        object data = this.safeDict(response, "data");
         object status = this.safeString(response, "message");
-        object type = ((bool) isTrue((isEqual(addOrReduce, 1)))) ? "add" : "reduce";
-        return this.extend(this.parseMarginModification(response, market), new Dictionary<string, object>() {
+        return this.extend(this.parseMarginModification(data, market), new Dictionary<string, object>() {
             { "amount", this.parseNumber(amount) },
-            { "type", type },
             { "status", status },
         });
     }
 
-    public virtual object parseMarginModification(object data, object market = null)
+    public override object parseMarginModification(object data, object market = null)
     {
         //
         // addMargin/reduceMargin
@@ -4512,13 +4512,34 @@ public partial class coinex : Exchange
         //        "user_id": 3620173
         //    }
         //
-        object timestamp = this.safeIntegerProduct(data, "update_time", 1000);
+        // fetchMarginAdjustmentHistory
+        //
+        //    {
+        //        bkr_price: '0',
+        //        leverage: '3',
+        //        liq_price: '0',
+        //        margin_amount: '5.33236666666666666666',
+        //        margin_change: '3',
+        //        market: 'XRPUSDT',
+        //        position_amount: '11',
+        //        position_id: '297155652',
+        //        position_type: '2',
+        //        settle_price: '0.6361',
+        //        time: '1711050906.382891',
+        //        type: '1',
+        //        user_id: '3685860'
+        //    }
+        //
+        object marketId = this.safeString(data, "market");
+        object type = this.safeString(data, "type");
+        object timestamp = this.safeIntegerProduct2(data, "time", "update_time", 1000);
         return new Dictionary<string, object>() {
             { "info", data },
-            { "symbol", this.safeSymbol(null, market) },
-            { "type", null },
-            { "amount", this.safeNumber(data, "margin_amount") },
-            { "total", null },
+            { "symbol", this.safeSymbol(marketId, market, null, "swap") },
+            { "type", ((bool) isTrue((isEqual(type, "1")))) ? "add" : "reduce" },
+            { "marginMode", "isolated" },
+            { "amount", this.safeNumber(data, "margin_change") },
+            { "total", this.safeNumber(data, "position_amount") },
             { "code", getValue(market, "quote") },
             { "status", null },
             { "timestamp", timestamp },
@@ -5227,6 +5248,7 @@ public partial class coinex : Exchange
         object currencyId = this.safeString(transfer, "asset");
         object currencyCode = this.safeCurrencyCode(currencyId, currency);
         return new Dictionary<string, object>() {
+            { "info", transfer },
             { "id", this.safeInteger(transfer, "id") },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
@@ -6153,5 +6175,84 @@ public partial class coinex : Exchange
             throw new ExchangeError ((string)feedback) ;
         }
         return null;
+    }
+
+    public async override Task<object> fetchMarginAdjustmentHistory(object symbol = null, object type = null, object since = null, object limit = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name coinex#fetchMarginAdjustmentHistory
+        * @description fetches the history of margin added or reduced from contract isolated positions
+        * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http046_position_margin_history
+        * @param {string} [symbol] unified market symbol
+        * @param {string} [type] not used by coinex fetchMarginAdjustmentHistory
+        * @param {int} [since] timestamp in ms of the earliest change to fetch
+        * @param {int} [limit] the maximum amount of changes to fetch, default=100, max=100
+        * @param {object} params extra parameters specific to the exchange api endpoint
+        * @param {int} [params.until] timestamp in ms of the latest change to fetch
+        *
+        * EXCHANGE SPECIFIC PARAMETERS
+        * @param {int} [params.offset] offset
+        * @returns {object[]} a list of [margin structures]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object until = this.safeInteger(parameters, "until");
+        parameters = this.omit(parameters, "until");
+        if (isTrue(isEqual(limit, null)))
+        {
+            limit = 100;
+        }
+        object request = new Dictionary<string, object>() {
+            { "market", "" },
+            { "position_id", 0 },
+            { "offset", 0 },
+            { "limit", limit },
+        };
+        if (isTrue(!isEqual(symbol, null)))
+        {
+            object market = this.market(symbol);
+            ((IDictionary<string,object>)request)["market"] = getValue(market, "id");
+        }
+        if (isTrue(!isEqual(since, null)))
+        {
+            ((IDictionary<string,object>)request)["start_time"] = since;
+        }
+        if (isTrue(!isEqual(until, null)))
+        {
+            ((IDictionary<string,object>)request)["end_time"] = until;
+        }
+        object response = await this.v1PerpetualPrivateGetPositionMarginHistory(this.extend(request, parameters));
+        //
+        //    {
+        //        code: '0',
+        //        data: {
+        //            limit: '100',
+        //            offset: '0',
+        //            records: [
+        //                {
+        //                    bkr_price: '0',
+        //                    leverage: '3',
+        //                    liq_price: '0',
+        //                    margin_amount: '5.33236666666666666666',
+        //                    margin_change: '3',
+        //                    market: 'XRPUSDT',
+        //                    position_amount: '11',
+        //                    position_id: '297155652',
+        //                    position_type: '2',
+        //                    settle_price: '0.6361',
+        //                    time: '1711050906.382891',
+        //                    type: '1',
+        //                    user_id: '3685860'
+        //                }
+        //            ]
+        //        },
+        //        message: 'OK'
+        //    }
+        //
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        object records = this.safeList(data, "records", new List<object>() {});
+        object modifications = this.parseMarginModifications(records, null, "market", "swap");
+        return this.filterBySymbolSinceLimit(modifications, symbol, since, limit);
     }
 }

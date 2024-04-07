@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.okx import ImplicitAPI
 import hashlib
-from ccxt.base.types import Account, Balances, Currency, Greeks, Int, Leverage, MarginModification, Market, MarketInterface, Num, Option, OptionChain, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
+from ccxt.base.types import Account, Balances, Currencies, Currency, Greeks, Int, Leverage, MarginModification, Market, MarketInterface, Num, Option, OptionChain, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -106,6 +106,7 @@ class okx(Exchange, ImplicitAPI):
                 'fetchLedgerEntry': None,
                 'fetchLeverage': True,
                 'fetchLeverageTiers': False,
+                'fetchMarginAdjustmentHistory': True,
                 'fetchMarketLeverageTiers': True,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': True,
@@ -1542,7 +1543,7 @@ class okx(Exchange, ImplicitAPI):
         }
         return self.safe_string(networksById, networkId, networkId)
 
-    def fetch_currencies(self, params={}):
+    def fetch_currencies(self, params={}) -> Currencies:
         """
         fetches all available currencies on an exchange
         :see: https://www.okx.com/docs-v5/en/#rest-api-funding-get-currencies
@@ -2266,7 +2267,7 @@ class okx(Exchange, ImplicitAPI):
             result[code] = account
         return self.safe_balance(result)
 
-    def parse_trading_fee(self, fee, market: Market = None):
+    def parse_trading_fee(self, fee, market: Market = None) -> TradingFeeInterface:
         # https://www.okx.com/docs-v5/en/#rest-api-account-get-fee-rates
         #
         #     {
@@ -2286,9 +2287,11 @@ class okx(Exchange, ImplicitAPI):
             # OKX returns the fees values opposed to other exchanges, so the sign needs to be flipped
             'maker': self.parse_number(Precise.string_neg(self.safe_string_2(fee, 'maker', 'makerU'))),
             'taker': self.parse_number(Precise.string_neg(self.safe_string_2(fee, 'taker', 'takerU'))),
+            'percentage': None,
+            'tierBased': None,
         }
 
-    def fetch_trading_fee(self, symbol: str, params={}):
+    def fetch_trading_fee(self, symbol: str, params={}) -> TradingFeeInterface:
         """
         fetch the trading fees for a market
         :see: https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-fee-rates
@@ -6033,9 +6036,9 @@ class okx(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_list(response, 'data', [])
+        entry = self.safe_dict(data, 0, {})
         errorCode = self.safe_string(response, 'code')
-        item = self.safe_dict(data, 0, {})
-        return self.extend(self.parse_margin_modification(item, market), {
+        return self.extend(self.parse_margin_modification(entry, market), {
             'status': 'ok' if (errorCode == '0') else 'failed',
         })
 
@@ -6050,22 +6053,66 @@ class okx(Exchange, ImplicitAPI):
         #        "type": "reduce"
         #    }
         #
-        amountRaw = self.safe_number(data, 'amt')
+        # fetchMarginAdjustmentHistory
+        #
+        #    {
+        #        bal: '67621.4325135010619812',
+        #        balChg: '-10.0000000000000000',
+        #        billId: '691293628710342659',
+        #        ccy: 'USDT',
+        #        clOrdId: '',
+        #        execType: '',
+        #        fee: '0',
+        #        fillFwdPx: '',
+        #        fillIdxPx: '',
+        #        fillMarkPx: '',
+        #        fillMarkVol: '',
+        #        fillPxUsd: '',
+        #        fillPxVol: '',
+        #        fillTime: '1711089244850',
+        #        from: '',
+        #        instId: 'XRP-USDT-SWAP',
+        #        instType: 'SWAP',
+        #        interest: '0',
+        #        mgnMode: 'isolated',
+        #        notes: '',
+        #        ordId: '',
+        #        pnl: '0',
+        #        posBal: '73.12',
+        #        posBalChg: '10.00',
+        #        px: '',
+        #        subType: '160',
+        #        sz: '10',
+        #        tag: '',
+        #        to: '',
+        #        tradeId: '0',
+        #        ts: '1711089244699',
+        #        type: '6'
+        #    }
+        #
+        amountRaw = self.safe_string_2(data, 'amt', 'posBalChg')
         typeRaw = self.safe_string(data, 'type')
-        type = 'reduce' if (typeRaw == 'reduce') else 'add'
+        type = None
+        if typeRaw == '6':
+            type = 'add' if Precise.string_gt(amountRaw, '0') else 'reduce'
+        else:
+            type = typeRaw
+        amount = Precise.string_abs(amountRaw)
         marketId = self.safe_string(data, 'instId')
         responseMarket = self.safe_market(marketId, market)
         code = responseMarket['base'] if responseMarket['inverse'] else responseMarket['quote']
+        timestamp = self.safe_integer(data, 'ts')
         return {
             'info': data,
             'symbol': responseMarket['symbol'],
             'type': type,
-            'amount': amountRaw,
-            'total': None,
+            'marginMode': 'isolated',
+            'amount': self.parse_number(amount),
             'code': code,
+            'total': None,
             'status': None,
-            'timestamp': None,
-            'datetime': None,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
         }
 
     def reduce_margin(self, symbol: str, amount, params={}) -> MarginModification:
@@ -7086,3 +7133,93 @@ class okx(Exchange, ImplicitAPI):
             self.throw_exactly_matched_exception(self.exceptions['exact'], code, feedback)
             raise ExchangeError(feedback)  # unknown message
         return None
+
+    def fetch_margin_adjustment_history(self, symbol: Str = None, type: Str = None, since: Num = None, limit: Num = None, params={}) -> List[MarginModification]:
+        """
+        fetches the history of margin added or reduced from contract isolated positions
+        :see: https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-bills-details-last-7-days
+        :see: https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-bills-details-last-3-months
+        :param str [symbol]: not used by okx fetchMarginAdjustmentHistory
+        :param str [type]: "add" or "reduce"
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :param boolean [params.auto]: True if fetching auto margin increases
+        :returns dict[]: a list of `margin structures <https://docs.ccxt.com/#/?id=margin-loan-structure>`
+        """
+        self.load_markets()
+        auto = self.safe_bool(params, 'auto')
+        if type is None:
+            raise ArgumentsRequired(self.id + ' fetchMarginAdjustmentHistory() requires a type argument')
+        isAdd = type == 'add'
+        subType = '160' if isAdd else '161'
+        if auto:
+            if isAdd:
+                subType = '162'
+            else:
+                raise BadRequest(self.id + ' cannot fetch margin adjustments for type ' + type)
+        request = {
+            'subType': subType,
+            'mgnMode': 'isolated',
+        }
+        until = self.safe_integer(params, 'until')
+        params = self.omit(params, 'until')
+        if since is not None:
+            request['startTime'] = since
+        if limit is not None:
+            request['limit'] = limit
+        if until is not None:
+            request['endTime'] = until
+        response = None
+        now = self.milliseconds()
+        oneWeekAgo = now - 604800000
+        threeMonthsAgo = now - 7776000000
+        if (since is None) or (since > oneWeekAgo):
+            response = self.privateGetAccountBills(self.extend(request, params))
+        elif since > threeMonthsAgo:
+            response = self.privateGetAccountBillsArchive(self.extend(request, params))
+        else:
+            raise BadRequest(self.id + ' fetchMarginAdjustmentHistory() cannot fetch margin adjustments older than 3 months')
+        #
+        #    {
+        #        code: '0',
+        #        data: [
+        #            {
+        #                bal: '67621.4325135010619812',
+        #                balChg: '-10.0000000000000000',
+        #                billId: '691293628710342659',
+        #                ccy: 'USDT',
+        #                clOrdId: '',
+        #                execType: '',
+        #                fee: '0',
+        #                fillFwdPx: '',
+        #                fillIdxPx: '',
+        #                fillMarkPx: '',
+        #                fillMarkVol: '',
+        #                fillPxUsd: '',
+        #                fillPxVol: '',
+        #                fillTime: '1711089244850',
+        #                from: '',
+        #                instId: 'XRP-USDT-SWAP',
+        #                instType: 'SWAP',
+        #                interest: '0',
+        #                mgnMode: 'isolated',
+        #                notes: '',
+        #                ordId: '',
+        #                pnl: '0',
+        #                posBal: '73.12',
+        #                posBalChg: '10.00',
+        #                px: '',
+        #                subType: '160',
+        #                sz: '10',
+        #                tag: '',
+        #                to: '',
+        #                tradeId: '0',
+        #                ts: '1711089244699',
+        #                type: '6'
+        #            }
+        #        ],
+        #        msg: ''
+        #    }
+        #
+        data = self.safe_list(response, 'data')
+        modifications = self.parse_margin_modifications(data)
+        return self.filter_by_symbol_since_limit(modifications, symbol, since, limit)

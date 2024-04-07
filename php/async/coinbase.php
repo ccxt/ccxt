@@ -1354,7 +1354,7 @@ class coinbase extends Exchange {
         }) ();
     }
 
-    public function fetch_currencies($params = array ()) {
+    public function fetch_currencies($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches all available $currencies on an exchange
@@ -3848,29 +3848,14 @@ class coinbase extends Exchange {
         $url = $this->urls['api']['rest'] . $fullPath;
         if ($signed) {
             $authorization = $this->safe_string($this->headers, 'Authorization');
+            $authorizationString = null;
             if ($authorization !== null) {
-                $headers = array(
-                    'Authorization' => $authorization,
-                    'Content-Type' => 'application/json',
-                );
-                if ($method !== 'GET') {
-                    if ($query) {
-                        $body = $this->json($query);
-                    }
-                }
+                $authorizationString = $authorization;
             } elseif ($this->token && !$this->check_required_credentials(false)) {
-                $headers = array(
-                    'Authorization' => 'Bearer ' . $this->token,
-                    'Content-Type' => 'application/json',
-                );
-                if ($method !== 'GET') {
-                    if ($query) {
-                        $body = $this->json($query);
-                    }
-                }
+                $authorizationString = 'Bearer ' . $this->token;
             } else {
                 $this->check_required_credentials();
-                $timestampString = (string) $this->seconds();
+                $seconds = $this->seconds();
                 $payload = '';
                 if ($method !== 'GET') {
                     if ($query) {
@@ -3885,17 +3870,54 @@ class coinbase extends Exchange {
                     }
                 }
                 // v3 => 'GET' doesn't need $payload in the $signature-> inside $url is enough
-                // https://docs.cloud.coinbase.com/advanced-trade-api/docs/auth#example-request
+                // https://docs.cloud.coinbase.com/advanced-trade-api/docs/auth#example-$request
                 // v2 => 'GET' require $payload in the $signature
                 // https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-key-authentication
-                $auth = $timestampString . $method . $savedPath . $payload;
-                $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256');
+                $isCloudAPiKey = (mb_strpos($this->apiKey, 'organizations/') !== false) || (str_starts_with($this->secret, '-----BEGIN'));
+                if ($isCloudAPiKey) {
+                    if (str_starts_with($this->apiKey, '-----BEGIN')) {
+                        throw new ArgumentsRequired($this->id . ' apiKey should contain the name (eg => organizations/3b910e93....) and not the public key');
+                    }
+                    // it may not work for v2
+                    $uri = $method . ' ' . str_replace('https://', '', $url);
+                    $quesPos = mb_strpos($uri, '?');
+                    if ($quesPos >= 0) {
+                        $uri = mb_substr($uri, 0, $quesPos - 0);
+                    }
+                    $nonce = $this->random_bytes(16);
+                    $request = array(
+                        'aud' => array( 'retail_rest_api_proxy' ),
+                        'iss' => 'coinbase-cloud',
+                        'nbf' => $seconds,
+                        'exp' => $seconds + 120,
+                        'sub' => $this->apiKey,
+                        'uri' => $uri,
+                        'iat' => $seconds,
+                    );
+                    $token = $this->jwt($request, $this->encode($this->secret), 'sha256', false, array( 'kid' => $this->apiKey, 'nonce' => $nonce, 'alg' => 'ES256' ));
+                    $authorizationString = 'Bearer ' . $token;
+                } else {
+                    $timestampString = (string) $this->seconds();
+                    $auth = $timestampString . $method . $savedPath . $payload;
+                    $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256');
+                    $headers = array(
+                        'CB-ACCESS-KEY' => $this->apiKey,
+                        'CB-ACCESS-SIGN' => $signature,
+                        'CB-ACCESS-TIMESTAMP' => $timestampString,
+                        'Content-Type' => 'application/json',
+                    );
+                }
+            }
+            if ($authorizationString !== null) {
                 $headers = array(
-                    'CB-ACCESS-KEY' => $this->apiKey,
-                    'CB-ACCESS-SIGN' => $signature,
-                    'CB-ACCESS-TIMESTAMP' => $timestampString,
+                    'Authorization' => $authorizationString,
                     'Content-Type' => 'application/json',
                 );
+                if ($method !== 'GET') {
+                    if ($query) {
+                        $body = $this->json($query);
+                    }
+                }
             }
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );

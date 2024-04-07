@@ -7,7 +7,7 @@ import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { md5 } from './static_dependencies/noble-hashes/md5.js';
-import type { Balances, Currency, FundingHistory, FundingRateHistory, Int, Market, OHLCV, Order, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, OrderRequest, TransferEntry, Leverage, Leverages, Num, MarginModification } from './base/types.js';
+import type { Balances, Currency, FundingHistory, FundingRateHistory, Int, Market, OHLCV, Order, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, OrderRequest, TransferEntry, Leverage, Leverages, Num, MarginModification, TradingFeeInterface, Currencies, TradingFees } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -82,6 +82,7 @@ export default class coinex extends Exchange {
                 'fetchLeverage': 'emulated',
                 'fetchLeverages': true,
                 'fetchLeverageTiers': true,
+                'fetchMarginAdjustmentHistory': true,
                 'fetchMarketLeverageTiers': 'emulated',
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
@@ -480,7 +481,7 @@ export default class coinex extends Exchange {
         });
     }
 
-    async fetchCurrencies (params = {}) {
+    async fetchCurrencies (params = {}): Promise<Currencies> {
         const response = await this.v1PublicGetCommonAssetConfig (params);
         //     {
         //         "code": 0,
@@ -1342,7 +1343,7 @@ export default class coinex extends Exchange {
         return this.parseTrades (response['data'], market, since, limit);
     }
 
-    async fetchTradingFee (symbol: string, params = {}) {
+    async fetchTradingFee (symbol: string, params = {}): Promise<TradingFeeInterface> {
         /**
          * @method
          * @name coinex#fetchTradingFee
@@ -1410,7 +1411,7 @@ export default class coinex extends Exchange {
         return this.parseTradingFee (result, market);
     }
 
-    async fetchTradingFees (params = {}) {
+    async fetchTradingFees (params = {}): Promise<TradingFees> {
         /**
          * @method
          * @name coinex#fetchTradingFees
@@ -1482,7 +1483,7 @@ export default class coinex extends Exchange {
         return result;
     }
 
-    parseTradingFee (fee, market: Market = undefined) {
+    parseTradingFee (fee, market: Market = undefined): TradingFeeInterface {
         const marketId = this.safeValue (fee, 'market');
         const symbol = this.safeSymbol (marketId, market);
         return {
@@ -4219,11 +4220,10 @@ export default class coinex extends Exchange {
         //         "message":"OK"
         //     }
         //
+        const data = this.safeDict (response, 'data');
         const status = this.safeString (response, 'message');
-        const type = (addOrReduce === 1) ? 'add' : 'reduce';
-        return this.extend (this.parseMarginModification (response, market), {
+        return this.extend (this.parseMarginModification (data, market), {
             'amount': this.parseNumber (amount),
-            'type': type,
             'status': status,
         });
     }
@@ -4284,13 +4284,34 @@ export default class coinex extends Exchange {
         //        "user_id": 3620173
         //    }
         //
-        const timestamp = this.safeIntegerProduct (data, 'update_time', 1000);
+        // fetchMarginAdjustmentHistory
+        //
+        //    {
+        //        bkr_price: '0',
+        //        leverage: '3',
+        //        liq_price: '0',
+        //        margin_amount: '5.33236666666666666666',
+        //        margin_change: '3',
+        //        market: 'XRPUSDT',
+        //        position_amount: '11',
+        //        position_id: '297155652',
+        //        position_type: '2',
+        //        settle_price: '0.6361',
+        //        time: '1711050906.382891',
+        //        type: '1',
+        //        user_id: '3685860'
+        //    }
+        //
+        const marketId = this.safeString (data, 'market');
+        const type = this.safeString (data, 'type');
+        const timestamp = this.safeIntegerProduct2 (data, 'time', 'update_time', 1000);
         return {
             'info': data,
-            'symbol': this.safeSymbol (undefined, market),
-            'type': undefined,
-            'amount': this.safeNumber (data, 'margin_amount'),
-            'total': undefined,
+            'symbol': this.safeSymbol (marketId, market, undefined, 'swap'),
+            'type': (type === '1') ? 'add' : 'reduce',
+            'marginMode': 'isolated',
+            'amount': this.safeNumber (data, 'margin_change'),
+            'total': this.safeNumber (data, 'position_amount'),
             'code': market['quote'],
             'status': undefined,
             'timestamp': timestamp,
@@ -4948,6 +4969,7 @@ export default class coinex extends Exchange {
         const currencyId = this.safeString (transfer, 'asset');
         const currencyCode = this.safeCurrencyCode (currencyId, currency);
         return {
+            'info': transfer,
             'id': this.safeInteger (transfer, 'id'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -5789,5 +5811,78 @@ export default class coinex extends Exchange {
             throw new ExchangeError (feedback);
         }
         return undefined;
+    }
+
+    async fetchMarginAdjustmentHistory (symbol: Str = undefined, type: Str = undefined, since: Num = undefined, limit: Num = undefined, params = {}): Promise<MarginModification[]> {
+        /**
+         * @method
+         * @name coinex#fetchMarginAdjustmentHistory
+         * @description fetches the history of margin added or reduced from contract isolated positions
+         * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http046_position_margin_history
+         * @param {string} [symbol] unified market symbol
+         * @param {string} [type] not used by coinex fetchMarginAdjustmentHistory
+         * @param {int} [since] timestamp in ms of the earliest change to fetch
+         * @param {int} [limit] the maximum amount of changes to fetch, default=100, max=100
+         * @param {object} params extra parameters specific to the exchange api endpoint
+         * @param {int} [params.until] timestamp in ms of the latest change to fetch
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+         * @param {int} [params.offset] offset
+         * @returns {object[]} a list of [margin structures]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
+         */
+        await this.loadMarkets ();
+        const until = this.safeInteger (params, 'until');
+        params = this.omit (params, 'until');
+        if (limit === undefined) {
+            limit = 100;
+        }
+        const request = {
+            'market': '',
+            'position_id': 0,
+            'offset': 0,
+            'limit': limit,
+        };
+        if (symbol !== undefined) {
+            const market = this.market (symbol);
+            request['market'] = market['id'];
+        }
+        if (since !== undefined) {
+            request['start_time'] = since;
+        }
+        if (until !== undefined) {
+            request['end_time'] = until;
+        }
+        const response = await this.v1PerpetualPrivateGetPositionMarginHistory (this.extend (request, params));
+        //
+        //    {
+        //        code: '0',
+        //        data: {
+        //            limit: '100',
+        //            offset: '0',
+        //            records: [
+        //                {
+        //                    bkr_price: '0',
+        //                    leverage: '3',
+        //                    liq_price: '0',
+        //                    margin_amount: '5.33236666666666666666',
+        //                    margin_change: '3',
+        //                    market: 'XRPUSDT',
+        //                    position_amount: '11',
+        //                    position_id: '297155652',
+        //                    position_type: '2',
+        //                    settle_price: '0.6361',
+        //                    time: '1711050906.382891',
+        //                    type: '1',
+        //                    user_id: '3685860'
+        //                }
+        //            ]
+        //        },
+        //        message: 'OK'
+        //    }
+        //
+        const data = this.safeDict (response, 'data', {});
+        const records = this.safeList (data, 'records', []);
+        const modifications = this.parseMarginModifications (records, undefined, 'market', 'swap');
+        return this.filterBySymbolSinceLimit (modifications, symbol, since, limit);
     }
 }

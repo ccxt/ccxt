@@ -920,6 +920,8 @@ public partial class latoken : Exchange
             { "symbol", getValue(market, "symbol") },
             { "maker", this.safeNumber(response, "makerFee") },
             { "taker", this.safeNumber(response, "takerFee") },
+            { "percentage", null },
+            { "tierBased", null },
         };
     }
 
@@ -946,6 +948,8 @@ public partial class latoken : Exchange
             { "symbol", getValue(market, "symbol") },
             { "maker", this.safeNumber(response, "makerFee") },
             { "taker", this.safeNumber(response, "takerFee") },
+            { "percentage", null },
+            { "tierBased", null },
         };
     }
 

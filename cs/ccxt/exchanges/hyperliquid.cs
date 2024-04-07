@@ -2311,7 +2311,7 @@ public partial class hyperliquid : Exchange
         });
     }
 
-    public virtual object parseMarginModification(object data, object market = null)
+    public override object parseMarginModification(object data, object market = null)
     {
         //
         //    {
@@ -2322,6 +2322,7 @@ public partial class hyperliquid : Exchange
             { "info", data },
             { "symbol", this.safeSymbol(null, market) },
             { "type", null },
+            { "marginMode", "isolated" },
             { "amount", null },
             { "total", null },
             { "code", this.safeString(market, "settle") },

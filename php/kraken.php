@@ -631,7 +631,7 @@ class kraken extends Exchange {
         return $result;
     }
 
-    public function fetch_currencies($params = array ()) {
+    public function fetch_currencies($params = array ()): array {
         /**
          * fetches all available $currencies on an exchange
          * @see https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getAssetInfo
@@ -689,7 +689,7 @@ class kraken extends Exchange {
         return $result;
     }
 
-    public function fetch_trading_fee(string $symbol, $params = array ()) {
+    public function fetch_trading_fee(string $symbol, $params = array ()): array {
         /**
          * fetch the trading fees for a $market
          * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getTradeVolume
