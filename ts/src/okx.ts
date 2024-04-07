@@ -6835,8 +6835,8 @@ export default class okx extends Exchange {
         //         "msg": ""
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
-        const loan = this.safeValue (data, 0);
+        const data = this.safeList (response, 'data', []);
+        const loan = this.safeDict (data, 0, {});
         return this.parseMarginLoan (loan, currency);
     }
 
