@@ -5697,7 +5697,7 @@ export default class okx extends Exchange {
         //         "msg": ""
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         const transfer = this.safeDict (data, 0);
         return this.parseTransfer (transfer);
     }
