@@ -4127,7 +4127,7 @@ export default class coinex extends Exchange {
             if (symbols !== undefined) {
                 symbolsLength = symbols.length;
             }
-            if (symbol !== undefined && (symbolsLength === 0 || this.inArray (symbols, symbol))) {
+            if (symbol !== undefined && (symbolsLength === 0 || this.inArray (symbol, symbols))) {
                 tiers[symbol] = this.parseMarketLeverageTiers (response[marketId], market);
             }
         }

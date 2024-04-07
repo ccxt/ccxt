@@ -3828,7 +3828,7 @@ export default class digifinex extends Exchange {
                     result[symbol] = this.parseMarketLeverageTiers (response[i], market);
                 }
             }
-            if (symbol !== undefined && (symbolsLength === 0 || this.inArray (symbols, symbol))) {
+            if (symbol !== undefined && (symbolsLength === 0 || this.inArray (symbol, symbols))) {
                 result[symbol] = this.parseMarketLeverageTiers (response[i], market);
             }
         }
