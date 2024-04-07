@@ -4693,7 +4693,7 @@ export default class okx extends Exchange {
         };
         let network = this.safeString (params, 'network'); // this line allows the user to specify either ERC20 or ETH
         if (network !== undefined) {
-            const networks = this.safeValue (this.options, 'networks', {});
+            const networks = this.safeDict (this.options, 'networks', {});
             network = this.safeString (networks, network.toUpperCase (), network); // handle ETH>ERC20 alias
             request['chain'] = currency['id'] + '-' + network;
             params = this.omit (params, 'network');
@@ -4702,7 +4702,7 @@ export default class okx extends Exchange {
         if (fee === undefined) {
             const currencies = await this.fetchCurrencies ();
             this.currencies = this.deepExtend (this.currencies, currencies);
-            const targetNetwork = this.safeValue (currency['networks'], this.networkIdToCode (network), {});
+            const targetNetwork = this.safeDict (currency['networks'], this.networkIdToCode (network), {});
             fee = this.safeString (targetNetwork, 'fee');
             if (fee === undefined) {
                 throw new ArgumentsRequired (this.id + ' withdraw() requires a "fee" string parameter, network transaction fee must be ≥ 0. Withdrawals to OKCoin or OKX are fee-free, please set "0". Withdrawing to external digital asset address requires network transaction fee.');
@@ -4724,7 +4724,7 @@ export default class okx extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         const transaction = this.safeDict (data, 0);
         return this.parseTransaction (transaction, currency);
     }
