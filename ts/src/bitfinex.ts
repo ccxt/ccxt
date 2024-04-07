@@ -1259,7 +1259,7 @@ export default class bitfinex extends Exchange {
         const response = await this.privatePostOrders (params);
         let orders = this.parseOrders (response, undefined, since, limit);
         if (symbol !== undefined) {
-            orders = this.filterBy (orders, 'symbol', symbol);
+            orders = this.filterBy (orders, 'symbol', symbol) as Order[];
         }
         return orders;
     }
@@ -1285,7 +1285,7 @@ export default class bitfinex extends Exchange {
         const response = await this.privatePostOrdersHist (this.extend (request, params));
         let orders = this.parseOrders (response, undefined, since, limit);
         if (symbol !== undefined) {
-            orders = this.filterBy (orders, 'symbol', symbol);
+            orders = this.filterBy (orders, 'symbol', symbol) as Order[];
         }
         orders = this.filterByArray (orders, 'status', [ 'closed', 'canceled' ], false);
         return orders;

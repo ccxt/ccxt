@@ -731,7 +731,7 @@ export default class wazirx extends Exchange {
         //   ]
         //
         let orders = this.parseOrders (response, market, since, limit);
-        orders = this.filterBy (orders, 'symbol', symbol);
+        orders = this.filterBy (orders, 'symbol', symbol) as Order[];
         return orders;
     }
 

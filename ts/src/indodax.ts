@@ -811,7 +811,7 @@ export default class indodax extends Exchange {
         };
         const response = await this.privatePostOrderHistory (this.extend (request, params));
         let orders = this.parseOrders (response['return']['orders'], market);
-        orders = this.filterBy (orders, 'status', 'closed');
+        orders = this.filterBy (orders, 'status', 'closed') as Order[];
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit) as Order[];
     }
 

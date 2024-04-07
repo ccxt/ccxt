@@ -690,7 +690,7 @@ export default class bitflyer extends Exchange {
         const response = await this.privateGetGetchildorders (this.extend (request, params));
         let orders = this.parseOrders (response, market, since, limit);
         if (symbol !== undefined) {
-            orders = this.filterBy (orders, 'symbol', symbol);
+            orders = this.filterBy (orders, 'symbol', symbol) as Order[];
         }
         return orders;
     }
