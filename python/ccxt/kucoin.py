@@ -1827,6 +1827,7 @@ class kucoin(Exchange, ImplicitAPI):
         isActive = self.safe_value_2(order, 'isActive', 'active')
         amount = self.safe_string(order, 'size')
         filled = self.safe_string(order, 'dealSize')
+        average = self.safe_string(order, 'average')  # WS only
         remaining = Precise.string_sub(amount, filled)
         status = None
         if isActive is not None:
@@ -1869,7 +1870,7 @@ class kucoin(Exchange, ImplicitAPI):
             'fee': fee,
             'status': status,
             'lastTradeTimestamp': None,
-            'average': None,
+            'average': average,
             'trades': None,
         }, market)
 
