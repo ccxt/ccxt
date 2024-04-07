@@ -5279,7 +5279,7 @@ export default class okx extends Exchange {
                 request['instId'] = marketIds.join (',');
             }
         }
-        const fetchPositionsOptions = this.safeValue (this.options, 'fetchPositions', {});
+        const fetchPositionsOptions = this.safeDict (this.options, 'fetchPositions', {});
         const method = this.safeString (fetchPositionsOptions, 'method', 'privateGetAccountPositions');
         let response = undefined;
         if (method === 'privateGetAccountPositionsHistory') {
@@ -5333,7 +5333,7 @@ export default class okx extends Exchange {
         //         ]
         //     }
         //
-        const positions = this.safeValue (response, 'data', []);
+        const positions = this.safeList (response, 'data', []);
         const result = [];
         for (let i = 0; i < positions.length; i++) {
             result.push (this.parsePosition (positions[i]));
