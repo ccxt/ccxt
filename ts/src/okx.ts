@@ -7476,7 +7476,7 @@ export default class okx extends Exchange {
         //        "outTime": "1701877077102579"
         //    }
         //
-        const data = this.safeValue (response, 'data');
+        const data = this.safeList (response, 'data', []);
         const order = this.safeDict (data, 0);
         return this.parseOrder (order, market);
     }
