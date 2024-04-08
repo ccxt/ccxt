@@ -18,6 +18,7 @@ export default class kraken extends krakenRest {
                 'watchMyTrades': true,
                 'watchOHLCV': true,
                 'watchOrderBook': true,
+                'watchOrderBookForSymbols': true,
                 'watchOrders': true,
                 'watchTicker': true,
                 'watchTickers': false, // for now
@@ -512,15 +513,29 @@ export default class kraken extends krakenRest {
          * @method
          * @name kraken#watchOrderBook
          * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://docs.kraken.com/websockets/#message-book
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
-        const name = 'book';
+        return await this.watchOrderBookForSymbols ([ symbol ], limit, params);
+    }
+
+    async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
+        /**
+         * @method
+         * @name kraken#watchOrderBookForSymbols
+         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://docs.kraken.com/websockets/#message-book
+         * @param {string[]} symbols unified array of symbols
+         * @param {int} [limit] the maximum amount of order book entries to return
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+         */
         const request = {};
         if (limit !== undefined) {
-            if ((limit === 10) || (limit === 25) || (limit === 100) || (limit === 500) || (limit === 1000)) {
+            if (this.inArray (limit, [ 10, 25, 100, 500, 1000 ])) {
                 request['subscription'] = {
                     'depth': limit, // default 10, valid options 10, 25, 100, 500, 1000
                 };
@@ -528,7 +543,7 @@ export default class kraken extends krakenRest {
                 throw new NotSupported (this.id + ' watchOrderBook accepts limit values of 10, 25, 100, 500 and 1000 only');
             }
         }
-        const orderbook = await this.watchPublic (name, symbol, this.extend (request, params));
+        const orderbook = await this.watchMultiHelper ('orderbook', 'book', symbols, { 'limit': limit }, this.extend (request, params));
         return orderbook.limit ();
     }
 
@@ -661,7 +676,7 @@ export default class kraken extends krakenRest {
         const market = this.safeValue (this.options['marketsByWsName'], wsName);
         const symbol = market['symbol'];
         let timestamp = undefined;
-        const messageHash = 'book:' + wsName;
+        const messageHash = this.getMessageHash ('orderbook', undefined, symbol);
         // if this is a snapshot
         if ('as' in message[1]) {
             // todo get depth from marketsByWsName
@@ -739,6 +754,7 @@ export default class kraken extends krakenRest {
                 if (localChecksum !== c) {
                     const error = new InvalidNonce (this.id + ' invalid checksum');
                     client.reject (error, messageHash);
+                    return;
                 }
             }
             orderbook['symbol'] = symbol;
