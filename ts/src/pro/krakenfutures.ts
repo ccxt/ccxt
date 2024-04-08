@@ -95,14 +95,28 @@ export default class krakenfutures extends krakenfuturesRest {
         return future;
     }
 
-    async watchMultiHelper (methodName, channelName: string, symbols: Strings = undefined, subscriptionArgs = undefined, params = {}) {
+    async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
+        /**
+         * @method
+         * @name krakenfutures#watchOrderBookForSymbols
+         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://docs.futures.kraken.com/#websocket-api-public-feeds-challenge
+         * @param {string[]} symbols unified array of symbols
+         * @param {int} [limit] the maximum amount of order book entries to return
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+         */
+        const orderbook = await this.watchMultiHelper ('orderbook', 'book', symbols, { 'limit': limit }, params);
+        return orderbook.limit ();
+    }
+
+    async watchMultiHelper (elementName: string, channelName: string, symbols: Strings = undefined, subscriptionArgs = undefined, params = {}) {
         await this.loadMarkets ();
+        // symbols are required
         symbols = this.marketSymbols (symbols, undefined, false, true, false);
         const messageHashes = [];
         for (let i = 0; i < symbols.length; i++) {
-            const symbol = symbols[i];
-            const market = this.market (symbol);
-            messageHashes.push (this.getMessageHash (methodName, channelName, market['symbol']));
+            messageHashes.push (this.getMessageHash (elementName, undefined, this.symbol (symbols[i])));
         }
         const marketIds = this.marketIds (symbols);
         const request = {
@@ -114,24 +128,15 @@ export default class krakenfutures extends krakenfuturesRest {
         return await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes, subscriptionArgs);
     }
 
-    getMessageHash (methodName: string, channelName: Str = undefined, symbol: Str = undefined) {
-        const map = {
-            'watchTrades': 'trade',
-            'watchTradesForSymbols': 'trade',
-            'watchOrderBook': 'book',
-            'watchOrderBookForSymbols': 'book',
-            'watchTicker': 'ticker',
-            'watchTickers': 'ticker',
-            'watchBidsAsks': 'bidask',
-        };
-        const mapName = this.safeString (map, methodName, methodName);
+    getMessageHash (elementName: string, subChannelName: Str = undefined, symbol: Str = undefined) {
+        // subChannelName only applies to channel that needs specific variation (i.e. depth_50, depth_100..) to be selected
         const withSymbol = symbol !== undefined;
-        let messageHash = mapName + (withSymbol ? '' : 's');
+        let messageHash = elementName + (withSymbol ? '' : 's');
         if (withSymbol) {
             messageHash += '@' + symbol;
         }
-        if (channelName !== undefined) {
-            messageHash += ':' + channelName;
+        if (subChannelName !== undefined) {
+            messageHash += '#' + subChannelName;
         }
         return messageHash;
     }
