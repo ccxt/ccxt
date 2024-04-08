@@ -252,20 +252,14 @@ export default class krakenfutures extends krakenfuturesRest {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
-        await this.loadMarkets ();
-        const name = 'trade';
-        const trades = await this.subscribePublic (name, [ symbol ], params);
-        if (this.newUpdates) {
-            limit = trades.getLimit (symbol, limit);
-        }
-        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+        return await this.watchTradesForSymbols ([ symbol ], since, limit, params);
     }
 
     async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
-         * @name gemini#watchTradesForSymbols
-         * @see https://docs.gemini.com/websocket-api/#multi-market-data
+         * @name krakenfutures#watchTradesForSymbols
+         * @see https://docs.futures.kraken.com/#websocket-api-public-feeds-trade
          * @description get the list of most recent trades for a list of symbols
          * @param {string[]} symbols unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
@@ -548,7 +542,7 @@ export default class krakenfutures extends krakenfuturesRest {
         if (marketId !== undefined) {
             const market = this.market (marketId);
             const symbol = market['symbol'];
-            const messageHash = 'trade:' + symbol;
+            const messageHash = this.getMessageHash ('trades', undefined, symbol);
             if (this.safeList (this.trades, symbol) === undefined) {
                 const tradesLimit = this.safeInteger (this.options, 'tradesLimit', 1000);
                 this.trades[symbol] = new ArrayCache (tradesLimit);
@@ -569,7 +563,6 @@ export default class krakenfutures extends krakenfuturesRest {
             }
             client.resolve (tradesArray, messageHash);
         }
-        return message;
     }
 
     parseWsTrade (trade, market = undefined) {
