@@ -107,38 +107,6 @@ export default class krakenfutures extends krakenfuturesRest {
         return orderbook.limit ();
     }
 
-    async watchMultiHelper (unifiedName: string, channelName: string, symbols: Strings = undefined, subscriptionArgs = undefined, params = {}) {
-        await this.loadMarkets ();
-        // symbols are required
-        symbols = this.marketSymbols (symbols, undefined, false, true, false);
-        const messageHashes = [];
-        for (let i = 0; i < symbols.length; i++) {
-            messageHashes.push (this.getMessageHash (unifiedName, undefined, this.symbol (symbols[i])));
-        }
-        const marketIds = this.marketIds (symbols);
-        const request = {
-            'event': 'subscribe',
-            'feed': channelName,
-            'product_ids': marketIds,
-        };
-        const url = this.urls['api']['ws'];
-        return await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes, subscriptionArgs);
-    }
-
-    getMessageHash (unifiedElementName: string, subChannelName: Str = undefined, symbol: Str = undefined) {
-        // unifiedElementName can be : orderbook, trade, ticker, bidask ...
-        // subChannelName only applies to channel that needs specific variation (i.e. depth_50, depth_100..) to be selected
-        const withSymbol = symbol !== undefined;
-        let messageHash = unifiedElementName + (withSymbol ? '' : 's');
-        if (withSymbol) {
-            messageHash += '@' + symbol;
-        }
-        if (subChannelName !== undefined) {
-            messageHash += '#' + subChannelName;
-        }
-        return messageHash;
-    }
-
     async subscribePublic (name: string, symbols: string[], params = {}) {
         /**
          * @ignore
@@ -1518,6 +1486,38 @@ export default class krakenfutures extends krakenfuturesRest {
                 'rate': undefined,
             },
         });
+    }
+
+    async watchMultiHelper (unifiedName: string, channelName: string, symbols: Strings = undefined, subscriptionArgs = undefined, params = {}) {
+        await this.loadMarkets ();
+        // symbols are required
+        symbols = this.marketSymbols (symbols, undefined, false, true, false);
+        const messageHashes = [];
+        for (let i = 0; i < symbols.length; i++) {
+            messageHashes.push (this.getMessageHash (unifiedName, undefined, this.symbol (symbols[i])));
+        }
+        const marketIds = this.marketIds (symbols);
+        const request = {
+            'event': 'subscribe',
+            'feed': channelName,
+            'product_ids': marketIds,
+        };
+        const url = this.urls['api']['ws'];
+        return await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes, subscriptionArgs);
+    }
+
+    getMessageHash (unifiedElementName: string, subChannelName: Str = undefined, symbol: Str = undefined) {
+        // unifiedElementName can be : orderbook, trade, ticker, bidask ...
+        // subChannelName only applies to channel that needs specific variation (i.e. depth_50, depth_100..) to be selected
+        const withSymbol = symbol !== undefined;
+        let messageHash = unifiedElementName + (withSymbol ? '' : 's');
+        if (withSymbol) {
+            messageHash += '@' + symbol;
+        }
+        if (subChannelName !== undefined) {
+            messageHash += '#' + subChannelName;
+        }
+        return messageHash;
     }
 
     handleErrorMessage (client: Client, message) {
