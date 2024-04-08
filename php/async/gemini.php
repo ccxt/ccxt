@@ -454,6 +454,7 @@ class gemini extends Exchange {
                 //         '</tr>'
                 //     )
                 $marketId = str_replace('<td>', '', $cells[0]);
+                $marketId = str_replace('*', '', $marketId);
                 // $base = $this->safe_currency_code($baseId);
                 $minAmountString = str_replace('<td>', '', $cells[1]);
                 $minAmountParts = explode(' ', $minAmountString);

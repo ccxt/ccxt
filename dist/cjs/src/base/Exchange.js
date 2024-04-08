@@ -2095,7 +2095,7 @@ class Exchange {
     parseToInt(number) {
         // Solve Common parseInt misuse ex: parseInt ((since / 1000).toString ())
         // using a number as parameter which is not valid in ts
-        const stringifiedNumber = number.toString();
+        const stringifiedNumber = this.numberToString(number);
         const convertedNumber = parseFloat(stringifiedNumber);
         return parseInt(convertedNumber);
     }
@@ -4588,13 +4588,6 @@ class Exchange {
         if (!this.substituteCommonCurrencyCodes) {
             return code;
         }
-        // if the provided code already exists as a value in commonCurrencies dict, then we should not again transform it
-        // more details at: https://github.com/ccxt/ccxt/issues/21112#issuecomment-2031293691
-        const commonCurrencies = Object.values(this.commonCurrencies);
-        const exists = this.inArray(code, commonCurrencies);
-        if (exists) {
-            return code;
-        }
         return this.safeString(this.commonCurrencies, code, code);
     }
     currency(code) {
@@ -5245,7 +5238,6 @@ class Exchange {
          * @returns {object} objects with withdraw and deposit fees, indexed by currency codes
          */
         const depositWithdrawFees = {};
-        codes = this.marketCodes(codes);
         const isArray = Array.isArray(response);
         let responseKeys = response;
         if (!isArray) {

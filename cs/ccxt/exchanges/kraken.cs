@@ -568,10 +568,7 @@ public partial class kraken : Exchange
             {
                 if (isTrue(isTrue((isEqual(getIndexOf(currencyId, "X"), 0))) || isTrue((isEqual(getIndexOf(currencyId, "Z"), 0)))))
                 {
-                    if (isTrue(isGreaterThan(getIndexOf(currencyId, "."), 0)))
-                    {
-                        return base.safeCurrency(currencyId, currency);
-                    } else
+                    if (!isTrue((isGreaterThan(getIndexOf(currencyId, "."), 0))))
                     {
                         currencyId = slice(currencyId, 1, null);
                     }
@@ -638,8 +635,13 @@ public partial class kraken : Exchange
         //     {
         //         "error": [],
         //         "result": {
-        //             "ADA": { "aclass": "currency", "altname": "ADA", "decimals": 8, "display_decimals": 6 },
-        //             "BCH": { "aclass": "currency", "altname": "BCH", "decimals": 10, "display_decimals": 5 },
+        //             "BCH": {
+        //                 "aclass": "currency",
+        //                 "altname": "BCH",
+        //                 "decimals": 10,
+        //                 "display_decimals": 5
+        //                 "status": "enabled",
+        //             },
         //             ...
         //         },
         //     }
@@ -655,15 +657,15 @@ public partial class kraken : Exchange
             // see: https://support.kraken.com/hc/en-us/articles/201893608-What-are-the-withdrawal-fees-
             // to add support for multiple withdrawal/deposit methods and
             // differentiated fees for each particular method
-            object code = this.safeCurrencyCode(this.safeString(currency, "altname"));
+            object code = this.safeCurrencyCode(id);
             object precision = this.parseNumber(this.parsePrecision(this.safeString(currency, "decimals")));
             // assumes all currencies are active except those listed above
-            object active = !isTrue(this.inArray(code, getValue(this.options, "inactiveCurrencies")));
+            object active = isEqual(this.safeString(currency, "status"), "enabled");
             ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
                 { "id", id },
                 { "code", code },
                 { "info", currency },
-                { "name", code },
+                { "name", this.safeString(currency, "altname") },
                 { "active", active },
                 { "deposit", null },
                 { "withdraw", null },

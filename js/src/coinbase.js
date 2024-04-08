@@ -331,6 +331,7 @@ export default class coinbase extends Exchange {
                 'CGLD': 'CELO',
             },
             'options': {
+                'brokerId': 'ccxt',
                 'stablePairs': ['BUSD-USD', 'CBETH-ETH', 'DAI-USD', 'GUSD-USD', 'GYEN-USD', 'PAX-USD', 'PAX-USDT', 'USDC-EUR', 'USDC-GBP', 'USDT-EUR', 'USDT-GBP', 'USDT-USD', 'USDT-USDC', 'WBTC-BTC'],
                 'fetchCurrencies': {
                     'expires': 5000,
@@ -2341,8 +2342,9 @@ export default class coinbase extends Exchange {
          */
         await this.loadMarkets();
         const market = this.market(symbol);
+        const id = this.safeString(this.options, 'brokerId', 'ccxt');
         let request = {
-            'client_order_id': this.uuid(),
+            'client_order_id': id + '-' + this.uuid(),
             'product_id': market['id'],
             'side': side.toUpperCase(),
         };

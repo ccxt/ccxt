@@ -289,6 +289,7 @@ public partial class coinbase : Exchange
                 { "CGLD", "CELO" },
             } },
             { "options", new Dictionary<string, object>() {
+                { "brokerId", "ccxt" },
                 { "stablePairs", new List<object>() {"BUSD-USD", "CBETH-ETH", "DAI-USD", "GUSD-USD", "GYEN-USD", "PAX-USD", "PAX-USDT", "USDC-EUR", "USDC-GBP", "USDT-EUR", "USDT-GBP", "USDT-USD", "USDT-USDC", "WBTC-BTC"} },
                 { "fetchCurrencies", new Dictionary<string, object>() {
                     { "expires", 5000 },
@@ -2448,8 +2449,9 @@ public partial class coinbase : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
+        object id = this.safeString(this.options, "brokerId", "ccxt");
         object request = new Dictionary<string, object>() {
-            { "client_order_id", this.uuid() },
+            { "client_order_id", add(add(id, "-"), this.uuid()) },
             { "product_id", getValue(market, "id") },
             { "side", ((string)side).ToUpper() },
         };

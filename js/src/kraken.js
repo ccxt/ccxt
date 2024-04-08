@@ -599,10 +599,7 @@ export default class kraken extends Exchange {
         if (currencyId !== undefined) {
             if (currencyId.length > 3) {
                 if ((currencyId.indexOf('X') === 0) || (currencyId.indexOf('Z') === 0)) {
-                    if (currencyId.indexOf('.') > 0) {
-                        return super.safeCurrency(currencyId, currency);
-                    }
-                    else {
+                    if (!(currencyId.indexOf('.') > 0)) {
                         currencyId = currencyId.slice(1);
                     }
                 }
@@ -651,8 +648,13 @@ export default class kraken extends Exchange {
         //     {
         //         "error": [],
         //         "result": {
-        //             "ADA": { "aclass": "currency", "altname": "ADA", "decimals": 8, "display_decimals": 6 },
-        //             "BCH": { "aclass": "currency", "altname": "BCH", "decimals": 10, "display_decimals": 5 },
+        //             "BCH": {
+        //                 "aclass": "currency",
+        //                 "altname": "BCH",
+        //                 "decimals": 10,
+        //                 "display_decimals": 5
+        //                 "status": "enabled",
+        //             },
         //             ...
         //         },
         //     }
@@ -667,15 +669,15 @@ export default class kraken extends Exchange {
             // see: https://support.kraken.com/hc/en-us/articles/201893608-What-are-the-withdrawal-fees-
             // to add support for multiple withdrawal/deposit methods and
             // differentiated fees for each particular method
-            const code = this.safeCurrencyCode(this.safeString(currency, 'altname'));
+            const code = this.safeCurrencyCode(id);
             const precision = this.parseNumber(this.parsePrecision(this.safeString(currency, 'decimals')));
             // assumes all currencies are active except those listed above
-            const active = !this.inArray(code, this.options['inactiveCurrencies']);
+            const active = this.safeString(currency, 'status') === 'enabled';
             result[code] = {
                 'id': id,
                 'code': code,
                 'info': currency,
-                'name': code,
+                'name': this.safeString(currency, 'altname'),
                 'active': active,
                 'deposit': undefined,
                 'withdraw': undefined,
