@@ -225,11 +225,9 @@ export default class krakenfutures extends krakenfuturesRest {
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         symbols = this.marketSymbols (symbols, undefined, false);
-        const result = await this.watchMultiHelper ('ticker', 'ticker', symbols, undefined, params);
+        const ticker = await this.watchMultiHelper ('ticker', 'ticker', symbols, undefined, params);
         if (this.newUpdates) {
-            const tickers = {};
-            tickers[result['symbol']] = result;
-            return tickers;
+            return this.singleMemberDict (ticker);
         }
         return this.filterByArray (this.tickers, 'symbol', symbols);
     }
@@ -244,13 +242,11 @@ export default class krakenfutures extends krakenfuturesRest {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
-        const result = await this.watchMultiHelper ('bidask', 'ticker_lite', symbols, undefined, params);
+        const ticker = await this.watchMultiHelper ('bidask', 'ticker_lite', symbols, undefined, params);
         if (this.newUpdates) {
-            const tickers = {};
-            tickers[result['symbol']] = result;
-            return tickers;
+            return this.singleMemberDict (ticker);
         }
-        return this.filterByArray (this.tickers, 'symbol', symbols);
+        return this.filterByArray (this.bidsasks, 'symbol', symbols);
     }
 
     async watchTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
@@ -282,9 +278,7 @@ export default class krakenfutures extends krakenfuturesRest {
          */
         const trades = await this.watchMultiHelper ('trade', 'trade', symbols, { 'since': since, 'limit': limit }, params);
         if (this.newUpdates) {
-            const first = this.safeList (trades, 0);
-            const tradeSymbol = this.safeString (first, 'symbol');
-            limit = trades.getLimit (tradeSymbol, limit);
+            limit = this.getLimitForTrades (trades, limit);
         }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }

@@ -3969,6 +3969,18 @@ export default class Exchange {
         return symbol;
     }
 
+    singleMemberDict (ticker: object) {
+        const result = {};
+        result[ticker['symbol']] = ticker;
+        return result;
+    }
+
+    getLimitForTrades (trades: any, limit: Int) {
+        const first = this.safeList (trades, 0);
+        const tradeSymbol = this.safeString (first, 'symbol');
+        return trades.getLimit (tradeSymbol, limit);
+    }
+
     symbol (symbol: string): string {
         const market = this.market (symbol);
         return this.safeString (market, 'symbol', symbol);
