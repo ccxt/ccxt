@@ -490,28 +490,48 @@ export default class Exchange {
                 'closePosition': undefined,
                 'createDepositAddress': undefined,
                 'createLimitBuyOrder': undefined,
+                'createLimitBuyOrderWs': undefined,
                 'createLimitOrder': true,
+                'createLimitOrderWs': undefined,
                 'createLimitSellOrder': undefined,
+                'createLimitSellOrderWs': undefined,
                 'createMarketBuyOrder': undefined,
+                'createMarketBuyOrderWs': undefined,
                 'createMarketBuyOrderWithCost': undefined,
+                'createMarketBuyOrderWithCostWs': undefined,
                 'createMarketOrder': true,
+                'createMarketOrderWs': true,
                 'createMarketOrderWithCost': undefined,
+                'createMarketOrderWithCostWs': undefined,
                 'createMarketSellOrder': undefined,
+                'createMarketSellOrderWs': undefined,
                 'createMarketSellOrderWithCost': undefined,
+                'createMarketSellOrderWithCostWs': undefined,
                 'createOrder': true,
+                'createOrderWs': undefined,
                 'createOrders': undefined,
                 'createOrderWithTakeProfitAndStopLoss': undefined,
-                'createOrderWs': undefined,
+                'createOrderWithTakeProfitAndStopLossWs': undefined,
                 'createPostOnlyOrder': undefined,
+                'createPostOnlyOrderWs': undefined,
                 'createReduceOnlyOrder': undefined,
+                'createReduceOnlyOrderWs': undefined,
                 'createStopLimitOrder': undefined,
+                'createStopLimitOrderWs': undefined,
                 'createStopLossOrder': undefined,
+                'createStopLossOrderWs': undefined,
                 'createStopMarketOrder': undefined,
+                'createStopMarketOrderWs': undefined,
                 'createStopOrder': undefined,
+                'createStopOrderWs': undefined,
                 'createTakeProfitOrder': undefined,
+                'createTakeProfitOrderWs': undefined,
                 'createTrailingAmountOrder': undefined,
+                'createTrailingAmountOrderWs': undefined,
                 'createTrailingPercentOrder': undefined,
+                'createTrailingPercentOrderWs': undefined,
                 'createTriggerOrder': undefined,
+                'createTriggerOrderWs': undefined,
                 'deposit': undefined,
                 'editOrder': 'emulated',
                 'editOrderWs': undefined,
@@ -4615,6 +4635,34 @@ export default class Exchange {
         throw new NotSupported (this.id + ' createTrailingAmountOrder() is not supported yet');
     }
 
+    async createTrailingAmountOrderWs (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, trailingAmount = undefined, trailingTriggerPrice = undefined, params = {}): Promise<Order> {
+        /**
+         * @method
+         * @name createTrailingAmountOrderWs
+         * @description create a trailing order by providing the symbol, type, side, amount, price and trailingAmount
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much you want to trade in units of the base currency, or number of contracts
+         * @param {float} [price] the price for the order to be filled at, in units of the quote currency, ignored in market orders
+         * @param {float} trailingAmount the quote amount to trail away from the current market price
+         * @param {float} [trailingTriggerPrice] the price to activate a trailing order, default uses the price argument
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        if (trailingAmount === undefined) {
+            throw new ArgumentsRequired (this.id + ' createTrailingAmountOrderWs() requires a trailingAmount argument');
+        }
+        params['trailingAmount'] = trailingAmount;
+        if (trailingTriggerPrice !== undefined) {
+            params['trailingTriggerPrice'] = trailingTriggerPrice;
+        }
+        if (this.has['createTrailingAmountOrderWs']) {
+            return await this.createOrderWs (symbol, type, side, amount, price, params);
+        }
+        throw new NotSupported (this.id + ' createTrailingAmountOrderWs() is not supported yet');
+    }
+
     async createTrailingPercentOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, trailingPercent = undefined, trailingTriggerPrice = undefined, params = {}): Promise<Order> {
         /**
          * @method
@@ -4641,6 +4689,34 @@ export default class Exchange {
             return await this.createOrder (symbol, type, side, amount, price, params);
         }
         throw new NotSupported (this.id + ' createTrailingPercentOrder() is not supported yet');
+    }
+
+    async createTrailingPercentOrderWs (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, trailingPercent = undefined, trailingTriggerPrice = undefined, params = {}): Promise<Order> {
+        /**
+         * @method
+         * @name createTrailingPercentOrderWs
+         * @description create a trailing order by providing the symbol, type, side, amount, price and trailingPercent
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much you want to trade in units of the base currency, or number of contracts
+         * @param {float} [price] the price for the order to be filled at, in units of the quote currency, ignored in market orders
+         * @param {float} trailingPercent the percent to trail away from the current market price
+         * @param {float} [trailingTriggerPrice] the price to activate a trailing order, default uses the price argument
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        if (trailingPercent === undefined) {
+            throw new ArgumentsRequired (this.id + ' createTrailingPercentOrderWs() requires a trailingPercent argument');
+        }
+        params['trailingPercent'] = trailingPercent;
+        if (trailingTriggerPrice !== undefined) {
+            params['trailingTriggerPrice'] = trailingTriggerPrice;
+        }
+        if (this.has['createTrailingPercentOrderWs']) {
+            return await this.createOrderWs (symbol, type, side, amount, price, params);
+        }
+        throw new NotSupported (this.id + ' createTrailingPercentOrderWs() is not supported yet');
     }
 
     async createMarketOrderWithCost (symbol: string, side: OrderSide, cost: number, params = {}) {
@@ -4692,6 +4768,23 @@ export default class Exchange {
         throw new NotSupported (this.id + ' createMarketSellOrderWithCost() is not supported yet');
     }
 
+    async createMarketOrderWithCostWs (symbol: string, side: OrderSide, cost: number, params = {}) {
+        /**
+         * @method
+         * @name createMarketOrderWithCostWs
+         * @description create a market order by providing the symbol, side and cost
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} cost how much you want to trade in units of the quote currency
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        if (this.has['createMarketOrderWithCostWs'] || (this.has['createMarketBuyOrderWithCostWs'] && this.has['createMarketSellOrderWithCostWs'])) {
+            return await this.createOrderWs (symbol, 'market', side, cost, 1, params);
+        }
+        throw new NotSupported (this.id + ' createMarketOrderWithCostWs() is not supported yet');
+    }
+
     async createTriggerOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, triggerPrice: Num = undefined, params = {}): Promise<Order> {
         /**
          * @method
@@ -4714,6 +4807,30 @@ export default class Exchange {
             return await this.createOrder (symbol, type, side, amount, price, params);
         }
         throw new NotSupported (this.id + ' createTriggerOrder() is not supported yet');
+    }
+
+    async createTriggerOrderWs (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, triggerPrice: Num = undefined, params = {}): Promise<Order> {
+        /**
+         * @method
+         * @name createTriggerOrderWs
+         * @description create a trigger stop order (type 1)
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much you want to trade in units of the base currency or the number of contracts
+         * @param {float} [price] the price to fulfill the order, in units of the quote currency, ignored in market orders
+         * @param {float} triggerPrice the price to trigger the stop order, in units of the quote currency
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        if (triggerPrice === undefined) {
+            throw new ArgumentsRequired (this.id + ' createTriggerOrderWs() requires a triggerPrice argument');
+        }
+        params['triggerPrice'] = triggerPrice;
+        if (this.has['createTriggerOrderWs']) {
+            return await this.createOrderWs (symbol, type, side, amount, price, params);
+        }
+        throw new NotSupported (this.id + ' createTriggerOrderWs() is not supported yet');
     }
 
     async createStopLossOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, stopLossPrice: Num = undefined, params = {}): Promise<Order> {
@@ -4740,6 +4857,30 @@ export default class Exchange {
         throw new NotSupported (this.id + ' createStopLossOrder() is not supported yet');
     }
 
+    async createStopLossOrderWs (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, stopLossPrice: Num = undefined, params = {}): Promise<Order> {
+        /**
+         * @method
+         * @name createStopLossOrderWs
+         * @description create a trigger stop loss order (type 2)
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much you want to trade in units of the base currency or the number of contracts
+         * @param {float} [price] the price to fulfill the order, in units of the quote currency, ignored in market orders
+         * @param {float} stopLossPrice the price to trigger the stop loss order, in units of the quote currency
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        if (stopLossPrice === undefined) {
+            throw new ArgumentsRequired (this.id + ' createStopLossOrderWs() requires a stopLossPrice argument');
+        }
+        params['stopLossPrice'] = stopLossPrice;
+        if (this.has['createStopLossOrderWs']) {
+            return await this.createOrderWs (symbol, type, side, amount, price, params);
+        }
+        throw new NotSupported (this.id + ' createStopLossOrderWs() is not supported yet');
+    }
+
     async createTakeProfitOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, takeProfitPrice: Num = undefined, params = {}): Promise<Order> {
         /**
          * @method
@@ -4762,6 +4903,30 @@ export default class Exchange {
             return await this.createOrder (symbol, type, side, amount, price, params);
         }
         throw new NotSupported (this.id + ' createTakeProfitOrder() is not supported yet');
+    }
+
+    async createTakeProfitOrderWs (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, takeProfitPrice: Num = undefined, params = {}): Promise<Order> {
+        /**
+         * @method
+         * @name createTakeProfitOrderWs
+         * @description create a trigger take profit order (type 2)
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much you want to trade in units of the base currency or the number of contracts
+         * @param {float} [price] the price to fulfill the order, in units of the quote currency, ignored in market orders
+         * @param {float} takeProfitPrice the price to trigger the take profit order, in units of the quote currency
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        if (takeProfitPrice === undefined) {
+            throw new ArgumentsRequired (this.id + ' createTakeProfitOrderWs() requires a takeProfitPrice argument');
+        }
+        params['takeProfitPrice'] = takeProfitPrice;
+        if (this.has['createTakeProfitOrderWs']) {
+            return await this.createOrderWs (symbol, type, side, amount, price, params);
+        }
+        throw new NotSupported (this.id + ' createTakeProfitOrderWs() is not supported yet');
     }
 
     async createOrderWithTakeProfitAndStopLoss (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, takeProfit: Num = undefined, stopLoss: Num = undefined, params = {}): Promise<Order> {
@@ -4787,8 +4952,16 @@ export default class Exchange {
          * @param {float} [params.stopLossAmount] *not available on all exchanges* the amount for a stop loss
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
+        params = this.setTakeProfitAndStopLossParams (symbol, type, side, amount, price, takeProfit, stopLoss, params);
+        if (this.has['createOrderWithTakeProfitAndStopLoss']) {
+            return await this.createOrder (symbol, type, side, amount, price, params);
+        }
+        throw new NotSupported (this.id + ' createOrderWithTakeProfitAndStopLoss() is not supported yet');
+    }
+    
+    setTakeProfitAndStopLossParams (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, takeProfit: Num = undefined, stopLoss: Num = undefined, params = {}) {
         if ((takeProfit === undefined) && (stopLoss === undefined)) {
-            throw new ArgumentsRequired (this.id + ' createOrderWithTakeProfitAndStopLoss() requires either a takeProfit or stopLoss argument');
+            throw new ArgumentsRequired (this.id + ' createOrderWithTakeProfitAndStopLossWs() requires either a takeProfit or stopLoss argument');
         }
         if (takeProfit !== undefined) {
             params['takeProfit'] = {
@@ -4833,10 +5006,37 @@ export default class Exchange {
             params['stopLoss']['amount'] = this.parseToNumeric (stopLossAmount);
         }
         params = this.omit (params, [ 'takeProfitType', 'takeProfitPriceType', 'takeProfitLimitPrice', 'takeProfitAmount', 'stopLossType', 'stopLossPriceType', 'stopLossLimitPrice', 'stopLossAmount' ]);
-        if (this.has['createOrderWithTakeProfitAndStopLoss']) {
-            return await this.createOrder (symbol, type, side, amount, price, params);
+        return params;
+    }
+
+    async createOrderWithTakeProfitAndStopLossWs (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, takeProfit: Num = undefined, stopLoss: Num = undefined, params = {}): Promise<Order> {
+        /**
+         * @method
+         * @name createOrderWithTakeProfitAndStopLossWs
+         * @description create an order with a stop loss or take profit attached (type 3)
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much you want to trade in units of the base currency or the number of contracts
+         * @param {float} [price] the price to fulfill the order, in units of the quote currency, ignored in market orders
+         * @param {float} [takeProfit] the take profit price, in units of the quote currency
+         * @param {float} [stopLoss] the stop loss price, in units of the quote currency
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.takeProfitType] *not available on all exchanges* 'limit' or 'market'
+         * @param {string} [params.stopLossType] *not available on all exchanges* 'limit' or 'market'
+         * @param {string} [params.takeProfitPriceType] *not available on all exchanges* 'last', 'mark' or 'index'
+         * @param {string} [params.stopLossPriceType] *not available on all exchanges* 'last', 'mark' or 'index'
+         * @param {float} [params.takeProfitLimitPrice] *not available on all exchanges* limit price for a limit take profit order
+         * @param {float} [params.stopLossLimitPrice] *not available on all exchanges* stop loss for a limit stop loss order
+         * @param {float} [params.takeProfitAmount] *not available on all exchanges* the amount for a take profit
+         * @param {float} [params.stopLossAmount] *not available on all exchanges* the amount for a stop loss
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        params = this.setTakeProfitAndStopLossParams (symbol, type, side, amount, price, takeProfit, stopLoss, params);
+        if (this.has['createOrderWithTakeProfitAndStopLossWs']) {
+            return await this.createOrderWs (symbol, type, side, amount, price, params);
         }
-        throw new NotSupported (this.id + ' createOrderWithTakeProfitAndStopLoss() is not supported yet');
+        throw new NotSupported (this.id + ' createOrderWithTakeProfitAndStopLossWs() is not supported yet');
     }
 
     async createOrders (orders: OrderRequest[], params = {}): Promise<Order[]> {
@@ -5117,24 +5317,48 @@ export default class Exchange {
         return await this.createOrder (symbol, 'limit', side, amount, price, params);
     }
 
+    async createLimitOrderWs (symbol: string, side: OrderSide, amount: number, price: number, params = {}): Promise<Order> {
+        return await this.createOrderWs (symbol, 'limit', side, amount, price, params);
+    }
+
     async createMarketOrder (symbol: string, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
         return await this.createOrder (symbol, 'market', side, amount, price, params);
+    }
+
+    async createMarketOrderWs (symbol: string, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
+        return await this.createOrderWs (symbol, 'market', side, amount, price, params);
     }
 
     async createLimitBuyOrder (symbol: string, amount: number, price: number, params = {}): Promise<Order> {
         return await this.createOrder (symbol, 'limit', 'buy', amount, price, params);
     }
 
+    async createLimitBuyOrderWs (symbol: string, amount: number, price: number, params = {}): Promise<Order> {
+        return await this.createOrderWs (symbol, 'limit', 'buy', amount, price, params);
+    }
+
     async createLimitSellOrder (symbol: string, amount: number, price: number, params = {}): Promise<Order> {
         return await this.createOrder (symbol, 'limit', 'sell', amount, price, params);
+    }
+
+    async createLimitSellOrderWs (symbol: string, amount: number, price: number, params = {}): Promise<Order> {
+        return await this.createOrderWs (symbol, 'limit', 'sell', amount, price, params);
     }
 
     async createMarketBuyOrder (symbol: string, amount: number, params = {}): Promise<Order> {
         return await this.createOrder (symbol, 'market', 'buy', amount, undefined, params);
     }
 
+    async createMarketBuyOrderWs (symbol: string, amount: number, params = {}): Promise<Order> {
+        return await this.createOrderWs (symbol, 'market', 'buy', amount, undefined, params);
+    }
+
     async createMarketSellOrder (symbol: string, amount: number, params = {}): Promise<Order> {
         return await this.createOrder (symbol, 'market', 'sell', amount, undefined, params);
+    }
+
+    async createMarketSellOrderWs (symbol: string, amount: number, params = {}): Promise<Order> {
+        return await this.createOrderWs (symbol, 'market', 'sell', amount, undefined, params);
     }
 
     costToPrecision (symbol: string, cost) {
@@ -5286,12 +5510,28 @@ export default class Exchange {
         return await this.createOrder (symbol, type, side, amount, price, query);
     }
 
+    async createPostOnlyOrderWs (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+        if (!this.has['createPostOnlyOrderWs']) {
+            throw new NotSupported (this.id + 'createPostOnlyOrderWs() is not supported yet');
+        }
+        const query = this.extend (params, { 'postOnly': true });
+        return await this.createOrderWs (symbol, type, side, amount, price, query);
+    }
+
     async createReduceOnlyOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         if (!this.has['createReduceOnlyOrder']) {
             throw new NotSupported (this.id + 'createReduceOnlyOrder() is not supported yet');
         }
         const query = this.extend (params, { 'reduceOnly': true });
         return await this.createOrder (symbol, type, side, amount, price, query);
+    }
+
+    async createReduceOnlyOrderWs (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+        if (!this.has['createReduceOnlyOrderWs']) {
+            throw new NotSupported (this.id + 'createReduceOnlyOrderWs() is not supported yet');
+        }
+        const query = this.extend (params, { 'reduceOnly': true });
+        return await this.createOrderWs (symbol, type, side, amount, price, query);
     }
 
     async createStopOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, stopPrice: Num = undefined, params = {}) {
@@ -5305,6 +5545,17 @@ export default class Exchange {
         return await this.createOrder (symbol, type, side, amount, price, query);
     }
 
+    async createStopOrderWs (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, stopPrice: Num = undefined, params = {}) {
+        if (!this.has['createStopOrderWs']) {
+            throw new NotSupported (this.id + ' createStopOrderWs() is not supported yet');
+        }
+        if (stopPrice === undefined) {
+            throw new ArgumentsRequired (this.id + ' createStopOrderWs() requires a stopPrice argument');
+        }
+        const query = this.extend (params, { 'stopPrice': stopPrice });
+        return await this.createOrderWs (symbol, type, side, amount, price, query);
+    }
+
     async createStopLimitOrder (symbol: string, side: OrderSide, amount: number, price: number, stopPrice: number, params = {}) {
         if (!this.has['createStopLimitOrder']) {
             throw new NotSupported (this.id + ' createStopLimitOrder() is not supported yet');
@@ -5313,12 +5564,28 @@ export default class Exchange {
         return await this.createOrder (symbol, 'limit', side, amount, price, query);
     }
 
+    async createStopLimitOrderWs (symbol: string, side: OrderSide, amount: number, price: number, stopPrice: number, params = {}) {
+        if (!this.has['createStopLimitOrderWs']) {
+            throw new NotSupported (this.id + ' createStopLimitOrderWs() is not supported yet');
+        }
+        const query = this.extend (params, { 'stopPrice': stopPrice });
+        return await this.createOrderWs (symbol, 'limit', side, amount, price, query);
+    }
+
     async createStopMarketOrder (symbol: string, side: OrderSide, amount: number, stopPrice: number, params = {}) {
         if (!this.has['createStopMarketOrder']) {
             throw new NotSupported (this.id + ' createStopMarketOrder() is not supported yet');
         }
         const query = this.extend (params, { 'stopPrice': stopPrice });
         return await this.createOrder (symbol, 'market', side, amount, undefined, query);
+    }
+
+    async createStopMarketOrderWs (symbol: string, side: OrderSide, amount: number, stopPrice: number, params = {}) {
+        if (!this.has['createStopMarketOrderWs']) {
+            throw new NotSupported (this.id + ' createStopMarketOrderWs() is not supported yet');
+        }
+        const query = this.extend (params, { 'stopPrice': stopPrice });
+        return await this.createOrderWs (symbol, 'market', side, amount, undefined, query);
     }
 
     safeCurrencyCode (currencyId: Str, currency: Currency = undefined): string {
