@@ -4612,6 +4612,13 @@ export default class Exchange {
         throw new NotSupported (this.id + ' watchTickers() is not supported yet');
     }
 
+    async watchTickersOneSymbol (symbol: string, params = {}): Promise<Ticker> {
+        await this.loadMarkets ();
+        symbol = this.symbol (symbol);
+        const tickers = await this.watchTickers ([ symbol ], params);
+        return tickers[symbol];
+    }
+
     async fetchOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
         throw new NotSupported (this.id + ' fetchOrder() is not supported yet');
     }
