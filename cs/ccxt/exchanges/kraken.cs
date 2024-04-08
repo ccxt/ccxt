@@ -2933,13 +2933,16 @@ public partial class kraken : Exchange
         * @name kraken#fetchPositions
         * @description fetch all open positions
         * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getOpenPositions
-        * @param {string[]|undefined} symbols not used by kraken fetchPositions ()
+        * @param {string[]} [symbols] not used by kraken fetchPositions ()
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object request = new Dictionary<string, object>() {};
+        object request = new Dictionary<string, object>() {
+            { "docalcs", "true" },
+            { "consolidation", "market" },
+        };
         object response = await this.privatePostOpenPositions(this.extend(request, parameters));
         //
         // no consolidation
@@ -2986,9 +2989,60 @@ public partial class kraken : Exchange
         //         ]
         //     }
         //
-        object result = this.safeValue(response, "result");
-        // todo unify parsePosition/parsePositions
-        return result;
+        symbols = this.marketSymbols(symbols);
+        object result = this.safeList(response, "result");
+        object results = this.parsePositions(result, symbols);
+        return this.filterByArrayPositions(results, "symbol", symbols, false);
+    }
+
+    public override object parsePosition(object position, object market = null)
+    {
+        //
+        //             {
+        //                 "pair": "ETHUSDT",
+        //                 "positions": "1",
+        //                 "type": "buy",
+        //                 "leverage": "2.00000",
+        //                 "cost": "28.49800",
+        //                 "fee": "0.07979",
+        //                 "vol": "0.02000000",
+        //                 "vol_closed": "0.00000000",
+        //                 "margin": "14.24900"
+        //             }
+        //
+        object marketId = this.safeString(position, "pair");
+        object rawSide = this.safeString(position, "type");
+        object side = ((bool) isTrue((isEqual(rawSide, "buy")))) ? "long" : "short";
+        return this.safePosition(new Dictionary<string, object>() {
+            { "info", position },
+            { "id", null },
+            { "symbol", this.safeSymbol(marketId, market) },
+            { "notional", null },
+            { "marginMode", null },
+            { "liquidationPrice", null },
+            { "entryPrice", null },
+            { "unrealizedPnl", this.safeNumber(position, "net") },
+            { "realizedPnl", null },
+            { "percentage", null },
+            { "contracts", this.safeNumber(position, "vol") },
+            { "contractSize", null },
+            { "markPrice", null },
+            { "lastPrice", null },
+            { "side", side },
+            { "hedged", null },
+            { "timestamp", null },
+            { "datetime", null },
+            { "lastUpdateTimestamp", null },
+            { "maintenanceMargin", null },
+            { "maintenanceMarginPercentage", null },
+            { "collateral", null },
+            { "initialMargin", this.safeNumber(position, "margin") },
+            { "initialMarginPercentage", null },
+            { "leverage", this.safeNumber(position, "leverage") },
+            { "marginRatio", null },
+            { "stopLossPrice", null },
+            { "takeProfitPrice", null },
+        });
     }
 
     public virtual object parseAccountType(object account)

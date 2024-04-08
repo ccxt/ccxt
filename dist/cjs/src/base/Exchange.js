@@ -5807,7 +5807,7 @@ class Exchange {
         return reconstructedDate;
     }
     convertMarketIdExpireDate(date) {
-        // parse 19JAN24 to 240119
+        // parse 03JAN24 to 240103
         const monthMappping = {
             'JAN': '01',
             'FEB': '02',
@@ -5822,6 +5822,10 @@ class Exchange {
             'NOV': '11',
             'DEC': '12',
         };
+        // if exchange omits first zero and provides i.e. '3JAN24' instead of '03JAN24'
+        if (date.length === 6) {
+            date = '0' + date;
+        }
         const year = date.slice(0, 2);
         const monthName = date.slice(2, 5);
         const month = this.safeString(monthMappping, monthName);

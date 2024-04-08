@@ -334,6 +334,7 @@ public partial class bybit : Exchange
                         { "v5/broker/earning-record", 5 },
                         { "v5/broker/earnings-info", 5 },
                         { "v5/broker/account-info", 5 },
+                        { "v5/broker/asset/query-sub-member-deposit-record", 10 },
                     } },
                     { "post", new Dictionary<string, object>() {
                         { "option/usdc/openapi/private/v1/place-order", 2.5 },

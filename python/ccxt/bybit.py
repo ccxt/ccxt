@@ -384,6 +384,7 @@ class bybit(Exchange, ImplicitAPI):
                         'v5/broker/earning-record': 5,
                         'v5/broker/earnings-info': 5,
                         'v5/broker/account-info': 5,
+                        'v5/broker/asset/query-sub-member-deposit-record': 10,
                     },
                     'post': {
                         # Legacy option USDC

@@ -5771,7 +5771,7 @@ public partial class Exchange
 
     public virtual object convertMarketIdExpireDate(object date)
     {
-        // parse 19JAN24 to 240119
+        // parse 03JAN24 to 240103
         object monthMappping = new Dictionary<string, object>() {
             { "JAN", "01" },
             { "FEB", "02" },
@@ -5786,6 +5786,11 @@ public partial class Exchange
             { "NOV", "11" },
             { "DEC", "12" },
         };
+        // if exchange omits first zero and provides i.e. '3JAN24' instead of '03JAN24'
+        if (isTrue(isEqual(((string)date).Length, 6)))
+        {
+            date = add("0", date);
+        }
         object year = slice(date, 0, 2);
         object monthName = slice(date, 2, 5);
         object month = this.safeString(monthMappping, monthName);

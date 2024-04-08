@@ -42,11 +42,11 @@ use React\EventLoop\Loop;
 
 use Exception;
 
-$version = '4.2.91';
+$version = '4.2.92';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.2.91';
+    const VERSION = '4.2.92';
 
     public $browser;
     public $marketsLoading = null;
@@ -4968,7 +4968,7 @@ class Exchange extends \ccxt\Exchange {
     }
 
     public function convert_market_id_expire_date(string $date) {
-        // parse 19JAN24 to 240119
+        // parse 03JAN24 to 240103
         $monthMappping = array(
             'JAN' => '01',
             'FEB' => '02',
@@ -4983,6 +4983,10 @@ class Exchange extends \ccxt\Exchange {
             'NOV' => '11',
             'DEC' => '12',
         );
+        // if exchange omits first zero and provides i.e. '3JAN24' instead of '03JAN24'
+        if (strlen($date) === 6) {
+            $date = '0' . $date;
+        }
         $year = mb_substr($date, 0, 2 - 0);
         $monthName = mb_substr($date, 2, 5 - 2);
         $month = $this->safe_string($monthMappping, $monthName);

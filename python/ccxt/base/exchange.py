@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.2.91'
+__version__ = '4.2.92'
 
 # -----------------------------------------------------------------------------
 
@@ -5452,7 +5452,7 @@ class Exchange(object):
         return reconstructedDate
 
     def convert_market_id_expire_date(self, date: str):
-        # parse 19JAN24 to 240119
+        # parse 03JAN24 to 240103
         monthMappping = {
             'JAN': '01',
             'FEB': '02',
@@ -5467,6 +5467,9 @@ class Exchange(object):
             'NOV': '11',
             'DEC': '12',
         }
+        # if exchange omits first zero and provides i.e. '3JAN24' instead of '03JAN24'
+        if len(date) == 6:
+            date = '0' + date
         year = date[0:2]
         monthName = date[2:5]
         month = self.safe_string(monthMappping, monthName)
