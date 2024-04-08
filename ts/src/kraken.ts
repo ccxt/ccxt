@@ -2743,7 +2743,7 @@ export default class kraken extends Exchange {
         await this.loadMarkets ();
         const request = {
             // 'txid': 'comma delimited list of transaction ids to restrict output to',
-            'docalcs': true, // whether or not to include profit/loss calculations
+            'docalcs': 'true', // whether or not to include profit/loss calculations
             'consolidation': 'market', // what to consolidate the positions data around, market will consolidate positions based on market pair
         };
         const response = await this.privatePostOpenPositions (this.extend (request, params));
