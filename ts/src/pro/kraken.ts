@@ -1350,8 +1350,10 @@ export default class kraken extends krakenRest {
         // unifiedElementName can be : orderbook, trade, ticker, bidask ...
         // subChannelName only applies to channel that needs specific variation (i.e. depth_50, depth_100..) to be selected
         const withSymbol = symbol !== undefined;
-        let messageHash = unifiedElementName + (withSymbol ? '' : 's');
-        if (withSymbol) {
+        let messageHash = unifiedElementName;
+        if (!withSymbol) {
+            messageHash += 's';
+        } else {
             messageHash += '@' + symbol;
         }
         if (subChannelName !== undefined) {
