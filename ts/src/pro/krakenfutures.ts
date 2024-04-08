@@ -50,12 +50,6 @@ export default class krakenfutures extends krakenfuturesRest {
                 'OHLCVLimit': 1000,
                 'connectionLimit': 100, // https://docs.futures.kraken.com/#websocket-api-websocket-api-introduction-subscriptions-limits
                 'requestLimit': 100, // per second
-                'watchTicker': {
-                    'method': 'ticker', // or ticker_lite
-                },
-                'watchTickers': {
-                    'method': 'ticker', // or ticker_lite
-                },
                 'fetchBalance': {
                     'type': undefined,
                 },
@@ -110,13 +104,13 @@ export default class krakenfutures extends krakenfuturesRest {
         return orderbook.limit ();
     }
 
-    async watchMultiHelper (elementName: string, channelName: string, symbols: Strings = undefined, subscriptionArgs = undefined, params = {}) {
+    async watchMultiHelper (unifiedName: string, channelName: string, symbols: Strings = undefined, subscriptionArgs = undefined, params = {}) {
         await this.loadMarkets ();
         // symbols are required
         symbols = this.marketSymbols (symbols, undefined, false, true, false);
         const messageHashes = [];
         for (let i = 0; i < symbols.length; i++) {
-            messageHashes.push (this.getMessageHash (elementName, undefined, this.symbol (symbols[i])));
+            messageHashes.push (this.getMessageHash (unifiedName, undefined, this.symbol (symbols[i])));
         }
         const marketIds = this.marketIds (symbols);
         const request = {
@@ -128,10 +122,11 @@ export default class krakenfutures extends krakenfuturesRest {
         return await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes, subscriptionArgs);
     }
 
-    getMessageHash (elementName: string, subChannelName: Str = undefined, symbol: Str = undefined) {
+    getMessageHash (unifiedElementName: string, subChannelName: Str = undefined, symbol: Str = undefined) {
+        // unifiedElementName can be : orderbook, trade, ticker, bidask ...
         // subChannelName only applies to channel that needs specific variation (i.e. depth_50, depth_100..) to be selected
         const withSymbol = symbol !== undefined;
-        let messageHash = elementName + (withSymbol ? '' : 's');
+        let messageHash = unifiedElementName + (withSymbol ? '' : 's');
         if (withSymbol) {
             messageHash += '@' + symbol;
         }
@@ -210,28 +205,24 @@ export default class krakenfutures extends krakenfuturesRest {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
-        const options = this.safeValue (this.options, 'watchTicker');
-        const method = this.safeString (options, 'method', 'ticker'); // or ticker_lite
-        const name = this.safeString (params, 'method', method);
-        params = this.omit (params, [ 'method' ]);
-        return await this.subscribePublic (name, [ symbol ], params);
+        await this.loadMarkets ();
+        symbol = this.symbol (symbol);
+        const tickers = await this.watchTickers ([ symbol ], params);
+        return tickers[symbol];
     }
 
     async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         /**
          * @method
-         * @name krakenfutures#watchTicker
+         * @name krakenfutures#watchTickers
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-         * @see https://docs.futures.kraken.com/#websocket-api-public-feeds-ticker-lite
+         * @see https://docs.futures.kraken.com/#websocket-api-public-feeds-ticker
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
-        const method = this.safeString (this.options, 'watchTickerMethod', 'ticker'); // or ticker_lite
-        const name = this.safeString2 (params, 'method', 'watchTickerMethod', method);
-        params = this.omit (params, [ 'watchTickerMethod', 'method' ]);
         symbols = this.marketSymbols (symbols, undefined, false);
-        const ticker = await this.subscribePublic (name, symbols, params);
+        const ticker = await this.watchMultiHelper ('ticker', 'ticker', symbols, undefined, params);
         if (this.newUpdates) {
             const tickers = {};
             tickers[ticker['symbol']] = ticker;
@@ -267,7 +258,7 @@ export default class krakenfutures extends krakenfuturesRest {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
-        const trades = await this.watchMultiHelper ('trades', 'trade', symbols, { 'since': since, 'limit': limit }, params);
+        const trades = await this.watchMultiHelper ('trade', 'trade', symbols, { 'since': since, 'limit': limit }, params);
         if (this.newUpdates) {
             const first = this.safeList (trades, 0);
             const tradeSymbol = this.safeString (first, 'symbol');
