@@ -23,6 +23,7 @@ export default class kraken extends krakenRest {
                 'watchTicker': true,
                 'watchTickers': false, // for now
                 'watchTrades': true,
+                'watchTradesForSymbols': true,
                 'createOrderWs': true,
                 'editOrderWs': true,
                 'cancelOrderWs': true,
@@ -377,9 +378,9 @@ export default class kraken extends krakenRest {
         //
         const wsName = this.safeString (message, 3);
         const name = this.safeString (message, 2);
-        const messageHash = name + ':' + wsName;
         const market = this.safeValue (this.options['marketsByWsName'], wsName);
         const symbol = market['symbol'];
+        const messageHash = this.getMessageHash (name, undefined, symbol);
         let stored = this.safeValue (this.trades, symbol);
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
@@ -492,18 +493,31 @@ export default class kraken extends krakenRest {
          * @method
          * @name kraken#watchTrades
          * @description get the list of most recent trades for a particular symbol
+         * @see https://docs.kraken.com/websockets/#message-trade
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
-        await this.loadMarkets ();
-        symbol = this.symbol (symbol);
-        const name = 'trade';
-        const trades = await this.watchPublic (name, symbol, params);
+        return await this.watchTradesForSymbols ([ symbol ], since, limit, params);
+    }
+
+    async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        /**
+         * @method
+         * @name kraken#watchTradesForSymbols
+         * @see https://docs.kraken.com/websockets/#message-trade
+         * @description get the list of most recent trades for a list of symbols
+         * @param {string[]} symbols unified symbol of the market to fetch trades for
+         * @param {int} [since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [limit] the maximum amount of trades to fetch
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+         */
+        const trades = await this.watchMultiHelper ('trade', 'trade', symbols, { 'since': since, 'limit': limit }, params);
         if (this.newUpdates) {
-            limit = trades.getLimit (symbol, limit);
+            limit = this.getLimitForTrades (trades, limit);
         }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
