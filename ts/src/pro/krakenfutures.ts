@@ -272,8 +272,7 @@ export default class krakenfutures extends krakenfuturesRest {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
-        const orderbook = await this.subscribePublic ('book', [ symbol ], params);
-        return orderbook.limit ();
+        return await this.watchOrderBookForSymbols ([ symbol ], limit, params);
     }
 
     async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
@@ -1120,14 +1119,14 @@ export default class krakenfutures extends krakenfuturesRest {
         const marketId = this.safeString (message, 'product_id');
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
-        const messageHash = 'book:' + symbol;
-        const subscription = this.safeValue (client.subscriptions, messageHash, {});
+        const messageHash = this.getMessageHash ('orderbook', undefined, symbol);
+        const subscription = this.safeDict (client.subscriptions, messageHash, {});
         const limit = this.safeInteger (subscription, 'limit');
         const timestamp = this.safeInteger (message, 'timestamp');
         this.orderbooks[symbol] = this.orderBook ({}, limit);
         const orderbook = this.orderbooks[symbol];
-        const bids = this.safeValue (message, 'bids');
-        const asks = this.safeValue (message, 'asks');
+        const bids = this.safeList (message, 'bids');
+        const asks = this.safeList (message, 'asks');
         for (let i = 0; i < bids.length; i++) {
             const bid = bids[i];
             const price = this.safeNumber (bid, 'price');
