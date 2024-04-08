@@ -4961,7 +4961,7 @@ export default class Exchange {
     
     setTakeProfitAndStopLossParams (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, takeProfit: Num = undefined, stopLoss: Num = undefined, params = {}) {
         if ((takeProfit === undefined) && (stopLoss === undefined)) {
-            throw new ArgumentsRequired (this.id + ' createOrderWithTakeProfitAndStopLossWs() requires either a takeProfit or stopLoss argument');
+            throw new ArgumentsRequired (this.id + ' createOrderWithTakeProfitAndStopLoss() requires either a takeProfit or stopLoss argument');
         }
         if (takeProfit !== undefined) {
             params['takeProfit'] = {
