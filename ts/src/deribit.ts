@@ -706,6 +706,7 @@ export default class deribit extends Exchange {
          * @name deribit#fetchMarkets
          * @description retrieves data on all markets for deribit
          * @see https://docs.deribit.com/#public-get_currencies
+         * @see https://docs.deribit.com/#public-get_instruments
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} an array of objects representing market data
          */
