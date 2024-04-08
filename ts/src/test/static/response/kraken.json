@@ -841,6 +841,75 @@
                     }
                 }
             }
+        ],
+        "fetchPositions": [
+            {
+                "description": "fetchPositions",
+                "method": "fetchPositions",
+                "input": [],
+                "httpResponse": {
+                  "error": [],
+                  "result": [
+                    {
+                      "pair": "ADAUSDT",
+                      "positions": "1",
+                      "type": "sell",
+                      "leverage": "4.00000000",
+                      "cost": "6.07505000",
+                      "fee": "0.02551521",
+                      "vol": "10.00000000",
+                      "vol_closed": "0.00000000",
+                      "margin": "1.51876250",
+                      "value": "6.08527000",
+                      "net": "-0.01022000"
+                    }
+                  ]
+                },
+                "parsedResponse": [
+                  {
+                    "info": {
+                      "pair": "ADAUSDT",
+                      "positions": "1",
+                      "type": "sell",
+                      "leverage": "4.00000000",
+                      "cost": "6.07505000",
+                      "fee": "0.02551521",
+                      "vol": "10.00000000",
+                      "vol_closed": "0.00000000",
+                      "margin": "1.51876250",
+                      "value": "6.08527000",
+                      "net": "-0.01022000"
+                    },
+                    "id": null,
+                    "symbol": "ADA/USDT",
+                    "notional": null,
+                    "marginMode": null,
+                    "liquidationPrice": null,
+                    "entryPrice": null,
+                    "unrealizedPnl": -0.01022,
+                    "realizedPnl": null,
+                    "percentage": null,
+                    "contracts": 10,
+                    "contractSize": null,
+                    "markPrice": null,
+                    "lastPrice": null,
+                    "side": "short",
+                    "hedged": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastUpdateTimestamp": null,
+                    "maintenanceMargin": null,
+                    "maintenanceMarginPercentage": null,
+                    "collateral": null,
+                    "initialMargin": 1.5187625,
+                    "initialMarginPercentage": null,
+                    "leverage": 4,
+                    "marginRatio": null,
+                    "stopLossPrice": null,
+                    "takeProfitPrice": null
+                  }
+                ]
+            }
         ]
     }
 }
