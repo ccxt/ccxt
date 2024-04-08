@@ -95,6 +95,47 @@ export default class krakenfutures extends krakenfuturesRest {
         return future;
     }
 
+    async watchMultiHelper (methodName, channelName: string, symbols: Strings = undefined, subscriptionArgs = undefined, params = {}) {
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols, undefined, false, true, false);
+        const messageHashes = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            const market = this.market (symbol);
+            messageHashes.push (this.getMessageHash (methodName, channelName, market['symbol']));
+        }
+        const marketIds = this.marketIds (symbols);
+        const request = {
+            'event': 'subscribe',
+            'feed': channelName,
+            'product_ids': marketIds,
+        };
+        const url = this.urls['api']['ws'];
+        return await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes, subscriptionArgs);
+    }
+
+    getMessageHash (methodName: string, channelName: Str = undefined, symbol: Str = undefined) {
+        const map = {
+            'watchTrades': 'trade',
+            'watchTradesForSymbols': 'trade',
+            'watchOrderBook': 'book',
+            'watchOrderBookForSymbols': 'book',
+            'watchTicker': 'ticker',
+            'watchTickers': 'ticker',
+            'watchBidsAsks': 'bidask',
+        };
+        const mapName = this.safeString (map, methodName, methodName);
+        const withSymbol = symbol !== undefined;
+        let messageHash = mapName + (withSymbol ? '' : 's');
+        if (withSymbol) {
+            messageHash += '@' + symbol;
+        }
+        if (channelName !== undefined) {
+            messageHash += ':' + channelName;
+        }
+        return messageHash;
+    }
+
     async subscribePublic (name: string, symbols: string[], params = {}) {
         /**
          * @ignore
