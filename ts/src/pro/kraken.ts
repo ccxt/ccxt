@@ -5,7 +5,7 @@ import krakenRest from '../kraken.js';
 import { ExchangeError, BadSymbol, PermissionDenied, AccountSuspended, BadRequest, InsufficientFunds, InvalidOrder, OrderNotFound, NotSupported, RateLimitExceeded, ExchangeNotAvailable, InvalidNonce, AuthenticationError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { Precise } from '../base/Precise.js';
-import type { Int, OrderSide, OrderType, Str, OrderBook, Order, Trade, Ticker, OHLCV, Num } from '../base/types.js';
+import type { Int, Strings, OrderSide, OrderType, Str, OrderBook, Order, Trade, Ticker, OHLCV, Num } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 //  ---------------------------------------------------------------------------
 
@@ -1273,6 +1273,47 @@ export default class kraken extends krakenRest {
             'fee': fee,
             'trades': trades,
         });
+    }
+
+    async watchMultiHelper (unifiedName: string, channelName: string, symbols: Strings = undefined, subscriptionArgs = undefined, params = {}) {
+        await this.loadMarkets ();
+        // symbols are required
+        symbols = this.marketSymbols (symbols, undefined, false, true, false);
+        const messageHashes = [];
+        for (let i = 0; i < symbols.length; i++) {
+            messageHashes.push (this.getMessageHash (unifiedName, undefined, this.symbol (symbols[i])));
+        }
+        // for WS subscriptions, we can't use .marketIds (symbols), instead a custom is field needed
+        const markets = this.marketsForSymbols (symbols);
+        const wsMarketIds = [];
+        for (let i = 0; i < markets.length; i++) {
+            const wsMarketId = this.safeString (markets[i]['info'], 'wsname');
+            wsMarketIds.push (wsMarketId);
+        }
+        const request = {
+            'event': 'subscribe',
+            'reqid': this.requestId (),
+            'pair': wsMarketIds,
+            'subscription': {
+                'name': channelName,
+            },
+        };
+        const url = this.urls['api']['ws']['public'];
+        return await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes, subscriptionArgs);
+    }
+
+    getMessageHash (unifiedElementName: string, subChannelName: Str = undefined, symbol: Str = undefined) {
+        // unifiedElementName can be : orderbook, trade, ticker, bidask ...
+        // subChannelName only applies to channel that needs specific variation (i.e. depth_50, depth_100..) to be selected
+        const withSymbol = symbol !== undefined;
+        let messageHash = unifiedElementName + (withSymbol ? '' : 's');
+        if (withSymbol) {
+            messageHash += '@' + symbol;
+        }
+        if (subChannelName !== undefined) {
+            messageHash += '#' + subChannelName;
+        }
+        return messageHash;
     }
 
     handleSubscriptionStatus (client: Client, message) {

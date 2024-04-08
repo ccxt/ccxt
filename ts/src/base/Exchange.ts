@@ -3546,6 +3546,17 @@ export default class Exchange {
         return result;
     }
 
+    marketsForSymbols (symbols: Strings = undefined) {
+        if (symbols === undefined) {
+            return symbols;
+        }
+        const result = [];
+        for (let i = 0; i < symbols.length; i++) {
+            result.push (this.market (symbols[i]));
+        }
+        return result;
+    }
+
     marketSymbols (symbols: Strings = undefined, type: Str = undefined, allowEmpty = true, sameTypeOnly = false, sameSubTypeOnly = false) {
         if (symbols === undefined) {
             if (!allowEmpty) {
