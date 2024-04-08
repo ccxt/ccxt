@@ -1954,6 +1954,8 @@ export default class htx extends Exchange {
                 return symbol;
             }
         }
+        // if not found, just save it to avoid unnecessary future iterations
+        this.options['futureMarketIdsForSymbols'][symbolOrMarketId] = symbolOrMarketId;
         return symbolOrMarketId;
     }
 
