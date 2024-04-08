@@ -27,9 +27,11 @@ export default class krakenfutures extends krakenfuturesRest {
                 'fetchTradesWs': false,
                 'watchOHLCV': false,
                 'watchOrderBook': true,
+                'watchOrderBookForSymbols': true,
                 'watchTicker': true,
                 'watchTickers': true,
                 'watchTrades': true,
+                'watchTradesForSymbols': true,
                 'watchBalance': true,
                 // 'watchStatus': true, // https://docs.futures.kraken.com/#websocket-api-public-feeds-heartbeat
                 'watchOrders': true,
@@ -1001,16 +1003,13 @@ export default class krakenfutures extends krakenfuturesRest {
         //    }
         //
         const marketId = this.safeString (message, 'product_id');
-        const feed = this.safeString (message, 'feed');
         if (marketId !== undefined) {
             const ticker = this.parseWsTicker (message);
             const symbol = ticker['symbol'];
             this.tickers[symbol] = ticker;
-            const messageHash = feed + ':' + symbol;
+            const messageHash = this.getMessageHash ('ticker', undefined, symbol);
             client.resolve (ticker, messageHash);
         }
-        client.resolve (this.tickers, feed);
-        return message;
     }
 
     parseWsTicker (ticker, market = undefined) {
