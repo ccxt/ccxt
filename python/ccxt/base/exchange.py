@@ -3525,3 +3525,10 @@ class Exchange(object):
         :returns Array | None:
         """
         return self.safe_list_n(dictionaryOrList, [key], defaultValue)
+
+    def has_stop_params(self, params, should_omit=True):
+        isStop = self.safe_value(params, 'stop', False)
+        order_type = self.safe_value(params, 'type')
+        if should_omit:
+            params = self.omit(params, ['stop', 'type'])
+        return params, isStop or order_type == 'stop'

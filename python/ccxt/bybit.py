@@ -3120,13 +3120,6 @@ class bybit(Exchange):
             else:
                 raise Exception("Missing executedOrderId / orderLinkId")
 
-    def has_stop_params(self, params, should_omit=True):
-        isStop = self.safe_value(params, 'stop', False)
-        order_type = self.safe_value(params, 'type')
-        if should_omit:
-            params = self.omit(params, ['stop', 'type'])
-        return params, isStop or order_type == 'stop'
-
     def parse_trades_cost_fee(self, symbol, trades):
         cost, fees, fee = 0., defaultdict(lambda: {'cost': 0.}), None
         for trade in trades:
