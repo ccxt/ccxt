@@ -52,6 +52,7 @@ public partial class bitmex : Exchange
                 { "fetchLeverages", true },
                 { "fetchLeverageTiers", false },
                 { "fetchLiquidations", true },
+                { "fetchMarginAdjustmentHistory", false },
                 { "fetchMarketLeverageTiers", false },
                 { "fetchMarkets", true },
                 { "fetchMarkOHLCV", false },

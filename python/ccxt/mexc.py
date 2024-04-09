@@ -89,6 +89,7 @@ class mexc(Exchange, ImplicitAPI):
                 'fetchLeverage': True,
                 'fetchLeverages': False,
                 'fetchLeverageTiers': True,
+                'fetchMarginAdjustmentHistory': False,
                 'fetchMarginMode': False,
                 'fetchMarketLeverageTiers': None,
                 'fetchMarkets': True,

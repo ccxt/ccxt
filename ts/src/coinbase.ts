@@ -6,6 +6,7 @@ import { ExchangeError, ArgumentsRequired, AuthenticationError, BadRequest, Inva
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
+import { jwt } from './base/functions/rsa.js';
 import type { Int, OrderSide, OrderType, Order, Trade, OHLCV, Ticker, OrderBook, Str, Transaction, Balances, Tickers, Strings, Market, Currency, Num, Account, Currencies } from './base/types.js';
 
 // ----------------------------------------------------------------------------
@@ -329,6 +330,7 @@ export default class coinbase extends Exchange {
                 'CGLD': 'CELO',
             },
             'options': {
+                'brokerId': 'ccxt',
                 'stablePairs': [ 'BUSD-USD', 'CBETH-ETH', 'DAI-USD', 'GUSD-USD', 'GYEN-USD', 'PAX-USD', 'PAX-USDT', 'USDC-EUR', 'USDC-GBP', 'USDT-EUR', 'USDT-GBP', 'USDT-USD', 'USDT-USDC', 'WBTC-BTC' ],
                 'fetchCurrencies': {
                     'expires': 5000,
@@ -2366,8 +2368,9 @@ export default class coinbase extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        const id = this.safeString (this.options, 'brokerId', 'ccxt');
         let request = {
-            'client_order_id': this.uuid (),
+            'client_order_id': id + '-' + this.uuid (),
             'product_id': market['id'],
             'side': side.toUpperCase (),
         };
@@ -3818,29 +3821,14 @@ export default class coinbase extends Exchange {
         const url = this.urls['api']['rest'] + fullPath;
         if (signed) {
             const authorization = this.safeString (this.headers, 'Authorization');
+            let authorizationString = undefined;
             if (authorization !== undefined) {
-                headers = {
-                    'Authorization': authorization,
-                    'Content-Type': 'application/json',
-                };
-                if (method !== 'GET') {
-                    if (Object.keys (query).length) {
-                        body = this.json (query);
-                    }
-                }
+                authorizationString = authorization;
             } else if (this.token && !this.checkRequiredCredentials (false)) {
-                headers = {
-                    'Authorization': 'Bearer ' + this.token,
-                    'Content-Type': 'application/json',
-                };
-                if (method !== 'GET') {
-                    if (Object.keys (query).length) {
-                        body = this.json (query);
-                    }
-                }
+                authorizationString = 'Bearer ' + this.token;
             } else {
                 this.checkRequiredCredentials ();
-                const timestampString = this.seconds ().toString ();
+                const seconds = this.seconds ();
                 let payload = '';
                 if (method !== 'GET') {
                     if (Object.keys (query).length) {
@@ -3858,14 +3846,51 @@ export default class coinbase extends Exchange {
                 // https://docs.cloud.coinbase.com/advanced-trade-api/docs/auth#example-request
                 // v2: 'GET' require payload in the signature
                 // https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-key-authentication
-                const auth = timestampString + method + savedPath + payload;
-                const signature = this.hmac (this.encode (auth), this.encode (this.secret), sha256);
+                const isCloudAPiKey = (this.apiKey.indexOf ('organizations/') >= 0) || (this.secret.startsWith ('-----BEGIN'));
+                if (isCloudAPiKey) {
+                    if (this.apiKey.startsWith ('-----BEGIN')) {
+                        throw new ArgumentsRequired (this.id + ' apiKey should contain the name (eg: organizations/3b910e93....) and not the public key');
+                    }
+                    // it may not work for v2
+                    let uri = method + ' ' + url.replace ('https://', '');
+                    const quesPos = uri.indexOf ('?');
+                    if (quesPos >= 0) {
+                        uri = uri.slice (0, quesPos);
+                    }
+                    const nonce = this.randomBytes (16);
+                    const request = {
+                        'aud': [ 'retail_rest_api_proxy' ],
+                        'iss': 'coinbase-cloud',
+                        'nbf': seconds,
+                        'exp': seconds + 120,
+                        'sub': this.apiKey,
+                        'uri': uri,
+                        'iat': seconds,
+                    };
+                    const token = jwt (request, this.encode (this.secret), sha256, false, { 'kid': this.apiKey, 'nonce': nonce, 'alg': 'ES256' });
+                    authorizationString = 'Bearer ' + token;
+                } else {
+                    const timestampString = this.seconds ().toString ();
+                    const auth = timestampString + method + savedPath + payload;
+                    const signature = this.hmac (this.encode (auth), this.encode (this.secret), sha256);
+                    headers = {
+                        'CB-ACCESS-KEY': this.apiKey,
+                        'CB-ACCESS-SIGN': signature,
+                        'CB-ACCESS-TIMESTAMP': timestampString,
+                        'Content-Type': 'application/json',
+                    };
+                }
+            }
+            if (authorizationString !== undefined) {
                 headers = {
-                    'CB-ACCESS-KEY': this.apiKey,
-                    'CB-ACCESS-SIGN': signature,
-                    'CB-ACCESS-TIMESTAMP': timestampString,
+                    'Authorization': authorizationString,
                     'Content-Type': 'application/json',
                 };
+                if (method !== 'GET') {
+                    if (Object.keys (query).length) {
+                        body = this.json (query);
+                    }
+                }
             }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };

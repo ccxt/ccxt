@@ -3321,6 +3321,7 @@ class hitbtc extends hitbtc$1 {
             'info': data,
             'symbol': market['symbol'],
             'type': undefined,
+            'marginMode': 'isolated',
             'amount': undefined,
             'total': undefined,
             'code': this.safeString(currencyInfo, 'code'),

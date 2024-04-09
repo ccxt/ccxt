@@ -76,6 +76,7 @@ public partial class deribit
     /// </summary>
     /// <remarks>
     /// See <see href="https://docs.deribit.com/#public-get_currencies"/>  <br/>
+    /// See <see href="https://docs.deribit.com/#public-get_instruments"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>

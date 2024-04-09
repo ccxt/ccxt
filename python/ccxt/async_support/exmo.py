@@ -273,6 +273,7 @@ class exmo(Exchange, ImplicitAPI):
             'info': data,
             'symbol': self.safe_symbol(None, market),
             'type': None,
+            'marginMode': 'isolated',
             'amount': None,
             'total': None,
             'code': self.safe_value(market, 'quote'),

@@ -73,6 +73,7 @@ public partial class bybit : Exchange
                 { "fetchLedger", true },
                 { "fetchLeverage", true },
                 { "fetchLeverageTiers", true },
+                { "fetchMarginAdjustmentHistory", false },
                 { "fetchMarketLeverageTiers", true },
                 { "fetchMarkets", true },
                 { "fetchMarkOHLCV", true },
@@ -142,6 +143,13 @@ public partial class bybit : Exchange
                     { "v2", "https://api.{hostname}" },
                     { "public", "https://api.{hostname}" },
                     { "private", "https://api.{hostname}" },
+                } },
+                { "demotrading", new Dictionary<string, object>() {
+                    { "spot", "https://api-demo.{hostname}" },
+                    { "futures", "https://api-demo.{hostname}" },
+                    { "v2", "https://api-demo.{hostname}" },
+                    { "public", "https://api-demo.{hostname}" },
+                    { "private", "https://api-demo.{hostname}" },
                 } },
                 { "www", "https://www.bybit.com" },
                 { "doc", new List<object>() {"https://bybit-exchange.github.io/docs/inverse/", "https://bybit-exchange.github.io/docs/linear/", "https://github.com/bybit-exchange"} },
@@ -308,6 +316,7 @@ public partial class bybit : Exchange
                         { "v5/user/get-member-type", 5 },
                         { "v5/user/aff-customer-info", 5 },
                         { "v5/user/del-submember", 5 },
+                        { "v5/user/submembers", 5 },
                         { "v5/spot-lever-token/order-record", 1 },
                         { "v5/spot-margin-trade/state", 5 },
                         { "v5/spot-cross-margin-trade/loan-info", 1 },
@@ -325,6 +334,7 @@ public partial class bybit : Exchange
                         { "v5/broker/earning-record", 5 },
                         { "v5/broker/earnings-info", 5 },
                         { "v5/broker/account-info", 5 },
+                        { "v5/broker/asset/query-sub-member-deposit-record", 10 },
                     } },
                     { "post", new Dictionary<string, object>() {
                         { "option/usdc/openapi/private/v1/place-order", 2.5 },
@@ -446,6 +456,7 @@ public partial class bybit : Exchange
                         { "v5/lending/redeem-cancel", 5 },
                         { "v5/account/set-collateral-switch", 5 },
                         { "v5/account/set-collateral-switch-batch", 5 },
+                        { "v5/account/demo-apply-money", 5 },
                     } },
                 } },
             } },
@@ -905,6 +916,8 @@ public partial class bybit : Exchange
             } },
             { "precisionMode", TICK_SIZE },
             { "options", new Dictionary<string, object>() {
+                { "sandboxMode", false },
+                { "enableDemoTrading", false },
                 { "fetchMarkets", new List<object>() {"spot", "linear", "inverse", "option"} },
                 { "createOrder", new Dictionary<string, object>() {
                     { "method", "privatePostV5OrderCreate" },
@@ -989,6 +1002,45 @@ public partial class bybit : Exchange
         });
     }
 
+    public override void setSandboxMode(object enable)
+    {
+        /**
+         * @method
+         * @name bybit#setSandboxMode
+         * @description enables or disables sandbox mode
+         * @param {boolean} [enable] true if demo trading should be enabled, false otherwise
+         */
+        base.setSandboxMode(enable);
+        ((IDictionary<string,object>)this.options)["sandboxMode"] = enable;
+    }
+
+    public virtual void enableDemoTrading(object enable)
+    {
+        /**
+         * @method
+         * @name bybit#enableDemoTrading
+         * @description enables or disables demo trading mode
+         * @see https://bybit-exchange.github.io/docs/v5/demo
+         * @param {boolean} [enable] true if demo trading should be enabled, false otherwise
+         */
+        if (isTrue(getValue(this.options, "sandboxMode")))
+        {
+            throw new NotSupported ((string)add(this.id, " demo trading does not support in sandbox environment")) ;
+        }
+        // enable demo trading in bybit, see: https://bybit-exchange.github.io/docs/v5/demo
+        if (isTrue(enable))
+        {
+            ((IDictionary<string,object>)this.urls)["apiBackupDemoTrading"] = getValue(this.urls, "api");
+            ((IDictionary<string,object>)this.urls)["api"] = getValue(this.urls, "demotrading");
+        } else if (isTrue(inOp(this.urls, "apiBackupDemoTrading")))
+        {
+            ((IDictionary<string,object>)this.urls)["api"] = ((object)getValue(this.urls, "apiBackupDemoTrading"));
+            object newUrls = this.omit(this.urls, "apiBackupDemoTrading");
+            this.urls = newUrls;
+        }
+        ((IDictionary<string,object>)this.options)["enableDemoTrading"] = enable;
+    }
+
     public override object nonce()
     {
         return subtract(this.milliseconds(), getValue(this.options, "timeDifference"));
@@ -1011,6 +1063,11 @@ public partial class bybit : Exchange
 
     public async virtual Task<object> isUnifiedEnabled(object parameters = null)
     {
+        /**
+        * @method
+        * @name bybit#isUnifiedEnabled
+        * @description returns [enableUnifiedMargin, enableUnifiedAccount] so the user can check if unified account is enabled
+        */
         // The API key of user id must own one of permissions will be allowed to call following API endpoints.
         // SUB UID: "Account Transfer"
         // MASTER UID: "Account Transfer", "Subaccount Transfer", "Withdrawal"
@@ -1019,6 +1076,14 @@ public partial class bybit : Exchange
         object enableUnifiedAccount = this.safeValue(this.options, "enableUnifiedAccount");
         if (isTrue(isTrue(isEqual(enableUnifiedMargin, null)) || isTrue(isEqual(enableUnifiedAccount, null))))
         {
+            if (isTrue(getValue(this.options, "enableDemoTrading")))
+            {
+                // info endpoint is not available in demo trading
+                // so we're assuming UTA is enabled
+                ((IDictionary<string,object>)this.options)["enableUnifiedMargin"] = false;
+                ((IDictionary<string,object>)this.options)["enableUnifiedAccount"] = true;
+                return new List<object>() {getValue(this.options, "enableUnifiedMargin"), getValue(this.options, "enableUnifiedAccount")};
+            }
             object response = await this.privateGetV5UserQueryApi(parameters);
             //
             //     {
@@ -1209,6 +1274,10 @@ public partial class bybit : Exchange
         */
         parameters ??= new Dictionary<string, object>();
         if (!isTrue(this.checkRequiredCredentials(false)))
+        {
+            return null;
+        }
+        if (isTrue(getValue(this.options, "enableDemoTrading")))
         {
             return null;
         }

@@ -103,6 +103,7 @@ class htx(Exchange, ImplicitAPI):
                 'fetchLeverage': False,
                 'fetchLeverageTiers': True,
                 'fetchLiquidations': True,
+                'fetchMarginAdjustmentHistory': False,
                 'fetchMarketLeverageTiers': True,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': True,

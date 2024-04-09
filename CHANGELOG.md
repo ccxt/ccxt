@@ -1,3 +1,37 @@
+## 4.2.90 (2024-04-05)
+
+*  bingx: update apis (#22049) [2add1e7c23](https://github.com/ccxt/ccxt/commits/2add1e7c23c48cf920de6ca2c05883b72d19eabb)
+*  bybit: add apis (#22036) [6a13db6fd9](https://github.com/ccxt/ccxt/commits/6a13db6fd93ab28260bcfb2f823d5ec102012056)
+*  feat: fetchMarginAdjustmentHistory (#21875) [c0bc0b6059](https://github.com/ccxt/ccxt/commits/c0bc0b605909bc40d3e3614b98be1e747af2dea3)
+*  feat(kucoinfutures): add fetchOpenOrders explicitly (#22059) [77148a4f9d](https://github.com/ccxt/ccxt/commits/77148a4f9ddb8eebe138fc4ec4f537f3a06759ff)
+*  4.2.90 [2592465bfd](https://github.com/ccxt/ccxt/commits/2592465bfd5ce898d47ca4d365ce6efb5222ed39)
+
+
+## 4.2.89 (2024-04-04)
+
+*  kucoin: fetchBalance, isolated margin (#22033) [677559e87a](https://github.com/ccxt/ccxt/commits/677559e87a0cd4ab2d90a67510c531bfdc708a71)
+*  fix(mexc): stop infinite loop caused by fetchLeverageTiers (#22034) [6eaa959815](https://github.com/ccxt/ccxt/commits/6eaa95981578d0f2e3c3e954d4f726fb379ce0f7)
+*  CurrencyInterface and TradingFeeInterface (#21988) [1801d4b7d8](https://github.com/ccxt/ccxt/commits/1801d4b7d8fb519b33c238488e1a7f615eae28a7)
+*  fix(Client.cs): protect sendAsync (#22039) [b953aa72db](https://github.com/ccxt/ccxt/commits/b953aa72db413258dea98ad5af32f40b9c6fae84)
+*  fix(bitget): watchBalance spot margin (#22040) [3d232b961b](https://github.com/ccxt/ccxt/commits/3d232b961b6c16253244bd8e218099d79ff05b56)
+*  fix: common_currency_code python tranpilation no longer causes error 'AttributeError: list object has no attribute "values"' (#22043) [8b2a321a43](https://github.com/ccxt/ccxt/commits/8b2a321a432b0eb0223f9f3cf90755949c5f7878)
+*  4.2.89 [9a01a2de4f](https://github.com/ccxt/ccxt/commits/9a01a2de4f873e0bca97acec5eaf844e8e85959e)
+
+
+## 4.2.88 (2024-04-02)
+
+*  typo in property name of base class (#22001) [7aac3c9ec1](https://github.com/ccxt/ccxt/commits/7aac3c9ec1a85e09010c601926d72b7ffc685a55)
+*  fix(cli): remove unused imports (#21977) [49fa6974fd](https://github.com/ccxt/ccxt/commits/49fa6974fd7c28fd1c68912ae00a0095bc52dc81)
+*  chore: update changelog (#22011) [49f888f7fd](https://github.com/ccxt/ccxt/commits/49f888f7fd7effce41f934f0941dbd5b46bac62c)
+*  fix(binance): remove filtering from account positions (#22009) [df68484393](https://github.com/ccxt/ccxt/commits/df684843939d7bff60f7a011b5ac22b19a953c52)
+*  fix(kucoin): fetchBalance, cross margin (#22018) [c4ade1d7bc](https://github.com/ccxt/ccxt/commits/c4ade1d7bc767027bfca19169e9ee627d61cdb46)
+*  fix(binance): addMargin, reduceMargin amount < 1 fix (#22015) [70c7c2da74](https://github.com/ccxt/ccxt/commits/70c7c2da7420df9c7794df226dbe345074e2771b)
+*  fix(cryptocom): add safeDict in fetchPosition (#22021) [6f77f3e41d](https://github.com/ccxt/ccxt/commits/6f77f3e41d9285623c8c733c6a9851e9a7e6fe63)
+*  chore: update read me (#22024) [6537428fcc](https://github.com/ccxt/ccxt/commits/6537428fcc8abf17d7968471d4143a03c086ccae)
+*  binance error mapping (#22027) [ad747018d0](https://github.com/ccxt/ccxt/commits/ad747018d0fe8122261c0389ba8d958177123b02)
+*  4.2.88 [9711f6629c](https://github.com/ccxt/ccxt/commits/9711f6629c5acf14f235996635f535337b0b7e24)
+
+
 ## 4.2.87 (2024-03-31)
 
 *  chore: test files param types (#21622) [bb0c73cb34](https://github.com/ccxt/ccxt/commits/bb0c73cb349bd0852bd390c9cc93a11b6a2b01b1)
@@ -3676,21 +3710,6 @@
 ## 4.1.16 (2023-10-17)
 
 *  fix rename [4a1b748f04](https://github.com/ccxt/ccxt/commits/4a1b748f0452a0068cea233c91a10f94ecabd115)
-*  bingx private tests and assertTimestampOrder [ffe58ba897](https://github.com/ccxt/ccxt/commits/ffe58ba89713042eb245a5cb13c987054485daac)
-*  fix(wazirx): add info to balance [98fb8b6c85](https://github.com/ccxt/ccxt/commits/98fb8b6c856ffa2686c41f8937d2afc0359482a6)
-*  digifinex: private tests [f593c2936e](https://github.com/ccxt/ccxt/commits/f593c2936ef315cfaf95a9733e306243b9002ffa)
-*  4.1.15 [07b3e387f1](https://github.com/ccxt/ccxt/commits/07b3e387f10cc5c0ee5f401c683c4810db93de37)
-*  mexc: private tests [75e739b1b1](https://github.com/ccxt/ccxt/commits/75e739b1b1c7ac6e0e81d90e28fbb4e6b7d13ecb)
-*  4.1.15 [2de7719c02](https://github.com/ccxt/ccxt/commits/2de7719c02ae5f3c37052f68bb48d38fc10f57e0)
-*  bitmex private tests [3c2b8d24af](https://github.com/ccxt/ccxt/commits/3c2b8d24af403189c2f1bebaa6068a24d8b595d5)
-*  small position fix [521f859a2a](https://github.com/ccxt/ccxt/commits/521f859a2a6f36fa8db390ceab41bdfaa3074eb9)
-*  btcalpha [f5929f47fa](https://github.com/ccxt/ccxt/commits/f5929f47fa234b3a6437737c91f02fac14ca7704)
-*  fix(coinone): parseOrder fix [d1a3bf7e4c](https://github.com/ccxt/ccxt/commits/d1a3bf7e4c85d3e84ac500816fa80f3db2677502)
-*  4.1.16 [3dfdb44780](https://github.com/ccxt/ccxt/commits/3dfdb44780e00ce6cb2028040e0f9af9f37b171d)
-
-
-## 4.1.15 (2023-10-17)
-
 *  kraken [a6cea1e4a0](https://github.com/ccxt/ccxt/commits/a6cea1e4a08cfb154f0a282a4fc42bf7723ee2a5)
 *  kucoin [0111f9a878](https://github.com/ccxt/ccxt/commits/0111f9a878bbcc9330c7438609dcbb1b2893e6f9)
 *  kuna [6ddd6dd0f9](https://github.com/ccxt/ccxt/commits/6ddd6dd0f977e0477e9a82b02ff279579ed677be)
@@ -3722,7 +3741,16 @@
 *  Update test.sharedMethods.ts [33c4fea123](https://github.com/ccxt/ccxt/commits/33c4fea1239b16318ee91c0605be4e471c3e71e5)
 *  feat(bitget): fetchBalance, add margin support [86351318d6](https://github.com/ccxt/ccxt/commits/86351318d6e0f1e1ee1e2104e9ddee17755b9f1f)
 *  btcturk: add apis [f4f33a1c1d](https://github.com/ccxt/ccxt/commits/f4f33a1c1df697c64d500d1eb45ca60e8e376858)
-*  4.1.15 [07b3e387f1](https://github.com/ccxt/ccxt/commits/07b3e387f10cc5c0ee5f401c683c4810db93de37)
+*  bingx private tests and assertTimestampOrder [ffe58ba897](https://github.com/ccxt/ccxt/commits/ffe58ba89713042eb245a5cb13c987054485daac)
+*  fix(wazirx): add info to balance [98fb8b6c85](https://github.com/ccxt/ccxt/commits/98fb8b6c856ffa2686c41f8937d2afc0359482a6)
+*  digifinex: private tests [f593c2936e](https://github.com/ccxt/ccxt/commits/f593c2936ef315cfaf95a9733e306243b9002ffa)
+*  mexc: private tests [75e739b1b1](https://github.com/ccxt/ccxt/commits/75e739b1b1c7ac6e0e81d90e28fbb4e6b7d13ecb)
+*  4.1.15 [2de7719c02](https://github.com/ccxt/ccxt/commits/2de7719c02ae5f3c37052f68bb48d38fc10f57e0)
+*  bitmex private tests [3c2b8d24af](https://github.com/ccxt/ccxt/commits/3c2b8d24af403189c2f1bebaa6068a24d8b595d5)
+*  small position fix [521f859a2a](https://github.com/ccxt/ccxt/commits/521f859a2a6f36fa8db390ceab41bdfaa3074eb9)
+*  btcalpha [f5929f47fa](https://github.com/ccxt/ccxt/commits/f5929f47fa234b3a6437737c91f02fac14ca7704)
+*  fix(coinone): parseOrder fix [d1a3bf7e4c](https://github.com/ccxt/ccxt/commits/d1a3bf7e4c85d3e84ac500816fa80f3db2677502)
+*  4.1.16 [3dfdb44780](https://github.com/ccxt/ccxt/commits/3dfdb44780e00ce6cb2028040e0f9af9f37b171d)
 
 
 ## 4.1.14 (2023-10-16)
