@@ -80,6 +80,7 @@ interface Exchange {
     v3PrivateGetBrokeragePaymentMethods (params?: {}): Promise<implicitReturnType>;
     v3PrivateGetBrokeragePaymentMethodsPaymentMethodId (params?: {}): Promise<implicitReturnType>;
     v3PrivatePostBrokerageOrders (params?: {}): Promise<implicitReturnType>;
+    v3PrivatePostBrokerageOrdersClosePosition (params?: {}): Promise<implicitReturnType>;
     v3PrivatePostBrokerageOrdersBatchCancel (params?: {}): Promise<implicitReturnType>;
     v3PrivatePostBrokerageOrdersEdit (params?: {}): Promise<implicitReturnType>;
     v3PrivatePostBrokerageOrdersEditPreview (params?: {}): Promise<implicitReturnType>;
