@@ -44,7 +44,7 @@ export default class coinbase extends Exchange {
                 'cancelOrder': true,
                 'cancelOrders': true,
                 'closeAllPositions': false,
-                'closePosition': false,
+                'closePosition': true,
                 'createDepositAddress': true,
                 'createLimitBuyOrder': true,
                 'createLimitSellOrder': true,
@@ -99,9 +99,9 @@ export default class coinbase extends Exchange {
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': true,
-                'fetchPosition': false,
+                'fetchPosition': true,
                 'fetchPositionMode': false,
-                'fetchPositions': false,
+                'fetchPositions': true,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
@@ -4120,6 +4120,46 @@ export default class coinbase extends Exchange {
         }
         const positions = this.safeList (response, 'positions', []);
         return this.parsePositions (positions, symbols);
+    }
+
+    async fetchPosition (symbol: string, params = {}) {
+        /**
+         * @method
+         * @name coinbase#fetchPosition
+         * @description fetch data on a single open contract trade position
+         * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getintxposition
+         * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getfcmposition
+         * @param {string} symbol unified market symbol of the market the position is held in, default is undefined
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.product_id] *futures only* the product id of the position to fetch, required for futures markets only
+         * @param {string} [params.portfolio] *perpetual/swaps only* the portfolio UUID to fetch the position for, required for perpetual/swaps markets only
+         * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        let response = undefined;
+        if (market['future']) {
+            const productId = this.safeString (market, 'product_id');
+            if (productId === undefined) {
+                throw new ArgumentsRequired (this.id + ' fetchPosition() requires a "product_id" in params');
+            }
+            const futureRequest = {
+                'product_id': productId,
+            };
+            response = await this.v3PrivateGetBrokerageCfmPositionsProductId (this.extend (futureRequest, params));
+        } else {
+            let portfolio = undefined;
+            [ portfolio, params ] = this.handleOptionAndParams (params, 'fetchPositions', 'portfolio');
+            if (portfolio === undefined) {
+                throw new ArgumentsRequired (this.id + ' fetchPosition() requires a "portfolio" value in params (eg: dbcb91e7-2bc9-515), or set as exchange.options["portfolio"]. You can get a list of portfolios with fetchPortfolios()');
+            }
+            const request = {
+                'symbol': market['id'],
+                'portfolio_uuid': portfolio,
+            };
+            response = await this.v3PrivateGetBrokerageIntxPositionsPortfolioUuidSymbol (this.extend (request, params));
+        }
+        return this.parsePosition (response, market);
     }
 
     parsePosition (position, market: Market = undefined) {
