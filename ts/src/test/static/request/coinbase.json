@@ -165,6 +165,43 @@
                     }
                 ],
                 "output": "{\"client_order_id\":\"1cbeaa37-a49d-43ba-9cfd-bfb670d0614a\",\"product_id\":\"DOGE-USDT\",\"side\":\"BUY\",\"order_configuration\":{\"sor_limit_ioc\":{\"base_size\":\"10\",\"limit_price\":\"0.05\"}}}"
+            },
+            {
+                "description": "swap market buy",
+                "method": "createOrder",
+                "url": "https://api.coinbase.com/api/v3/brokerage/orders",
+                "input": [
+                  "ADA/USDC:USDC",
+                  "market",
+                  "buy",
+                  20
+                ],
+                "output": "{\"client_order_id\":\"ccxt-eb003cef-440f-4aa6-b77d-866067e9ef8c\",\"product_id\":\"ADA-PERP-INTX\",\"side\":\"BUY\",\"order_configuration\":{\"market_market_ioc\":{\"base_size\":\"20\"}}}"
+            },
+            {
+                "description": "swap market sell",
+                "method": "createOrder",
+                "url": "https://api.coinbase.com/api/v3/brokerage/orders",
+                "input": [
+                  "ADA/USDC:USDC",
+                  "market",
+                  "sell",
+                  20
+                ],
+                "output": "{\"client_order_id\":\"ccxt-285b39bd-760a-47af-ad35-9bec13f49d4c\",\"product_id\":\"ADA-PERP-INTX\",\"side\":\"SELL\",\"order_configuration\":{\"market_market_ioc\":{\"base_size\":\"20\"}}}"
+            },
+            {
+                "description": "swap limit buy",
+                "method": "createOrder",
+                "url": "https://api.coinbase.com/api/v3/brokerage/orders",
+                "input": [
+                  "ADA/USDC:USDC",
+                  "limit",
+                  "buy",
+                  20,
+                  0.55
+                ],
+                "output": "{\"client_order_id\":\"ccxt-30a1ba55-f7b6-4b58-ad9f-8328cabb9e3b\",\"product_id\":\"ADA-PERP-INTX\",\"side\":\"BUY\",\"order_configuration\":{\"limit_limit_gtc\":{\"base_size\":\"20\",\"limit_price\":\"0.55\",\"post_only\":false}}}"
             }
         ],
         "createMarketBuyOrderWithCost": [
@@ -335,7 +372,17 @@
                     "ADA/USDT"
                 ],
                 "output": "{\"order_ids\":[\"d4f841a7-2de6-4190-a581-9ae23a5ff3de\"]}"
-            }
+            },
+            {
+                "description": "cancel swap order",
+                "method": "cancelOrder",
+                "url": "https://api.coinbase.com/api/v3/brokerage/orders/batch_cancel",
+                "input": [
+                  "c23d9906-2dc2-494f-b1a2-fed4b9e2c893",
+                  "ADA/USDC:USDC"
+                ],
+                "output": "{\"order_ids\":[\"c23d9906-2dc2-494f-b1a2-fed4b9e2c893\"]}"
+              }
         ],
         "cancelOrders": [
             {
