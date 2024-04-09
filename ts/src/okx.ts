@@ -6,7 +6,7 @@ import { ExchangeError, ExchangeNotAvailable, OnMaintenance, ArgumentsRequired, 
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { TransferEntry, Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Str, Transaction, Ticker, OrderBook, Balances, Tickers, Market, Greeks, Strings, MarketInterface, Currency, Leverage, Num, Account, OptionChain, Option, MarginModification, TradingFeeInterface, Currencies } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Str, Transaction, Ticker, OrderBook, Balances, Tickers, Market, Greeks, Strings, MarketInterface, Currency, Leverage, Num, Account, OptionChain, Option, MarginModification, TradingFeeInterface, Currencies, Position } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -106,6 +106,7 @@ export default class okx extends Exchange {
                 'fetchOrderTrades': true,
                 'fetchPermissions': undefined,
                 'fetchPosition': true,
+                'fetchPositionHistory': true,
                 'fetchPositions': true,
                 'fetchPositionsForSymbol': true,
                 'fetchPositionsRisk': false,
@@ -7760,5 +7761,90 @@ export default class okx extends Exchange {
         const data = this.safeList (response, 'data');
         const modifications = this.parseMarginModifications (data);
         return this.filterBySymbolSinceLimit (modifications, symbol, since, limit);
+    }
+
+    async fetchPositionHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
+        /**
+         * @method
+         * @name okx#fetchPositionHistory
+         * @description fetches historical positions
+         * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-positions-history
+         * @param {string} [symbol] unified market symbol
+         * @param {int} [since] timestamp in ms of the earliest position to fetch
+         * @param {int} [limit] the maximum amount of records to fetch, default=100, max=100
+         * @param {object} params extra parameters specific to the exchange api endpoint
+         * @param {string} [params.marginMode] "cross" or "isolated"
+         * @param {int} [params.until] timestamp in ms of the latest position to fetch
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+         * @param {string} [params.instType] margin, swap, futures or option
+         * @param {string} [params.type] the type of latest close position 1: close position partially, 2：close all, 3：liquidation, 4：partial liquidation; 5：adl, is it is the latest type if there are several types for the same position
+         * @param {string} [params.posId] position id, there is attribute expiration, the posid will be expired if it is more than 30 days after the last full close position, then position will use new posid
+         * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+         */
+        await this.loadMarkets ();
+        const until = this.safeInteger (params, 'until');
+        const marginMode = this.safeString (params, 'marginMode');
+        const instType = this.safeStringUpper (params, 'instType');
+        params = this.omit (params, [ 'until', 'marginMode', 'instType' ]);
+        if (limit === undefined) {
+            limit = 100;
+        }
+        const request = {
+            'limit': limit,
+        };
+        if (symbol !== undefined) {
+            const market = this.market (symbol);
+            request['instId'] = market['id'];
+        }
+        if (since !== undefined) {
+            request['before'] = since.toString ();
+        }
+        if (until !== undefined) {
+            request['after'] = until.toString ();
+        }
+        if (marginMode !== undefined) {
+            request['mgnMode'] = marginMode;
+        }
+        if (instType !== undefined) {
+            request['instType'] = instType;
+        }
+        const response = await this.privateGetAccountPositionsHistory (this.extend (request, params));
+        //
+        //    {
+        //        code: '0',
+        //        data: [
+        //            {
+        //                cTime: '1708735940395',
+        //                ccy: 'USDT',
+        //                closeAvgPx: '0.6330444444444444',
+        //                closeTotalPos: '27',
+        //                direction: 'long',
+        //                fee: '-1.69566',
+        //                fundingFee: '-11.870404179341788',
+        //                instId: 'XRP-USDT-SWAP',
+        //                instType: 'SWAP',
+        //                lever: '3.0',
+        //                liqPenalty: '0',
+        //                mgnMode: 'cross',
+        //                openAvgPx: '0.623',
+        //                openMaxPos: '15',
+        //                pnl: '27.11999999999988',
+        //                pnlRatio: '0.0241732402722634',
+        //                posId: '681423155054862336',
+        //                realizedPnl: '13.553935820658092',
+        //                triggerPx: '',
+        //                type: '2',
+        //                uTime: '1711088748170',
+        //                uly: 'XRP-USDT'
+        //            },
+        //            ...
+        //        ],
+        //        msg: ''
+        //    }
+        //
+        const data = this.safeList (response, 'data');
+        const positions = this.parsePositions (data);
+        return this.filterBySymbolSinceLimit (positions, symbol, since, limit);
     }
 }
