@@ -2,7 +2,7 @@
 // ----------------------------------------------------------------------------
 
 import Exchange from './abstract/coinbase.js';
-import { ExchangeError, ArgumentsRequired, AuthenticationError, BadRequest, InvalidOrder, NotSupported, OrderNotFound, RateLimitExceeded, InvalidNonce } from './base/errors.js';
+import { ExchangeError, ArgumentsRequired, AuthenticationError, BadRequest, InvalidOrder, NotSupported, OrderNotFound, RateLimitExceeded, InvalidNonce, PermissionDenied } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
@@ -310,6 +310,7 @@ export default class coinbase extends Exchange {
                     'internal_server_error': ExchangeError, // 500 Internal server error
                     'UNSUPPORTED_ORDER_CONFIGURATION': BadRequest,
                     'INSUFFICIENT_FUND': BadRequest,
+                    'PERMISSION_DENIED': PermissionDenied,
                 },
                 'broad': {
                     'request timestamp expired': InvalidNonce, // {"errors":[{"id":"authentication_error","message":"request timestamp expired"}]}
@@ -2573,6 +2574,8 @@ export default class coinbase extends Exchange {
          * @param {string} [params.end_time] '2023-05-25T17:01:05.092Z' for 'GTD' orders
          * @param {float} [params.cost] *spot market buy only* the quote quantity that can be used as an alternative for the amount
          * @param {boolean} [params.preview] default to false, wether to use the test/preview endpoint or not
+         * @param {float} [params.leverage] default to 1, the leverage to use for the order
+         * @param {string} [params.marginMode] 'cross' or 'isolated'
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -2676,7 +2679,7 @@ export default class coinbase extends Exchange {
             if (isStop || isStopLoss || isTakeProfit) {
                 throw new NotSupported (this.id + ' createOrder() only stop limit orders are supported');
             }
-            if (side === 'buy') {
+            if (market['spot'] && (side === 'buy')) {
                 let total = undefined;
                 let createMarketBuyOrderRequiresPrice = true;
                 [ createMarketBuyOrderRequiresPrice, params ] = this.handleOptionAndParams (params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
@@ -2709,7 +2712,15 @@ export default class coinbase extends Exchange {
                 };
             }
         }
-        params = this.omit (params, [ 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'stopPrice', 'stop_price', 'stopDirection', 'stop_direction', 'clientOrderId', 'postOnly', 'post_only', 'end_time' ]);
+        const marginMode = this.safeString (params, 'marginMode');
+        if (marginMode !== undefined) {
+            if (marginMode === 'isolated') {
+                request['margin_type'] = 'ISOLATED';
+            } else if (marginMode === 'cross') {
+                request['margin_type'] = 'CROSS';
+            }
+        }
+        params = this.omit (params, [ 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'stopPrice', 'stop_price', 'stopDirection', 'stop_direction', 'clientOrderId', 'postOnly', 'post_only', 'end_time', 'marginMode' ]);
         const preview = this.safeBool2 (params, 'preview', 'test', false);
         let response = undefined;
         if (preview) {
