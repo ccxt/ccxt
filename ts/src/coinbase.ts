@@ -244,6 +244,8 @@ export default class coinbase extends Exchange {
                             'brokerage/convert/trade/{trade_id}': 1,
                             'brokerage/cfm/sweeps/schedule': 1,
                             'brokerage/intx/allocate': 1,
+                            // futures
+                            'brokerage/orders/close_position': 1,
                         },
                         'put': {
                             'brokerage/portfolios/{portfolio_uuid}': 1,
@@ -311,6 +313,7 @@ export default class coinbase extends Exchange {
                     'UNSUPPORTED_ORDER_CONFIGURATION': BadRequest,
                     'INSUFFICIENT_FUND': BadRequest,
                     'PERMISSION_DENIED': PermissionDenied,
+                    'INVALID_ARGUMENT': BadRequest,
                 },
                 'broad': {
                     'request timestamp expired': InvalidNonce, // {"errors":[{"id":"authentication_error","message":"request timestamp expired"}]}
@@ -538,6 +541,30 @@ export default class coinbase extends Exchange {
             accounts[lastIndex] = last;
         }
         return this.parseAccounts (accounts, params);
+    }
+
+    async fetchPortfolios (params = {}): Promise<Account[]> {
+        /**
+         * @method
+         * @name coinbase#fetchPortfolios
+         * @description fetch all the portfolios
+         * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getportfolios
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type
+         */
+        const response = await this.v3PrivateGetBrokeragePortfolios (params);
+        const portfolios = this.safeList (response, 'portfolios', []);
+        const result = [];
+        for (let i = 0; i < portfolios.length; i++) {
+            const portfolio = portfolios[i];
+            result.push ({
+                'id': this.safeString (portfolio, 'uuid'),
+                'type': this.safeString (portfolio, 'type'),
+                'code': undefined,
+                'info': portfolio,
+            });
+        }
+        return result;
     }
 
     parseAccount (account) {
@@ -4023,6 +4050,153 @@ export default class coinbase extends Exchange {
         //
         const data = this.safeDict (response, 'data', {});
         return this.parseTransaction (data);
+    }
+
+    async closePosition (symbol: string, side: OrderSide = undefined, params = {}): Promise<Order> {
+        /**
+         * @method
+         * @name coinbase#closePosition
+         * @description *futures only* closes open positions for a market
+         * @see https://coinbase-api.github.io/docs/#/en-us/swapV2/trade-api.html#One-Click%20Close%20All%20Positions
+         * @param {string} symbol Unified CCXT market symbol
+         * @param {string} [side] not used by coinbase
+         * @param {object} [params] extra parameters specific to the coinbase api endpoint
+         * @param {string}  params.clientOrderId *mandatory* the client order id of the position to close
+         * @param {float} [params.size] the size of the position to close, optional
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (!market['future']) {
+            throw new NotSupported (this.id + ' closePosition() only supported for futures markets');
+        }
+        const clientOrderId = this.safeString2 (params, 'client_order_id', 'clientOrderId');
+        params = this.omit (params, 'clientOrderId');
+        const request = {
+            'product_id': market['id'],
+        };
+        if (clientOrderId === undefined) {
+            throw new ArgumentsRequired (this.id + ' closePosition() requires a clientOrderId parameter');
+        }
+        request['client_order_id'] = clientOrderId;
+        const response = await this.v3PrivatePostBrokerageOrdersClosePosition (this.extend (request, params));
+        const order = this.safeDict (response, 'success_response', {});
+        return this.parseOrder (order);
+    }
+
+    async fetchPositions (symbols: Strings = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinbase#fetchPositions
+         * @description fetch all open positions
+         * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getfcmpositions
+         * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getintxpositions
+         * @param {string[]} [symbols] list of unified market symbols
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.portfolio] the portfolio UUID to fetch positions for
+         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+         */
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
+        let market = undefined;
+        if (symbols !== undefined) {
+            market = this.market (symbols[0]);
+        }
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchPositions', market, params);
+        let response = undefined;
+        if (type === 'future') {
+            response = await this.v3PrivateGetBrokerageCfmPositions (params);
+        } else {
+            let portfolio = undefined;
+            [ portfolio, params ] = this.handleOptionAndParams (params, 'fetchPositions', 'portfolio');
+            if (portfolio === undefined) {
+                throw new ArgumentsRequired (this.id + ' fetchPositions() requires a "portfolio" in params, or set as exchange.options["portfolio"], you can get a list of portfolios with fetchPortfolios()');
+            }
+            const request = {
+                'portfolio_uuid': portfolio,
+            };
+            response = await this.v3PrivateGetBrokerageIntxPositionsPortfolioUuid (this.extend (request, params));
+        }
+        const positions = this.safeList (response, 'positions', []);
+        return this.parsePositions (positions, symbols);
+    }
+
+    parsePosition (position, market: Market = undefined) {
+        //
+        //    {
+        //        "positionId":"1773122376147623936",
+        //        "symbol":"XRP-USDT",
+        //        "currency":"USDT",
+        //        "positionAmt":"3",
+        //        "availableAmt":"3",
+        //        "positionSide":"LONG",
+        //        "isolated":false,
+        //        "avgPrice":"0.6139",
+        //        "initialMargin":"0.0897",
+        //        "leverage":20,
+        //        "unrealizedProfit":"-0.0023",
+        //        "realisedProfit":"-0.0009",
+        //        "liquidationPrice":0,
+        //        "pnlRatio":"-0.0260",
+        //        "maxMarginReduction":"",
+        //        "riskRate":"",
+        //        "markPrice":"",
+        //        "positionValue":"",
+        //        "onlyOnePosition":false
+        //    }
+        //
+        // standard position
+        //
+        //     {
+        //         "currentPrice": "82.91",
+        //         "symbol": "LTC/USDT",
+        //         "initialMargin": "5.00000000000000000000",
+        //         "unrealizedProfit": "-0.26464500",
+        //         "leverage": "20.000000000",
+        //         "isolated": true,
+        //         "entryPrice": "83.13",
+        //         "positionSide": "LONG",
+        //         "positionAmt": "1.20365912",
+        //     }
+        //
+        let marketId = this.safeString (position, 'symbol', '');
+        marketId = marketId.replace ('/', '-'); // standard return different format
+        const isolated = this.safeBool (position, 'isolated');
+        let marginMode = undefined;
+        if (isolated !== undefined) {
+            marginMode = isolated ? 'isolated' : 'cross';
+        }
+        return this.safePosition ({
+            'info': position,
+            'id': this.safeString (position, 'positionId'),
+            'symbol': this.safeSymbol (marketId, market, '-', 'swap'),
+            'notional': this.safeNumber (position, 'positionValue'),
+            'marginMode': marginMode,
+            'liquidationPrice': undefined,
+            'entryPrice': this.safeNumber2 (position, 'avgPrice', 'entryPrice'),
+            'unrealizedPnl': this.safeNumber (position, 'unrealizedProfit'),
+            'realizedPnl': this.safeNumber (position, 'realisedProfit'),
+            'percentage': undefined,
+            'contracts': this.safeNumber (position, 'positionAmt'),
+            'contractSize': undefined,
+            'markPrice': undefined,
+            'lastPrice': undefined,
+            'side': this.safeStringLower (position, 'positionSide'),
+            'hedged': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'lastUpdateTimestamp': undefined,
+            'maintenanceMargin': undefined,
+            'maintenanceMarginPercentage': undefined,
+            'collateral': undefined,
+            'initialMargin': this.safeNumber (position, 'initialMargin'),
+            'initialMarginPercentage': undefined,
+            'leverage': this.safeNumber (position, 'leverage'),
+            'marginRatio': undefined,
+            'stopLossPrice': undefined,
+            'takeProfitPrice': undefined,
+        });
     }
 
     sign (path, api = [], method = 'GET', params = {}, headers = undefined, body = undefined) {
