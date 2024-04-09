@@ -193,7 +193,9 @@ export default class krakenfutures extends krakenfuturesRest {
         symbols = this.marketSymbols (symbols, undefined, false);
         const ticker = await this.watchMultiHelper ('ticker', 'ticker', symbols, undefined, params);
         if (this.newUpdates) {
-            return this.singleMemberDict (ticker);
+            const result = {};
+            result[ticker['symbol']] = ticker;
+            return result;
         }
         return this.filterByArray (this.tickers, 'symbol', symbols);
     }
@@ -210,7 +212,9 @@ export default class krakenfutures extends krakenfuturesRest {
          */
         const ticker = await this.watchMultiHelper ('bidask', 'ticker_lite', symbols, undefined, params);
         if (this.newUpdates) {
-            return this.singleMemberDict (ticker);
+            const result = {};
+            result[ticker['symbol']] = ticker;
+            return result;
         }
         return this.filterByArray (this.bidsasks, 'symbol', symbols);
     }
@@ -244,7 +248,9 @@ export default class krakenfutures extends krakenfuturesRest {
          */
         const trades = await this.watchMultiHelper ('trade', 'trade', symbols, { 'since': since, 'limit': limit }, params);
         if (this.newUpdates) {
-            limit = this.getLimitForTrades (trades, limit);
+            const first = this.safeList (trades, 0);
+            const tradeSymbol = this.safeString (first, 'symbol');
+            limit = trades.getLimit (tradeSymbol, limit);
         }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
