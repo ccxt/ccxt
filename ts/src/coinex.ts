@@ -5717,7 +5717,7 @@ export default class coinex extends Exchange {
         /**
          * @method
          * @name coinex#fetchPositionHistory
-         * @description fetches the history of margin added or reduced from contract isolated positions
+         * @description fetches historical positions
          * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http033-0_finished_position
          * @param {string} symbol unified market symbol
          * @param {int} [since] not used by coinex fetchPositionHistory

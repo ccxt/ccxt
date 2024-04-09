@@ -5585,7 +5585,7 @@ export default class mexc extends Exchange {
         /**
          * @method
          * @name mexc#fetchPositionHistory
-         * @description fetches the history of margin added or reduced from contract isolated positions
+         * @description fetches historical positions
          * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-user-s-history-position-information
          * @param {string} [symbol] unified market symbol
          * @param {int} [since] not used by mexc fetchPositionHistory
