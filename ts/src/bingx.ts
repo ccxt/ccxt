@@ -2763,6 +2763,7 @@ export default class bingx extends Exchange {
          * @see https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Cancel%20all%20orders%20in%20countdown
          * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Cancel%20all%20orders%20in%20countdown
          * @param {number} countdown time in seconds
+         * @param {boolean} activated countdown
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.type] spot or swap market
          * @returns {object} the api result

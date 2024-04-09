@@ -1254,6 +1254,7 @@ export default class hyperliquid extends Exchange {
          * @name hyperliquid#cancelAllOrdersAfter
          * @description dead man's switch, cancel all orders after the given timeout
          * @param {number} countdown time in seconds
+         * @param {boolean} activated countdown
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.vaultAddress] the vault address
          * @returns {object} the api result

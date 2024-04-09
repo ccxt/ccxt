@@ -2140,6 +2140,7 @@ export default class bitmex extends Exchange {
          * @description dead man's switch, cancel all orders after the given timeout
          * @see https://www.bitmex.com/api/explorer/#!/Order/Order_cancelAllAfter
          * @param {number} countdown time in seconds
+         * @param {boolean} activated countdown
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} the api result
          */
