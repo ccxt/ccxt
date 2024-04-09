@@ -1404,10 +1404,9 @@ class probit(Exchange, ImplicitAPI):
         result = self.fetch_transactions(code, since, limit, self.extend(request, params))
         return result
 
-    def fetch_transactions(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_deposits_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
         """
-         * @deprecated
-        use fetchDepositsWithdrawals instead
+        fetch history of deposits and withdrawals
         :see: https://docs-en.probit.com/reference/transferpayment
         :param str code: unified currency code
         :param int [since]: the earliest time in ms to fetch transactions for

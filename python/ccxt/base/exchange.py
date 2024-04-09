@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.2.92'
+__version__ = '4.2.93'
 
 # -----------------------------------------------------------------------------
 
@@ -3441,18 +3441,33 @@ class Exchange(object):
         sorted = self.sort_by(results, 0)
         return self.filter_by_since_limit(sorted, since, limit, 0)
 
-    def parse_leverage_tiers(self, response: List[object], symbols: List[str] = None, marketIdKey=None):
+    def parse_leverage_tiers(self, response: Any, symbols: List[str] = None, marketIdKey=None):
         # marketIdKey should only be None when response is a dictionary
         symbols = self.market_symbols(symbols)
         tiers = {}
-        for i in range(0, len(response)):
-            item = response[i]
-            id = self.safe_string(item, marketIdKey)
-            market = self.safe_market(id, None, None, 'swap')
-            symbol = market['symbol']
-            contract = self.safe_bool(market, 'contract', False)
-            if contract and ((symbols is None) or self.in_array(symbol, symbols)):
-                tiers[symbol] = self.parse_market_leverage_tiers(item, market)
+        symbolsLength = 0
+        if symbols is not None:
+            symbolsLength = len(symbols)
+        noSymbols = (symbols is None) or (symbolsLength == 0)
+        if isinstance(response, list):
+            for i in range(0, len(response)):
+                item = response[i]
+                id = self.safe_string(item, marketIdKey)
+                market = self.safe_market(id, None, None, 'swap')
+                symbol = market['symbol']
+                contract = self.safe_bool(market, 'contract', False)
+                if contract and (noSymbols or self.in_array(symbol, symbols)):
+                    tiers[symbol] = self.parse_market_leverage_tiers(item, market)
+        else:
+            keys = list(response.keys())
+            for i in range(0, len(keys)):
+                marketId = keys[i]
+                item = response[marketId]
+                market = self.safe_market(marketId, None, None, 'swap')
+                symbol = market['symbol']
+                contract = self.safe_bool(market, 'contract', False)
+                if contract and (noSymbols or self.in_array(symbol, symbols)):
+                    tiers[symbol] = self.parse_market_leverage_tiers(item, market)
         return tiers
 
     def load_trading_limits(self, symbols: List[str] = None, reload=False, params={}):

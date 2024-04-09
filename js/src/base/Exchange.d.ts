@@ -219,7 +219,7 @@ export default class Exchange {
     }, digest?: "binary" | "hex" | "base64") => any;
     arrayConcat: (a: any, b: any) => any;
     encode: (str: string) => Uint8Array;
-    urlencode: (object: any) => string;
+    urlencode: (object: object) => string;
     hmac: (request: import("../static_dependencies/noble-hashes/utils.js").Input, secret: import("../static_dependencies/noble-hashes/utils.js").Input, hash: {
         (message: import("../static_dependencies/noble-hashes/utils.js").Input): Uint8Array;
         outputLen: number;
@@ -234,12 +234,12 @@ export default class Exchange {
     yyyymmdd: (timestamp: any, infix?: string) => string;
     safeStringUpper: (o: any, k: IndexType, $default?: string) => string;
     safeTimestamp: (o: any, k: IndexType, $default?: number) => number;
-    binaryConcatArray: (arr: any) => Uint8Array;
+    binaryConcatArray: (arr: any[]) => Uint8Array;
     uuidv1: () => string;
     numberToLE: (n: number, padding: number) => Uint8Array;
     ymdhms: (timestamp: any, infix?: string) => string;
     yymmdd: (timestamp: any, infix?: string) => string;
-    stringToBase64: (string: any) => string;
+    stringToBase64: (string: string) => string;
     decode: (data: Uint8Array) => string;
     uuid22: (a?: any) => string;
     safeIntegerProduct2: (o: any, k1: IndexType, k2: IndexType, $factor: number, $default?: number) => number;
@@ -248,7 +248,7 @@ export default class Exchange {
     base58ToBinary: (str: string) => Uint8Array;
     base64ToBinary: (str: string) => Uint8Array;
     safeTimestamp2: (o: any, k1: IndexType, k2: IndexType, $default?: any) => number;
-    rawencode: (object: any) => string;
+    rawencode: (object: object) => string;
     keysort: (x: any, out?: {}) => {};
     inArray: (needle: any, haystack: any) => any;
     safeStringLower2: (o: any, k1: IndexType, k2: IndexType, $default?: string) => string;
@@ -257,7 +257,7 @@ export default class Exchange {
     ordered: (x: any) => any;
     filterBy: (x: any, k: any, value?: any, out?: any[]) => any[];
     uuid16: (a?: any) => string;
-    urlencodeWithArrayRepeat: (object: any) => string;
+    urlencodeWithArrayRepeat: (object: object) => string;
     microseconds: () => number;
     binaryToBase64: (data: Uint8Array) => string;
     strip: (s: string) => string;
@@ -270,10 +270,10 @@ export default class Exchange {
     safeStringN: (o: any, k: IndexType[], $default?: string) => string;
     safeStringLowerN: (o: any, k: IndexType[], $default?: string) => string;
     safeStringUpperN: (o: any, k: IndexType[], $default?: string) => string;
-    urlencodeNested: (object: any) => string;
+    urlencodeNested: (object: object) => string;
     parseDate: (x: any) => number;
     ymd: (timestamp: any, infix: any, fullYear?: boolean) => string;
-    base64ToString: (string: any) => string;
+    base64ToString: (string: string) => string;
     crc32: typeof functions.crc32;
     packb: typeof functions.packb;
     describe(): {
@@ -792,7 +792,7 @@ export default class Exchange {
     safeNumber2(dictionary: object, key1: IndexType, key2: IndexType, d?: any): number;
     parseOrderBook(orderbook: object, symbol: string, timestamp?: Int, bidsKey?: string, asksKey?: string, priceKey?: IndexType, amountKey?: IndexType, countOrIdKey?: IndexType): OrderBook;
     parseOHLCVs(ohlcvs: object[], market?: any, timeframe?: string, since?: Int, limit?: Int): OHLCV[];
-    parseLeverageTiers(response: object[], symbols?: string[], marketIdKey?: any): {};
+    parseLeverageTiers(response: any, symbols?: string[], marketIdKey?: any): {};
     loadTradingLimits(symbols?: string[], reload?: boolean, params?: {}): Promise<Dictionary<any>>;
     safePosition(position: any): Position;
     parsePositions(positions: any[], symbols?: string[], params?: {}): Position[];

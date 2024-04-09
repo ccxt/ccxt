@@ -4128,36 +4128,6 @@ export default class coinex extends Exchange {
         const data = this.safeValue(response, 'data', {});
         return this.parseLeverageTiers(data, symbols, undefined);
     }
-    parseLeverageTiers(response, symbols = undefined, marketIdKey = undefined) {
-        //
-        //     {
-        //         "BTCUSD": [
-        //             ["500001", "100", "0.005"],
-        //             ["1000001", "50", "0.01"],
-        //             ["2000001", "30", "0.015"],
-        //             ["5000001", "20", "0.02"],
-        //             ["10000001", "15", "0.025"],
-        //             ["20000001", "10", "0.03"]
-        //         ],
-        //         ...
-        //     }
-        //
-        const tiers = {};
-        const marketIds = Object.keys(response);
-        for (let i = 0; i < marketIds.length; i++) {
-            const marketId = marketIds[i];
-            const market = this.safeMarket(marketId, undefined, undefined, 'spot');
-            const symbol = this.safeString(market, 'symbol');
-            let symbolsLength = 0;
-            if (symbols !== undefined) {
-                symbolsLength = symbols.length;
-            }
-            if (symbol !== undefined && (symbolsLength === 0 || this.inArray(symbols, symbol))) {
-                tiers[symbol] = this.parseMarketLeverageTiers(response[marketId], market);
-            }
-        }
-        return tiers;
-    }
     parseMarketLeverageTiers(item, market = undefined) {
         const tiers = [];
         let minNotional = 0;

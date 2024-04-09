@@ -3519,51 +3519,7 @@ class digifinex(Exchange, ImplicitAPI):
         #
         data = self.safe_value(response, 'data', [])
         symbols = self.market_symbols(symbols)
-        return self.parse_leverage_tiers(data, symbols, 'symbol')
-
-    def parse_leverage_tiers(self, response, symbols: Strings = None, marketIdKey=None):
-        #
-        #     [
-        #         {
-        #             "instrument_id": "BTCUSDTPERP",
-        #             "type": "REAL",
-        #             "contract_type": "PERPETUAL",
-        #             "base_currency": "BTC",
-        #             "quote_currency": "USDT",
-        #             "clear_currency": "USDT",
-        #             "contract_value": "0.001",
-        #             "contract_value_currency": "BTC",
-        #             "is_inverse": False,
-        #             "is_trading": True,
-        #             "status": "ONLINE",
-        #             "price_precision": 1,
-        #             "tick_size": "0.1",
-        #             "min_order_amount": 1,
-        #             "open_max_limits": [
-        #                 {
-        #                     "leverage": "50",
-        #                     "max_limit": "1000000"
-        #                 }
-        #             ]
-        #         },
-        #     ]
-        #
-        tiers = {}
-        result = {}
-        for i in range(0, len(response)):
-            entry = response[i]
-            marketId = self.safe_string(entry, 'instrument_id')
-            market = self.safe_market(marketId)
-            symbol = self.safe_symbol(marketId, market)
-            symbolsLength = 0
-            tiers[symbol] = self.parse_market_leverage_tiers(response[i], market)
-            if symbols is not None:
-                symbolsLength = len(symbols)
-                if self.in_array(symbol, symbols):
-                    result[symbol] = self.parse_market_leverage_tiers(response[i], market)
-            if symbol is not None and (symbolsLength == 0 or self.in_array(symbols, symbol)):
-                result[symbol] = self.parse_market_leverage_tiers(response[i], market)
-        return result
+        return self.parse_leverage_tiers(data, symbols, 'instrument_id')
 
     async def fetch_market_leverage_tiers(self, symbol: str, params={}):
         """

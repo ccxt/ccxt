@@ -3856,33 +3856,6 @@ class coinex(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', {})
         return self.parse_leverage_tiers(data, symbols, None)
 
-    def parse_leverage_tiers(self, response, symbols: Strings = None, marketIdKey=None):
-        #
-        #     {
-        #         "BTCUSD": [
-        #             ["500001", "100", "0.005"],
-        #             ["1000001", "50", "0.01"],
-        #             ["2000001", "30", "0.015"],
-        #             ["5000001", "20", "0.02"],
-        #             ["10000001", "15", "0.025"],
-        #             ["20000001", "10", "0.03"]
-        #         ],
-        #         ...
-        #     }
-        #
-        tiers = {}
-        marketIds = list(response.keys())
-        for i in range(0, len(marketIds)):
-            marketId = marketIds[i]
-            market = self.safe_market(marketId, None, None, 'spot')
-            symbol = self.safe_string(market, 'symbol')
-            symbolsLength = 0
-            if symbols is not None:
-                symbolsLength = len(symbols)
-            if symbol is not None and (symbolsLength == 0 or self.in_array(symbols, symbol)):
-                tiers[symbol] = self.parse_market_leverage_tiers(response[marketId], market)
-        return tiers
-
     def parse_market_leverage_tiers(self, item, market: Market = None):
         tiers = []
         minNotional = 0

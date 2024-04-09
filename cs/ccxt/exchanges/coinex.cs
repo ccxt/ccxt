@@ -4322,41 +4322,6 @@ public partial class coinex : Exchange
         return this.parseLeverageTiers(data, symbols, null);
     }
 
-    public override object parseLeverageTiers(object response, object symbols = null, object marketIdKey = null)
-    {
-        //
-        //     {
-        //         "BTCUSD": [
-        //             ["500001", "100", "0.005"],
-        //             ["1000001", "50", "0.01"],
-        //             ["2000001", "30", "0.015"],
-        //             ["5000001", "20", "0.02"],
-        //             ["10000001", "15", "0.025"],
-        //             ["20000001", "10", "0.03"]
-        //         ],
-        //         ...
-        //     }
-        //
-        object tiers = new Dictionary<string, object>() {};
-        object marketIds = new List<object>(((IDictionary<string,object>)response).Keys);
-        for (object i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
-        {
-            object marketId = getValue(marketIds, i);
-            object market = this.safeMarket(marketId, null, null, "spot");
-            object symbol = this.safeString(market, "symbol");
-            object symbolsLength = 0;
-            if (isTrue(!isEqual(symbols, null)))
-            {
-                symbolsLength = getArrayLength(symbols);
-            }
-            if (isTrue(isTrue(!isEqual(symbol, null)) && isTrue((isTrue(isEqual(symbolsLength, 0)) || isTrue(this.inArray(symbols, symbol))))))
-            {
-                ((IDictionary<string,object>)tiers)[(string)symbol] = this.parseMarketLeverageTiers(getValue(response, marketId), market);
-            }
-        }
-        return tiers;
-    }
-
     public override object parseMarketLeverageTiers(object item, object market = null)
     {
         object tiers = new List<object>() {};

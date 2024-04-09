@@ -42,11 +42,11 @@ use React\EventLoop\Loop;
 
 use Exception;
 
-$version = '4.2.92';
+$version = '4.2.93';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.2.92';
+    const VERSION = '4.2.93';
 
     public $browser;
     public $marketsLoading = null;
@@ -2374,14 +2374,33 @@ class Exchange extends \ccxt\Exchange {
         // $marketIdKey should only be null when $response is a dictionary
         $symbols = $this->market_symbols($symbols);
         $tiers = array();
-        for ($i = 0; $i < count($response); $i++) {
-            $item = $response[$i];
-            $id = $this->safe_string($item, $marketIdKey);
-            $market = $this->safe_market($id, null, null, 'swap');
-            $symbol = $market['symbol'];
-            $contract = $this->safe_bool($market, 'contract', false);
-            if ($contract && (($symbols === null) || $this->in_array($symbol, $symbols))) {
-                $tiers[$symbol] = $this->parse_market_leverage_tiers($item, $market);
+        $symbolsLength = 0;
+        if ($symbols !== null) {
+            $symbolsLength = count($symbols);
+        }
+        $noSymbols = ($symbols === null) || ($symbolsLength === 0);
+        if (gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response))) {
+            for ($i = 0; $i < count($response); $i++) {
+                $item = $response[$i];
+                $id = $this->safe_string($item, $marketIdKey);
+                $market = $this->safe_market($id, null, null, 'swap');
+                $symbol = $market['symbol'];
+                $contract = $this->safe_bool($market, 'contract', false);
+                if ($contract && ($noSymbols || $this->in_array($symbol, $symbols))) {
+                    $tiers[$symbol] = $this->parse_market_leverage_tiers($item, $market);
+                }
+            }
+        } else {
+            $keys = is_array($response) ? array_keys($response) : array();
+            for ($i = 0; $i < count($keys); $i++) {
+                $marketId = $keys[$i];
+                $item = $response[$marketId];
+                $market = $this->safe_market($marketId, null, null, 'swap');
+                $symbol = $market['symbol'];
+                $contract = $this->safe_bool($market, 'contract', false);
+                if ($contract && ($noSymbols || $this->in_array($symbol, $symbols))) {
+                    $tiers[$symbol] = $this->parse_market_leverage_tiers($item, $market);
+                }
             }
         }
         return $tiers;
