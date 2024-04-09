@@ -257,6 +257,15 @@
                     "9fd0cadc-2ccc-45e8-b254-ea511c34e5b2",
                     "DOGE-USDT"
                 ]
+            },
+            {
+                "description": "swap order",
+                "method": "fetchOrder",
+                "url": "https://api.coinbase.com/api/v3/brokerage/orders/historical/e01da816-5426-48e1-a188-5cfd36c2b9ef",
+                "input": [
+                  "e01da816-5426-48e1-a188-5cfd36c2b9ef",
+                  "ADA/USDC:USDC"
+                ]
             }
         ],
         "fetchTrades": [
