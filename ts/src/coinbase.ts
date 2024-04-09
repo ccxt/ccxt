@@ -7,7 +7,7 @@ import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { jwt } from './base/functions/rsa.js';
-import type { Int, OrderSide, OrderType, Order, Trade, OHLCV, Ticker, OrderBook, Str, Transaction, Balances, Tickers, Strings, Market, Currency, Num, Account, Currencies } from './base/types.js';
+import type { Int, OrderSide, OrderType, Order, Trade, OHLCV, Ticker, OrderBook, Str, Transaction, Balances, Tickers, Strings, Market, Currency, Num, Account, Currencies, MarketInterface } from './base/types.js';
 
 // ----------------------------------------------------------------------------
 
@@ -1165,13 +1165,59 @@ export default class coinbase extends Exchange {
     async fetchMarketsV3 (params = {}) {
         const promisesUnresolved = [
             this.v3PrivateGetBrokerageProducts (params),
+            this.v3PrivateGetBrokerageProducts (this.extend (params, { 'product_type': 'FUTURE' })),
+            this.v3PrivateGetBrokerageProducts (this.extend (params, { 'product_type': 'FUTURE', 'contract_expiry_type': 'PERPETUAL' })),
             this.v3PrivateGetBrokerageTransactionSummary (params),
+            this.v3PrivateGetBrokerageTransactionSummary (this.extend (params, { 'product_type': 'FUTURE' })),
+            this.v3PrivateGetBrokerageTransactionSummary (this.extend (params, { 'product_type': 'FUTURE', 'contract_expiry_type': 'PERPETUAL' })),
         ];
-        // const response = await this.v3PrivateGetBrokerageProducts (params);
         const promises = await Promise.all (promisesUnresolved);
-        const response = this.safeDict (promises, 0, {});
+        const spot = this.safeDict (promises, 0, {});
+        const expiringFutures = this.safeDict (promises, 1, {});
+        const perpetualFutures = this.safeDict (promises, 2, {});
+        const fees = this.safeDict (promises, 4, {});
+        const expiringFees = this.safeDict (promises, 5, {});
+        const perpetualFees = this.safeDict (promises, 6, {});
         //
-        //     [
+        //     {
+        //         "total_volume": 0,
+        //         "total_fees": 0,
+        //         "fee_tier": {
+        //             "pricing_tier": "",
+        //             "usd_from": "0",
+        //             "usd_to": "10000",
+        //             "taker_fee_rate": "0.006",
+        //             "maker_fee_rate": "0.004"
+        //         },
+        //         "margin_rate": null,
+        //         "goods_and_services_tax": null,
+        //         "advanced_trade_only_volume": 0,
+        //         "advanced_trade_only_fees": 0,
+        //         "coinbase_pro_volume": 0,
+        //         "coinbase_pro_fees": 0
+        //     }
+        //
+        const feeTier = this.safeDict (fees, 'fee_tier', {});
+        const expiringFeeTier = this.safeDict (expiringFees, 'fee_tier', {}); // fee tier null?
+        const perpetualFeeTier = this.safeDict (perpetualFees, 'fee_tier', {}); // fee tier null?
+        const data = this.safeList (spot, 'products', []);
+        const result = [];
+        for (let i = 0; i < data.length; i++) {
+            result.push (this.parseSpotMarket (data[i], feeTier));
+        }
+        const futureData = this.safeList (expiringFutures, 'products', []);
+        for (let i = 0; i < futureData.length; i++) {
+            result.push (this.parseContractMarket (futureData[i], expiringFeeTier));
+        }
+        const perpetualData = this.safeList (perpetualFutures, 'products', []);
+        for (let i = 0; i < perpetualData.length; i++) {
+            result.push (this.parseContractMarket (perpetualData[i], perpetualFeeTier));
+        }
+        return result;
+    }
+
+    parseSpotMarket (market, feeTier): MarketInterface {
+        //
         //         {
         //             "product_id": "TONE-USD",
         //             "price": "0.01523",
@@ -1200,97 +1246,258 @@ export default class coinbase extends Exchange {
         //             "base_currency_id": "TONE",
         //             "fcm_trading_session_details": null,
         //             "mid_market_price": ""
-        //         },
-        //         ...
-        //     ]
+        //         }
         //
-        // const fees = await this.v3PrivateGetBrokerageTransactionSummary (params);
-        const fees = this.safeDict (promises, 1, {});
-        //
-        //     {
-        //         "total_volume": 0,
-        //         "total_fees": 0,
-        //         "fee_tier": {
-        //             "pricing_tier": "",
-        //             "usd_from": "0",
-        //             "usd_to": "10000",
-        //             "taker_fee_rate": "0.006",
-        //             "maker_fee_rate": "0.004"
-        //         },
-        //         "margin_rate": null,
-        //         "goods_and_services_tax": null,
-        //         "advanced_trade_only_volume": 0,
-        //         "advanced_trade_only_fees": 0,
-        //         "coinbase_pro_volume": 0,
-        //         "coinbase_pro_fees": 0
-        //     }
-        //
-        const feeTier = this.safeDict (fees, 'fee_tier', {});
-        const data = this.safeList (response, 'products', []);
-        const result = [];
-        for (let i = 0; i < data.length; i++) {
-            const market = data[i];
-            const id = this.safeString (market, 'product_id');
-            const baseId = this.safeString (market, 'base_currency_id');
-            const quoteId = this.safeString (market, 'quote_currency_id');
-            const base = this.safeCurrencyCode (baseId);
-            const quote = this.safeCurrencyCode (quoteId);
-            const marketType = this.safeStringLower (market, 'product_type');
-            const tradingDisabled = this.safeBool (market, 'trading_disabled');
-            const stablePairs = this.safeList (this.options, 'stablePairs', []);
-            result.push ({
-                'id': id,
-                'symbol': base + '/' + quote,
-                'base': base,
-                'quote': quote,
-                'settle': undefined,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'settleId': undefined,
-                'type': marketType,
-                'spot': (marketType === 'spot'),
-                'margin': undefined,
-                'swap': false,
-                'future': false,
-                'option': false,
-                'active': !tradingDisabled,
-                'contract': false,
-                'linear': undefined,
-                'inverse': undefined,
-                'taker': this.inArray (id, stablePairs) ? 0.00001 : this.safeNumber (feeTier, 'taker_fee_rate'),
-                'maker': this.inArray (id, stablePairs) ? 0.0 : this.safeNumber (feeTier, 'maker_fee_rate'),
-                'contractSize': undefined,
-                'expiry': undefined,
-                'expiryDatetime': undefined,
-                'strike': undefined,
-                'optionType': undefined,
-                'precision': {
-                    'amount': this.safeNumber (market, 'base_increment'),
-                    'price': this.safeNumber2 (market, 'price_increment', 'quote_increment'),
+        const id = this.safeString (market, 'product_id');
+        const baseId = this.safeString (market, 'base_currency_id');
+        const quoteId = this.safeString (market, 'quote_currency_id');
+        const base = this.safeCurrencyCode (baseId);
+        const quote = this.safeCurrencyCode (quoteId);
+        const marketType = this.safeStringLower (market, 'product_type');
+        const tradingDisabled = this.safeBool (market, 'trading_disabled');
+        const stablePairs = this.safeList (this.options, 'stablePairs', []);
+        return this.safeMarketStructure ({
+            'id': id,
+            'symbol': base + '/' + quote,
+            'base': base,
+            'quote': quote,
+            'settle': undefined,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': undefined,
+            'type': marketType,
+            'spot': (marketType === 'spot'),
+            'margin': undefined,
+            'swap': false,
+            'future': false,
+            'option': false,
+            'active': !tradingDisabled,
+            'contract': false,
+            'linear': undefined,
+            'inverse': undefined,
+            'taker': this.inArray (id, stablePairs) ? 0.00001 : this.safeNumber (feeTier, 'taker_fee_rate'),
+            'maker': this.inArray (id, stablePairs) ? 0.0 : this.safeNumber (feeTier, 'maker_fee_rate'),
+            'contractSize': undefined,
+            'expiry': undefined,
+            'expiryDatetime': undefined,
+            'strike': undefined,
+            'optionType': undefined,
+            'precision': {
+                'amount': this.safeNumber (market, 'base_increment'),
+                'price': this.safeNumber2 (market, 'price_increment', 'quote_increment'),
+            },
+            'limits': {
+                'leverage': {
+                    'min': undefined,
+                    'max': undefined,
                 },
-                'limits': {
-                    'leverage': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'amount': {
-                        'min': this.safeNumber (market, 'base_min_size'),
-                        'max': this.safeNumber (market, 'base_max_size'),
-                    },
-                    'price': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'cost': {
-                        'min': this.safeNumber (market, 'quote_min_size'),
-                        'max': this.safeNumber (market, 'quote_max_size'),
-                    },
+                'amount': {
+                    'min': this.safeNumber (market, 'base_min_size'),
+                    'max': this.safeNumber (market, 'base_max_size'),
                 },
-                'created': undefined,
-                'info': market,
-            });
+                'price': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'cost': {
+                    'min': this.safeNumber (market, 'quote_min_size'),
+                    'max': this.safeNumber (market, 'quote_max_size'),
+                },
+            },
+            'created': undefined,
+            'info': market,
+        });
+    }
+
+    parseContractMarket (market, feeTier): MarketInterface {
+        // expiring
+        //
+        //        {
+        //           "product_id":"BIT-26APR24-CDE",
+        //           "price":"71145",
+        //           "price_percentage_change_24h":"-2.36722931247427",
+        //           "volume_24h":"108549",
+        //           "volume_percentage_change_24h":"155.78255337197794",
+        //           "base_increment":"1",
+        //           "quote_increment":"0.01",
+        //           "quote_min_size":"0",
+        //           "quote_max_size":"100000000",
+        //           "base_min_size":"1",
+        //           "base_max_size":"100000000",
+        //           "base_name":"",
+        //           "quote_name":"US Dollar",
+        //           "watched":false,
+        //           "is_disabled":false,
+        //           "new":false,
+        //           "status":"",
+        //           "cancel_only":false,
+        //           "limit_only":false,
+        //           "post_only":false,
+        //           "trading_disabled":false,
+        //           "auction_mode":false,
+        //           "product_type":"FUTURE",
+        //           "quote_currency_id":"USD",
+        //           "base_currency_id":"",
+        //           "fcm_trading_session_details":{
+        //              "is_session_open":true,
+        //              "open_time":"2024-04-08T22:00:00Z",
+        //              "close_time":"2024-04-09T21:00:00Z"
+        //           },
+        //           "mid_market_price":"71105",
+        //           "alias":"",
+        //           "alias_to":[
+        //           ],
+        //           "base_display_symbol":"",
+        //           "quote_display_symbol":"USD",
+        //           "view_only":false,
+        //           "price_increment":"5",
+        //           "display_name":"BTC 26 APR 24",
+        //           "product_venue":"FCM",
+        //           "future_product_details":{
+        //              "venue":"cde",
+        //              "contract_code":"BIT",
+        //              "contract_expiry":"2024-04-26T15:00:00Z",
+        //              "contract_size":"0.01",
+        //              "contract_root_unit":"BTC",
+        //              "group_description":"Nano Bitcoin Futures",
+        //              "contract_expiry_timezone":"Europe/London",
+        //              "group_short_description":"Nano BTC",
+        //              "risk_managed_by":"MANAGED_BY_FCM",
+        //              "contract_expiry_type":"EXPIRING",
+        //              "contract_display_name":"BTC 26 APR 24"
+        //           }
+        //        }
+        //
+        // perpetual
+        //
+        //        {
+        //           "product_id":"ETH-PERP-INTX",
+        //           "price":"3630.98",
+        //           "price_percentage_change_24h":"0.65142426292038",
+        //           "volume_24h":"114020.1501",
+        //           "volume_percentage_change_24h":"63.33650787154869",
+        //           "base_increment":"0.0001",
+        //           "quote_increment":"0.01",
+        //           "quote_min_size":"10",
+        //           "quote_max_size":"50000000",
+        //           "base_min_size":"0.0001",
+        //           "base_max_size":"50000",
+        //           "base_name":"",
+        //           "quote_name":"USDC",
+        //           "watched":false,
+        //           "is_disabled":false,
+        //           "new":false,
+        //           "status":"",
+        //           "cancel_only":false,
+        //           "limit_only":false,
+        //           "post_only":false,
+        //           "trading_disabled":false,
+        //           "auction_mode":false,
+        //           "product_type":"FUTURE",
+        //           "quote_currency_id":"USDC",
+        //           "base_currency_id":"",
+        //           "fcm_trading_session_details":null,
+        //           "mid_market_price":"3630.975",
+        //           "alias":"",
+        //           "alias_to":[],
+        //           "base_display_symbol":"",
+        //           "quote_display_symbol":"USDC",
+        //           "view_only":false,
+        //           "price_increment":"0.01",
+        //           "display_name":"ETH PERP",
+        //           "product_venue":"INTX",
+        //           "future_product_details":{
+        //              "venue":"",
+        //              "contract_code":"ETH",
+        //              "contract_expiry":null,
+        //              "contract_size":"1",
+        //              "contract_root_unit":"ETH",
+        //              "group_description":"",
+        //              "contract_expiry_timezone":"",
+        //              "group_short_description":"",
+        //              "risk_managed_by":"MANAGED_BY_VENUE",
+        //              "contract_expiry_type":"PERPETUAL",
+        //              "perpetual_details":{
+        //                 "open_interest":"0",
+        //                 "funding_rate":"0.000016",
+        //                 "funding_time":"2024-04-09T09:00:00.000008Z",
+        //                 "max_leverage":"10"
+        //              },
+        //              "contract_display_name":"ETH PERPETUAL"
+        //           }
+        //        }
+        //
+        const id = this.safeString (market, 'product_id');
+        const futureProductDetails = this.safeDict (market, 'future_product_details', {});
+        const contractExpiryType = this.safeString (futureProductDetails, 'contract_expiry_type');
+        const contractSize = this.safeNumber (futureProductDetails, 'contract_size');
+        const contractExpire = this.safeString (futureProductDetails, 'contract_expiry');
+        const isSwap = (contractExpiryType === 'PERPETUAL');
+        const baseId = this.safeString (futureProductDetails, 'contract_root_unit');
+        const quoteId = this.safeString (market, 'quote_currency_id');
+        const base = this.safeCurrencyCode (baseId);
+        const quote = this.safeCurrencyCode (quoteId);
+        const tradingDisabled = this.safeBool (market, 'is_disabled');
+        let symbol = base + '/' + quote;
+        let type = undefined;
+        if (isSwap) {
+            type = 'swap';
+            symbol = symbol + ':' + quote;
+        } else {
+            type = 'future';
+            symbol = symbol + ':' + quote + '-' + this.yymmdd (contractExpire);
         }
-        return result;
+        return this.safeMarketStructure ({
+            'id': id,
+            'symbol': symbol,
+            'base': base,
+            'quote': quote,
+            'settle': quote,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': quoteId,
+            'type': type,
+            'spot': false,
+            'margin': false,
+            'swap': isSwap,
+            'future': !isSwap,
+            'option': false,
+            'active': !tradingDisabled,
+            'contract': true,
+            'linear': true,
+            'inverse': false,
+            'taker': this.safeNumber (feeTier, 'taker_fee_rate'),
+            'maker': this.safeNumber (feeTier, 'maker_fee_rate'),
+            'contractSize': contractSize,
+            'expiry': this.parse8601 (contractExpire),
+            'expiryDatetime': contractExpire,
+            'strike': undefined,
+            'optionType': undefined,
+            'precision': {
+                'amount': this.safeNumber (market, 'base_increment'),
+                'price': this.safeNumber2 (market, 'price_increment', 'quote_increment'),
+            },
+            'limits': {
+                'leverage': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'amount': {
+                    'min': this.safeNumber (market, 'base_min_size'),
+                    'max': this.safeNumber (market, 'base_max_size'),
+                },
+                'price': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'cost': {
+                    'min': this.safeNumber (market, 'quote_min_size'),
+                    'max': this.safeNumber (market, 'quote_max_size'),
+                },
+            },
+            'created': undefined,
+            'info': market,
+        });
     }
 
     async fetchCurrenciesFromCache (params = {}) {
