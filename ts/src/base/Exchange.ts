@@ -3820,18 +3820,37 @@ export default class Exchange {
         return this.filterBySinceLimit (sorted, since, limit, 0) as any;
     }
 
-    parseLeverageTiers (response: object[], symbols: string[] = undefined, marketIdKey = undefined) {
+    parseLeverageTiers (response: any, symbols: string[] = undefined, marketIdKey = undefined) {
         // marketIdKey should only be undefined when response is a dictionary
         symbols = this.marketSymbols (symbols);
         const tiers = {};
-        for (let i = 0; i < response.length; i++) {
-            const item = response[i];
-            const id = this.safeString (item, marketIdKey);
-            const market = this.safeMarket (id, undefined, undefined, 'swap');
-            const symbol = market['symbol'];
-            const contract = this.safeBool (market, 'contract', false);
-            if (contract && ((symbols === undefined) || this.inArray (symbol, symbols))) {
-                tiers[symbol] = this.parseMarketLeverageTiers (item, market);
+        let symbolsLength = 0;
+        if (symbols !== undefined) {
+            symbolsLength = symbols.length;
+        }
+        const noSymbols = (symbols === undefined) || (symbolsLength === 0);
+        if (Array.isArray (response)) {
+            for (let i = 0; i < response.length; i++) {
+                const item = response[i];
+                const id = this.safeString (item, marketIdKey);
+                const market = this.safeMarket (id, undefined, undefined, 'swap');
+                const symbol = market['symbol'];
+                const contract = this.safeBool (market, 'contract', false);
+                if (contract && (noSymbols || this.inArray (symbol, symbols))) {
+                    tiers[symbol] = this.parseMarketLeverageTiers (item, market);
+                }
+            }
+        } else {
+            const keys = Object.keys (response);
+            for (let i = 0; i < keys.length; i++) {
+                const marketId = keys[i];
+                const item = response[marketId];
+                const market = this.safeMarket (marketId, undefined, undefined, 'swap');
+                const symbol = market['symbol'];
+                const contract = this.safeBool (market, 'contract', false);
+                if (contract && (noSymbols || this.inArray (symbol, symbols))) {
+                    tiers[symbol] = this.parseMarketLeverageTiers (item, market);
+                }
             }
         }
         return tiers;
