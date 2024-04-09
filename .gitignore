@@ -37,3 +37,4 @@ __pycache__
 *.log
 *.un~
 *.pyc
+venv/
