@@ -4111,7 +4111,7 @@ export default class coinbase extends Exchange {
             let portfolio = undefined;
             [ portfolio, params ] = this.handleOptionAndParams (params, 'fetchPositions', 'portfolio');
             if (portfolio === undefined) {
-                throw new ArgumentsRequired (this.id + ' fetchPositions() requires a "portfolio" in params, or set as exchange.options["portfolio"], you can get a list of portfolios with fetchPortfolios()');
+                throw new ArgumentsRequired (this.id + ' fetchPositions() requires a "portfolio" value in params (eg: dbcb91e7-2bc9-515), or set as exchange.options["portfolio"]. You can get a list of portfolios with fetchPortfolios()');
             }
             const request = {
                 'portfolio_uuid': portfolio,
@@ -4124,73 +4124,133 @@ export default class coinbase extends Exchange {
 
     parsePosition (position, market: Market = undefined) {
         //
-        //    {
-        //        "positionId":"1773122376147623936",
-        //        "symbol":"XRP-USDT",
-        //        "currency":"USDT",
-        //        "positionAmt":"3",
-        //        "availableAmt":"3",
-        //        "positionSide":"LONG",
-        //        "isolated":false,
-        //        "avgPrice":"0.6139",
-        //        "initialMargin":"0.0897",
-        //        "leverage":20,
-        //        "unrealizedProfit":"-0.0023",
-        //        "realisedProfit":"-0.0009",
-        //        "liquidationPrice":0,
-        //        "pnlRatio":"-0.0260",
-        //        "maxMarginReduction":"",
-        //        "riskRate":"",
-        //        "markPrice":"",
-        //        "positionValue":"",
-        //        "onlyOnePosition":false
-        //    }
-        //
-        // standard position
-        //
-        //     {
-        //         "currentPrice": "82.91",
-        //         "symbol": "LTC/USDT",
-        //         "initialMargin": "5.00000000000000000000",
-        //         "unrealizedProfit": "-0.26464500",
-        //         "leverage": "20.000000000",
-        //         "isolated": true,
-        //         "entryPrice": "83.13",
-        //         "positionSide": "LONG",
-        //         "positionAmt": "1.20365912",
+        // {
+        //     "product_id": "1r4njf84-0-0",
+        //     "product_uuid": "cd34c18b-3665-4ed8-9305-3db277c49fc5",
+        //     "symbol": "ADA-PERP-INTX",
+        //     "vwap": {
+        //        "value": "0.6171",
+        //        "currency": "USDC"
+        //     },
+        //     "position_side": "POSITION_SIDE_LONG",
+        //     "net_size": "20",
+        //     "buy_order_size": "0",
+        //     "sell_order_size": "0",
+        //     "im_contribution": "0.1",
+        //     "unrealized_pnl": {
+        //        "value": "0.074",
+        //        "currency": "USDC"
+        //     },
+        //     "mark_price": {
+        //        "value": "0.6208",
+        //        "currency": "USDC"
+        //     },
+        //     "liquidation_price": {
+        //        "value": "0",
+        //        "currency": "USDC"
+        //     },
+        //     "leverage": "1",
+        //     "im_notional": {
+        //        "value": "12.342",
+        //        "currency": "USDC"
+        //     },
+        //     "mm_notional": {
+        //        "value": "0.814572",
+        //        "currency": "USDC"
+        //     },
+        //     "position_notional": {
+        //        "value": "12.342",
+        //        "currency": "USDC"
+        //     },
+        //     "margin_type": "MARGIN_TYPE_CROSS",
+        //     "liquidation_buffer": "19.677828",
+        //     "liquidation_percentage": "4689.3506",
+        //     "portfolio_summary": {
+        //        "portfolio_uuid": "018ebd63-1f6d-7c8e-ada9-0761c5a2235f",
+        //        "collateral": "20.4184",
+        //        "position_notional": "12.342",
+        //        "open_position_notional": "12.342",
+        //        "pending_fees": "0",
+        //        "borrow": "0",
+        //        "accrued_interest": "0",
+        //        "rolling_debt": "0",
+        //        "portfolio_initial_margin": "0.1",
+        //        "portfolio_im_notional": {
+        //           "value": "12.342",
+        //           "currency": "USDC"
+        //        },
+        //        "portfolio_maintenance_margin": "0.066",
+        //        "portfolio_mm_notional": {
+        //           "value": "0.814572",
+        //           "currency": "USDC"
+        //        },
+        //        "liquidation_percentage": "4689.3506",
+        //        "liquidation_buffer": "19.677828",
+        //        "margin_type": "MARGIN_TYPE_CROSS",
+        //        "margin_flags": "PORTFOLIO_MARGIN_FLAGS_UNSPECIFIED",
+        //        "liquidation_status": "PORTFOLIO_LIQUIDATION_STATUS_NOT_LIQUIDATING",
+        //        "unrealized_pnl": {
+        //           "value": "0.074",
+        //           "currency": "USDC"
+        //        },
+        //        "buying_power": {
+        //           "value": "8.1504",
+        //           "currency": "USDC"
+        //        },
+        //        "total_balance": {
+        //           "value": "20.4924",
+        //           "currency": "USDC"
+        //        },
+        //        "max_withdrawal": {
+        //           "value": "8.0764",
+        //           "currency": "USDC"
+        //        }
+        //     },
+        //     "entry_vwap": {
+        //        "value": "0.6091",
+        //        "currency": "USDC"
         //     }
+        // }
         //
-        let marketId = this.safeString (position, 'symbol', '');
-        marketId = marketId.replace ('/', '-'); // standard return different format
-        const isolated = this.safeBool (position, 'isolated');
+        const marketId = this.safeString (position, 'symbol', '');
+        market = this.safeMarket (marketId, market);
+        const rawMargin = this.safeString (position, 'margin_type');
         let marginMode = undefined;
-        if (isolated !== undefined) {
-            marginMode = isolated ? 'isolated' : 'cross';
+        if (rawMargin !== undefined) {
+            marginMode = (rawMargin === 'MARGIN_TYPE_CROSS') ? 'cross' : 'isolated';
         }
+        const notionalObject = this.safeDict (position, 'position_notional', {});
+        const positionSide = this.safeString (position, 'position_side');
+        const side = (positionSide === 'POSITION_SIDE_LONG') ? 'long' : 'short';
+        const unrealizedPNLObject = this.safeDict (position, 'unrealized_pnl', {});
+        const liquidationPriceObject = this.safeDict (position, 'liquidation_price', {});
+        const liquidationPrice = this.safeNumber (liquidationPriceObject, 'value');
+        const vwapObject = this.safeDict (position, 'vwap', {});
+        const summaryObject = this.safeDict (position, 'portfolio_summary', {});
         return this.safePosition ({
             'info': position,
-            'id': this.safeString (position, 'positionId'),
-            'symbol': this.safeSymbol (marketId, market, '-', 'swap'),
-            'notional': this.safeNumber (position, 'positionValue'),
+            'id': this.safeString (position, 'product_id'),
+            'symbol': this.safeSymbol (marketId, market),
+            'notional': this.safeNumber (notionalObject, 'value'),
             'marginMode': marginMode,
-            'liquidationPrice': undefined,
-            'entryPrice': this.safeNumber2 (position, 'avgPrice', 'entryPrice'),
-            'unrealizedPnl': this.safeNumber (position, 'unrealizedProfit'),
-            'realizedPnl': this.safeNumber (position, 'realisedProfit'),
+            'liquidationPrice': liquidationPrice,
+            'entryPrice': this.safeNumber (vwapObject, 'value'),
+            'unrealizedPnl': this.safeNumber (unrealizedPNLObject, 'value'),
+            'realizedPnl': undefined,
             'percentage': undefined,
-            'contracts': this.safeNumber (position, 'positionAmt'),
-            'contractSize': undefined,
+            'contracts': this.safeNumber (position, 'net_size'),
+            'contractSize': market['contractSize'],
             'markPrice': undefined,
             'lastPrice': undefined,
-            'side': this.safeStringLower (position, 'positionSide'),
+            'side': side,
             'hedged': undefined,
             'timestamp': undefined,
             'datetime': undefined,
             'lastUpdateTimestamp': undefined,
             'maintenanceMargin': undefined,
             'maintenanceMarginPercentage': undefined,
-            'collateral': undefined,
-            'initialMargin': this.safeNumber (position, 'initialMargin'),
+            'collateral': this.safeNumber (summaryObject, 'collateral'),
+            'initialMargin': undefined,
             'initialMarginPercentage': undefined,
             'leverage': this.safeNumber (position, 'leverage'),
             'marginRatio': undefined,

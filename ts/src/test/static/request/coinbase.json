@@ -511,6 +511,19 @@
                     "BTC/USDT"
                 ]
             }
+        ],
+        "fetchPositions": [
+            {
+                "description": "fetch swap positions",
+                "method": "fetchPositions",
+                "url": "https://api.coinbase.com/api/v3/brokerage/intx/positions/018ebd63-1f6d-7c8e-ada9-0761c5a2235f",
+                "input": [
+                  null,
+                  {
+                    "portfolio": "018ebd63-1f6d-7c8e-ada9-0761c5a2235f"
+                  }
+                ]
+            }
         ]
     }
 }
