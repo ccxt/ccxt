@@ -713,7 +713,6 @@ class NewTranspiler {
         baseClass = baseClass.replace("throw new getValue(exact, str)(((string)message));", "this.throwDynamicException(exact, str, message);"); // tmp fix for c#
         // baseClass = baseClass.replace("throw new getValue(exact, str)(message);", "throw new Exception ((string) message);"); // tmp fix for c#
 
-        baseClass = baseClass.replace(/trades\.getLimit\((\w+), (\w+)\)/, 'callDynamically(trades, "getLimit", new object[] {$1, $2})'); // tmp fix for c#
 
         // WS fixes
         baseClass = baseClass.replace(/\(object client,/gm, '(WebSocketClient client,');
