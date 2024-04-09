@@ -1447,6 +1447,8 @@ export default class coinbase extends Exchange {
             type = 'future';
             symbol = symbol + ':' + quote + '-' + this.yymmdd (contractExpire);
         }
+        const takerFeeRate = this.safeNumber (feeTier, 'taker_fee_rate');
+        const makerFeeRate = this.safeNumber (feeTier, 'maker_fee_rate');
         return this.safeMarketStructure ({
             'id': id,
             'symbol': symbol,
@@ -1466,8 +1468,8 @@ export default class coinbase extends Exchange {
             'contract': true,
             'linear': true,
             'inverse': false,
-            'taker': this.safeNumber (feeTier, 'taker_fee_rate'),
-            'maker': this.safeNumber (feeTier, 'maker_fee_rate'),
+            'taker': (takerFeeRate === undefined) ? this.parseNumber ('0.06') : takerFeeRate,
+            'maker': (makerFeeRate === undefined) ? this.parseNumber ('0.04') : makerFeeRate,
             'contractSize': contractSize,
             'expiry': this.parse8601 (contractExpire),
             'expiryDatetime': contractExpire,
