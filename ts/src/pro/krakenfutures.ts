@@ -1521,7 +1521,7 @@ export default class krakenfutures extends krakenfuturesRest {
         if (!withSymbol) {
             messageHash += 's';
         } else {
-            messageHash += '@' + symbol;
+            messageHash += ':' + symbol;
         }
         if (subChannelName !== undefined) {
             messageHash += '#' + subChannelName;
