@@ -524,7 +524,7 @@ export default class krakenfutures extends krakenfuturesRest {
         if (marketId !== undefined) {
             const market = this.market (marketId);
             const symbol = market['symbol'];
-            const messageHash = this.getMessageHash ('trades', undefined, symbol);
+            const messageHash = this.getMessageHash ('trade', undefined, symbol);
             if (this.safeList (this.trades, symbol) === undefined) {
                 const tradesLimit = this.safeInteger (this.options, 'tradesLimit', 1000);
                 this.trades[symbol] = new ArrayCache (tradesLimit);
