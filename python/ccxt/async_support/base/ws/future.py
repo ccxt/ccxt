@@ -29,7 +29,7 @@ class Future(asyncio.Future):
                     try:
                         f.result()
                     except ExchangeClosedByUser as e:
-                        if len(pending) == 0 and i == len(complete) -1:
+                        if len(pending) == 0 and i == len(complete) - 1:
                             future.reject(e)
                         # wait for all the sub promises to be reject before rejecting future
                         continue
@@ -44,7 +44,7 @@ class Future(asyncio.Future):
                 first_result = first.result()
                 future.resolve(first_result)
             except asyncio.CancelledError as e:
-                future.reject (e)
+                future.reject(e)
             except Exception as e:
                 future.reject(e)
         task.add_done_callback(callback)
