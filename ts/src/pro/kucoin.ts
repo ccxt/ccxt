@@ -185,16 +185,17 @@ export default class kucoin extends kucoinRest {
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
          * @param {string[]} symbols unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.method] either '/market/snapshot' or '/market/ticker' default is '/market/ticker'
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
-        let messageHash = 'tickers';
+        const messageHash = 'tickers';
+        let method = undefined;
+        [ method, params ] = this.handleOptionAndParams (params, 'watchTickers', 'method', '/market/ticker');
         const messageHashes = [];
         const topics = [];
         if (symbols !== undefined) {
-            messageHash = 'tickers::' + symbols.join (',');
-            const [ method ] = this.handleOptionAndParams (params, 'watchTicker', 'method', '/market/snapshot');
             for (let i = 0; i < symbols.length; i++) {
                 const symbol = symbols[i];
                 messageHashes.push ('ticker:' + symbol);
@@ -203,15 +204,17 @@ export default class kucoin extends kucoinRest {
             }
         }
         const url = await this.negotiate (false);
-        const topic = '/market/ticker:all';
         let tickers = undefined;
         if (symbols === undefined) {
-            tickers = await this.subscribe (url, messageHash, topic, params);
+            const allTopic = method + ':all';
+            tickers = await this.subscribe (url, messageHash, allTopic, params);
             if (this.newUpdates) {
                 return tickers;
             }
         } else {
-            tickers = await this.subscribeMultiple (url, messageHashes, topic, topics, params);
+            const marketIds = this.marketIds (symbols);
+            const symbolsTopic = method + ':' + marketIds.join (',');
+            tickers = await this.subscribeMultiple (url, messageHashes, symbolsTopic, topics, params);
             if (this.newUpdates) {
                 const newDict = {};
                 newDict[tickers['symbol']] = tickers;
