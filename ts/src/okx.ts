@@ -6,7 +6,7 @@ import { ExchangeError, ExchangeNotAvailable, OnMaintenance, ArgumentsRequired, 
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { TransferEntry, Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Str, Transaction, Ticker, OrderBook, Balances, Tickers, Market, Greeks, Strings, MarketInterface, Currency, Leverage, Num, Account, OptionChain, Option, MarginModification, TradingFeeInterface, Currencies } from './base/types.js';
+import type { TransferEntry, Int, Dict, Bool, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Str, Transaction, Ticker, OrderBook, Balances, Tickers, Market, Greeks, Strings, MarketInterface, Currency, Leverage, Num, Account, OptionChain, Option, MarginModification, TradingFeeInterface, Currencies } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -33,6 +33,7 @@ export default class okx extends Exchange {
                 'option': true,
                 'addMargin': true,
                 'cancelAllOrders': false,
+                'cancelAllOrdersAfter': true,
                 'cancelOrder': true,
                 'cancelOrders': true,
                 'closeAllPositions': false,
@@ -3261,6 +3262,37 @@ export default class okx extends Exchange {
         //
         const ordersData = this.safeList (response, 'data', []);
         return this.parseOrders (ordersData, market, undefined, undefined, params);
+    }
+
+    async cancelAllOrdersAfter (timeout: number, activated: Bool = undefined, params = {}) {
+        /**
+         * @method
+         * @name okx#cancelAllOrdersAfter
+         * @description dead man's switch, cancel all orders after the given timeout
+         * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-cancel-all-after
+         * @param {number} countdown time in seconds
+         * @param {boolean} activated countdown
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} the api result
+         */
+        await this.loadMarkets ();
+        const request: Dict = {
+            'timeOut': (activated) ? timeout : 0,
+        };
+        const response = await this.privatePostTradeCancelAllAfter (this.extend (request, params));
+        //
+        //     {
+        //         "code":"0",
+        //         "msg":"",
+        //         "data":[
+        //             {
+        //                 "triggerTime":"1587971460",
+        //                 "ts":"1587971400"
+        //             }
+        //         ]
+        //     }
+        //
+        return response;
     }
 
     parseOrderStatus (status) {

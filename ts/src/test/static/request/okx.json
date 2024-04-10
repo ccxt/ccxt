@@ -799,6 +799,28 @@
                 "output": "[{\"algoId\":\"663748219972878336\",\"instId\":\"BTC-USDT-SWAP\"}]"
             }
         ],
+        "cancelAllOrdersAfter": [
+            {
+                "description": "Cancel orders after",
+                "method": "cancelAllOrdersAfter",
+                "url": "https://www.okx.com/api/v5/trade/cancel-all-after",
+                "input": [
+                    10,
+                    true
+                ],
+                "output": "{\"timeOut\":10}"
+            },
+            {
+                "description": "Close cancel orders after",
+                "method": "cancelAllOrdersAfter",
+                "url": "https://www.okx.com/api/v5/trade/cancel-all-after",
+                "input": [
+                    10,
+                    false
+                ],
+                "output": "{\"timeOut\":0}"
+            }
+        ],
         "closePosition": [
             {
                 "description": "Closing positiion in net mode",
