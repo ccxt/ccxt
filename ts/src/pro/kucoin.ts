@@ -193,7 +193,7 @@ export default class kucoin extends kucoinRest {
             messageHash = 'tickers::' + symbols.join (',');
         }
         const url = await this.negotiate (false);
-        const topic = `/market/ticker:${symbols !== undefined ? symbols.join (',') : "all"}`;
+        const topic = '/market/ticker:all';
         const tickers = await this.subscribe (url, messageHash, topic, params);
         if (this.newUpdates) {
             return tickers;
