@@ -2188,6 +2188,20 @@ public partial class Exchange
         return result;
     }
 
+    public virtual object marketsForSymbols(object symbols = null)
+    {
+        if (isTrue(isEqual(symbols, null)))
+        {
+            return symbols;
+        }
+        object result = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        {
+            ((IList<object>)result).Add(this.market(getValue(symbols, i)));
+        }
+        return result;
+    }
+
     public virtual object marketSymbols(object symbols = null, object type = null, object allowEmpty = null, object sameTypeOnly = null, object sameSubTypeOnly = null)
     {
         allowEmpty ??= true;
@@ -4058,6 +4072,12 @@ public partial class Exchange
         throw new NotSupported ((string)add(this.id, " fetchOption() is not supported yet")) ;
     }
 
+    public async virtual Task<object> fetchConvertQuote(object fromCode, object toCode, object amount = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " fetchConvertQuote() is not supported yet")) ;
+    }
+
     public async virtual Task<object> fetchDepositsWithdrawals(object code = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
@@ -4823,6 +4843,12 @@ public partial class Exchange
         }
         object fees = await this.fetchTradingFees(parameters);
         return this.safeDict(fees, symbol);
+    }
+
+    public async virtual Task<object> fetchConvertCurrencies(object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " fetchConvertCurrencies() is not supported yet")) ;
     }
 
     public virtual object parseOpenInterest(object interest, object market = null)
@@ -5732,7 +5758,12 @@ public partial class Exchange
 
     public virtual object parseLeverage(object leverage, object market = null)
     {
-        throw new NotSupported ((string)add(this.id, " parseLeverage() is not supported yet")) ;
+        throw new NotSupported ((string)add(this.id, " parseLeverage () is not supported yet")) ;
+    }
+
+    public virtual object parseConversion(object conversion, object fromCurrency = null, object toCurrency = null)
+    {
+        throw new NotSupported ((string)add(this.id, " parseConversion () is not supported yet")) ;
     }
 
     public virtual object convertExpireDate(object date)

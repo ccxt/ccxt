@@ -173,22 +173,46 @@ class kucoin extends kucoin$1 {
         /**
          * @method
          * @name kucoin#watchTickers
+         * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/ticker
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
          * @param {string[]} symbols unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.method] either '/market/snapshot' or '/market/ticker' default is '/market/ticker'
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
-        let messageHash = 'tickers';
+        const messageHash = 'tickers';
+        let method = undefined;
+        [method, params] = this.handleOptionAndParams(params, 'watchTickers', 'method', '/market/ticker');
+        const messageHashes = [];
+        const topics = [];
         if (symbols !== undefined) {
-            messageHash = 'tickers::' + symbols.join(',');
+            for (let i = 0; i < symbols.length; i++) {
+                const symbol = symbols[i];
+                messageHashes.push('ticker:' + symbol);
+                const market = this.market(symbol);
+                topics.push(method + ':' + market['id']);
+            }
         }
         const url = await this.negotiate(false);
-        const topic = '/market/ticker:all';
-        const tickers = await this.subscribe(url, messageHash, topic, params);
-        if (this.newUpdates) {
-            return tickers;
+        let tickers = undefined;
+        if (symbols === undefined) {
+            const allTopic = method + ':all';
+            tickers = await this.subscribe(url, messageHash, allTopic, params);
+            if (this.newUpdates) {
+                return tickers;
+            }
+        }
+        else {
+            const marketIds = this.marketIds(symbols);
+            const symbolsTopic = method + ':' + marketIds.join(',');
+            tickers = await this.subscribeMultiple(url, messageHashes, symbolsTopic, topics, params);
+            if (this.newUpdates) {
+                const newDict = {};
+                newDict[tickers['symbol']] = tickers;
+                return newDict;
+            }
         }
         return this.filterByArray(this.tickers, 'symbol', symbols);
     }
@@ -272,19 +296,6 @@ class kucoin extends kucoin$1 {
         const allTickers = {};
         allTickers[symbol] = ticker;
         client.resolve(allTickers, 'tickers');
-        const messageHashes = this.findMessageHashes(client, 'tickers::');
-        for (let i = 0; i < messageHashes.length; i++) {
-            const currentMessageHash = messageHashes[i];
-            const parts = currentMessageHash.split('::');
-            const symbolsString = parts[1];
-            const symbols = symbolsString.split(',');
-            const tickers = this.filterByArray(this.tickers, 'symbol', symbols);
-            const tickersSymbols = Object.keys(tickers);
-            const numTickers = tickersSymbols.length;
-            if (numTickers > 0) {
-                client.resolve(tickers, currentMessageHash);
-            }
-        }
     }
     async watchBidsAsks(symbols = undefined, params = {}) {
         /**

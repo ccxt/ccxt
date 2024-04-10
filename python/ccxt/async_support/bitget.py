@@ -8,7 +8,7 @@ from ccxt.abstract.bitget import ImplicitAPI
 import asyncio
 import hashlib
 import json
-from ccxt.base.types import Balances, Currencies, Currency, FundingHistory, Int, Liquidation, Leverage, MarginMode, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
+from ccxt.base.types import Balances, Conversion, Currencies, Currency, FundingHistory, Int, Liquidation, Leverage, MarginMode, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -85,6 +85,8 @@ class bitget(Exchange, ImplicitAPI):
                 'fetchCanceledAndClosedOrders': True,
                 'fetchCanceledOrders': True,
                 'fetchClosedOrders': True,
+                'fetchConvertCurrencies': True,
+                'fetchConvertQuote': True,
                 'fetchCrossBorrowRate': True,
                 'fetchCrossBorrowRates': False,
                 'fetchCurrencies': True,
@@ -7852,6 +7854,138 @@ class bitget(Exchange, ImplicitAPI):
             'symbol': market['symbol'],
             'marginMode': marginType,
         }
+
+    async def fetch_convert_quote(self, fromCode: str, toCode: str, amount: Num = None, params={}) -> Conversion:
+        """
+        fetch a quote for converting from one currency to another
+        :see: https://www.bitget.com/api-doc/common/convert/Get-Quoted-Price
+        :param str fromCode: the currency that you want to sell and convert from
+        :param str toCode: the currency that you want to buy and convert into
+        :param float [amount]: how much you want to trade in units of the from currency
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `conversion structure <https://docs.ccxt.com/#/?id=conversion-structure>`
+        """
+        await self.load_markets()
+        request = {
+            'fromCoin': fromCode.upper(),
+            'toCoin': toCode.upper(),
+            'fromCoinSize': self.number_to_string(amount),
+        }
+        response = await self.privateConvertGetV2ConvertQuotedPrice(self.extend(request, params))
+        #
+        #     {
+        #         "code": "00000",
+        #         "msg": "success",
+        #         "requestTime": 1712121940158,
+        #         "data": {
+        #             "fromCoin": "USDT",
+        #             "fromCoinSize": "5",
+        #             "cnvtPrice": "0.9993007892377704",
+        #             "toCoin": "USDC",
+        #             "toCoinSize": "4.99650394",
+        #             "traceId": "1159288930228187140",
+        #             "fee": "0"
+        #         }
+        #     }
+        #
+        data = self.safe_dict(response, 'data', {})
+        fromCurrencyId = self.safe_string(data, 'fromCoin', fromCode)
+        fromCurrency = self.currency(fromCurrencyId)
+        toCurrencyId = self.safe_string(data, 'toCoin', toCode)
+        toCurrency = self.currency(toCurrencyId)
+        return self.parse_conversion(data, fromCurrency, toCurrency)
+
+    def parse_conversion(self, conversion, fromCurrency: Currency = None, toCurrency: Currency = None) -> Conversion:
+        #
+        # fetchConvertQuote
+        #
+        #     {
+        #         "fromCoin": "USDT",
+        #         "fromCoinSize": "5",
+        #         "cnvtPrice": "0.9993007892377704",
+        #         "toCoin": "USDC",
+        #         "toCoinSize": "4.99650394",
+        #         "traceId": "1159288930228187140",
+        #         "fee": "0"
+        #     }
+        #
+        timestamp = self.safe_integer(conversion, 'ts')
+        fromCoin = self.safe_string(conversion, 'fromCoin')
+        fromCode = self.safe_currency_code(fromCoin, fromCurrency)
+        to = self.safe_string(conversion, 'toCoin')
+        toCode = self.safe_currency_code(to, toCurrency)
+        return {
+            'info': conversion,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'id': self.safe_string(conversion, 'traceId'),
+            'fromCurrency': fromCode,
+            'fromAmount': self.safe_number(conversion, 'fromCoinSize'),
+            'toCurrency': toCode,
+            'toAmount': self.safe_number(conversion, 'toCoinSize'),
+            'price': self.safe_number(conversion, 'cnvtPrice'),
+            'fee': self.safe_number(conversion, 'fee'),
+        }
+
+    async def fetch_convert_currencies(self, params={}) -> Currencies:
+        """
+        fetches all available currencies that can be converted
+        :see: https://www.bitget.com/api-doc/common/convert/Get-Convert-Currencies
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an associative dictionary of currencies
+        """
+        await self.load_markets()
+        response = await self.privateConvertGetV2ConvertCurrencies(params)
+        #
+        #     {
+        #         "code": "00000",
+        #         "msg": "success",
+        #         "requestTime": 1712121755897,
+        #         "data": [
+        #             {
+        #                 "coin": "BTC",
+        #                 "available": "0.00009850",
+        #                 "maxAmount": "0.756266",
+        #                 "minAmount": "0.00001"
+        #             },
+        #         ]
+        #     }
+        #
+        result = {}
+        data = self.safe_list(response, 'data', [])
+        for i in range(0, len(data)):
+            entry = data[i]
+            id = self.safe_string(entry, 'coin')
+            code = self.safe_currency_code(id)
+            result[code] = {
+                'info': entry,
+                'id': id,
+                'code': code,
+                'networks': None,
+                'type': None,
+                'name': None,
+                'active': None,
+                'deposit': None,
+                'withdraw': self.safe_number(entry, 'available'),
+                'fee': None,
+                'precision': None,
+                'limits': {
+                    'amount': {
+                        'min': self.safe_number(entry, 'minAmount'),
+                        'max': self.safe_number(entry, 'maxAmount'),
+                    },
+                    'withdraw': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'deposit': {
+                        'min': None,
+                        'max': None,
+                    },
+                },
+                'created': None,
+            }
+        return result
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if not response:

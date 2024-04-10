@@ -42,11 +42,11 @@ use React\EventLoop\Loop;
 
 use Exception;
 
-$version = '4.2.93';
+$version = '4.2.94';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.2.93';
+    const VERSION = '4.2.94';
 
     public $browser;
     public $marketsLoading = null;
@@ -2098,6 +2098,17 @@ class Exchange extends \ccxt\Exchange {
         return $result;
     }
 
+    public function markets_for_symbols(?array $symbols = null) {
+        if ($symbols === null) {
+            return $symbols;
+        }
+        $result = array();
+        for ($i = 0; $i < count($symbols); $i++) {
+            $result[] = $this->market ($symbols[$i]);
+        }
+        return $result;
+    }
+
     public function market_symbols(?array $symbols = null, ?string $type = null, $allowEmpty = true, $sameTypeOnly = false, $sameSubTypeOnly = false) {
         if ($symbols === null) {
             if (!$allowEmpty) {
@@ -3598,6 +3609,10 @@ class Exchange extends \ccxt\Exchange {
         throw new NotSupported($this->id . ' fetchOption() is not supported yet');
     }
 
+    public function fetch_convert_quote(string $fromCode, string $toCode, ?float $amount = null, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchConvertQuote() is not supported yet');
+    }
+
     public function fetch_deposits_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch history of deposits and withdrawals
@@ -4215,6 +4230,10 @@ class Exchange extends \ccxt\Exchange {
             $fees = Async\await($this->fetch_trading_fees($params));
             return $this->safe_dict($fees, $symbol);
         }) ();
+    }
+
+    public function fetch_convert_currencies($params = array ()) {
+        throw new NotSupported($this->id . ' fetchConvertCurrencies() is not supported yet');
     }
 
     public function parse_open_interest($interest, ?array $market = null) {
@@ -4939,7 +4958,11 @@ class Exchange extends \ccxt\Exchange {
     }
 
     public function parse_leverage($leverage, ?array $market = null) {
-        throw new NotSupported($this->id . ' parseLeverage() is not supported yet');
+        throw new NotSupported($this->id . ' parseLeverage () is not supported yet');
+    }
+
+    public function parse_conversion($conversion, ?array $fromCurrency = null, ?array $toCurrency = null) {
+        throw new NotSupported($this->id . ' parseConversion () is not supported yet');
     }
 
     public function convert_expire_date(string $date) {

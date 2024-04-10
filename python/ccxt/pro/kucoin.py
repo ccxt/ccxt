@@ -168,21 +168,41 @@ class kucoin(ccxt.async_support.kucoin):
 
     async def watch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
+        :see: https://www.kucoin.com/docs/websocket/spot-trading/public-channels/ticker
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
         :param str[] symbols: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.method]: either '/market/snapshot' or '/market/ticker' default is '/market/ticker'
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols)
         messageHash = 'tickers'
+        method = None
+        method, params = self.handle_option_and_params(params, 'watchTickers', 'method', '/market/ticker')
+        messageHashes = []
+        topics = []
         if symbols is not None:
-            messageHash = 'tickers::' + ','.join(symbols)
+            for i in range(0, len(symbols)):
+                symbol = symbols[i]
+                messageHashes.append('ticker:' + symbol)
+                market = self.market(symbol)
+                topics.append(method + ':' + market['id'])
         url = await self.negotiate(False)
-        topic = '/market/ticker:all'
-        tickers = await self.subscribe(url, messageHash, topic, params)
-        if self.newUpdates:
-            return tickers
+        tickers = None
+        if symbols is None:
+            allTopic = method + ':all'
+            tickers = await self.subscribe(url, messageHash, allTopic, params)
+            if self.newUpdates:
+                return tickers
+        else:
+            marketIds = self.market_ids(symbols)
+            symbolsTopic = method + ':' + ','.join(marketIds)
+            tickers = await self.subscribe_multiple(url, messageHashes, symbolsTopic, topics, params)
+            if self.newUpdates:
+                newDict = {}
+                newDict[tickers['symbol']] = tickers
+                return newDict
         return self.filter_by_array(self.tickers, 'symbol', symbols)
 
     def handle_ticker(self, client: Client, message):
@@ -262,17 +282,6 @@ class kucoin(ccxt.async_support.kucoin):
         allTickers = {}
         allTickers[symbol] = ticker
         client.resolve(allTickers, 'tickers')
-        messageHashes = self.find_message_hashes(client, 'tickers::')
-        for i in range(0, len(messageHashes)):
-            currentMessageHash = messageHashes[i]
-            parts = currentMessageHash.split('::')
-            symbolsString = parts[1]
-            symbols = symbolsString.split(',')
-            tickers = self.filter_by_array(self.tickers, 'symbol', symbols)
-            tickersSymbols = list(tickers.keys())
-            numTickers = len(tickersSymbols)
-            if numTickers > 0:
-                client.resolve(tickers, currentMessageHash)
 
     async def watch_bids_asks(self, symbols: Strings = None, params={}) -> Tickers:
         """

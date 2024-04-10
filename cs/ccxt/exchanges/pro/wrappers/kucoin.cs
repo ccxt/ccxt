@@ -29,11 +29,18 @@ public partial class kucoin
     /// watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
     /// </summary>
     /// <remarks>
+    /// See <see href="https://www.kucoin.com/docs/websocket/spot-trading/public-channels/ticker"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.method</term>
+    /// <description>
+    /// string : either '/market/snapshot' or '/market/ticker' default is '/market/ticker'
     /// </description>
     /// </item>
     /// </list>

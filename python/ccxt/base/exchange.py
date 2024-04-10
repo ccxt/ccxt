@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.2.93'
+__version__ = '4.2.94'
 
 # -----------------------------------------------------------------------------
 
@@ -3225,6 +3225,14 @@ class Exchange(object):
             result.append(self.market_id(symbols[i]))
         return result
 
+    def markets_for_symbols(self, symbols: Strings = None):
+        if symbols is None:
+            return symbols
+        result = []
+        for i in range(0, len(symbols)):
+            result.append(self.market(symbols[i]))
+        return result
+
     def market_symbols(self, symbols: Strings = None, type: Str = None, allowEmpty=True, sameTypeOnly=False, sameSubTypeOnly=False):
         if symbols is None:
             if not allowEmpty:
@@ -4369,6 +4377,9 @@ class Exchange(object):
     def fetch_option(self, symbol: str, params={}):
         raise NotSupported(self.id + ' fetchOption() is not supported yet')
 
+    def fetch_convert_quote(self, fromCode: str, toCode: str, amount: Num = None, params={}):
+        raise NotSupported(self.id + ' fetchConvertQuote() is not supported yet')
+
     def fetch_deposits_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch history of deposits and withdrawals
@@ -4841,6 +4852,9 @@ class Exchange(object):
             raise NotSupported(self.id + ' fetchTradingFee() is not supported yet')
         fees = self.fetch_trading_fees(params)
         return self.safe_dict(fees, symbol)
+
+    def fetch_convert_currencies(self, params={}):
+        raise NotSupported(self.id + ' fetchConvertCurrencies() is not supported yet')
 
     def parse_open_interest(self, interest, market: Market = None):
         raise NotSupported(self.id + ' parseOpenInterest() is not supported yet')
@@ -5424,6 +5438,9 @@ class Exchange(object):
 
     def parse_leverage(self, leverage, market: Market = None):
         raise NotSupported(self.id + ' parseLeverage() is not supported yet')
+
+    def parse_conversion(self, conversion, fromCurrency: Currency = None, toCurrency: Currency = None):
+        raise NotSupported(self.id + ' parseConversion() is not supported yet')
 
     def convert_expire_date(self, date: str):
         # parse YYMMDD to datetime string
