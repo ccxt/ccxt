@@ -74,6 +74,7 @@ export default class binance extends Exchange {
                 'fetchClosedOrder': false,
                 'fetchClosedOrders': 'emulated',
                 'fetchConvertCurrencies': true,
+                'fetchConvertQuote': false,
                 'fetchCrossBorrowRate': true,
                 'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,

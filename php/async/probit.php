@@ -1514,11 +1514,10 @@ class probit extends Exchange {
         }) ();
     }
 
-    public function fetch_transactions(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
-             * @deprecated
-             * use fetchDepositsWithdrawals instead
+             * fetch history of deposits and withdrawals
              * @see https://docs-en.probit.com/reference/transferpayment
              * @param {string} $code unified $currency $code
              * @param {int} [$since] the earliest time in ms to fetch transactions for

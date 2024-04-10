@@ -81,6 +81,7 @@ class mexc extends Exchange {
                 'fetchLeverage' => true,
                 'fetchLeverages' => false,
                 'fetchLeverageTiers' => true,
+                'fetchMarginAdjustmentHistory' => false,
                 'fetchMarginMode' => false,
                 'fetchMarketLeverageTiers' => null,
                 'fetchMarkets' => true,

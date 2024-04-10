@@ -75,6 +75,7 @@ class mexc extends mexc$1 {
                 'fetchLeverage': true,
                 'fetchLeverages': false,
                 'fetchLeverageTiers': true,
+                'fetchMarginAdjustmentHistory': false,
                 'fetchMarginMode': false,
                 'fetchMarketLeverageTiers': undefined,
                 'fetchMarkets': true,

@@ -145,7 +145,6 @@ export default class digifinex extends Exchange {
     setLeverage(leverage: Int, symbol?: Str, params?: {}): Promise<any>;
     fetchTransfers(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
     fetchLeverageTiers(symbols?: Strings, params?: {}): Promise<{}>;
-    parseLeverageTiers(response: any, symbols?: Strings, marketIdKey?: any): {};
     fetchMarketLeverageTiers(symbol: string, params?: {}): Promise<any[]>;
     parseMarketLeverageTiers(info: any, market?: Market): any[];
     handleMarginModeAndParams(methodName: any, params?: {}, defaultValue?: any): any[];

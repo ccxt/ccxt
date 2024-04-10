@@ -5,6 +5,7 @@ var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
+var rsa = require('./base/functions/rsa.js');
 
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
@@ -327,6 +328,7 @@ class coinbase extends coinbase$1 {
                 'CGLD': 'CELO',
             },
             'options': {
+                'brokerId': 'ccxt',
                 'stablePairs': ['BUSD-USD', 'CBETH-ETH', 'DAI-USD', 'GUSD-USD', 'GYEN-USD', 'PAX-USD', 'PAX-USDT', 'USDC-EUR', 'USDC-GBP', 'USDT-EUR', 'USDT-GBP', 'USDT-USD', 'USDT-USDC', 'WBTC-BTC'],
                 'fetchCurrencies': {
                     'expires': 5000,
@@ -2337,8 +2339,9 @@ class coinbase extends coinbase$1 {
          */
         await this.loadMarkets();
         const market = this.market(symbol);
+        const id = this.safeString(this.options, 'brokerId', 'ccxt');
         let request = {
-            'client_order_id': this.uuid(),
+            'client_order_id': id + '-' + this.uuid(),
             'product_id': market['id'],
             'side': side.toUpperCase(),
         };
@@ -3783,31 +3786,16 @@ class coinbase extends coinbase$1 {
         const url = this.urls['api']['rest'] + fullPath;
         if (signed) {
             const authorization = this.safeString(this.headers, 'Authorization');
+            let authorizationString = undefined;
             if (authorization !== undefined) {
-                headers = {
-                    'Authorization': authorization,
-                    'Content-Type': 'application/json',
-                };
-                if (method !== 'GET') {
-                    if (Object.keys(query).length) {
-                        body = this.json(query);
-                    }
-                }
+                authorizationString = authorization;
             }
             else if (this.token && !this.checkRequiredCredentials(false)) {
-                headers = {
-                    'Authorization': 'Bearer ' + this.token,
-                    'Content-Type': 'application/json',
-                };
-                if (method !== 'GET') {
-                    if (Object.keys(query).length) {
-                        body = this.json(query);
-                    }
-                }
+                authorizationString = 'Bearer ' + this.token;
             }
             else {
                 this.checkRequiredCredentials();
-                const timestampString = this.seconds().toString();
+                const seconds = this.seconds();
                 let payload = '';
                 if (method !== 'GET') {
                     if (Object.keys(query).length) {
@@ -3826,14 +3814,52 @@ class coinbase extends coinbase$1 {
                 // https://docs.cloud.coinbase.com/advanced-trade-api/docs/auth#example-request
                 // v2: 'GET' require payload in the signature
                 // https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-key-authentication
-                const auth = timestampString + method + savedPath + payload;
-                const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256.sha256);
+                const isCloudAPiKey = (this.apiKey.indexOf('organizations/') >= 0) || (this.secret.startsWith('-----BEGIN'));
+                if (isCloudAPiKey) {
+                    if (this.apiKey.startsWith('-----BEGIN')) {
+                        throw new errors.ArgumentsRequired(this.id + ' apiKey should contain the name (eg: organizations/3b910e93....) and not the public key');
+                    }
+                    // it may not work for v2
+                    let uri = method + ' ' + url.replace('https://', '');
+                    const quesPos = uri.indexOf('?');
+                    if (quesPos >= 0) {
+                        uri = uri.slice(0, quesPos);
+                    }
+                    const nonce = this.randomBytes(16);
+                    const request = {
+                        'aud': ['retail_rest_api_proxy'],
+                        'iss': 'coinbase-cloud',
+                        'nbf': seconds,
+                        'exp': seconds + 120,
+                        'sub': this.apiKey,
+                        'uri': uri,
+                        'iat': seconds,
+                    };
+                    const token = rsa.jwt(request, this.encode(this.secret), sha256.sha256, false, { 'kid': this.apiKey, 'nonce': nonce, 'alg': 'ES256' });
+                    authorizationString = 'Bearer ' + token;
+                }
+                else {
+                    const timestampString = this.seconds().toString();
+                    const auth = timestampString + method + savedPath + payload;
+                    const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256.sha256);
+                    headers = {
+                        'CB-ACCESS-KEY': this.apiKey,
+                        'CB-ACCESS-SIGN': signature,
+                        'CB-ACCESS-TIMESTAMP': timestampString,
+                        'Content-Type': 'application/json',
+                    };
+                }
+            }
+            if (authorizationString !== undefined) {
                 headers = {
-                    'CB-ACCESS-KEY': this.apiKey,
-                    'CB-ACCESS-SIGN': signature,
-                    'CB-ACCESS-TIMESTAMP': timestampString,
+                    'Authorization': authorizationString,
                     'Content-Type': 'application/json',
                 };
+                if (method !== 'GET') {
+                    if (Object.keys(query).length) {
+                        body = this.json(query);
+                    }
+                }
             }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };

@@ -84,6 +84,7 @@ class okx extends okx$1 {
                 'fetchLedgerEntry': undefined,
                 'fetchLeverage': true,
                 'fetchLeverageTiers': false,
+                'fetchMarginAdjustmentHistory': true,
                 'fetchMarketLeverageTiers': true,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': true,
@@ -1218,7 +1219,7 @@ class okx extends okx$1 {
         //         ]
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         const dataLength = data.length;
         const update = {
             'updated': undefined,
@@ -1266,8 +1267,8 @@ class okx extends okx$1 {
         //         "msg": ""
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
-        const first = this.safeValue(data, 0, {});
+        const data = this.safeList(response, 'data', []);
+        const first = this.safeDict(data, 0, {});
         return this.safeInteger(first, 'ts');
     }
     async fetchAccounts(params = {}) {
@@ -1299,7 +1300,7 @@ class okx extends okx$1 {
         //         "msg": ""
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         const result = [];
         for (let i = 0; i < data.length; i++) {
             const account = data[i];
@@ -1324,7 +1325,7 @@ class okx extends okx$1 {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} an array of objects representing market data
          */
-        const types = this.safeValue(this.options, 'fetchMarkets');
+        const types = this.safeList(this.options, 'fetchMarkets', []);
         let promises = [];
         let result = [];
         for (let i = 0; i < types.length; i++) {
@@ -1428,7 +1429,7 @@ class okx extends okx$1 {
             }
         }
         const tickSize = this.safeString(market, 'tickSz');
-        const fees = this.safeValue2(this.fees, type, 'trading', {});
+        const fees = this.safeDict2(this.fees, type, 'trading', {});
         let maxLeverage = this.safeString(market, 'lever', '1');
         maxLeverage = Precise["default"].stringMax(maxLeverage, '1');
         const maxSpotCost = this.safeNumber(market, 'maxMktSz');
@@ -1487,7 +1488,7 @@ class okx extends okx$1 {
             'instType': this.convertToInstrumentType(type),
         };
         if (type === 'option') {
-            const optionsUnderlying = this.safeValue(this.options, 'defaultUnderlying', ['BTC-USD', 'ETH-USD']);
+            const optionsUnderlying = this.safeList(this.options, 'defaultUnderlying', ['BTC-USD', 'ETH-USD']);
             const promises = [];
             for (let i = 0; i < optionsUnderlying.length; i++) {
                 const underlying = optionsUnderlying[i];
@@ -1497,8 +1498,8 @@ class okx extends okx$1 {
             const promisesResult = await Promise.all(promises);
             let markets = [];
             for (let i = 0; i < promisesResult.length; i++) {
-                const res = this.safeValue(promisesResult, i, {});
-                const options = this.safeValue(res, 'data', []);
+                const res = this.safeDict(promisesResult, i, {});
+                const options = this.safeList(res, 'data', []);
                 markets = this.arrayConcat(markets, options);
             }
             return this.parseMarkets(markets);
@@ -1537,7 +1538,7 @@ class okx extends okx$1 {
         //         "msg": ""
         //     }
         //
-        const dataResponse = this.safeValue(response, 'data', []);
+        const dataResponse = this.safeList(response, 'data', []);
         return this.parseMarkets(dataResponse);
     }
     safeNetwork(networkId) {
@@ -1614,7 +1615,7 @@ class okx extends okx$1 {
         //        "msg": ""
         //    }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         const result = {};
         const dataByCurrencyId = this.groupBy(data, 'ccy');
         const currencyIds = Object.keys(dataByCurrencyId);
@@ -1630,11 +1631,11 @@ class okx extends okx$1 {
             let maxPrecision = undefined;
             for (let j = 0; j < chains.length; j++) {
                 const chain = chains[j];
-                const canDeposit = this.safeValue(chain, 'canDep');
+                const canDeposit = this.safeBool(chain, 'canDep');
                 depositEnabled = (canDeposit) ? canDeposit : depositEnabled;
-                const canWithdraw = this.safeValue(chain, 'canWd');
+                const canWithdraw = this.safeBool(chain, 'canWd');
                 withdrawEnabled = (canWithdraw) ? canWithdraw : withdrawEnabled;
-                const canInternal = this.safeValue(chain, 'canInternal');
+                const canInternal = this.safeBool(chain, 'canInternal');
                 const active = (canDeposit && canWithdraw && canInternal) ? true : false;
                 currencyActive = (active) ? active : currencyActive;
                 const networkId = this.safeString(chain, 'chain');
@@ -1667,7 +1668,7 @@ class okx extends okx$1 {
                     };
                 }
             }
-            const firstChain = this.safeValue(chains, 0);
+            const firstChain = this.safeDict(chains, 0, {});
             result[code] = {
                 'info': undefined,
                 'code': code,
@@ -1743,8 +1744,8 @@ class okx extends okx$1 {
         //         ]
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
-        const first = this.safeValue(data, 0, {});
+        const data = this.safeList(response, 'data', []);
+        const first = this.safeDict(data, 0, {});
         const timestamp = this.safeInteger(first, 'ts');
         return this.parseOrderBook(first, symbol, timestamp);
     }
@@ -1845,7 +1846,7 @@ class okx extends okx$1 {
         //         ]
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         const first = this.safeDict(data, 0, {});
         return this.parseTicker(first, market);
     }
@@ -1868,7 +1869,7 @@ class okx extends okx$1 {
             'instType': this.convertToInstrumentType(marketType),
         };
         if (marketType === 'option') {
-            const defaultUnderlying = this.safeValue(this.options, 'defaultUnderlying', 'BTC-USD');
+            const defaultUnderlying = this.safeString(this.options, 'defaultUnderlying', 'BTC-USD');
             const currencyId = this.safeString2(params, 'uly', 'marketId', defaultUnderlying);
             if (currencyId === undefined) {
                 throw new errors.ArgumentsRequired(this.id + ' fetchTickers() requires an underlying uly or marketId parameter for options markets');
@@ -2134,7 +2135,7 @@ class okx extends okx$1 {
         }
         const price = this.safeString(params, 'price');
         params = this.omit(params, 'price');
-        const options = this.safeValue(this.options, 'fetchOHLCV', {});
+        const options = this.safeDict(this.options, 'fetchOHLCV', {});
         const timezone = this.safeString(options, 'timezone', 'UTC');
         if (limit === undefined) {
             limit = 100; // default 100, max 100
@@ -2267,7 +2268,7 @@ class okx extends okx$1 {
         //     }
         //
         const rates = [];
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         for (let i = 0; i < data.length; i++) {
             const rate = data[i];
             const timestamp = this.safeInteger(rate, 'fundingTime');
@@ -2292,10 +2293,10 @@ class okx extends okx$1 {
     }
     parseTradingBalance(response) {
         const result = { 'info': response };
-        const data = this.safeValue(response, 'data', []);
-        const first = this.safeValue(data, 0, {});
+        const data = this.safeList(response, 'data', []);
+        const first = this.safeDict(data, 0, {});
         const timestamp = this.safeInteger(first, 'uTime');
-        const details = this.safeValue(first, 'details', []);
+        const details = this.safeList(first, 'details', []);
         for (let i = 0; i < details.length; i++) {
             const balance = details[i];
             const currencyId = this.safeString(balance, 'ccy');
@@ -2320,7 +2321,7 @@ class okx extends okx$1 {
     }
     parseFundingBalance(response) {
         const result = { 'info': response };
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         for (let i = 0; i < data.length; i++) {
             const balance = data[i];
             const currencyId = this.safeString(balance, 'ccy');
@@ -2404,8 +2405,8 @@ class okx extends okx$1 {
         //         "msg": ""
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
-        const first = this.safeValue(data, 0, {});
+        const data = this.safeList(response, 'data', []);
+        const first = this.safeDict(data, 0, {});
         return this.parseTradingFee(first, market);
     }
     async fetchBalance(params = {}) {
@@ -2893,8 +2894,8 @@ class okx extends okx$1 {
         else {
             response = await this.privatePostTradeBatchOrders(request);
         }
-        const data = this.safeValue(response, 'data', []);
-        const first = this.safeValue(data, 0);
+        const data = this.safeList(response, 'data', []);
+        const first = this.safeDict(data, 0, {});
         const order = this.parseOrder(first, market);
         order['type'] = type;
         order['side'] = side;
@@ -4405,7 +4406,7 @@ class okx extends okx$1 {
         //         ]
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseLedger(data, currency, since, limit);
     }
     parseLedgerEntryType(type) {
@@ -6463,9 +6464,9 @@ class okx extends okx$1 {
         //     }
         //
         const data = this.safeList(response, 'data', []);
+        const entry = this.safeDict(data, 0, {});
         const errorCode = this.safeString(response, 'code');
-        const item = this.safeDict(data, 0, {});
-        return this.extend(this.parseMarginModification(item, market), {
+        return this.extend(this.parseMarginModification(entry, market), {
             'status': (errorCode === '0') ? 'ok' : 'failed',
         });
     }
@@ -6480,22 +6481,68 @@ class okx extends okx$1 {
         //        "type": "reduce"
         //    }
         //
-        const amountRaw = this.safeNumber(data, 'amt');
+        // fetchMarginAdjustmentHistory
+        //
+        //    {
+        //        bal: '67621.4325135010619812',
+        //        balChg: '-10.0000000000000000',
+        //        billId: '691293628710342659',
+        //        ccy: 'USDT',
+        //        clOrdId: '',
+        //        execType: '',
+        //        fee: '0',
+        //        fillFwdPx: '',
+        //        fillIdxPx: '',
+        //        fillMarkPx: '',
+        //        fillMarkVol: '',
+        //        fillPxUsd: '',
+        //        fillPxVol: '',
+        //        fillTime: '1711089244850',
+        //        from: '',
+        //        instId: 'XRP-USDT-SWAP',
+        //        instType: 'SWAP',
+        //        interest: '0',
+        //        mgnMode: 'isolated',
+        //        notes: '',
+        //        ordId: '',
+        //        pnl: '0',
+        //        posBal: '73.12',
+        //        posBalChg: '10.00',
+        //        px: '',
+        //        subType: '160',
+        //        sz: '10',
+        //        tag: '',
+        //        to: '',
+        //        tradeId: '0',
+        //        ts: '1711089244699',
+        //        type: '6'
+        //    }
+        //
+        const amountRaw = this.safeString2(data, 'amt', 'posBalChg');
         const typeRaw = this.safeString(data, 'type');
-        const type = (typeRaw === 'reduce') ? 'reduce' : 'add';
+        let type = undefined;
+        if (typeRaw === '6') {
+            type = Precise["default"].stringGt(amountRaw, '0') ? 'add' : 'reduce';
+        }
+        else {
+            type = typeRaw;
+        }
+        const amount = Precise["default"].stringAbs(amountRaw);
         const marketId = this.safeString(data, 'instId');
         const responseMarket = this.safeMarket(marketId, market);
         const code = responseMarket['inverse'] ? responseMarket['base'] : responseMarket['quote'];
+        const timestamp = this.safeInteger(data, 'ts');
         return {
             'info': data,
             'symbol': responseMarket['symbol'],
             'type': type,
-            'amount': amountRaw,
-            'total': undefined,
+            'marginMode': 'isolated',
+            'amount': this.parseNumber(amount),
             'code': code,
+            'total': undefined,
             'status': undefined,
-            'timestamp': undefined,
-            'datetime': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
         };
     }
     async reduceMargin(symbol, amount, params = {}) {
@@ -7596,6 +7643,108 @@ class okx extends okx$1 {
             throw new errors.ExchangeError(feedback); // unknown message
         }
         return undefined;
+    }
+    async fetchMarginAdjustmentHistory(symbol = undefined, type = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name okx#fetchMarginAdjustmentHistory
+         * @description fetches the history of margin added or reduced from contract isolated positions
+         * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-bills-details-last-7-days
+         * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-bills-details-last-3-months
+         * @param {string} [symbol] not used by okx fetchMarginAdjustmentHistory
+         * @param {string} [type] "add" or "reduce"
+         * @param {object} params extra parameters specific to the exchange api endpoint
+         * @param {boolean} [params.auto] true if fetching auto margin increases
+         * @returns {object[]} a list of [margin structures]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
+         */
+        await this.loadMarkets();
+        const auto = this.safeBool(params, 'auto');
+        if (type === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' fetchMarginAdjustmentHistory () requires a type argument');
+        }
+        const isAdd = type === 'add';
+        let subType = isAdd ? '160' : '161';
+        if (auto) {
+            if (isAdd) {
+                subType = '162';
+            }
+            else {
+                throw new errors.BadRequest(this.id + ' cannot fetch margin adjustments for type ' + type);
+            }
+        }
+        const request = {
+            'subType': subType,
+            'mgnMode': 'isolated',
+        };
+        const until = this.safeInteger(params, 'until');
+        params = this.omit(params, 'until');
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        if (until !== undefined) {
+            request['endTime'] = until;
+        }
+        let response = undefined;
+        const now = this.milliseconds();
+        const oneWeekAgo = now - 604800000;
+        const threeMonthsAgo = now - 7776000000;
+        if ((since === undefined) || (since > oneWeekAgo)) {
+            response = await this.privateGetAccountBills(this.extend(request, params));
+        }
+        else if (since > threeMonthsAgo) {
+            response = await this.privateGetAccountBillsArchive(this.extend(request, params));
+        }
+        else {
+            throw new errors.BadRequest(this.id + ' fetchMarginAdjustmentHistory () cannot fetch margin adjustments older than 3 months');
+        }
+        //
+        //    {
+        //        code: '0',
+        //        data: [
+        //            {
+        //                bal: '67621.4325135010619812',
+        //                balChg: '-10.0000000000000000',
+        //                billId: '691293628710342659',
+        //                ccy: 'USDT',
+        //                clOrdId: '',
+        //                execType: '',
+        //                fee: '0',
+        //                fillFwdPx: '',
+        //                fillIdxPx: '',
+        //                fillMarkPx: '',
+        //                fillMarkVol: '',
+        //                fillPxUsd: '',
+        //                fillPxVol: '',
+        //                fillTime: '1711089244850',
+        //                from: '',
+        //                instId: 'XRP-USDT-SWAP',
+        //                instType: 'SWAP',
+        //                interest: '0',
+        //                mgnMode: 'isolated',
+        //                notes: '',
+        //                ordId: '',
+        //                pnl: '0',
+        //                posBal: '73.12',
+        //                posBalChg: '10.00',
+        //                px: '',
+        //                subType: '160',
+        //                sz: '10',
+        //                tag: '',
+        //                to: '',
+        //                tradeId: '0',
+        //                ts: '1711089244699',
+        //                type: '6'
+        //            }
+        //        ],
+        //        msg: ''
+        //    }
+        //
+        const data = this.safeList(response, 'data');
+        const modifications = this.parseMarginModifications(data);
+        return this.filterBySymbolSinceLimit(modifications, symbol, since, limit);
     }
 }
 

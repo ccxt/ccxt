@@ -2566,6 +2566,7 @@ class delta(Exchange, ImplicitAPI):
             'info': data,
             'symbol': market['symbol'],
             'type': None,
+            'marginMode': 'isolated',
             'amount': None,
             'total': self.safe_number(data, 'margin'),
             'code': None,

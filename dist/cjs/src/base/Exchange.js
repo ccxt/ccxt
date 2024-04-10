@@ -21,6 +21,7 @@ require('../static_dependencies/noble-hashes/sha3.js');
 require('../static_dependencies/noble-hashes/sha256.js');
 require('../static_dependencies/ethers/address/address.js');
 var typedData = require('../static_dependencies/ethers/hash/typed-data.js');
+var rng = require('../static_dependencies/jsencrypt/lib/jsbn/rng.js');
 var generic = require('./functions/generic.js');
 var misc = require('./functions/misc.js');
 
@@ -441,6 +442,7 @@ class Exchange {
                 'fetchIndexOHLCV': undefined,
                 'fetchIsolatedBorrowRate': undefined,
                 'fetchIsolatedBorrowRates': undefined,
+                'fetchMarginAdjustmentHistory': undefined,
                 'fetchIsolatedPositions': undefined,
                 'fetchL2OrderBook': true,
                 'fetchL3OrderBook': undefined,
@@ -1445,6 +1447,13 @@ class Exchange {
     createSafeDictionary() {
         return {};
     }
+    randomBytes(length) {
+        const rng$1 = new rng.SecureRandom();
+        const x = [];
+        x.length = length;
+        rng$1.nextBytes(x);
+        return Buffer.from(x).toString('hex');
+    }
     /* eslint-enable */
     // ------------------------------------------------------------------------
     // ########################################################################
@@ -2051,6 +2060,20 @@ class Exchange {
     async setMargin(symbol, amount, params = {}) {
         throw new errors.NotSupported(this.id + ' setMargin() is not supported yet');
     }
+    async fetchMarginAdjustmentHistory(symbol = undefined, type = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name exchange#fetchMarginAdjustmentHistory
+         * @description fetches the history of margin added or reduced from contract isolated positions
+         * @param {string} [symbol] unified market symbol
+         * @param {string} [type] "add" or "reduce"
+         * @param {int} [since] timestamp in ms of the earliest change to fetch
+         * @param {int} [limit] the maximum amount of changes to fetch
+         * @param {object} params extra parameters specific to the exchange api endpoint
+         * @returns {object[]} a list of [margin structures]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
+         */
+        throw new errors.NotSupported(this.id + ' fetchMarginAdjustmentHistory() is not supported yet');
+    }
     async setMarginMode(marginMode, symbol = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' setMarginMode() is not supported yet');
     }
@@ -2072,7 +2095,7 @@ class Exchange {
     parseToInt(number) {
         // Solve Common parseInt misuse ex: parseInt ((since / 1000).toString ())
         // using a number as parameter which is not valid in ts
-        const stringifiedNumber = number.toString();
+        const stringifiedNumber = this.numberToString(number);
         const convertedNumber = parseFloat(stringifiedNumber);
         return parseInt(convertedNumber);
     }
@@ -3424,14 +3447,34 @@ class Exchange {
         // marketIdKey should only be undefined when response is a dictionary
         symbols = this.marketSymbols(symbols);
         const tiers = {};
-        for (let i = 0; i < response.length; i++) {
-            const item = response[i];
-            const id = this.safeString(item, marketIdKey);
-            const market = this.safeMarket(id, undefined, undefined, 'swap');
-            const symbol = market['symbol'];
-            const contract = this.safeBool(market, 'contract', false);
-            if (contract && ((symbols === undefined) || this.inArray(symbol, symbols))) {
-                tiers[symbol] = this.parseMarketLeverageTiers(item, market);
+        let symbolsLength = 0;
+        if (symbols !== undefined) {
+            symbolsLength = symbols.length;
+        }
+        const noSymbols = (symbols === undefined) || (symbolsLength === 0);
+        if (Array.isArray(response)) {
+            for (let i = 0; i < response.length; i++) {
+                const item = response[i];
+                const id = this.safeString(item, marketIdKey);
+                const market = this.safeMarket(id, undefined, undefined, 'swap');
+                const symbol = market['symbol'];
+                const contract = this.safeBool(market, 'contract', false);
+                if (contract && (noSymbols || this.inArray(symbol, symbols))) {
+                    tiers[symbol] = this.parseMarketLeverageTiers(item, market);
+                }
+            }
+        }
+        else {
+            const keys = Object.keys(response);
+            for (let i = 0; i < keys.length; i++) {
+                const marketId = keys[i];
+                const item = response[marketId];
+                const market = this.safeMarket(marketId, undefined, undefined, 'swap');
+                const symbol = market['symbol'];
+                const contract = this.safeBool(market, 'contract', false);
+                if (contract && (noSymbols || this.inArray(symbol, symbols))) {
+                    tiers[symbol] = this.parseMarketLeverageTiers(item, market);
+                }
             }
         }
         return tiers;
@@ -4565,13 +4608,6 @@ class Exchange {
         if (!this.substituteCommonCurrencyCodes) {
             return code;
         }
-        // if the provided code already exists as a value in commonCurrencies dict, then we should not again transform it
-        // more details at: https://github.com/ccxt/ccxt/issues/21112#issuecomment-2031293691
-        const commonCurrencies = Object.values(this.commonCurrencies);
-        const exists = this.inArray(code, commonCurrencies);
-        if (exists) {
-            return code;
-        }
         return this.safeString(this.commonCurrencies, code, code);
     }
     currency(code) {
@@ -5222,7 +5258,6 @@ class Exchange {
          * @returns {object} objects with withdraw and deposit fees, indexed by currency codes
          */
         const depositWithdrawFees = {};
-        codes = this.marketCodes(codes);
         const isArray = Array.isArray(response);
         let responseKeys = response;
         if (!isArray) {
@@ -5792,7 +5827,7 @@ class Exchange {
         return reconstructedDate;
     }
     convertMarketIdExpireDate(date) {
-        // parse 19JAN24 to 240119
+        // parse 03JAN24 to 240103
         const monthMappping = {
             'JAN': '01',
             'FEB': '02',
@@ -5807,12 +5842,31 @@ class Exchange {
             'NOV': '11',
             'DEC': '12',
         };
+        // if exchange omits first zero and provides i.e. '3JAN24' instead of '03JAN24'
+        if (date.length === 6) {
+            date = '0' + date;
+        }
         const year = date.slice(0, 2);
         const monthName = date.slice(2, 5);
         const month = this.safeString(monthMappping, monthName);
         const day = date.slice(5, 7);
         const reconstructedDate = day + month + year;
         return reconstructedDate;
+    }
+    parseMarginModification(data, market = undefined) {
+        throw new errors.NotSupported(this.id + ' parseMarginModification() is not supported yet');
+    }
+    parseMarginModifications(response, symbols = undefined, symbolKey = undefined, marketType = undefined) {
+        const marginModifications = [];
+        for (let i = 0; i < response.length; i++) {
+            const info = response[i];
+            const marketId = this.safeString(info, symbolKey);
+            const market = this.safeMarket(marketId, undefined, undefined, marketType);
+            if ((symbols === undefined) || this.inArray(market['symbol'], symbols)) {
+                marginModifications.push(this.parseMarginModification(info, market));
+            }
+        }
+        return marginModifications;
     }
 }
 

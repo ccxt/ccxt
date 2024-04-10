@@ -25,6 +25,7 @@ class kucoin(ccxt.async_support.kucoin):
                 'cancelOrderWs': False,
                 'cancelOrdersWs': False,
                 'cancelAllOrdersWs': False,
+                'watchBidsAsks': True,
                 'watchOrderBook': True,
                 'watchOrders': True,
                 'watchMyTrades': True,
@@ -272,6 +273,87 @@ class kucoin(ccxt.async_support.kucoin):
             numTickers = len(tickersSymbols)
             if numTickers > 0:
                 client.resolve(tickers, currentMessageHash)
+
+    async def watch_bids_asks(self, symbols: Strings = None, params={}) -> Tickers:
+        """
+        :see: https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level1-bbo-market-data
+        watches best bid & ask for symbols
+        :param str[] symbols: unified symbol of the market to fetch the ticker for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        """
+        ticker = await self.watch_multi_helper('watchBidsAsks', '/spotMarket/level1:', symbols, params)
+        if self.newUpdates:
+            tickers = {}
+            tickers[ticker['symbol']] = ticker
+            return tickers
+        return self.filter_by_array(self.bidsasks, 'symbol', symbols)
+
+    async def watch_multi_helper(self, methodName, channelName: str, symbols: Strings = None, params={}):
+        await self.load_markets()
+        symbols = self.market_symbols(symbols, None, False, True, False)
+        length = len(symbols)
+        if length > 100:
+            raise ArgumentsRequired(self.id + ' ' + methodName + '() accepts a maximum of 100 symbols')
+        messageHashes = []
+        for i in range(0, len(symbols)):
+            symbol = symbols[i]
+            market = self.market(symbol)
+            messageHashes.append('bidask@' + market['symbol'])
+        url = await self.negotiate(False)
+        marketIds = self.market_ids(symbols)
+        joined = ','.join(marketIds)
+        requestId = str(self.request_id())
+        request = {
+            'id': requestId,
+            'type': 'subscribe',
+            'topic': channelName + joined,
+            'response': True,
+        }
+        message = self.extend(request, params)
+        return await self.watch_multiple(url, messageHashes, message, messageHashes)
+
+    def handle_bid_ask(self, client: Client, message):
+        #
+        # arrives one symbol dict
+        #
+        #     {
+        #         topic: '/spotMarket/level1:ETH-USDT',
+        #         type: 'message',
+        #         data: {
+        #             asks: ['3347.42', '2.0778387'],
+        #             bids: ['3347.41', '6.0411697'],
+        #             timestamp: 1712231142085
+        #         },
+        #         subject: 'level1'
+        #     }
+        #
+        parsedTicker = self.parse_ws_bid_ask(message)
+        symbol = parsedTicker['symbol']
+        self.bidsasks[symbol] = parsedTicker
+        messageHash = 'bidask@' + symbol
+        client.resolve(parsedTicker, messageHash)
+
+    def parse_ws_bid_ask(self, ticker, market=None):
+        topic = self.safe_string(ticker, 'topic')
+        parts = topic.split(':')
+        marketId = parts[1]
+        market = self.safe_market(marketId, market)
+        symbol = self.safe_string(market, 'symbol')
+        data = self.safe_dict(ticker, 'data', {})
+        ask = self.safe_list(data, 'asks', [])
+        bid = self.safe_list(data, 'bids', [])
+        timestamp = self.safe_integer(data, 'timestamp')
+        return self.safe_ticker({
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'ask': self.safe_number(ask, 0),
+            'askVolume': self.safe_number(ask, 1),
+            'bid': self.safe_number(bid, 0),
+            'bidVolume': self.safe_number(bid, 1),
+            'info': ticker,
+        }, market)
 
     async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
@@ -625,6 +707,8 @@ class kucoin(ccxt.async_support.kucoin):
         #     }
         #
         id = self.safe_string(message, 'id')
+        if not (id in client.subscriptions):
+            return
         subscriptionHash = self.safe_string(client.subscriptions, id)
         subscription = self.safe_value(client.subscriptions, subscriptionHash)
         del client.subscriptions[id]
@@ -978,6 +1062,7 @@ class kucoin(ccxt.async_support.kucoin):
             return
         subject = self.safe_string(message, 'subject')
         methods = {
+            'level1': self.handle_bid_ask,
             'level2': self.handle_order_book,
             'trade.l2update': self.handle_order_book,
             'trade.ticker': self.handle_ticker,

@@ -828,6 +828,12 @@ public partial class Exchange
         throw new NotSupported ((string)add(this.id, " setMargin() is not supported yet")) ;
     }
 
+    public async virtual Task<object> fetchMarginAdjustmentHistory(object symbol = null, object type = null, object since = null, object limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " fetchMarginAdjustmentHistory() is not supported yet")) ;
+    }
+
     public async virtual Task<object> setMarginMode(object marginMode, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
@@ -869,7 +875,7 @@ public partial class Exchange
     {
         // Solve Common parseInt misuse ex: parseInt ((since / 1000).toString ())
         // using a number as parameter which is not valid in ts
-        object stringifiedNumber = ((object)number).ToString();
+        object stringifiedNumber = this.numberToString(number);
         object convertedNumber = ((object)parseFloat(stringifiedNumber));
         return parseInt(convertedNumber);
     }
@@ -2529,16 +2535,40 @@ public partial class Exchange
         // marketIdKey should only be undefined when response is a dictionary
         symbols = this.marketSymbols(symbols);
         object tiers = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        object symbolsLength = 0;
+        if (isTrue(!isEqual(symbols, null)))
         {
-            object item = getValue(response, i);
-            object id = this.safeString(item, marketIdKey);
-            object market = this.safeMarket(id, null, null, "swap");
-            object symbol = getValue(market, "symbol");
-            object contract = this.safeBool(market, "contract", false);
-            if (isTrue(isTrue(contract) && isTrue((isTrue((isEqual(symbols, null))) || isTrue(this.inArray(symbol, symbols))))))
+            symbolsLength = getArrayLength(symbols);
+        }
+        object noSymbols = isTrue((isEqual(symbols, null))) || isTrue((isEqual(symbolsLength, 0)));
+        if (isTrue(((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+        {
+            for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
             {
-                ((IDictionary<string,object>)tiers)[(string)symbol] = this.parseMarketLeverageTiers(item, market);
+                object item = getValue(response, i);
+                object id = this.safeString(item, marketIdKey);
+                object market = this.safeMarket(id, null, null, "swap");
+                object symbol = getValue(market, "symbol");
+                object contract = this.safeBool(market, "contract", false);
+                if (isTrue(isTrue(contract) && isTrue((isTrue(noSymbols) || isTrue(this.inArray(symbol, symbols))))))
+                {
+                    ((IDictionary<string,object>)tiers)[(string)symbol] = this.parseMarketLeverageTiers(item, market);
+                }
+            }
+        } else
+        {
+            object keys = new List<object>(((IDictionary<string,object>)response).Keys);
+            for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
+            {
+                object marketId = getValue(keys, i);
+                object item = getValue(response, marketId);
+                object market = this.safeMarket(marketId, null, null, "swap");
+                object symbol = getValue(market, "symbol");
+                object contract = this.safeBool(market, "contract", false);
+                if (isTrue(isTrue(contract) && isTrue((isTrue(noSymbols) || isTrue(this.inArray(symbol, symbols))))))
+                {
+                    ((IDictionary<string,object>)tiers)[(string)symbol] = this.parseMarketLeverageTiers(item, market);
+                }
             }
         }
         return tiers;
@@ -4142,14 +4172,6 @@ public partial class Exchange
         {
             return code;
         }
-        // if the provided code already exists as a value in commonCurrencies dict, then we should not again transform it
-        // more details at: https://github.com/ccxt/ccxt/issues/21112#issuecomment-2031293691
-        object commonCurrencies = new List<object>(((IDictionary<string,object>)this.commonCurrencies).Values);
-        object exists = this.inArray(code, commonCurrencies);
-        if (isTrue(exists))
-        {
-            return code;
-        }
         return this.safeString(this.commonCurrencies, code, code);
     }
 
@@ -5030,7 +5052,6 @@ public partial class Exchange
          * @returns {object} objects with withdraw and deposit fees, indexed by currency codes
          */
         object depositWithdrawFees = new Dictionary<string, object>() {};
-        codes = this.marketCodes(codes);
         object isArray = ((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))));
         object responseKeys = response;
         if (!isTrue(isArray))
@@ -5774,7 +5795,7 @@ public partial class Exchange
 
     public virtual object convertMarketIdExpireDate(object date)
     {
-        // parse 19JAN24 to 240119
+        // parse 03JAN24 to 240103
         object monthMappping = new Dictionary<string, object>() {
             { "JAN", "01" },
             { "FEB", "02" },
@@ -5789,12 +5810,38 @@ public partial class Exchange
             { "NOV", "11" },
             { "DEC", "12" },
         };
+        // if exchange omits first zero and provides i.e. '3JAN24' instead of '03JAN24'
+        if (isTrue(isEqual(((string)date).Length, 6)))
+        {
+            date = add("0", date);
+        }
         object year = slice(date, 0, 2);
         object monthName = slice(date, 2, 5);
         object month = this.safeString(monthMappping, monthName);
         object day = slice(date, 5, 7);
         object reconstructedDate = add(add(day, month), year);
         return reconstructedDate;
+    }
+
+    public virtual object parseMarginModification(object data, object market = null)
+    {
+        throw new NotSupported ((string)add(this.id, " parseMarginModification() is not supported yet")) ;
+    }
+
+    public virtual object parseMarginModifications(object response, object symbols = null, object symbolKey = null, object marketType = null)
+    {
+        object marginModifications = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        {
+            object info = getValue(response, i);
+            object marketId = this.safeString(info, symbolKey);
+            object market = this.safeMarket(marketId, null, null, marketType);
+            if (isTrue(isTrue((isEqual(symbols, null))) || isTrue(this.inArray(getValue(market, "symbol"), symbols))))
+            {
+                ((IList<object>)marginModifications).Add(this.parseMarginModification(info, market));
+            }
+        }
+        return marginModifications;
     }
 }
 

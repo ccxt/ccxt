@@ -80,6 +80,7 @@ class coinex extends coinex$1 {
                 'fetchLeverage': 'emulated',
                 'fetchLeverages': true,
                 'fetchLeverageTiers': true,
+                'fetchMarginAdjustmentHistory': true,
                 'fetchMarketLeverageTiers': 'emulated',
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
@@ -4124,36 +4125,6 @@ class coinex extends coinex$1 {
         const data = this.safeValue(response, 'data', {});
         return this.parseLeverageTiers(data, symbols, undefined);
     }
-    parseLeverageTiers(response, symbols = undefined, marketIdKey = undefined) {
-        //
-        //     {
-        //         "BTCUSD": [
-        //             ["500001", "100", "0.005"],
-        //             ["1000001", "50", "0.01"],
-        //             ["2000001", "30", "0.015"],
-        //             ["5000001", "20", "0.02"],
-        //             ["10000001", "15", "0.025"],
-        //             ["20000001", "10", "0.03"]
-        //         ],
-        //         ...
-        //     }
-        //
-        const tiers = {};
-        const marketIds = Object.keys(response);
-        for (let i = 0; i < marketIds.length; i++) {
-            const marketId = marketIds[i];
-            const market = this.safeMarket(marketId, undefined, undefined, 'spot');
-            const symbol = this.safeString(market, 'symbol');
-            let symbolsLength = 0;
-            if (symbols !== undefined) {
-                symbolsLength = symbols.length;
-            }
-            if (symbol !== undefined && (symbolsLength === 0 || this.inArray(symbols, symbol))) {
-                tiers[symbol] = this.parseMarketLeverageTiers(response[marketId], market);
-            }
-        }
-        return tiers;
-    }
     parseMarketLeverageTiers(item, market = undefined) {
         const tiers = [];
         let minNotional = 0;
@@ -4239,11 +4210,10 @@ class coinex extends coinex$1 {
         //         "message":"OK"
         //     }
         //
+        const data = this.safeDict(response, 'data');
         const status = this.safeString(response, 'message');
-        const type = (addOrReduce === 1) ? 'add' : 'reduce';
-        return this.extend(this.parseMarginModification(response, market), {
+        return this.extend(this.parseMarginModification(data, market), {
             'amount': this.parseNumber(amount),
-            'type': type,
             'status': status,
         });
     }
@@ -4303,13 +4273,34 @@ class coinex extends coinex$1 {
         //        "user_id": 3620173
         //    }
         //
-        const timestamp = this.safeIntegerProduct(data, 'update_time', 1000);
+        // fetchMarginAdjustmentHistory
+        //
+        //    {
+        //        bkr_price: '0',
+        //        leverage: '3',
+        //        liq_price: '0',
+        //        margin_amount: '5.33236666666666666666',
+        //        margin_change: '3',
+        //        market: 'XRPUSDT',
+        //        position_amount: '11',
+        //        position_id: '297155652',
+        //        position_type: '2',
+        //        settle_price: '0.6361',
+        //        time: '1711050906.382891',
+        //        type: '1',
+        //        user_id: '3685860'
+        //    }
+        //
+        const marketId = this.safeString(data, 'market');
+        const type = this.safeString(data, 'type');
+        const timestamp = this.safeIntegerProduct2(data, 'time', 'update_time', 1000);
         return {
             'info': data,
-            'symbol': this.safeSymbol(undefined, market),
-            'type': undefined,
-            'amount': this.safeNumber(data, 'margin_amount'),
-            'total': undefined,
+            'symbol': this.safeSymbol(marketId, market, undefined, 'swap'),
+            'type': (type === '1') ? 'add' : 'reduce',
+            'marginMode': 'isolated',
+            'amount': this.safeNumber(data, 'margin_change'),
+            'total': this.safeNumber(data, 'position_amount'),
             'code': market['quote'],
             'status': undefined,
             'timestamp': timestamp,
@@ -4960,6 +4951,7 @@ class coinex extends coinex$1 {
         const currencyId = this.safeString(transfer, 'asset');
         const currencyCode = this.safeCurrencyCode(currencyId, currency);
         return {
+            'info': transfer,
             'id': this.safeInteger(transfer, 'id'),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
@@ -5791,6 +5783,78 @@ class coinex extends coinex$1 {
             throw new errors.ExchangeError(feedback);
         }
         return undefined;
+    }
+    async fetchMarginAdjustmentHistory(symbol = undefined, type = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinex#fetchMarginAdjustmentHistory
+         * @description fetches the history of margin added or reduced from contract isolated positions
+         * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http046_position_margin_history
+         * @param {string} [symbol] unified market symbol
+         * @param {string} [type] not used by coinex fetchMarginAdjustmentHistory
+         * @param {int} [since] timestamp in ms of the earliest change to fetch
+         * @param {int} [limit] the maximum amount of changes to fetch, default=100, max=100
+         * @param {object} params extra parameters specific to the exchange api endpoint
+         * @param {int} [params.until] timestamp in ms of the latest change to fetch
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+         * @param {int} [params.offset] offset
+         * @returns {object[]} a list of [margin structures]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
+         */
+        await this.loadMarkets();
+        const until = this.safeInteger(params, 'until');
+        params = this.omit(params, 'until');
+        if (limit === undefined) {
+            limit = 100;
+        }
+        const request = {
+            'market': '',
+            'position_id': 0,
+            'offset': 0,
+            'limit': limit,
+        };
+        if (symbol !== undefined) {
+            const market = this.market(symbol);
+            request['market'] = market['id'];
+        }
+        if (since !== undefined) {
+            request['start_time'] = since;
+        }
+        if (until !== undefined) {
+            request['end_time'] = until;
+        }
+        const response = await this.v1PerpetualPrivateGetPositionMarginHistory(this.extend(request, params));
+        //
+        //    {
+        //        code: '0',
+        //        data: {
+        //            limit: '100',
+        //            offset: '0',
+        //            records: [
+        //                {
+        //                    bkr_price: '0',
+        //                    leverage: '3',
+        //                    liq_price: '0',
+        //                    margin_amount: '5.33236666666666666666',
+        //                    margin_change: '3',
+        //                    market: 'XRPUSDT',
+        //                    position_amount: '11',
+        //                    position_id: '297155652',
+        //                    position_type: '2',
+        //                    settle_price: '0.6361',
+        //                    time: '1711050906.382891',
+        //                    type: '1',
+        //                    user_id: '3685860'
+        //                }
+        //            ]
+        //        },
+        //        message: 'OK'
+        //    }
+        //
+        const data = this.safeDict(response, 'data', {});
+        const records = this.safeList(data, 'records', []);
+        const modifications = this.parseMarginModifications(records, undefined, 'market', 'swap');
+        return this.filterBySymbolSinceLimit(modifications, symbol, since, limit);
     }
 }
 
