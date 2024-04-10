@@ -1280,6 +1280,9 @@ class Exchange(BaseExchange):
 
     async def fetch_option(self, symbol: str, params={}):
         raise NotSupported(self.id + ' fetchOption() is not supported yet')
+    
+    async def fetch_convert_quote(self, fromCode: str, toCode: str, amount: float = None, params = {}):
+        raise NotSupported(self.id + ' fetch_convert_quote() is not supported yet')
 
     async def fetch_deposits_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
         """
