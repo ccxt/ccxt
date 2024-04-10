@@ -8425,8 +8425,8 @@ export default class bitget extends Exchange {
         //     }
         //
         const timestamp = this.safeInteger (conversion, 'ts');
-        const from = this.safeString (conversion, 'fromCoin');
-        const fromCode = this.safeCurrencyCode (from, fromCurrency);
+        const fromCoin = this.safeString (conversion, 'fromCoin');
+        const fromCode = this.safeCurrencyCode (fromCoin, fromCurrency);
         const to = this.safeString (conversion, 'toCoin');
         const toCode = this.safeCurrencyCode (to, toCurrency);
         return {

@@ -7650,8 +7650,8 @@ export default class okx extends Exchange {
         //     }
         //
         const timestamp = this.safeInteger (conversion, 'quoteTime');
-        const from = this.safeString (conversion, 'baseCcy');
-        const fromCode = this.safeCurrencyCode (from, fromCurrency);
+        const fromCoin = this.safeString (conversion, 'baseCcy');
+        const fromCode = this.safeCurrencyCode (fromCoin, fromCurrency);
         const to = this.safeString (conversion, 'quoteCcy');
         const toCode = this.safeCurrencyCode (to, toCurrency);
         return {
