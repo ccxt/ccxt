@@ -2907,8 +2907,8 @@ export default class okx extends Exchange {
             const marketId = this.safeString (rawOrder, 'symbol');
             const type = this.safeString (rawOrder, 'type');
             const side = this.safeString (rawOrder, 'side');
-            const amount = this.safeFloat (rawOrder, 'amount');
-            const price = this.safeFloat (rawOrder, 'price');
+            const amount = this.safeValue (rawOrder, 'amount');
+            const price = this.safeVlaue (rawOrder, 'price');
             const orderParams = this.safeDict (rawOrder, 'params', {});
             const extendedParams = this.extend (orderParams, params); // the request does not accept extra params since it's a list, so we're extending each order with the common params
             const orderRequest = this.createOrderRequest (marketId, type, side, amount, price, extendedParams);
