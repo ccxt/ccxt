@@ -5,7 +5,7 @@ import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { ExchangeError, BadRequest, ArgumentsRequired, AuthenticationError, PermissionDenied, AccountSuspended, InsufficientFunds, RateLimitExceeded, ExchangeNotAvailable, BadSymbol, InvalidOrder, OrderNotFound, NotSupported, AccountNotEnabled, OrderImmediatelyFillable, BadResponse } from './base/errors.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import type { Int, OrderSide, OrderType, OHLCV, Trade, FundingRateHistory, OpenInterest, Order, Balances, OrderRequest, FundingHistory, Str, Transaction, Ticker, OrderBook, Tickers, Greeks, Strings, Market, Currency, MarketInterface, TransferEntry, Leverage, Leverages, Num, OptionChain, Option, MarginModification, TradingFeeInterface, Currencies, TradingFees } from './base/types.js';
+import type { Int, OrderSide, OrderType, OHLCV, Trade, FundingRateHistory, OpenInterest, Order, Balances, OrderRequest, FundingHistory, Str, Transaction, Ticker, OrderBook, Tickers, Greeks, Strings, Market, Currency, MarketInterface, TransferEntry, Leverage, Leverages, Num, OptionChain, Option, MarginModification, TradingFeeInterface, Currencies, TradingFees, Position } from './base/types.js';
 
 /**
  * @class gate
@@ -5281,39 +5281,67 @@ export default class gate extends Exchange {
         //         "pending_orders": 0
         //     }
         //
+        // fetchPositionHistory (swap and future)
+        //
+        //    {
+        //        "contract": "SLERF_USDT",         // Futures contract
+        //        "text": "web",                    // Text of close order
+        //        "long_price": "0.766306",         // When 'side' is 'long,' it indicates the opening average price; when 'side' is 'short,' it indicates the closing average price.
+        //        "pnl": "-23.41702352",            // PNL
+        //        "pnl_pnl": "-22.7187",            // Position P/L
+        //        "pnl_fee": "-0.06527125",         // Transaction Fees
+        //        "pnl_fund": "-0.63305227",        // Funding Fees
+        //        "accum_size": "100",
+        //        "time": 1711279263,               // Position close time
+        //        "short_price": "0.539119",        // When 'side' is 'long,' it indicates the opening average price; when 'side' is 'short,' it indicates the closing average price
+        //        "side": "long",                   // Position side, long or short
+        //        "max_size": "100",                // Max Trade Size
+        //        "first_open_time": 1711037985     // First Open Time
+        //    }
+        //
         const contract = this.safeString (position, 'contract');
         market = this.safeMarket (contract, market, '_', 'contract');
-        const size = this.safeString (position, 'size');
-        let side = undefined;
-        if (Precise.stringGt (size, '0')) {
-            side = 'long';
-        } else if (Precise.stringLt (size, '0')) {
-            side = 'short';
+        const size = this.safeString2 (position, 'size', 'accum_size');
+        let side = this.safeString (position, 'side');
+        if (side === undefined) {
+            if (Precise.stringGt (size, '0')) {
+                side = 'long';
+            } else if (Precise.stringLt (size, '0')) {
+                side = 'short';
+            }
         }
         const maintenanceRate = this.safeString (position, 'maintenance_rate');
         const notional = this.safeString (position, 'value');
         const leverage = this.safeString (position, 'leverage');
         let marginMode = undefined;
-        if (leverage === '0') {
-            marginMode = 'cross';
-        } else {
-            marginMode = 'isolated';
+        if (leverage !== undefined) {
+            if (leverage === '0') {
+                marginMode = 'cross';
+            } else {
+                marginMode = 'isolated';
+            }
         }
-        const unrealisedPnl = this.safeString (position, 'unrealised_pnl');
         // Initial Position Margin = ( Position Value / Leverage ) + Close Position Fee
         // *The default leverage under the full position is the highest leverage in the market.
         // *Trading fee is charged as Taker Fee Rate (0.075%).
-        const takerFee = '0.00075';
-        const feePaid = Precise.stringMul (takerFee, notional);
-        const initialMarginString = Precise.stringAdd (Precise.stringDiv (notional, leverage), feePaid);
-        const timestamp = this.safeTimestamp (position, 'open_time');
+        let feePaid = this.safeString (position, 'pnl_fee');
+        let initialMarginString = undefined;
+        if (feePaid === undefined) {
+            const takerFee = '0.00075';
+            feePaid = Precise.stringMul (takerFee, notional);
+            initialMarginString = Precise.stringAdd (Precise.stringDiv (notional, leverage), feePaid);
+        }
+        let timestamp = this.safeTimestamp2 (position, 'open_time', 'first_open_time');
+        if (timestamp === 0) {
+            timestamp = undefined;
+        }
         return this.safePosition ({
             'info': position,
             'id': undefined,
             'symbol': this.safeString (market, 'symbol'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'lastUpdateTimestamp': this.safeTimestamp (position, 'update_time'),
+            'lastUpdateTimestamp': this.safeTimestamp2 (position, 'update_time', 'time'),
             'initialMargin': this.parseNumber (initialMarginString),
             'initialMarginPercentage': this.parseNumber (Precise.stringDiv (initialMarginString, notional)),
             'maintenanceMargin': this.parseNumber (Precise.stringMul (maintenanceRate, notional)),
@@ -5321,11 +5349,10 @@ export default class gate extends Exchange {
             'entryPrice': this.safeNumber (position, 'entry_price'),
             'notional': this.parseNumber (notional),
             'leverage': this.safeNumber (position, 'leverage'),
-            'unrealizedPnl': this.parseNumber (unrealisedPnl),
-            'realizedPnl': this.safeNumber (position, 'realised_pnl'),
+            'unrealizedPnl': this.safeNumber (position, 'unrealised_pnl'),
+            'realizedPnl': this.safeNumber2 (position, 'realised_pnl', 'pnl'),
             'contracts': this.parseNumber (Precise.stringAbs (size)),
             'contractSize': this.safeNumber (market, 'contractSize'),
-            // 'realisedPnl': position['realised_pnl'],
             'marginRatio': undefined,
             'liquidationPrice': this.safeNumber (position, 'liq_price'),
             'markPrice': this.safeNumber (position, 'mark_price'),
@@ -7358,6 +7385,77 @@ export default class gate extends Exchange {
             'baseVolume': undefined,
             'quoteVolume': undefined,
         };
+    }
+
+    async fetchPositionHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
+        /**
+         * @method
+         * @name gate#fetchPositionHistory
+         * @description fetches historical positions
+         * @see https://www.gate.io/docs/developers/apiv4/#list-position-close-history
+         * @see https://www.gate.io/docs/developers/apiv4/#list-position-close-history-2
+         * @param {string} symbol unified market symbol
+         * @param {int} [since] the earliest time in ms to fetch positions for
+         * @param {int} [limit] the maximum amount of records to fetch, default=1000
+         * @param {object} params extra parameters specific to the exchange api endpoint
+         * @param {int} [params.until] the latest time in ms to fetch positions for
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+         * @param {int} offset list offset, starting from 0
+         * @param {string} side long or short
+         * @param {string} pnl query profit or loss
+         * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+         */
+        await this.loadMarkets ();
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        let marketType = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchPositionHistory', market, params);
+        const until = this.safeInteger (params, 'until');
+        params = this.omit (params, 'until');
+        let request = {};
+        [ request, params ] = this.prepareRequest (market, marketType, params);
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        if (since !== undefined) {
+            request['from'] = since;
+        }
+        if (until !== undefined) {
+            request['to'] = until;
+        }
+        let response = undefined;
+        if (marketType === 'swap') {
+            response = await this.privateFuturesGetSettlePositionClose (this.extend (request, params));
+        } else if (marketType === 'future') {
+            response = await this.privateDeliveryGetSettlePositionClose (this.extend (request, params));
+        } else {
+            throw new NotSupported (this.id + ' fetchPositionHistory() does not support markets of type ' + marketType);
+        }
+        //
+        //    [
+        //        {
+        //            "contract": "SLERF_USDT",
+        //            "text": "web",
+        //            "long_price": "0.766306",
+        //            "pnl": "-23.41702352",
+        //            "pnl_pnl": "-22.7187",
+        //            "pnl_fee": "-0.06527125",
+        //            "pnl_fund": "-0.63305227",
+        //            "accum_size": "100",
+        //            "time": 1711279263,
+        //            "short_price": "0.539119",
+        //            "side": "long",
+        //            "max_size": "100",
+        //            "first_open_time": 1711037985
+        //        },
+        //        ...
+        //    ]
+        //
+        const positions = this.parsePositions (response);
+        return this.filterBySymbolSinceLimit (positions, symbol, since, limit);
     }
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
