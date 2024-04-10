@@ -1477,6 +1477,8 @@ export default class coinbase extends Exchange {
         }
         const takerFeeRate = this.safeNumber (feeTier, 'taker_fee_rate');
         const makerFeeRate = this.safeNumber (feeTier, 'maker_fee_rate');
+        const taker = takerFeeRate ? takerFeeRate : this.parseNumber ('0.06');
+        const maker = makerFeeRate ? makerFeeRate : this.parseNumber ('0.04');
         return this.safeMarketStructure ({
             'id': id,
             'symbol': symbol,
@@ -1496,8 +1498,8 @@ export default class coinbase extends Exchange {
             'contract': true,
             'linear': true,
             'inverse': false,
-            'taker': (takerFeeRate) ? this.parseNumber ('0.06') : takerFeeRate,
-            'maker': (makerFeeRate) ? this.parseNumber ('0.04') : makerFeeRate,
+            'taker': taker,
+            'maker': maker,
             'contractSize': contractSize,
             'expiry': this.parse8601 (contractExpire),
             'expiryDatetime': contractExpire,
@@ -2042,19 +2044,23 @@ export default class coinbase extends Exchange {
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
          * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getaccounts
          * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-accounts#list-accounts
+         * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getfcmbalancesummary
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [params.v3] default false, set true to use v3 api endpoint
-         * @param {object} [params.type] "spot" (default) or "swap"
+         * @param {object} [params.type] "spot" (default) or "swap" or "future"
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.loadMarkets ();
         const request = {};
         let response = undefined;
         const isV3 = this.safeBool (params, 'v3', false);
-        const type = this.safeString (params, 'type');
-        params = this.omit (params, [ 'v3', 'type' ]);
+        params = this.omit (params, [ 'v3' ]);
+        let marketType = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
         const method = this.safeString (this.options, 'fetchBalance', 'v3PrivateGetBrokerageAccounts');
-        if ((isV3) || (method === 'v3PrivateGetBrokerageAccounts')) {
+        if (marketType === 'future') {
+            response = await this.v3PrivateGetBrokerageCfmBalanceSummary (this.extend (request, params));
+        } else if ((isV3) || (method === 'v3PrivateGetBrokerageAccounts')) {
             request['limit'] = 250;
             response = await this.v3PrivateGetBrokerageAccounts (this.extend (request, params));
         } else {
@@ -2132,7 +2138,7 @@ export default class coinbase extends Exchange {
         //         "size": 9
         //     }
         //
-        params['type'] = type;
+        params['type'] = marketType;
         return this.parseCustomBalance (response, params);
     }
 
