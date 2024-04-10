@@ -2166,16 +2166,9 @@ export default class kraken extends Exchange {
         }
         await this.loadMarkets ();
         const request: Dict = {
-            'timeout': timeout,
+            'timeout': (activated) ? timeout : 0,
         };
-        let response = undefined;
-        let type = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('cancelAllOrdersAfter', undefined, params);
-        if (type === 'spot') {
-            response = await this.privatePostCancelAllOrdersAfter (this.extend (request, params));
-        } else {
-            throw new NotSupported (this.id + ' cancelAllOrdersAfter() is not supported for ' + type + ' markets');
-        }
+        const response = await this.privatePostCancelAllOrdersAfter (this.extend (request, params));
         //
         //     {
         //         "error": [ ],

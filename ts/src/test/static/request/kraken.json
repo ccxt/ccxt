@@ -233,6 +233,16 @@
                     true
                 ],
                 "output": "timeout=10&nonce=1699458295619"
+            },
+            {
+                "description": "Cancel spot orders after",
+                "method": "cancelAllOrdersAfter",
+                "url": "https://api.kraken.com/0/private/CancelAllOrdersAfter",
+                "input": [
+                    10,
+                    false
+                ],
+                "output": "timeout=0&nonce=1699458295619"
             }
         ],
         "cancelOrder": [
