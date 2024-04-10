@@ -4208,10 +4208,13 @@ export default class binance extends Exchange {
             'interval': this.safeString (this.timeframes, timeframe, timeframe),
             'limit': limit,
         };
+        const marketId = market['id'];
         if (price === 'index') {
-            request['pair'] = market['id'];   // Index price takes this argument instead of symbol
+            const parts = marketId.split ('_');
+            const pair = this.safeString (parts, 0);
+            request['pair'] = pair;   // Index price takes this argument instead of symbol
         } else {
-            request['symbol'] = market['id'];
+            request['symbol'] = marketId;
         }
         // const duration = this.parseTimeframe (timeframe);
         if (since !== undefined) {
