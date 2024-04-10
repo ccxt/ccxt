@@ -1392,6 +1392,14 @@
                   3
                 ]
             }
+        ],
+        "fetchConvertCurrencies": [
+            {
+                "description": "Fetch currencies that can be converted",
+                "method": "fetchConvertCurrencies",
+                "url": "https://www.okx.com/api/v5/asset/convert/currencies",
+                "input": []
+            }
         ]
     }
 }

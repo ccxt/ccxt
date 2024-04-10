@@ -1568,6 +1568,14 @@
                   3
                 ]
             }
+        ],
+        "fetchConvertCurrencies": [
+            {
+                "description": "Fetch currencies that can be converted",
+                "method": "fetchConvertCurrencies",
+                "url": "https://api.bitget.com/api/v2/convert/currencies",
+                "input": []
+            }
         ]
     }
 }
