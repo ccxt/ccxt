@@ -12420,32 +12420,26 @@ export default class binance extends Exchange {
     async fetchConvertCurrencies (params = {}): Promise<Currencies> {
         /**
          * @method
-         * @name okx#fetchConvertCurrencies
+         * @name binance#fetchConvertCurrencies
          * @description fetches all available currencies that can be converted
-         * @see https://www.okx.com/docs-v5/en/#funding-account-rest-api-get-convert-currencies
+         * @see https://binance-docs.github.io/apidocs/spot/en/#query-order-quantity-precision-per-asset-user_data
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an associative dictionary of currencies
          */
         await this.loadMarkets ();
-        const response = await this.privateGetAssetConvertCurrencies (params);
+        const response = await this.sapiGetConvertAssetInfo (params);
         //
-        //     {
-        //         "code": "0",
-        //         "data": [
-        //             {
-        //                 "ccy": "BTC",
-        //                 "max": "",
-        //                 "min": ""
-        //             },
-        //         ],
-        //         "msg": ""
-        //     }
+        //     [
+        //         {
+        //             "asset": "BTC",
+        //             "fraction": 8
+        //         },
+        //     ]
         //
         const result = {};
-        const data = this.safeList (response, 'data', []);
-        for (let i = 0; i < data.length; i++) {
-            const entry = data[i];
-            const id = this.safeString (entry, 'ccy');
+        for (let i = 0; i < response.length; i++) {
+            const entry = response[i];
+            const id = this.safeString (entry, 'asset');
             const code = this.safeCurrencyCode (id);
             result[code] = {
                 'info': entry,
@@ -12458,11 +12452,11 @@ export default class binance extends Exchange {
                 'deposit': undefined,
                 'withdraw': undefined,
                 'fee': undefined,
-                'precision': undefined,
+                'precision': this.safeInteger (entry, 'fraction'),
                 'limits': {
                     'amount': {
-                        'min': this.safeNumber (entry, 'min'),
-                        'max': this.safeNumber (entry, 'max'),
+                        'min': undefined,
+                        'max': undefined,
                     },
                     'withdraw': {
                         'min': undefined,
