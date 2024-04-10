@@ -689,7 +689,7 @@ export default class gemini extends Exchange {
             for (let i = 0; i < quoteQurrencies.length; i++) {
                 const quoteCurrency = quoteQurrencies[i];
                 if (marketIdWithoutPerp.endsWith (quoteCurrency)) {
-                    baseId = marketIdWithoutPerp.replace (quoteCurrency, '');
+                    baseId = marketIdWithoutPerp.slice (0, -quoteCurrency.length);
                     quoteId = quoteCurrency;
                     if (isPerp) {
                         settleId = quoteCurrency; // always same
