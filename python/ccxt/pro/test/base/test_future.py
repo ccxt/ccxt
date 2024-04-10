@@ -8,7 +8,6 @@ root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.d
 sys.path.append(root)
 
 from ccxt import ExchangeClosedByUser
-from ccxt.test.base import test_shared_methods
 from ccxt.async_support.base.ws.future import Future
 
 # Helper functions
@@ -59,7 +58,7 @@ async def test_race_success_after():
     future1 = Future()
     future2 = Future()
     race_future = Future.race([future1, future2])
-    asyncio.create_task(resolve_later (future1, "first", 0.01))
+    asyncio.create_task(resolve_later(future1, "first", 0.01))
     result = await race_future
     future2.cancel()
     assert result == "first", f"Expected 'first', got '{result}'"
@@ -109,7 +108,7 @@ async def test_race_cancel():
         assert True
 
 async def test_race_mixed_outcomes():
-    print ("test_race_mixed_outcome")
+    print("test_race_mixed_outcome")
     future1 = Future()
     future2 = Future()
     race_future = Future.race([future1, future2])
@@ -189,7 +188,7 @@ async def run_tests():
     await test_race_cancel()
     await test_race_mixed_outcomes()
     await test_race_with_wait_for_timeout()
-    await test_race_with_wait_for_completion() 
+    await test_race_with_wait_for_completion()
     await test_race_with_precompleted_future()
     await test_closed_by_user()
 

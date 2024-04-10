@@ -14,7 +14,7 @@ async def watch_ticker_loop(exchange):
             ticker = await exchange.watch_ticker('BTC/USDT')
             print('ticker received')
     except Exception as e:
-        print (f"{e}")
+        print(f"{e}")
         raise e
 
 
@@ -24,7 +24,7 @@ async def watch_order_book_for_symbols_loop(exchange):
             trades = await exchange.watch_trades_for_symbols(['BTC/USDT', 'ETH/USDT', 'LTC/USDT'])
             print('trades received')
     except Exception as e:
-        print (f"{e}")
+        print(f"{e}")
         raise e
 
 
