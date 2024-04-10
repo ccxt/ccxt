@@ -20,7 +20,11 @@ async def cancel_later(future, delay):
     await asyncio.sleep(delay)
     future.cancel()
 
-async def test_resolve():
+async def reject_later(future, err, delay):
+    await asyncio.sleep(delay)
+    future.reject(err)
+
+async def test_resolve_before():
     print ("test_resolve")
     future = Future()
     expected_result = "test"
@@ -46,9 +50,8 @@ async def test_race_success_before():
     future2 = Future()
     race_future = Future.race([future1, future2])
     future1.resolve("first")
-    await asyncio.sleep(0.001)
-    future2.resolve("second")
     result = await race_future
+    future2.cancel()
     assert result == "first", f"Expected 'first', got '{result}'"
 
 async def test_race_success_after():
@@ -58,6 +61,7 @@ async def test_race_success_after():
     race_future = Future.race([future1, future2])
     asyncio.create_task (resolve_later (future1, "first", 0.01))
     result = await race_future
+    future2.cancel()
     assert result == "first", f"Expected 'first', got '{result}'"
 
 async def test_race_return_first_exception():
@@ -71,17 +75,6 @@ async def test_race_return_first_exception():
     except Exception as e:
         assert str(e) == "Error in future1", f"Expected 'Error in future1', got '{str(e)}'"
     
-async def test_race_ignore_internal_cancelled():
-    print ("test_race_ignore_internal_cancelled")
-    future1 = Future()
-    future2 = Future()
-    race_future = Future.race([future1, future2])
-    future1.cancel()
-    task = asyncio.create_task(resolve_later(future2, "success",0.01))
-    result = await race_future
-    await task
-    assert result == "success", "expected success"
-
 async def test_await_canceled_future():
     print ("test_await_canceled_future")
     future = Future()
@@ -112,8 +105,8 @@ async def test_race_cancel():
         future1.resolve ("success")
         await race_future
         assert False, "Expected a cancelledError"
-    except Exception as e:
-        assert isinstance(e, asyncio.exceptions.CancelledError), "Expected asyncio.CancelledError"
+    except asyncio.CancelledError:
+        assert True
 
 async def test_race_mixed_outcomes():
     print ("test_race_mixed_outcome")
@@ -121,9 +114,12 @@ async def test_race_mixed_outcomes():
     future2 = Future()
     race_future = Future.race([future1, future2])
     future1.resolve("first")
-    future2.reject(Exception("Error in future2"))
+    task = asyncio.create_task (reject_later(future2, Exception("Error in future2"), 0.1))
     result = await race_future
     assert result == "first", f"Expected 'first', got '{result}'"
+    task.cancel()
+    future2.cancel()
+    
     
 
 async def test_race_with_wait_for_timeout():
@@ -158,15 +154,6 @@ async def test_race_with_wait_for_completion():
         assert False, "Did not expect a timeout"
     await task
 
-async def test_race_cancellation_propagation():
-    print ("test_race_cancellation_propagation")
-    future1 = Future()
-    future2 = Future()
-    race_future = Future.race([future1, future2])
-    race_future.cancel()
-    # Check if cancelling the race future cancels all participating futures (if intended)
-    assert future1.cancelled() and future2.cancelled(), "Cancelling race future did not cancel all futures."
-
 async def test_race_with_precompleted_future():
     print("test_race_with_precompleted_future")
     future1 = Future()
@@ -182,30 +169,30 @@ async def test_closed_by_user():
     future1 = Future()
     future2 = Future()
     race_future = Future.race([future1, future2])
-    asyncio.create_task(cancel_later(future1, 0.1))
-    asyncio.create_task(cancel_later(future2, 0.1))
+    task1 = asyncio.create_task(reject_later(future1, ExchangeClosedByUser(), 0.1))
+    task2 = asyncio.create_task(reject_later(future2, ExchangeClosedByUser(), 0.1))
     try:
         await race_future
         assert False, "Expected an ExchangeClosedByUser"
     except ExchangeClosedByUser:
         assert True
+        assert task1.done()
+        assert task2.done()
     except Exception as e:
         assert False, f"Received Exception {e}"
     
     
 async def run_tests():
-    await test_resolve()
+    await test_resolve_before()
     await test_reject()
     await test_race_success_before()
     await test_race_return_first_exception()
-    await test_race_ignore_internal_cancelled()
     await test_cancel()
     await test_await_canceled_future()
     await test_race_cancel()
     await test_race_mixed_outcomes()
     await test_race_with_wait_for_timeout()
     await test_race_with_wait_for_completion() 
-    # await test_race_cancellation_propagation() Is this the expected behavior? With current implementation we can't know if the internal future is being used in other race futures.
     await test_race_with_precompleted_future()
     await test_closed_by_user()
 

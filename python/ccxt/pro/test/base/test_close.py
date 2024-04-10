@@ -9,15 +9,23 @@ from ccxt.base.errors import ExchangeClosedByUser  # noqa E402
 import ccxt.pro
 
 async def watch_ticker_loop(exchange):
-    while True:
-        ticker = await exchange.watch_ticker('BTC/USDT')
-        print('ticker received')
+    try:
+        while True:
+            ticker = await exchange.watch_ticker('BTC/USDT')
+            print('ticker received')
+    except Exception as e:
+        print (f"{e}")
+        raise e
 
 
 async def watch_order_book_for_symbols_loop(exchange):
-    while True:
-        trades = await exchange.watch_trades_for_symbols(['BTC/USDT', 'ETH/USDT', 'LTC/USDT'])
-        print('trades received')
+    try:
+        while True:
+            trades = await exchange.watch_trades_for_symbols(['BTC/USDT', 'ETH/USDT', 'LTC/USDT'])
+            print('trades received')
+    except Exception as e:
+        print (f"{e}")
+        raise e
 
 
 async def close_after(exchange, ms):
@@ -43,21 +51,18 @@ async def test_close():
     # --------------------------------------------
     print('Testing exchange.close(): Awaiting future should throw ClosedByUser')
     try:
-        await gather(close_after(exchange, 5), watch_ticker_loop(exchange))
-    except Exception as e:
-        if isinstance(e, ExchangeClosedByUser):
-            print('PASSED - future rejected with ClosedByUser')
-        else:
-            raise e
+        await gather(close_after(exchange, 4), watch_ticker_loop(exchange))
+        assert False, "Expected Future rejected with ClosedByUser"
+    except ExchangeClosedByUser:
+        assert True
     # --------------------------------------------
+        await sleep(4)
     print('Test exchange.close(): Call watch_multiple unhandled futures are canceled')
     try:
-        await gather(close_after(exchange, 5), watch_order_book_for_symbols_loop(exchange))
-    except Exception as e:
-        if isinstance(e, ExchangeClosedByUser):
-            print('PASSED - future rejected with ClosedByUser')
-        else:
-            raise e
+        await gather(close_after(exchange, 4), watch_order_book_for_symbols_loop(exchange))
+        assert False, "Expected ExchangeClosedByUser error"
+    except ExchangeClosedByUser:
+        assert True
     exit(0)
 
 
