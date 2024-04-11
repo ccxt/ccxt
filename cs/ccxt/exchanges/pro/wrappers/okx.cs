@@ -224,7 +224,7 @@ public partial class okx
     /// <item>
     /// <term>limit</term>
     /// <description>
-    /// int : the maximum amount of order book entries to return
+    /// int : 1,5, 400, 50 (l2-tbt, vip4+) or 40000 (vip5+) the maximum amount of order book entries to return
     /// </description>
     /// </item>
     /// <item>

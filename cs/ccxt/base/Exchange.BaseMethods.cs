@@ -828,6 +828,12 @@ public partial class Exchange
         throw new NotSupported ((string)add(this.id, " setMargin() is not supported yet")) ;
     }
 
+    public async virtual Task<object> fetchMarginAdjustmentHistory(object symbol = null, object type = null, object since = null, object limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " fetchMarginAdjustmentHistory() is not supported yet")) ;
+    }
+
     public async virtual Task<object> setMarginMode(object marginMode, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
@@ -869,7 +875,7 @@ public partial class Exchange
     {
         // Solve Common parseInt misuse ex: parseInt ((since / 1000).toString ())
         // using a number as parameter which is not valid in ts
-        object stringifiedNumber = ((object)number).ToString();
+        object stringifiedNumber = this.numberToString(number);
         object convertedNumber = ((object)parseFloat(stringifiedNumber));
         return parseInt(convertedNumber);
     }
@@ -2182,6 +2188,20 @@ public partial class Exchange
         return result;
     }
 
+    public virtual object marketsForSymbols(object symbols = null)
+    {
+        if (isTrue(isEqual(symbols, null)))
+        {
+            return symbols;
+        }
+        object result = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        {
+            ((IList<object>)result).Add(this.market(getValue(symbols, i)));
+        }
+        return result;
+    }
+
     public virtual object marketSymbols(object symbols = null, object type = null, object allowEmpty = null, object sameTypeOnly = null, object sameSubTypeOnly = null)
     {
         allowEmpty ??= true;
@@ -2529,16 +2549,40 @@ public partial class Exchange
         // marketIdKey should only be undefined when response is a dictionary
         symbols = this.marketSymbols(symbols);
         object tiers = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        object symbolsLength = 0;
+        if (isTrue(!isEqual(symbols, null)))
         {
-            object item = getValue(response, i);
-            object id = this.safeString(item, marketIdKey);
-            object market = this.safeMarket(id, null, null, "swap");
-            object symbol = getValue(market, "symbol");
-            object contract = this.safeBool(market, "contract", false);
-            if (isTrue(isTrue(contract) && isTrue((isTrue((isEqual(symbols, null))) || isTrue(this.inArray(symbol, symbols))))))
+            symbolsLength = getArrayLength(symbols);
+        }
+        object noSymbols = isTrue((isEqual(symbols, null))) || isTrue((isEqual(symbolsLength, 0)));
+        if (isTrue(((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+        {
+            for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
             {
-                ((IDictionary<string,object>)tiers)[(string)symbol] = this.parseMarketLeverageTiers(item, market);
+                object item = getValue(response, i);
+                object id = this.safeString(item, marketIdKey);
+                object market = this.safeMarket(id, null, null, "swap");
+                object symbol = getValue(market, "symbol");
+                object contract = this.safeBool(market, "contract", false);
+                if (isTrue(isTrue(contract) && isTrue((isTrue(noSymbols) || isTrue(this.inArray(symbol, symbols))))))
+                {
+                    ((IDictionary<string,object>)tiers)[(string)symbol] = this.parseMarketLeverageTiers(item, market);
+                }
+            }
+        } else
+        {
+            object keys = new List<object>(((IDictionary<string,object>)response).Keys);
+            for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
+            {
+                object marketId = getValue(keys, i);
+                object item = getValue(response, marketId);
+                object market = this.safeMarket(marketId, null, null, "swap");
+                object symbol = getValue(market, "symbol");
+                object contract = this.safeBool(market, "contract", false);
+                if (isTrue(isTrue(contract) && isTrue((isTrue(noSymbols) || isTrue(this.inArray(symbol, symbols))))))
+                {
+                    ((IDictionary<string,object>)tiers)[(string)symbol] = this.parseMarketLeverageTiers(item, market);
+                }
             }
         }
         return tiers;
@@ -3041,11 +3085,11 @@ public partial class Exchange
         {
             code = this.commonCurrencyCode(((string)currencyId).ToUpper());
         }
-        return new Dictionary<string, object>() {
+        return this.safeCurrencyStructure(new Dictionary<string, object>() {
             { "id", currencyId },
             { "code", code },
             { "precision", null },
-        };
+        });
     }
 
     public virtual object safeMarket(object marketId, object market = null, object delimiter = null, object marketType = null)
@@ -3199,28 +3243,6 @@ public partial class Exchange
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " fetchStatus() is not supported yet")) ;
-    }
-
-    public async virtual Task<object> fetchFundingFee(object code, object parameters = null)
-    {
-        parameters ??= new Dictionary<string, object>();
-        object warnOnFetchFundingFee = this.safeBool(this.options, "warnOnFetchFundingFee", true);
-        if (isTrue(warnOnFetchFundingFee))
-        {
-            throw new NotSupported ((string)add(this.id, " fetchFundingFee() method is deprecated, it will be removed in July 2022, please, use fetchTransactionFee() or set exchange.options[\"warnOnFetchFundingFee\"] = false to suppress this warning")) ;
-        }
-        return await this.fetchTransactionFee(code, parameters);
-    }
-
-    public async virtual Task<object> fetchFundingFees(object codes = null, object parameters = null)
-    {
-        parameters ??= new Dictionary<string, object>();
-        object warnOnFetchFundingFees = this.safeBool(this.options, "warnOnFetchFundingFees", true);
-        if (isTrue(warnOnFetchFundingFees))
-        {
-            throw new NotSupported ((string)add(this.id, " fetchFundingFees() method is deprecated, it will be removed in July 2022. Please, use fetchTransactionFees() or set exchange.options[\"warnOnFetchFundingFees\"] = false to suppress this warning")) ;
-        }
-        return await this.fetchTransactionFees(codes, parameters);
     }
 
     public async virtual Task<object> fetchTransactionFee(object code, object parameters = null)
@@ -4050,6 +4072,12 @@ public partial class Exchange
         throw new NotSupported ((string)add(this.id, " fetchOption() is not supported yet")) ;
     }
 
+    public async virtual Task<object> fetchConvertQuote(object fromCode, object toCode, object amount = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " fetchConvertQuote() is not supported yet")) ;
+    }
+
     public async virtual Task<object> fetchDepositsWithdrawals(object code = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
@@ -4158,13 +4186,13 @@ public partial class Exchange
         };
     }
 
-    public virtual object commonCurrencyCode(object currency)
+    public virtual object commonCurrencyCode(object code)
     {
         if (!isTrue(this.substituteCommonCurrencyCodes))
         {
-            return currency;
+            return code;
         }
-        return this.safeString(this.commonCurrencies, currency, currency);
+        return this.safeString(this.commonCurrencies, code, code);
     }
 
     public virtual object currency(object code)
@@ -4386,6 +4414,35 @@ public partial class Exchange
             parsedPrecision = add(parsedPrecision, "0");
         }
         return add(parsedPrecision, "1");
+    }
+
+    public virtual object integerPrecisionToAmount(object precision)
+    {
+        /**
+         * @ignore
+         * @method
+         * @description handles positive & negative numbers too. parsePrecision() does not handle negative numbers, but this method handles
+         * @param {string} precision The number of digits to the right of the decimal
+         * @returns {string} a string number equal to 1e-precision
+         */
+        if (isTrue(isEqual(precision, null)))
+        {
+            return null;
+        }
+        if (isTrue(Precise.stringGe(precision, "0")))
+        {
+            return this.parsePrecision(precision);
+        } else
+        {
+            object positivePrecisionString = Precise.stringAbs(precision);
+            object positivePrecision = parseInt(positivePrecisionString);
+            object parsedPrecision = "1";
+            for (object i = 0; isLessThan(i, subtract(positivePrecision, 1)); postFixIncrement(ref i))
+            {
+                parsedPrecision = add(parsedPrecision, "0");
+            }
+            return add(parsedPrecision, "0");
+        }
     }
 
     public async virtual Task<object> loadTimeDifference(object parameters = null)
@@ -4784,7 +4841,14 @@ public partial class Exchange
         {
             throw new NotSupported ((string)add(this.id, " fetchTradingFee() is not supported yet")) ;
         }
-        return await this.fetchTradingFees(parameters);
+        object fees = await this.fetchTradingFees(parameters);
+        return this.safeDict(fees, symbol);
+    }
+
+    public async virtual Task<object> fetchConvertCurrencies(object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " fetchConvertCurrencies() is not supported yet")) ;
     }
 
     public virtual object parseOpenInterest(object interest, object market = null)
@@ -5014,7 +5078,6 @@ public partial class Exchange
          * @returns {object} objects with withdraw and deposit fees, indexed by currency codes
          */
         object depositWithdrawFees = new Dictionary<string, object>() {};
-        codes = this.marketCodes(codes);
         object isArray = ((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))));
         object responseKeys = response;
         if (!isTrue(isArray))
@@ -5026,8 +5089,8 @@ public partial class Exchange
             object entry = getValue(responseKeys, i);
             object dictionary = ((bool) isTrue(isArray)) ? entry : getValue(response, entry);
             object currencyId = ((bool) isTrue(isArray)) ? this.safeString(dictionary, currencyIdKey) : entry;
-            object currency = this.safeValue(this.currencies_by_id, currencyId);
-            object code = this.safeString(currency, "code", currencyId);
+            object currency = this.safeCurrency(currencyId);
+            object code = this.safeString(currency, "code");
             if (isTrue(isTrue((isEqual(codes, null))) || isTrue((this.inArray(code, codes)))))
             {
                 ((IDictionary<string,object>)depositWithdrawFees)[(string)code] = this.parseDepositWithdrawFee(dictionary, currency);
@@ -5695,7 +5758,121 @@ public partial class Exchange
 
     public virtual object parseLeverage(object leverage, object market = null)
     {
-        throw new NotSupported ((string)add(this.id, " parseLeverage() is not supported yet")) ;
+        throw new NotSupported ((string)add(this.id, " parseLeverage () is not supported yet")) ;
+    }
+
+    public virtual object parseConversion(object conversion, object fromCurrency = null, object toCurrency = null)
+    {
+        throw new NotSupported ((string)add(this.id, " parseConversion () is not supported yet")) ;
+    }
+
+    public virtual object convertExpireDate(object date)
+    {
+        // parse YYMMDD to datetime string
+        object year = slice(date, 0, 2);
+        object month = slice(date, 2, 4);
+        object day = slice(date, 4, 6);
+        object reconstructedDate = add(add(add(add(add(add("20", year), "-"), month), "-"), day), "T00:00:00Z");
+        return reconstructedDate;
+    }
+
+    public virtual object convertExpireDateToMarketIdDate(object date)
+    {
+        // parse 240119 to 19JAN24
+        object year = slice(date, 0, 2);
+        object monthRaw = slice(date, 2, 4);
+        object month = null;
+        object day = slice(date, 4, 6);
+        if (isTrue(isEqual(monthRaw, "01")))
+        {
+            month = "JAN";
+        } else if (isTrue(isEqual(monthRaw, "02")))
+        {
+            month = "FEB";
+        } else if (isTrue(isEqual(monthRaw, "03")))
+        {
+            month = "MAR";
+        } else if (isTrue(isEqual(monthRaw, "04")))
+        {
+            month = "APR";
+        } else if (isTrue(isEqual(monthRaw, "05")))
+        {
+            month = "MAY";
+        } else if (isTrue(isEqual(monthRaw, "06")))
+        {
+            month = "JUN";
+        } else if (isTrue(isEqual(monthRaw, "07")))
+        {
+            month = "JUL";
+        } else if (isTrue(isEqual(monthRaw, "08")))
+        {
+            month = "AUG";
+        } else if (isTrue(isEqual(monthRaw, "09")))
+        {
+            month = "SEP";
+        } else if (isTrue(isEqual(monthRaw, "10")))
+        {
+            month = "OCT";
+        } else if (isTrue(isEqual(monthRaw, "11")))
+        {
+            month = "NOV";
+        } else if (isTrue(isEqual(monthRaw, "12")))
+        {
+            month = "DEC";
+        }
+        object reconstructedDate = add(add(day, month), year);
+        return reconstructedDate;
+    }
+
+    public virtual object convertMarketIdExpireDate(object date)
+    {
+        // parse 03JAN24 to 240103
+        object monthMappping = new Dictionary<string, object>() {
+            { "JAN", "01" },
+            { "FEB", "02" },
+            { "MAR", "03" },
+            { "APR", "04" },
+            { "MAY", "05" },
+            { "JUN", "06" },
+            { "JUL", "07" },
+            { "AUG", "08" },
+            { "SEP", "09" },
+            { "OCT", "10" },
+            { "NOV", "11" },
+            { "DEC", "12" },
+        };
+        // if exchange omits first zero and provides i.e. '3JAN24' instead of '03JAN24'
+        if (isTrue(isEqual(((string)date).Length, 6)))
+        {
+            date = add("0", date);
+        }
+        object year = slice(date, 0, 2);
+        object monthName = slice(date, 2, 5);
+        object month = this.safeString(monthMappping, monthName);
+        object day = slice(date, 5, 7);
+        object reconstructedDate = add(add(day, month), year);
+        return reconstructedDate;
+    }
+
+    public virtual object parseMarginModification(object data, object market = null)
+    {
+        throw new NotSupported ((string)add(this.id, " parseMarginModification() is not supported yet")) ;
+    }
+
+    public virtual object parseMarginModifications(object response, object symbols = null, object symbolKey = null, object marketType = null)
+    {
+        object marginModifications = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        {
+            object info = getValue(response, i);
+            object marketId = this.safeString(info, symbolKey);
+            object market = this.safeMarket(marketId, null, null, marketType);
+            if (isTrue(isTrue((isEqual(symbols, null))) || isTrue(this.inArray(getValue(market, "symbol"), symbols))))
+            {
+                ((IList<object>)marginModifications).Add(this.parseMarginModification(info, market));
+            }
+        }
+        return marginModifications;
     }
 }
 

@@ -63,6 +63,19 @@
                     }
                 ],
                 "output": "{\"clientOid\":\"5d7a8110-1ea6-46e7-8d8f-1ba53267f20c\",\"side\":\"buy\",\"symbol\":\"LTC-USDT\",\"type\":\"market\",\"size\":\"0.1\",\"hf\":true}"
+            },
+            {
+                "description": "limit order with weird price/amoutn",
+                "method": "createOrder",
+                "url": "https://api.kucoin.com/api/v1/orders",
+                "input": [
+                  "LTC/USDT",
+                  "limit",
+                  "buy",
+                  0.1323432432423434,
+                  65.423423423
+                ],
+                "output": "{\"clientOid\":\"fd193ee6-6822-4e6c-96c3-90e2490a678a\",\"side\":\"buy\",\"symbol\":\"LTC-USDT\",\"type\":\"limit\",\"size\":\"0.13\",\"price\":\"65.423\"}"
             }
         ],
         "createOrders": [
@@ -112,6 +125,30 @@
                     5
                 ],
                 "output": "{\"clientOid\":\"8c981786-2534-4bd8-b3ee-fea9ecaf5b8c\",\"side\":\"sell\",\"symbol\":\"LTC-USDT\",\"type\":\"market\",\"funds\":\"5\"}"
+            }
+        ],
+        "createMarketOrderWithCost":[
+            {
+                "description": "buy order with too many decimals",
+                "method": "createMarketOrderWithCost",
+                "url": "https://api.kucoin.com/api/v1/orders",
+                "input": [
+                  "BTC/USDT",
+                  "buy",
+                  0.8993321164324234
+                ],
+                "output": "{\"clientOid\":\"2f3bad3a-e17e-4546-8584-54985289c2e3\",\"side\":\"buy\",\"symbol\":\"BTC-USDT\",\"type\":\"market\",\"funds\":\"0.899332\"}"
+            },
+            {
+                "description": "market sell order",
+                "method": "createMarketOrderWithCost",
+                "url": "https://api.kucoin.com/api/v1/orders",
+                "input": [
+                  "BTC/USDT",
+                  "sell",
+                  0.8993321164324234
+                ],
+                "output": "{\"clientOid\":\"0e825b40-2d4a-4479-a07f-293979dc279d\",\"side\":\"sell\",\"symbol\":\"BTC-USDT\",\"type\":\"market\",\"funds\":\"0.899332\"}"
             }
         ],
         "fetchOpenOrders": [
@@ -231,6 +268,26 @@
                     {
                         "hf": true
                     }
+                ]
+            },
+            {
+                "description": "Fetch the cross margin balance",
+                "method": "fetchBalance",
+                "url": "https://api.kucoin.com/api/v1/margin/account",
+                "input": [
+                  {
+                    "type": "cross"
+                  }
+                ]
+            },
+            {
+                "description": "Fetch the isolated margin balance",
+                "method": "fetchBalance",
+                "url": "https://api.kucoin.com/api/v3/isolated/accounts",
+                "input": [
+                  {
+                    "marginMode": "isolated"
+                  }
                 ]
             }
         ],

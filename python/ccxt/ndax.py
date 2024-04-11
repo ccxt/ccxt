@@ -7,7 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.abstract.ndax import ImplicitAPI
 import hashlib
 import json
-from ccxt.base.types import Account, Balances, Currency, IndexType, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Transaction
+from ccxt.base.types import Account, Balances, Currencies, Currency, IndexType, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import BadSymbol
@@ -329,7 +329,7 @@ class ndax(Exchange, ImplicitAPI):
             return responseInner
         return response
 
-    def fetch_currencies(self, params={}):
+    def fetch_currencies(self, params={}) -> Currencies:
         """
         fetches all available currencies on an exchange
         :see: https://apidoc.ndax.io/#getproduct
@@ -395,7 +395,7 @@ class ndax(Exchange, ImplicitAPI):
             }
         return result
 
-    def fetch_markets(self, params={}):
+    def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for ndax
         :see: https://apidoc.ndax.io/#getinstruments
@@ -1858,7 +1858,7 @@ class ndax(Exchange, ImplicitAPI):
         #     ]
         #
         grouped = self.group_by(response, 'ChangeReason')
-        trades = self.safe_value(grouped, 'Trade', [])
+        trades = self.safe_list(grouped, 'Trade', [])
         return self.parse_trades(trades, market, since, limit)
 
     def fetch_deposit_address(self, code: str, params={}):

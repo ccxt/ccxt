@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.whitebit import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Bool, Currency, Int, Market, MarketType, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
+from ccxt.base.types import Balances, Bool, Currencies, Currency, Int, Market, MarketType, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -281,7 +281,7 @@ class whitebit(Exchange, ImplicitAPI):
             },
         })
 
-    async def fetch_markets(self, params={}):
+    async def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for whitebit
         :see: https://docs.whitebit.com/public/http-v4/#market-info
@@ -401,7 +401,7 @@ class whitebit(Exchange, ImplicitAPI):
             'info': market,
         }
 
-    async def fetch_currencies(self, params={}):
+    async def fetch_currencies(self, params={}) -> Currencies:
         """
         fetches all available currencies on an exchange
         :see: https://docs.whitebit.com/public/http-v4/#asset-status-list
@@ -652,7 +652,7 @@ class whitebit(Exchange, ImplicitAPI):
             depositWithdrawFees[code] = self.assign_default_deposit_withdraw_fees(depositWithdrawFees[code], currency)
         return depositWithdrawFees
 
-    async def fetch_trading_fees(self, params={}):
+    async def fetch_trading_fees(self, params={}) -> TradingFees:
         """
         fetch the trading fees for multiple markets
         :see: https://docs.whitebit.com/public/http-v4/#asset-status-list
@@ -728,7 +728,7 @@ class whitebit(Exchange, ImplicitAPI):
         #         },
         #     }
         #
-        ticker = self.safe_value(response, 'result', {})
+        ticker = self.safe_dict(response, 'result', {})
         return self.parse_ticker(ticker, market)
 
     def parse_ticker(self, ticker, market: Market = None) -> Ticker:
@@ -1069,7 +1069,7 @@ class whitebit(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        result = self.safe_value(response, 'result', [])
+        result = self.safe_list(response, 'result', [])
         return self.parse_ohlcvs(result, market, timeframe, since, limit)
 
     def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
@@ -1523,7 +1523,7 @@ class whitebit(Exchange, ImplicitAPI):
         #         "limit": 100
         #     }
         #
-        data = self.safe_value(response, 'records', [])
+        data = self.safe_list(response, 'records', [])
         return self.parse_trades(data, market)
 
     async def fetch_deposit_address(self, code: str, params={}):
@@ -1842,7 +1842,7 @@ class whitebit(Exchange, ImplicitAPI):
         #     }
         #
         records = self.safe_value(response, 'records', [])
-        first = self.safe_value(records, 0, {})
+        first = self.safe_dict(records, 0, {})
         return self.parse_transaction(first, currency)
 
     async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
@@ -1905,7 +1905,7 @@ class whitebit(Exchange, ImplicitAPI):
         #         "total": 300                                                                                             # total number of  transactions, use self for calculating ‘limit’ and ‘offset'
         #     }
         #
-        records = self.safe_value(response, 'records', [])
+        records = self.safe_list(response, 'records', [])
         return self.parse_transactions(records, currency, since, limit)
 
     async def fetch_borrow_interest(self, code: Str = None, symbol: Str = None, since: Int = None, limit: Int = None, params={}):

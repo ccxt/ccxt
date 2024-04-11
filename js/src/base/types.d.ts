@@ -25,6 +25,14 @@ export interface FeeInterface {
     cost: Num;
     rate?: Num;
 }
+export interface TradingFeeInterface {
+    info: any;
+    symbol: Str;
+    maker: Num;
+    taker: Num;
+    percentage: Bool;
+    tierBased: Bool;
+}
 export declare type Fee = FeeInterface | undefined;
 export interface MarketInterface {
     id: string;
@@ -171,8 +179,29 @@ export interface Tickers extends Dictionary<Ticker> {
 export interface CurrencyInterface {
     id: string;
     code: string;
-    numericId?: number;
+    numericId?: Int;
     precision: number;
+    type?: Str;
+    margin?: Bool;
+    name?: Str;
+    active?: Bool;
+    deposit?: Bool;
+    withdraw?: Bool;
+    fee?: Num;
+    limits: {
+        amount: {
+            min?: Num;
+            max?: Num;
+        };
+        withdraw: {
+            min?: Num;
+            max?: Num;
+        };
+    };
+    networks: {
+        string: any;
+    };
+    info: any;
 }
 export interface Balance {
     free: Num;
@@ -252,7 +281,7 @@ export interface Position {
     liquidationPrice?: number;
     marginMode?: Str;
     hedged?: boolean;
-    maintenenceMargin?: number;
+    maintenanceMargin?: number;
     maintenanceMarginPercentage?: number;
     initialMargin?: number;
     initialMarginPercentage?: number;
@@ -398,6 +427,18 @@ export interface Greeks {
     underlyingPrice: number;
     info: any;
 }
+export interface Conversion {
+    info: any;
+    timestamp?: number;
+    datetime?: string;
+    id: string;
+    fromCurrency: string;
+    fromAmount: number;
+    toCurrency: string;
+    toAmount: number;
+    price: number;
+    fee: number;
+}
 export interface Option {
     info: any;
     currency: string;
@@ -432,9 +473,25 @@ export interface Leverage {
     longLeverage: number;
     shortLeverage: number;
 }
+export interface MarginModification {
+    'info': any;
+    'symbol': string;
+    'type': 'add' | 'reduce' | 'set' | undefined;
+    'marginMode': 'cross' | 'isolated' | undefined;
+    'amount': Num;
+    'total': Num;
+    'code': Str;
+    'status': Str;
+    'timestamp': Int;
+    'datetime': Str;
+}
 export interface Leverages extends Dictionary<Leverage> {
 }
 export interface LastPrices extends Dictionary<LastPrice> {
+}
+export interface Currencies extends Dictionary<CurrencyInterface> {
+}
+export interface TradingFees extends Dictionary<TradingFeeInterface> {
 }
 export interface MarginModes extends Dictionary<MarginMode> {
 }

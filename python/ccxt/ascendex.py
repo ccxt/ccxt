@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.ascendex import ImplicitAPI
 import hashlib
-from ccxt.base.types import Account, Balances, Currency, Int, Leverage, Leverages, MarginMode, MarginModes, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
+from ccxt.base.types import Account, Balances, Currencies, Currency, Int, Leverage, Leverages, MarginMode, MarginModes, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -395,7 +395,7 @@ class ascendex(Exchange, ImplicitAPI):
         lowercaseAccount = account.lower()
         return self.capitalize(lowercaseAccount)
 
-    def fetch_currencies(self, params={}):
+    def fetch_currencies(self, params={}) -> Currencies:
         """
         fetches all available currencies on an exchange
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -500,7 +500,7 @@ class ascendex(Exchange, ImplicitAPI):
             }
         return result
 
-    def fetch_markets(self, params={}):
+    def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for ascendex
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -1011,7 +1011,7 @@ class ascendex(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        data = self.safe_value(response, 'data', {})
+        data = self.safe_dict(response, 'data', {})
         return self.parse_ticker(data, market)
 
     def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
@@ -1138,7 +1138,7 @@ class ascendex(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        data = self.safe_value(response, 'data', [])
+        data = self.safe_list(response, 'data', [])
         return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
     def parse_trade(self, trade, market: Market = None) -> Trade:
@@ -1208,7 +1208,7 @@ class ascendex(Exchange, ImplicitAPI):
         #     }
         #
         records = self.safe_value(response, 'data', [])
-        trades = self.safe_value(records, 'data', [])
+        trades = self.safe_list(records, 'data', [])
         return self.parse_trades(trades, market, since, limit)
 
     def parse_order_status(self, status):
@@ -1394,7 +1394,7 @@ class ascendex(Exchange, ImplicitAPI):
             'trades': None,
         }, market)
 
-    def fetch_trading_fees(self, params={}):
+    def fetch_trading_fees(self, params={}) -> TradingFees:
         """
         fetch the trading fees for multiple markets
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -1437,6 +1437,8 @@ class ascendex(Exchange, ImplicitAPI):
                 'symbol': symbol,
                 'maker': self.safe_number(takerMaker, 'maker'),
                 'taker': self.safe_number(takerMaker, 'taker'),
+                'percentage': None,
+                'tierBased': None,
             }
         return result
 
@@ -1691,7 +1693,7 @@ class ascendex(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_value(response, 'data', {})
-        info = self.safe_value(data, 'info', [])
+        info = self.safe_list(data, 'info', [])
         return self.parse_orders(info, market)
 
     def fetch_order(self, id: str, symbol: Str = None, params={}):
@@ -1793,7 +1795,7 @@ class ascendex(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        data = self.safe_value(response, 'data', {})
+        data = self.safe_dict(response, 'data', {})
         return self.parse_order(data, market)
 
     def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
@@ -2433,7 +2435,7 @@ class ascendex(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_value(response, 'data', {})
-        transactions = self.safe_value(data, 'data', [])
+        transactions = self.safe_list(data, 'data', [])
         return self.parse_transactions(transactions, currency, since, limit)
 
     def parse_transaction_status(self, status):
@@ -2701,7 +2703,7 @@ class ascendex(Exchange, ImplicitAPI):
         result = self.parse_funding_rates(contracts)
         return self.filter_by_array(result, 'symbol', symbols)
 
-    def modify_margin_helper(self, symbol: str, amount, type, params={}):
+    def modify_margin_helper(self, symbol: str, amount, type, params={}) -> MarginModification:
         self.load_markets()
         self.load_accounts()
         market = self.market(symbol)
@@ -2728,19 +2730,30 @@ class ascendex(Exchange, ImplicitAPI):
             'type': type,
         })
 
-    def parse_margin_modification(self, data, market: Market = None):
+    def parse_margin_modification(self, data, market: Market = None) -> MarginModification:
+        #
+        # addMargin/reduceMargin
+        #
+        #     {
+        #          "code": 0
+        #     }
+        #
         errorCode = self.safe_string(data, 'code')
         status = 'ok' if (errorCode == '0') else 'failed'
         return {
             'info': data,
-            'type': None,
-            'amount': None,
-            'code': market['quote'],
             'symbol': market['symbol'],
+            'type': None,
+            'marginMode': 'isolated',
+            'amount': None,
+            'total': None,
+            'code': market['quote'],
             'status': status,
+            'timestamp': None,
+            'datetime': None,
         }
 
-    def reduce_margin(self, symbol: str, amount, params={}):
+    def reduce_margin(self, symbol: str, amount, params={}) -> MarginModification:
         """
         remove margin from a position
         :param str symbol: unified market symbol
@@ -2750,7 +2763,7 @@ class ascendex(Exchange, ImplicitAPI):
         """
         return self.modify_margin_helper(symbol, -amount, 'reduce', params)
 
-    def add_margin(self, symbol: str, amount, params={}):
+    def add_margin(self, symbol: str, amount, params={}) -> MarginModification:
         """
         add margin
         :param str symbol: unified market symbol
@@ -2962,7 +2975,7 @@ class ascendex(Exchange, ImplicitAPI):
         """
         self.load_markets()
         response = self.v2PublicGetAssets(params)
-        data = self.safe_value(response, 'data')
+        data = self.safe_list(response, 'data')
         return self.parse_deposit_withdraw_fees(data, codes, 'assetCode')
 
     def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
@@ -3078,7 +3091,7 @@ class ascendex(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_value(response, 'data', {})
-        rows = self.safe_value(data, 'data', [])
+        rows = self.safe_list(data, 'data', [])
         return self.parse_incomes(rows, market, since, limit)
 
     def parse_income(self, income, market: Market = None):

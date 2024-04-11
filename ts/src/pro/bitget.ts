@@ -86,6 +86,7 @@ export default class bitget extends bitgetRest {
                         '30015': AuthenticationError, // { event: 'error', code: 30015, msg: 'Invalid sign' }
                         '30016': BadRequest, // { event: 'error', code: 30016, msg: 'Param error' }
                     },
+                    'broad': {},
                 },
             },
         });
@@ -1747,6 +1748,8 @@ export default class bitget extends bitgetRest {
             'ordersAlgo': this.handleOrder,
             'account': this.handleBalance,
             'positions': this.handlePositions,
+            'account-isolated': this.handleBalance,
+            'account-crossed': this.handleBalance,
         };
         const arg = this.safeValue (message, 'arg', {});
         const topic = this.safeValue (arg, 'channel', '');

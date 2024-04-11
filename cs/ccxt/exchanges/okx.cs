@@ -53,6 +53,8 @@ public partial class okx : Exchange
                 { "fetchCanceledOrders", true },
                 { "fetchClosedOrder", null },
                 { "fetchClosedOrders", true },
+                { "fetchConvertCurrencies", true },
+                { "fetchConvertQuote", true },
                 { "fetchCrossBorrowRate", true },
                 { "fetchCrossBorrowRates", true },
                 { "fetchCurrencies", true },
@@ -77,6 +79,7 @@ public partial class okx : Exchange
                 { "fetchLedgerEntry", null },
                 { "fetchLeverage", true },
                 { "fetchLeverageTiers", false },
+                { "fetchMarginAdjustmentHistory", true },
                 { "fetchMarketLeverageTiers", true },
                 { "fetchMarkets", true },
                 { "fetchMarkOHLCV", true },
@@ -1046,16 +1049,6 @@ public partial class okx : Exchange
         return this.safeString(exchangeTypes, type, type);
     }
 
-    public virtual object convertExpireDate(object date)
-    {
-        // parse YYMMDD to timestamp
-        object year = slice(date, 0, 2);
-        object month = slice(date, 2, 4);
-        object day = slice(date, 4, 6);
-        object reconstructedDate = add(add(add(add(add(add("20", year), "-"), month), "-"), day), "T00:00:00Z");
-        return reconstructedDate;
-    }
-
     public override object createExpiredOptionMarket(object symbol)
     {
         // support expired option contracts
@@ -1165,7 +1158,7 @@ public partial class okx : Exchange
         //         ]
         //     }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         object dataLength = getArrayLength(data);
         object update = new Dictionary<string, object>() {
             { "updated", null },
@@ -1218,8 +1211,8 @@ public partial class okx : Exchange
         //         "msg": ""
         //     }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
-        object first = this.safeValue(data, 0, new Dictionary<string, object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
+        object first = this.safeDict(data, 0, new Dictionary<string, object>() {});
         return this.safeInteger(first, "ts");
     }
 
@@ -1254,7 +1247,7 @@ public partial class okx : Exchange
         //         "msg": ""
         //     }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         object result = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
@@ -1283,7 +1276,7 @@ public partial class okx : Exchange
         * @returns {object[]} an array of objects representing market data
         */
         parameters ??= new Dictionary<string, object>();
-        object types = this.safeValue(this.options, "fetchMarkets");
+        object types = this.safeList(this.options, "fetchMarkets", new List<object>() {});
         object promises = new List<object>() {};
         object result = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(types)); postFixIncrement(ref i))
@@ -1395,7 +1388,7 @@ public partial class okx : Exchange
             }
         }
         object tickSize = this.safeString(market, "tickSz");
-        object fees = this.safeValue2(this.fees, type, "trading", new Dictionary<string, object>() {});
+        object fees = this.safeDict2(this.fees, type, "trading", new Dictionary<string, object>() {});
         object maxLeverage = this.safeString(market, "lever", "1");
         maxLeverage = Precise.stringMax(maxLeverage, "1");
         object maxSpotCost = this.safeNumber(market, "maxMktSz");
@@ -1458,7 +1451,7 @@ public partial class okx : Exchange
         };
         if (isTrue(isEqual(type, "option")))
         {
-            object optionsUnderlying = this.safeValue(this.options, "defaultUnderlying", new List<object>() {"BTC-USD", "ETH-USD"});
+            object optionsUnderlying = this.safeList(this.options, "defaultUnderlying", new List<object>() {"BTC-USD", "ETH-USD"});
             object promises = new List<object>() {};
             for (object i = 0; isLessThan(i, getArrayLength(optionsUnderlying)); postFixIncrement(ref i))
             {
@@ -1470,8 +1463,8 @@ public partial class okx : Exchange
             object markets = new List<object>() {};
             for (object i = 0; isLessThan(i, getArrayLength(promisesResult)); postFixIncrement(ref i))
             {
-                object res = this.safeValue(promisesResult, i, new Dictionary<string, object>() {});
-                object options = this.safeValue(res, "data", new List<object>() {});
+                object res = this.safeDict(promisesResult, i, new Dictionary<string, object>() {});
+                object options = this.safeList(res, "data", new List<object>() {});
                 markets = this.arrayConcat(markets, options);
             }
             return this.parseMarkets(markets);
@@ -1510,7 +1503,7 @@ public partial class okx : Exchange
         //         "msg": ""
         //     }
         //
-        object dataResponse = this.safeValue(response, "data", new List<object>() {});
+        object dataResponse = this.safeList(response, "data", new List<object>() {});
         return this.parseMarkets(dataResponse);
     }
 
@@ -1593,7 +1586,7 @@ public partial class okx : Exchange
         //        "msg": ""
         //    }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         object result = new Dictionary<string, object>() {};
         object dataByCurrencyId = this.groupBy(data, "ccy");
         object currencyIds = new List<object>(((IDictionary<string,object>)dataByCurrencyId).Keys);
@@ -1611,11 +1604,11 @@ public partial class okx : Exchange
             for (object j = 0; isLessThan(j, getArrayLength(chains)); postFixIncrement(ref j))
             {
                 object chain = getValue(chains, j);
-                object canDeposit = this.safeValue(chain, "canDep");
+                object canDeposit = this.safeBool(chain, "canDep");
                 depositEnabled = ((bool) isTrue((canDeposit))) ? canDeposit : depositEnabled;
-                object canWithdraw = this.safeValue(chain, "canWd");
+                object canWithdraw = this.safeBool(chain, "canWd");
                 withdrawEnabled = ((bool) isTrue((canWithdraw))) ? canWithdraw : withdrawEnabled;
-                object canInternal = this.safeValue(chain, "canInternal");
+                object canInternal = this.safeBool(chain, "canInternal");
                 object active = ((bool) isTrue((isTrue(isTrue(canDeposit) && isTrue(canWithdraw)) && isTrue(canInternal)))) ? true : false;
                 currencyActive = ((bool) isTrue((active))) ? active : currencyActive;
                 object networkId = this.safeString(chain, "chain");
@@ -1650,7 +1643,7 @@ public partial class okx : Exchange
                     };
                 }
             }
-            object firstChain = this.safeValue(chains, 0);
+            object firstChain = this.safeDict(chains, 0, new Dictionary<string, object>() {});
             ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
                 { "info", null },
                 { "code", code },
@@ -1734,8 +1727,8 @@ public partial class okx : Exchange
         //         ]
         //     }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
-        object first = this.safeValue(data, 0, new Dictionary<string, object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
+        object first = this.safeDict(data, 0, new Dictionary<string, object>() {});
         object timestamp = this.safeInteger(first, "ts");
         return this.parseOrderBook(first, symbol, timestamp);
     }
@@ -1841,8 +1834,8 @@ public partial class okx : Exchange
         //         ]
         //     }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
-        object first = this.safeValue(data, 0, new Dictionary<string, object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
+        object first = this.safeDict(data, 0, new Dictionary<string, object>() {});
         return this.parseTicker(first, market);
     }
 
@@ -1870,7 +1863,7 @@ public partial class okx : Exchange
         };
         if (isTrue(isEqual(marketType, "option")))
         {
-            object defaultUnderlying = this.safeValue(this.options, "defaultUnderlying", "BTC-USD");
+            object defaultUnderlying = this.safeString(this.options, "defaultUnderlying", "BTC-USD");
             object currencyId = this.safeString2(parameters, "uly", "marketId", defaultUnderlying);
             if (isTrue(isEqual(currencyId, null)))
             {
@@ -2093,7 +2086,7 @@ public partial class okx : Exchange
         //         "msg": ""
         //     }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseTrades(data, market, since, limit);
     }
 
@@ -2154,7 +2147,7 @@ public partial class okx : Exchange
         }
         object price = this.safeString(parameters, "price");
         parameters = this.omit(parameters, "price");
-        object options = this.safeValue(this.options, "fetchOHLCV", new Dictionary<string, object>() {});
+        object options = this.safeDict(this.options, "fetchOHLCV", new Dictionary<string, object>() {});
         object timezone = this.safeString(options, "timezone", "UTC");
         if (isTrue(isEqual(limit, null)))
         {
@@ -2237,7 +2230,7 @@ public partial class okx : Exchange
         //         ]
         //     }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseOHLCVs(data, market, timeframe, since, limit);
     }
 
@@ -2305,7 +2298,7 @@ public partial class okx : Exchange
         //     }
         //
         object rates = new List<object>() {};
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             object rate = getValue(data, i);
@@ -2338,10 +2331,10 @@ public partial class okx : Exchange
         object result = new Dictionary<string, object>() {
             { "info", response },
         };
-        object data = this.safeValue(response, "data", new List<object>() {});
-        object first = this.safeValue(data, 0, new Dictionary<string, object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
+        object first = this.safeDict(data, 0, new Dictionary<string, object>() {});
         object timestamp = this.safeInteger(first, "uTime");
-        object details = this.safeValue(first, "details", new List<object>() {});
+        object details = this.safeList(first, "details", new List<object>() {});
         for (object i = 0; isLessThan(i, getArrayLength(details)); postFixIncrement(ref i))
         {
             object balance = getValue(details, i);
@@ -2372,7 +2365,7 @@ public partial class okx : Exchange
         object result = new Dictionary<string, object>() {
             { "info", response },
         };
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             object balance = getValue(data, i);
@@ -2408,6 +2401,8 @@ public partial class okx : Exchange
             { "symbol", this.safeSymbol(null, market) },
             { "maker", this.parseNumber(Precise.stringNeg(this.safeString2(fee, "maker", "makerU"))) },
             { "taker", this.parseNumber(Precise.stringNeg(this.safeString2(fee, "taker", "takerU"))) },
+            { "percentage", null },
+            { "tierBased", null },
         };
     }
 
@@ -2457,8 +2452,8 @@ public partial class okx : Exchange
         //         "msg": ""
         //     }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
-        object first = this.safeValue(data, 0, new Dictionary<string, object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
+        object first = this.safeDict(data, 0, new Dictionary<string, object>() {});
         return this.parseTradingFee(first, market);
     }
 
@@ -2989,8 +2984,8 @@ public partial class okx : Exchange
         {
             response = await this.privatePostTradeBatchOrders(request);
         }
-        object data = this.safeValue(response, "data", new List<object>() {});
-        object first = this.safeValue(data, 0);
+        object data = this.safeList(response, "data", new List<object>() {});
+        object first = this.safeDict(data, 0, new Dictionary<string, object>() {});
         object order = this.parseOrder(first, market);
         ((IDictionary<string,object>)order)["type"] = type;
         ((IDictionary<string,object>)order)["side"] = side;
@@ -3046,7 +3041,7 @@ public partial class okx : Exchange
         //     "msg": "",
         //     "outTime": "1697979038586493"
         // }
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseOrders(data);
     }
 
@@ -3284,7 +3279,7 @@ public partial class okx : Exchange
         object response = await this.privatePostTradeCancelOrder(this.extend(request, query));
         // {"code":"0","data":[{"clOrdId":"","ordId":"317251910906576896","sCode":"0","sMsg":""}],"msg":""}
         object data = this.safeValue(response, "data", new List<object>() {});
-        object order = this.safeValue(data, 0);
+        object order = this.safeDict(data, 0);
         return this.parseOrder(order, market);
     }
 
@@ -3417,7 +3412,7 @@ public partial class okx : Exchange
         //         "msg": ""
         //     }
         //
-        object ordersData = this.safeValue(response, "data", new List<object>() {});
+        object ordersData = this.safeList(response, "data", new List<object>() {});
         return this.parseOrders(ordersData, market, null, null, parameters);
     }
 
@@ -3806,7 +3801,7 @@ public partial class okx : Exchange
         //     }
         //
         object data = this.safeValue(response, "data", new List<object>() {});
-        object order = this.safeValue(data, 0);
+        object order = this.safeDict(data, 0);
         return this.parseOrder(order, market);
     }
 
@@ -3972,7 +3967,7 @@ public partial class okx : Exchange
         //         "msg": ""
         //     }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseOrders(data, market, since, limit);
     }
 
@@ -4163,7 +4158,7 @@ public partial class okx : Exchange
         //         "msg": ""
         //     }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseOrders(data, market, since, limit);
     }
 
@@ -4358,7 +4353,7 @@ public partial class okx : Exchange
         //         "msg": ""
         //     }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseOrders(data, market, since, limit);
     }
 
@@ -4435,7 +4430,7 @@ public partial class okx : Exchange
         //         "msg": ""
         //     }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseTrades(data, market, since, limit, query);
     }
 
@@ -4587,7 +4582,7 @@ public partial class okx : Exchange
         //         ]
         //     }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseLedger(data, currency, since, limit);
     }
 
@@ -4954,7 +4949,7 @@ public partial class okx : Exchange
         //     }
         //
         object data = this.safeValue(response, "data", new List<object>() {});
-        object transaction = this.safeValue(data, 0);
+        object transaction = this.safeDict(data, 0);
         return this.parseTransaction(transaction, currency);
     }
 
@@ -5040,7 +5035,7 @@ public partial class okx : Exchange
         //         ]
         //     }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseTransactions(data, currency, since, limit, parameters);
     }
 
@@ -5069,7 +5064,7 @@ public partial class okx : Exchange
         }
         object response = await this.privateGetAssetDepositHistory(this.extend(request, parameters));
         object data = this.safeValue(response, "data");
-        object deposit = this.safeValue(data, 0, new Dictionary<string, object>() {});
+        object deposit = this.safeDict(data, 0, new Dictionary<string, object>() {});
         return this.parseTransaction(deposit, currency);
     }
 
@@ -5147,7 +5142,7 @@ public partial class okx : Exchange
         //         ]
         //     }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseTransactions(data, currency, since, limit, parameters);
     }
 
@@ -5197,7 +5192,7 @@ public partial class okx : Exchange
         //    }
         //
         object data = this.safeValue(response, "data");
-        object withdrawal = this.safeValue(data, 0, new Dictionary<string, object>() {});
+        object withdrawal = this.safeDict(data, 0, new Dictionary<string, object>() {});
         return this.parseTransaction(withdrawal);
     }
 
@@ -5867,7 +5862,7 @@ public partial class okx : Exchange
         //     }
         //
         object data = this.safeValue(response, "data", new List<object>() {});
-        object rawTransfer = this.safeValue(data, 0, new Dictionary<string, object>() {});
+        object rawTransfer = this.safeDict(data, 0, new Dictionary<string, object>() {});
         return this.parseTransfer(rawTransfer, currency);
     }
 
@@ -5988,7 +5983,7 @@ public partial class okx : Exchange
         //     }
         //
         object data = this.safeValue(response, "data", new List<object>() {});
-        object transfer = this.safeValue(data, 0);
+        object transfer = this.safeDict(data, 0);
         return this.parseTransfer(transfer);
     }
 
@@ -6057,7 +6052,7 @@ public partial class okx : Exchange
         //        "msg": ""
         //    }
         //
-        object transfers = this.safeValue(response, "data", new List<object>() {});
+        object transfers = this.safeList(response, "data", new List<object>() {});
         return this.parseTransfers(transfers, currency, since, limit, parameters);
     }
 
@@ -6752,28 +6747,89 @@ public partial class okx : Exchange
         //       "msg": ""
         //     }
         //
-        return this.parseMarginModification(response, market);
+        object data = this.safeList(response, "data", new List<object>() {});
+        object entry = this.safeDict(data, 0, new Dictionary<string, object>() {});
+        object errorCode = this.safeString(response, "code");
+        return this.extend(this.parseMarginModification(entry, market), new Dictionary<string, object>() {
+            { "status", ((bool) isTrue((isEqual(errorCode, "0")))) ? "ok" : "failed" },
+        });
     }
 
-    public virtual object parseMarginModification(object data, object market = null)
+    public override object parseMarginModification(object data, object market = null)
     {
-        object innerData = this.safeValue(data, "data", new List<object>() {});
-        object entry = this.safeValue(innerData, 0, new Dictionary<string, object>() {});
-        object errorCode = this.safeString(data, "code");
-        object status = ((bool) isTrue((isEqual(errorCode, "0")))) ? "ok" : "failed";
-        object amountRaw = this.safeNumber(entry, "amt");
-        object typeRaw = this.safeString(entry, "type");
-        object type = ((bool) isTrue((isEqual(typeRaw, "reduce")))) ? "reduce" : "add";
-        object marketId = this.safeString(entry, "instId");
+        //
+        // addMargin/reduceMargin
+        //
+        //    {
+        //        "amt": "0.01",
+        //        "instId": "ETH-USD-SWAP",
+        //        "posSide": "net",
+        //        "type": "reduce"
+        //    }
+        //
+        // fetchMarginAdjustmentHistory
+        //
+        //    {
+        //        bal: '67621.4325135010619812',
+        //        balChg: '-10.0000000000000000',
+        //        billId: '691293628710342659',
+        //        ccy: 'USDT',
+        //        clOrdId: '',
+        //        execType: '',
+        //        fee: '0',
+        //        fillFwdPx: '',
+        //        fillIdxPx: '',
+        //        fillMarkPx: '',
+        //        fillMarkVol: '',
+        //        fillPxUsd: '',
+        //        fillPxVol: '',
+        //        fillTime: '1711089244850',
+        //        from: '',
+        //        instId: 'XRP-USDT-SWAP',
+        //        instType: 'SWAP',
+        //        interest: '0',
+        //        mgnMode: 'isolated',
+        //        notes: '',
+        //        ordId: '',
+        //        pnl: '0',
+        //        posBal: '73.12',
+        //        posBalChg: '10.00',
+        //        px: '',
+        //        subType: '160',
+        //        sz: '10',
+        //        tag: '',
+        //        to: '',
+        //        tradeId: '0',
+        //        ts: '1711089244699',
+        //        type: '6'
+        //    }
+        //
+        object amountRaw = this.safeString2(data, "amt", "posBalChg");
+        object typeRaw = this.safeString(data, "type");
+        object type = null;
+        if (isTrue(isEqual(typeRaw, "6")))
+        {
+            type = ((bool) isTrue(Precise.stringGt(amountRaw, "0"))) ? "add" : "reduce";
+        } else
+        {
+            type = typeRaw;
+        }
+        object amount = Precise.stringAbs(amountRaw);
+        object marketId = this.safeString(data, "instId");
         object responseMarket = this.safeMarket(marketId, market);
         object code = ((bool) isTrue(getValue(responseMarket, "inverse"))) ? getValue(responseMarket, "base") : getValue(responseMarket, "quote");
+        object timestamp = this.safeInteger(data, "ts");
         return new Dictionary<string, object>() {
             { "info", data },
-            { "type", type },
-            { "amount", amountRaw },
-            { "code", code },
             { "symbol", getValue(responseMarket, "symbol") },
-            { "status", status },
+            { "type", type },
+            { "marginMode", "isolated" },
+            { "amount", this.parseNumber(amount) },
+            { "code", code },
+            { "total", null },
+            { "status", null },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
         };
     }
 
@@ -7169,7 +7225,7 @@ public partial class okx : Exchange
         //         "msg": ""
         //     }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseOpenInterest(getValue(data, 0), market);
     }
 
@@ -7251,7 +7307,7 @@ public partial class okx : Exchange
         //        "msg": ''
         //    }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseOpenInterests(data, null, since, limit);
     }
 
@@ -7384,7 +7440,7 @@ public partial class okx : Exchange
         //        "msg": ""
         //    }
         //
-        object data = this.safeValue(response, "data");
+        object data = this.safeList(response, "data");
         return this.parseDepositWithdrawFees(data, codes);
     }
 
@@ -7804,7 +7860,7 @@ public partial class okx : Exchange
         //    }
         //
         object data = this.safeValue(response, "data");
-        object order = this.safeValue(data, 0);
+        object order = this.safeDict(data, 0);
         return this.parseOrder(order, market);
     }
 
@@ -7953,6 +8009,166 @@ public partial class okx : Exchange
         };
     }
 
+    public async override Task<object> fetchConvertQuote(object fromCode, object toCode, object amount = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name okx#fetchConvertQuote
+        * @description fetch a quote for converting from one currency to another
+        * @see https://www.okx.com/docs-v5/en/#funding-account-rest-api-estimate-quote
+        * @param {string} fromCode the currency that you want to sell and convert from
+        * @param {string} toCode the currency that you want to buy and convert into
+        * @param {float} [amount] how much you want to trade in units of the from currency
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object request = new Dictionary<string, object>() {
+            { "baseCcy", ((string)fromCode).ToUpper() },
+            { "quoteCcy", ((string)toCode).ToUpper() },
+            { "rfqSzCcy", ((string)fromCode).ToUpper() },
+            { "rfqSz", this.numberToString(amount) },
+            { "side", "sell" },
+        };
+        object response = await this.privatePostAssetConvertEstimateQuote(this.extend(request, parameters));
+        //
+        //     {
+        //         "code": "0",
+        //         "data": [
+        //             {
+        //                 "baseCcy": "ETH",
+        //                 "baseSz": "0.01023052",
+        //                 "clQReqId": "",
+        //                 "cnvtPx": "2932.40104429",
+        //                 "origRfqSz": "30",
+        //                 "quoteCcy": "USDT",
+        //                 "quoteId": "quoterETH-USDT16461885104612381",
+        //                 "quoteSz": "30",
+        //                 "quoteTime": "1646188510461",
+        //                 "rfqSz": "30",
+        //                 "rfqSzCcy": "USDT",
+        //                 "side": "buy",
+        //                 "ttlMs": "10000"
+        //             }
+        //         ],
+        //         "msg": ""
+        //     }
+        //
+        object data = this.safeList(response, "data", new List<object>() {});
+        object result = this.safeDict(data, 0, new Dictionary<string, object>() {});
+        object fromCurrencyId = this.safeString(result, "baseCcy", fromCode);
+        object fromCurrency = this.currency(fromCurrencyId);
+        object toCurrencyId = this.safeString(result, "quoteCcy", toCode);
+        object toCurrency = this.currency(toCurrencyId);
+        return this.parseConversion(result, fromCurrency, toCurrency);
+    }
+
+    public override object parseConversion(object conversion, object fromCurrency = null, object toCurrency = null)
+    {
+        //
+        // fetchConvertQuote
+        //
+        //     {
+        //         "baseCcy": "ETH",
+        //         "baseSz": "0.01023052",
+        //         "clQReqId": "",
+        //         "cnvtPx": "2932.40104429",
+        //         "origRfqSz": "30",
+        //         "quoteCcy": "USDT",
+        //         "quoteId": "quoterETH-USDT16461885104612381",
+        //         "quoteSz": "30",
+        //         "quoteTime": "1646188510461",
+        //         "rfqSz": "30",
+        //         "rfqSzCcy": "USDT",
+        //         "side": "buy",
+        //         "ttlMs": "10000"
+        //     }
+        //
+        object timestamp = this.safeInteger(conversion, "quoteTime");
+        object fromCoin = this.safeString(conversion, "baseCcy");
+        object fromCode = this.safeCurrencyCode(fromCoin, fromCurrency);
+        object to = this.safeString(conversion, "quoteCcy");
+        object toCode = this.safeCurrencyCode(to, toCurrency);
+        return new Dictionary<string, object>() {
+            { "info", conversion },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
+            { "id", this.safeString(conversion, "clQReqId") },
+            { "fromCurrency", fromCode },
+            { "fromAmount", this.safeNumber(conversion, "baseSz") },
+            { "toCurrency", toCode },
+            { "toAmount", this.safeNumber(conversion, "quoteSz") },
+            { "price", this.safeNumber(conversion, "cnvtPx") },
+            { "fee", null },
+        };
+    }
+
+    public async override Task<object> fetchConvertCurrencies(object parameters = null)
+    {
+        /**
+        * @method
+        * @name okx#fetchConvertCurrencies
+        * @description fetches all available currencies that can be converted
+        * @see https://www.okx.com/docs-v5/en/#funding-account-rest-api-get-convert-currencies
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} an associative dictionary of currencies
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object response = await this.privateGetAssetConvertCurrencies(parameters);
+        //
+        //     {
+        //         "code": "0",
+        //         "data": [
+        //             {
+        //                 "ccy": "BTC",
+        //                 "max": "",
+        //                 "min": ""
+        //             },
+        //         ],
+        //         "msg": ""
+        //     }
+        //
+        object result = new Dictionary<string, object>() {};
+        object data = this.safeList(response, "data", new List<object>() {});
+        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+        {
+            object entry = getValue(data, i);
+            object id = this.safeString(entry, "ccy");
+            object code = this.safeCurrencyCode(id);
+            ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
+                { "info", entry },
+                { "id", id },
+                { "code", code },
+                { "networks", null },
+                { "type", null },
+                { "name", null },
+                { "active", null },
+                { "deposit", null },
+                { "withdraw", null },
+                { "fee", null },
+                { "precision", null },
+                { "limits", new Dictionary<string, object>() {
+                    { "amount", new Dictionary<string, object>() {
+                        { "min", this.safeNumber(entry, "min") },
+                        { "max", this.safeNumber(entry, "max") },
+                    } },
+                    { "withdraw", new Dictionary<string, object>() {
+                        { "min", null },
+                        { "max", null },
+                    } },
+                    { "deposit", new Dictionary<string, object>() {
+                        { "min", null },
+                        { "max", null },
+                    } },
+                } },
+                { "created", null },
+            };
+        }
+        return result;
+    }
+
     public override object handleErrors(object httpCode, object reason, object url, object method, object headers, object body, object response, object requestHeaders, object requestBody)
     {
         if (!isTrue(response))
@@ -7996,5 +8212,117 @@ public partial class okx : Exchange
             throw new ExchangeError ((string)feedback) ;
         }
         return null;
+    }
+
+    public async override Task<object> fetchMarginAdjustmentHistory(object symbol = null, object type = null, object since = null, object limit = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name okx#fetchMarginAdjustmentHistory
+        * @description fetches the history of margin added or reduced from contract isolated positions
+        * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-bills-details-last-7-days
+        * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-bills-details-last-3-months
+        * @param {string} [symbol] not used by okx fetchMarginAdjustmentHistory
+        * @param {string} [type] "add" or "reduce"
+        * @param {object} params extra parameters specific to the exchange api endpoint
+        * @param {boolean} [params.auto] true if fetching auto margin increases
+        * @returns {object[]} a list of [margin structures]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object auto = this.safeBool(parameters, "auto");
+        if (isTrue(isEqual(type, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " fetchMarginAdjustmentHistory () requires a type argument")) ;
+        }
+        object isAdd = isEqual(type, "add");
+        object subType = ((bool) isTrue(isAdd)) ? "160" : "161";
+        if (isTrue(auto))
+        {
+            if (isTrue(isAdd))
+            {
+                subType = "162";
+            } else
+            {
+                throw new BadRequest ((string)add(add(this.id, " cannot fetch margin adjustments for type "), type)) ;
+            }
+        }
+        object request = new Dictionary<string, object>() {
+            { "subType", subType },
+            { "mgnMode", "isolated" },
+        };
+        object until = this.safeInteger(parameters, "until");
+        parameters = this.omit(parameters, "until");
+        if (isTrue(!isEqual(since, null)))
+        {
+            ((IDictionary<string,object>)request)["startTime"] = since;
+        }
+        if (isTrue(!isEqual(limit, null)))
+        {
+            ((IDictionary<string,object>)request)["limit"] = limit;
+        }
+        if (isTrue(!isEqual(until, null)))
+        {
+            ((IDictionary<string,object>)request)["endTime"] = until;
+        }
+        object response = null;
+        object now = this.milliseconds();
+        object oneWeekAgo = subtract(now, 604800000);
+        object threeMonthsAgo = subtract(now, 7776000000);
+        if (isTrue(isTrue((isEqual(since, null))) || isTrue((isGreaterThan(since, oneWeekAgo)))))
+        {
+            response = await this.privateGetAccountBills(this.extend(request, parameters));
+        } else if (isTrue(isGreaterThan(since, threeMonthsAgo)))
+        {
+            response = await this.privateGetAccountBillsArchive(this.extend(request, parameters));
+        } else
+        {
+            throw new BadRequest ((string)add(this.id, " fetchMarginAdjustmentHistory () cannot fetch margin adjustments older than 3 months")) ;
+        }
+        //
+        //    {
+        //        code: '0',
+        //        data: [
+        //            {
+        //                bal: '67621.4325135010619812',
+        //                balChg: '-10.0000000000000000',
+        //                billId: '691293628710342659',
+        //                ccy: 'USDT',
+        //                clOrdId: '',
+        //                execType: '',
+        //                fee: '0',
+        //                fillFwdPx: '',
+        //                fillIdxPx: '',
+        //                fillMarkPx: '',
+        //                fillMarkVol: '',
+        //                fillPxUsd: '',
+        //                fillPxVol: '',
+        //                fillTime: '1711089244850',
+        //                from: '',
+        //                instId: 'XRP-USDT-SWAP',
+        //                instType: 'SWAP',
+        //                interest: '0',
+        //                mgnMode: 'isolated',
+        //                notes: '',
+        //                ordId: '',
+        //                pnl: '0',
+        //                posBal: '73.12',
+        //                posBalChg: '10.00',
+        //                px: '',
+        //                subType: '160',
+        //                sz: '10',
+        //                tag: '',
+        //                to: '',
+        //                tradeId: '0',
+        //                ts: '1711089244699',
+        //                type: '6'
+        //            }
+        //        ],
+        //        msg: ''
+        //    }
+        //
+        object data = this.safeList(response, "data");
+        object modifications = this.parseMarginModifications(data);
+        return this.filterBySymbolSinceLimit(modifications, symbol, since, limit);
     }
 }

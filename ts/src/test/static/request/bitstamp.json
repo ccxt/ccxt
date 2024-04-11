@@ -12,6 +12,55 @@
                 "output": "foo=bar"
             }
         ],
+        "fetchTradingFee": [
+            {
+                "description": "Fetch trading fee",
+                "method": "fetchTradingFee",
+                "url": "https://www.bitstamp.net/api/v2/fees/trading/",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "output": "market_symbol=btcusdt"
+            }
+        ],
+        "fetchTradingFees": [
+            {
+                "description": "Fetch trading fees",
+                "method": "fetchTradingFees",
+                "url": "https://www.bitstamp.net/api/v2/fees/trading/",
+                "input": [],
+                "output": "foo=bar"
+            }
+        ],
+        "fetchTransactionFees": [
+            {
+                "description": "Fetch transaction fees",
+                "method": "fetchTransactionFees",
+                "url": "https://www.bitstamp.net/api/v2/fees/withdrawal/",
+                "input": [],
+                "output": "foo=bar"
+            }
+        ],
+        "fetchDepositWithdrawFees": [
+            {
+                "description": "Fetch deposit withdraw fees",
+                "method": "fetchDepositWithdrawFees",
+                "url": "https://www.bitstamp.net/api/v2/fees/withdrawal/",
+                "input": [],
+                "output": "foo=bar"
+            }
+        ],
+        "fetchDepositWithdrawFee": [
+            {
+                "description": "Fetch deposit withdraw fee",
+                "method": "fetchDepositWithdrawFee",
+                "url": "https://www.bitstamp.net/api/v2/fees/withdrawal/",
+                "input": [
+                    "USDC"
+                ],
+                "output": "foo=bar"
+            }
+        ],
         "fetchLedger": [
             {
                 "description": "fetch USDT ledger",

@@ -287,7 +287,7 @@ class coinspot extends Exchange {
             //         }
             //     }
             //
-            $ticker = $this->safe_value($prices, $id);
+            $ticker = $this->safe_dict($prices, $id);
             return $this->parse_ticker($ticker, $market);
         }) ();
     }
@@ -361,7 +361,7 @@ class coinspot extends Exchange {
             //         ),
             //     }
             //
-            $trades = $this->safe_value($response, 'orders', array());
+            $trades = $this->safe_list($response, 'orders', array());
             return $this->parse_trades($trades, $market, $since, $limit);
         }) ();
     }

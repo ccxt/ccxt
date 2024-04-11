@@ -319,7 +319,7 @@ class wazirx extends wazirx$1 {
             'interval': this.safeString(this.timeframes, timeframe, timeframe),
         };
         if (limit !== undefined) {
-            request['limit'] = limit;
+            request['limit'] = Math.min(limit, 2000);
         }
         const until = this.safeInteger(params, 'until');
         params = this.omit(params, ['until']);

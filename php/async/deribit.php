@@ -409,74 +409,6 @@ class deribit extends Exchange {
         ));
     }
 
-    public function convert_expire_date($date) {
-        // parse YYMMDD to timestamp
-        $year = mb_substr($date, 0, 2 - 0);
-        $month = mb_substr($date, 2, 4 - 2);
-        $day = mb_substr($date, 4, 6 - 4);
-        $reconstructedDate = '20' . $year . '-' . $month . '-' . $day . 'T00:00:00Z';
-        return $reconstructedDate;
-    }
-
-    public function convert_market_id_expire_date($date) {
-        // parse 19JAN24 to 240119
-        $monthMappping = array(
-            'JAN' => '01',
-            'FEB' => '02',
-            'MAR' => '03',
-            'APR' => '04',
-            'MAY' => '05',
-            'JUN' => '06',
-            'JUL' => '07',
-            'AUG' => '08',
-            'SEP' => '09',
-            'OCT' => '10',
-            'NOV' => '11',
-            'DEC' => '12',
-        );
-        $year = mb_substr($date, 0, 2 - 0);
-        $monthName = mb_substr($date, 2, 5 - 2);
-        $month = $this->safe_string($monthMappping, $monthName);
-        $day = mb_substr($date, 5, 7 - 5);
-        $reconstructedDate = $day . $month . $year;
-        return $reconstructedDate;
-    }
-
-    public function convert_expire_date_to_market_id_date($date) {
-        // parse 240119 to 19JAN24
-        $year = mb_substr($date, 0, 2 - 0);
-        $monthRaw = mb_substr($date, 2, 4 - 2);
-        $month = null;
-        $day = mb_substr($date, 4, 6 - 4);
-        if ($monthRaw === '01') {
-            $month = 'JAN';
-        } elseif ($monthRaw === '02') {
-            $month = 'FEB';
-        } elseif ($monthRaw === '03') {
-            $month = 'MAR';
-        } elseif ($monthRaw === '04') {
-            $month = 'APR';
-        } elseif ($monthRaw === '05') {
-            $month = 'MAY';
-        } elseif ($monthRaw === '06') {
-            $month = 'JUN';
-        } elseif ($monthRaw === '07') {
-            $month = 'JUL';
-        } elseif ($monthRaw === '08') {
-            $month = 'AUG';
-        } elseif ($monthRaw === '09') {
-            $month = 'SEP';
-        } elseif ($monthRaw === '10') {
-            $month = 'OCT';
-        } elseif ($monthRaw === '11') {
-            $month = 'NOV';
-        } elseif ($monthRaw === '12') {
-            $month = 'DEC';
-        }
-        $reconstructedDate = $day . $month . $year;
-        return $reconstructedDate;
-    }
-
     public function create_expired_option_market(string $symbol) {
         // support expired option contracts
         $quote = 'USD';
@@ -588,7 +520,7 @@ class deribit extends Exchange {
         }) ();
     }
 
-    public function fetch_currencies($params = array ()) {
+    public function fetch_currencies($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches all available currencies on an exchange
@@ -770,122 +702,134 @@ class deribit extends Exchange {
         );
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * retrieves data on all markets for deribit
              * @see https://docs.deribit.com/#public-get_currencies
+             * @see https://docs.deribit.com/#public-get_instruments
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} an array of objects representing $market data
              */
-            $currenciesResponse = Async\await($this->publicGetGetCurrencies ($params));
-            //
-            //     {
-            //         "jsonrpc" => "2.0",
-            //         "result" => array(
-            //             {
-            //                 "withdrawal_priorities" => array(
-            //                     array( value => 0.15, name => "very_low" ),
-            //                     array( value => 1.5, name => "very_high" ),
-            //                 ),
-            //                 "withdrawal_fee" => 0.0005,
-            //                 "min_withdrawal_fee" => 0.0005,
-            //                 "min_confirmations" => 1,
-            //                 "fee_precision" => 4,
-            //                 "currency_long" => "Bitcoin",
-            //                 "currency" => "BTC",
-            //                 "coin_type" => "BITCOIN"
-            //             }
-            //         ),
-            //         "usIn" => 1583761588590479,
-            //         "usOut" => 1583761588590544,
-            //         "usDiff" => 65,
-            //         "testnet" => false
-            //     }
-            //
-            $parsedMarkets = array();
-            $currenciesResult = $this->safe_value($currenciesResponse, 'result', array());
+            $instrumentsResponses = array();
             $result = array();
-            for ($i = 0; $i < count($currenciesResult); $i++) {
-                $currencyId = $this->safe_string($currenciesResult[$i], 'currency');
-                $request = array(
-                    'currency' => $currencyId,
-                );
-                $instrumentsResponse = Async\await($this->publicGetGetInstruments (array_merge($request, $params)));
+            $parsedMarkets = array();
+            $fetchAllMarkets = null;
+            list($fetchAllMarkets, $params) = $this->handle_option_and_params($params, 'fetchMarkets', 'fetchAllMarkets', true);
+            if ($fetchAllMarkets) {
+                $instrumentsResponse = Async\await($this->publicGetGetInstruments ($params));
+                $instrumentsResponses[] = $instrumentsResponse;
+            } else {
+                $currenciesResponse = Async\await($this->publicGetGetCurrencies ($params));
                 //
                 //     {
-                //         "jsonrpc":"2.0",
-                //         "result":array(
-                //             array(
-                //                 "tick_size":0.0005,
-                //                 "taker_commission":0.0003,
-                //                 "strike":52000.0,
-                //                 "settlement_period":"month",
-                //                 "settlement_currency":"BTC",
-                //                 "quote_currency":"BTC",
-                //                 "option_type":"put", // put, call
-                //                 "min_trade_amount":0.1,
-                //                 "maker_commission":0.0003,
-                //                 "kind":"option",
-                //                 "is_active":true,
-                //                 "instrument_name":"BTC-24JUN22-52000-P",
-                //                 "expiration_timestamp":1656057600000,
-                //                 "creation_timestamp":1648199543000,
-                //                 "counter_currency":"USD",
-                //                 "contract_size":1.0,
-                //                 "block_trade_commission":0.0003,
-                //                 "base_currency":"BTC"
-                //             ),
-                //             array(
-                //                 "tick_size":0.5,
-                //                 "taker_commission":0.0005,
-                //                 "settlement_period":"month", // month, week
-                //                 "settlement_currency":"BTC",
-                //                 "quote_currency":"USD",
-                //                 "min_trade_amount":10.0,
-                //                 "max_liquidation_commission":0.0075,
-                //                 "max_leverage":50,
-                //                 "maker_commission":0.0,
-                //                 "kind":"future",
-                //                 "is_active":true,
-                //                 "instrument_name":"BTC-27MAY22",
-                //                 "future_type":"reversed",
-                //                 "expiration_timestamp":1653638400000,
-                //                 "creation_timestamp":1648195209000,
-                //                 "counter_currency":"USD",
-                //                 "contract_size":10.0,
-                //                 "block_trade_commission":0.0001,
-                //                 "base_currency":"BTC"
-                //             ),
-                //             array(
-                //                 "tick_size":0.5,
-                //                 "taker_commission":0.0005,
-                //                 "settlement_period":"perpetual",
-                //                 "settlement_currency":"BTC",
-                //                 "quote_currency":"USD",
-                //                 "min_trade_amount":10.0,
-                //                 "max_liquidation_commission":0.0075,
-                //                 "max_leverage":50,
-                //                 "maker_commission":0.0,
-                //                 "kind":"future",
-                //                 "is_active":true,
-                //                 "instrument_name":"BTC-PERPETUAL",
-                //                 "future_type":"reversed",
-                //                 "expiration_timestamp":32503708800000,
-                //                 "creation_timestamp":1534242287000,
-                //                 "counter_currency":"USD",
-                //                 "contract_size":10.0,
-                //                 "block_trade_commission":0.0001,
-                //                 "base_currency":"BTC"
-                //             ),
+                //         "jsonrpc" => "2.0",
+                //         "result" => array(
+                //             {
+                //                 "withdrawal_priorities" => array(
+                //                     array( value => 0.15, name => "very_low" ),
+                //                     array( value => 1.5, name => "very_high" ),
+                //                 ),
+                //                 "withdrawal_fee" => 0.0005,
+                //                 "min_withdrawal_fee" => 0.0005,
+                //                 "min_confirmations" => 1,
+                //                 "fee_precision" => 4,
+                //                 "currency_long" => "Bitcoin",
+                //                 "currency" => "BTC",
+                //                 "coin_type" => "BITCOIN"
+                //             }
                 //         ),
-                //         "usIn":1648691472831791,
-                //         "usOut":1648691472831896,
-                //         "usDiff":105,
-                //         "testnet":false
+                //         "usIn" => 1583761588590479,
+                //         "usOut" => 1583761588590544,
+                //         "usDiff" => 65,
+                //         "testnet" => false
                 //     }
                 //
-                $instrumentsResult = $this->safe_value($instrumentsResponse, 'result', array());
+                $currenciesResult = $this->safe_value($currenciesResponse, 'result', array());
+                for ($i = 0; $i < count($currenciesResult); $i++) {
+                    $currencyId = $this->safe_string($currenciesResult[$i], 'currency');
+                    $request = array(
+                        'currency' => $currencyId,
+                    );
+                    $instrumentsResponse = Async\await($this->publicGetGetInstruments (array_merge($request, $params)));
+                    //
+                    //     {
+                    //         "jsonrpc":"2.0",
+                    //         "result":array(
+                    //             array(
+                    //                 "tick_size":0.0005,
+                    //                 "taker_commission":0.0003,
+                    //                 "strike":52000.0,
+                    //                 "settlement_period":"month",
+                    //                 "settlement_currency":"BTC",
+                    //                 "quote_currency":"BTC",
+                    //                 "option_type":"put", // put, call
+                    //                 "min_trade_amount":0.1,
+                    //                 "maker_commission":0.0003,
+                    //                 "kind":"option",
+                    //                 "is_active":true,
+                    //                 "instrument_name":"BTC-24JUN22-52000-P",
+                    //                 "expiration_timestamp":1656057600000,
+                    //                 "creation_timestamp":1648199543000,
+                    //                 "counter_currency":"USD",
+                    //                 "contract_size":1.0,
+                    //                 "block_trade_commission":0.0003,
+                    //                 "base_currency":"BTC"
+                    //             ),
+                    //             array(
+                    //                 "tick_size":0.5,
+                    //                 "taker_commission":0.0005,
+                    //                 "settlement_period":"month", // month, week
+                    //                 "settlement_currency":"BTC",
+                    //                 "quote_currency":"USD",
+                    //                 "min_trade_amount":10.0,
+                    //                 "max_liquidation_commission":0.0075,
+                    //                 "max_leverage":50,
+                    //                 "maker_commission":0.0,
+                    //                 "kind":"future",
+                    //                 "is_active":true,
+                    //                 "instrument_name":"BTC-27MAY22",
+                    //                 "future_type":"reversed",
+                    //                 "expiration_timestamp":1653638400000,
+                    //                 "creation_timestamp":1648195209000,
+                    //                 "counter_currency":"USD",
+                    //                 "contract_size":10.0,
+                    //                 "block_trade_commission":0.0001,
+                    //                 "base_currency":"BTC"
+                    //             ),
+                    //             array(
+                    //                 "tick_size":0.5,
+                    //                 "taker_commission":0.0005,
+                    //                 "settlement_period":"perpetual",
+                    //                 "settlement_currency":"BTC",
+                    //                 "quote_currency":"USD",
+                    //                 "min_trade_amount":10.0,
+                    //                 "max_liquidation_commission":0.0075,
+                    //                 "max_leverage":50,
+                    //                 "maker_commission":0.0,
+                    //                 "kind":"future",
+                    //                 "is_active":true,
+                    //                 "instrument_name":"BTC-PERPETUAL",
+                    //                 "future_type":"reversed",
+                    //                 "expiration_timestamp":32503708800000,
+                    //                 "creation_timestamp":1534242287000,
+                    //                 "counter_currency":"USD",
+                    //                 "contract_size":10.0,
+                    //                 "block_trade_commission":0.0001,
+                    //                 "base_currency":"BTC"
+                    //             ),
+                    //         ),
+                    //         "usIn":1648691472831791,
+                    //         "usOut":1648691472831896,
+                    //         "usDiff":105,
+                    //         "testnet":false
+                    //     }
+                    //
+                    $instrumentsResponses[] = $instrumentsResponse;
+                }
+            }
+            for ($i = 0; $i < count($instrumentsResponses); $i++) {
+                $instrumentsResult = $this->safe_value($instrumentsResponses[$i], 'result', array());
                 for ($k = 0; $k < count($instrumentsResult); $k++) {
                     $market = $instrumentsResult[$k];
                     $kind = $this->safe_string($market, 'kind');
@@ -1271,7 +1215,7 @@ class deribit extends Exchange {
             //         "testnet" => false
             //     }
             //
-            $result = $this->safe_value($response, 'result');
+            $result = $this->safe_dict($response, 'result');
             return $this->parse_ticker($result, $market);
         }) ();
     }
@@ -1344,9 +1288,16 @@ class deribit extends Exchange {
              * @param {int} [$since] timestamp in ms of the earliest candle to fetch
              * @param {int} [$limit] the maximum amount of candles to fetch
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {boolean} [$params->paginate] whether to $paginate the results, set to false by default
+             * @param {int} [$params->until] the latest time in ms to fetch ohlcv for
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
+            $paginate = false;
+            list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'paginate');
+            if ($paginate) {
+                return Async\await($this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $params, 5000));
+            }
             $market = $this->market($symbol);
             $request = array(
                 'instrument_name' => $market['id'],
@@ -1368,6 +1319,11 @@ class deribit extends Exchange {
                 } else {
                     $request['end_timestamp'] = $this->sum($since, $limit * $duration * 1000);
                 }
+            }
+            $until = $this->safe_integer($params, 'until');
+            if ($until !== null) {
+                $params = $this->omit($params, 'until');
+                $request['end_timestamp'] = $until;
             }
             $response = Async\await($this->publicGetGetTradingviewChartData (array_merge($request, $params)));
             //
@@ -1495,6 +1451,7 @@ class deribit extends Exchange {
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {int} [$params->until] the latest time in ms to fetch $trades for
              * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=public-$trades trade structures~
              */
             Async\await($this->load_markets());
@@ -1509,8 +1466,13 @@ class deribit extends Exchange {
             if ($limit !== null) {
                 $request['count'] = min ($limit, 1000); // default 10
             }
+            $until = $this->safe_integer_2($params, 'until', 'end_timestamp');
+            if ($until !== null) {
+                $params = $this->omit($params, array( 'until' ));
+                $request['end_timestamp'] = $until;
+            }
             $response = null;
-            if ($since === null) {
+            if (($since === null) && !(is_array($request) && array_key_exists('end_timestamp', $request))) {
                 $response = Async\await($this->publicGetGetLastTradesByInstrument (array_merge($request, $params)));
             } else {
                 $response = Async\await($this->publicGetGetLastTradesByInstrumentAndTime (array_merge($request, $params)));
@@ -1541,12 +1503,12 @@ class deribit extends Exchange {
             //      }
             //
             $result = $this->safe_value($response, 'result', array());
-            $trades = $this->safe_value($result, 'trades', array());
+            $trades = $this->safe_list($result, 'trades', array());
             return $this->parse_trades($trades, $market, $since, $limit);
         }) ();
     }
 
-    public function fetch_trading_fees($params = array ()) {
+    public function fetch_trading_fees($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetch the trading $fees for multiple markets
@@ -1906,7 +1868,7 @@ class deribit extends Exchange {
             //         }
             //     }
             //
-            $result = $this->safe_value($response, 'result');
+            $result = $this->safe_dict($response, 'result');
             return $this->parse_order($result, $market);
         }) ();
     }
@@ -2145,7 +2107,7 @@ class deribit extends Exchange {
                 'order_id' => $id,
             );
             $response = Async\await($this->privateGetCancel (array_merge($request, $params)));
-            $result = $this->safe_value($response, 'result', array());
+            $result = $this->safe_dict($response, 'result', array());
             return $this->parse_order($result);
         }) ();
     }
@@ -2200,7 +2162,7 @@ class deribit extends Exchange {
                 $request['instrument_name'] = $market['id'];
                 $response = Async\await($this->privateGetGetOpenOrdersByInstrument (array_merge($request, $params)));
             }
-            $result = $this->safe_value($response, 'result', array());
+            $result = $this->safe_list($response, 'result', array());
             return $this->parse_orders($result, $market, $since, $limit);
         }) ();
     }
@@ -2231,7 +2193,7 @@ class deribit extends Exchange {
                 $request['instrument_name'] = $market['id'];
                 $response = Async\await($this->privateGetGetOrderHistoryByInstrument (array_merge($request, $params)));
             }
-            $result = $this->safe_value($response, 'result', array());
+            $result = $this->safe_list($response, 'result', array());
             return $this->parse_orders($result, $market, $since, $limit);
         }) ();
     }
@@ -2286,7 +2248,7 @@ class deribit extends Exchange {
             //         }
             //     }
             //
-            $result = $this->safe_value($response, 'result', array());
+            $result = $this->safe_list($response, 'result', array());
             return $this->parse_trades($result, null, $since, $limit);
         }) ();
     }
@@ -2368,7 +2330,7 @@ class deribit extends Exchange {
             //     }
             //
             $result = $this->safe_value($response, 'result', array());
-            $trades = $this->safe_value($result, 'trades', array());
+            $trades = $this->safe_list($result, 'trades', array());
             return $this->parse_trades($trades, $market, $since, $limit);
         }) ();
     }
@@ -2417,7 +2379,7 @@ class deribit extends Exchange {
             //     }
             //
             $result = $this->safe_value($response, 'result', array());
-            $data = $this->safe_value($result, 'data', array());
+            $data = $this->safe_list($result, 'data', array());
             return $this->parse_transactions($data, $currency, $since, $limit, $params);
         }) ();
     }
@@ -2470,7 +2432,7 @@ class deribit extends Exchange {
             //     }
             //
             $result = $this->safe_value($response, 'result', array());
-            $data = $this->safe_value($result, 'data', array());
+            $data = $this->safe_list($result, 'data', array());
             return $this->parse_transactions($data, $currency, $since, $limit, $params);
         }) ();
     }
@@ -2661,7 +2623,7 @@ class deribit extends Exchange {
             //         }
             //     }
             //
-            $result = $this->safe_value($response, 'result');
+            $result = $this->safe_dict($response, 'result');
             return $this->parse_position($result);
         }) ();
     }
@@ -2733,7 +2695,7 @@ class deribit extends Exchange {
             //         )
             //     }
             //
-            $result = $this->safe_value($response, 'result');
+            $result = $this->safe_list($response, 'result');
             return $this->parse_positions($result, $symbols);
         }) ();
     }
@@ -2858,7 +2820,7 @@ class deribit extends Exchange {
             //     }
             //
             $result = $this->safe_value($response, 'result', array());
-            $transfers = $this->safe_value($result, 'data', array());
+            $transfers = $this->safe_list($result, 'data', array());
             return $this->parse_transfers($transfers, $currency, $since, $limit, $params);
         }) ();
     }
@@ -2912,7 +2874,7 @@ class deribit extends Exchange {
             //         }
             //     }
             //
-            $result = $this->safe_value($response, 'result', array());
+            $result = $this->safe_dict($response, 'result', array());
             return $this->parse_transfer($result, $currency);
         }) ();
     }
@@ -3050,7 +3012,7 @@ class deribit extends Exchange {
             //      "testnet" => true
             //    }
             //
-            $data = $this->safe_value($response, 'result', array());
+            $data = $this->safe_list($response, 'result', array());
             return $this->parse_deposit_withdraw_fees($data, $codes, 'currency');
         }) ();
     }
@@ -3322,7 +3284,7 @@ class deribit extends Exchange {
             //     }
             //
             $result = $this->safe_value($response, 'result', array());
-            $settlements = $this->safe_value($result, 'settlements', array());
+            $settlements = $this->safe_list($result, 'settlements', array());
             return $this->parse_liquidations($settlements, $market, $since, $limit);
         }) ();
     }

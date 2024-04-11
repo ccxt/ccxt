@@ -78,6 +78,7 @@ class kucoin extends Exchange {
                 'fetchL3OrderBook' => true,
                 'fetchLedger' => true,
                 'fetchLeverageTiers' => false,
+                'fetchMarginAdjustmentHistory' => false,
                 'fetchMarginMode' => false,
                 'fetchMarketLeverageTiers' => false,
                 'fetchMarkets' => true,
@@ -428,6 +429,7 @@ class kucoin extends Exchange {
                     'Order size below the minimum requirement.' => '\\ccxt\\InvalidOrder', // array("code":"400100","msg":"Order size below the minimum requirement.")
                     'The withdrawal amount is below the minimum requirement.' => '\\ccxt\\ExchangeError', // array("code":"400100","msg":"The withdrawal amount is below the minimum requirement.")
                     'Unsuccessful! Exceeded the max. funds out-transfer limit' => '\\ccxt\\InsufficientFunds', // array("code":"200000","msg":"Unsuccessful! Exceeded the max. funds out-transfer limit")
+                    'The amount increment is invalid.' => '\\ccxt\\BadRequest',
                     '400' => '\\ccxt\\BadRequest',
                     '401' => '\\ccxt\\AuthenticationError',
                     '403' => '\\ccxt\\NotSupported',
@@ -986,7 +988,7 @@ class kucoin extends Exchange {
         }) ();
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * retrieves $data on all markets for kucoin
@@ -1128,7 +1130,7 @@ class kucoin extends Exchange {
         }) ();
     }
 
-    public function fetch_currencies($params = array ()) {
+    public function fetch_currencies($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches all available currencies on an exchange
@@ -2180,6 +2182,15 @@ class kucoin extends Exchange {
         }) ();
     }
 
+    public function market_order_amount_to_precision(string $symbol, $amount) {
+        $market = $this->market($symbol);
+        $result = $this->decimal_to_precision($amount, TRUNCATE, $market['info']['quoteIncrement'], $this->precisionMode, $this->paddingMode);
+        if ($result === '0') {
+            throw new InvalidOrder($this->id . ' $amount of ' . $market['symbol'] . ' must be greater than minimum $amount precision of ' . $this->number_to_string($market['precision']['amount']));
+        }
+        return $result;
+    }
+
     public function create_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         $market = $this->market($symbol);
         // required param, cannot be used twice
@@ -2200,7 +2211,7 @@ class kucoin extends Exchange {
             if ($quoteAmount !== null) {
                 $params = $this->omit($params, array( 'cost', 'funds' ));
                 // kucoin uses base precision even for quote values
-                $costString = $this->amount_to_precision($symbol, $quoteAmount);
+                $costString = $this->market_order_amount_to_precision($symbol, $quoteAmount);
                 $request['funds'] = $costString;
             } else {
                 $amountString = $this->amount_to_precision($symbol, $amount);
@@ -2502,8 +2513,12 @@ class kucoin extends Exchange {
             //             )
             //         }
             //    }
+            $listData = $this->safe_list($response, 'data');
+            if ($listData !== null) {
+                return $this->parse_orders($listData, $market, $since, $limit);
+            }
             $responseData = $this->safe_dict($response, 'data', array());
-            $orders = $this->safe_value($responseData, 'items', $responseData);
+            $orders = $this->safe_list($responseData, 'items', array());
             return $this->parse_orders($orders, $market, $since, $limit);
         }) ();
     }
@@ -3127,7 +3142,7 @@ class kucoin extends Exchange {
         ), $market);
     }
 
-    public function fetch_trading_fee(string $symbol, $params = array ()) {
+    public function fetch_trading_fee(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch the trading fees for a $market
@@ -3517,9 +3532,9 @@ class kucoin extends Exchange {
 
     public function parse_balance_helper($entry) {
         $account = $this->account();
-        $account['used'] = $this->safe_string($entry, 'holdBalance');
-        $account['free'] = $this->safe_string($entry, 'availableBalance');
-        $account['total'] = $this->safe_string($entry, 'totalBalance');
+        $account['used'] = $this->safe_string_2($entry, 'holdBalance', 'hold');
+        $account['free'] = $this->safe_string_2($entry, 'availableBalance', 'available');
+        $account['total'] = $this->safe_string_2($entry, 'totalBalance', 'total');
         $debt = $this->safe_string($entry, 'liability');
         $interest = $this->safe_string($entry, 'interest');
         $account['debt'] = Precise::string_add($debt, $interest);
@@ -3530,9 +3545,9 @@ class kucoin extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * $query for $balance and get the amount of funds available for trading or funds locked in orders
-             * @see https://docs.kucoin.com/#list-$accounts
              * @see https://www.kucoin.com/docs/rest/account/basic-info/get-$account-list-spot-margin-trade_hf
-             * @see https://docs.kucoin.com/#$query-$isolated-margin-$account-info
+             * @see https://www.kucoin.com/docs/rest/funding/funding-overview/get-$account-detail-margin
+             * @see https://www.kucoin.com/docs/rest/funding/funding-overview/get-$account-detail-$isolated-margin
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {array} [$params->marginMode] 'cross' or 'isolated', margin $type for fetching margin $balance
              * @param {array} [$params->type] extra parameters specific to the exchange API endpoint
@@ -3559,7 +3574,7 @@ class kucoin extends Exchange {
             $response = null;
             $request = array();
             $isolated = ($marginMode === 'isolated') || ($type === 'isolated');
-            $cross = ($marginMode === 'cross') || ($type === 'cross');
+            $cross = ($marginMode === 'cross') || ($type === 'margin');
             if ($isolated) {
                 if ($currency !== null) {
                     $request['balanceCurrency'] = $currency['id'];
@@ -3575,7 +3590,7 @@ class kucoin extends Exchange {
                 $response = Async\await($this->privateGetAccounts (array_merge($request, $query)));
             }
             //
-            // Spot and Cross
+            // Spot
             //
             //    {
             //        "code" => "200000",
@@ -3591,35 +3606,59 @@ class kucoin extends Exchange {
             //        )
             //    }
             //
+            // Cross
+            //
+            //     {
+            //         "code" => "200000",
+            //         "data" => {
+            //             "debtRatio" => "0",
+            //             "accounts" => array(
+            //                 array(
+            //                     "currency" => "USDT",
+            //                     "totalBalance" => "5",
+            //                     "availableBalance" => "5",
+            //                     "holdBalance" => "0",
+            //                     "liability" => "0",
+            //                     "maxBorrowSize" => "20"
+            //                 ),
+            //             )
+            //         }
+            //     }
+            //
             // Isolated
             //
             //    {
             //        "code" => "200000",
             //        "data" => {
-            //            "totalConversionBalance" => "0",
-            //            "liabilityConversionBalance" => "0",
+            //            "totalAssetOfQuoteCurrency" => "0",
+            //            "totalLiabilityOfQuoteCurrency" => "0",
+            //            "timestamp" => 1712085661155,
             //            "assets" => array(
             //                {
             //                    "symbol" => "MANA-USDT",
-            //                    "status" => "CLEAR",
+            //                    "status" => "EFFECTIVE",
             //                    "debtRatio" => "0",
             //                    "baseAsset" => array(
             //                        "currency" => "MANA",
-            //                        "totalBalance" => "0",
-            //                        "holdBalance" => "0",
-            //                        "availableBalance" => "0",
+            //                        "borrowEnabled" => true,
+            //                        "transferInEnabled" => true,
+            //                        "total" => "0",
+            //                        "hold" => "0",
+            //                        "available" => "0",
             //                        "liability" => "0",
             //                        "interest" => "0",
-            //                        "borrowableAmount" => "0"
+            //                        "maxBorrowSize" => "0"
             //                    ),
             //                    "quoteAsset" => array(
             //                        "currency" => "USDT",
-            //                        "totalBalance" => "0",
-            //                        "holdBalance" => "0",
-            //                        "availableBalance" => "0",
+            //                        "borrowEnabled" => true,
+            //                        "transferInEnabled" => true,
+            //                        "total" => "0",
+            //                        "hold" => "0",
+            //                        "available" => "0",
             //                        "liability" => "0",
             //                        "interest" => "0",
-            //                        "borrowableAmount" => "0"
+            //                        "maxBorrowSize" => "0"
             //                    }
             //                ),
             //                ...
@@ -3627,13 +3666,14 @@ class kucoin extends Exchange {
             //        }
             //    }
             //
-            $data = $this->safe_list($response, 'data', array());
+            $data = null;
             $result = array(
                 'info' => $response,
                 'timestamp' => null,
                 'datetime' => null,
             );
             if ($isolated) {
+                $data = $this->safe_dict($response, 'data', array());
                 $assets = $this->safe_value($data, 'assets', $data);
                 for ($i = 0; $i < count($assets); $i++) {
                     $entry = $assets[$i];
@@ -3649,6 +3689,7 @@ class kucoin extends Exchange {
                     $result[$symbol] = $this->safe_balance($subResult);
                 }
             } elseif ($cross) {
+                $data = $this->safe_dict($response, 'data', array());
                 $accounts = $this->safe_list($data, 'accounts', array());
                 for ($i = 0; $i < count($accounts); $i++) {
                     $balance = $accounts[$i];
@@ -3657,6 +3698,7 @@ class kucoin extends Exchange {
                     $result[$codeInner] = $this->parse_balance_helper($balance);
                 }
             } else {
+                $data = $this->safe_list($response, 'data', array());
                 for ($i = 0; $i < count($data); $i++) {
                     $balance = $data[$i];
                     $balanceType = $this->safe_string($balance, 'type');

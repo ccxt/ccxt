@@ -1481,6 +1481,40 @@
                         "ETH/USDT:USDT"
                     ]
                 ]
+            },
+            {
+                "description": "subType linear",
+                "method": "fetchTickers",
+                "url": "https://api.bitget.com/api/v2/mix/market/tickers?productType=USDT-FUTURES",
+                "input": [
+                    null,
+                    {
+                        "subType": "linear"
+                    }
+                ]
+            },
+            {
+                "description": "subType inverse",
+                "method": "fetchTickers",
+                "url": "https://api.bitget.com/api/v2/mix/market/tickers?productType=COIN-FUTURES",
+                "input": [
+                    null,
+                    {
+                        "subType": "inverse"
+                    }
+                ]
+            },
+            {
+                "description": "productType usdc",
+                "method": "fetchTickers",
+                "url": "https://api.bitget.com/api/v2/mix/market/tickers?productType=USDC-FUTURES",
+                "input": [
+                    null,
+                    {
+                        "defaultType": "swap",
+                        "productType": "USDC-FUTURES"
+                    }
+                ]
             }
         ],
         "fetchFundingRateHistory": [
@@ -1501,6 +1535,46 @@
                 "input": [
                     "BTC/USDT:USDT"
                 ]
+            }
+        ],
+        "fetchDeposits": [
+            {
+                "description": "fetch usdt deposits",
+                "method": "fetchDeposits",
+                "url": "https://api.bitget.com/api/v2/spot/wallet/deposit-records?coin=USDT&endTime=1712048378795&startTime=1704272378795",
+                "input": [
+                  "USDT"
+                ]
+            }
+        ],
+        "fetchWithdrawals": [
+            {
+                "description": "fetch withdrawals",
+                "method": "fetchWithdrawals",
+                "url": "https://api.bitget.com/api/v2/spot/wallet/withdrawal-records?coin=USDT&endTime=1712048411669&startTime=1704272411669",
+                "input": [
+                  "USDT"
+                ]
+            }
+        ],
+        "fetchConvertQuote": [
+            {
+                "description": "Fetch a quote for a conversion trade",
+                "method": "fetchConvertQuote",
+                "url": "https://api.bitget.com/api/v2/convert/quoted-price?fromCoin=USDC&fromCoinSize=3&toCoin=USDT",
+                "input": [
+                  "USDC",
+                  "USDT",
+                  3
+                ]
+            }
+        ],
+        "fetchConvertCurrencies": [
+            {
+                "description": "Fetch currencies that can be converted",
+                "method": "fetchConvertCurrencies",
+                "url": "https://api.bitget.com/api/v2/convert/currencies",
+                "input": []
             }
         ]
     }

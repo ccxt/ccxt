@@ -5,8 +5,8 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 import assert from 'assert';
-import testSharedMethods from './test.sharedMethods.js';
 import Precise from '../../../base/Precise.js';
+import testSharedMethods from './test.sharedMethods.js';
 function testMarket(exchange, skippedProperties, method, market) {
     const format = {
         'id': 'btcusd',
@@ -93,6 +93,10 @@ function testMarket(exchange, skippedProperties, method, market) {
         testSharedMethods.assertInArray(exchange, skippedProperties, method, market, 'margin', [false, undefined]);
     }
     if (!('contractSize' in skippedProperties)) {
+        if (!market['spot']) {
+            // if not spot, then contractSize should be defined
+            assert(market['contractSize'] !== undefined, '"contractSize" must be defined when "spot" is false' + logText);
+        }
         testSharedMethods.assertGreater(exchange, skippedProperties, method, market, 'contractSize', '0');
     }
     // typical values

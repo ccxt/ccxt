@@ -120,6 +120,7 @@ class gate extends gate$1 {
                 'fetchLeverages': true,
                 'fetchLeverageTiers': true,
                 'fetchLiquidations': true,
+                'fetchMarginAdjustmentHistory': false,
                 'fetchMarginMode': false,
                 'fetchMarketLeverageTiers': true,
                 'fetchMarkets': true,
@@ -869,14 +870,6 @@ class gate extends gate$1 {
     setSandboxMode(enable) {
         super.setSandboxMode(enable);
         this.options['sandboxMode'] = enable;
-    }
-    convertExpireDate(date) {
-        // parse YYMMDD to timestamp
-        const year = date.slice(0, 2);
-        const month = date.slice(2, 4);
-        const day = date.slice(4, 6);
-        const reconstructedDate = '20' + year + '-' + month + '-' + day + 'T00:00:00Z';
-        return reconstructedDate;
     }
     createExpiredOptionMarket(symbol) {
         // support expired option contracts
@@ -1867,7 +1860,7 @@ class gate extends gate$1 {
         await this.loadMarkets();
         const currency = this.currency(code);
         const request = {
-            'currency': currency['id'],
+            'currency': currency['id'], // todo: currencies have network-junctions
         };
         const response = await this.privateWalletGetDepositAddress(this.extend(request, params));
         const addresses = this.safeValue(response, 'multichain_addresses');
@@ -1918,7 +1911,7 @@ class gate extends gate$1 {
         const rawNetwork = this.safeStringUpper(params, 'network');
         params = this.omit(params, 'network');
         const request = {
-            'currency': currency['id'],
+            'currency': currency['id'], // todo: currencies have network-junctions
         };
         const response = await this.privateWalletGetDepositAddress(this.extend(request, params));
         //
@@ -2079,6 +2072,8 @@ class gate extends gate$1 {
             'symbol': this.safeString(market, 'symbol'),
             'maker': this.safeNumber(info, makerKey),
             'taker': this.safeNumber(info, takerKey),
+            'percentage': undefined,
+            'tierBased': undefined,
         };
     }
     async fetchTransactionFees(codes = undefined, params = {}) {
@@ -3534,7 +3529,7 @@ class gate extends gate$1 {
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency(code);
-            request['currency'] = currency['id'];
+            request['currency'] = currency['id']; // todo: currencies have network-junctions
         }
         if (limit !== undefined) {
             request['limit'] = limit;
@@ -3572,7 +3567,7 @@ class gate extends gate$1 {
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency(code);
-            request['currency'] = currency['id'];
+            request['currency'] = currency['id']; // todo: currencies have network-junctions
         }
         if (limit !== undefined) {
             request['limit'] = limit;
@@ -3619,7 +3614,7 @@ class gate extends gate$1 {
             params = this.omit(params, 'network');
         }
         else {
-            request['chain'] = currency['id'];
+            request['chain'] = currency['id']; // todo: currencies have network-junctions
         }
         const response = await this.privateWithdrawalsPostWithdrawals(this.extend(request, params));
         //
@@ -5153,7 +5148,7 @@ class gate extends gate$1 {
             params = this.omit(params, 'symbol');
         }
         if ((toId === 'futures') || (toId === 'delivery') || (fromId === 'futures') || (fromId === 'delivery')) {
-            request['settle'] = currency['id'];
+            request['settle'] = currency['id']; // todo: currencies have network-junctions
         }
         const response = await this.privateWalletPostTransfers(this.extend(request, params));
         //
@@ -6123,11 +6118,15 @@ class gate extends gate$1 {
         const total = this.safeNumber(data, 'margin');
         return {
             'info': data,
-            'amount': undefined,
-            'code': this.safeValue(market, 'quote'),
             'symbol': market['symbol'],
+            'type': undefined,
+            'marginMode': 'isolated',
+            'amount': undefined,
             'total': total,
+            'code': this.safeValue(market, 'quote'),
             'status': 'ok',
+            'timestamp': undefined,
+            'datetime': undefined,
         };
     }
     async reduceMargin(symbol, amount, params = {}) {
@@ -6458,7 +6457,7 @@ class gate extends gate$1 {
         if ((type === 'spot') || (type === 'margin')) {
             if (code !== undefined) {
                 currency = this.currency(code);
-                request['currency'] = currency['id'];
+                request['currency'] = currency['id']; // todo: currencies have network-junctions
             }
         }
         if ((type === 'swap') || (type === 'future')) {
@@ -7277,7 +7276,7 @@ class gate extends gate$1 {
         await this.loadMarkets();
         const currency = this.currency(code);
         const request = {
-            'underlying': currency['code'] + '_USDT',
+            'underlying': currency['code'] + '_USDT', // todo: currency['id'].toUpperCase () &  network junctions
         };
         const response = await this.publicOptionsGetContracts(this.extend(request, params));
         //
