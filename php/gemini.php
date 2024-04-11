@@ -678,7 +678,8 @@ class gemini extends Exchange {
             for ($i = 0; $i < count($quoteQurrencies); $i++) {
                 $quoteCurrency = $quoteQurrencies[$i];
                 if (str_ends_with($marketIdWithoutPerp, $quoteCurrency)) {
-                    $baseId = str_replace($quoteCurrency, '', $marketIdWithoutPerp);
+                    $quoteLength = $this->parse_to_int(-1 * strlen($quoteCurrency));
+                    $baseId = mb_substr($marketIdWithoutPerp, 0, $quoteLength - 0);
                     $quoteId = $quoteCurrency;
                     if ($isPerp) {
                         $settleId = $quoteCurrency; // always same

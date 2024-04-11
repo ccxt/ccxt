@@ -9,6 +9,7 @@ import hashlib
 from ccxt.base.types import Balances, Currencies, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
@@ -20,7 +21,6 @@ from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import InvalidNonce
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -665,7 +665,8 @@ class gemini(Exchange, ImplicitAPI):
             for i in range(0, len(quoteQurrencies)):
                 quoteCurrency = quoteQurrencies[i]
                 if marketIdWithoutPerp.endswith(quoteCurrency):
-                    baseId = marketIdWithoutPerp.replace(quoteCurrency, '')
+                    quoteLength = self.parse_to_int(-1 * len(quoteCurrency))
+                    baseId = marketIdWithoutPerp[0:quoteLength]
                     quoteId = quoteCurrency
                     if isPerp:
                         settleId = quoteCurrency  # always same

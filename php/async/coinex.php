@@ -1105,9 +1105,9 @@ class coinex extends Exchange {
     public function fetch_order_book(string $symbol, ?int $limit = 20, $params = array ()) {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
-             * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-             * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot001_market004_market_depth
-             * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http010_market_depth
+             * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other $data
+             * @see https://docs.coinex.com/api/v2/spot/market/http/list-$market-$depth
+             * @see https://docs.coinex.com/api/v2/futures/market/http/list-$market-$depth
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1119,64 +1119,70 @@ class coinex extends Exchange {
                 $limit = 20; // default
             }
             $request = array(
-                'market' => $this->market_id($symbol),
-                'merge' => '0',
-                'limit' => (string) $limit,
+                'market' => $market['id'],
+                'limit' => $limit,
+                'interval' => '0',
             );
             $response = null;
             if ($market['swap']) {
-                $response = Async\await($this->v1PerpetualPublicGetMarketDepth (array_merge($request, $params)));
+                $response = Async\await($this->v2PublicGetFuturesDepth (array_merge($request, $params)));
+                //
+                //     {
+                //         "code" => 0,
+                //         "data" => array(
+                //             "depth" => array(
+                //                 "asks" => [
+                //                     ["70851.94", "0.2119"],
+                //                     ["70851.95", "0.0004"],
+                //                     ["70851.96", "0.0004"]
+                //                 ],
+                //                 "bids" => [
+                //                     ["70851.93", "1.0314"],
+                //                     ["70850.93", "0.0021"],
+                //                     ["70850.42", "0.0306"]
+                //                 ],
+                //                 "checksum" => 2956436260,
+                //                 "last" => "70851.94",
+                //                 "updated_at" => 1712824003252
+                //             ),
+                //             "is_full" => true,
+                //             "market" => "BTCUSDT"
+                //         ),
+                //         "message" => "OK"
+                //     }
+                //
             } else {
-                $response = Async\await($this->v1PublicGetMarketDepth (array_merge($request, $params)));
+                $response = Async\await($this->v2PublicGetSpotDepth (array_merge($request, $params)));
+                //
+                //     {
+                //         "code" => 0,
+                //         "data" => array(
+                //             "depth" => array(
+                //                 "asks" => [
+                //                     ["70875.31", "0.28670282"],
+                //                     ["70875.32", "0.31008114"],
+                //                     ["70875.42", "0.05876653"]
+                //                 ],
+                //                 "bids" => [
+                //                     ["70855.3", "0.00632222"],
+                //                     ["70855.29", "0.36216834"],
+                //                     ["70855.17", "0.10166802"]
+                //                 ],
+                //                 "checksum" => 2313816665,
+                //                 "last" => "70857.19",
+                //                 "updated_at" => 1712823790987
+                //             ),
+                //             "is_full" => true,
+                //             "market" => "BTCUSDT"
+                //         ),
+                //         "message" => "OK"
+                //     }
+                //
             }
-            //
-            // Spot
-            //
-            //     {
-            //         "code" => 0,
-            //         "data" => array(
-            //             "asks" => [
-            //                 ["41056.33", "0.31727613"],
-            //                 ["41056.34", "1.05657294"],
-            //                 ["41056.35", "0.02346648"]
-            //             ],
-            //             "bids" => [
-            //                 ["41050.61", "0.40618608"],
-            //                 ["41046.98", "0.13800000"],
-            //                 ["41046.56", "0.22579234"]
-            //             ],
-            //             "last" => "41050.61",
-            //             "time" => 1650573220346
-            //         ),
-            //         "message" => "OK"
-            //     }
-            //
-            // Swap
-            //
-            //     {
-            //         "code" => 0,
-            //         "data" => array(
-            //             "asks" => [
-            //                 ["40620.90", "0.0384"],
-            //                 ["40625.50", "0.0219"],
-            //                 ["40625.90", "0.3506"]
-            //             ],
-            //             "bids" => [
-            //                 ["40620.89", "19.6861"],
-            //                 ["40620.80", "0.0012"],
-            //                 ["40619.87", "0.0365"]
-            //             ],
-            //             "last" => "40620.89",
-            //             "time" => 1650587672406,
-            //             "sign_price" => "40619.32",
-            //             "index_price" => "40609.93"
-            //         ),
-            //         "message" => "OK"
-            //     }
-            //
-            $result = $this->safe_value($response, 'data', array());
-            $timestamp = $this->safe_integer($result, 'time');
-            return $this->parse_order_book($result, $symbol, $timestamp);
+            $data = $this->safe_dict($response, 'data', array());
+            $depth = $this->safe_dict($data, 'depth', array());
+            $timestamp = $this->safe_integer($depth, 'updated_at');
+            return $this->parse_order_book($depth, $symbol, $timestamp);
         }) ();
     }
 

@@ -694,7 +694,8 @@ public partial class gemini : Exchange
                 object quoteCurrency = getValue(quoteQurrencies, i);
                 if (isTrue(((string)marketIdWithoutPerp).EndsWith(((string)quoteCurrency))))
                 {
-                    baseId = ((string)marketIdWithoutPerp).Replace((string)quoteCurrency, (string)"");
+                    object quoteLength = this.parseToInt(multiply(-1, getArrayLength(quoteCurrency)));
+                    baseId = slice(marketIdWithoutPerp, 0, quoteLength);
                     quoteId = quoteCurrency;
                     if (isTrue(isPerp))
                     {

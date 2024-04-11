@@ -1105,8 +1105,8 @@ public partial class coinex : Exchange
         * @method
         * @name coinex#fetchOrderBook
         * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-        * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot001_market004_market_depth
-        * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http010_market_depth
+        * @see https://docs.coinex.com/api/v2/spot/market/http/list-market-depth
+        * @see https://docs.coinex.com/api/v2/futures/market/http/list-market-depth
         * @param {string} symbol unified symbol of the market to fetch the order book for
         * @param {int} [limit] the maximum amount of order book entries to return
         * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1121,66 +1121,22 @@ public partial class coinex : Exchange
             limit = 20; // default
         }
         object request = new Dictionary<string, object>() {
-            { "market", this.marketId(symbol) },
-            { "merge", "0" },
-            { "limit", ((object)limit).ToString() },
+            { "market", getValue(market, "id") },
+            { "limit", limit },
+            { "interval", "0" },
         };
         object response = null;
         if (isTrue(getValue(market, "swap")))
         {
-            response = await this.v1PerpetualPublicGetMarketDepth(this.extend(request, parameters));
+            response = await this.v2PublicGetFuturesDepth(this.extend(request, parameters));
         } else
         {
-            response = await this.v1PublicGetMarketDepth(this.extend(request, parameters));
+            response = await this.v2PublicGetSpotDepth(this.extend(request, parameters));
         }
-        //
-        // Spot
-        //
-        //     {
-        //         "code": 0,
-        //         "data": {
-        //             "asks": [
-        //                 ["41056.33", "0.31727613"],
-        //                 ["41056.34", "1.05657294"],
-        //                 ["41056.35", "0.02346648"]
-        //             ],
-        //             "bids": [
-        //                 ["41050.61", "0.40618608"],
-        //                 ["41046.98", "0.13800000"],
-        //                 ["41046.56", "0.22579234"]
-        //             ],
-        //             "last": "41050.61",
-        //             "time": 1650573220346
-        //         },
-        //         "message": "OK"
-        //     }
-        //
-        // Swap
-        //
-        //     {
-        //         "code": 0,
-        //         "data": {
-        //             "asks": [
-        //                 ["40620.90", "0.0384"],
-        //                 ["40625.50", "0.0219"],
-        //                 ["40625.90", "0.3506"]
-        //             ],
-        //             "bids": [
-        //                 ["40620.89", "19.6861"],
-        //                 ["40620.80", "0.0012"],
-        //                 ["40619.87", "0.0365"]
-        //             ],
-        //             "last": "40620.89",
-        //             "time": 1650587672406,
-        //             "sign_price": "40619.32",
-        //             "index_price": "40609.93"
-        //         },
-        //         "message": "OK"
-        //     }
-        //
-        object result = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object timestamp = this.safeInteger(result, "time");
-        return this.parseOrderBook(result, symbol, timestamp);
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        object depth = this.safeDict(data, "depth", new Dictionary<string, object>() {});
+        object timestamp = this.safeInteger(depth, "updated_at");
+        return this.parseOrderBook(depth, symbol, timestamp);
     }
 
     public override object parseTrade(object trade, object market = null)
