@@ -26,6 +26,7 @@ public partial class bl3p : Exchange
                 { "cancelOrder", true },
                 { "closeAllPositions", false },
                 { "closePosition", false },
+                { "createDepositAddress", true },
                 { "createOrder", true },
                 { "createReduceOnlyOrder", false },
                 { "createStopLimitOrder", false },
@@ -36,6 +37,9 @@ public partial class bl3p : Exchange
                 { "fetchBorrowRateHistory", false },
                 { "fetchCrossBorrowRate", false },
                 { "fetchCrossBorrowRates", false },
+                { "fetchDepositAddress", false },
+                { "fetchDepositAddresses", false },
+                { "fetchDepositAddressesByNetwork", false },
                 { "fetchFundingHistory", false },
                 { "fetchFundingRate", false },
                 { "fetchFundingRateHistory", false },
@@ -168,7 +172,7 @@ public partial class bl3p : Exchange
             { "market", getValue(market, "id") },
         };
         object response = await this.publicGetMarketOrderbook(this.extend(request, parameters));
-        object orderbook = this.safeValue(response, "data");
+        object orderbook = this.safeDict(response, "data");
         return this.parseOrderBook(orderbook, getValue(market, "symbol"), null, "bids", "asks", "price_int", "amount_int");
     }
 
@@ -440,6 +444,54 @@ public partial class bl3p : Exchange
             { "order_id", id },
         };
         return await this.privatePostMarketMoneyOrderCancel(this.extend(request, parameters));
+    }
+
+    public async override Task<object> createDepositAddress(object code, object parameters = null)
+    {
+        /**
+        * @method
+        * @name bl3p#createDepositAddress
+        * @description create a currency deposit address
+        * @see https://github.com/BitonicNL/bl3p-api/blob/master/docs/authenticated_api/http.md#32---create-a-new-deposit-address
+        * @param {string} code unified currency code of the currency for the deposit address
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object currency = this.currency(code);
+        object request = new Dictionary<string, object>() {
+            { "currency", getValue(currency, "id") },
+        };
+        object response = await this.privatePostGENMKTMoneyNewDepositAddress(this.extend(request, parameters));
+        //
+        //    {
+        //        "result": "success",
+        //        "data": {
+        //            "address": "36Udu9zi1uYicpXcJpoKfv3bewZeok5tpk"
+        //        }
+        //    }
+        //
+        object data = this.safeDict(response, "data");
+        return this.parseDepositAddress(data, currency);
+    }
+
+    public override object parseDepositAddress(object depositAddress, object currency = null)
+    {
+        //
+        //    {
+        //        "address": "36Udu9zi1uYicpXcJpoKfv3bewZeok5tpk"
+        //    }
+        //
+        object address = this.safeString(depositAddress, "address");
+        this.checkAddress(address);
+        return new Dictionary<string, object>() {
+            { "info", depositAddress },
+            { "currency", this.safeString(currency, "code") },
+            { "address", address },
+            { "tag", null },
+            { "network", null },
+        };
     }
 
     public override object sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)

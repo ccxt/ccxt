@@ -80,6 +80,7 @@ class upbit extends Exchange {
                 '1m' => 'minutes',
                 '3m' => 'minutes',
                 '5m' => 'minutes',
+                '10m' => 'minutes',
                 '15m' => 'minutes',
                 '30m' => 'minutes',
                 '1h' => 'minutes',
@@ -109,6 +110,7 @@ class upbit extends Exchange {
                         'candles/minutes/1',
                         'candles/minutes/3',
                         'candles/minutes/5',
+                        'candles/minutes/10',
                         'candles/minutes/15',
                         'candles/minutes/30',
                         'candles/minutes/60',
@@ -411,7 +413,7 @@ class upbit extends Exchange {
         }) ();
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * @see https://docs.upbit.com/reference/%EB%A7%88%EC%BC%93-%EC%BD%94%EB%93%9C-%EC%A1%B0%ED%9A%8C
@@ -632,7 +634,7 @@ class upbit extends Exchange {
         //                    "trade_time" => "104543",
         //                "trade_date_kst" => "20181122",
         //                "trade_time_kst" => "194543",
-        //               "trade_timestamp" =>  1542883543097,
+        //               "trade_timestamp" =>  1542883543096,
         //                 "opening_price" =>  0.02976455,
         //                    "high_price" =>  0.02992577,
         //                     "low_price" =>  0.02934283,
@@ -880,7 +882,7 @@ class upbit extends Exchange {
         }) ();
     }
 
-    public function fetch_trading_fee(string $symbol, $params = array ()) {
+    public function fetch_trading_fee(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * @see https://docs.upbit.com/reference/%EC%A3%BC%EB%AC%B8-%EA%B0%80%EB%8A%A5-%EC%A0%95%EB%B3%B4
@@ -1047,6 +1049,7 @@ class upbit extends Exchange {
             /**
              * create a trade order
              * @see https://docs.upbit.com/reference/%EC%A3%BC%EB%AC%B8%ED%95%98%EA%B8%B0
+             * @see https://global-docs.upbit.com/reference/order
              * @param {string} $symbol unified $symbol of the $market to create an order in
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
@@ -1054,6 +1057,7 @@ class upbit extends Exchange {
              * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {float} [$params->cost] for $market buy orders, the quote quantity that can be used alternative for the $amount
+             * @param {string} [$params->timeInForce] 'IOC' or 'FOK'
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
              */
             Async\await($this->load_markets());
@@ -1103,6 +1107,13 @@ class upbit extends Exchange {
             $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'identifier');
             if ($clientOrderId !== null) {
                 $request['identifier'] = $clientOrderId;
+            }
+            if ($type !== 'market') {
+                $timeInForce = $this->safe_string_lower_2($params, 'timeInForce', 'time_in_force');
+                $params = $this->omit($params, 'timeInForce');
+                if ($timeInForce !== null) {
+                    $request['time_in_force'] = $timeInForce;
+                }
             }
             $params = $this->omit($params, array( 'clientOrderId', 'identifier' ));
             $response = Async\await($this->privatePostOrders (array_merge($request, $params)));
@@ -1909,7 +1920,7 @@ class upbit extends Exchange {
         }
         if ($api === 'private') {
             $this->check_required_credentials();
-            $nonce = $this->nonce();
+            $nonce = $this->uuid();
             $request = array(
                 'access_key' => $this->apiKey,
                 'nonce' => $nonce,

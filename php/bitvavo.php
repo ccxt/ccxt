@@ -306,7 +306,7 @@ class bitvavo extends Exchange {
         return $this->safe_integer($response, 'time');
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): array {
         /**
          * @see https://docs.bitvavo.com/#tag/General/paths/~1markets/get
          * retrieves data on all markets for bitvavo
@@ -401,7 +401,7 @@ class bitvavo extends Exchange {
         return $result;
     }
 
-    public function fetch_currencies($params = array ()) {
+    public function fetch_currencies($params = array ()): array {
         /**
          * @see https://docs.bitvavo.com/#tag/General/paths/~1assets/get
          * fetches all available currencies on an exchange
@@ -566,7 +566,7 @@ class bitvavo extends Exchange {
         //         "market":"ETH-BTC",
         //         "open":"0.022578",
         //         "high":"0.023019",
-        //         "low":"0.022573",
+        //         "low":"0.022572",
         //         "last":"0.023019",
         //         "volume":"25.16366324",
         //         "volumeQuote":"0.57333305",
@@ -806,7 +806,7 @@ class bitvavo extends Exchange {
         ), $market);
     }
 
-    public function fetch_trading_fees($params = array ()) {
+    public function fetch_trading_fees($params = array ()): array {
         /**
          * @see https://docs.bitvavo.com/#tag/Account/paths/~1account/get
          * fetch the trading fees for multiple markets
@@ -930,6 +930,8 @@ class bitvavo extends Exchange {
             $request['start'] = $since;
             if ($limit === null) {
                 $limit = 1440;
+            } else {
+                $limit = min ($limit, 1440);
             }
             $request['end'] = $this->sum($since, $limit * $duration * 1000);
         }

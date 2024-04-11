@@ -15,8 +15,11 @@ public partial class testMainClass : BaseTest
         testSharedMethods.assertTimestampAndDatetime(exchange, skippedProperties, method, entry, now, 0);
         object logText = testSharedMethods.logTemplate(exchange, method, entry);
         //
-        object length = getArrayLength(entry);
-        assert(isGreaterThanOrEqual(length, 6), add("ohlcv array length should be >= 6;", logText));
+        assert(isGreaterThanOrEqual(getArrayLength(entry), 6), add("ohlcv array length should be >= 6;", logText));
+        if (!isTrue((inOp(skippedProperties, "roundTimestamp"))))
+        {
+            testSharedMethods.assertRoundMinuteTimestamp(exchange, skippedProperties, method, entry, 0);
+        }
         object high = exchange.safeString(entry, 2);
         object low = exchange.safeString(entry, 3);
         testSharedMethods.assertLessOrEqual(exchange, skippedProperties, method, entry, "1", high);

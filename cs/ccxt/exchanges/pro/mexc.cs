@@ -272,7 +272,7 @@ public partial class mexc : ccxt.mexc
         //        "d": {
         //            "e": "spot@public.kline.v3.api",
         //            "k": {
-        //                "t": 1678642260,
+        //                "t": 1678642261,
         //                "o": 20626.94,
         //                "c": 20599.69,
         //                "h": 20626.94,
@@ -487,6 +487,7 @@ public partial class mexc : ccxt.mexc
         object symbol = this.safeSymbol(marketId);
         object messageHash = add("orderbook:", symbol);
         object subscription = this.safeValue(((WebSocketClient)client).subscriptions, messageHash);
+        object limit = this.safeInteger(subscription, "limit");
         if (isTrue(isEqual(subscription, true)))
         {
             // we set ((WebSocketClient)client).subscriptions[messageHash] to 1
@@ -494,7 +495,7 @@ public partial class mexc : ccxt.mexc
             ((IDictionary<string,object>)((WebSocketClient)client).subscriptions)[(string)messageHash] = 1;
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.countedOrderBook(new Dictionary<string, object>() {});
         }
-        object storedOrderBook = this.safeValue(this.orderbooks, symbol);
+        object storedOrderBook = getValue(this.orderbooks, symbol);
         object nonce = this.safeInteger(storedOrderBook, "nonce");
         if (isTrue(isEqual(nonce, null)))
         {
@@ -502,7 +503,7 @@ public partial class mexc : ccxt.mexc
             object snapshotDelay = this.handleOption("watchOrderBook", "snapshotDelay", 25);
             if (isTrue(isEqual(cacheLength, snapshotDelay)))
             {
-                this.spawn(this.loadOrderBook, new object[] { client, messageHash, symbol});
+                this.spawn(this.loadOrderBook, new object[] { client, messageHash, symbol, limit, new Dictionary<string, object>() {}});
             }
             ((IList<object>)(storedOrderBook as ccxt.pro.OrderBook).cache).Add(data);
             return;
@@ -546,11 +547,13 @@ public partial class mexc : ccxt.mexc
 
     public override void handleDelta(object orderbook, object delta)
     {
-        object nonce = this.safeInteger(orderbook, "nonce");
+        object existingNonce = this.safeInteger(orderbook, "nonce");
         object deltaNonce = this.safeInteger2(delta, "r", "version");
-        if (isTrue(isTrue(!isEqual(deltaNonce, nonce)) && isTrue(!isEqual(deltaNonce, add(nonce, 1)))))
+        if (isTrue(isLessThan(deltaNonce, existingNonce)))
         {
-            throw new ExchangeError ((string)add(this.id, " handleOrderBook received an out-of-order nonce")) ;
+            // even when doing < comparison, this happens: https://app.travis-ci.com/github/ccxt/ccxt/builds/269234741#L1809
+            // so, we just skip old updates
+            return;
         }
         ((IDictionary<string,object>)orderbook)["nonce"] = deltaNonce;
         object asks = this.safeValue(delta, "asks", new List<object>() {});

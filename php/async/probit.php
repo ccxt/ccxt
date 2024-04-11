@@ -249,7 +249,7 @@ class probit extends Exchange {
         ));
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * @see https://docs-en.probit.com/reference/market
@@ -352,7 +352,7 @@ class probit extends Exchange {
         );
     }
 
-    public function fetch_currencies($params = array ()) {
+    public function fetch_currencies($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * @see https://docs-en.probit.com/reference/currency
@@ -634,7 +634,7 @@ class probit extends Exchange {
             //         )
             //     }
             //
-            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_list($response, 'data', array());
             return $this->parse_tickers($data, $symbols);
         }) ();
     }
@@ -773,7 +773,7 @@ class probit extends Exchange {
             //         )
             //     }
             //
-            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_list($response, 'data', array());
             return $this->parse_trades($data, $market, $since, $limit);
         }) ();
     }
@@ -827,7 +827,7 @@ class probit extends Exchange {
             //         )
             //     }
             //
-            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_list($response, 'data', array());
             return $this->parse_trades($data, $market, $since, $limit);
         }) ();
     }
@@ -1015,7 +1015,7 @@ class probit extends Exchange {
             //         )
             //     }
             //
-            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_list($response, 'data', array());
             return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
         }) ();
     }
@@ -1064,7 +1064,7 @@ class probit extends Exchange {
                 $request['market_id'] = $market['id'];
             }
             $response = Async\await($this->privateGetOpenOrder (array_merge($request, $params)));
-            $data = $this->safe_value($response, 'data');
+            $data = $this->safe_list($response, 'data');
             return $this->parse_orders($data, $market, $since, $limit);
         }) ();
     }
@@ -1098,7 +1098,7 @@ class probit extends Exchange {
                 $request['limit'] = $limit;
             }
             $response = Async\await($this->privateGetOrderHistory (array_merge($request, $params)));
-            $data = $this->safe_value($response, 'data');
+            $data = $this->safe_list($response, 'data');
             return $this->parse_orders($data, $market, $since, $limit);
         }) ();
     }
@@ -1129,7 +1129,7 @@ class probit extends Exchange {
             $query = $this->omit($params, array( 'clientOrderId', 'client_order_id' ));
             $response = Async\await($this->privateGetOrder (array_merge($request, $query)));
             $data = $this->safe_value($response, 'data', array());
-            $order = $this->safe_value($data, 0);
+            $order = $this->safe_dict($data, 0);
             return $this->parse_order($order, $market);
         }) ();
     }
@@ -1328,7 +1328,7 @@ class probit extends Exchange {
                 'order_id' => $id,
             );
             $response = Async\await($this->privatePostCancelOrder (array_merge($request, $params)));
-            $data = $this->safe_value($response, 'data');
+            $data = $this->safe_dict($response, 'data');
             return $this->parse_order($data);
         }) ();
     }
@@ -1425,7 +1425,7 @@ class probit extends Exchange {
                 $request['currency_id'] = implode(',', $codes);
             }
             $response = Async\await($this->privateGetDepositAddress (array_merge($request, $params)));
-            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_list($response, 'data', array());
             return $this->parse_deposit_addresses($data, $codes);
         }) ();
     }
@@ -1473,7 +1473,7 @@ class probit extends Exchange {
                 $params = $this->omit($params, 'network');
             }
             $response = Async\await($this->privatePostWithdrawal (array_merge($request, $params)));
-            $data = $this->safe_value($response, 'data');
+            $data = $this->safe_dict($response, 'data');
             return $this->parse_transaction($data, $currency);
         }) ();
     }
@@ -1514,11 +1514,10 @@ class probit extends Exchange {
         }) ();
     }
 
-    public function fetch_transactions(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
-             * @deprecated
-             * use fetchDepositsWithdrawals instead
+             * fetch history of deposits and withdrawals
              * @see https://docs-en.probit.com/reference/transferpayment
              * @param {string} $code unified $currency $code
              * @param {int} [$since] the earliest time in ms to fetch transactions for
@@ -1576,7 +1575,7 @@ class probit extends Exchange {
             //         )
             //     }
             //
-            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_list($response, 'data', array());
             return $this->parse_transactions($data, $currency, $since, $limit);
         }) ();
     }
@@ -1726,7 +1725,7 @@ class probit extends Exchange {
             //     )
             //  }
             //
-            $data = $this->safe_value($response, 'data');
+            $data = $this->safe_list($response, 'data');
             return $this->parse_deposit_withdraw_fees($data, $codes, 'id');
         }) ();
     }

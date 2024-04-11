@@ -7,7 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.abstract.bitrue import ImplicitAPI
 import hashlib
 import json
-from ccxt.base.types import Balances, Currency, Int, Market, Order, TransferEntry, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Currencies, Currency, Int, MarginModification, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -421,7 +421,7 @@ class bitrue(Exchange, ImplicitAPI):
                     '-1022': AuthenticationError,  # {"code":-1022,"msg":"Signature for self request is not valid."}
                     '-1100': BadRequest,  # createOrder(symbol, 1, asdf) -> 'Illegal characters found in parameter 'price'
                     '-1101': BadRequest,  # Too many parameters; expected %s and received %s.
-                    '-1102': BadRequest,  # Param %s or %s must be sent, but both were empty
+                    '-1102': BadRequest,  # Param %s or %s must be sent, but both were empty  # {"code":-1102,"msg":"timestamp IllegalArgumentException.","data":null}
                     '-1103': BadRequest,  # An unknown parameter was sent.
                     '-1104': BadRequest,  # Not all sent parameters were read, read 8 parameters but was sent 9
                     '-1105': BadRequest,  # Parameter %s was empty.
@@ -592,7 +592,7 @@ class bitrue(Exchange, ImplicitAPI):
         }
         return self.safe_string_2(networksById, networkId, uppercaseNetworkId, networkId)
 
-    def fetch_currencies(self, params={}):
+    def fetch_currencies(self, params={}) -> Currencies:
         """
         fetches all available currencies on an exchange
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -713,7 +713,7 @@ class bitrue(Exchange, ImplicitAPI):
             }
         return result
 
-    def fetch_markets(self, params={}):
+    def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for bitrue
         :see: https://github.com/Bitrue-exchange/Spot-official-api-docs#exchangeInfo_endpoint
@@ -1310,8 +1310,6 @@ class bitrue(Exchange, ImplicitAPI):
                 'interval': self.safe_string(timeframesFuture, timeframe, '1min'),
             }
             if limit is not None:
-                if limit > 300:
-                    limit = 300
                 request['limit'] = limit
             if market['linear']:
                 response = self.fapiV1PublicGetKlines(self.extend(request, params))
@@ -1326,8 +1324,6 @@ class bitrue(Exchange, ImplicitAPI):
                 'scale': self.safe_string(timeframesSpot, timeframe, '1m'),
             }
             if limit is not None:
-                if limit > 1440:
-                    limit = 1440
                 request['limit'] = limit
             if since is not None:
                 request['fromIdx'] = since
@@ -1817,7 +1813,7 @@ class bitrue(Exchange, ImplicitAPI):
         params['createMarketBuyOrderRequiresPrice'] = False
         return self.create_order(symbol, 'market', 'buy', cost, None, params)
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create a trade order
         :see: https://github.com/Bitrue-exchange/Spot-official-api-docs#recent-trades-list
@@ -2218,7 +2214,7 @@ class bitrue(Exchange, ImplicitAPI):
         #
         return self.parse_order(data, market)
 
-    def cancel_all_orders(self, symbol: str = None, params={}):
+    def cancel_all_orders(self, symbol: Str = None, params={}):
         """
         cancel all open orders in a market
         :see: https://www.bitrue.com/api-docs#cancel-all-open-orders-trade-hmac-sha256
@@ -2403,7 +2399,7 @@ class bitrue(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        data = self.safe_value(response, 'data', [])
+        data = self.safe_list(response, 'data', [])
         return self.parse_transactions(data, currency, since, limit)
 
     def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
@@ -2435,20 +2431,29 @@ class bitrue(Exchange, ImplicitAPI):
             request['limit'] = limit
         response = self.spotV1PrivateGetWithdrawHistory(self.extend(request, params))
         #
-        #     {
-        #         "code": 200,
-        #         "msg": "succ",
-        #         "data": {
-        #             "msg": null,
-        #             "amount": 1000,
-        #             "fee": 1,
-        #             "ctime": null,
-        #             "coin": "usdt_erc20",
-        #             "addressTo": "0x2edfae3878d7b6db70ce4abed177ab2636f60c83"
-        #         }
-        #     }
+        #    {
+        #        "code": 200,
+        #        "msg": "succ",
+        #        "data": [
+        #            {
+        #                "id": 183745,
+        #                "symbol": "usdt_erc20",
+        #                "amount": "8.4000000000000000",
+        #                "fee": "1.6000000000000000",
+        #                "payAmount": "0.0000000000000000",
+        #                "createdAt": 1595336441000,
+        #                "updatedAt": 1595336576000,
+        #                "addressFrom": "",
+        #                "addressTo": "0x2edfae3878d7b6db70ce4abed177ab2636f60c83",
+        #                "txid": "",
+        #                "confirmations": 0,
+        #                "status": 6,
+        #                "tagType": null
+        #            }
+        #        ]
+        #    }
         #
-        data = self.safe_value(response, 'data', {})
+        data = self.safe_list(response, 'data', [])
         return self.parse_transactions(data, currency)
 
     def parse_transaction_status_by_type(self, status, type=None):
@@ -2632,7 +2637,7 @@ class bitrue(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        data = self.safe_value(response, 'data', {})
+        data = self.safe_dict(response, 'data', {})
         return self.parse_transaction(data, currency)
 
     def parse_deposit_withdraw_fee(self, fee, currency: Currency = None):
@@ -2683,7 +2688,7 @@ class bitrue(Exchange, ImplicitAPI):
         """
         self.load_markets()
         response = self.spotV1PublicGetExchangeInfo(params)
-        coins = self.safe_value(response, 'coins')
+        coins = self.safe_list(response, 'coins')
         return self.parse_deposit_withdraw_fees(coins, codes, 'coin')
 
     def parse_transfer(self, transfer, currency=None):
@@ -2722,7 +2727,7 @@ class bitrue(Exchange, ImplicitAPI):
             'status': 'ok',
         }
 
-    def fetch_transfers(self, code: str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch a history of internal transfers made on an account
         :see: https://www.bitrue.com/api-docs#get-future-account-transfer-history-list-user_data-hmac-sha256
@@ -2768,7 +2773,7 @@ class bitrue(Exchange, ImplicitAPI):
         #         }]
         #     }
         #
-        data = self.safe_value(response, 'data', {})
+        data = self.safe_list(response, 'data', [])
         return self.parse_transfers(data, currency, since, limit)
 
     def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
@@ -2801,10 +2806,10 @@ class bitrue(Exchange, ImplicitAPI):
         #         'data': null
         #     }
         #
-        data = self.safe_value(response, 'data', {})
+        data = self.safe_dict(response, 'data', {})
         return self.parse_transfer(data, currency)
 
-    def set_leverage(self, leverage: Int, symbol: str = None, params={}):
+    def set_leverage(self, leverage: Int, symbol: Str = None, params={}):
         """
         set the level of leverage for a market
         :see: https://www.bitrue.com/api-docs#change-initial-leverage-trade-hmac-sha256
@@ -2833,17 +2838,30 @@ class bitrue(Exchange, ImplicitAPI):
             response = self.dapiV2PrivatePostLevelEdit(self.extend(request, params))
         return response
 
-    def parse_margin_modification(self, data, market=None):
+    def parse_margin_modification(self, data, market=None) -> MarginModification:
+        #
+        # setMargin
+        #
+        #     {
+        #         "code": 0,
+        #         "msg": "success"
+        #         "data": null
+        #     }
+        #
         return {
             'info': data,
-            'type': None,
-            'amount': None,
-            'code': None,
             'symbol': market['symbol'],
+            'type': None,
+            'marginMode': 'isolated',
+            'amount': None,
+            'total': None,
+            'code': None,
             'status': None,
+            'timestamp': None,
+            'datetime': None,
         }
 
-    def set_margin(self, symbol: str, amount: float, params={}):
+    def set_margin(self, symbol: str, amount: float, params={}) -> MarginModification:
         """
         Either adds or reduces margin in an isolated position in order to set the margin to a specific value
         :see: https://www.bitrue.com/api-docs#modify-isolated-position-margin-trade-hmac-sha256

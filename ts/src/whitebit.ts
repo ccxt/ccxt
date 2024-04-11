@@ -6,7 +6,7 @@ import { ExchangeNotAvailable, ExchangeError, DDoSProtection, BadSymbol, Invalid
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import type { TransferEntry, Balances, Bool, Currency, Int, Market, MarketType, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import type { TransferEntry, Balances, Bool, Currency, Int, Market, MarketType, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Num, Currencies, TradingFees } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -229,6 +229,7 @@ export default class whitebit extends Exchange {
                     'account': 'spot',
                 },
                 'accountsByType': {
+                    'funding': 'main',
                     'main': 'main',
                     'spot': 'spot',
                     'margin': 'collateral',
@@ -270,7 +271,7 @@ export default class whitebit extends Exchange {
         });
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name whitebit#fetchMarkets
@@ -395,7 +396,7 @@ export default class whitebit extends Exchange {
         };
     }
 
-    async fetchCurrencies (params = {}) {
+    async fetchCurrencies (params = {}): Promise<Currencies> {
         /**
          * @method
          * @name whitebit#fetchCurrencies
@@ -663,7 +664,7 @@ export default class whitebit extends Exchange {
         return depositWithdrawFees;
     }
 
-    async fetchTradingFees (params = {}) {
+    async fetchTradingFees (params = {}): Promise<TradingFees> {
         /**
          * @method
          * @name whitebit#fetchTradingFees
@@ -745,7 +746,7 @@ export default class whitebit extends Exchange {
         //         },
         //     }
         //
-        const ticker = this.safeValue (response, 'result', {});
+        const ticker = this.safeDict (response, 'result', {});
         return this.parseTicker (ticker, market);
     }
 
@@ -1113,7 +1114,7 @@ export default class whitebit extends Exchange {
         //         ]
         //     }
         //
-        const result = this.safeValue (response, 'result', []);
+        const result = this.safeList (response, 'result', []);
         return this.parseOHLCVs (result, market, timeframe, since, limit);
     }
 
@@ -1182,7 +1183,7 @@ export default class whitebit extends Exchange {
         return this.safeInteger (response, 'time');
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         /**
          * @method
          * @name whitebit#createOrder
@@ -1332,9 +1333,9 @@ export default class whitebit extends Exchange {
         } else {
             const options = this.safeValue (this.options, 'fetchBalance', {});
             const defaultAccount = this.safeString (options, 'account');
-            const account = this.safeString (params, 'account', defaultAccount);
-            params = this.omit (params, 'account');
-            if (account === 'main') {
+            const account = this.safeString2 (params, 'account', 'type', defaultAccount);
+            params = this.omit (params, [ 'account', 'type' ]);
+            if (account === 'main' || account === 'funding') {
                 response = await this.v4PrivatePostMainAccountBalance (params);
             } else {
                 response = await this.v4PrivatePostTradeAccountBalance (params);
@@ -1621,7 +1622,7 @@ export default class whitebit extends Exchange {
         //         "limit": 100
         //     }
         //
-        const data = this.safeValue (response, 'records', []);
+        const data = this.safeList (response, 'records', []);
         return this.parseTrades (data, market);
     }
 
@@ -1969,7 +1970,7 @@ export default class whitebit extends Exchange {
         //     }
         //
         const records = this.safeValue (response, 'records', []);
-        const first = this.safeValue (records, 0, {});
+        const first = this.safeDict (records, 0, {});
         return this.parseTransaction (first, currency);
     }
 
@@ -2037,7 +2038,7 @@ export default class whitebit extends Exchange {
         //         "total": 300                                                                                             // total number of  transactions, use this for calculating ‘limit’ and ‘offset'
         //     }
         //
-        const records = this.safeValue (response, 'records', []);
+        const records = this.safeList (response, 'records', []);
         return this.parseTransactions (records, currency, since, limit);
     }
 

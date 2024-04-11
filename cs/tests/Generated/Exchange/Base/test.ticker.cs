@@ -32,7 +32,15 @@ public partial class testMainClass : BaseTest
             { "quoteVolume", exchange.parseNumber("1.234") },
         };
         // todo: atm, many exchanges fail, so temporarily decrease stict mode
-        object emptyAllowedFor = new List<object>() {"timestamp", "datetime", "open", "high", "low", "close", "last", "ask", "bid", "bidVolume", "askVolume", "baseVolume", "quoteVolume", "previousClose", "vwap", "change", "percentage", "average"};
+        object emptyAllowedFor = new List<object>() {"timestamp", "datetime", "open", "high", "low", "close", "last", "baseVolume", "quoteVolume", "previousClose", "vwap", "change", "percentage", "average"};
+        // trick csharp-transpiler for string
+        if (!isTrue(((object)method).ToString().Contains("BidsAsks")))
+        {
+            ((IList<object>)emptyAllowedFor).Add("bid");
+            ((IList<object>)emptyAllowedFor).Add("ask");
+            ((IList<object>)emptyAllowedFor).Add("bidVolume");
+            ((IList<object>)emptyAllowedFor).Add("askVolume");
+        }
         testSharedMethods.assertStructure(exchange, skippedProperties, method, entry, format, emptyAllowedFor);
         testSharedMethods.assertTimestampAndDatetime(exchange, skippedProperties, method, entry);
         object logText = testSharedMethods.logTemplate(exchange, method, entry);
@@ -81,7 +89,7 @@ public partial class testMainClass : BaseTest
                 assert(!isEqual(baseVolume, null), add("quoteVolume & vwap is defined, but baseVolume is not", logText));
             }
         }
-        if (isTrue(!isTrue((inOp(skippedProperties, "ask"))) && !isTrue((inOp(skippedProperties, "bid")))))
+        if (isTrue(isTrue(!isTrue((inOp(skippedProperties, "spread"))) && !isTrue((inOp(skippedProperties, "ask")))) && !isTrue((inOp(skippedProperties, "bid")))))
         {
             object askString = exchange.safeString(entry, "ask");
             object bidString = exchange.safeString(entry, "bid");

@@ -7,7 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.abstract.cex import ImplicitAPI
 import hashlib
 import json
-from ccxt.base.types import Balances, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Balances, Currencies, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
@@ -237,7 +237,7 @@ class cex(Exchange, ImplicitAPI):
             })
         return self.safe_value(self.options['fetchCurrencies'], 'response')
 
-    def fetch_currencies(self, params={}):
+    def fetch_currencies(self, params={}) -> Currencies:
         """
         fetches all available currencies on an exchange
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -340,7 +340,7 @@ class cex(Exchange, ImplicitAPI):
             }
         return result
 
-    def fetch_markets(self, params={}):
+    def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for cex
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -681,7 +681,7 @@ class cex(Exchange, ImplicitAPI):
         response = self.publicGetTradeHistoryPair(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
-    def fetch_trading_fees(self, params={}):
+    def fetch_trading_fees(self, params={}) -> TradingFees:
         """
         :see: https://docs.cex.io/#get-my-fee
         fetch the trading fees for multiple markets
@@ -720,7 +720,7 @@ class cex(Exchange, ImplicitAPI):
             }
         return result
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         :see: https://docs.cex.io/#place-order
         create a trade order
@@ -824,7 +824,7 @@ class cex(Exchange, ImplicitAPI):
         # 'true'
         return self.extend(self.parse_order({}), {'info': response, 'type': None, 'id': id, 'status': 'canceled'})
 
-    def cancel_all_orders(self, symbol: str = None, params={}):
+    def cancel_all_orders(self, symbol: Str = None, params={}):
         """
         :see: https://docs.cex.io/#cancel-all-orders-for-given-pair
         cancel all open orders in a market
@@ -1474,7 +1474,7 @@ class cex(Exchange, ImplicitAPI):
     def parse_order_status(self, status):
         return self.safe_string(self.options['order']['status'], status, status)
 
-    def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: float = None, price: float = None, params={}):
+    def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}):
         """
         edit a trade order
         :see: https://docs.cex.io/#cancel-replace-order

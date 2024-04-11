@@ -206,9 +206,9 @@ public partial class bitstamp : Exchange
         return await this.callAsync ("privatePostFeesTrading",parameters);
     }
 
-    public async Task<object> privatePostFeesTradingPair (object parameters = null)
+    public async Task<object> privatePostFeesTradingMarketSymbol (object parameters = null)
     {
-        return await this.callAsync ("privatePostFeesTradingPair",parameters);
+        return await this.callAsync ("privatePostFeesTradingMarketSymbol",parameters);
     }
 
     public async Task<object> privatePostFeesWithdrawal (object parameters = null)
@@ -1129,6 +1129,46 @@ public partial class bitstamp : Exchange
     public async Task<object> privatePostPyusdAddress (object parameters = null)
     {
         return await this.callAsync ("privatePostPyusdAddress",parameters);
+    }
+
+    public async Task<object> privatePostLmwrWithdrawal (object parameters = null)
+    {
+        return await this.callAsync ("privatePostLmwrWithdrawal",parameters);
+    }
+
+    public async Task<object> privatePostLmwrAddress (object parameters = null)
+    {
+        return await this.callAsync ("privatePostLmwrAddress",parameters);
+    }
+
+    public async Task<object> privatePostPepeWithdrawal (object parameters = null)
+    {
+        return await this.callAsync ("privatePostPepeWithdrawal",parameters);
+    }
+
+    public async Task<object> privatePostPepeAddress (object parameters = null)
+    {
+        return await this.callAsync ("privatePostPepeAddress",parameters);
+    }
+
+    public async Task<object> privatePostBlurWithdrawal (object parameters = null)
+    {
+        return await this.callAsync ("privatePostBlurWithdrawal",parameters);
+    }
+
+    public async Task<object> privatePostBlurAddress (object parameters = null)
+    {
+        return await this.callAsync ("privatePostBlurAddress",parameters);
+    }
+
+    public async Task<object> privatePostVextWithdrawal (object parameters = null)
+    {
+        return await this.callAsync ("privatePostVextWithdrawal",parameters);
+    }
+
+    public async Task<object> privatePostVextAddress (object parameters = null)
+    {
+        return await this.callAsync ("privatePostVextAddress",parameters);
     }
 
 }

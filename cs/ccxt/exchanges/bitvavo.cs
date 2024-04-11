@@ -571,7 +571,7 @@ public partial class bitvavo : Exchange
         //         "market":"ETH-BTC",
         //         "open":"0.022578",
         //         "high":"0.023019",
-        //         "low":"0.022573",
+        //         "low":"0.022572",
         //         "last":"0.023019",
         //         "volume":"25.16366324",
         //         "volumeQuote":"0.57333305",
@@ -956,6 +956,9 @@ public partial class bitvavo : Exchange
             if (isTrue(isEqual(limit, null)))
             {
                 limit = 1440;
+            } else
+            {
+                limit = mathMin(limit, 1440);
             }
             ((IDictionary<string,object>)request)["end"] = this.sum(since, multiply(multiply(limit, duration), 1000));
         }

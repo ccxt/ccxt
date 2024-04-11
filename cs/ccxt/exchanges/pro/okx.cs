@@ -524,7 +524,7 @@ public partial class okx : ccxt.okx
         * @name okx#watchOrderBookForSymbols
         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
         * @param {string[]} symbols unified array of symbols
-        * @param {int} [limit] the maximum amount of order book entries to return
+        * @param {int} [limit] 1,5, 400, 50 (l2-tbt, vip4+) or 40000 (vip5+) the maximum amount of order book entries to return
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
         */
@@ -533,6 +533,25 @@ public partial class okx : ccxt.okx
         symbols = this.marketSymbols(symbols);
         object options = this.safeValue(this.options, "watchOrderBook", new Dictionary<string, object>() {});
         object depth = this.safeString(options, "depth", "books");
+        if (isTrue(!isEqual(limit, null)))
+        {
+            if (isTrue(isEqual(limit, 1)))
+            {
+                depth = "bbo-tbt";
+            } else if (isTrue(isTrue(isGreaterThan(limit, 1)) && isTrue(isLessThanOrEqual(limit, 5))))
+            {
+                depth = "books5";
+            } else if (isTrue(isEqual(limit, 400)))
+            {
+                depth = "books";
+            } else if (isTrue(isEqual(limit, 50)))
+            {
+                depth = "books50-l2-tbt"; // Make sure you have VIP4 and above
+            } else if (isTrue(isEqual(limit, 4000)))
+            {
+                depth = "books-l2-tbt"; // Make sure you have VIP5 and above
+            }
+        }
         if (isTrue(isTrue((isEqual(depth, "books-l2-tbt"))) || isTrue((isEqual(depth, "books50-l2-tbt")))))
         {
             await this.authenticate(new Dictionary<string, object>() {
@@ -608,7 +627,7 @@ public partial class okx : ccxt.okx
         object storedBids = getValue(orderbook, "bids");
         this.handleDeltas(storedAsks, asks);
         this.handleDeltas(storedBids, bids);
-        object checksum = this.safeValue(this.options, "checksum", true);
+        object checksum = this.safeBool(this.options, "checksum", true);
         if (isTrue(checksum))
         {
             object asksLength = getArrayLength(storedAsks);
@@ -995,10 +1014,6 @@ public partial class okx : ccxt.okx
         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
         */
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(this.isEmpty(symbols)))
-        {
-            throw new ArgumentsRequired ((string)add(this.id, " watchPositions requires a list of symbols")) ;
-        }
         await this.loadMarkets();
         await this.authenticate(parameters);
         symbols = this.marketSymbols(symbols);
@@ -1006,7 +1021,24 @@ public partial class okx : ccxt.okx
             { "instType", "ANY" },
         };
         object channel = "positions";
-        object newPositions = await this.subscribeMultiple("private", channel, symbols, this.extend(request, parameters));
+        object newPositions = null;
+        if (isTrue(isEqual(symbols, null)))
+        {
+            object arg = new Dictionary<string, object>() {
+                { "channel", "positions" },
+                { "instType", "ANY" },
+            };
+            object args = new List<object>() {arg};
+            object nonSymbolRequest = new Dictionary<string, object>() {
+                { "op", "subscribe" },
+                { "args", args },
+            };
+            object url = this.getUrl(channel, "private");
+            newPositions = await this.watch(url, channel, nonSymbolRequest, channel);
+        } else
+        {
+            newPositions = await this.subscribeMultiple("private", channel, symbols, this.extend(request, parameters));
+        }
         if (isTrue(this.newUpdates))
         {
             return newPositions;
@@ -1111,6 +1143,7 @@ public partial class okx : ccxt.okx
                 callDynamically(client as WebSocketClient, "resolve", new object[] {positions, messageHash});
             }
         }
+        callDynamically(client as WebSocketClient, "resolve", new object[] {newPositions, channel});
     }
 
     public async override Task<object> watchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
@@ -1441,7 +1474,8 @@ public partial class okx : ccxt.okx
             this.handleErrors(null, null, client.url, method, null, stringMsg, stringMsg, null, null);
         }
         object orders = this.parseOrders(args, null, null, null);
-        callDynamically(client as WebSocketClient, "resolve", new object[] {orders, messageHash});
+        object first = this.safeDict(orders, 0, new Dictionary<string, object>() {});
+        callDynamically(client as WebSocketClient, "resolve", new object[] {first, messageHash});
     }
 
     public async override Task<object> editOrderWs(object id, object symbol, object type, object side, object amount, object price = null, object parameters = null)

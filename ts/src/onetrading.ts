@@ -5,7 +5,7 @@ import Exchange from './abstract/onetrading.js';
 import { AuthenticationError, ExchangeError, PermissionDenied, BadRequest, ArgumentsRequired, OrderNotFound, InsufficientFunds, ExchangeNotAvailable, DDoSProtection, InvalidAddress, InvalidOrder } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import type { Balances, Currencies, Currency, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -319,7 +319,7 @@ export default class onetrading extends Exchange {
         return this.safeInteger (response, 'epoch_millis');
     }
 
-    async fetchCurrencies (params = {}) {
+    async fetchCurrencies (params = {}): Promise<Currencies> {
         /**
          * @method
          * @name onetrading#fetchCurrencies
@@ -361,7 +361,7 @@ export default class onetrading extends Exchange {
         return result;
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name onetrading#fetchMarkets
@@ -445,7 +445,7 @@ export default class onetrading extends Exchange {
         };
     }
 
-    async fetchTradingFees (params = {}) {
+    async fetchTradingFees (params = {}): Promise<TradingFees> {
         /**
          * @method
          * @name onetrading#fetchTradingFees
@@ -1173,7 +1173,7 @@ export default class onetrading extends Exchange {
         //         "cursor": "eyJhY2NvdW50X2lkIjp7InMiOiJlMzY5YWM4MC00NTc3LTExZTktYWUwOC05YmVkYzQ3OTBiODQiLCJzcyI6W10sIm5zIjpbXSwiYnMiOltdLCJtIjp7fSwibCI6W119LCJpdGVtX2tleSI6eyJzIjoiV0lUSERSQVdBTDo6MmFlMjYwY2ItOTk3MC00YmNiLTgxNmEtZGY4MDVmY2VhZTY1Iiwic3MiOltdLCJucyI6W10sImJzIjpbXSwibSI6e30sImwiOltdfSwiZ2xvYmFsX3dpdGhkcmF3YWxfaW5kZXhfaGFzaF9rZXkiOnsicyI6ImUzNjlhYzgwLTQ1NzctMTFlOS1hZTA4LTliZWRjNDc5MGI4NCIsInNzIjpbXSwibnMiOltdLCJicyI6W10sIm0iOnt9LCJsIjpbXX0sInRpbWVzdGFtcCI6eyJuIjoiMTU4ODA1ODc2Nzk0OCIsInNzIjpbXSwibnMiOltdLCJicyI6W10sIm0iOnt9LCJsIjpbXX19"
         //     }
         //
-        const depositHistory = this.safeValue (response, 'deposit_history', []);
+        const depositHistory = this.safeList (response, 'deposit_history', []);
         return this.parseTransactions (depositHistory, currency, since, limit, { 'type': 'deposit' });
     }
 
@@ -1239,7 +1239,7 @@ export default class onetrading extends Exchange {
         //         "max_page_size": 2
         //     }
         //
-        const withdrawalHistory = this.safeValue (response, 'withdrawal_history', []);
+        const withdrawalHistory = this.safeList (response, 'withdrawal_history', []);
         return this.parseTransactions (withdrawalHistory, currency, since, limit, { 'type': 'withdrawal' });
     }
 
@@ -1518,7 +1518,7 @@ export default class onetrading extends Exchange {
         return this.safeString (timeInForces, timeInForce, timeInForce);
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         /**
          * @method
          * @name onetrading#createOrder
@@ -1840,7 +1840,7 @@ export default class onetrading extends Exchange {
         //         "max_page_size": 100
         //     }
         //
-        const orderHistory = this.safeValue (response, 'order_history', []);
+        const orderHistory = this.safeList (response, 'order_history', []);
         return this.parseOrders (orderHistory, market, since, limit);
     }
 
@@ -1986,7 +1986,7 @@ export default class onetrading extends Exchange {
         //         "cursor": "string"
         //     }
         //
-        const tradeHistory = this.safeValue (response, 'trade_history', []);
+        const tradeHistory = this.safeList (response, 'trade_history', []);
         return this.parseTrades (tradeHistory, market, since, limit);
     }
 

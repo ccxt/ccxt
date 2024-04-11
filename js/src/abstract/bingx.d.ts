@@ -1,6 +1,7 @@
 import { implicitReturnType } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 interface Exchange {
+    spotV1PublicGetServerTime(params?: {}): Promise<implicitReturnType>;
     spotV1PublicGetCommonSymbols(params?: {}): Promise<implicitReturnType>;
     spotV1PublicGetMarketTrades(params?: {}): Promise<implicitReturnType>;
     spotV1PublicGetMarketDepth(params?: {}): Promise<implicitReturnType>;
@@ -18,6 +19,7 @@ interface Exchange {
     spotV1PrivatePostTradeOrderCancelReplace(params?: {}): Promise<implicitReturnType>;
     spotV1PrivatePostTradeCancelOrders(params?: {}): Promise<implicitReturnType>;
     spotV1PrivatePostTradeCancelOpenOrders(params?: {}): Promise<implicitReturnType>;
+    spotV1PrivatePostTradeCancelAllAfter(params?: {}): Promise<implicitReturnType>;
     spotV3PrivateGetGetAssetTransfer(params?: {}): Promise<implicitReturnType>;
     spotV3PrivateGetAssetTransfer(params?: {}): Promise<implicitReturnType>;
     spotV3PrivateGetCapitalDepositHisrec(params?: {}): Promise<implicitReturnType>;
@@ -27,8 +29,10 @@ interface Exchange {
     swapV1PrivateGetPositionSideDual(params?: {}): Promise<implicitReturnType>;
     swapV1PrivateGetMarketMarkPriceKlines(params?: {}): Promise<implicitReturnType>;
     swapV1PrivateGetTradeBatchCancelReplace(params?: {}): Promise<implicitReturnType>;
+    swapV1PrivateGetTradeFullOrder(params?: {}): Promise<implicitReturnType>;
     swapV1PrivatePostTradeCancelReplace(params?: {}): Promise<implicitReturnType>;
     swapV1PrivatePostPositionSideDual(params?: {}): Promise<implicitReturnType>;
+    swapV1PrivatePostTradeClosePosition(params?: {}): Promise<implicitReturnType>;
     swapV2PublicGetServerTime(params?: {}): Promise<implicitReturnType>;
     swapV2PublicGetQuoteContracts(params?: {}): Promise<implicitReturnType>;
     swapV2PublicGetQuotePrice(params?: {}): Promise<implicitReturnType>;
@@ -93,6 +97,7 @@ interface Exchange {
     copyTradingV1PrivateGetSwapTraceCurrentTrack(params?: {}): Promise<implicitReturnType>;
     copyTradingV1PrivatePostSwapTraceCloseTrackOrder(params?: {}): Promise<implicitReturnType>;
     copyTradingV1PrivatePostSwapTraceSetTPSL(params?: {}): Promise<implicitReturnType>;
+    copyTradingV1PrivatePostSpotTraderSellOrder(params?: {}): Promise<implicitReturnType>;
     apiV3PrivateGetAssetTransfer(params?: {}): Promise<implicitReturnType>;
     apiV3PrivateGetCapitalDepositHisrec(params?: {}): Promise<implicitReturnType>;
     apiV3PrivateGetCapitalWithdrawHistory(params?: {}): Promise<implicitReturnType>;

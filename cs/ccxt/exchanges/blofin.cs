@@ -73,7 +73,10 @@ public partial class blofin : Exchange
                 { "fetchLedger", true },
                 { "fetchLedgerEntry", null },
                 { "fetchLeverage", true },
+                { "fetchLeverages", true },
                 { "fetchLeverageTiers", false },
+                { "fetchMarginMode", true },
+                { "fetchMarginModes", false },
                 { "fetchMarketLeverageTiers", false },
                 { "fetchMarkets", true },
                 { "fetchMarkOHLCV", false },
@@ -177,6 +180,8 @@ public partial class blofin : Exchange
                         { "account/balance", 1 },
                         { "account/positions", 1 },
                         { "account/leverage-info", 1 },
+                        { "account/margin-mode", 1 },
+                        { "account/batch-leverage-info", 1 },
                         { "trade/orders-tpsl-pending", 1 },
                         { "trade/orders-history", 1 },
                         { "trade/orders-tpsl-history", 1 },
@@ -372,7 +377,7 @@ public partial class blofin : Exchange
         object strikePrice = null;
         object optionType = null;
         object tickSize = this.safeString(market, "tickSize");
-        object fees = this.safeValue2(this.fees, type, "trading", new Dictionary<string, object>() {});
+        object fees = this.safeDict2(this.fees, type, "trading", new Dictionary<string, object>() {});
         object taker = this.safeNumber(fees, "taker");
         object maker = this.safeNumber(fees, "maker");
         object maxLeverage = this.safeString(market, "maxLeverage", "100");
@@ -477,7 +482,7 @@ public partial class blofin : Exchange
         //     }
         //
         object data = this.safeList(response, "data", new List<object>() {});
-        object first = this.safeValue(data, 0, new Dictionary<string, object>() {});
+        object first = this.safeDict(data, 0, new Dictionary<string, object>() {});
         object timestamp = this.safeInteger(first, "ts");
         return this.parseOrderBook(first, symbol, timestamp);
     }
@@ -490,7 +495,7 @@ public partial class blofin : Exchange
         object symbol = getValue(market, "symbol");
         object last = this.safeString(ticker, "last");
         object open = this.safeString(ticker, "open24h");
-        object spot = this.safeValue(market, "spot", false);
+        object spot = this.safeBool(market, "spot", false);
         object quoteVolume = ((bool) isTrue(spot)) ? this.safeString(ticker, "volCurrency24h") : null;
         object baseVolume = this.safeString(ticker, "vol24h");
         object high = this.safeString(ticker, "high24h");
@@ -538,7 +543,7 @@ public partial class blofin : Exchange
         };
         object response = await this.publicGetMarketTickers(this.extend(request, parameters));
         object data = this.safeList(response, "data", new List<object>() {});
-        object first = this.safeValue(data, 0, new Dictionary<string, object>() {});
+        object first = this.safeDict(data, 0, new Dictionary<string, object>() {});
         return this.parseTicker(first, market);
     }
 
@@ -992,6 +997,8 @@ public partial class blofin : Exchange
             { "symbol", this.safeSymbol(null, market) },
             { "maker", this.parseNumber(Precise.stringNeg(this.safeString2(fee, "maker", "makerU"))) },
             { "taker", this.parseNumber(Precise.stringNeg(this.safeString2(fee, "taker", "takerU"))) },
+            { "percentage", null },
+            { "tierBased", null },
         };
     }
 
@@ -1062,8 +1069,8 @@ public partial class blofin : Exchange
         {
             ((IDictionary<string,object>)request)["type"] = "post_only";
         }
-        object stopLoss = this.safeValue(parameters, "stopLoss");
-        object takeProfit = this.safeValue(parameters, "takeProfit");
+        object stopLoss = this.safeDict(parameters, "stopLoss");
+        object takeProfit = this.safeDict(parameters, "takeProfit");
         parameters = this.omit(parameters, new List<object>() {"stopLoss", "takeProfit"});
         object isStopLoss = !isEqual(stopLoss, null);
         object isTakeProfit = !isEqual(takeProfit, null);
@@ -1342,6 +1349,7 @@ public partial class blofin : Exchange
         * @param {string} id order id
         * @param {string} symbol unified symbol of the market the order was made in
         * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {boolean} [params.trigger] True if cancelling a trigger/conditional order/tp sl orders
         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
@@ -1354,15 +1362,28 @@ public partial class blofin : Exchange
         object request = new Dictionary<string, object>() {
             { "instId", getValue(market, "id") },
         };
+        object isTrigger = this.safeBoolN(parameters, new List<object>() {"stop", "trigger", "tpsl"}, false);
         object clientOrderId = this.safeString(parameters, "clientOrderId");
         if (isTrue(!isEqual(clientOrderId, null)))
         {
             ((IDictionary<string,object>)request)["clientOrderId"] = clientOrderId;
         } else
         {
-            ((IDictionary<string,object>)request)["orderId"] = id;
+            if (!isTrue(isTrigger))
+            {
+                ((IDictionary<string,object>)request)["orderId"] = ((object)id).ToString();
+            } else
+            {
+                ((IDictionary<string,object>)request)["tpslId"] = ((object)id).ToString();
+            }
         }
-        object query = this.omit(parameters, new List<object>() {"orderId", "clientOrderId"});
+        object query = this.omit(parameters, new List<object>() {"orderId", "clientOrderId", "stop", "trigger", "tpsl"});
+        if (isTrue(isTrigger))
+        {
+            object tpslResponse = await this.cancelOrders(new List<object>() {id}, symbol, parameters);
+            object first = this.safeDict(tpslResponse, 0);
+            return first;
+        }
         object response = await this.privatePostTradeCancelOrder(this.extend(request, query));
         object data = this.safeList(response, "data", new List<object>() {});
         object order = this.safeDict(data, 0);
@@ -1390,7 +1411,7 @@ public partial class blofin : Exchange
             object side = this.safeString(rawOrder, "side");
             object amount = this.safeValue(rawOrder, "amount");
             object price = this.safeValue(rawOrder, "price");
-            object orderParams = this.safeValue(rawOrder, "params", new Dictionary<string, object>() {});
+            object orderParams = this.safeDict(rawOrder, "params", new Dictionary<string, object>() {});
             object extendedParams = this.extend(orderParams, parameters); // the request does not accept extra params since it's a list, so we're extending each order with the common params
             object orderRequest = this.createOrderRequest(marketId, type, side, amount, price, extendedParams);
             ((IList<object>)ordersRequests).Add(orderRequest);
@@ -1437,7 +1458,7 @@ public partial class blofin : Exchange
         {
             ((IDictionary<string,object>)request)["limit"] = limit; // default 100, max 100
         }
-        object isStop = this.safeValueN(parameters, new List<object>() {"stop", "trigger", "tpsl", "TPSL"}, false);
+        object isStop = this.safeBoolN(parameters, new List<object>() {"stop", "trigger", "tpsl", "TPSL"}, false);
         object method = null;
         var methodparametersVariable = this.handleOptionAndParams(parameters, "fetchOpenOrders", "method", "privateGetTradeOrdersPending");
         method = ((IList<object>)methodparametersVariable)[0];
@@ -1826,7 +1847,7 @@ public partial class blofin : Exchange
         await this.loadMarkets();
         object market = this.market(symbol);
         object request = new List<object>() {};
-        object options = this.safeValue(this.options, "cancelOrders", new Dictionary<string, object>() {});
+        object options = this.safeDict(this.options, "cancelOrders", new Dictionary<string, object>() {});
         object defaultMethod = this.safeString(options, "method", "privatePostTradeCancelBatchOrders");
         object method = this.safeString(parameters, "method", defaultMethod);
         object clientOrderIds = this.parseIds(this.safeValue(parameters, "clientOrderId"));
@@ -1904,7 +1925,7 @@ public partial class blofin : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object currency = this.currency(code);
-        object accountsByType = this.safeValue(this.options, "accountsByType", new Dictionary<string, object>() {});
+        object accountsByType = this.safeDict(this.options, "accountsByType", new Dictionary<string, object>() {});
         object fromId = this.safeString(accountsByType, fromAccount, fromAccount);
         object toId = this.safeString(accountsByType, toAccount, toAccount);
         object request = new Dictionary<string, object>() {
@@ -2082,13 +2103,79 @@ public partial class blofin : Exchange
         });
     }
 
+    public async override Task<object> fetchLeverages(object symbols = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name blofin#fetchLeverages
+        * @description fetch the set leverage for all contract markets
+        * @see https://docs.blofin.com/index.html#get-multiple-leverage
+        * @param {string[]} symbols a list of unified market symbols, required on blofin
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string} [params.marginMode] 'cross' or 'isolated'
+        * @returns {object} a list of [leverage structures]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        if (isTrue(isEqual(symbols, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " fetchLeverages() requires a symbols argument")) ;
+        }
+        object marginMode = null;
+        var marginModeparametersVariable = this.handleMarginModeAndParams("fetchLeverages", parameters);
+        marginMode = ((IList<object>)marginModeparametersVariable)[0];
+        parameters = ((IList<object>)marginModeparametersVariable)[1];
+        if (isTrue(isEqual(marginMode, null)))
+        {
+            marginMode = this.safeString(parameters, "marginMode", "cross"); // cross as default marginMode
+        }
+        if (isTrue(isTrue((!isEqual(marginMode, "cross"))) && isTrue((!isEqual(marginMode, "isolated")))))
+        {
+            throw new BadRequest ((string)add(this.id, " fetchLeverages() requires a marginMode parameter that must be either cross or isolated")) ;
+        }
+        symbols = this.marketSymbols(symbols);
+        object instIds = "";
+        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        {
+            object entry = getValue(symbols, i);
+            object entryMarket = this.market(entry);
+            if (isTrue(isGreaterThan(i, 0)))
+            {
+                instIds = add(add(instIds, ","), getValue(entryMarket, "id"));
+            } else
+            {
+                instIds = add(instIds, getValue(entryMarket, "id"));
+            }
+        }
+        object request = new Dictionary<string, object>() {
+            { "instId", instIds },
+            { "marginMode", marginMode },
+        };
+        object response = await this.privateGetAccountBatchLeverageInfo(this.extend(request, parameters));
+        //
+        //     {
+        //         "code": "0",
+        //         "msg": "success",
+        //         "data": [
+        //             {
+        //                 "leverage": "3",
+        //                 "marginMode": "cross",
+        //                 "instId": "BTC-USDT"
+        //             },
+        //         ]
+        //     }
+        //
+        object leverages = this.safeList(response, "data", new List<object>() {});
+        return this.parseLeverages(leverages, symbols, "instId");
+    }
+
     public async override Task<object> fetchLeverage(object symbol, object parameters = null)
     {
         /**
         * @method
         * @name blofin#fetchLeverage
         * @description fetch the set leverage for a market
-        * @see https://blofin.com/docs#set-leverage
+        * @see https://docs.blofin.com/index.html#get-leverage
         * @param {string} symbol unified market symbol
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {string} [params.marginMode] 'cross' or 'isolated'
@@ -2114,7 +2201,32 @@ public partial class blofin : Exchange
             { "marginMode", marginMode },
         };
         object response = await this.privateGetAccountLeverageInfo(this.extend(request, parameters));
-        return response;
+        //
+        //     {
+        //         "code": "0",
+        //         "msg": "success",
+        //         "data": {
+        //             "leverage": "3",
+        //             "marginMode": "cross",
+        //             "instId": "BTC-USDT"
+        //         }
+        //     }
+        //
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        return this.parseLeverage(data, market);
+    }
+
+    public override object parseLeverage(object leverage, object market = null)
+    {
+        object marketId = this.safeString(leverage, "instId");
+        object leverageValue = this.safeInteger(leverage, "leverage");
+        return new Dictionary<string, object>() {
+            { "info", leverage },
+            { "symbol", this.safeSymbol(marketId, market) },
+            { "marginMode", this.safeStringLower(leverage, "marginMode") },
+            { "longLeverage", leverageValue },
+            { "shortLeverage", leverageValue },
+        };
     }
 
     public async override Task<object> setLeverage(object leverage, object symbol = null, object parameters = null)
@@ -2196,7 +2308,7 @@ public partial class blofin : Exchange
             ((IDictionary<string,object>)request)["clientOrderId"] = clientOrderId;
         }
         object response = await this.privatePostTradeClosePosition(this.extend(request, parameters));
-        return this.safeValue(response, "data");
+        return this.safeDict(response, "data");
     }
 
     public async override Task<object> fetchClosedOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
@@ -2240,7 +2352,7 @@ public partial class blofin : Exchange
         {
             ((IDictionary<string,object>)request)["begin"] = since;
         }
-        object isStop = this.safeValueN(parameters, new List<object>() {"stop", "trigger", "tpsl", "TPSL"}, false);
+        object isStop = this.safeBoolN(parameters, new List<object>() {"stop", "trigger", "tpsl", "TPSL"}, false);
         object method = null;
         var methodparametersVariable = this.handleOptionAndParams(parameters, "fetchOpenOrders", "method", "privateGetTradeOrdersHistory");
         method = ((IList<object>)methodparametersVariable)[0];
@@ -2256,6 +2368,43 @@ public partial class blofin : Exchange
         }
         object data = this.safeList(response, "data", new List<object>() {});
         return this.parseOrders(data, market, since, limit);
+    }
+
+    public async override Task<object> fetchMarginMode(object symbol, object parameters = null)
+    {
+        /**
+        * @method
+        * @name blofin#fetchMarginMode
+        * @description fetches the margin mode of a trading pair
+        * @see https://docs.blofin.com/index.html#get-margin-mode
+        * @param {string} symbol unified symbol of the market to fetch the margin mode for
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/#/?id=margin-mode-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        object response = await this.privateGetAccountMarginMode(parameters);
+        //
+        //     {
+        //         "code": "0",
+        //         "msg": "success",
+        //         "data": {
+        //             "marginMode": "cross"
+        //         }
+        //     }
+        //
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        return this.parseMarginMode(data, market);
+    }
+
+    public override object parseMarginMode(object marginMode, object market = null)
+    {
+        return new Dictionary<string, object>() {
+            { "info", marginMode },
+            { "symbol", getValue(market, "symbol") },
+            { "marginMode", this.safeString(marginMode, "marginMode") },
+        };
     }
 
     public override object handleErrors(object httpCode, object reason, object url, object method, object headers, object body, object response, object requestHeaders, object requestBody)

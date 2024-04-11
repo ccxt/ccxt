@@ -18,7 +18,7 @@ public partial class gemini : Exchange
                 { "CORS", null },
                 { "spot", true },
                 { "margin", false },
-                { "swap", false },
+                { "swap", true },
                 { "future", false },
                 { "option", false },
                 { "addMargin", false },
@@ -91,6 +91,7 @@ public partial class gemini : Exchange
                     { "public", "https://api.sandbox.gemini.com" },
                     { "private", "https://api.sandbox.gemini.com" },
                     { "web", "https://docs.gemini.com" },
+                    { "webExchange", "https://exchange.gemini.com" },
                 } },
                 { "fees", new List<object>() {"https://gemini.com/api-fee-schedule", "https://gemini.com/trading-fees", "https://gemini.com/transfer-fees"} },
             } },
@@ -225,25 +226,26 @@ public partial class gemini : Exchange
                 { "broad", new Dictionary<string, object>() {
                     { "The Gemini Exchange is currently undergoing maintenance.", typeof(OnMaintenance) },
                     { "We are investigating technical issues with the Gemini Exchange.", typeof(ExchangeNotAvailable) },
+                    { "Internal Server Error", typeof(ExchangeNotAvailable) },
                 } },
             } },
             { "options", new Dictionary<string, object>() {
-                { "fetchMarketsMethod", "fetch_markets_from_web" },
+                { "fetchMarketsMethod", "fetch_markets_from_api" },
                 { "fetchMarketFromWebRetries", 10 },
                 { "fetchMarketsFromAPI", new Dictionary<string, object>() {
                     { "fetchDetailsForAllSymbols", false },
-                    { "fetchDetailsForMarketIds", new List<object>() {} },
+                    { "quoteCurrencies", new List<object>() {"USDT", "GUSD", "USD", "DAI", "EUR", "GBP", "SGD", "BTC", "ETH", "LTC", "BCH"} },
                 } },
                 { "fetchMarkets", new Dictionary<string, object>() {
                     { "webApiEnable", true },
                     { "webApiRetries", 10 },
                 } },
+                { "fetchUsdtMarkets", new List<object>() {"btcusdt", "ethusdt"} },
                 { "fetchCurrencies", new Dictionary<string, object>() {
                     { "webApiEnable", true },
                     { "webApiRetries", 5 },
                     { "webApiMuteFailure", true },
                 } },
-                { "fetchUsdtMarkets", new List<object>() {"btcusdt", "ethusdt"} },
                 { "fetchTickerMethod", "fetchTickerV1" },
                 { "networks", new Dictionary<string, object>() {
                     { "BTC", "bitcoin" },
@@ -295,10 +297,7 @@ public partial class gemini : Exchange
         }
         //
         //    {
-        //        "tradingPairs": [
-        //            [ "BTCAUD", 2, 8, "0.00001", 10, true ],
-        //            ...
-        //        ],
+        //        "tradingPairs": [ [ 'BTCUSD', 2, 8, '0.00001', 10, true ],  ... ],
         //        "currencies": [
         //            [ "ORCA", "Orca", 204, 6, 0, 6, 8, false, null, "solana" ], // as confirmed, precisions seem to be the 5th index
         //            [ "ATOM", "Cosmos", 44, 6, 0, 6, 8, false, null, "cosmos" ],
@@ -317,6 +316,7 @@ public partial class gemini : Exchange
         //    }
         //
         object result = new Dictionary<string, object>() {};
+        ((IDictionary<string,object>)this.options)["tradingPairs"] = this.safeList(data, "tradingPairs");
         object currenciesArray = this.safeValue(data, "currencies", new List<object>() {});
         for (object i = 0; isLessThan(i, getArrayLength(currenciesArray)); postFixIncrement(ref i))
         {
@@ -396,9 +396,11 @@ public partial class gemini : Exchange
         object method = this.safeValue(this.options, "fetchMarketsMethod", "fetch_markets_from_api");
         if (isTrue(isEqual(method, "fetch_markets_from_web")))
         {
-            object usdMarkets = await this.fetchMarketsFromWeb(parameters); // get usd markets
-            object usdtMarkets = await this.fetchUSDTMarkets(parameters); // get usdt markets
-            return this.arrayConcat(usdMarkets, usdtMarkets);
+            object promises = new List<object>() {};
+            ((IList<object>)promises).Add(this.fetchMarketsFromWeb(parameters)); // get usd markets
+            ((IList<object>)promises).Add(this.fetchUSDTMarkets(parameters)); // get usdt markets
+            object promisesResult = await promiseAll(promises);
+            return this.arrayConcat(getValue(promisesResult, 0), getValue(promisesResult, 1));
         }
         return await this.fetchMarketsFromAPI(parameters);
     }
@@ -439,6 +441,7 @@ public partial class gemini : Exchange
             //         '</tr>'
             //     ]
             object marketId = ((string)getValue(cells, 0)).Replace((string)"<td>", (string)"");
+            marketId = ((string)marketId).Replace((string)"*", (string)"");
             // const base = this.safeCurrencyCode (baseId);
             object minAmountString = ((string)getValue(cells, 1)).Replace((string)"<td>", (string)"");
             object minAmountParts = ((string)minAmountString).Split(new [] {((string)" ")}, StringSplitOptions.None).ToList<object>();
@@ -515,6 +518,10 @@ public partial class gemini : Exchange
             { "post_only", true },
             { "limit_only", true },
         };
+        if (isTrue(isEqual(status, null)))
+        {
+            return true;  // as defaulted below
+        }
         return this.safeBool(statuses, status, true);
     }
 
@@ -545,7 +552,7 @@ public partial class gemini : Exchange
     public async virtual Task<object> fetchMarketsFromAPI(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object response = await this.publicGetV1Symbols(parameters);
+        object marketIdsRaw = await this.publicGetV1Symbols(parameters);
         //
         //     [
         //         "btcusd",
@@ -553,88 +560,190 @@ public partial class gemini : Exchange
         //         ...
         //     ]
         //
-        object result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
-        {
-            object marketId = getValue(response, i);
-            object market = new Dictionary<string, object>() {
-                { "symbol", marketId },
-            };
-            ((IDictionary<string,object>)result)[(string)marketId] = this.parseMarket(market);
-        }
-        object options = this.safeValue(this.options, "fetchMarketsFromAPI", new Dictionary<string, object>() {});
-        object fetchDetailsForAllSymbols = this.safeBool(options, "fetchDetailsForAllSymbols", false);
-        object fetchDetailsForMarketIds = this.safeValue(options, "fetchDetailsForMarketIds", new List<object>() {});
-        object promises = new List<object>() {};
+        object result = new List<object>() {};
+        object options = this.safeDict(this.options, "fetchMarketsFromAPI", new Dictionary<string, object>() {});
+        object bugSymbol = "efilfil"; // we skip this inexistent test symbol, which bugs other functions
         object marketIds = new List<object>() {};
-        if (isTrue(fetchDetailsForAllSymbols))
+        for (object i = 0; isLessThan(i, getArrayLength(marketIdsRaw)); postFixIncrement(ref i))
         {
-            marketIds = response;
+            if (isTrue(!isEqual(getValue(marketIdsRaw, i), bugSymbol)))
+            {
+                ((IList<object>)marketIds).Add(getValue(marketIdsRaw, i));
+            }
+        }
+        if (isTrue(this.safeBool(options, "fetchDetailsForAllSymbols", false)))
+        {
+            object promises = new List<object>() {};
+            for (object i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
+            {
+                object marketId = getValue(marketIds, i);
+                object request = new Dictionary<string, object>() {
+                    { "symbol", marketId },
+                };
+                ((IList<object>)promises).Add(this.publicGetV1SymbolsDetailsSymbol(this.extend(request, parameters)));
+            }
+            object responses = await promiseAll(promises);
+            for (object i = 0; isLessThan(i, getArrayLength(responses)); postFixIncrement(ref i))
+            {
+                ((IList<object>)result).Add(this.parseMarket(getValue(responses, i)));
+            }
         } else
         {
-            marketIds = fetchDetailsForMarketIds;
+            // use trading-pairs info, if it was fetched
+            object tradingPairs = this.safeList(this.options, "tradingPairs");
+            if (isTrue(!isEqual(tradingPairs, null)))
+            {
+                object indexedTradingPairs = this.indexBy(tradingPairs, 0);
+                for (object i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
+                {
+                    object marketId = getValue(marketIds, i);
+                    object tradingPair = this.safeList(indexedTradingPairs, ((string)marketId).ToUpper());
+                    if (isTrue(!isEqual(tradingPair, null)))
+                    {
+                        ((IList<object>)result).Add(this.parseMarket(tradingPair));
+                    }
+                }
+            } else
+            {
+                for (object i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
+                {
+                    ((IList<object>)result).Add(this.parseMarket(getValue(marketIds, i)));
+                }
+            }
         }
-        for (object i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
-        {
-            object marketId = getValue(marketIds, i);
-            object request = new Dictionary<string, object>() {
-                { "symbol", marketId },
-            };
-            ((IList<object>)promises).Add(this.publicGetV1SymbolsDetailsSymbol(this.extend(request, parameters)));
-        }
-        promises = await promiseAll(promises);
-        for (object i = 0; isLessThan(i, getArrayLength(promises)); postFixIncrement(ref i))
-        {
-            object responseInner = getValue(promises, i);
-            object marketId = this.safeStringLower(responseInner, "symbol");
-            ((IDictionary<string,object>)result)[(string)marketId] = this.parseMarket(responseInner);
-        }
-        return this.toArray(result);
+        return result;
     }
 
     public override object parseMarket(object response)
     {
-        object marketId = this.safeStringLower(response, "symbol");
-        object baseId = this.safeString(response, "base_currency");
-        object quoteId = this.safeString(response, "quote_currency");
-        if (isTrue(isEqual(baseId, null)))
+        //
+        // response might be:
+        //
+        //     btcusd
+        //
+        // or
+        //
+        //     [
+        //         'BTCUSD',   // symbol
+        //         2,          // priceTickDecimalPlaces
+        //         8,          // quantityTickDecimalPlaces
+        //         '0.00001',  // quantityMinimum
+        //         10,         // quantityRoundDecimalPlaces
+        //         true        // minimumsAreInclusive
+        //     ],
+        //
+        // or
+        //
+        //     {
+        //         "symbol": "BTCUSD", // perpetuals have 'PERP' suffix, i.e. DOGEUSDPERP
+        //         "base_currency": "BTC",
+        //         "quote_currency": "USD",
+        //         "tick_size": 1E-8,
+        //         "quote_increment": 0.01,
+        //         "min_order_size": "0.00001",
+        //         "status": "open",
+        //         "wrap_enabled": false
+        //         "product_type": "swap", // only in perps
+        //         "contract_type": "linear", // only in perps
+        //         "contract_price_currency": "GUSD" // only in perps
+        //     }
+        //
+        object marketId = null;
+        object baseId = null;
+        object quoteId = null;
+        object settleId = null;
+        object tickSize = null;
+        object amountPrecision = null;
+        object minSize = null;
+        object status = null;
+        object swap = false;
+        object contractSize = null;
+        object linear = null;
+        object inverse = null;
+        object isString = ((response is string));
+        object isArray = (((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))));
+        if (isTrue(!isTrue(isString) && !isTrue(isArray)))
         {
-            object idLength = subtract(((string)marketId).Length, 0);
-            object isUSDT = isGreaterThanOrEqual(getIndexOf(marketId, "usdt"), 0);
-            object quoteSize = ((bool) isTrue(isUSDT)) ? 4 : 3;
-            baseId = slice(marketId, 0, subtract(idLength, quoteSize)); // Not true for all markets
-            quoteId = slice(marketId, subtract(idLength, quoteSize), idLength);
+            marketId = this.safeStringLower(response, "symbol");
+            amountPrecision = this.safeNumber(response, "tick_size"); // right, exchange has an imperfect naming and this turns out to be an amount-precision
+            tickSize = this.safeNumber(response, "quote_increment"); // this is tick-size actually
+            minSize = this.safeNumber(response, "min_order_size");
+            status = this.parseMarketActive(this.safeString(response, "status"));
+            baseId = this.safeString(response, "base_currency");
+            quoteId = this.safeString(response, "quote_currency");
+            settleId = this.safeString(response, "contract_price_currency");
+        } else
+        {
+            // if no detailed API was called, then parse either string or array
+            if (isTrue(isString))
+            {
+                marketId = response;
+            } else
+            {
+                marketId = this.safeStringLower(response, 0);
+                tickSize = this.parseNumber(this.parsePrecision(this.safeString(response, 1))); // priceTickDecimalPlaces
+                amountPrecision = this.parseNumber(this.parsePrecision(this.safeString(response, 2))); // quantityTickDecimalPlaces
+                minSize = this.safeNumber(response, 3); // quantityMinimum
+            }
+            object marketIdUpper = ((string)marketId).ToUpper();
+            object isPerp = (isGreaterThanOrEqual(getIndexOf(marketIdUpper, "PERP"), 0));
+            object marketIdWithoutPerp = ((string)marketIdUpper).Replace((string)"PERP", (string)"");
+            object quoteQurrencies = this.handleOption("fetchMarketsFromAPI", "quoteCurrencies", new List<object>() {});
+            for (object i = 0; isLessThan(i, getArrayLength(quoteQurrencies)); postFixIncrement(ref i))
+            {
+                object quoteCurrency = getValue(quoteQurrencies, i);
+                if (isTrue(((string)marketIdWithoutPerp).EndsWith(((string)quoteCurrency))))
+                {
+                    baseId = ((string)marketIdWithoutPerp).Replace((string)quoteCurrency, (string)"");
+                    quoteId = quoteCurrency;
+                    if (isTrue(isPerp))
+                    {
+                        settleId = quoteCurrency; // always same
+                    }
+                    break;
+                }
+            }
         }
         object bs = this.safeCurrencyCode(baseId);
         object quote = this.safeCurrencyCode(quoteId);
-        object status = this.safeString(response, "status");
+        object settle = this.safeCurrencyCode(settleId);
+        object symbol = add(add(bs, "/"), quote);
+        if (isTrue(!isEqual(settleId, null)))
+        {
+            symbol = add(add(symbol, ":"), settle);
+            swap = true;
+            contractSize = tickSize; // always same
+            linear = true; // always linear
+            inverse = false;
+        }
+        object type = ((bool) isTrue(swap)) ? "swap" : "spot";
         return new Dictionary<string, object>() {
             { "id", marketId },
-            { "symbol", add(add(bs, "/"), quote) },
+            { "symbol", symbol },
             { "base", bs },
             { "quote", quote },
-            { "settle", null },
+            { "settle", settle },
             { "baseId", baseId },
             { "quoteId", quoteId },
-            { "settleId", null },
-            { "type", "spot" },
-            { "spot", true },
+            { "settleId", settleId },
+            { "type", type },
+            { "spot", !isTrue(swap) },
             { "margin", false },
-            { "swap", false },
+            { "swap", swap },
             { "future", false },
             { "option", false },
-            { "active", this.parseMarketActive(status) },
-            { "contract", false },
-            { "linear", null },
-            { "inverse", null },
-            { "contractSize", null },
+            { "active", status },
+            { "contract", swap },
+            { "linear", linear },
+            { "inverse", inverse },
+            { "contractSize", contractSize },
             { "expiry", null },
             { "expiryDatetime", null },
             { "strike", null },
             { "optionType", null },
             { "precision", new Dictionary<string, object>() {
-                { "price", this.safeNumber(response, "quote_increment") },
-                { "amount", this.safeNumber(response, "tick_size") },
+                { "price", tickSize },
+                { "amount", amountPrecision },
             } },
             { "limits", new Dictionary<string, object>() {
                 { "leverage", new Dictionary<string, object>() {
@@ -642,7 +751,7 @@ public partial class gemini : Exchange
                     { "max", null },
                 } },
                 { "amount", new Dictionary<string, object>() {
-                    { "min", this.safeNumber(response, "min_order_size") },
+                    { "min", minSize },
                     { "max", null },
                 } },
                 { "price", new Dictionary<string, object>() {
@@ -1828,7 +1937,7 @@ public partial class gemini : Exchange
             {
                 throw new AuthenticationError ((string)add(this.id, " sign() requires an account-key, master-keys are not-supported")) ;
             }
-            object nonce = this.nonce();
+            object nonce = ((object)this.nonce()).ToString();
             object request = this.extend(new Dictionary<string, object>() {
                 { "request", url },
                 { "nonce", nonce },

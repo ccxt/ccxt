@@ -1325,7 +1325,7 @@ public partial class phemex : Exchange
         //     }
         //
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object rows = this.safeValue(data, "rows", new List<object>() {});
+        object rows = this.safeList(data, "rows", new List<object>() {});
         return this.parseOHLCVs(rows, market, timeframe, since, userLimit);
     }
 
@@ -1495,7 +1495,7 @@ public partial class phemex : Exchange
         //         }
         //     }
         //
-        object result = this.safeValue(response, "result", new Dictionary<string, object>() {});
+        object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         return this.parseTicker(result, market);
     }
 
@@ -1540,7 +1540,7 @@ public partial class phemex : Exchange
         {
             response = await this.v2GetMdV2Ticker24hrAll(query);
         }
-        object result = this.safeValue(response, "result", new List<object>() {});
+        object result = this.safeList(response, "result", new List<object>() {});
         return this.parseTickers(result, symbols);
     }
 
@@ -2524,7 +2524,7 @@ public partial class phemex : Exchange
     public override object parseOrder(object order, object market = null)
     {
         object isSwap = this.safeBool(market, "swap", false);
-        object hasPnl = (inOp(order, "closedPnl"));
+        object hasPnl = isTrue(isTrue((inOp(order, "closedPnl"))) || isTrue((inOp(order, "closedPnlRv")))) || isTrue((inOp(order, "totalPnlRv")));
         if (isTrue(isTrue(isSwap) || isTrue(hasPnl)))
         {
             return this.parseSwapOrder(order, market);
@@ -2845,7 +2845,7 @@ public partial class phemex : Exchange
         //         }
         //     }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return this.parseOrder(data, market);
     }
 
@@ -2936,7 +2936,7 @@ public partial class phemex : Exchange
         {
             response = await this.privatePutSpotOrders(this.extend(request, parameters));
         }
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return this.parseOrder(data, market);
     }
 
@@ -2988,7 +2988,7 @@ public partial class phemex : Exchange
         {
             response = await this.privateDeleteSpotOrders(this.extend(request, parameters));
         }
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return this.parseOrder(data, market);
     }
 
@@ -3132,7 +3132,7 @@ public partial class phemex : Exchange
             response = await this.privateGetSpotOrders(this.extend(request, parameters));
         }
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object rows = this.safeValue(data, "rows", data);
+        object rows = this.safeList(data, "rows", data);
         return this.parseOrders(rows, market, since, limit);
     }
 
@@ -3189,7 +3189,7 @@ public partial class phemex : Exchange
             return this.parseOrders(data, market, since, limit);
         } else
         {
-            object rows = this.safeValue(data, "rows", new List<object>() {});
+            object rows = this.safeList(data, "rows", new List<object>() {});
             return this.parseOrders(rows, market, since, limit);
         }
     }
@@ -3285,7 +3285,7 @@ public partial class phemex : Exchange
             return this.parseOrders(data, market, since, limit);
         } else
         {
-            object rows = this.safeValue(data, "rows", new List<object>() {});
+            object rows = this.safeList(data, "rows", new List<object>() {});
             return this.parseOrders(rows, market, since, limit);
         }
     }
@@ -3554,7 +3554,7 @@ public partial class phemex : Exchange
         //         ]
         //     }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseTransactions(data, currency, since, limit);
     }
 
@@ -3598,7 +3598,7 @@ public partial class phemex : Exchange
         //         ]
         //     }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseTransactions(data, currency, since, limit);
     }
 
@@ -4293,7 +4293,7 @@ public partial class phemex : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public virtual object parseMarginModification(object data, object market = null)
+    public override object parseMarginModification(object data, object market = null)
     {
         //
         //     {
@@ -4307,12 +4307,15 @@ public partial class phemex : Exchange
         object codeCurrency = ((bool) isTrue(inverse)) ? "base" : "quote";
         return new Dictionary<string, object>() {
             { "info", data },
+            { "symbol", this.safeSymbol(null, market) },
             { "type", "set" },
+            { "marginMode", "isolated" },
             { "amount", null },
             { "total", null },
             { "code", getValue(market, codeCurrency) },
-            { "symbol", this.safeSymbol(null, market) },
             { "status", this.parseMarginStatus(this.safeString(data, "code")) },
+            { "timestamp", null },
+            { "datetime", null },
         };
     }
 
@@ -4493,7 +4496,7 @@ public partial class phemex : Exchange
         //
         //
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object riskLimits = this.safeValue(data, "riskLimits");
+        object riskLimits = this.safeList(data, "riskLimits");
         return this.parseLeverageTiers(riskLimits, symbols, "symbol");
     }
 
@@ -4797,7 +4800,7 @@ public partial class phemex : Exchange
         //     }
         //
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object transfers = this.safeValue(data, "rows", new List<object>() {});
+        object transfers = this.safeList(data, "rows", new List<object>() {});
         return this.parseTransfers(transfers, currency, since, limit);
     }
 
@@ -5051,7 +5054,7 @@ public partial class phemex : Exchange
         //         }
         //     }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return this.parseTransaction(data, currency);
     }
 

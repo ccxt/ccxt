@@ -66,10 +66,10 @@ public partial class okx
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type.</returns>
-    public async Task<List<Dictionary<string, object>>> FetchAccounts(Dictionary<string, object> parameters = null)
+    public async Task<List<Account>> FetchAccounts(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchAccounts(parameters);
-        return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
+        return ((IList<object>)res).Select(item => new Account(item)).ToList<Account>();
     }
     /// <summary>
     /// retrieves data on all markets for okx
@@ -86,10 +86,10 @@ public partial class okx
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> an array of objects representing market data.</returns>
-    public async Task<List<Dictionary<string, object>>> FetchMarkets(Dictionary<string, object> parameters = null)
+    public async Task<List<MarketInterface>> FetchMarkets(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchMarkets(parameters);
-        return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
+        return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
     }
     public async Task<List<MarketInterface>> FetchMarketsByType(object type, Dictionary<string, object> parameters = null)
     {
@@ -148,11 +148,6 @@ public partial class okx
     {
         var res = await this.fetchTicker(symbol, parameters);
         return new Ticker(res);
-    }
-    public async Task<Dictionary<string, Ticker>> FetchTickersByType(object type, List<String> symbols = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchTickersByType(type, symbols, parameters);
-        return ((Dictionary<string, Ticker>)res);
     }
     /// <summary>
     /// fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
@@ -327,10 +322,10 @@ public partial class okx
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchTradingFee(string symbol, Dictionary<string, object> parameters = null)
+    public async Task<TradingFeeInterface> FetchTradingFee(string symbol, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchTradingFee(symbol, parameters);
-        return ((Dictionary<string, object>)res);
+        return new TradingFeeInterface(res);
     }
     /// <summary>
     /// query for balance and get the amount of funds available for trading or funds locked in orders
@@ -455,6 +450,12 @@ public partial class okx
     /// string : the percent to trail away from the current market price
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.tpOrdKind</term>
+    /// <description>
+    /// string : 'condition' or 'limit', the default is 'condition'
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
@@ -554,6 +555,12 @@ public partial class okx
     /// <term>params.takeProfit</term>
     /// <description>
     /// object : *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.newTpOrdKind</term>
+    /// <description>
+    /// string : 'condition' or 'limit', the default is 'condition'
     /// </description>
     /// </item>
     /// </list>
@@ -1214,10 +1221,10 @@ public partial class okx
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}.</returns>
-    public async Task<Int64> FetchLeverage(string symbol, Dictionary<string, object> parameters = null)
+    public async Task<Leverage> FetchLeverage(string symbol, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchLeverage(symbol, parameters);
-        return (Int64)res;
+        return new Leverage(res);
     }
     /// <summary>
     /// fetch data on a single open contract trade position
@@ -1807,5 +1814,133 @@ public partial class okx
     {
         var res = await this.fetchGreeks(symbol, parameters);
         return new Greeks(res);
+    }
+    /// <summary>
+    /// fetches option data that is commonly found in an option chain
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.okx.com/docs-v5/en/#order-book-trading-market-data-get-ticker"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> an [option chain structure]{@link https://docs.ccxt.com/#/?id=option-chain-structure}.</returns>
+    public async Task<Option> FetchOption(string symbol, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchOption(symbol, parameters);
+        return new Option(res);
+    }
+    /// <summary>
+    /// fetches data for an underlying asset that is commonly found in an option chain
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.okx.com/docs-v5/en/#order-book-trading-market-data-get-tickers"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.uly</term>
+    /// <description>
+    /// string : the underlying asset, can be obtained from fetchUnderlyingAssets ()
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a list of [option chain structures]{@link https://docs.ccxt.com/#/?id=option-chain-structure}.</returns>
+    public async Task<OptionChain> FetchOptionChain(string code, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchOptionChain(code, parameters);
+        return new OptionChain(res);
+    }
+    /// <summary>
+    /// fetch a quote for converting from one currency to another
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.okx.com/docs-v5/en/#funding-account-rest-api-estimate-quote"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>amount</term>
+    /// <description>
+    /// float : how much you want to trade in units of the from currency
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}.</returns>
+    public async Task<Conversion> FetchConvertQuote(string fromCode, string toCode, double? amount2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var amount = amount2 == 0 ? null : (object)amount2;
+        var res = await this.fetchConvertQuote(fromCode, toCode, amount, parameters);
+        return new Conversion(res);
+    }
+    /// <summary>
+    /// fetches all available currencies that can be converted
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.okx.com/docs-v5/en/#funding-account-rest-api-get-convert-currencies"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> an associative dictionary of currencies.</returns>
+    public async Task<Currencies> FetchConvertCurrencies(Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchConvertCurrencies(parameters);
+        return new Currencies(res);
+    }
+    /// <summary>
+    /// fetches the history of margin added or reduced from contract isolated positions
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-bills-details-last-7-days"/>  <br/>
+    /// See <see href="https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-bills-details-last-3-months"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>symbol</term>
+    /// <description>
+    /// string : not used by okx fetchMarginAdjustmentHistory
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>type</term>
+    /// <description>
+    /// string : "add" or "reduce"
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.auto</term>
+    /// <description>
+    /// boolean : true if fetching auto margin increases
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object[]</term> a list of [margin structures]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}.</returns>
+    public async Task<List<MarginModification>> FetchMarginAdjustmentHistory(string symbol = null, string type = null, double? since2 = 0, double? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.fetchMarginAdjustmentHistory(symbol, type, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new MarginModification(item)).ToList<MarginModification>();
     }
 }

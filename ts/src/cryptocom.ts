@@ -6,7 +6,7 @@ import { Precise } from './base/Precise.js';
 import { AuthenticationError, ArgumentsRequired, ExchangeError, InsufficientFunds, DDoSProtection, InvalidNonce, PermissionDenied, BadRequest, BadSymbol, NotSupported, AccountNotEnabled, OnMaintenance, InvalidOrder } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, Str, Ticker, OrderRequest, Balances, Transaction, OrderBook, Tickers, Strings, Currency, Market } from './base/types.js';
+import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, Str, Ticker, OrderRequest, Balances, Transaction, OrderBook, Tickers, Strings, Currency, Market, Num, Account } from './base/types.js';
 
 /**
  * @class cryptocom
@@ -67,6 +67,7 @@ export default class cryptocom extends Exchange {
                 'fetchLedger': true,
                 'fetchLeverage': false,
                 'fetchLeverageTiers': false,
+                'fetchMarginAdjustmentHistory': false,
                 'fetchMarginMode': false,
                 'fetchMarketLeverageTiers': false,
                 'fetchMarkets': true,
@@ -377,7 +378,7 @@ export default class cryptocom extends Exchange {
         });
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name cryptocom#fetchMarkets
@@ -622,7 +623,7 @@ export default class cryptocom extends Exchange {
         //     }
         //
         const result = this.safeValue (response, 'result', {});
-        const data = this.safeValue (result, 'data', []);
+        const data = this.safeList (result, 'data', []);
         return this.parseTickers (data, symbols);
     }
 
@@ -720,7 +721,7 @@ export default class cryptocom extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'result', {});
-        const orders = this.safeValue (data, 'data', []);
+        const orders = this.safeList (data, 'data', []);
         return this.parseOrders (orders, market, since, limit);
     }
 
@@ -781,7 +782,7 @@ export default class cryptocom extends Exchange {
         //     }
         //
         const result = this.safeValue (response, 'result', {});
-        const trades = this.safeValue (result, 'data', []);
+        const trades = this.safeList (result, 'data', []);
         return this.parseTrades (trades, market, since, limit);
     }
 
@@ -845,7 +846,7 @@ export default class cryptocom extends Exchange {
         //     }
         //
         const result = this.safeValue (response, 'result', {});
-        const data = this.safeValue (result, 'data', []);
+        const data = this.safeList (result, 'data', []);
         return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
@@ -1020,11 +1021,11 @@ export default class cryptocom extends Exchange {
         //         }
         //     }
         //
-        const order = this.safeValue (response, 'result', {});
+        const order = this.safeDict (response, 'result', {});
         return this.parseOrder (order, market);
     }
 
-    createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
+    createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         const market = this.market (symbol);
         const uppercaseType = type.toUpperCase ();
         const request = {
@@ -1122,7 +1123,7 @@ export default class cryptocom extends Exchange {
         return this.extend (request, params);
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         /**
          * @method
          * @name cryptocom#createOrder
@@ -1156,7 +1157,7 @@ export default class cryptocom extends Exchange {
         //         }
         //     }
         //
-        const result = this.safeValue (response, 'result', {});
+        const result = this.safeDict (response, 'result', {});
         return this.parseOrder (result, market);
     }
 
@@ -1239,7 +1240,7 @@ export default class cryptocom extends Exchange {
         return this.parseOrders (result);
     }
 
-    createAdvancedOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
+    createAdvancedOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         // differs slightly from createOrderRequest
         // since the advanced order endpoint requires a different set of parameters
         // namely here we don't support ref_price or spot_margin
@@ -1405,7 +1406,7 @@ export default class cryptocom extends Exchange {
         //         }
         //     }
         //
-        const result = this.safeValue (response, 'result', {});
+        const result = this.safeDict (response, 'result', {});
         return this.parseOrder (result, market);
     }
 
@@ -1439,7 +1440,7 @@ export default class cryptocom extends Exchange {
             'order_list': orderRequests,
         };
         const response = await this.v1PrivatePostPrivateCancelOrderList (this.extend (request, params));
-        const result = this.safeValue (response, 'result', []);
+        const result = this.safeList (response, 'result', []);
         return this.parseOrders (result, market, undefined, undefined, params);
     }
 
@@ -1501,7 +1502,7 @@ export default class cryptocom extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'result', {});
-        const orders = this.safeValue (data, 'data', []);
+        const orders = this.safeList (data, 'data', []);
         return this.parseOrders (orders, market, since, limit);
     }
 
@@ -1573,7 +1574,7 @@ export default class cryptocom extends Exchange {
         //     }
         //
         const result = this.safeValue (response, 'result', {});
-        const trades = this.safeValue (result, 'data', []);
+        const trades = this.safeList (result, 'data', []);
         return this.parseTrades (trades, market, since, limit);
     }
 
@@ -1638,7 +1639,7 @@ export default class cryptocom extends Exchange {
         //        }
         //     }
         //
-        const result = this.safeValue (response, 'result');
+        const result = this.safeDict (response, 'result');
         return this.parseTransaction (result, currency);
     }
 
@@ -1793,7 +1794,7 @@ export default class cryptocom extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'result', {});
-        const depositList = this.safeValue (data, 'deposit_list', []);
+        const depositList = this.safeList (data, 'deposit_list', []);
         return this.parseTransactions (depositList, currency, since, limit);
     }
 
@@ -1855,7 +1856,7 @@ export default class cryptocom extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'result', {});
-        const withdrawalList = this.safeValue (data, 'withdrawal_list', []);
+        const withdrawalList = this.safeList (data, 'withdrawal_list', []);
         return this.parseTransactions (withdrawalList, currency, since, limit);
     }
 
@@ -2320,7 +2321,7 @@ export default class cryptocom extends Exchange {
         await this.loadMarkets ();
         const response = await this.v1PrivatePostPrivateGetCurrencyNetworks (params);
         const data = this.safeValue (response, 'result');
-        const currencyMap = this.safeValue (data, 'currency_map');
+        const currencyMap = this.safeList (data, 'currency_map');
         return this.parseDepositWithdrawFees (currencyMap, codes, 'full_name');
     }
 
@@ -2469,7 +2470,7 @@ export default class cryptocom extends Exchange {
         return this.safeString (ledgerType, type, type);
     }
 
-    async fetchAccounts (params = {}) {
+    async fetchAccounts (params = {}): Promise<Account[]> {
         /**
          * @method
          * @name cryptocom#fetchAccounts
@@ -2758,9 +2759,9 @@ export default class cryptocom extends Exchange {
         //         }
         //     }
         //
-        const result = this.safeValue (response, 'result', {});
-        const data = this.safeValue (result, 'data', []);
-        return this.parsePosition (data[0], market);
+        const result = this.safeDict (response, 'result', {});
+        const data = this.safeList (result, 'data', []);
+        return this.parsePosition (this.safeDict (data, 0), market);
     }
 
     async fetchPositions (symbols: Strings = undefined, params = {}) {
@@ -2953,7 +2954,7 @@ export default class cryptocom extends Exchange {
         //        }
         //    }
         //
-        const result = this.safeValue (response, 'result');
+        const result = this.safeDict (response, 'result');
         return this.parseOrder (result, market);
     }
 

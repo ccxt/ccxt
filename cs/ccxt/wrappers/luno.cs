@@ -10,6 +10,7 @@ public partial class luno
     /// retrieves data on all markets for luno
     /// </summary>
     /// <remarks>
+    /// See <see href="https://www.luno.com/en/developers/api#tag/Market/operation/Markets"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -20,15 +21,16 @@ public partial class luno
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> an array of objects representing market data.</returns>
-    public async Task<List<Dictionary<string, object>>> FetchMarkets(Dictionary<string, object> parameters = null)
+    public async Task<List<MarketInterface>> FetchMarkets(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchMarkets(parameters);
-        return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
+        return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
     }
     /// <summary>
     /// fetch all the accounts associated with a profile
     /// </summary>
     /// <remarks>
+    /// See <see href="https://www.luno.com/en/developers/api#tag/Accounts/operation/getBalances"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -39,15 +41,16 @@ public partial class luno
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type.</returns>
-    public async Task<List<Dictionary<string, object>>> FetchAccounts(Dictionary<string, object> parameters = null)
+    public async Task<List<Account>> FetchAccounts(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchAccounts(parameters);
-        return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
+        return ((IList<object>)res).Select(item => new Account(item)).ToList<Account>();
     }
     /// <summary>
     /// query for balance and get the amount of funds available for trading or funds locked in orders
     /// </summary>
     /// <remarks>
+    /// See <see href="https://www.luno.com/en/developers/api#tag/Accounts/operation/getBalances"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -67,6 +70,8 @@ public partial class luno
     /// fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
     /// </summary>
     /// <remarks>
+    /// See <see href="https://www.luno.com/en/developers/api#tag/Market/operation/GetOrderBookFull"/>  <br/>
+    /// See <see href="https://www.luno.com/en/developers/api#tag/Market/operation/GetOrderBook"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>
@@ -93,6 +98,7 @@ public partial class luno
     /// fetches information on an order made by the user
     /// </summary>
     /// <remarks>
+    /// See <see href="https://www.luno.com/en/developers/api#tag/Orders/operation/GetOrder"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -119,6 +125,7 @@ public partial class luno
     /// fetches information on multiple orders made by the user
     /// </summary>
     /// <remarks>
+    /// See <see href="https://www.luno.com/en/developers/api#tag/Orders/operation/ListOrders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -152,6 +159,7 @@ public partial class luno
     /// fetch all unfilled currently open orders
     /// </summary>
     /// <remarks>
+    /// See <see href="https://www.luno.com/en/developers/api#tag/Orders/operation/ListOrders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -185,6 +193,7 @@ public partial class luno
     /// fetches information on multiple closed orders made by the user
     /// </summary>
     /// <remarks>
+    /// See <see href="https://www.luno.com/en/developers/api#tag/Orders/operation/ListOrders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -218,6 +227,7 @@ public partial class luno
     /// fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
     /// </summary>
     /// <remarks>
+    /// See <see href="https://www.luno.com/en/developers/api#tag/Market/operation/GetTickers"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -237,6 +247,7 @@ public partial class luno
     /// fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
     /// </summary>
     /// <remarks>
+    /// See <see href="https://www.luno.com/en/developers/api#tag/Market/operation/GetTicker"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -256,6 +267,7 @@ public partial class luno
     /// get the list of most recent trades for a particular symbol
     /// </summary>
     /// <remarks>
+    /// See <see href="https://www.luno.com/en/developers/api#tag/Market/operation/ListTrades"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -317,6 +329,7 @@ public partial class luno
     /// fetch all trades made by the user
     /// </summary>
     /// <remarks>
+    /// See <see href="https://www.luno.com/en/developers/api#tag/Orders/operation/ListUserTrades"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -350,6 +363,7 @@ public partial class luno
     /// fetch the trading fees for a market
     /// </summary>
     /// <remarks>
+    /// See <see href="https://www.luno.com/en/developers/api#tag/Orders/operation/getFeeInfo"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -360,15 +374,17 @@ public partial class luno
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchTradingFee(string symbol, Dictionary<string, object> parameters = null)
+    public async Task<TradingFeeInterface> FetchTradingFee(string symbol, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchTradingFee(symbol, parameters);
-        return ((Dictionary<string, object>)res);
+        return new TradingFeeInterface(res);
     }
     /// <summary>
     /// create a trade order
     /// </summary>
     /// <remarks>
+    /// See <see href="https://www.luno.com/en/developers/api#tag/Orders/operation/PostMarketOrder"/>  <br/>
+    /// See <see href="https://www.luno.com/en/developers/api#tag/Orders/operation/PostLimitOrder"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>
@@ -395,6 +411,7 @@ public partial class luno
     /// cancels an open order
     /// </summary>
     /// <remarks>
+    /// See <see href="https://www.luno.com/en/developers/api#tag/Orders/operation/StopOrder"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -419,6 +436,7 @@ public partial class luno
     /// fetch the history of changes, actions done by the user or operations that altered balance of the user
     /// </summary>
     /// <remarks>
+    /// See <see href="https://www.luno.com/en/developers/api#tag/Accounts/operation/ListTransactions"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>

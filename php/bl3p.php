@@ -30,6 +30,7 @@ class bl3p extends Exchange {
                 'cancelOrder' => true,
                 'closeAllPositions' => false,
                 'closePosition' => false,
+                'createDepositAddress' => true,
                 'createOrder' => true,
                 'createReduceOnlyOrder' => false,
                 'createStopLimitOrder' => false,
@@ -40,6 +41,9 @@ class bl3p extends Exchange {
                 'fetchBorrowRateHistory' => false,
                 'fetchCrossBorrowRate' => false,
                 'fetchCrossBorrowRates' => false,
+                'fetchDepositAddress' => false,
+                'fetchDepositAddresses' => false,
+                'fetchDepositAddressesByNetwork' => false,
                 'fetchFundingHistory' => false,
                 'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => false,
@@ -169,7 +173,7 @@ class bl3p extends Exchange {
             'market' => $market['id'],
         );
         $response = $this->publicGetMarketOrderbook (array_merge($request, $params));
-        $orderbook = $this->safe_value($response, 'data');
+        $orderbook = $this->safe_dict($response, 'data');
         return $this->parse_order_book($orderbook, $market['symbol'], null, 'bids', 'asks', 'price_int', 'amount_int');
     }
 
@@ -313,7 +317,7 @@ class bl3p extends Exchange {
         return $result;
     }
 
-    public function fetch_trading_fees($params = array ()) {
+    public function fetch_trading_fees($params = array ()): array {
         /**
          * fetch the trading fees for multiple markets
          * @see https://github.com/BitonicNL/bl3p-api/blob/master/docs/authenticated_api/http.md#35---get-account-info--balance
@@ -417,6 +421,49 @@ class bl3p extends Exchange {
             'order_id' => $id,
         );
         return $this->privatePostMarketMoneyOrderCancel (array_merge($request, $params));
+    }
+
+    public function create_deposit_address(string $code, $params = array ()) {
+        /**
+         * create a $currency deposit address
+         * @see https://github.com/BitonicNL/bl3p-api/blob/master/docs/authenticated_api/http.md#32---create-a-new-deposit-address
+         * @param {string} $code unified $currency $code of the $currency for the deposit address
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/#/?id=address-structure address structure~
+         */
+        $this->load_markets();
+        $currency = $this->currency($code);
+        $request = array(
+            'currency' => $currency['id'],
+        );
+        $response = $this->privatePostGENMKTMoneyNewDepositAddress (array_merge($request, $params));
+        //
+        //    {
+        //        "result" => "success",
+        //        "data" => {
+        //            "address" => "36Udu9zi1uYicpXcJpoKfv3bewZeok5tpk"
+        //        }
+        //    }
+        //
+        $data = $this->safe_dict($response, 'data');
+        return $this->parse_deposit_address($data, $currency);
+    }
+
+    public function parse_deposit_address($depositAddress, ?array $currency = null) {
+        //
+        //    {
+        //        "address" => "36Udu9zi1uYicpXcJpoKfv3bewZeok5tpk"
+        //    }
+        //
+        $address = $this->safe_string($depositAddress, 'address');
+        $this->check_address($address);
+        return array(
+            'info' => $depositAddress,
+            'currency' => $this->safe_string($currency, 'code'),
+            'address' => $address,
+            'tag' => null,
+            'network' => null,
+        );
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

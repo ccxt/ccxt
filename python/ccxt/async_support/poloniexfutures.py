@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.poloniexfutures import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Balances, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
 from typing import List
 from ccxt.base.errors import AccountSuspended
 from ccxt.base.errors import ArgumentsRequired
@@ -215,7 +215,7 @@ class poloniexfutures(Exchange, ImplicitAPI):
             },
         })
 
-    async def fetch_markets(self, params={}):
+    async def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for poloniexfutures
         :see: https://futures-docs.poloniex.com/#symbol-2
@@ -665,7 +665,7 @@ class poloniexfutures(Exchange, ImplicitAPI):
         #        },
         #    }
         #
-        trades = self.safe_value(response, 'data', [])
+        trades = self.safe_list(response, 'data', [])
         return self.parse_trades(trades, market, since, limit)
 
     async def fetch_time(self, params={}):
@@ -729,7 +729,7 @@ class poloniexfutures(Exchange, ImplicitAPI):
         #        ]
         #    }
         #
-        data = self.safe_value(response, 'data', [])
+        data = self.safe_list(response, 'data', [])
         return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
     def parse_balance(self, response) -> Balances:
@@ -780,7 +780,7 @@ class poloniexfutures(Exchange, ImplicitAPI):
         #
         return self.parse_balance(response)
 
-    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         Create an order on the exchange
         :see: https://futures-docs.poloniex.com/#place-an-order
@@ -970,7 +970,7 @@ class poloniexfutures(Exchange, ImplicitAPI):
         #        ]
         #    }
         #
-        data = self.safe_value(response, 'data')
+        data = self.safe_list(response, 'data')
         return self.parse_positions(data, symbols)
 
     def parse_position(self, position, market: Market = None):
@@ -1321,7 +1321,7 @@ class poloniexfutures(Exchange, ImplicitAPI):
         """
         return await self.fetch_orders_by_status('closed', symbol, since, limit, params)
 
-    async def fetch_order(self, id: str = None, symbol: Str = None, params={}):
+    async def fetch_order(self, id: Str = None, symbol: Str = None, params={}):
         """
         fetches information on an order made by the user
         :see: https://futures-docs.poloniex.com/#get-details-of-a-single-order
@@ -1389,7 +1389,7 @@ class poloniexfutures(Exchange, ImplicitAPI):
         #    }
         #
         market = self.market(symbol) if (symbol is not None) else None
-        responseData = self.safe_value(response, 'data')
+        responseData = self.safe_dict(response, 'data')
         return self.parse_order(responseData, market)
 
     def parse_order(self, order, market: Market = None) -> Order:
@@ -1616,10 +1616,10 @@ class poloniexfutures(Exchange, ImplicitAPI):
         #    }
         #
         data = self.safe_value(response, 'data', {})
-        trades = self.safe_value(data, 'items', {})
+        trades = self.safe_list(data, 'items', [])
         return self.parse_trades(trades, market, since, limit)
 
-    async def set_margin_mode(self, marginMode: str, symbol: str = None, params={}):
+    async def set_margin_mode(self, marginMode: str, symbol: Str = None, params={}):
         """
         set margin mode to 'cross' or 'isolated'
         :see: https://futures-docs.poloniex.com/#change-margin-mode

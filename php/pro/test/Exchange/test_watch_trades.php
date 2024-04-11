@@ -28,12 +28,14 @@ function test_watch_trades($exchange, $skipped_properties, $symbol) {
                 $now = $exchange->milliseconds();
                 continue;
             }
-            assert(gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)), $exchange->id . ' ' . $method . ' ' . $symbol . ' must return an array. ' . $exchange->json($response));
+            assert_non_emtpy_array($exchange, $skipped_properties, $method, $response);
             $now = $exchange->milliseconds();
             for ($i = 0; $i < count($response); $i++) {
                 test_trade($exchange, $skipped_properties, $method, $response[$i], $symbol, $now);
             }
-            assert_timestamp_order($exchange, $method, $symbol, $response);
+            if (!(is_array($skipped_properties) && array_key_exists('timestamp', $skipped_properties))) {
+                assert_timestamp_order($exchange, $method, $symbol, $response);
+            }
         }
     }) ();
 }

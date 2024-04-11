@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.bitvavo import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Currencies, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -322,7 +322,7 @@ class bitvavo(Exchange, ImplicitAPI):
         #
         return self.safe_integer(response, 'time')
 
-    async def fetch_markets(self, params={}):
+    async def fetch_markets(self, params={}) -> List[Market]:
         """
         :see: https://docs.bitvavo.com/#tag/General/paths/~1markets/get
         retrieves data on all markets for bitvavo
@@ -414,7 +414,7 @@ class bitvavo(Exchange, ImplicitAPI):
             }))
         return result
 
-    async def fetch_currencies(self, params={}):
+    async def fetch_currencies(self, params={}) -> Currencies:
         """
         :see: https://docs.bitvavo.com/#tag/General/paths/~1assets/get
         fetches all available currencies on an exchange
@@ -575,7 +575,7 @@ class bitvavo(Exchange, ImplicitAPI):
         #         "market":"ETH-BTC",
         #         "open":"0.022578",
         #         "high":"0.023019",
-        #         "low":"0.022573",
+        #         "low":"0.022572",
         #         "last":"0.023019",
         #         "volume":"25.16366324",
         #         "volumeQuote":"0.57333305",
@@ -805,7 +805,7 @@ class bitvavo(Exchange, ImplicitAPI):
             'fee': fee,
         }, market)
 
-    async def fetch_trading_fees(self, params={}):
+    async def fetch_trading_fees(self, params={}) -> TradingFees:
         """
         :see: https://docs.bitvavo.com/#tag/Account/paths/~1account/get
         fetch the trading fees for multiple markets
@@ -923,6 +923,8 @@ class bitvavo(Exchange, ImplicitAPI):
             request['start'] = since
             if limit is None:
                 limit = 1440
+            else:
+                limit = min(limit, 1440)
             request['end'] = self.sum(since, limit * duration * 1000)
         request, params = self.handle_until_option('end', request, params)
         if limit is not None:
@@ -1025,7 +1027,7 @@ class bitvavo(Exchange, ImplicitAPI):
             'info': response,
         }
 
-    def create_order_request(self, symbol: Str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
+    def create_order_request(self, symbol: Str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         market = self.market(symbol)
         request = {
             'market': market['id'],
@@ -1078,7 +1080,7 @@ class bitvavo(Exchange, ImplicitAPI):
             request['postOnly'] = True
         return self.extend(request, params)
 
-    async def create_order(self, symbol: Str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
+    async def create_order(self, symbol: Str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create a trade order
         :see: https://docs.bitvavo.com/#tag/Orders/paths/~1order/post
@@ -1170,7 +1172,7 @@ class bitvavo(Exchange, ImplicitAPI):
         request['market'] = market['id']
         return request
 
-    async def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: float = None, price: float = None, params={}):
+    async def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}):
         """
         edit a trade order
         :see: https://docs.bitvavo.com/#tag/Orders/paths/~1order/put

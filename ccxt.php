@@ -41,14 +41,16 @@ define('PATH_TO_CCXT_ASYNC', PATH_TO_CCXT . 'async' . DIRECTORY_SEPARATOR);
 spl_autoload_register(function ($class) {
     // used to include static dependencies
     $PATH = PATH_TO_CCXT . 'static_dependencies/';
-    if (strpos($class, 'kornrunner') !== false) {
+    if (strpos($class, 'kornrunner') !== false || strpos($class, 'Web3') !== false) {
         $version = phpversion();
         if (intval(explode('.', $version)[0]) < 7) {
             throw new \RuntimeException($class . " requires php7 or greater, your version: " . $version);
         }
     }
-    $class_name = str_replace('kornrunner\\Solidity', 'kornrunner/solidity/src/Solidity', $class);
-    $class_name = str_replace('kornrunner\\Keccak', 'kornrunner/keccak/src/Keccak', $class_name);
+    $class_name = str_replace('kornrunner\\Keccak', 'kornrunner/keccak/src/Keccak', $class);
+    $class_name = str_replace('Web3\\', 'web3.php/src/', $class_name);
+    $class_name = str_replace('phpseclib\\Math\\BigInteger', 'phpseclib/Math/BigInteger', $class_name);
+    $class_name = str_replace('Sop\\', 'Sop/', $class_name);
     $class_name = str_replace('Elliptic\\', 'elliptic-php/lib/', $class_name);
     $class_name = str_replace('Ratchet\\Client', 'ratchet\\pawl\\src', $class_name);
     $class_name = str_replace('Ratchet\\RFC6455', 'ratchet\\rfc6455\\src', $class_name);

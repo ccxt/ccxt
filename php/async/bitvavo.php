@@ -313,7 +313,7 @@ class bitvavo extends Exchange {
         }) ();
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * @see https://docs.bitvavo.com/#tag/General/paths/~1markets/get
@@ -410,7 +410,7 @@ class bitvavo extends Exchange {
         return $result;
     }
 
-    public function fetch_currencies($params = array ()) {
+    public function fetch_currencies($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * @see https://docs.bitvavo.com/#tag/General/paths/~1assets/get
@@ -578,7 +578,7 @@ class bitvavo extends Exchange {
             //         "market":"ETH-BTC",
             //         "open":"0.022578",
             //         "high":"0.023019",
-            //         "low":"0.022573",
+            //         "low":"0.022572",
             //         "last":"0.023019",
             //         "volume":"25.16366324",
             //         "volumeQuote":"0.57333305",
@@ -823,7 +823,7 @@ class bitvavo extends Exchange {
         ), $market);
     }
 
-    public function fetch_trading_fees($params = array ()) {
+    public function fetch_trading_fees($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * @see https://docs.bitvavo.com/#tag/Account/paths/~1account/get
@@ -951,6 +951,8 @@ class bitvavo extends Exchange {
             $request['start'] = $since;
             if ($limit === null) {
                 $limit = 1440;
+            } else {
+                $limit = min ($limit, 1440);
             }
             $request['end'] = $this->sum($since, $limit * $duration * 1000);
         }

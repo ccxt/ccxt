@@ -220,7 +220,7 @@ class blockchaincom extends Exchange {
         ));
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): array {
         /**
          * retrieves data on all $markets for blockchaincom
          * @see https://api.blockchain.com/v3/#/unauthenticated/getSymbols
@@ -636,7 +636,7 @@ class blockchaincom extends Exchange {
         );
     }
 
-    public function fetch_trading_fees($params = array ()) {
+    public function fetch_trading_fees($params = array ()): array {
         /**
          * fetch the trading fees for multiple markets
          * @see https://api.blockchain.com/v3/#/trading/getFees

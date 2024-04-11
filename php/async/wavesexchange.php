@@ -502,7 +502,7 @@ class wavesexchange extends Exchange {
         }) ();
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * retrieves data on all markets for wavesexchange
@@ -902,7 +902,7 @@ class wavesexchange extends Exchange {
             //
             $data = $this->safe_value($response, 'data', array());
             $ticker = $this->safe_value($data, 0, array());
-            $dataTicker = $this->safe_value($ticker, 'data', array());
+            $dataTicker = $this->safe_dict($ticker, 'data', array());
             return $this->parse_ticker($dataTicker, $market);
         }) ();
     }
@@ -1405,7 +1405,7 @@ class wavesexchange extends Exchange {
                 'amountAsset' => $amountAsset,
                 'priceAsset' => $priceAsset,
             );
-            $sandboxMode = $this->safe_value($this->options, 'sandboxMode', false);
+            $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
             $chainId = ($sandboxMode) ? 84 : 87;
             $body = array(
                 'senderPublicKey' => $this->apiKey,
@@ -1486,11 +1486,11 @@ class wavesexchange extends Exchange {
             //
             if ($isMarketOrder) {
                 $response = Async\await($this->matcherPostMatcherOrderbookMarket ($body));
-                $value = $this->safe_value($response, 'message');
+                $value = $this->safe_dict($response, 'message');
                 return $this->parse_order($value, $market);
             } else {
                 $response = Async\await($this->matcherPostMatcherOrderbook ($body));
-                $value = $this->safe_value($response, 'message');
+                $value = $this->safe_dict($response, 'message');
                 return $this->parse_order($value, $market);
             }
         }) ();

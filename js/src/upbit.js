@@ -44,9 +44,9 @@ export default class upbit extends Exchange {
                 'fetchBalance': true,
                 'fetchCanceledOrders': true,
                 'fetchClosedOrders': true,
+                'fetchDeposit': true,
                 'fetchDepositAddress': true,
                 'fetchDepositAddresses': true,
-                'fetchDeposit': true,
                 'fetchDeposits': true,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
@@ -81,6 +81,7 @@ export default class upbit extends Exchange {
                 '1m': 'minutes',
                 '3m': 'minutes',
                 '5m': 'minutes',
+                '10m': 'minutes',
                 '15m': 'minutes',
                 '30m': 'minutes',
                 '1h': 'minutes',
@@ -110,6 +111,7 @@ export default class upbit extends Exchange {
                         'candles/minutes/1',
                         'candles/minutes/3',
                         'candles/minutes/5',
+                        'candles/minutes/10',
                         'candles/minutes/15',
                         'candles/minutes/30',
                         'candles/minutes/60',
@@ -619,7 +621,7 @@ export default class upbit extends Exchange {
         //                    "trade_time": "104543",
         //                "trade_date_kst": "20181122",
         //                "trade_time_kst": "194543",
-        //               "trade_timestamp":  1542883543097,
+        //               "trade_timestamp":  1542883543096,
         //                 "opening_price":  0.02976455,
         //                    "high_price":  0.02992577,
         //                     "low_price":  0.02934283,
@@ -1030,6 +1032,7 @@ export default class upbit extends Exchange {
          * @name upbit#createOrder
          * @description create a trade order
          * @see https://docs.upbit.com/reference/%EC%A3%BC%EB%AC%B8%ED%95%98%EA%B8%B0
+         * @see https://global-docs.upbit.com/reference/order
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
@@ -1037,6 +1040,7 @@ export default class upbit extends Exchange {
          * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {float} [params.cost] for market buy orders, the quote quantity that can be used as an alternative for the amount
+         * @param {string} [params.timeInForce] 'IOC' or 'FOK'
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
@@ -1092,6 +1096,13 @@ export default class upbit extends Exchange {
         const clientOrderId = this.safeString2(params, 'clientOrderId', 'identifier');
         if (clientOrderId !== undefined) {
             request['identifier'] = clientOrderId;
+        }
+        if (type !== 'market') {
+            const timeInForce = this.safeStringLower2(params, 'timeInForce', 'time_in_force');
+            params = this.omit(params, 'timeInForce');
+            if (timeInForce !== undefined) {
+                request['time_in_force'] = timeInForce;
+            }
         }
         params = this.omit(params, ['clientOrderId', 'identifier']);
         const response = await this.privatePostOrders(this.extend(request, params));
@@ -1876,7 +1887,7 @@ export default class upbit extends Exchange {
         }
         if (api === 'private') {
             this.checkRequiredCredentials();
-            const nonce = this.nonce();
+            const nonce = this.uuid();
             const request = {
                 'access_key': this.apiKey,
                 'nonce': nonce,

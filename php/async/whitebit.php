@@ -232,6 +232,7 @@ class whitebit extends Exchange {
                     'account' => 'spot',
                 ),
                 'accountsByType' => array(
+                    'funding' => 'main',
                     'main' => 'main',
                     'spot' => 'spot',
                     'margin' => 'collateral',
@@ -273,7 +274,7 @@ class whitebit extends Exchange {
         ));
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * retrieves data on all $markets for whitebit
@@ -397,7 +398,7 @@ class whitebit extends Exchange {
         );
     }
 
-    public function fetch_currencies($params = array ()) {
+    public function fetch_currencies($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches all available currencies on an exchange
@@ -665,7 +666,7 @@ class whitebit extends Exchange {
         return $depositWithdrawFees;
     }
 
-    public function fetch_trading_fees($params = array ()) {
+    public function fetch_trading_fees($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetch the trading fees for multiple markets
@@ -746,7 +747,7 @@ class whitebit extends Exchange {
             //         ),
             //     }
             //
-            $ticker = $this->safe_value($response, 'result', array());
+            $ticker = $this->safe_dict($response, 'result', array());
             return $this->parse_ticker($ticker, $market);
         }) ();
     }
@@ -1114,7 +1115,7 @@ class whitebit extends Exchange {
             //         ]
             //     }
             //
-            $result = $this->safe_value($response, 'result', array());
+            $result = $this->safe_list($response, 'result', array());
             return $this->parse_ohlcvs($result, $market, $timeframe, $since, $limit);
         }) ();
     }
@@ -1333,9 +1334,9 @@ class whitebit extends Exchange {
             } else {
                 $options = $this->safe_value($this->options, 'fetchBalance', array());
                 $defaultAccount = $this->safe_string($options, 'account');
-                $account = $this->safe_string($params, 'account', $defaultAccount);
-                $params = $this->omit($params, 'account');
-                if ($account === 'main') {
+                $account = $this->safe_string_2($params, 'account', 'type', $defaultAccount);
+                $params = $this->omit($params, array( 'account', 'type' ));
+                if ($account === 'main' || $account === 'funding') {
                     $response = Async\await($this->v4PrivatePostMainAccountBalance ($params));
                 } else {
                     $response = Async\await($this->v4PrivatePostTradeAccountBalance ($params));
@@ -1622,7 +1623,7 @@ class whitebit extends Exchange {
             //         "limit" => 100
             //     }
             //
-            $data = $this->safe_value($response, 'records', array());
+            $data = $this->safe_list($response, 'records', array());
             return $this->parse_trades($data, $market);
         }) ();
     }
@@ -1970,7 +1971,7 @@ class whitebit extends Exchange {
             //     }
             //
             $records = $this->safe_value($response, 'records', array());
-            $first = $this->safe_value($records, 0, array());
+            $first = $this->safe_dict($records, 0, array());
             return $this->parse_transaction($first, $currency);
         }) ();
     }
@@ -2038,7 +2039,7 @@ class whitebit extends Exchange {
             //         "total" => 300                                                                                             // total number of  transactions, use this for calculating ‘$limit’ and ‘offset'
             //     }
             //
-            $records = $this->safe_value($response, 'records', array());
+            $records = $this->safe_list($response, 'records', array());
             return $this->parse_transactions($records, $currency, $since, $limit);
         }) ();
     }

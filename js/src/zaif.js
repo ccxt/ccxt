@@ -628,7 +628,7 @@ export default class zaif extends Exchange {
         //         }
         //     }
         //
-        const returnData = this.safeValue(result, 'return');
+        const returnData = this.safeDict(result, 'return');
         return this.parseTransaction(returnData, currency);
     }
     parseTransaction(transaction, currency = undefined) {

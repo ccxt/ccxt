@@ -276,15 +276,15 @@ public partial class yobit : Exchange
 
     public override object parseBalance(object response)
     {
-        object balances = this.safeValue(response, "return", new Dictionary<string, object>() {});
+        object balances = this.safeDict(response, "return", new Dictionary<string, object>() {});
         object timestamp = this.safeInteger(balances, "server_time");
         object result = new Dictionary<string, object>() {
             { "info", response },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
         };
-        object free = this.safeValue(balances, "funds", new Dictionary<string, object>() {});
-        object total = this.safeValue(balances, "funds_incl_orders", new Dictionary<string, object>() {});
+        object free = this.safeDict(balances, "funds", new Dictionary<string, object>() {});
+        object total = this.safeDict(balances, "funds_incl_orders", new Dictionary<string, object>() {});
         object currencyIds = new List<object>(((IDictionary<string,object>)this.extend(free, total)).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(currencyIds)); postFixIncrement(ref i))
         {
@@ -369,7 +369,7 @@ public partial class yobit : Exchange
         //         },
         //     }
         //
-        object markets = this.safeValue(response, "pairs", new Dictionary<string, object>() {});
+        object markets = this.safeDict(response, "pairs", new Dictionary<string, object>() {});
         object keys = new List<object>(((IDictionary<string,object>)markets).Keys);
         object result = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
@@ -687,7 +687,7 @@ public partial class yobit : Exchange
                 { "currency", feeCurrencyCode },
             };
         }
-        object isYourOrder = this.safeValue(trade, "is_your_order");
+        object isYourOrder = this.safeString(trade, "is_your_order");
         if (isTrue(!isEqual(isYourOrder, null)))
         {
             if (isTrue(isEqual(fee, null)))
@@ -762,7 +762,7 @@ public partial class yobit : Exchange
                 return new List<object>() {};
             }
         }
-        object result = this.safeValue(response, getValue(market, "id"), new List<object>() {});
+        object result = this.safeList(response, getValue(market, "id"), new List<object>() {});
         return this.parseTrades(result, market, since, limit);
     }
 
@@ -798,13 +798,13 @@ public partial class yobit : Exchange
         //         },
         //     }
         //
-        object pairs = this.safeValue(response, "pairs", new Dictionary<string, object>() {});
+        object pairs = this.safeDict(response, "pairs", new Dictionary<string, object>() {});
         object marketIds = new List<object>(((IDictionary<string,object>)pairs).Keys);
         object result = new Dictionary<string, object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
         {
             object marketId = getValue(marketIds, i);
-            object pair = this.safeValue(pairs, marketId, new Dictionary<string, object>() {});
+            object pair = this.safeDict(pairs, marketId, new Dictionary<string, object>() {});
             object symbol = this.safeSymbol(marketId, null, "_");
             object takerString = this.safeString(pair, "fee_buyer");
             object makerString = this.safeString(pair, "fee_seller");
@@ -872,7 +872,7 @@ public partial class yobit : Exchange
         //           }
         //       }
         //
-        object result = this.safeValue(response, "return");
+        object result = this.safeDict(response, "return");
         return this.parseOrder(result, market);
     }
 
@@ -913,7 +913,7 @@ public partial class yobit : Exchange
         //          }
         //      }
         //
-        object result = this.safeValue(response, "return", new Dictionary<string, object>() {});
+        object result = this.safeDict(response, "return", new Dictionary<string, object>() {});
         return this.parseOrder(result);
     }
 
@@ -1052,7 +1052,7 @@ public partial class yobit : Exchange
         };
         object response = await this.privatePostOrderInfo(this.extend(request, parameters));
         id = ((object)id).ToString();
-        object orders = this.safeValue(response, "return", new Dictionary<string, object>() {});
+        object orders = this.safeDict(response, "return", new Dictionary<string, object>() {});
         //
         //      {
         //          "success":1,
@@ -1124,7 +1124,7 @@ public partial class yobit : Exchange
         //          }
         //      }
         //
-        object result = this.safeValue(response, "return", new Dictionary<string, object>() {});
+        object result = this.safeDict(response, "return", new Dictionary<string, object>() {});
         return this.parseOrders(result, market, since, limit);
     }
 
@@ -1177,7 +1177,7 @@ public partial class yobit : Exchange
         //          }
         //      }
         //
-        object trades = this.safeValue(response, "return", new Dictionary<string, object>() {});
+        object trades = this.safeDict(response, "return", new Dictionary<string, object>() {});
         object ids = new List<object>(((IDictionary<string,object>)trades).Keys);
         object result = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(ids)); postFixIncrement(ref i))
@@ -1232,7 +1232,7 @@ public partial class yobit : Exchange
         await this.loadMarkets();
         object currency = this.currency(code);
         object currencyId = getValue(currency, "id");
-        object networks = this.safeValue(this.options, "networks", new Dictionary<string, object>() {});
+        object networks = this.safeDict(this.options, "networks", new Dictionary<string, object>() {});
         object network = this.safeStringUpper(parameters, "network"); // this line allows the user to specify either ERC20 or ETH
         network = this.safeString(networks, network, network); // handle ERC20>ETH alias
         if (isTrue(!isEqual(network, null)))
@@ -1426,7 +1426,7 @@ public partial class yobit : Exchange
             //
             // To cover points 1, 2, 3 and 4 combined this handler should work like this:
             //
-            object success = this.safeBool(response, "success", false);
+            object success = this.safeValue(response, "success"); // don't replace with safeBool here
             if (isTrue((success is string)))
             {
                 if (isTrue(isTrue((isEqual(success, "true"))) || isTrue((isEqual(success, "1")))))

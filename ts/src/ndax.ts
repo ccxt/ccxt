@@ -6,8 +6,8 @@ import { ExchangeError, AuthenticationError, InsufficientFunds, BadSymbol, Order
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import totp from './base/functions/totp.js';
-import type { IndexType, Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Transaction } from './base/types.js';
+import { totp } from './base/functions/totp.js';
+import type { IndexType, Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Transaction, Num, Account, Currencies } from './base/types.js';
 // ---------------------------------------------------------------------------
 
 /**
@@ -282,6 +282,7 @@ export default class ndax extends Exchange {
          * @method
          * @name ndax#signIn
          * @description sign in, must be called prior to using other authenticated methods
+         * @see https://apidoc.ndax.io/#authenticate2fa
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns response from exchange
          */
@@ -331,11 +332,12 @@ export default class ndax extends Exchange {
         return response;
     }
 
-    async fetchCurrencies (params = {}) {
+    async fetchCurrencies (params = {}): Promise<Currencies> {
         /**
          * @method
          * @name ndax#fetchCurrencies
          * @description fetches all available currencies on an exchange
+         * @see https://apidoc.ndax.io/#getproduct
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an associative dictionary of currencies
          */
@@ -401,11 +403,12 @@ export default class ndax extends Exchange {
         return result;
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name ndax#fetchMarkets
          * @description retrieves data on all markets for ndax
+         * @see https://apidoc.ndax.io/#getinstruments
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} an array of objects representing market data
          */
@@ -566,6 +569,7 @@ export default class ndax extends Exchange {
          * @method
          * @name ndax#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://apidoc.ndax.io/#getl2snapshot
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -678,6 +682,7 @@ export default class ndax extends Exchange {
          * @method
          * @name ndax#fetchTicker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @see https://apidoc.ndax.io/#getlevel1
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -752,6 +757,7 @@ export default class ndax extends Exchange {
          * @method
          * @name ndax#fetchOHLCV
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @see https://apidoc.ndax.io/#gettickerhistory
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -993,11 +999,12 @@ export default class ndax extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    async fetchAccounts (params = {}) {
+    async fetchAccounts (params = {}): Promise<Account[]> {
         /**
          * @method
          * @name ndax#fetchAccounts
          * @description fetch all the accounts associated with a profile
+         * @see https://apidoc.ndax.io/#getuseraccounts
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type
          */
@@ -1053,6 +1060,7 @@ export default class ndax extends Exchange {
          * @method
          * @name ndax#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @see https://apidoc.ndax.io/#getaccountpositions
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
@@ -1181,6 +1189,7 @@ export default class ndax extends Exchange {
          * @method
          * @name ndax#fetchLedger
          * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
+         * @see https://apidoc.ndax.io/#getaccounttransactions
          * @param {string} code unified currency code, default is undefined
          * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
          * @param {int} [limit] max number of ledger entrys to return, default is undefined
@@ -1333,11 +1342,12 @@ export default class ndax extends Exchange {
         }, market);
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         /**
          * @method
          * @name ndax#createOrder
          * @description create a trade order
+         * @see https://apidoc.ndax.io/#sendorder
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
@@ -1404,7 +1414,7 @@ export default class ndax extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async editOrder (id: string, symbol: string, type:OrderType, side: OrderSide, amount: number = undefined, price: number = undefined, params = {}) {
+    async editOrder (id: string, symbol: string, type:OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) {
         const omsId = this.safeInteger (this.options, 'omsId', 1);
         await this.loadMarkets ();
         await this.loadAccounts ();
@@ -1457,6 +1467,7 @@ export default class ndax extends Exchange {
          * @method
          * @name ndax#fetchMyTrades
          * @description fetch all trades made by the user
+         * @see https://apidoc.ndax.io/#gettradeshistory
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trades structures to retrieve
@@ -1545,6 +1556,7 @@ export default class ndax extends Exchange {
          * @method
          * @name ndax#cancelAllOrders
          * @description cancel all open orders
+         * @see https://apidoc.ndax.io/#cancelallorders
          * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -1580,6 +1592,7 @@ export default class ndax extends Exchange {
          * @method
          * @name ndax#cancelOrder
          * @description cancels an open order
+         * @see https://apidoc.ndax.io/#cancelorder
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1619,6 +1632,7 @@ export default class ndax extends Exchange {
          * @method
          * @name ndax#fetchOpenOrders
          * @description fetch all unfilled currently open orders
+         * @see https://apidoc.ndax.io/#getopenorders
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch open orders for
          * @param {int} [limit] the maximum number of  open orders structures to retrieve
@@ -1698,6 +1712,7 @@ export default class ndax extends Exchange {
          * @method
          * @name ndax#fetchOrders
          * @description fetches information on multiple orders made by the user
+         * @see https://apidoc.ndax.io/#getorderhistory
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve
@@ -1793,6 +1808,7 @@ export default class ndax extends Exchange {
          * @method
          * @name ndax#fetchOrder
          * @description fetches information on an order made by the user
+         * @see https://apidoc.ndax.io/#getorderstatus
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -1869,6 +1885,7 @@ export default class ndax extends Exchange {
          * @method
          * @name ndax#fetchOrderTrades
          * @description fetch all the trades made from a single order
+         * @see https://apidoc.ndax.io/#getorderhistorybyorderid
          * @param {string} id order id
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch trades for
@@ -1943,7 +1960,7 @@ export default class ndax extends Exchange {
         //     ]
         //
         const grouped = this.groupBy (response, 'ChangeReason');
-        const trades = this.safeValue (grouped, 'Trade', []);
+        const trades = this.safeList (grouped, 'Trade', []);
         return this.parseTrades (trades, market, since, limit);
     }
 
@@ -2102,6 +2119,7 @@ export default class ndax extends Exchange {
          * @method
          * @name ndax#fetchWithdrawals
          * @description fetch all withdrawals made from an account
+         * @see https://apidoc.ndax.io/#getwithdraws
          * @param {string} code unified currency code
          * @param {int} [since] the earliest time in ms to fetch withdrawals for
          * @param {int} [limit] the maximum number of withdrawals structures to retrieve

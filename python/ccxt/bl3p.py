@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.bl3p import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Int, Market, OrderBook, OrderSide, OrderType, IndexType, Str, Ticker, Trade
+from ccxt.base.types import Balances, Currency, IndexType, Int, Market, Num, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, TradingFees
 from typing import List
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
@@ -34,6 +34,7 @@ class bl3p(Exchange, ImplicitAPI):
                 'cancelOrder': True,
                 'closeAllPositions': False,
                 'closePosition': False,
+                'createDepositAddress': True,
                 'createOrder': True,
                 'createReduceOnlyOrder': False,
                 'createStopLimitOrder': False,
@@ -44,6 +45,9 @@ class bl3p(Exchange, ImplicitAPI):
                 'fetchBorrowRateHistory': False,
                 'fetchCrossBorrowRate': False,
                 'fetchCrossBorrowRates': False,
+                'fetchDepositAddress': False,
+                'fetchDepositAddresses': False,
+                'fetchDepositAddressesByNetwork': False,
                 'fetchFundingHistory': False,
                 'fetchFundingRate': False,
                 'fetchFundingRateHistory': False,
@@ -168,7 +172,7 @@ class bl3p(Exchange, ImplicitAPI):
             'market': market['id'],
         }
         response = self.publicGetMarketOrderbook(self.extend(request, params))
-        orderbook = self.safe_value(response, 'data')
+        orderbook = self.safe_dict(response, 'data')
         return self.parse_order_book(orderbook, market['symbol'], None, 'bids', 'asks', 'price_int', 'amount_int')
 
     def parse_ticker(self, ticker, market: Market = None) -> Ticker:
@@ -307,7 +311,7 @@ class bl3p(Exchange, ImplicitAPI):
         result = self.parse_trades(response['data']['trades'], market, since, limit)
         return result
 
-    def fetch_trading_fees(self, params={}):
+    def fetch_trading_fees(self, params={}) -> TradingFees:
         """
         fetch the trading fees for multiple markets
         :see: https://github.com/BitonicNL/bl3p-api/blob/master/docs/authenticated_api/http.md#35---get-account-info--balance
@@ -360,7 +364,7 @@ class bl3p(Exchange, ImplicitAPI):
             }
         return result
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create a trade order
         :see: https://github.com/BitonicNL/bl3p-api/blob/master/examples/nodejs/example.md#21---create-an-order
@@ -407,6 +411,47 @@ class bl3p(Exchange, ImplicitAPI):
             'order_id': id,
         }
         return self.privatePostMarketMoneyOrderCancel(self.extend(request, params))
+
+    def create_deposit_address(self, code: str, params={}):
+        """
+        create a currency deposit address
+        :see: https://github.com/BitonicNL/bl3p-api/blob/master/docs/authenticated_api/http.md#32---create-a-new-deposit-address
+        :param str code: unified currency code of the currency for the deposit address
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
+        """
+        self.load_markets()
+        currency = self.currency(code)
+        request = {
+            'currency': currency['id'],
+        }
+        response = self.privatePostGENMKTMoneyNewDepositAddress(self.extend(request, params))
+        #
+        #    {
+        #        "result": "success",
+        #        "data": {
+        #            "address": "36Udu9zi1uYicpXcJpoKfv3bewZeok5tpk"
+        #        }
+        #    }
+        #
+        data = self.safe_dict(response, 'data')
+        return self.parse_deposit_address(data, currency)
+
+    def parse_deposit_address(self, depositAddress, currency: Currency = None):
+        #
+        #    {
+        #        "address": "36Udu9zi1uYicpXcJpoKfv3bewZeok5tpk"
+        #    }
+        #
+        address = self.safe_string(depositAddress, 'address')
+        self.check_address(address)
+        return {
+            'info': depositAddress,
+            'currency': self.safe_string(currency, 'code'),
+            'address': address,
+            'tag': None,
+            'network': None,
+        }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         request = self.implode_params(path, params)

@@ -18,6 +18,12 @@ public partial class coinbase
     /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.method</term>
+    /// <description>
+    /// string : 'v2PublicGetTime' or 'v3PublicGetBrokerageTime' default is 'v2PublicGetTime'
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>int</term> the current integer timestamp in milliseconds from the exchange server.</returns>
@@ -48,20 +54,20 @@ public partial class coinbase
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type.</returns>
-    public async Task<Dictionary<string, object>> FetchAccounts(Dictionary<string, object> parameters = null)
+    public async Task<List<Account>> FetchAccounts(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchAccounts(parameters);
-        return ((Dictionary<string, object>)res);
+        return ((IList<object>)res).Select(item => new Account(item)).ToList<Account>();
     }
-    public async Task<Dictionary<string, object>> FetchAccountsV2(Dictionary<string, object> parameters = null)
+    public async Task<List<Account>> FetchAccountsV2(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchAccountsV2(parameters);
-        return ((Dictionary<string, object>)res);
+        return ((IList<object>)res).Select(item => new Account(item)).ToList<Account>();
     }
-    public async Task<Dictionary<string, object>> FetchAccountsV3(Dictionary<string, object> parameters = null)
+    public async Task<List<Account>> FetchAccountsV3(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchAccountsV3(parameters);
-        return ((Dictionary<string, object>)res);
+        return ((IList<object>)res).Select(item => new Account(item)).ToList<Account>();
     }
     /// <summary>
     /// create a currency deposit address
@@ -243,10 +249,10 @@ public partial class coinbase
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> an array of objects representing market data.</returns>
-    public async Task<Dictionary<string, object>> FetchMarkets(Dictionary<string, object> parameters = null)
+    public async Task<List<MarketInterface>> FetchMarkets(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchMarkets(parameters);
-        return ((Dictionary<string, object>)res);
+        return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
     }
     public async Task<List<Dictionary<string, object>>> FetchMarketsV2(Dictionary<string, object> parameters = null)
     {
@@ -382,6 +388,12 @@ public partial class coinbase
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.paginate</term>
+    /// <description>
+    /// boolean : default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
     /// </description>
     /// </item>
     /// </list>
@@ -976,5 +988,37 @@ public partial class coinbase
     {
         var res = await this.fetchDepositAddressesByNetwork(code, parameters);
         return ((Dictionary<string, object>)res);
+    }
+    /// <summary>
+    /// fetch information on a deposit, fiat only, for crypto transactions use fetchLedger
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-deposits#show-deposit"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>code</term>
+    /// <description>
+    /// string : unified currency code
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.accountId</term>
+    /// <description>
+    /// string : the id of the account that the funds were deposited into
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}.</returns>
+    public async Task<Transaction> FetchDeposit(string id, string code = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchDeposit(id, code, parameters);
+        return new Transaction(res);
     }
 }

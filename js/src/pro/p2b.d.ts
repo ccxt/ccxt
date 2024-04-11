@@ -20,4 +20,6 @@ export default class p2b extends p2bRest {
         id: number;
     };
     handlePong(client: Client, message: any): any;
+    onError(client: Client, error: any): void;
+    onClose(client: Client, error: any): void;
 }

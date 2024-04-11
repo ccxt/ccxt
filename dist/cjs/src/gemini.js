@@ -27,7 +27,7 @@ class gemini extends gemini$1 {
                 'CORS': undefined,
                 'spot': true,
                 'margin': false,
-                'swap': false,
+                'swap': true,
                 'future': false,
                 'option': false,
                 'addMargin': false,
@@ -107,6 +107,7 @@ class gemini extends gemini$1 {
                     // https://github.com/ccxt/ccxt/issues/7874
                     // https://github.com/ccxt/ccxt/issues/7894
                     'web': 'https://docs.gemini.com',
+                    'webExchange': 'https://exchange.gemini.com',
                 },
                 'fees': [
                     'https://gemini.com/api-fee-schedule',
@@ -248,26 +249,27 @@ class gemini extends gemini$1 {
                 },
                 'broad': {
                     'The Gemini Exchange is currently undergoing maintenance.': errors.OnMaintenance,
-                    'We are investigating technical issues with the Gemini Exchange.': errors.ExchangeNotAvailable, // We are investigating technical issues with the Gemini Exchange. Please check https://status.gemini.com/ for more information.
+                    'We are investigating technical issues with the Gemini Exchange.': errors.ExchangeNotAvailable,
+                    'Internal Server Error': errors.ExchangeNotAvailable,
                 },
             },
             'options': {
-                'fetchMarketsMethod': 'fetch_markets_from_web',
+                'fetchMarketsMethod': 'fetch_markets_from_api',
                 'fetchMarketFromWebRetries': 10,
                 'fetchMarketsFromAPI': {
                     'fetchDetailsForAllSymbols': false,
-                    'fetchDetailsForMarketIds': [],
+                    'quoteCurrencies': ['USDT', 'GUSD', 'USD', 'DAI', 'EUR', 'GBP', 'SGD', 'BTC', 'ETH', 'LTC', 'BCH'],
                 },
                 'fetchMarkets': {
                     'webApiEnable': true,
                     'webApiRetries': 10,
                 },
+                'fetchUsdtMarkets': ['btcusdt', 'ethusdt'],
                 'fetchCurrencies': {
                     'webApiEnable': true,
                     'webApiRetries': 5,
                     'webApiMuteFailure': true,
                 },
-                'fetchUsdtMarkets': ['btcusdt', 'ethusdt'],
                 'fetchTickerMethod': 'fetchTickerV1',
                 'networks': {
                     'BTC': 'bitcoin',
@@ -312,10 +314,7 @@ class gemini extends gemini$1 {
         }
         //
         //    {
-        //        "tradingPairs": [
-        //            [ "BTCAUD", 2, 8, "0.00001", 10, true ],
-        //            ...
-        //        ],
+        //        "tradingPairs": [ [ 'BTCUSD', 2, 8, '0.00001', 10, true ],  ... ],
         //        "currencies": [
         //            [ "ORCA", "Orca", 204, 6, 0, 6, 8, false, null, "solana" ], // as confirmed, precisions seem to be the 5th index
         //            [ "ATOM", "Cosmos", 44, 6, 0, 6, 8, false, null, "cosmos" ],
@@ -334,6 +333,7 @@ class gemini extends gemini$1 {
         //    }
         //
         const result = {};
+        this.options['tradingPairs'] = this.safeList(data, 'tradingPairs');
         const currenciesArray = this.safeValue(data, 'currencies', []);
         for (let i = 0; i < currenciesArray.length; i++) {
             const currency = currenciesArray[i];
@@ -406,9 +406,11 @@ class gemini extends gemini$1 {
          */
         const method = this.safeValue(this.options, 'fetchMarketsMethod', 'fetch_markets_from_api');
         if (method === 'fetch_markets_from_web') {
-            const usdMarkets = await this.fetchMarketsFromWeb(params); // get usd markets
-            const usdtMarkets = await this.fetchUSDTMarkets(params); // get usdt markets
-            return this.arrayConcat(usdMarkets, usdtMarkets);
+            const promises = [];
+            promises.push(this.fetchMarketsFromWeb(params)); // get usd markets
+            promises.push(this.fetchUSDTMarkets(params)); // get usdt markets
+            const promisesResult = await Promise.all(promises);
+            return this.arrayConcat(promisesResult[0], promisesResult[1]);
         }
         return await this.fetchMarketsFromAPI(params);
     }
@@ -441,7 +443,8 @@ class gemini extends gemini$1 {
             //         '<td>0.01 USD', // quote currency price increment
             //         '</tr>'
             //     ]
-            const marketId = cells[0].replace('<td>', '');
+            let marketId = cells[0].replace('<td>', '');
+            marketId = marketId.replace('*', '');
             // const base = this.safeCurrencyCode (baseId);
             const minAmountString = cells[1].replace('<td>', '');
             const minAmountParts = minAmountString.split(' ');
@@ -516,6 +519,9 @@ class gemini extends gemini$1 {
             'post_only': true,
             'limit_only': true,
         };
+        if (status === undefined) {
+            return true; // as defaulted below
+        }
         return this.safeBool(statuses, status, true);
     }
     async fetchUSDTMarkets(params = {}) {
@@ -538,7 +544,7 @@ class gemini extends gemini$1 {
         return result;
     }
     async fetchMarketsFromAPI(params = {}) {
-        const response = await this.publicGetV1Symbols(params);
+        const marketIdsRaw = await this.publicGetV1Symbols(params);
         //
         //     [
         //         "btcusd",
@@ -546,93 +552,185 @@ class gemini extends gemini$1 {
         //         ...
         //     ]
         //
-        const result = {};
-        for (let i = 0; i < response.length; i++) {
-            const marketId = response[i];
-            const market = {
-                'symbol': marketId,
-            };
-            result[marketId] = this.parseMarket(market);
+        const result = [];
+        const options = this.safeDict(this.options, 'fetchMarketsFromAPI', {});
+        const bugSymbol = 'efilfil'; // we skip this inexistent test symbol, which bugs other functions
+        const marketIds = [];
+        for (let i = 0; i < marketIdsRaw.length; i++) {
+            if (marketIdsRaw[i] !== bugSymbol) {
+                marketIds.push(marketIdsRaw[i]);
+            }
         }
-        const options = this.safeValue(this.options, 'fetchMarketsFromAPI', {});
-        const fetchDetailsForAllSymbols = this.safeBool(options, 'fetchDetailsForAllSymbols', false);
-        const fetchDetailsForMarketIds = this.safeValue(options, 'fetchDetailsForMarketIds', []);
-        let promises = [];
-        let marketIds = [];
-        if (fetchDetailsForAllSymbols) {
-            marketIds = response;
+        if (this.safeBool(options, 'fetchDetailsForAllSymbols', false)) {
+            const promises = [];
+            for (let i = 0; i < marketIds.length; i++) {
+                const marketId = marketIds[i];
+                const request = {
+                    'symbol': marketId,
+                };
+                promises.push(this.publicGetV1SymbolsDetailsSymbol(this.extend(request, params)));
+                //
+                //     {
+                //         "symbol": "BTCUSD",
+                //         "base_currency": "BTC",
+                //         "quote_currency": "USD",
+                //         "tick_size": 1E-8,
+                //         "quote_increment": 0.01,
+                //         "min_order_size": "0.00001",
+                //         "status": "open",
+                //         "wrap_enabled": false
+                //     }
+                //
+            }
+            const responses = await Promise.all(promises);
+            for (let i = 0; i < responses.length; i++) {
+                result.push(this.parseMarket(responses[i]));
+            }
         }
         else {
-            marketIds = fetchDetailsForMarketIds;
+            // use trading-pairs info, if it was fetched
+            const tradingPairs = this.safeList(this.options, 'tradingPairs');
+            if (tradingPairs !== undefined) {
+                const indexedTradingPairs = this.indexBy(tradingPairs, 0);
+                for (let i = 0; i < marketIds.length; i++) {
+                    const marketId = marketIds[i];
+                    const tradingPair = this.safeList(indexedTradingPairs, marketId.toUpperCase());
+                    if (tradingPair !== undefined) {
+                        result.push(this.parseMarket(tradingPair));
+                    }
+                }
+            }
+            else {
+                for (let i = 0; i < marketIds.length; i++) {
+                    result.push(this.parseMarket(marketIds[i]));
+                }
+            }
         }
-        for (let i = 0; i < marketIds.length; i++) {
-            const marketId = marketIds[i];
-            const request = {
-                'symbol': marketId,
-            };
-            promises.push(this.publicGetV1SymbolsDetailsSymbol(this.extend(request, params)));
-            //
-            //     {
-            //         "symbol": "BTCUSD",
-            //         "base_currency": "BTC",
-            //         "quote_currency": "USD",
-            //         "tick_size": 1E-8,
-            //         "quote_increment": 0.01,
-            //         "min_order_size": "0.00001",
-            //         "status": "open",
-            //         "wrap_enabled": false
-            //     }
-            //
-        }
-        promises = await Promise.all(promises);
-        for (let i = 0; i < promises.length; i++) {
-            const responseInner = promises[i];
-            const marketId = this.safeStringLower(responseInner, 'symbol');
-            result[marketId] = this.parseMarket(responseInner);
-        }
-        return this.toArray(result);
+        return result;
     }
     parseMarket(response) {
-        const marketId = this.safeStringLower(response, 'symbol');
-        let baseId = this.safeString(response, 'base_currency');
-        let quoteId = this.safeString(response, 'quote_currency');
-        if (baseId === undefined) {
-            const idLength = marketId.length - 0;
-            const isUSDT = marketId.indexOf('usdt') >= 0;
-            const quoteSize = isUSDT ? 4 : 3;
-            baseId = marketId.slice(0, idLength - quoteSize); // Not true for all markets
-            quoteId = marketId.slice(idLength - quoteSize, idLength);
+        //
+        // response might be:
+        //
+        //     btcusd
+        //
+        // or
+        //
+        //     [
+        //         'BTCUSD',   // symbol
+        //         2,          // priceTickDecimalPlaces
+        //         8,          // quantityTickDecimalPlaces
+        //         '0.00001',  // quantityMinimum
+        //         10,         // quantityRoundDecimalPlaces
+        //         true        // minimumsAreInclusive
+        //     ],
+        //
+        // or
+        //
+        //     {
+        //         "symbol": "BTCUSD", // perpetuals have 'PERP' suffix, i.e. DOGEUSDPERP
+        //         "base_currency": "BTC",
+        //         "quote_currency": "USD",
+        //         "tick_size": 1E-8,
+        //         "quote_increment": 0.01,
+        //         "min_order_size": "0.00001",
+        //         "status": "open",
+        //         "wrap_enabled": false
+        //         "product_type": "swap", // only in perps
+        //         "contract_type": "linear", // only in perps
+        //         "contract_price_currency": "GUSD" // only in perps
+        //     }
+        //
+        let marketId = undefined;
+        let baseId = undefined;
+        let quoteId = undefined;
+        let settleId = undefined;
+        let tickSize = undefined;
+        let amountPrecision = undefined;
+        let minSize = undefined;
+        let status = undefined;
+        let swap = false;
+        let contractSize = undefined;
+        let linear = undefined;
+        let inverse = undefined;
+        const isString = (typeof response === 'string');
+        const isArray = (Array.isArray(response));
+        if (!isString && !isArray) {
+            marketId = this.safeStringLower(response, 'symbol');
+            amountPrecision = this.safeNumber(response, 'tick_size'); // right, exchange has an imperfect naming and this turns out to be an amount-precision
+            tickSize = this.safeNumber(response, 'quote_increment'); // this is tick-size actually
+            minSize = this.safeNumber(response, 'min_order_size');
+            status = this.parseMarketActive(this.safeString(response, 'status'));
+            baseId = this.safeString(response, 'base_currency');
+            quoteId = this.safeString(response, 'quote_currency');
+            settleId = this.safeString(response, 'contract_price_currency');
+        }
+        else {
+            // if no detailed API was called, then parse either string or array
+            if (isString) {
+                marketId = response;
+            }
+            else {
+                marketId = this.safeStringLower(response, 0);
+                tickSize = this.parseNumber(this.parsePrecision(this.safeString(response, 1))); // priceTickDecimalPlaces
+                amountPrecision = this.parseNumber(this.parsePrecision(this.safeString(response, 2))); // quantityTickDecimalPlaces
+                minSize = this.safeNumber(response, 3); // quantityMinimum
+            }
+            const marketIdUpper = marketId.toUpperCase();
+            const isPerp = (marketIdUpper.indexOf('PERP') >= 0);
+            const marketIdWithoutPerp = marketIdUpper.replace('PERP', '');
+            const quoteQurrencies = this.handleOption('fetchMarketsFromAPI', 'quoteCurrencies', []);
+            for (let i = 0; i < quoteQurrencies.length; i++) {
+                const quoteCurrency = quoteQurrencies[i];
+                if (marketIdWithoutPerp.endsWith(quoteCurrency)) {
+                    baseId = marketIdWithoutPerp.replace(quoteCurrency, '');
+                    quoteId = quoteCurrency;
+                    if (isPerp) {
+                        settleId = quoteCurrency; // always same
+                    }
+                    break;
+                }
+            }
         }
         const base = this.safeCurrencyCode(baseId);
         const quote = this.safeCurrencyCode(quoteId);
-        const status = this.safeString(response, 'status');
+        const settle = this.safeCurrencyCode(settleId);
+        let symbol = base + '/' + quote;
+        if (settleId !== undefined) {
+            symbol = symbol + ':' + settle;
+            swap = true;
+            contractSize = tickSize; // always same
+            linear = true; // always linear
+            inverse = false;
+        }
+        const type = swap ? 'swap' : 'spot';
         return {
             'id': marketId,
-            'symbol': base + '/' + quote,
+            'symbol': symbol,
             'base': base,
             'quote': quote,
-            'settle': undefined,
+            'settle': settle,
             'baseId': baseId,
             'quoteId': quoteId,
-            'settleId': undefined,
-            'type': 'spot',
-            'spot': true,
+            'settleId': settleId,
+            'type': type,
+            'spot': !swap,
             'margin': false,
-            'swap': false,
+            'swap': swap,
             'future': false,
             'option': false,
-            'active': this.parseMarketActive(status),
-            'contract': false,
-            'linear': undefined,
-            'inverse': undefined,
-            'contractSize': undefined,
+            'active': status,
+            'contract': swap,
+            'linear': linear,
+            'inverse': inverse,
+            'contractSize': contractSize,
             'expiry': undefined,
             'expiryDatetime': undefined,
             'strike': undefined,
             'optionType': undefined,
             'precision': {
-                'price': this.safeNumber(response, 'quote_increment'),
-                'amount': this.safeNumber(response, 'tick_size'),
+                'price': tickSize,
+                'amount': amountPrecision,
             },
             'limits': {
                 'leverage': {
@@ -640,7 +738,7 @@ class gemini extends gemini$1 {
                     'max': undefined,
                 },
                 'amount': {
-                    'min': this.safeNumber(response, 'min_order_size'),
+                    'min': minSize,
                     'max': undefined,
                 },
                 'price': {
@@ -1706,7 +1804,7 @@ class gemini extends gemini$1 {
             if (apiKey.indexOf('account') < 0) {
                 throw new errors.AuthenticationError(this.id + ' sign() requires an account-key, master-keys are not-supported');
             }
-            const nonce = this.nonce();
+            const nonce = this.nonce().toString();
             const request = this.extend({
                 'request': url,
                 'nonce': nonce,

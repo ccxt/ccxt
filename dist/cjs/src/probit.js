@@ -621,7 +621,7 @@ class probit extends probit$1 {
         //         ]
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseTickers(data, symbols);
     }
     async fetchTicker(symbol, params = {}) {
@@ -757,7 +757,7 @@ class probit extends probit$1 {
         //         ]
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseTrades(data, market, since, limit);
     }
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
@@ -811,7 +811,7 @@ class probit extends probit$1 {
         //         ]
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseTrades(data, market, since, limit);
     }
     parseTrade(trade, market = undefined) {
@@ -999,7 +999,7 @@ class probit extends probit$1 {
         //         ]
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseOHLCVs(data, market, timeframe, since, limit);
     }
     parseOHLCV(ohlcv, market = undefined) {
@@ -1046,7 +1046,7 @@ class probit extends probit$1 {
             request['market_id'] = market['id'];
         }
         const response = await this.privateGetOpenOrder(this.extend(request, params));
-        const data = this.safeValue(response, 'data');
+        const data = this.safeList(response, 'data');
         return this.parseOrders(data, market, since, limit);
     }
     async fetchClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1079,7 +1079,7 @@ class probit extends probit$1 {
             request['limit'] = limit;
         }
         const response = await this.privateGetOrderHistory(this.extend(request, params));
-        const data = this.safeValue(response, 'data');
+        const data = this.safeList(response, 'data');
         return this.parseOrders(data, market, since, limit);
     }
     async fetchOrder(id, symbol = undefined, params = {}) {
@@ -1110,7 +1110,7 @@ class probit extends probit$1 {
         const query = this.omit(params, ['clientOrderId', 'client_order_id']);
         const response = await this.privateGetOrder(this.extend(request, query));
         const data = this.safeValue(response, 'data', []);
-        const order = this.safeValue(data, 0);
+        const order = this.safeDict(data, 0);
         return this.parseOrder(order, market);
     }
     parseOrderStatus(status) {
@@ -1309,7 +1309,7 @@ class probit extends probit$1 {
             'order_id': id,
         };
         const response = await this.privatePostCancelOrder(this.extend(request, params));
-        const data = this.safeValue(response, 'data');
+        const data = this.safeDict(response, 'data');
         return this.parseOrder(data);
     }
     parseDepositAddress(depositAddress, currency = undefined) {
@@ -1403,7 +1403,7 @@ class probit extends probit$1 {
             request['currency_id'] = codes.join(',');
         }
         const response = await this.privateGetDepositAddress(this.extend(request, params));
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseDepositAddresses(data, codes);
     }
     async withdraw(code, amount, address, tag = undefined, params = {}) {
@@ -1450,7 +1450,7 @@ class probit extends probit$1 {
             params = this.omit(params, 'network');
         }
         const response = await this.privatePostWithdrawal(this.extend(request, params));
-        const data = this.safeValue(response, 'data');
+        const data = this.safeDict(response, 'data');
         return this.parseTransaction(data, currency);
     }
     async fetchDeposits(code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1487,12 +1487,11 @@ class probit extends probit$1 {
         const result = await this.fetchTransactions(code, since, limit, this.extend(request, params));
         return result;
     }
-    async fetchTransactions(code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchDepositsWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
-         * @name probit#fetchTransactions
-         * @deprecated
-         * @description use fetchDepositsWithdrawals instead
+         * @name probit#fetchDepositsWithdrawals
+         * @description fetch history of deposits and withdrawals
          * @see https://docs-en.probit.com/reference/transferpayment
          * @param {string} code unified currency code
          * @param {int} [since] the earliest time in ms to fetch transactions for
@@ -1553,7 +1552,7 @@ class probit extends probit$1 {
         //         ]
         //     }
         //
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeList(response, 'data', []);
         return this.parseTransactions(data, currency, since, limit);
     }
     parseTransaction(transaction, currency = undefined) {
@@ -1700,7 +1699,7 @@ class probit extends probit$1 {
         //     ]
         //  }
         //
-        const data = this.safeValue(response, 'data');
+        const data = this.safeList(response, 'data');
         return this.parseDepositWithdrawFees(data, codes, 'id');
     }
     parseDepositWithdrawFee(fee, currency = undefined) {

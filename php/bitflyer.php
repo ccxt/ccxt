@@ -111,6 +111,11 @@ class bitflyer extends Exchange {
                 ),
             ),
             'precisionMode' => TICK_SIZE,
+            'exceptions' => array(
+                'exact' => array(
+                    '-2' => '\\ccxt\\OnMaintenance', // array("status":-2,"error_message":"Under maintenance","data":null)
+                ),
+            ),
         ));
     }
 
@@ -136,14 +141,14 @@ class bitflyer extends Exchange {
         return $this->parse8601($year . '-' . $month . '-' . $day . 'T00:00:00Z');
     }
 
-    public function safe_market($marketId = null, $market = null, $delimiter = null, $marketType = null) {
+    public function safe_market(?string $marketId = null, ?array $market = null, ?string $delimiter = null, ?string $marketType = null): array {
         // Bitflyer has a different type of conflict in markets, because
         // some of their ids (ETH/BTC and BTC/JPY) are duplicated in US, EU and JP.
         // Since they're the same we just need to return one
         return parent::safe_market($marketId, $market, $delimiter, 'spot');
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): array {
         /**
          * retrieves data on all $markets for bitflyer
          * @see https://lightning.bitflyer.com/docs?lang=en#$market-list
@@ -503,7 +508,7 @@ class bitflyer extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function fetch_trading_fee(string $symbol, $params = array ()) {
+    public function fetch_trading_fee(string $symbol, $params = array ()): array {
         /**
          * fetch the trading fees for a $market
          * @see https://lightning.bitflyer.com/docs?lang=en#get-trading-commission
@@ -528,6 +533,8 @@ class bitflyer extends Exchange {
             'symbol' => $market['symbol'],
             'maker' => $fee,
             'taker' => $fee,
+            'percentage' => null,
+            'tierBased' => null,
         );
     }
 
@@ -1027,5 +1034,20 @@ class bitflyer extends Exchange {
             );
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+    }
+
+    public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+        if ($response === null) {
+            return null; // fallback to the default error handler
+        }
+        $feedback = $this->id . ' ' . $body;
+        // i.e. array("status":-2,"error_message":"Under maintenance","data":null)
+        $errorMessage = $this->safe_string($response, 'error_message');
+        $statusCode = $this->safe_number($response, 'status');
+        if ($errorMessage !== null) {
+            $this->throw_exactly_matched_exception($this->exceptions['exact'], $statusCode, $feedback);
+            $this->throw_broadly_matched_exception($this->exceptions['broad'], $errorMessage, $feedback);
+        }
+        return null;
     }
 }

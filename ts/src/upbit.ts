@@ -8,7 +8,7 @@ import { TICK_SIZE } from './base/functions/number.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { jwt } from './base/functions/rsa.js';
-import type { Balances, Currency, Dictionary, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import type { Balances, Currency, Dictionary, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -80,6 +80,7 @@ export default class upbit extends Exchange {
                 '1m': 'minutes',
                 '3m': 'minutes',
                 '5m': 'minutes',
+                '10m': 'minutes',
                 '15m': 'minutes',
                 '30m': 'minutes',
                 '1h': 'minutes',
@@ -109,6 +110,7 @@ export default class upbit extends Exchange {
                         'candles/minutes/1',
                         'candles/minutes/3',
                         'candles/minutes/5',
+                        'candles/minutes/10',
                         'candles/minutes/15',
                         'candles/minutes/30',
                         'candles/minutes/60',
@@ -403,7 +405,7 @@ export default class upbit extends Exchange {
         });
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name upbit#fetchMarkets
@@ -624,7 +626,7 @@ export default class upbit extends Exchange {
         //                    "trade_time": "104543",
         //                "trade_date_kst": "20181122",
         //                "trade_time_kst": "194543",
-        //               "trade_timestamp":  1542883543097,
+        //               "trade_timestamp":  1542883543096,
         //                 "opening_price":  0.02976455,
         //                    "high_price":  0.02992577,
         //                     "low_price":  0.02934283,
@@ -872,7 +874,7 @@ export default class upbit extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    async fetchTradingFee (symbol: string, params = {}) {
+    async fetchTradingFee (symbol: string, params = {}): Promise<TradingFeeInterface> {
         /**
          * @method
          * @name upbit#fetchTradingFee
@@ -1034,12 +1036,13 @@ export default class upbit extends Exchange {
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         /**
          * @method
          * @name upbit#createOrder
          * @description create a trade order
          * @see https://docs.upbit.com/reference/%EC%A3%BC%EB%AC%B8%ED%95%98%EA%B8%B0
+         * @see https://global-docs.upbit.com/reference/order
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
@@ -1047,6 +1050,7 @@ export default class upbit extends Exchange {
          * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {float} [params.cost] for market buy orders, the quote quantity that can be used as an alternative for the amount
+         * @param {string} [params.timeInForce] 'IOC' or 'FOK'
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -1096,6 +1100,13 @@ export default class upbit extends Exchange {
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'identifier');
         if (clientOrderId !== undefined) {
             request['identifier'] = clientOrderId;
+        }
+        if (type !== 'market') {
+            const timeInForce = this.safeStringLower2 (params, 'timeInForce', 'time_in_force');
+            params = this.omit (params, 'timeInForce');
+            if (timeInForce !== undefined) {
+                request['time_in_force'] = timeInForce;
+            }
         }
         params = this.omit (params, [ 'clientOrderId', 'identifier' ]);
         const response = await this.privatePostOrders (this.extend (request, params));
@@ -1899,7 +1910,7 @@ export default class upbit extends Exchange {
         }
         if (api === 'private') {
             this.checkRequiredCredentials ();
-            const nonce = this.nonce ();
+            const nonce = this.uuid ();
             const request = {
                 'access_key': this.apiKey,
                 'nonce': nonce,

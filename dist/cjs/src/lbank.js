@@ -632,7 +632,7 @@ class lbank extends lbank$1 {
         //     }
         //
         const data = this.safeValue(response, 'data', []);
-        const first = this.safeValue(data, 0, {});
+        const first = this.safeDict(data, 0, {});
         return this.parseTicker(first, market);
     }
     async fetchTickers(symbols = undefined, params = {}) {
@@ -712,7 +712,7 @@ class lbank extends lbank$1 {
         //         "success": true
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseTickers(data, symbols);
     }
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
@@ -958,7 +958,7 @@ class lbank extends lbank$1 {
         //           "ts":1647021999308
         //      }
         //
-        const trades = this.safeValue(response, 'data', []);
+        const trades = this.safeList(response, 'data', []);
         return this.parseTrades(trades, market, since, limit);
     }
     parseOHLCV(ohlcv, market = undefined) {
@@ -999,6 +999,9 @@ class lbank extends lbank$1 {
         const market = this.market(symbol);
         if (limit === undefined) {
             limit = 100;
+        }
+        else {
+            limit = Math.min(limit, 2000);
         }
         if (since === undefined) {
             const duration = this.parseTimeframe(timeframe);
@@ -1238,6 +1241,8 @@ class lbank extends lbank$1 {
             'symbol': symbol,
             'maker': this.safeNumber(fee, 'makerCommission'),
             'taker': this.safeNumber(fee, 'takerCommission'),
+            'percentage': undefined,
+            'tierBased': undefined,
         };
     }
     async fetchTradingFee(symbol, params = {}) {
@@ -1252,7 +1257,7 @@ class lbank extends lbank$1 {
          */
         const market = this.market(symbol);
         const result = await this.fetchTradingFees(this.extend(params, { 'category': market['id'] }));
-        return result;
+        return this.safeDict(result, symbol);
     }
     async fetchTradingFees(params = {}) {
         /**
@@ -1593,7 +1598,7 @@ class lbank extends lbank$1 {
         //          "ts":1648164471827
         //      }
         //
-        const result = this.safeValue(response, 'data', {});
+        const result = this.safeDict(response, 'data', {});
         return this.parseOrder(result);
     }
     async fetchOrderDefault(id, symbol = undefined, params = {}) {
@@ -1699,7 +1704,7 @@ class lbank extends lbank$1 {
         //          "ts":1648509742164
         //      }
         //
-        const trades = this.safeValue(response, 'data', []);
+        const trades = this.safeList(response, 'data', []);
         return this.parseTrades(trades, market, since, limit);
     }
     async fetchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1759,7 +1764,7 @@ class lbank extends lbank$1 {
         //      }
         //
         const result = this.safeValue(response, 'data', {});
-        const orders = this.safeValue(result, 'orders', []);
+        const orders = this.safeList(result, 'orders', []);
         return this.parseOrders(orders, market, since, limit);
     }
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1816,7 +1821,7 @@ class lbank extends lbank$1 {
         //     }
         //
         const result = this.safeValue(response, 'data', {});
-        const orders = this.safeValue(result, 'orders', []);
+        const orders = this.safeList(result, 'orders', []);
         return this.parseOrders(orders, market, since, limit);
     }
     async cancelOrder(id, symbol = undefined, params = {}) {
@@ -2228,7 +2233,7 @@ class lbank extends lbank$1 {
         //      }
         //
         const data = this.safeValue(response, 'data', {});
-        const deposits = this.safeValue(data, 'depositOrders', []);
+        const deposits = this.safeList(data, 'depositOrders', []);
         return this.parseTransactions(deposits, currency, since, limit);
     }
     async fetchWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -2285,7 +2290,7 @@ class lbank extends lbank$1 {
         //      }
         //
         const data = this.safeValue(response, 'data', {});
-        const withdraws = this.safeValue(data, 'withdraws', []);
+        const withdraws = this.safeList(data, 'withdraws', []);
         return this.parseTransactions(withdraws, currency, since, limit);
     }
     async fetchTransactionFees(codes = undefined, params = {}) {
@@ -2503,7 +2508,7 @@ class lbank extends lbank$1 {
         //        "code": 0
         //    }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseDepositWithdrawFees(data, codes, 'coin');
     }
     async fetchPublicDepositWithdrawFees(codes = undefined, params = {}) {
@@ -2691,7 +2696,7 @@ class lbank extends lbank$1 {
             const uppercaseHash = hash.toUpperCase();
             let sign = undefined;
             if (signatureMethod === 'RSA') {
-                const cacheSecretAsPem = this.safeValue(this.options, 'cacheSecretAsPem', true);
+                const cacheSecretAsPem = this.safeBool(this.options, 'cacheSecretAsPem', true);
                 let pem = undefined;
                 if (cacheSecretAsPem) {
                     pem = this.safeValue(this.options, 'pem');

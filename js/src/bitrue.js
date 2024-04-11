@@ -1351,9 +1351,6 @@ export default class bitrue extends Exchange {
                 'interval': this.safeString(timeframesFuture, timeframe, '1min'),
             };
             if (limit !== undefined) {
-                if (limit > 300) {
-                    limit = 300;
-                }
                 request['limit'] = limit;
             }
             if (market['linear']) {
@@ -1372,9 +1369,6 @@ export default class bitrue extends Exchange {
                 'scale': this.safeString(timeframesSpot, timeframe, '1m'),
             };
             if (limit !== undefined) {
-                if (limit > 1440) {
-                    limit = 1440;
-                }
                 request['limit'] = limit;
             }
             if (since !== undefined) {
@@ -2569,7 +2563,7 @@ export default class bitrue extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseTransactions(data, currency, since, limit);
     }
     async fetchWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -2606,20 +2600,29 @@ export default class bitrue extends Exchange {
         }
         const response = await this.spotV1PrivateGetWithdrawHistory(this.extend(request, params));
         //
-        //     {
-        //         "code": 200,
-        //         "msg": "succ",
-        //         "data": {
-        //             "msg": null,
-        //             "amount": 1000,
-        //             "fee": 1,
-        //             "ctime": null,
-        //             "coin": "usdt_erc20",
-        //             "addressTo": "0x2edfae3878d7b6db70ce4abed177ab2636f60c83"
-        //         }
-        //     }
+        //    {
+        //        "code": 200,
+        //        "msg": "succ",
+        //        "data": [
+        //            {
+        //                "id": 183745,
+        //                "symbol": "usdt_erc20",
+        //                "amount": "8.4000000000000000",
+        //                "fee": "1.6000000000000000",
+        //                "payAmount": "0.0000000000000000",
+        //                "createdAt": 1595336441000,
+        //                "updatedAt": 1595336576000,
+        //                "addressFrom": "",
+        //                "addressTo": "0x2edfae3878d7b6db70ce4abed177ab2636f60c83",
+        //                "txid": "",
+        //                "confirmations": 0,
+        //                "status": 6,
+        //                "tagType": null
+        //            }
+        //        ]
+        //    }
         //
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeList(response, 'data', []);
         return this.parseTransactions(data, currency);
     }
     parseTransactionStatusByType(status, type = undefined) {
@@ -2813,7 +2816,7 @@ export default class bitrue extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         return this.parseTransaction(data, currency);
     }
     parseDepositWithdrawFee(fee, currency = undefined) {
@@ -2869,7 +2872,7 @@ export default class bitrue extends Exchange {
          */
         await this.loadMarkets();
         const response = await this.spotV1PublicGetExchangeInfo(params);
-        const coins = this.safeValue(response, 'coins');
+        const coins = this.safeList(response, 'coins');
         return this.parseDepositWithdrawFees(coins, codes, 'coin');
     }
     parseTransfer(transfer, currency = undefined) {
@@ -2962,7 +2965,7 @@ export default class bitrue extends Exchange {
         //         }]
         //     }
         //
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeList(response, 'data', []);
         return this.parseTransfers(data, currency, since, limit);
     }
     async transfer(code, amount, fromAccount, toAccount, params = {}) {
@@ -2997,7 +3000,7 @@ export default class bitrue extends Exchange {
         //         'data': null
         //     }
         //
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         return this.parseTransfer(data, currency);
     }
     async setLeverage(leverage, symbol = undefined, params = {}) {
@@ -3037,13 +3040,26 @@ export default class bitrue extends Exchange {
         return response;
     }
     parseMarginModification(data, market = undefined) {
+        //
+        // setMargin
+        //
+        //     {
+        //         "code": 0,
+        //         "msg": "success"
+        //         "data": null
+        //     }
+        //
         return {
             'info': data,
-            'type': undefined,
-            'amount': undefined,
-            'code': undefined,
             'symbol': market['symbol'],
+            'type': undefined,
+            'marginMode': 'isolated',
+            'amount': undefined,
+            'total': undefined,
+            'code': undefined,
             'status': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
         };
     }
     async setMargin(symbol, amount, params = {}) {

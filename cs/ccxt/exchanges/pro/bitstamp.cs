@@ -114,7 +114,7 @@ public partial class bitstamp : ccxt.bitstamp
             object snapshotDelay = this.handleOption("watchOrderBook", "snapshotDelay", 6);
             if (isTrue(isEqual(cacheLength, snapshotDelay)))
             {
-                this.spawn(this.loadOrderBook, new object[] { client, messageHash, symbol});
+                this.spawn(this.loadOrderBook, new object[] { client, messageHash, symbol, null, new Dictionary<string, object>() {}});
             }
             ((IList<object>)(storedOrderBook as ccxt.pro.OrderBook).cache).Add(delta);
             return;

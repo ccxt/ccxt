@@ -988,7 +988,7 @@ export default class currencycom extends Exchange {
             request['startTime'] = since;
         }
         if (limit !== undefined) {
-            request['limit'] = limit; // default 500, max 1000
+            request['limit'] = Math.min(limit, 1000); // default 500, max 1000
         }
         const response = await this.publicGetV2Klines(this.extend(request, params));
         //
@@ -1809,12 +1809,22 @@ export default class currencycom extends Exchange {
         };
         const response = await this.privateGetV2LeverageSettings(this.extend(request, params));
         //
-        // {
-        //     "values": [ 1, 2, 5, 10, ],
-        //     "value": "10",
-        // }
+        //     {
+        //         "values": [ 1, 2, 5, 10, ],
+        //         "value": "10",
+        //     }
         //
-        return this.safeNumber(response, 'value');
+        return this.parseLeverage(response, market);
+    }
+    parseLeverage(leverage, market = undefined) {
+        const leverageValue = this.safeInteger(leverage, 'value');
+        return {
+            'info': leverage,
+            'symbol': market['symbol'],
+            'marginMode': undefined,
+            'longLeverage': leverageValue,
+            'shortLeverage': leverageValue,
+        };
     }
     async fetchDepositAddress(code, params = {}) {
         /**
@@ -1927,7 +1937,7 @@ export default class currencycom extends Exchange {
         //        ]
         //    }
         //
-        const data = this.safeValue(response, 'positions', []);
+        const data = this.safeList(response, 'positions', []);
         return this.parsePositions(data, symbols);
     }
     parsePosition(position, market = undefined) {

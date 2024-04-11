@@ -452,7 +452,7 @@ class okcoin(ccxt.async_support.okcoin):
                 ],
             }
             self.spawn(self.watch, url, messageHash, request, messageHash, future)
-        return future
+        return await future
 
     async def watch_balance(self, params={}) -> Balances:
         """

@@ -35,6 +35,7 @@ export default class btcmarkets extends Exchange {
                 'cancelOrders': true,
                 'closeAllPositions': false,
                 'closePosition': false,
+                'createDepositAddress': false,
                 'createOrder': true,
                 'createReduceOnlyOrder': false,
                 'fetchBalance': true,
@@ -43,6 +44,9 @@ export default class btcmarkets extends Exchange {
                 'fetchClosedOrders': 'emulated',
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
+                'fetchDepositAddress': false,
+                'fetchDepositAddresses': false,
+                'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
                 'fetchDepositsWithdrawals': true,
                 'fetchFundingHistory': false,
@@ -537,7 +541,7 @@ export default class btcmarkets extends Exchange {
             request['from'] = this.iso8601(since);
         }
         if (limit !== undefined) {
-            request['limit'] = limit; // default is 10, max 200
+            request['limit'] = Math.min(limit, 200); // default is 10, max 200
         }
         const response = await this.publicGetMarketsMarketIdCandles(this.extend(request, params));
         //
@@ -913,6 +917,18 @@ export default class btcmarkets extends Exchange {
         return await this.privateDeleteOrdersId(this.extend(request, params));
     }
     calculateFee(symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
+        /**
+         * @method
+         * @description calculates the presumptive fee that would be charged for an order
+         * @param {string} symbol unified market symbol
+         * @param {string} type not used by btcmarkets.calculateFee
+         * @param {string} side not used by btcmarkets.calculateFee
+         * @param {float} amount how much you want to trade, in units of the base currency on most exchanges, or number of contracts
+         * @param {float} price the price for the order to be filled at, in units of the quote currency
+         * @param {string} takerOrMaker 'taker' or 'maker'
+         * @param {object} params
+         * @returns {object} contains the rate, the percentage multiplied to the order amount to obtain the fee amount, and cost, the total value of the fee in units of the quote currency, for the order
+         */
         const market = this.markets[symbol];
         let currency = undefined;
         let cost = undefined;

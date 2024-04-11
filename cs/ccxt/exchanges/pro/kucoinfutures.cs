@@ -13,6 +13,8 @@ public partial class kucoinfutures : ccxt.kucoinfutures
             { "has", new Dictionary<string, object>() {
                 { "ws", true },
                 { "watchTicker", true },
+                { "watchTickers", true },
+                { "watchBidsAsks", true },
                 { "watchTrades", true },
                 { "watchOrderBook", true },
                 { "watchOrders", true },
@@ -32,9 +34,6 @@ public partial class kucoinfutures : ccxt.kucoinfutures
                 { "watchOrderBook", new Dictionary<string, object>() {
                     { "snapshotDelay", 20 },
                     { "snapshotMaxRetries", 3 },
-                } },
-                { "watchTicker", new Dictionary<string, object>() {
-                    { "name", "contractMarket/tickerV2" },
                 } },
                 { "watchPosition", new Dictionary<string, object>() {
                     { "fetchPositionSnapshot", true },
@@ -134,7 +133,7 @@ public partial class kucoinfutures : ccxt.kucoinfutures
         return await this.watch(url, messageHash, message, subscriptionHash, subscription);
     }
 
-    public async virtual Task<object> subscribeMultiple(object url, object messageHashes, object topic, object subscriptionHashes, object subscription, object parameters = null)
+    public async virtual Task<object> subscribeMultiple(object url, object messageHashes, object topic, object subscriptionHashes, object subscriptionArgs, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object requestId = ((object)this.requestId()).ToString();
@@ -144,18 +143,7 @@ public partial class kucoinfutures : ccxt.kucoinfutures
             { "topic", topic },
             { "response", true },
         };
-        object message = this.extend(request, parameters);
-        object subscriptionRequest = new Dictionary<string, object>() {
-            { "id", requestId },
-        };
-        if (isTrue(isEqual(subscription, null)))
-        {
-            subscription = subscriptionRequest;
-        } else
-        {
-            subscription = this.extend(subscriptionRequest, subscription);
-        }
-        return await this.watchMultiple(url, messageHashes, message, subscriptionHashes, subscription);
+        return await this.watchMultiple(url, messageHashes, this.extend(request, parameters), subscriptionHashes, subscriptionArgs);
     }
 
     public async override Task<object> watchTicker(object symbol, object parameters = null)
@@ -164,7 +152,7 @@ public partial class kucoinfutures : ccxt.kucoinfutures
         * @method
         * @name kucoinfutures#watchTicker
         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        * @see https://docs.kucoin.com/futures/#get-real-time-symbol-ticker-v2
+        * @see https://www.kucoin.com/docs/websocket/futures-trading/public-channels/get-ticker
         * @param {string} symbol unified symbol of the market to fetch the ticker for
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -173,32 +161,54 @@ public partial class kucoinfutures : ccxt.kucoinfutures
         await this.loadMarkets();
         object market = this.market(symbol);
         symbol = getValue(market, "symbol");
-        object url = await this.negotiate(false);
-        object options = this.safeValue(this.options, "watchTicker", new Dictionary<string, object>() {});
-        object channel = this.safeString(options, "name", "contractMarket/tickerV2");
-        object topic = add(add(add("/", channel), ":"), getValue(market, "id"));
-        object messageHash = add("ticker:", symbol);
-        return await this.subscribe(url, messageHash, topic, null, parameters);
+        ((IDictionary<string,object>)parameters)["callerMethodName"] = "watchTicker";
+        object tickers = await this.watchTickers(new List<object>() {symbol}, parameters);
+        return getValue(tickers, symbol);
     }
 
-    public virtual object handleTicker(WebSocketClient client, object message)
+    public async override Task<object> watchTickers(object symbols = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name kucoinfutures#watchTickers
+        * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+        * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object ticker = await this.watchMultiRequest("watchTickers", "/contractMarket/ticker:", symbols, parameters);
+        if (isTrue(this.newUpdates))
+        {
+            object tickers = new Dictionary<string, object>() {};
+            ((IDictionary<string,object>)tickers)[(string)getValue(ticker, "symbol")] = ticker;
+            return tickers;
+        }
+        return this.filterByArray(this.tickers, "symbol", symbols);
+    }
+
+    public virtual void handleTicker(WebSocketClient client, object message)
     {
         //
-        // market/tickerV2
+        // ticker (v1)
         //
         //    {
-        //        "type": "message",
-        //        "topic": "/contractMarket/tickerV2:ADAUSDTM",
-        //        "subject": "tickerV2",
-        //        "data": {
-        //            "symbol": "ADAUSDTM",
-        //            "sequence": 1668007800439,
-        //            "bestBidSize": 178,
-        //            "bestBidPrice": "0.35959",
-        //            "bestAskPrice": "0.35981",
-        //            "ts": "1668141430037124460",
-        //            "bestAskSize": 134
-        //        }
+        //     "subject": "ticker",
+        //     "topic": "/contractMarket/ticker:XBTUSDM",
+        //     "data": {
+        //         "symbol": "XBTUSDM", //Market of the symbol
+        //         "sequence": 45, //Sequence number which is used to judge the continuity of the pushed messages
+        //         "side": "sell", //Transaction side of the last traded taker order
+        //         "price": "3600.0", //Filled price
+        //         "size": 16, //Filled quantity
+        //         "tradeId": "5c9dcf4170744d6f5a3d32fb", //Order ID
+        //         "bestBidSize": 795, //Best bid size
+        //         "bestBidPrice": "3200.0", //Best bid
+        //         "bestAskPrice": "3600.0", //Best ask size
+        //         "bestAskSize": 284, //Best ask
+        //         "ts": 1553846081210004941 //Filled time - nanosecond
+        //     }
         //    }
         //
         object data = this.safeValue(message, "data", new Dictionary<string, object>() {});
@@ -206,9 +216,110 @@ public partial class kucoinfutures : ccxt.kucoinfutures
         object market = this.safeMarket(marketId, null, "-");
         object ticker = this.parseTicker(data, market);
         ((IDictionary<string,object>)this.tickers)[(string)getValue(market, "symbol")] = ticker;
-        object messageHash = add("ticker:", getValue(market, "symbol"));
-        callDynamically(client as WebSocketClient, "resolve", new object[] {ticker, messageHash});
-        return message;
+        callDynamically(client as WebSocketClient, "resolve", new object[] {ticker, this.getMessageHash("ticker", getValue(market, "symbol"))});
+    }
+
+    public async override Task<object> watchBidsAsks(object symbols = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name kucoinfutures#watchBidsAsks
+        * @see https://www.kucoin.com/docs/websocket/futures-trading/public-channels/get-ticker-v2
+        * @description watches best bid & ask for symbols
+        * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        object ticker = await this.watchMultiRequest("watchBidsAsks", "/contractMarket/tickerV2:", symbols, parameters);
+        if (isTrue(this.newUpdates))
+        {
+            object tickers = new Dictionary<string, object>() {};
+            ((IDictionary<string,object>)tickers)[(string)getValue(ticker, "symbol")] = ticker;
+            return tickers;
+        }
+        return this.filterByArray(this.bidsasks, "symbol", symbols);
+    }
+
+    public async virtual Task<object> watchMultiRequest(object methodName, object channelName, object symbols = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        var methodNameparametersVariable = this.handleParamString(parameters, "callerMethodName", methodName);
+        methodName = ((IList<object>)methodNameparametersVariable)[0];
+        parameters = ((IList<object>)methodNameparametersVariable)[1];
+        object isBidsAsks = (isEqual(methodName, "watchBidsAsks"));
+        symbols = this.marketSymbols(symbols, null, false, true, false);
+        object length = getArrayLength(symbols);
+        if (isTrue(isGreaterThan(length, 100)))
+        {
+            throw new ArgumentsRequired ((string)add(add(add(this.id, " "), methodName), "() accepts a maximum of 100 symbols")) ;
+        }
+        object messageHashes = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        {
+            object symbol = getValue(symbols, i);
+            object market = this.market(symbol);
+            object prefix = ((bool) isTrue(isBidsAsks)) ? "bidask" : "ticker";
+            ((IList<object>)messageHashes).Add(this.getMessageHash(prefix, getValue(market, "symbol")));
+        }
+        object url = await this.negotiate(false);
+        object marketIds = this.marketIds(symbols);
+        object joined = String.Join(",", ((IList<object>)marketIds).ToArray());
+        object requestId = ((object)this.requestId()).ToString();
+        object request = new Dictionary<string, object>() {
+            { "id", requestId },
+            { "type", "subscribe" },
+            { "topic", add(channelName, joined) },
+            { "response", true },
+        };
+        object subscription = new Dictionary<string, object>() {
+            { "id", requestId },
+        };
+        return await this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes, subscription);
+    }
+
+    public virtual void handleBidAsk(WebSocketClient client, object message)
+    {
+        //
+        // arrives one symbol dict
+        //
+        // {
+        //   "subject": "tickerV2",
+        //   "topic": "/contractMarket/tickerV2:XBTUSDM",
+        //   "data": {
+        //     "symbol": "XBTUSDM", //Market of the symbol
+        //     "bestBidSize": 795, // Best bid size
+        //     "bestBidPrice": 3200.0, // Best bid
+        //     "bestAskPrice": 3600.0, // Best ask
+        //     "bestAskSize": 284, // Best ask size
+        //     "ts": 1553846081210004941 // Filled time - nanosecond
+        //   }
+        // }
+        //
+        object parsedTicker = this.parseWsBidAsk(message);
+        object symbol = getValue(parsedTicker, "symbol");
+        ((IDictionary<string,object>)this.bidsasks)[(string)symbol] = parsedTicker;
+        callDynamically(client as WebSocketClient, "resolve", new object[] {parsedTicker, this.getMessageHash("bidask", symbol)});
+    }
+
+    public virtual object parseWsBidAsk(object ticker, object market = null)
+    {
+        object data = this.safeDict(ticker, "data", new Dictionary<string, object>() {});
+        object marketId = this.safeString(data, "symbol");
+        market = this.safeMarket(marketId, market);
+        object symbol = this.safeString(market, "symbol");
+        object timestamp = this.safeIntegerProduct(data, "ts", 0.000001);
+        return this.safeTicker(new Dictionary<string, object>() {
+            { "symbol", symbol },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
+            { "ask", this.safeNumber(data, "bestAskPrice") },
+            { "askVolume", this.safeNumber(data, "bestAskSize") },
+            { "bid", this.safeNumber(data, "bestBidPrice") },
+            { "bidVolume", this.safeNumber(data, "bestBidSize") },
+            { "info", ticker },
+        }, market);
     }
 
     public async override Task<object> watchPosition(object symbol = null, object parameters = null)
@@ -238,7 +349,7 @@ public partial class kucoinfutures : ccxt.kucoinfutures
         var client = this.client(url);
         this.setPositionCache(client as WebSocketClient, symbol);
         object fetchPositionSnapshot = this.handleOption("watchPosition", "fetchPositionSnapshot", true);
-        object awaitPositionSnapshot = this.safeValue("watchPosition", "awaitPositionSnapshot", true);
+        object awaitPositionSnapshot = this.safeBool("watchPosition", "awaitPositionSnapshot", true);
         object currentPosition = this.getCurrentPosition(symbol);
         if (isTrue(isTrue(isTrue(fetchPositionSnapshot) && isTrue(awaitPositionSnapshot)) && isTrue(isEqual(currentPosition, null))))
         {
@@ -453,7 +564,7 @@ public partial class kucoinfutures : ccxt.kucoinfutures
             ((IList<object>)messageHashes).Add(add("trades:", symbol));
             ((IList<object>)subscriptionHashes).Add(add("/contractMarket/execution:", marketId));
         }
-        object trades = await this.subscribeMultiple(url, messageHashes, topic, subscriptionHashes, parameters);
+        object trades = await this.subscribeMultiple(url, messageHashes, topic, subscriptionHashes, null, parameters);
         if (isTrue(this.newUpdates))
         {
             object first = this.safeValue(trades, 0);
@@ -552,9 +663,7 @@ public partial class kucoinfutures : ccxt.kucoinfutures
         object marketIds = this.marketIds(symbols);
         object url = await this.negotiate(false);
         object topic = add("/contractMarket/level2:", String.Join(",", ((IList<object>)marketIds).ToArray()));
-        object subscription = new Dictionary<string, object>() {
-            { "method", this.handleOrderBookSubscription },
-            { "symbols", symbols },
+        object subscriptionArgs = new Dictionary<string, object>() {
             { "limit", limit },
         };
         object subscriptionHashes = new List<object>() {};
@@ -566,7 +675,7 @@ public partial class kucoinfutures : ccxt.kucoinfutures
             ((IList<object>)messageHashes).Add(add("orderbook:", symbol));
             ((IList<object>)subscriptionHashes).Add(add("/contractMarket/level2:", marketId));
         }
-        object orderbook = await this.subscribeMultiple(url, messageHashes, topic, subscriptionHashes, subscription, parameters);
+        object orderbook = await this.subscribeMultiple(url, messageHashes, topic, subscriptionHashes, subscriptionArgs, parameters);
         return (orderbook as IOrderBook).limit();
     }
 
@@ -625,12 +734,14 @@ public partial class kucoinfutures : ccxt.kucoinfutures
         object marketId = this.safeString(topicParts, 1);
         object symbol = this.safeSymbol(marketId, null, "-");
         object messageHash = add("orderbook:", symbol);
-        object storedOrderBook = this.safeValue(this.orderbooks, symbol);
-        object nonce = this.safeInteger(storedOrderBook, "nonce");
-        if (isTrue(isEqual(storedOrderBook, null)))
+        if (!isTrue((inOp(this.orderbooks, symbol))))
         {
-            return;  // this shouldn't be needed, but for some reason sometimes this runs before handleOrderBookSubscription in c#
+            object subscriptionArgs = this.safeDict(((WebSocketClient)client).subscriptions, topic, new Dictionary<string, object>() {});
+            object limit = this.safeInteger(subscriptionArgs, "limit");
+            ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {}, limit);
         }
+        object storedOrderBook = getValue(this.orderbooks, symbol);
+        object nonce = this.safeInteger(storedOrderBook, "nonce");
         object deltaEnd = this.safeInteger(data, "sequence");
         if (isTrue(isEqual(nonce, null)))
         {
@@ -684,42 +795,6 @@ public partial class kucoinfutures : ccxt.kucoinfutures
             }
         }
         return getArrayLength(cache);
-    }
-
-    public virtual void handleOrderBookSubscription(WebSocketClient client, object message, object subscription)
-    {
-        object limit = this.safeInteger(subscription, "limit");
-        object symbols = this.safeValue(subscription, "symbols");
-        if (isTrue(isEqual(symbols, null)))
-        {
-            object symbol = this.safeString(subscription, "symbol");
-            ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {}, limit);
-        } else
-        {
-            for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
-            {
-                object symbol = getValue(symbols, i);
-                ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {}, limit);
-            }
-        }
-    }
-
-    public virtual void handleSubscriptionStatus(WebSocketClient client, object message)
-    {
-        //
-        //     {
-        //         "id": "1578090438322",
-        //         "type": "ack"
-        //     }
-        //
-        object id = this.safeString(message, "id");
-        object subscriptionsById = this.indexBy(((WebSocketClient)client).subscriptions, "id");
-        object subscription = this.safeValue(subscriptionsById, id, new Dictionary<string, object>() {});
-        object method = this.safeValue(subscription, "method");
-        if (isTrue(!isEqual(method, null)))
-        {
-            DynamicInvoker.InvokeMethod(method, new object[] { client, message, subscription});
-        }
     }
 
     public virtual object handleSystemStatus(WebSocketClient client, object message)
@@ -1010,7 +1085,8 @@ public partial class kucoinfutures : ccxt.kucoinfutures
         object subject = this.safeString(message, "subject");
         object methods = new Dictionary<string, object>() {
             { "level2", this.handleOrderBook },
-            { "tickerV2", this.handleTicker },
+            { "ticker", this.handleTicker },
+            { "tickerV2", this.handleBidAsk },
             { "availableBalance.change", this.handleBalance },
             { "match", this.handleTrade },
             { "orderChange", this.handleOrder },
@@ -1023,6 +1099,18 @@ public partial class kucoinfutures : ccxt.kucoinfutures
         if (isTrue(!isEqual(method, null)))
         {
             DynamicInvoker.InvokeMethod(method, new object[] { client, message});
+        }
+    }
+
+    public virtual object getMessageHash(object elementName, object symbol = null)
+    {
+        // elementName can be 'ticker', 'bidask', ...
+        if (isTrue(!isEqual(symbol, null)))
+        {
+            return add(add(elementName, "@"), symbol);
+        } else
+        {
+            return add(elementName, "s@all");
         }
     }
 
@@ -1073,7 +1161,6 @@ public partial class kucoinfutures : ccxt.kucoinfutures
         object type = this.safeString(message, "type");
         object methods = new Dictionary<string, object>() {
             { "welcome", this.handleSystemStatus },
-            { "ack", this.handleSubscriptionStatus },
             { "message", this.handleSubject },
             { "pong", this.handlePong },
             { "error", this.handleErrorMessage },

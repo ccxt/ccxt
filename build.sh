@@ -76,12 +76,18 @@ build_and_test_all () {
       #   cd python
       #   if ! tox run-parallel; then
       #     exit 1
-      #   fi
-      #   cd ..
+      #   fi 
+      #   cd  ..
       # fi
     fi
     npm run test-base
     npm run test-base-ws
+    last_commit_message=$(git log -1 --pretty=%B)
+    echo "Last commit: $last_commit_message" # for debugging
+    if [[ "$last_commit_message" == *"skip-tests"* ]]; then
+        echo "[SKIP-TESTS] Will skip tests!"
+        exit
+    fi
     run_tests
   fi
   exit
@@ -90,6 +96,7 @@ build_and_test_all () {
 ### CHECK IF THIS IS A PR ###
 # for appveyor, when PR is from fork, APPVEYOR_REPO_BRANCH is "master" and "APPVEYOR_PULL_REQUEST_HEAD_REPO_BRANCH" is branch name. if PR is from same repo, only APPVEYOR_REPO_BRANCH is set (and it is branch name)
 if { [ "$IS_TRAVIS" = "TRUE" ] && [ "$TRAVIS_PULL_REQUEST" = "false" ]; } || { [ "$IS_TRAVIS" != "TRUE" ] && [ -z "$APPVEYOR_PULL_REQUEST_HEAD_REPO_BRANCH" ]; }; then
+
   echo "$msgPrefix This is a master commit (not a PR), will build everything"
   build_and_test_all
 fi
@@ -109,7 +116,7 @@ diff=$(echo "$diff" | sed -e "s/^ts\/src\/test\/static.*json//") #remove static 
 # diff=$(echo "$diff" | sed -e "s/^\.travis\.yml//")
 # diff=$(echo "$diff" | sed -e "s/^package\-lock\.json//")
 # diff=$(echo "$diff" | sed -e "s/python\/qa\.py//")
-#echo $diff
+#echo $diff 
 
 critical_pattern='Client(Trait)?\.php|Exchange\.php|\/base|^build|static_dependencies|^run-tests|package(-lock)?\.json|composer\.json|ccxt\.ts|__init__.py|test' # add \/test|
 if [[ "$diff" =~ $critical_pattern ]]; then

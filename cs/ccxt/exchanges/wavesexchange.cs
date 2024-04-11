@@ -783,7 +783,7 @@ public partial class wavesexchange : Exchange
         //
         object data = this.safeValue(response, "data", new List<object>() {});
         object ticker = this.safeValue(data, 0, new Dictionary<string, object>() {});
-        object dataTicker = this.safeValue(ticker, "data", new Dictionary<string, object>() {});
+        object dataTicker = this.safeDict(ticker, "data", new Dictionary<string, object>() {});
         return this.parseTicker(dataTicker, market);
     }
 
@@ -1338,7 +1338,7 @@ public partial class wavesexchange : Exchange
             { "amountAsset", amountAsset },
             { "priceAsset", priceAsset },
         };
-        object sandboxMode = this.safeValue(this.options, "sandboxMode", false);
+        object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
         object chainId = ((bool) isTrue((sandboxMode))) ? 84 : 87;
         object body = new Dictionary<string, object>() {
             { "senderPublicKey", this.apiKey },
@@ -1423,12 +1423,12 @@ public partial class wavesexchange : Exchange
         if (isTrue(isMarketOrder))
         {
             object response = await this.matcherPostMatcherOrderbookMarket(body);
-            object value = this.safeValue(response, "message");
+            object value = this.safeDict(response, "message");
             return this.parseOrder(value, market);
         } else
         {
             object response = await this.matcherPostMatcherOrderbook(body);
-            object value = this.safeValue(response, "message");
+            object value = this.safeDict(response, "message");
             return this.parseOrder(value, market);
         }
     }

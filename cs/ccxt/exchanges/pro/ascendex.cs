@@ -237,7 +237,7 @@ public partial class ascendex : ccxt.ascendex
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
-        object channel = add(add("depth-realtime", ":"), getValue(market, "id"));
+        object channel = add(add("depth", ":"), getValue(market, "id"));
         parameters = this.extend(parameters, new Dictionary<string, object>() {
             { "ch", channel },
         });
@@ -250,7 +250,7 @@ public partial class ascendex : ccxt.ascendex
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
-        object action = "depth-snapshot-realtime";
+        object action = "depth-snapshot";
         object channel = add(add(action, ":"), getValue(market, "id"));
         parameters = this.extend(parameters, new Dictionary<string, object>() {
             { "action", action },
@@ -261,6 +261,19 @@ public partial class ascendex : ccxt.ascendex
         });
         object orderbook = await this.watchPublic(channel, parameters);
         return (orderbook as IOrderBook).limit();
+    }
+
+    public async virtual Task<object> fetchOrderBookSnapshot(object symbol, object limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        object restOrderBook = await this.fetchRestOrderBookSafe(symbol, limit, parameters);
+        if (!isTrue((inOp(this.orderbooks, symbol))))
+        {
+            ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook();
+        }
+        object orderbook = getValue(this.orderbooks, symbol);
+        (orderbook as IOrderBook).reset(restOrderBook);
+        return orderbook;
     }
 
     public virtual void handleOrderBookSnapshot(WebSocketClient client, object message)
@@ -952,8 +965,8 @@ public partial class ascendex : ccxt.ascendex
             { "ping", this.handlePing },
             { "auth", this.handleAuthenticate },
             { "sub", this.handleSubscriptionStatus },
-            { "depth-realtime", this.handleOrderBook },
-            { "depth-snapshot-realtime", this.handleOrderBookSnapshot },
+            { "depth", this.handleOrderBook },
+            { "depth-snapshot", this.handleOrderBookSnapshot },
             { "trades", this.handleTrades },
             { "bar", this.handleOHLCV },
             { "balance", this.handleBalance },
@@ -985,7 +998,7 @@ public partial class ascendex : ccxt.ascendex
         //     { m: 'sub', id: "1647515701", ch: "depth:BTC/USDT", code: 0 }
         //
         object channel = this.safeString(message, "ch", "");
-        if (isTrue(isGreaterThan(getIndexOf(channel, "depth-realtime"), -1)))
+        if (isTrue(isTrue(isGreaterThan(getIndexOf(channel, "depth"), -1)) && !isTrue((isGreaterThan(getIndexOf(channel, "depth-snapshot"), -1)))))
         {
             this.handleOrderBookSubscription(client as WebSocketClient, message);
         }
@@ -997,13 +1010,20 @@ public partial class ascendex : ccxt.ascendex
         object channel = this.safeString(message, "ch");
         object parts = ((string)channel).Split(new [] {((string)":")}, StringSplitOptions.None).ToList<object>();
         object marketId = getValue(parts, 1);
-        object symbol = this.safeSymbol(marketId);
+        object market = this.safeMarket(marketId);
+        object symbol = getValue(market, "symbol");
         if (isTrue(inOp(this.orderbooks, symbol)))
         {
 
         }
         ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {});
-        this.spawn(this.watchOrderBookSnapshot, new object[] { symbol});
+        if (isTrue(isTrue(isEqual(getValue(this.options, "defaultType"), "swap")) || isTrue(getValue(market, "contract"))))
+        {
+            this.spawn(this.fetchOrderBookSnapshot, new object[] { symbol});
+        } else
+        {
+            this.spawn(this.watchOrderBookSnapshot, new object[] { symbol});
+        }
     }
 
     public async virtual Task pong(WebSocketClient client, object message)
@@ -1050,7 +1070,7 @@ public partial class ascendex : ccxt.ascendex
                 { "key", this.apiKey },
                 { "sig", signature },
             };
-            future = this.watch(url, messageHash, this.extend(request, parameters));
+            future = await this.watch(url, messageHash, this.extend(request, parameters), messageHash);
             ((IDictionary<string,object>)((WebSocketClient)client).subscriptions)[(string)messageHash] = future;
         }
         return future;

@@ -6,7 +6,7 @@ import { BadSymbol, ExchangeError, ArgumentsRequired, ExchangeNotAvailable, Insu
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import type { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Leverage, Num, Account, Currencies, TradingFees } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -320,7 +320,7 @@ export default class currencycom extends Exchange {
         return this.safeInteger (response, 'serverTime');
     }
 
-    async fetchCurrencies (params = {}) {
+    async fetchCurrencies (params = {}): Promise<Currencies> {
         /**
          * @method
          * @name currencycom#fetchCurrencies
@@ -394,7 +394,7 @@ export default class currencycom extends Exchange {
         return result;
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name currencycom#fetchMarkets
@@ -584,7 +584,7 @@ export default class currencycom extends Exchange {
         return result;
     }
 
-    async fetchAccounts (params = {}) {
+    async fetchAccounts (params = {}): Promise<Account[]> {
         /**
          * @method
          * @name currencycom#fetchAccounts
@@ -642,7 +642,7 @@ export default class currencycom extends Exchange {
         return result;
     }
 
-    async fetchTradingFees (params = {}) {
+    async fetchTradingFees (params = {}): Promise<TradingFees> {
         /**
          * @method
          * @name currencycom#fetchTradingFees
@@ -1001,7 +1001,7 @@ export default class currencycom extends Exchange {
             request['startTime'] = since;
         }
         if (limit !== undefined) {
-            request['limit'] = limit; // default 500, max 1000
+            request['limit'] = Math.min (limit, 1000); // default 500, max 1000
         }
         const response = await this.publicGetV2Klines (this.extend (request, params));
         //
@@ -1283,7 +1283,7 @@ export default class currencycom extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         /**
          * @method
          * @name currencycom#createOrder
@@ -1821,7 +1821,7 @@ export default class currencycom extends Exchange {
         return this.safeString (types, type, type);
     }
 
-    async fetchLeverage (symbol: string, params = {}) {
+    async fetchLeverage (symbol: string, params = {}): Promise<Leverage> {
         /**
          * @method
          * @name currencycom#fetchLeverage
@@ -1838,12 +1838,23 @@ export default class currencycom extends Exchange {
         };
         const response = await this.privateGetV2LeverageSettings (this.extend (request, params));
         //
-        // {
-        //     "values": [ 1, 2, 5, 10, ],
-        //     "value": "10",
-        // }
+        //     {
+        //         "values": [ 1, 2, 5, 10, ],
+        //         "value": "10",
+        //     }
         //
-        return this.safeNumber (response, 'value');
+        return this.parseLeverage (response, market);
+    }
+
+    parseLeverage (leverage, market = undefined): Leverage {
+        const leverageValue = this.safeInteger (leverage, 'value');
+        return {
+            'info': leverage,
+            'symbol': market['symbol'],
+            'marginMode': undefined,
+            'longLeverage': leverageValue,
+            'shortLeverage': leverageValue,
+        } as Leverage;
     }
 
     async fetchDepositAddress (code: string, params = {}) {
@@ -1958,7 +1969,7 @@ export default class currencycom extends Exchange {
         //        ]
         //    }
         //
-        const data = this.safeValue (response, 'positions', []);
+        const data = this.safeList (response, 'positions', []);
         return this.parsePositions (data, symbols);
     }
 

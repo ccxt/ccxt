@@ -313,7 +313,7 @@ class currencycom extends Exchange {
         return $this->safe_integer($response, 'serverTime');
     }
 
-    public function fetch_currencies($params = array ()) {
+    public function fetch_currencies($params = array ()): array {
         /**
          * fetches all available currencies on an exchange
          * @see https://apitradedoc.currency.com/swagger-ui.html#/rest-api/getCurrenciesUsingGET
@@ -385,7 +385,7 @@ class currencycom extends Exchange {
         return $result;
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): array {
         /**
          * retrieves data on all $markets for currencycom
          * @see https://apitradedoc.currency.com/swagger-ui.html#/rest-api/exchangeInfoUsingGET
@@ -573,7 +573,7 @@ class currencycom extends Exchange {
         return $result;
     }
 
-    public function fetch_accounts($params = array ()) {
+    public function fetch_accounts($params = array ()): array {
         /**
          * fetch all the $accounts associated with a profile
          * @see https://apitradedoc.currency.com/swagger-ui.html#/rest-api/accountUsingGET
@@ -629,7 +629,7 @@ class currencycom extends Exchange {
         return $result;
     }
 
-    public function fetch_trading_fees($params = array ()) {
+    public function fetch_trading_fees($params = array ()): array {
         /**
          * fetch the trading fees for multiple markets
          * @see https://apitradedoc.currency.com/swagger-ui.html#/rest-api/accountUsingGET
@@ -976,7 +976,7 @@ class currencycom extends Exchange {
             $request['startTime'] = $since;
         }
         if ($limit !== null) {
-            $request['limit'] = $limit; // default 500, max 1000
+            $request['limit'] = min ($limit, 1000); // default 500, max 1000
         }
         $response = $this->publicGetV2Klines (array_merge($request, $params));
         //
@@ -1776,7 +1776,7 @@ class currencycom extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function fetch_leverage(string $symbol, $params = array ()) {
+    public function fetch_leverage(string $symbol, $params = array ()): array {
         /**
          * fetch the set leverage for a $market
          * @see https://apitradedoc.currency.com/swagger-ui.html#/rest-api/leverageSettingsUsingGET
@@ -1791,12 +1791,23 @@ class currencycom extends Exchange {
         );
         $response = $this->privateGetV2LeverageSettings (array_merge($request, $params));
         //
-        // {
-        //     "values" => array( 1, 2, 5, 10, ),
-        //     "value" => "10",
-        // }
+        //     {
+        //         "values" => array( 1, 2, 5, 10, ),
+        //         "value" => "10",
+        //     }
         //
-        return $this->safe_number($response, 'value');
+        return $this->parse_leverage($response, $market);
+    }
+
+    public function parse_leverage($leverage, $market = null): array {
+        $leverageValue = $this->safe_integer($leverage, 'value');
+        return array(
+            'info' => $leverage,
+            'symbol' => $market['symbol'],
+            'marginMode' => null,
+            'longLeverage' => $leverageValue,
+            'shortLeverage' => $leverageValue,
+        );
     }
 
     public function fetch_deposit_address(string $code, $params = array ()) {
@@ -1907,7 +1918,7 @@ class currencycom extends Exchange {
         //        )
         //    }
         //
-        $data = $this->safe_value($response, 'positions', array());
+        $data = $this->safe_list($response, 'positions', array());
         return $this->parse_positions($data, $symbols);
     }
 

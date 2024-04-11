@@ -25,6 +25,7 @@ public partial class btcmarkets : Exchange
                 { "cancelOrders", true },
                 { "closeAllPositions", false },
                 { "closePosition", false },
+                { "createDepositAddress", false },
                 { "createOrder", true },
                 { "createReduceOnlyOrder", false },
                 { "fetchBalance", true },
@@ -33,6 +34,9 @@ public partial class btcmarkets : Exchange
                 { "fetchClosedOrders", "emulated" },
                 { "fetchCrossBorrowRate", false },
                 { "fetchCrossBorrowRates", false },
+                { "fetchDepositAddress", false },
+                { "fetchDepositAddresses", false },
+                { "fetchDepositAddressesByNetwork", false },
                 { "fetchDeposits", true },
                 { "fetchDepositsWithdrawals", true },
                 { "fetchFundingHistory", false },
@@ -522,7 +526,7 @@ public partial class btcmarkets : Exchange
         }
         if (isTrue(!isEqual(limit, null)))
         {
-            ((IDictionary<string,object>)request)["limit"] = limit; // default is 10, max 200
+            ((IDictionary<string,object>)request)["limit"] = mathMin(limit, 200); // default is 10, max 200
         }
         object response = await this.publicGetMarketsMarketIdCandles(this.extend(request, parameters));
         //
@@ -922,6 +926,18 @@ public partial class btcmarkets : Exchange
 
     public override object calculateFee(object symbol, object type, object side, object amount, object price, object takerOrMaker = null, object parameters = null)
     {
+        /**
+        * @method
+        * @description calculates the presumptive fee that would be charged for an order
+        * @param {string} symbol unified market symbol
+        * @param {string} type not used by btcmarkets.calculateFee
+        * @param {string} side not used by btcmarkets.calculateFee
+        * @param {float} amount how much you want to trade, in units of the base currency on most exchanges, or number of contracts
+        * @param {float} price the price for the order to be filled at, in units of the quote currency
+        * @param {string} takerOrMaker 'taker' or 'maker'
+        * @param {object} params
+        * @returns {object} contains the rate, the percentage multiplied to the order amount to obtain the fee amount, and cost, the total value of the fee in units of the quote currency, for the order
+        */
         takerOrMaker ??= "taker";
         parameters ??= new Dictionary<string, object>();
         object market = getValue(this.markets, symbol);

@@ -150,7 +150,7 @@ public partial class Exchange
         var body = body2 as String;
 
         if (this.verbose)
-            this.log("fetch Request:\n" + this.id + " " + method + " " + url + "\nRequestHeaders:\n" + this.stringifyObject(headers) + "\nRequestBody:\n" + this.stringifyObject(body) + "\n");
+            this.log("fetch Request:\n" + this.id + " " + method + " " + url + "\nRequestHeaders:\n" + this.stringifyObject(headers) + "\nRequestBody:\n" + this.json(body) + "\n");
 
         // to do: add all proxies support
         this.checkProxySettings();
@@ -416,9 +416,21 @@ public partial class Exchange
         return this.currencies;
     }
 
+    public async Task<Currencies> FetchCurrencies(object parameters = null)
+    {
+        var res = await this.fetchCurrencies(parameters);
+        return new Currencies(res);
+    }
+
     public virtual async Task<object> fetchCurrenciesWs(object parameters = null)
     {
         return this.currencies;
+    }
+
+        public async Task<Currencies> FetchCurrenciesWs(object parameters = null)
+    {
+        var res = await this.fetchCurrenciesWs(parameters);
+        return new Currencies(res);
     }
 
     public void log(object s)
@@ -554,9 +566,26 @@ public partial class Exchange
         // stub to implement later
     }
 
+    private async Task closeClient(string key, WebSocketClient client)
+    {
+        await client.Close();
+        this.clients.TryRemove(key, out _);
+    }
+
     public async Task Close()
     {
-        // stub
+        var tasks = new List<Task>();
+        if (this.clients.Keys.Count > 0)
+        {
+            foreach (var key in this.clients.Keys)
+            {
+
+                var client = this.clients[key];
+                tasks.Add(closeClient(key, client));
+
+            }
+            await Task.WhenAll(tasks);
+        }
     }
 
     public async Task close()
@@ -779,11 +808,45 @@ public partial class Exchange
         return new Currency(genericCurrency);
     }
 
-    public async Task LoadMarkets()
+    /// <summary>
+    /// Returns a dictionary of market objects for all markets.
+    /// </summary>
+    /// <remarks>
+    /// </remarks>
+    /// <returns> <term>Dictionary</term>string, MarketInterface</returns>
+    public async Task<Dictionary<string, MarketInterface>> LoadMarkets()
     {
-        await this.loadMarkets();
+        var res = await this.loadMarkets();
+        var dictRest = res as Dictionary<string, object>;
+        var returnRest = new Dictionary<string, MarketInterface>();
+        foreach (var item in dictRest)
+        {
+            returnRest.Add(item.Key, new MarketInterface(item.Value));
+        }
+        return returnRest;
+        // return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
     }
 
+    public string randomBytes(object length2)
+    {
+        var length = Convert.ToInt32(length2);
+        var bytes = new byte[length];
+        var rng = new Random();
+        rng.NextBytes(bytes);
+        return Convert.ToBase64String(bytes);
+    }
+
+    public void extendExchangeOptions(object options2)
+    {
+        var options = (dict)options2;
+        var extended = this.extend(this.options, options);
+        this.options = new System.Collections.Concurrent.ConcurrentDictionary<string, object>(extended);
+    }
+
+    public IDictionary<string, object> createSafeDictionary()
+    {
+        return new System.Collections.Concurrent.ConcurrentDictionary<string, object>();
+    }
     public class DynamicInvoker
     {
         public static object InvokeMethod(object action, object[] parameters)

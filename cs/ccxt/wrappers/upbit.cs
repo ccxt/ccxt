@@ -209,10 +209,10 @@ public partial class upbit
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchTradingFee(string symbol, Dictionary<string, object> parameters = null)
+    public async Task<TradingFeeInterface> FetchTradingFee(string symbol, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchTradingFee(symbol, parameters);
-        return ((Dictionary<string, object>)res);
+        return new TradingFeeInterface(res);
     }
     /// <summary>
     /// fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
@@ -253,6 +253,7 @@ public partial class upbit
     /// </summary>
     /// <remarks>
     /// See <see href="https://docs.upbit.com/reference/%EC%A3%BC%EB%AC%B8%ED%95%98%EA%B8%B0"/>  <br/>
+    /// See <see href="https://global-docs.upbit.com/reference/order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>
@@ -270,6 +271,12 @@ public partial class upbit
     /// <term>params.cost</term>
     /// <description>
     /// float : for market buy orders, the quote quantity that can be used as an alternative for the amount
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.timeInForce</term>
+    /// <description>
+    /// string : 'IOC' or 'FOK'
     /// </description>
     /// </item>
     /// </list>

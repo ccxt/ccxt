@@ -113,7 +113,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         //                 "volume" => "3587.05020246",
         //                 "volumeQuote" => "708030.17",
         //                 "bid" => "199.56",
-        //                 "bidSize" => "4.14730803",
+        //                 "bidSize" => "4.14730802",
         //                 "ask" => "199.57",
         //                 "askSize" => "6.13642074",
         //                 "timestamp" => 1590770885217
@@ -942,7 +942,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         $client->resolve ($deposits, $messageHash);
     }
 
-    public function fetch_trading_fees_ws($params = array ()) {
+    public function fetch_trading_fees_ws($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * @see https://docs.bitvavo.com/#tag/Account/paths/~1account/get
@@ -1143,7 +1143,7 @@ class bitvavo extends \ccxt\async\bitvavo {
     }
 
     public function check_message_hash_does_not_exist($messageHash) {
-        $supressMultipleWsRequestsError = $this->safe_value($this->options, 'supressMultipleWsRequestsError', false);
+        $supressMultipleWsRequestsError = $this->safe_bool($this->options, 'supressMultipleWsRequestsError', false);
         if (!$supressMultipleWsRequestsError) {
             $client = $this->safe_value($this->clients, $this->urls['api']['ws']);
             if ($client !== null) {
@@ -1260,27 +1260,29 @@ class bitvavo extends \ccxt\async\bitvavo {
     }
 
     public function authenticate($params = array ()) {
-        $url = $this->urls['api']['ws'];
-        $client = $this->client($url);
-        $messageHash = 'authenticated';
-        $future = $this->safe_value($client->subscriptions, $messageHash);
-        if ($future === null) {
-            $timestamp = $this->milliseconds();
-            $stringTimestamp = (string) $timestamp;
-            $auth = $stringTimestamp . 'GET/' . $this->version . '/websocket';
-            $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256');
-            $action = 'authenticate';
-            $request = array(
-                'action' => $action,
-                'key' => $this->apiKey,
-                'signature' => $signature,
-                'timestamp' => $timestamp,
-            );
-            $message = array_merge($request, $params);
-            $future = $this->watch($url, $messageHash, $message);
-            $client->subscriptions[$messageHash] = $future;
-        }
-        return $future;
+        return Async\async(function () use ($params) {
+            $url = $this->urls['api']['ws'];
+            $client = $this->client($url);
+            $messageHash = 'authenticated';
+            $future = $this->safe_value($client->subscriptions, $messageHash);
+            if ($future === null) {
+                $timestamp = $this->milliseconds();
+                $stringTimestamp = (string) $timestamp;
+                $auth = $stringTimestamp . 'GET/' . $this->version . '/websocket';
+                $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256');
+                $action = 'authenticate';
+                $request = array(
+                    'action' => $action,
+                    'key' => $this->apiKey,
+                    'signature' => $signature,
+                    'timestamp' => $timestamp,
+                );
+                $message = array_merge($request, $params);
+                $future = Async\await($this->watch($url, $messageHash, $message, $messageHash));
+                $client->subscriptions[$messageHash] = $future;
+            }
+            return $future;
+        }) ();
     }
 
     public function handle_authentication_message(Client $client, $message) {

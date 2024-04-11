@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.coinbasepro import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Account, Balances, Currencies, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -239,7 +239,7 @@ class coinbasepro(Exchange, ImplicitAPI):
             },
         })
 
-    async def fetch_currencies(self, params={}):
+    async def fetch_currencies(self, params={}) -> Currencies:
         """
         fetches all available currencies on an exchange
         :see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getcurrencies
@@ -307,7 +307,7 @@ class coinbasepro(Exchange, ImplicitAPI):
             }
         return result
 
-    async def fetch_markets(self, params={}):
+    async def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for coinbasepro
         :see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getproducts
@@ -425,7 +425,7 @@ class coinbasepro(Exchange, ImplicitAPI):
             }))
         return result
 
-    async def fetch_accounts(self, params={}):
+    async def fetch_accounts(self, params={}) -> List[Account]:
         """
         fetch all the accounts associated with a profile
         :see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getaccounts
@@ -833,7 +833,7 @@ class coinbasepro(Exchange, ImplicitAPI):
         #
         return self.parse_trades(response, market, since, limit)
 
-    async def fetch_trading_fees(self, params={}):
+    async def fetch_trading_fees(self, params={}) -> TradingFees:
         """
         fetch the trading fees for multiple markets
         :see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getfees
@@ -1144,7 +1144,7 @@ class coinbasepro(Exchange, ImplicitAPI):
         }
         return await self.fetch_open_orders(symbol, since, limit, self.extend(request, params))
 
-    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         :see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_postorders
         create a trade order

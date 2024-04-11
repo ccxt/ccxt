@@ -10,12 +10,14 @@ namespace ccxt;
 use React\Async;
 use React\Promise;
 include_once PATH_TO_CCXT . '/test/base/test_ledger_entry.php';
+include_once PATH_TO_CCXT . '/test/base/test_shared_methods.php';
 
 function test_fetch_ledger_entry($exchange, $skipped_properties, $code) {
     return Async\async(function () use ($exchange, $skipped_properties, $code) {
         $method = 'fetchLedgerEntry';
         $items = Async\await($exchange->fetch_ledger($code));
         $length = count($items);
+        assert_non_emtpy_array($exchange, $skipped_properties, $method, $items, $code);
         if ($length > 0) {
             $first_item = $items[0];
             $id = $first_item['id'];

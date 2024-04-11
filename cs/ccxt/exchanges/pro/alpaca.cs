@@ -645,7 +645,7 @@ public partial class alpaca : ccxt.alpaca
             }
             this.watch(url, messageHash, request, messageHash, future);
         }
-        return future;
+        return await (future as Exchange.Future);
     }
 
     public virtual void handleErrorMessage(WebSocketClient client, object message)
@@ -679,7 +679,7 @@ public partial class alpaca : ccxt.alpaca
         {
             object data = getValue(message, i);
             object T = this.safeString(data, "T");
-            object msg = this.safeValue(data, "msg", new Dictionary<string, object>() {});
+            object msg = this.safeString(data, "msg");
             if (isTrue(isEqual(T, "subscription")))
             {
                 this.handleSubscription(client as WebSocketClient, data);

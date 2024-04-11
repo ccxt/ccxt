@@ -67,17 +67,9 @@ class bitmex(ccxt.async_support.bitmex):
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
-        market = self.market(symbol)
-        name = 'instrument'
-        messageHash = name + ':' + market['id']
-        url = self.urls['api']['ws']
-        request = {
-            'op': 'subscribe',
-            'args': [
-                messageHash,
-            ],
-        }
-        return await self.watch(url, messageHash, self.extend(request, params), messageHash)
+        symbol = self.symbol(symbol)
+        tickers = await self.watch_tickers([symbol], params)
+        return tickers[symbol]
 
     async def watch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
@@ -91,22 +83,24 @@ class bitmex(ccxt.async_support.bitmex):
         name = 'instrument'
         url = self.urls['api']['ws']
         messageHashes = []
+        rawSubscriptions = []
         if symbols is not None:
             for i in range(0, len(symbols)):
                 symbol = symbols[i]
                 market = self.market(symbol)
-                hash = name + ':' + market['id']
-                messageHashes.append(hash)
+                subscription = name + ':' + market['id']
+                rawSubscriptions.append(subscription)
+                messageHash = 'ticker:' + symbol
+                messageHashes.append(messageHash)
         else:
-            messageHashes.append(name)
+            rawSubscriptions.append(name)
+            messageHashes.append('alltickers')
         request = {
             'op': 'subscribe',
-            'args': messageHashes,
+            'args': rawSubscriptions,
         }
-        ticker = await self.watch_multiple(url, messageHashes, self.extend(request, params), messageHashes)
+        ticker = await self.watch_multiple(url, messageHashes, self.extend(request, params), rawSubscriptions)
         if self.newUpdates:
-            if symbols is None:
-                return ticker
             result = {}
             result[ticker['symbol']] = ticker
             return result
@@ -339,22 +333,21 @@ class bitmex(ccxt.async_support.bitmex):
         #         ]
         #     }
         #
-        table = self.safe_string(message, 'table')
         data = self.safe_list(message, 'data', [])
         tickers = {}
         for i in range(0, len(data)):
             update = data[i]
             marketId = self.safe_string(update, 'symbol')
-            market = self.safe_market(marketId)
-            symbol = market['symbol']
-            messageHash = table + ':' + marketId
-            ticker = self.safe_dict(self.tickers, symbol, {})
-            info = self.safe_dict(ticker, 'info', {})
-            parsedTicker = self.parse_ticker(self.extend(info, update), market)
-            tickers[symbol] = parsedTicker
-            self.tickers[symbol] = parsedTicker
-            client.resolve(ticker, messageHash)
-        client.resolve(tickers, 'instrument')
+            symbol = self.safe_symbol(marketId)
+            if not (symbol in self.tickers):
+                self.tickers[symbol] = self.parse_ticker({})
+            updatedTicker = self.parse_ticker(update)
+            fullParsedTicker = self.deep_extend(self.tickers[symbol], updatedTicker)
+            tickers[symbol] = fullParsedTicker
+            self.tickers[symbol] = fullParsedTicker
+            messageHash = 'ticker:' + symbol
+            client.resolve(fullParsedTicker, messageHash)
+            client.resolve(fullParsedTicker, 'alltickers')
         return message
 
     async def watch_balance(self, params={}) -> Balances:
@@ -547,8 +540,8 @@ class bitmex(ccxt.async_support.bitmex):
         for i in range(0, len(marketIds)):
             marketId = marketIds[i]
             market = self.safe_market(marketId)
-            messageHash = table + ':' + marketId
             symbol = market['symbol']
+            messageHash = table + ':' + symbol
             trades = self.parse_trades(dataByMarketIds[marketId], market)
             stored = self.safe_value(self.trades, symbol)
             if stored is None:
@@ -568,22 +561,7 @@ class bitmex(ccxt.async_support.bitmex):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
         """
-        await self.load_markets()
-        market = self.market(symbol)
-        symbol = market['symbol']
-        table = 'trade'
-        messageHash = table + ':' + market['id']
-        url = self.urls['api']['ws']
-        request = {
-            'op': 'subscribe',
-            'args': [
-                messageHash,
-            ],
-        }
-        trades = await self.watch(url, messageHash, self.extend(request, params), messageHash)
-        if self.newUpdates:
-            limit = trades.getLimit(symbol, limit)
-        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
+        return await self.watch_trades_for_symbols([symbol], since, limit, params)
 
     async def authenticate(self, params={}):
         url = self.urls['api']['ws']
@@ -606,7 +584,7 @@ class bitmex(ccxt.async_support.bitmex):
             }
             message = self.extend(request, params)
             self.watch(url, messageHash, message, messageHash)
-        return future
+        return await future
 
     def handle_authentication_message(self, client: Client, message):
         authenticated = self.safe_bool(message, 'success', False)
@@ -1178,6 +1156,39 @@ class bitmex(ccxt.async_support.bitmex):
         orderbook = await self.watch_multiple(url, messageHashes, self.deep_extend(request, params), topics)
         return orderbook.limit()
 
+    async def watch_trades_for_symbols(self, symbols: List[str], since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+        """
+        get the list of most recent trades for a list of symbols
+        :param str[] symbols: unified symbol of the market to fetch trades for
+        :param int [since]: timestamp in ms of the earliest trade to fetch
+        :param int [limit]: the maximum amount of trades to fetch
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
+        """
+        await self.load_markets()
+        symbols = self.market_symbols(symbols, None, False)
+        table = 'trade'
+        topics = []
+        messageHashes = []
+        for i in range(0, len(symbols)):
+            symbol = symbols[i]
+            market = self.market(symbol)
+            topic = table + ':' + market['id']
+            topics.append(topic)
+            messageHash = table + ':' + symbol
+            messageHashes.append(messageHash)
+        url = self.urls['api']['ws']
+        request = {
+            'op': 'subscribe',
+            'args': topics,
+        }
+        trades = await self.watch_multiple(url, messageHashes, self.deep_extend(request, params), topics)
+        if self.newUpdates:
+            first = self.safe_value(trades, 0)
+            tradeSymbol = self.safe_string(first, 'symbol')
+            limit = trades.getLimit(tradeSymbol, limit)
+        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
+
     async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
@@ -1285,7 +1296,7 @@ class bitmex(ccxt.async_support.bitmex):
             messageHash = table + ':' + market['id']
             result = [
                 self.parse8601(self.safe_string(candle, 'timestamp')) - duration * 1000,
-                self.safe_float(candle, 'open'),
+                None,  # set open price to None, see: https://github.com/ccxt/ccxt/pull/21356#issuecomment-1969565862
                 self.safe_float(candle, 'high'),
                 self.safe_float(candle, 'low'),
                 self.safe_float(candle, 'close'),

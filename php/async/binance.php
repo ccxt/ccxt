@@ -48,11 +48,16 @@ class binance extends Exchange {
                 'closeAllPositions' => false,
                 'closePosition' => false,  // exchange specific closePosition parameter for binance createOrder is not synonymous with how CCXT uses closePositions
                 'createDepositAddress' => false,
+                'createLimitBuyOrder' => true,
+                'createLimitSellOrder' => true,
+                'createMarketBuyOrder' => true,
                 'createMarketBuyOrderWithCost' => true,
                 'createMarketOrderWithCost' => true,
+                'createMarketSellOrder' => true,
                 'createMarketSellOrderWithCost' => true,
                 'createOrder' => true,
                 'createOrders' => true,
+                'createOrderWithTakeProfitAndStopLoss' => true,
                 'createPostOnlyOrder' => true,
                 'createReduceOnlyOrder' => true,
                 'createStopLimitOrder' => true,
@@ -69,9 +74,12 @@ class binance extends Exchange {
                 'fetchBorrowInterest' => true,
                 'fetchBorrowRateHistories' => false,
                 'fetchBorrowRateHistory' => true,
+                'fetchCanceledAndClosedOrders' => 'emulated',
                 'fetchCanceledOrders' => 'emulated',
                 'fetchClosedOrder' => false,
                 'fetchClosedOrders' => 'emulated',
+                'fetchConvertCurrencies' => true,
+                'fetchConvertQuote' => false,
                 'fetchCrossBorrowRate' => true,
                 'fetchCrossBorrowRates' => false,
                 'fetchCurrencies' => true,
@@ -94,9 +102,14 @@ class binance extends Exchange {
                 'fetchL3OrderBook' => false,
                 'fetchLastPrices' => true,
                 'fetchLedger' => true,
-                'fetchLeverage' => false,
+                'fetchLedgerEntry' => true,
+                'fetchLeverage' => 'emulated',
+                'fetchLeverages' => true,
                 'fetchLeverageTiers' => true,
                 'fetchLiquidations' => false,
+                'fetchMarginAdjustmentHistory' => true,
+                'fetchMarginMode' => 'emulated',
+                'fetchMarginModes' => true,
                 'fetchMarketLeverageTiers' => 'emulated',
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => true,
@@ -108,12 +121,15 @@ class binance extends Exchange {
                 'fetchOpenInterestHistory' => true,
                 'fetchOpenOrder' => true,
                 'fetchOpenOrders' => true,
+                'fetchOption' => true,
+                'fetchOptionChain' => false,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrderBooks' => false,
                 'fetchOrders' => true,
                 'fetchOrderTrades' => true,
                 'fetchPosition' => true,
+                'fetchPositionMode' => true,
                 'fetchPositions' => true,
                 'fetchPositionsRisk' => true,
                 'fetchPremiumIndexOHLCV' => false,
@@ -125,10 +141,11 @@ class binance extends Exchange {
                 'fetchTrades' => true,
                 'fetchTradingFee' => true,
                 'fetchTradingFees' => true,
-                'fetchTradingLimits' => null,
-                'fetchTransactionFee' => null,
+                'fetchTradingLimits' => 'emulated',
+                'fetchTransactionFee' => 'emulated',
                 'fetchTransactionFees' => true,
                 'fetchTransactions' => false,
+                'fetchTransfer' => false,
                 'fetchTransfers' => true,
                 'fetchUnderlyingAssets' => false,
                 'fetchVolatilityHistory' => false,
@@ -288,12 +305,10 @@ class binance extends Exchange {
                         'loan/loanable/data' => 40, // Weight(IP) => 400 => cost = 0.1 * 400 = 40
                         'loan/collateral/data' => 40, // Weight(IP) => 400 => cost = 0.1 * 400 = 40
                         'loan/repay/collateral/rate' => 600, // Weight(IP) => 6000 => cost = 0.1 * 6000 = 600
-                        'loan/flexible/ongoing/orders' => 30, // Weight(IP) => 300 => cost = 0.1 * 300 = 30
-                        'loan/flexible/borrow/history' => 40, // Weight(IP) => 400 => cost = 0.1 * 400 = 40
-                        'loan/flexible/repay/history' => 40, // Weight(IP) => 400 => cost = 0.1 * 400 = 40
-                        'loan/flexible/ltv/adjustment/history' => 40, // Weight(IP) => 400 => cost = 0.1 * 400 = 40
-                        'loan/flexible/loanable/data' => 40, // Weight(IP) => 400 => cost = 0.1 * 400 = 40
-                        'loan/flexible/collateral/data' => 40, // Weight(IP) => 400 => cost = 0.1 * 400 = 40
+                        'loan/flexible/ongoing/orders' => 30, // TODO => Deprecating at 2024-04-24 03:00 (UTC)
+                        'loan/flexible/borrow/history' => 40, // Weight(IP) => 400 => cost = 0.1 * 400 = 40, check flexible rate loans order history before 2024-02-27 08:00 (UTC)
+                        'loan/flexible/repay/history' => 40, // Weight(IP) => 400 => cost = 0.1 * 400 = 40, check flexible rate loans order history before 2024-02-27 08:00 (UTC)
+                        'loan/flexible/ltv/adjustment/history' => 40, // Weight(IP) => 400 => cost = 0.1 * 400 = 40, check flexible rate loans order history before 2024-02-27 08:00 (UTC)
                         'loan/vip/ongoing/orders' => 40, // Weight(IP) => 400 => cost = 0.1 * 400 = 40
                         'loan/vip/repay/history' => 40, // Weight(IP) => 400 => cost = 0.1 * 400 = 40
                         'loan/vip/collateral/account' => 600, // Weight(IP) => 6000 => cost = 0.1 * 6000 = 600
@@ -478,6 +493,10 @@ class binance extends Exchange {
                         'simple-earn/flexible/history/rewardsRecord' => 15,
                         'simple-earn/locked/history/rewardsRecord' => 15,
                         'simple-earn/flexible/history/collateralRecord' => 0.1,
+                        // Convert
+                        'dci/product/list' => 0.1,
+                        'dci/product/positions' => 0.1,
+                        'dci/product/accounts' => 0.1,
                     ),
                     'post' => array(
                         'asset/dust' => 0.06667, // Weight(UID) => 10 => cost = 0.006667 * 10 = 0.06667
@@ -581,9 +600,8 @@ class binance extends Exchange {
                         'loan/repay' => 40.002,
                         'loan/adjust/ltv' => 40.002,
                         'loan/customize/margin_call' => 40.002,
-                        'loan/flexible/borrow' => 40.002, // Weight(UID) => 6000 => cost = 0.006667 * 6000 = 40.002
-                        'loan/flexible/repay' => 40.002, // Weight(UID) => 6000 => cost = 0.006667 * 6000 = 40.002
-                        'loan/flexible/adjust/ltv' => 40.002, // Weight(UID) => 6000 => cost = 0.006667 * 6000 = 40.002
+                        'loan/flexible/repay' => 40.002, // TODO => Deprecating at 2024-04-24 03:00 (UTC)
+                        'loan/flexible/adjust/ltv' => 40.002, // TODO => Deprecating at 2024-04-24 03:00 (UTC)
                         'loan/vip/repay' => 40.002,
                         'convert/getQuote' => 1.3334, // Weight(UID) => 200 => cost = 0.006667 * 200 = 1.3334
                         'convert/acceptQuote' => 3.3335, // Weight(UID) => 500 => cost = 0.006667 * 500 = 3.3335
@@ -606,6 +624,9 @@ class binance extends Exchange {
                         'simple-earn/locked/redeem' => 0.1,
                         'simple-earn/flexible/setAutoSubscribe' => 15,
                         'simple-earn/locked/setAutoSubscribe' => 15,
+                        // convert
+                        'dci/product/subscribe' => 0.1,
+                        'dci/product/auto_compound/edit' => 0.1,
                     ),
                     'put' => array(
                         'userDataStream' => 0.1,
@@ -633,10 +654,19 @@ class binance extends Exchange {
                         'sub-account/futures/account' => 0.1,
                         'sub-account/futures/accountSummary' => 1,
                         'sub-account/futures/positionRisk' => 0.1,
+                        'loan/flexible/ongoing/orders' => 30, // Weight(IP) => 300 => cost = 0.1 * 300 = 30
+                        'loan/flexible/borrow/history' => 40, // Weight(IP) => 400 => cost = 0.1 * 400 = 40
+                        'loan/flexible/repay/history' => 40, // Weight(IP) => 400 => cost = 0.1 * 400 = 40
+                        'loan/flexible/ltv/adjustment/history' => 40, // Weight(IP) => 400 => cost = 0.1 * 400 = 40
+                        'loan/flexible/loanable/data' => 40, // Weight(IP) => 400 => cost = 0.1 * 400 = 40
+                        'loan/flexible/collateral/data' => 40, // Weight(IP) => 400 => cost = 0.1 * 400 = 40
                     ),
                     'post' => array(
                         'eth-staking/eth/stake' => 15, // Weight(IP) => 150 => cost = 0.1 * 150 = 15
                         'sub-account/subAccountApi/ipRestriction' => 20.001, // Weight(UID) => 3000 => cost = 0.006667 * 3000 = 20.001
+                        'loan/flexible/borrow' => 40.002, // Weight(UID) => 6000 => cost = 0.006667 * 6000 = 40.002
+                        'loan/flexible/repay' => 40.002, // Weight(UID) => 6000 => cost = 0.006667 * 6000 = 40.002
+                        'loan/flexible/adjust/ltv' => 40.002, // Weight(UID) => 6000 => cost = 0.006667 * 6000 = 40.002
                     ),
                 ),
                 'sapiV3' => array(
@@ -790,6 +820,7 @@ class binance extends Exchange {
                         'userTrades' => 5,
                         'income' => 30,
                         'commissionRate' => 20,
+                        'rateLimit/order' => 1,
                         'apiTradingStatus' => 1,
                         'multiAssetsMargin' => 30,
                         // broker endpoints
@@ -948,6 +979,7 @@ class binance extends Exchange {
                     ),
                     'post' => array(
                         'order/oco' => 0.2,
+                        'orderList/oco' => 0.2,
                         'sor/order' => 0.2,
                         'sor/order/test' => 0.2,
                         'order' => 0.2,
@@ -1441,63 +1473,30 @@ class binance extends Exchange {
             ),
             'exceptions' => array(
                 'spot' => array(
-                    // https://binance-docs.github.io/apidocs/spot/en/#error-codes
                     'exact' => array(
-                        '-1000' => '\\ccxt\\OperationFailed', // array("code":-1000,"msg":"An unknown error occured while processing the request.")
-                        '-1001' => '\\ccxt\\OperationFailed', // array("code":-1001,"msg":"'Internal error; unable to process your request. Please try again.'")
-                        '-1002' => '\\ccxt\\AuthenticationError', // array("code":-1002,"msg":"'You are not authorized to execute this request.'")
-                        '-1003' => '\\ccxt\\RateLimitExceeded', // array("code":-1003,"msg":"Too much request weight used, current limit is 1200 request weight per 1 MINUTE. Please use the websocket for live updates to avoid polling the API.")
+                        //
+                        //        1xxx
+                        //
                         '-1004' => '\\ccxt\\OperationFailed', // array("code":-1004,"msg":"Server is busy, please wait and try again")
-                        '-1006' => '\\ccxt\\OperationFailed', // array("code":-1006,"msg":"An unexpected response was received from the message bus. Execution status unknown.")
-                        '-1007' => '\\ccxt\\RequestTimeout', // array("code":-1007,"msg":"Timeout waiting for response from backend server. Send status unknown; execution status unknown.")
                         '-1008' => '\\ccxt\\OperationFailed', // undocumented, but mentioned => This is sent whenever the servers are overloaded with requests.
-                        '-1010' => '\\ccxt\\OperationFailed', // undocumented, but mentioned ERROR_MSG_RECEIVED
-                        '-1013' => '\\ccxt\\OperationFailed', // undocumented, but mentioned
-                        '-1014' => '\\ccxt\\InvalidOrder', // array("code":-1014,"msg":"Unsupported order combination.")
-                        '-1015' => '\\ccxt\\RateLimitExceeded', // array("code":-1015,"msg":"'Too many new orders; current limit is %s orders per %s.'")
-                        '-1016' => '\\ccxt\\BadRequest', // array("code":-1016,"msg":"'This service is no longer available.',")
-                        '-1020' => '\\ccxt\\BadRequest', // array("code":-1020,"msg":"'This operation is not supported.'")
-                        '-1021' => '\\ccxt\\InvalidNonce', // array("code":-1021,"msg":"'your time is ahead of server'")
-                        '-1022' => '\\ccxt\\AuthenticationError', // array("code":-1022,"msg":"Signature for this request is not valid.")
                         '-1099' => '\\ccxt\\AuthenticationError', // array("code":-1099,"msg":"Not found, authenticated, or authorized")
-                        '-1100' => '\\ccxt\\BadRequest', // array("code":-1100,"msg":"createOrder(symbol, 1, asdf) -> 'Illegal characters found in parameter 'price'")
-                        '-1101' => '\\ccxt\\BadRequest', // array("code":-1101,"msg":"Too many parameters; expected %s and received %s.")
-                        '-1102' => '\\ccxt\\BadRequest', // array("code":-1102,"msg":"Param %s or %s must be sent, but both were empty")
-                        '-1103' => '\\ccxt\\BadRequest', // array("code":-1103,"msg":"An unknown parameter was sent.")
-                        '-1104' => '\\ccxt\\BadRequest', // array("code":-1104,"msg":"Not all sent parameters were read, read 8 parameters but was sent 9")
-                        '-1105' => '\\ccxt\\BadRequest', // array("code":-1105,"msg":"Parameter %s was empty.")
-                        '-1106' => '\\ccxt\\BadRequest', // array("code":-1106,"msg":"Parameter %s sent when not required.")
                         '-1108' => '\\ccxt\\BadRequest', // undocumented, but mentioned => This error will occur if a value to a parameter being sent was too large, potentially causing overflow
-                        '-1111' => '\\ccxt\\BadRequest', // array("code":-1111,"msg":"Precision is over the maximum defined for this asset.")
-                        '-1112' => '\\ccxt\\OperationFailed', // array("code":-1112,"msg":"No orders on book for symbol.")
-                        '-1114' => '\\ccxt\\BadRequest', // array("code":-1114,"msg":"TimeInForce parameter sent when not required.")
-                        '-1115' => '\\ccxt\\BadRequest', // array("code":-1115,"msg":"Invalid timeInForce.")
-                        '-1116' => '\\ccxt\\BadRequest', // array("code":-1116,"msg":"Invalid orderType.")
-                        '-1117' => '\\ccxt\\BadRequest', // array("code":-1117,"msg":"Invalid side.")
-                        '-1118' => '\\ccxt\\BadRequest', // array("code":-1118,"msg":"New client order ID was empty.")
-                        '-1119' => '\\ccxt\\BadRequest', // array("code":-1119,"msg":"Original client order ID was empty.")
-                        '-1120' => '\\ccxt\\BadRequest', // array("code":-1120,"msg":"Invalid interval.")
-                        '-1121' => '\\ccxt\\BadSymbol', // array("code":-1121,"msg":"Invalid symbol.")
-                        '-1125' => '\\ccxt\\AuthenticationError', // array("code":-1125,"msg":"This listenKey does not exist.")
-                        '-1127' => '\\ccxt\\BadRequest', // array("code":-1127,"msg":"More than %s hours between startTime and endTime.")
-                        '-1128' => '\\ccxt\\BadRequest', // array("code":-1128,"msg":"Combination of optional parameters invalid.")
-                        '-1130' => '\\ccxt\\BadRequest', // array("code":-1130,"msg":"Data sent for paramter %s is not valid.")
                         '-1131' => '\\ccxt\\BadRequest', // array("code":-1131,"msg":"recvWindow must be less than 60000")
                         '-1134' => '\\ccxt\\BadRequest', // strategyType was less than 1000000.
                         '-1135' => '\\ccxt\\BadRequest', // undocumented, but mentioned => This error code will occur if a parameter requiring a JSON object is invalid.
                         '-1145' => '\\ccxt\\BadRequest', // cancelRestrictions has to be either ONLY_NEW or ONLY_PARTIALLY_FILLED.
                         '-1151' => '\\ccxt\\BadSymbol', // Symbol is present multiple times in the list.
+                        //
+                        //        2xxx
+                        //
                         '-2008' => '\\ccxt\\AuthenticationError', // undocumented, Invalid Api-Key ID
-                        '-2010' => '\\ccxt\\InvalidOrder', // NEW_ORDER_REJECTED
-                        '-2011' => '\\ccxt\\OrderNotFound', // array("code":-2011,"msg":"cancelOrder(1, 'BTC/USDT') -> 'UNKNOWN_ORDER'")
-                        '-2013' => '\\ccxt\\OrderNotFound', // array("code":-2013,"msg":"fetchOrder (1, 'BTC/USDT') -> 'Order does not exist'")
-                        '-2014' => '\\ccxt\\AuthenticationError', // array("code":-2014,"msg":"API-key format invalid.")
-                        '-2015' => '\\ccxt\\AuthenticationError', // array("code":-2015,"msg":"Invalid API-key, IP, or permissions for action.")
                         '-2016' => '\\ccxt\\OperationRejected', // array("code":-2016,"msg":"No trading window could be found for the symbol. Try ticker/24hrs instead.")
                         '-2021' => '\\ccxt\\BadResponse', // This code is sent when either the cancellation of the order failed or the new order placement failed but not both.
                         '-2022' => '\\ccxt\\BadResponse', // This code is sent when both the cancellation of the order failed and the new order placement failed.
                         '-2026' => '\\ccxt\\InvalidOrder', // Order was canceled or expired with no executed qty over 90 days ago and has been archived.
-                        // 3xxx errors are available only for spot
+                        //
+                        //        3xxx (these errors are available only for spot atm)
+                        //
                         '-3000' => '\\ccxt\\OperationFailed', // array("code":-3000,"msg":"Internal server error.")
                         '-3001' => '\\ccxt\\AuthenticationError', // array("code":-3001,"msg":"Please enable 2FA first.")
                         '-3002' => '\\ccxt\\BadSymbol', // array("code":-3002,"msg":"We don't have this asset.")
@@ -1537,6 +1536,10 @@ class binance extends Exchange {
                         '-3044' => '\\ccxt\\OperationFailed', // array("code":-3044,"msg":"System busy.")
                         '-3045' => '\\ccxt\\OperationFailed', // array("code":-3045,"msg":"The system doesn't have enough asset now.")
                         '-3999' => '\\ccxt\\PermissionDenied', // array("code":-3999,"msg":"This function is only available for invited users.")
+                        //
+                        //        4xxx (different from contract markets)
+                        //
+                        '-4000' => '\\ccxt\\ExchangeError', // override commons
                         '-4001' => '\\ccxt\\BadRequest', // array("code":-4001 ,"msg":"Invalid operation.")
                         '-4002' => '\\ccxt\\BadRequest', // array("code":-4002 ,"msg":"Invalid get.")
                         '-4003' => '\\ccxt\\BadRequest', // array("code":-4003 ,"msg":"Your input email is invalid.")
@@ -1556,6 +1559,7 @@ class binance extends Exchange {
                         '-4017' => '\\ccxt\\PermissionDenied', // array("code":-4017 ,"msg":"Within 24 hours after the release of 2FA, withdrawal is prohibited.")
                         '-4018' => '\\ccxt\\BadSymbol', // array("code":-4018,"msg":"We don't have this asset.")
                         '-4019' => '\\ccxt\\BadRequest', // array("code":-4019,"msg":"Current asset is not open for withdrawal.")
+                        '-4020' => '\\ccxt\\ExchangeError', // override commons
                         '-4021' => '\\ccxt\\BadRequest', // array("code":-4021,"msg":"Asset withdrawal must be an %s multiple of %s.")
                         '-4022' => '\\ccxt\\BadRequest', // array("code":-4022,"msg":"Not less than the minimum pick-up quantity %s.")
                         '-4023' => '\\ccxt\\OperationFailed', // array("code":-4023,"msg":"Within 24 hours, the withdrawal exceeds the maximum amount.")
@@ -1583,7 +1587,108 @@ class binance extends Exchange {
                         '-4045' => '\\ccxt\\OperationFailed', // array("code":-4045,"msg":"Failure to acquire assets.")
                         '-4046' => '\\ccxt\\AuthenticationError', // array("code":-4046,"msg":"Agreement not confirmed.")
                         '-4047' => '\\ccxt\\BadRequest', // array("code":-4047,"msg":"Time interval must be within 0-90 days")
+                        '-4048' => '\\ccxt\\ExchangeError', // override commons
+                        '-4049' => '\\ccxt\\ExchangeError', // override commons
+                        '-4050' => '\\ccxt\\ExchangeError', // override commons
+                        '-4051' => '\\ccxt\\ExchangeError', // override commons
+                        '-4052' => '\\ccxt\\ExchangeError', // override commons
+                        '-4053' => '\\ccxt\\ExchangeError', // override commons
+                        '-4054' => '\\ccxt\\ExchangeError', // override commons
+                        '-4055' => '\\ccxt\\ExchangeError', // override commons
+                        '-4056' => '\\ccxt\\ExchangeError', // override commons
+                        '-4057' => '\\ccxt\\ExchangeError', // override commons
+                        '-4058' => '\\ccxt\\ExchangeError', // override commons
+                        '-4059' => '\\ccxt\\ExchangeError', // override commons
                         '-4060' => '\\ccxt\\OperationFailed', // As your deposit has not reached the required block confirmations, we have temporarily locked {0} asset
+                        '-4061' => '\\ccxt\\ExchangeError', // override commons
+                        '-4062' => '\\ccxt\\ExchangeError', // override commons
+                        '-4063' => '\\ccxt\\ExchangeError', // override commons
+                        '-4064' => '\\ccxt\\ExchangeError', // override commons
+                        '-4065' => '\\ccxt\\ExchangeError', // override commons
+                        '-4066' => '\\ccxt\\ExchangeError', // override commons
+                        '-4067' => '\\ccxt\\ExchangeError', // override commons
+                        '-4068' => '\\ccxt\\ExchangeError', // override commons
+                        '-4069' => '\\ccxt\\ExchangeError', // override commons
+                        '-4070' => '\\ccxt\\ExchangeError', // override commons
+                        '-4071' => '\\ccxt\\ExchangeError', // override commons
+                        '-4072' => '\\ccxt\\ExchangeError', // override commons
+                        '-4073' => '\\ccxt\\ExchangeError', // override commons
+                        '-4074' => '\\ccxt\\ExchangeError', // override commons
+                        '-4075' => '\\ccxt\\ExchangeError', // override commons
+                        '-4076' => '\\ccxt\\ExchangeError', // override commons
+                        '-4077' => '\\ccxt\\ExchangeError', // override commons
+                        '-4078' => '\\ccxt\\ExchangeError', // override commons
+                        '-4079' => '\\ccxt\\ExchangeError', // override commons
+                        '-4080' => '\\ccxt\\ExchangeError', // override commons
+                        '-4081' => '\\ccxt\\ExchangeError', // override commons
+                        '-4082' => '\\ccxt\\ExchangeError', // override commons
+                        '-4083' => '\\ccxt\\ExchangeError', // override commons
+                        '-4084' => '\\ccxt\\ExchangeError', // override commons
+                        '-4085' => '\\ccxt\\ExchangeError', // override commons
+                        '-4086' => '\\ccxt\\ExchangeError', // override commons
+                        '-4087' => '\\ccxt\\ExchangeError', // override commons
+                        '-4088' => '\\ccxt\\ExchangeError', // override commons
+                        '-4089' => '\\ccxt\\ExchangeError', // override commons
+                        '-4091' => '\\ccxt\\ExchangeError', // override commons
+                        '-4092' => '\\ccxt\\ExchangeError', // override commons
+                        '-4093' => '\\ccxt\\ExchangeError', // override commons
+                        '-4094' => '\\ccxt\\ExchangeError', // override commons
+                        '-4095' => '\\ccxt\\ExchangeError', // override commons
+                        '-4096' => '\\ccxt\\ExchangeError', // override commons
+                        '-4097' => '\\ccxt\\ExchangeError', // override commons
+                        '-4098' => '\\ccxt\\ExchangeError', // override commons
+                        '-4099' => '\\ccxt\\ExchangeError', // override commons
+                        '-4101' => '\\ccxt\\ExchangeError', // override commons
+                        '-4102' => '\\ccxt\\ExchangeError', // override commons
+                        '-4103' => '\\ccxt\\ExchangeError', // override commons
+                        '-4104' => '\\ccxt\\ExchangeError', // override commons
+                        '-4105' => '\\ccxt\\ExchangeError', // override commons
+                        '-4106' => '\\ccxt\\ExchangeError', // override commons
+                        '-4107' => '\\ccxt\\ExchangeError', // override commons
+                        '-4108' => '\\ccxt\\ExchangeError', // override commons
+                        '-4109' => '\\ccxt\\ExchangeError', // override commons
+                        '-4110' => '\\ccxt\\ExchangeError', // override commons
+                        '-4112' => '\\ccxt\\ExchangeError', // override commons
+                        '-4113' => '\\ccxt\\ExchangeError', // override commons
+                        '-4114' => '\\ccxt\\ExchangeError', // override commons
+                        '-4115' => '\\ccxt\\ExchangeError', // override commons
+                        '-4116' => '\\ccxt\\ExchangeError', // override commons
+                        '-4117' => '\\ccxt\\ExchangeError', // override commons
+                        '-4118' => '\\ccxt\\ExchangeError', // override commons
+                        '-4119' => '\\ccxt\\ExchangeError', // override commons
+                        '-4120' => '\\ccxt\\ExchangeError', // override commons
+                        '-4121' => '\\ccxt\\ExchangeError', // override commons
+                        '-4122' => '\\ccxt\\ExchangeError', // override commons
+                        '-4123' => '\\ccxt\\ExchangeError', // override commons
+                        '-4124' => '\\ccxt\\ExchangeError', // override commons
+                        '-4125' => '\\ccxt\\ExchangeError', // override commons
+                        '-4126' => '\\ccxt\\ExchangeError', // override commons
+                        '-4127' => '\\ccxt\\ExchangeError', // override commons
+                        '-4128' => '\\ccxt\\ExchangeError', // override commons
+                        '-4129' => '\\ccxt\\ExchangeError', // override commons
+                        '-4130' => '\\ccxt\\ExchangeError', // override commons
+                        '-4131' => '\\ccxt\\ExchangeError', // override commons
+                        '-4132' => '\\ccxt\\ExchangeError', // override commons
+                        '-4133' => '\\ccxt\\ExchangeError', // override commons
+                        '-4134' => '\\ccxt\\ExchangeError', // override commons
+                        '-4135' => '\\ccxt\\ExchangeError', // override commons
+                        '-4136' => '\\ccxt\\ExchangeError', // override commons
+                        '-4137' => '\\ccxt\\ExchangeError', // override commons
+                        '-4138' => '\\ccxt\\ExchangeError', // override commons
+                        '-4139' => '\\ccxt\\ExchangeError', // override commons
+                        '-4141' => '\\ccxt\\ExchangeError', // override commons
+                        '-4142' => '\\ccxt\\ExchangeError', // override commons
+                        '-4143' => '\\ccxt\\ExchangeError', // override commons
+                        '-4144' => '\\ccxt\\ExchangeError', // override commons
+                        '-4145' => '\\ccxt\\ExchangeError', // override commons
+                        '-4146' => '\\ccxt\\ExchangeError', // override commons
+                        '-4147' => '\\ccxt\\ExchangeError', // override commons
+                        '-4148' => '\\ccxt\\ExchangeError', // override commons
+                        '-4149' => '\\ccxt\\ExchangeError', // override commons
+                        '-4150' => '\\ccxt\\ExchangeError', // override commons
+                        //
+                        //        5xxx
+                        //
                         '-5001' => '\\ccxt\\BadRequest', // Don't allow transfer to micro assets.
                         '-5002' => '\\ccxt\\InsufficientFunds', // You have insufficient balance.
                         '-5003' => '\\ccxt\\InsufficientFunds', // You don't have this asset.
@@ -1599,6 +1704,9 @@ class binance extends Exchange {
                         '-5013' => '\\ccxt\\InsufficientFunds', // array("code":-5013,"msg":"Asset transfer failed => insufficient balance"") // undocumented
                         '-5021' => '\\ccxt\\BadRequest', // This parent sub have no relation
                         '-5022' => '\\ccxt\\BadRequest', // future account or sub relation not exists.
+                        //
+                        //        6xxx
+                        //
                         '-6001' => '\\ccxt\\BadSymbol', // Daily product not exists.
                         '-6003' => '\\ccxt\\PermissionDenied', // Product not exist or you don't have permission
                         '-6004' => '\\ccxt\\BadRequest', // Product not in purchase status
@@ -1617,8 +1725,14 @@ class binance extends Exchange {
                         '-6018' => '\\ccxt\\InsufficientFunds', // Asset not enough
                         '-6019' => '\\ccxt\\OperationRejected', // Need confirm
                         '-6020' => '\\ccxt\\BadRequest', // Project not exists
+                        //
+                        //        7xxx
+                        //
                         '-7001' => '\\ccxt\\BadRequest', // Date range is not supported.
                         '-7002' => '\\ccxt\\BadRequest', // Data request type is not supported.
+                        //
+                        //        1xxxx
+                        //
                         '-10001' => '\\ccxt\\OperationFailed', // The system is under maintenance, please try again later.
                         '-10002' => '\\ccxt\\BadRequest', // Invalid input parameters.
                         '-10005' => '\\ccxt\\BadResponse', // No records found.
@@ -1674,17 +1788,10 @@ class binance extends Exchange {
                         '-18005' => '\\ccxt\\PermissionDenied', // Too many invalid verify attempts, please try later
                         '-18006' => '\\ccxt\\OperationRejected', // The amount is too small, please re-enter
                         '-18007' => '\\ccxt\\OperationRejected', // This token is not currently supported, please re-enter
-                        // spot & futures algo (TBD for OPTIONS & PORTFOLIO MARGIN)
-                        '-20121' => '\\ccxt\\BadSymbol', // Invalid symbol.
-                        '-20124' => '\\ccxt\\BadRequest', // Invalid algo id or it has been completed.
-                        '-20130' => '\\ccxt\\BadRequest', // Invalid data sent for a parameter
-                        '-20132' => '\\ccxt\\BadRequest', // The client algo id is duplicated
-                        '-20194' => '\\ccxt\\BadRequest', // Duration is too short to execute all required quantity.
-                        '-20195' => '\\ccxt\\BadRequest', // The total size is too small.
-                        '-20196' => '\\ccxt\\BadRequest', // The total size is too large.
-                        '-20198' => '\\ccxt\\OperationRejected', // Reach the max open orders allowed.
-                        '-20204' => '\\ccxt\\BadRequest', // The notional of USD is less or more than the limit.
-                        // 21xxx - PORTFOLIO MARGIN
+                        //
+                        //        2xxxx
+                        //
+                        //   21xxx - PORTFOLIO MARGIN (is_array(spot docs) && array_key_exists(documented, spot docs))
                         '-21001' => '\\ccxt\\BadRequest', // Request ID is not a Portfolio Margin Account.
                         '-21002' => '\\ccxt\\BadRequest', // Portfolio Margin Account doesn't support transfer from margin to futures.
                         '-21003' => '\\ccxt\\BadResponse', // Fail to retrieve margin assets.
@@ -1692,6 +1799,9 @@ class binance extends Exchange {
                         '-21005' => '\\ccxt\\InsufficientFunds', // User’s spot wallet doesn’t have enough BUSD to repay portfolio margin bankruptcy loan
                         '-21006' => '\\ccxt\\OperationFailed', // User had portfolio margin bankruptcy loan repayment in process
                         '-21007' => '\\ccxt\\OperationFailed', // User failed to repay portfolio margin bankruptcy loan since liquidation was in process
+                        //
+                        //        misc
+                        //
                         '-32603' => '\\ccxt\\BadRequest', // undocumented, Filter failure => LOT_SIZE & precision
                         '400002' => '\\ccxt\\BadRequest', // undocumented, array( “status” => “FAIL”, “code” => “400002”, “errorMessage” => “Signature for this request is not valid.” )
                         '100001003' => '\\ccxt\\AuthenticationError', // undocumented, array("code":100001003,"msg":"Verification failed")
@@ -1699,62 +1809,25 @@ class binance extends Exchange {
                     ),
                 ),
                 'linear' => array(
-                    // https://binance-docs.github.io/apidocs/futures/en/#error-codes
                     'exact' => array(
-                        '-1000' => '\\ccxt\\OperationFailed', // array("code":-1000,"msg":"An unknown error occured while processing the request.")
-                        '-1001' => '\\ccxt\\OperationFailed', // array("code":-1001,"msg":"'Internal error; unable to process your request. Please try again.'")
-                        '-1002' => '\\ccxt\\AuthenticationError', // array("code":-1002,"msg":"'You are not authorized to execute this request.'")
-                        '-1003' => '\\ccxt\\RateLimitExceeded', // array("code":-1003,"msg":"Too much request weight used, current limit is 1200 request weight per 1 MINUTE. Please use the websocket for live updates to avoid polling the API.")
-                        '-1004' => '\\ccxt\\OperationRejected', // DUPLICATE_IP : This IP is already on the white list
+                        //
+                        //        1xxx
+                        //
                         '-1005' => '\\ccxt\\PermissionDenied', // array("code":-1005,"msg":"No such IP has been white listed")
-                        '-1006' => '\\ccxt\\OperationFailed', // array("code":-1006,"msg":"An unexpected response was received from the message bus. Execution status unknown.")
-                        '-1007' => '\\ccxt\\RequestTimeout', // array("code":-1007,"msg":"Timeout waiting for response from backend server. Send status unknown; execution status unknown.")
                         '-1008' => '\\ccxt\\OperationFailed', // -1008 SERVER_BUSY => Server is currently overloaded with other requests. Please try again in a few minutes.
-                        '-1010' => '\\ccxt\\OperationFailed', // array("code":-1010,"msg":"ERROR_MSG_RECEIVED.")
                         '-1011' => '\\ccxt\\PermissionDenied', // array("code":-1011,"msg":"This IP cannot access this route.")
-                        '-1013' => '\\ccxt\\BadRequest', // array("code":-1013,"msg":"createOrder -> 'invalid quantity'/'invalid price'/MIN_NOTIONAL") | -1013 INVALID_MESSAGE
-                        '-1014' => '\\ccxt\\InvalidOrder', // array("code":-1014,"msg":"Unsupported order combination.")
-                        '-1015' => '\\ccxt\\RateLimitExceeded', // array("code":-1015,"msg":"'Too many new orders; current limit is %s orders per %s.'")
-                        '-1016' => '\\ccxt\\BadRequest', // array("code":-1016,"msg":"'This service is no longer available.',")
-                        '-1020' => '\\ccxt\\BadRequest', // array("code":-1020,"msg":"'This operation is not supported.'")
-                        '-1021' => '\\ccxt\\InvalidNonce', // array("code":-1021,"msg":"'your time is ahead of server'")
-                        '-1022' => '\\ccxt\\AuthenticationError', // array("code":-1022,"msg":"Signature for this request is not valid.")
                         '-1023' => '\\ccxt\\BadRequest', // array("code":-1023,"msg":"Start time is greater than end time.")
                         '-1099' => '\\ccxt\\AuthenticationError', // array("code":-1099,"msg":"Not found, authenticated, or authorized")
-                        '-1100' => '\\ccxt\\BadRequest', // array("code":-1100,"msg":"createOrder(symbol, 1, asdf) -> 'Illegal characters found in parameter 'price'")
-                        '-1101' => '\\ccxt\\BadRequest', // array("code":-1101,"msg":"Too many parameters; expected %s and received %s.")
-                        '-1102' => '\\ccxt\\BadRequest', // array("code":-1102,"msg":"Param %s or %s must be sent, but both were empty")
-                        '-1103' => '\\ccxt\\BadRequest', // array("code":-1103,"msg":"An unknown parameter was sent.")
-                        '-1104' => '\\ccxt\\BadRequest', // array("code":-1104,"msg":"Not all sent parameters were read, read 8 parameters but was sent 9")
-                        '-1105' => '\\ccxt\\BadRequest', // array("code":-1105,"msg":"Parameter %s was empty.")
-                        '-1106' => '\\ccxt\\BadRequest', // array("code":-1106,"msg":"Parameter %s sent when not required.")
-                        '-1108' => '\\ccxt\\BadSymbol', // array("code":-1108,"msg":"Invalid asset.")
                         '-1109' => '\\ccxt\\PermissionDenied', // array("code":-1109,"msg":"Invalid account.")
                         '-1110' => '\\ccxt\\BadRequest', // array("code":-1110,"msg":"Invalid symbolType.")
-                        '-1111' => '\\ccxt\\BadRequest', // array("code":-1111,"msg":"Precision is over the maximum defined for this asset.")
-                        '-1112' => '\\ccxt\\OperationFailed', // array("code":-1112,"msg":"No orders on book for symbol.")
                         '-1113' => '\\ccxt\\BadRequest', // array("code":-1113,"msg":"Withdrawal amount must be negative.")
-                        '-1114' => '\\ccxt\\BadRequest', // array("code":-1114,"msg":"TimeInForce parameter sent when not required.")
-                        '-1115' => '\\ccxt\\BadRequest', // array("code":-1115,"msg":"Invalid timeInForce.")
-                        '-1116' => '\\ccxt\\BadRequest', // array("code":-1116,"msg":"Invalid orderType.")
-                        '-1117' => '\\ccxt\\BadRequest', // array("code":-1117,"msg":"Invalid side.")
-                        '-1118' => '\\ccxt\\BadRequest', // array("code":-1118,"msg":"New client order ID was empty.")
-                        '-1119' => '\\ccxt\\BadRequest', // array("code":-1119,"msg":"Original client order ID was empty.")
-                        '-1120' => '\\ccxt\\BadRequest', // array("code":-1120,"msg":"Invalid interval.")
-                        '-1121' => '\\ccxt\\BadSymbol', // array("code":-1121,"msg":"Invalid symbol.")
                         '-1122' => '\\ccxt\\BadRequest', // INVALID_SYMBOL_STATUS
-                        '-1125' => '\\ccxt\\AuthenticationError', // array("code":-1125,"msg":"This listenKey does not exist.")
                         '-1126' => '\\ccxt\\BadSymbol', // ASSET_NOT_SUPPORTED
-                        '-1127' => '\\ccxt\\BadRequest', // array("code":-1127,"msg":"More than %s hours between startTime and endTime.")
-                        '-1128' => '\\ccxt\\BadRequest', // array("code":-1128,"msg":"Combination of optional parameters invalid.")
-                        '-1130' => '\\ccxt\\BadRequest', // array("code":-1130,"msg":"Data sent for paramter %s is not valid.")
                         '-1136' => '\\ccxt\\BadRequest', // array("code":-1136,"msg":"Invalid newOrderRespType")
-                        '-2010' => '\\ccxt\\OrderNotFound', // NEW_ORDER_REJECTED
-                        '-2011' => '\\ccxt\\OrderNotFound', // array("code":-2011,"msg":"cancelOrder(1, 'BTC/USDT') -> 'UNKNOWN_ORDER'")
+                        //
+                        //        2xxx
+                        //
                         '-2012' => '\\ccxt\\OperationFailed', // CANCEL_ALL_FAIL
-                        '-2013' => '\\ccxt\\OrderNotFound', // array("code":-2013,"msg":"fetchOrder (1, 'BTC/USDT') -> 'Order does not exist'")
-                        '-2014' => '\\ccxt\\AuthenticationError', // array("code":-2014,"msg":"API-key format invalid.")
-                        '-2015' => '\\ccxt\\AuthenticationError', // array("code":-2015,"msg":"Invalid API-key, IP, or permissions for action.")
                         '-2016' => '\\ccxt\\OperationRejected', // array("code":-2016,"msg":"No trading window could be found for the symbol. Try ticker/24hrs instead.")
                         '-2017' => '\\ccxt\\PermissionDenied', // API Keys are locked on this account.
                         '-2018' => '\\ccxt\\InsufficientFunds', // array("code":-2018,"msg":"Balance is insufficient")
@@ -1768,65 +1841,13 @@ class binance extends Exchange {
                         '-2026' => '\\ccxt\\InvalidOrder', // array("code":-2026,"msg":"This OrderType is not supported when reduceOnly.")
                         '-2027' => '\\ccxt\\OperationRejected', // array("code":-2027,"msg":"Exceeded the maximum allowable position at current leverage.")
                         '-2028' => '\\ccxt\\OperationRejected', // array("code":-2028,"msg":"Leverage is smaller than permitted => insufficient margin balance")
-                        '-4000' => '\\ccxt\\InvalidOrder', // INVALID_ORDER_STATUS
-                        '-4001' => '\\ccxt\\BadRequest', // PRICE_LESS_THAN_ZERO
-                        '-4002' => '\\ccxt\\BadRequest', // PRICE_GREATER_THAN_MAX_PRICE
-                        '-4003' => '\\ccxt\\BadRequest', // QTY_LESS_THAN_ZERO
-                        '-4004' => '\\ccxt\\BadRequest', // QTY_LESS_THAN_MIN_QTY
-                        '-4005' => '\\ccxt\\BadRequest', // QTY_GREATER_THAN_MAX_QTY
-                        '-4006' => '\\ccxt\\BadRequest', // STOP_PRICE_LESS_THAN_ZERO
-                        '-4007' => '\\ccxt\\BadRequest', // STOP_PRICE_GREATER_THAN_MAX_PRICE
-                        '-4008' => '\\ccxt\\BadRequest', // TICK SIZE LESS THAN ZERO
-                        '-4009' => '\\ccxt\\BadRequest', // MAX_PRICE_LESS_THAN_MIN_PRICE
-                        '-4010' => '\\ccxt\\BadRequest', // MAX_QTY_LESS_THAN_MIN_QTY
-                        '-4011' => '\\ccxt\\BadRequest', // STEP_SIZE_LESS_THAN_ZERO
-                        '-4012' => '\\ccxt\\BadRequest', // MAX_NUM_ORDERS_LESS_THAN_ZERO
-                        '-4013' => '\\ccxt\\BadRequest', // PRICE_LESS_THAN_MIN_PRICE
-                        '-4014' => '\\ccxt\\BadRequest', // PRICE NOT INCREASED BY TICK SIZE
-                        '-4015' => '\\ccxt\\BadRequest', // Client order id is not valid
-                        '-4016' => '\\ccxt\\OperationRejected', // Price is higher than mark price multiplier cap.
-                        '-4017' => '\\ccxt\\BadRequest', // MULTIPLIER_UP_LESS_THAN_ZERO
-                        '-4018' => '\\ccxt\\BadRequest', // MULTIPLIER_DOWN_LESS_THAN_ZERO
-                        '-4019' => '\\ccxt\\OperationRejected', // COMPOSITE_SCALE_OVERFLOW
-                        '-4020' => '\\ccxt\\BadRequest', // TARGET_STRATEGY_INVALID
-                        '-4021' => '\\ccxt\\BadRequest', // INVALID_DEPTH_LIMIT
-                        '-4022' => '\\ccxt\\BadRequest', // WRONG_MARKET_STATUS
-                        '-4023' => '\\ccxt\\BadRequest', // QTY_NOT_INCREASED_BY_STEP_SIZE
-                        '-4024' => '\\ccxt\\BadRequest', // PRICE_LOWER_THAN_MULTIPLIER_DOWN
-                        '-4025' => '\\ccxt\\BadRequest', // MULTIPLIER_DECIMAL_LESS_THAN_ZERO
-                        '-4026' => '\\ccxt\\BadRequest', // COMMISSION_INVALID
-                        '-4027' => '\\ccxt\\BadRequest', // INVALID_ACCOUNT_TYPE
-                        '-4028' => '\\ccxt\\BadRequest', // INVALID_LEVERAGE
-                        '-4029' => '\\ccxt\\BadRequest', // INVALID TICK SIZE PRECISION
-                        '-4030' => '\\ccxt\\BadRequest', // INVALID_STEP_SIZE_PRECISION
-                        '-4031' => '\\ccxt\\BadRequest', // INVALID_WORKING_TYPE
-                        '-4032' => '\\ccxt\\OperationRejected', // EXCEED_MAX_CANCEL_ORDER_SIZE
-                        '-4033' => '\\ccxt\\BadRequest', // INSURANCE_ACCOUNT_NOT_FOUND
-                        '-4044' => '\\ccxt\\BadRequest', // INVALID_BALANCE_TYPE
-                        '-4045' => '\\ccxt\\OperationRejected', // MAX_STOP_ORDER_EXCEEDED
-                        '-4046' => '\\ccxt\\OperationRejected', // NO_NEED_TO_CHANGE_MARGIN_TYPE
-                        '-4047' => '\\ccxt\\OperationRejected', // Margin type cannot be changed if there exists open orders.
-                        '-4048' => '\\ccxt\\OperationRejected', // Margin type cannot be changed if there exists position.
-                        '-4049' => '\\ccxt\\BadRequest', // Add margin only support for isolated position.
-                        '-4050' => '\\ccxt\\InsufficientFunds', // Cross balance insufficient
-                        '-4051' => '\\ccxt\\InsufficientFunds', // Isolated balance insufficient.
-                        '-4052' => '\\ccxt\\OperationRejected', // No need to change auto add margin.
-                        '-4053' => '\\ccxt\\BadRequest', // Auto add margin only support for isolated position.
-                        '-4054' => '\\ccxt\\OperationRejected', // Cannot add position margin => position is 0.
-                        '-4055' => '\\ccxt\\BadRequest', // Amount must be positive.
-                        '-4056' => '\\ccxt\\AuthenticationError', // Invalid api key type.
-                        '-4057' => '\\ccxt\\AuthenticationError', // Invalid api public key
-                        '-4058' => '\\ccxt\\BadRequest', // MAX_PRICE_TOO_LARGE
-                        '-4059' => '\\ccxt\\OperationRejected', // NO_NEED_TO_CHANGE_POSITION_SIDE
-                        '-4060' => '\\ccxt\\BadRequest', // INVALID_POSITION_SIDE
-                        '-4061' => '\\ccxt\\BadRequest', // POSITION_SIDE_NOT_MATCH
-                        '-4062' => '\\ccxt\\BadRequest', // REDUCE_ONLY_CONFLICT
+                        //
+                        //        4xxx
+                        //
                         '-4063' => '\\ccxt\\BadRequest', // INVALID_OPTIONS_REQUEST_TYPE
                         '-4064' => '\\ccxt\\BadRequest', // INVALID_OPTIONS_TIME_FRAME
                         '-4065' => '\\ccxt\\BadRequest', // INVALID_OPTIONS_AMOUNT
                         '-4066' => '\\ccxt\\BadRequest', // INVALID_OPTIONS_EVENT_TYPE
-                        '-4067' => '\\ccxt\\OperationRejected', // Position side cannot be changed if there exists open orders.
-                        '-4068' => '\\ccxt\\OperationRejected', // Position side cannot be changed if there exists position.
                         '-4069' => '\\ccxt\\BadRequest', // Position INVALID_OPTIONS_PREMIUM_FEE
                         '-4070' => '\\ccxt\\BadRequest', // Client options id is not valid.
                         '-4071' => '\\ccxt\\BadRequest', // Invalid options direction
@@ -1840,34 +1861,24 @@ class binance extends Exchange {
                         '-4079' => '\\ccxt\\BadRequest', // invalid options id
                         '-4080' => '\\ccxt\\PermissionDenied', // user not found with id => %s
                         '-4081' => '\\ccxt\\BadRequest', // OPTIONS_NOT_FOUND
-                        '-4082' => '\\ccxt\\OperationRejected', // Invalid number of batch place orders
-                        '-4083' => '\\ccxt\\OperationFailed', // Fail to place batch orders.
-                        '-4084' => '\\ccxt\\BadRequest', // UPCOMING_METHOD
                         '-4085' => '\\ccxt\\BadRequest', // Invalid notional limit coefficient
-                        '-4086' => '\\ccxt\\BadRequest', // Invalid price spread threshold
                         '-4087' => '\\ccxt\\PermissionDenied', // User can only place reduce only order
                         '-4088' => '\\ccxt\\PermissionDenied', // User can not place order currently
-                        '-4104' => '\\ccxt\\BadRequest', // INVALID_CONTRACT_TYPE
                         '-4114' => '\\ccxt\\BadRequest', // INVALID_CLIENT_TRAN_ID_LEN
                         '-4115' => '\\ccxt\\BadRequest', // DUPLICATED_CLIENT_TRAN_ID
                         '-4118' => '\\ccxt\\OperationRejected', // REDUCE_ONLY_MARGIN_CHECK_FAILED
                         '-4131' => '\\ccxt\\OperationRejected', // The counterparty's best price does not meet the PERCENT_PRICE filter limit
-                        '-4135' => '\\ccxt\\BadRequest', // Invalid activation price
-                        '-4137' => '\\ccxt\\BadRequest', // Quantity must be zero with closePosition equals true
-                        '-4138' => '\\ccxt\\BadRequest', // Reduce only must be true with closePosition equals true
-                        '-4139' => '\\ccxt\\BadRequest', // Order type can not be market if it's unable to cancel
                         '-4140' => '\\ccxt\\BadRequest', // Invalid symbol status for opening position
                         '-4141' => '\\ccxt\\OperationRejected', // Symbol is closed
-                        '-4142' => '\\ccxt\\OrderImmediatelyFillable', // REJECT => take profit or stop order will be triggered immediately
                         '-4144' => '\\ccxt\\BadSymbol', // Invalid pair
-                        '-4164' => '\\ccxt\\OperationRejected', // Leverage reduction is not supported in Isolated Margin Mode with open positions
+                        '-4164' => '\\ccxt\\InvalidOrder', // array("code":-4164,"msg":"Order's notional must be no smaller than 20 (unless you choose reduce only).")
                         '-4165' => '\\ccxt\\BadRequest', // Invalid time interval
                         '-4167' => '\\ccxt\\BadRequest', // Unable to adjust to Multi-Assets mode with symbols of USDⓈ-M Futures under isolated-margin mode.
                         '-4168' => '\\ccxt\\BadRequest', // Unable to adjust to isolated-margin mode under the Multi-Assets mode.
                         '-4169' => '\\ccxt\\OperationRejected', // Unable to adjust Multi-Assets Mode with insufficient margin balance in USDⓈ-M Futures
                         '-4170' => '\\ccxt\\OperationRejected', // Unable to adjust Multi-Assets Mode with open orders in USDⓈ-M Futures
                         '-4171' => '\\ccxt\\OperationRejected', // Adjusted asset mode is currently set and does not need to be adjusted repeatedly
-                        '-4172 ' => '\\ccxt\\OperationRejected', // Unable to adjust Multi-Assets Mode with a negative wallet balance of margin available asset in USDⓈ-M Futures account.
+                        '-4172' => '\\ccxt\\OperationRejected', // Unable to adjust Multi-Assets Mode with a negative wallet balance of margin available asset in USDⓈ-M Futures account.
                         '-4183' => '\\ccxt\\BadRequest', // Price is higher than stop price multiplier cap.
                         '-4184' => '\\ccxt\\BadRequest', // Price is lower than stop price multiplier floor.
                         '-4192' => '\\ccxt\\PermissionDenied', // Trade forbidden due to Cooling-off Period.
@@ -1883,6 +1894,9 @@ class binance extends Exchange {
                         '-4401' => '\\ccxt\\PermissionDenied', // Compliance restricted account permission => can only place reduceOnly order.
                         '-4402' => '\\ccxt\\PermissionDenied', // Dear user, our Terms of Use and compliance with local regulations, this feature is currently not available in your region.
                         '-4403' => '\\ccxt\\PermissionDenied', // Dear user, our Terms of Use and compliance with local regulations, the leverage can only up to %sx in your region
+                        //
+                        //        5xxx
+                        //
                         '-5021' => '\\ccxt\\OrderNotFillable', // Due to the order could not be filled immediately, the FOK order has been rejected.
                         '-5022' => '\\ccxt\\OrderNotFillable', // Due to the order could not be executed, the Post Only order will be rejected.
                         '-5024' => '\\ccxt\\OperationRejected', // Symbol is not in trading status. Order amendment is not permitted.
@@ -1895,72 +1909,24 @@ class binance extends Exchange {
                         '-5039' => '\\ccxt\\BadRequest', // Invalid self trade prevention mode
                         '-5040' => '\\ccxt\\BadRequest', // The goodTillDate timestamp must be greater than the current time plus 600 seconds and smaller than 253402300799000
                         '-5041' => '\\ccxt\\OperationFailed', // No depth matches this BBO order
-                        //
-                        // spot & futures algo (TBD for OPTIONS & PORTFOLIO MARGIN)
-                        //
-                        '-20121' => '\\ccxt\\BadSymbol', // Invalid symbol.
-                        '-20124' => '\\ccxt\\BadRequest', // Invalid algo id or it has been completed.
-                        '-20130' => '\\ccxt\\BadRequest', // Invalid data sent for a parameter
-                        '-20132' => '\\ccxt\\BadRequest', // The client algo id is duplicated
-                        '-20194' => '\\ccxt\\BadRequest', // Duration is too short to execute all required quantity.
-                        '-20195' => '\\ccxt\\BadRequest', // The total size is too small.
-                        '-20196' => '\\ccxt\\BadRequest', // The total size is too large.
-                        '-20198' => '\\ccxt\\OperationRejected', // Reach the max open orders allowed.
-                        '-20204' => '\\ccxt\\BadRequest', // The notional of USD is less or more than the limit.
                     ),
                 ),
                 'inverse' => array(
-                    // https://binance-docs.github.io/apidocs/delivery/en/#error-codes
                     'exact' => array(
-                        '-1000' => '\\ccxt\\OperationFailed', // array("code":-1000,"msg":"An unknown error occured while processing the request.")
-                        '-1001' => '\\ccxt\\OperationFailed', // array("code":-1001,"msg":"'Internal error; unable to process your request. Please try again.'")
-                        '-1002' => '\\ccxt\\AuthenticationError', // array("code":-1002,"msg":"'You are not authorized to execute this request.'")
-                        '-1003' => '\\ccxt\\RateLimitExceeded', // array("code":-1003,"msg":"Too much request weight used, current limit is 1200 request weight per 1 MINUTE. Please use the websocket for live updates to avoid polling the API.")
-                        '-1004' => '\\ccxt\\OperationRejected', // DUPLICATE_IP : This IP is already on the white list
+                        //
+                        //        1xxx
+                        //
                         '-1005' => '\\ccxt\\PermissionDenied', // array("code":-1005,"msg":"No such IP has been white listed")
-                        '-1006' => '\\ccxt\\OperationFailed', // array("code":-1006,"msg":"An unexpected response was received from the message bus. Execution status unknown.")
-                        '-1007' => '\\ccxt\\RequestTimeout', // array("code":-1007,"msg":"Timeout waiting for response from backend server. Send status unknown; execution status unknown.")
-                        '-1010' => '\\ccxt\\OperationFailed', // array("code":-1010,"msg":"ERROR_MSG_RECEIVED.")
                         '-1011' => '\\ccxt\\PermissionDenied', // array("code":-1011,"msg":"This IP cannot access this route.")
-                        '-1013' => '\\ccxt\\BadRequest', // array("code":-1013,"msg":"createOrder -> 'invalid quantity'/'invalid price'/MIN_NOTIONAL") | -1013 INVALID_MESSAGE
-                        '-1014' => '\\ccxt\\InvalidOrder', // array("code":-1014,"msg":"Unsupported order combination.")
-                        '-1015' => '\\ccxt\\RateLimitExceeded', // array("code":-1015,"msg":"'Too many new orders; current limit is %s orders per %s.'")
-                        '-1016' => '\\ccxt\\BadRequest', // array("code":-1016,"msg":"'This service is no longer available.',")
-                        '-1020' => '\\ccxt\\BadRequest', // array("code":-1020,"msg":"'This operation is not supported.'")
-                        '-1021' => '\\ccxt\\InvalidNonce', // array("code":-1021,"msg":"'your time is ahead of server'")
-                        '-1022' => '\\ccxt\\AuthenticationError', // array("code":-1022,"msg":"Signature for this request is not valid.")
                         '-1023' => '\\ccxt\\BadRequest', // array("code":-1023,"msg":"Start time is greater than end time.")
-                        '-1100' => '\\ccxt\\BadRequest', // array("code":-1100,"msg":"createOrder(symbol, 1, asdf) -> 'Illegal characters found in parameter 'price'")
-                        '-1101' => '\\ccxt\\BadRequest', // array("code":-1101,"msg":"Too many parameters; expected %s and received %s.")
-                        '-1102' => '\\ccxt\\BadRequest', // array("code":-1102,"msg":"Param %s or %s must be sent, but both were empty")
-                        '-1103' => '\\ccxt\\BadRequest', // array("code":-1103,"msg":"An unknown parameter was sent.")
-                        '-1104' => '\\ccxt\\BadRequest', // array("code":-1104,"msg":"Not all sent parameters were read, read 8 parameters but was sent 9")
-                        '-1105' => '\\ccxt\\BadRequest', // array("code":-1105,"msg":"Parameter %s was empty.")
-                        '-1106' => '\\ccxt\\BadRequest', // array("code":-1106,"msg":"Parameter %s sent when not required.")
-                        '-1108' => '\\ccxt\\BadSymbol', // array("code":-1108,"msg":"Invalid asset.")
                         '-1109' => '\\ccxt\\AuthenticationError', // array("code":-1109,"msg":"Invalid account.")
                         '-1110' => '\\ccxt\\BadSymbol', // array("code":-1110,"msg":"Invalid symbolType.")
-                        '-1111' => '\\ccxt\\BadRequest', // array("code":-1111,"msg":"Precision is over the maximum defined for this asset.")
-                        '-1112' => '\\ccxt\\OperationFailed', // array("code":-1112,"msg":"No orders on book for symbol.")
                         '-1113' => '\\ccxt\\BadRequest', // array("code":-1113,"msg":"Withdrawal amount must be negative.")
-                        '-1114' => '\\ccxt\\BadRequest', // array("code":-1114,"msg":"TimeInForce parameter sent when not required.")
-                        '-1115' => '\\ccxt\\BadRequest', // array("code":-1115,"msg":"Invalid timeInForce.")
-                        '-1116' => '\\ccxt\\BadRequest', // array("code":-1116,"msg":"Invalid orderType.")
-                        '-1117' => '\\ccxt\\BadRequest', // array("code":-1117,"msg":"Invalid side.")
-                        '-1118' => '\\ccxt\\BadRequest', // array("code":-1118,"msg":"New client order ID was empty.")
-                        '-1119' => '\\ccxt\\BadRequest', // array("code":-1119,"msg":"Original client order ID was empty.")
-                        '-1120' => '\\ccxt\\BadRequest', // array("code":-1120,"msg":"Invalid interval.")
-                        '-1121' => '\\ccxt\\BadSymbol', // array("code":-1121,"msg":"Invalid symbol.")
-                        '-1125' => '\\ccxt\\AuthenticationError', // array("code":-1125,"msg":"This listenKey does not exist.")
-                        '-1127' => '\\ccxt\\BadRequest', // array("code":-1127,"msg":"More than %s hours between startTime and endTime.")
                         '-1128' => '\\ccxt\\BadRequest', // array("code":-1128,"msg":"Combination of optional parameters invalid.")
-                        '-1130' => '\\ccxt\\BadRequest', // array("code":-1130,"msg":"Data sent for paramter %s is not valid.")
                         '-1136' => '\\ccxt\\BadRequest', // array("code":-1136,"msg":"Invalid newOrderRespType")
-                        '-2010' => '\\ccxt\\InvalidOrder', // NEW_ORDER_REJECTED
-                        '-2011' => '\\ccxt\\OrderNotFound', // array("code":-2011,"msg":"cancelOrder(1, 'BTC/USDT') -> 'UNKNOWN_ORDER'")
-                        '-2013' => '\\ccxt\\OrderNotFound', // array("code":-2013,"msg":"fetchOrder (1, 'BTC/USDT') -> 'Order does not exist'")
-                        '-2014' => '\\ccxt\\AuthenticationError', // array("code":-2014,"msg":"API-key format invalid.")
-                        '-2015' => '\\ccxt\\AuthenticationError', // array("code":-2015,"msg":"Invalid API-key, IP, or permissions for action.")
+                        //
+                        //        2xxx
+                        //
                         '-2016' => '\\ccxt\\OperationRejected', // array("code":-2016,"msg":"No trading window could be found for the symbol. Try ticker/24hrs instead.")
                         '-2018' => '\\ccxt\\InsufficientFunds', // array("code":-2018,"msg":"Balance is insufficient")
                         '-2019' => '\\ccxt\\InsufficientFunds', // array("code":-2019,"msg":"Margin is insufficient.")
@@ -1973,86 +1939,25 @@ class binance extends Exchange {
                         '-2026' => '\\ccxt\\InvalidOrder', // array("code":-2026,"msg":"This OrderType is not supported when reduceOnly.")
                         '-2027' => '\\ccxt\\OperationRejected', // array("code":-2027,"msg":"Exceeded the maximum allowable position at current leverage.")
                         '-2028' => '\\ccxt\\OperationRejected', // array("code":-2028,"msg":"Leverage is smaller than permitted => insufficient margin balance")
-                        '-4000' => '\\ccxt\\InvalidOrder', // INVALID_ORDER_STATUS
-                        '-4001' => '\\ccxt\\BadRequest', // PRICE_LESS_THAN_ZERO
-                        '-4002' => '\\ccxt\\BadRequest', // PRICE_GREATER_THAN_MAX_PRICE
-                        '-4003' => '\\ccxt\\BadRequest', // QTY_LESS_THAN_ZERO
-                        '-4004' => '\\ccxt\\BadRequest', // QTY_LESS_THAN_MIN_QTY
-                        '-4005' => '\\ccxt\\BadRequest', // QTY_GREATER_THAN_MAX_QTY
-                        '-4006' => '\\ccxt\\BadRequest', // STOP_PRICE_LESS_THAN_ZERO
-                        '-4007' => '\\ccxt\\BadRequest', // STOP_PRICE_GREATER_THAN_MAX_PRICE
-                        '-4008' => '\\ccxt\\BadRequest', // TICK SIZE LESS THAN ZERO
-                        '-4009' => '\\ccxt\\BadRequest', // MAX_PRICE_LESS_THAN_MIN_PRICE
-                        '-4010' => '\\ccxt\\BadRequest', // MAX_QTY_LESS_THAN_MIN_QTY
-                        '-4011' => '\\ccxt\\BadRequest', // STEP_SIZE_LESS_THAN_ZERO
-                        '-4012' => '\\ccxt\\BadRequest', // MAX_NUM_ORDERS_LESS_THAN_ZERO
-                        '-4013' => '\\ccxt\\BadRequest', // PRICE_LESS_THAN_MIN_PRICE
-                        '-4014' => '\\ccxt\\BadRequest', // PRICE NOT INCREASED BY TICK SIZE
-                        '-4015' => '\\ccxt\\BadRequest', // Client order id is not valid
-                        '-4016' => '\\ccxt\\BadRequest', // Price is higher than mark price multiplier cap.
-                        '-4017' => '\\ccxt\\BadRequest', // MULTIPLIER_UP_LESS_THAN_ZERO
-                        '-4018' => '\\ccxt\\BadRequest', // MULTIPLIER_DOWN_LESS_THAN_ZERO
-                        '-4019' => '\\ccxt\\OperationRejected', // COMPOSITE_SCALE_OVERFLOW
-                        '-4020' => '\\ccxt\\BadRequest', // TARGET_STRATEGY_INVALID
-                        '-4021' => '\\ccxt\\BadRequest', // INVALID_DEPTH_LIMIT
-                        '-4022' => '\\ccxt\\BadRequest', // WRONG_MARKET_STATUS
-                        '-4023' => '\\ccxt\\BadRequest', // QTY_NOT_INCREASED_BY_STEP_SIZE
-                        '-4024' => '\\ccxt\\BadRequest', // PRICE_LOWER_THAN_MULTIPLIER_DOWN
-                        '-4025' => '\\ccxt\\BadRequest', // MULTIPLIER_DECIMAL_LESS_THAN_ZERO
-                        '-4026' => '\\ccxt\\BadRequest', // COMMISSION_INVALID
-                        '-4027' => '\\ccxt\\BadRequest', // INVALID_ACCOUNT_TYPE
-                        '-4028' => '\\ccxt\\BadRequest', // INVALID_LEVERAGE
-                        '-4029' => '\\ccxt\\BadRequest', // INVALID TICK SIZE PRECISION
-                        '-4030' => '\\ccxt\\BadRequest', // INVALID_STEP_SIZE_PRECISION
-                        '-4031' => '\\ccxt\\BadRequest', // INVALID_WORKING_TYPE
-                        '-4032' => '\\ccxt\\OperationRejected', // Exceed maximum cancel order size. | Invalid parameter working type => %s
-                        '-4033' => '\\ccxt\\BadRequest', // INSURANCE_ACCOUNT_NOT_FOUND
-                        '-4044' => '\\ccxt\\BadRequest', // INVALID_BALANCE_TYPE
-                        '-4045' => '\\ccxt\\OperationRejected', // Reach max stop order limit.
-                        '-4046' => '\\ccxt\\BadRequest', // NO_NEED_TO_CHANGE_MARGIN_TYPE
-                        '-4047' => '\\ccxt\\OperationRejected', // Margin type cannot be changed if there exists open orders.
-                        '-4048' => '\\ccxt\\OperationRejected', // Margin type cannot be changed if there exists position.
-                        '-4049' => '\\ccxt\\OperationRejected', // ADD_ISOLATED_MARGIN_REJECT
-                        '-4050' => '\\ccxt\\InsufficientFunds', // CROSS_BALANCE_INSUFFICIENT
-                        '-4051' => '\\ccxt\\InsufficientFunds', // ISOLATED_BALANCE_INSUFFICIENT
-                        '-4052' => '\\ccxt\\OperationRejected', // NO_NEED_TO_CHANGE_AUTO_ADD_MARGIN
-                        '-4053' => '\\ccxt\\OperationRejected', // AUTO_ADD_CROSSED_MARGIN_REJECT
-                        '-4054' => '\\ccxt\\OperationRejected', // Cannot add position margin => position is 0.
-                        '-4055' => '\\ccxt\\BadRequest', // AMOUNT_MUST_BE_POSITIVE
-                        '-4056' => '\\ccxt\\AuthenticationError', // INVALID_API_KEY_TYPE
-                        '-4057' => '\\ccxt\\AuthenticationError', // INVALID_RSA_PUBLIC_KEY
-                        '-4058' => '\\ccxt\\BadRequest', // MAX_PRICE_TOO_LARGE
-                        '-4059' => '\\ccxt\\OperationRejected', // NO_NEED_TO_CHANGE_POSITION_SIDE
-                        '-4060' => '\\ccxt\\BadRequest', // INVALID_POSITION_SIDE
-                        '-4061' => '\\ccxt\\OperationRejected', // Order's position side does not match user's setting.
-                        '-4062' => '\\ccxt\\BadRequest', // Invalid or improper reduceOnly value.
                         //
-                        '-4067' => '\\ccxt\\OperationRejected', // Position side cannot be changed if there exists open orders.
-                        '-4068' => '\\ccxt\\OperationRejected', // Position side cannot be changed if there exists position.
-                        '-4082' => '\\ccxt\\OperationRejected', // Invalid number of batch place orders.
-                        '-4083' => '\\ccxt\\OperationRejected', // PLACE_BATCH_ORDERS_FAIL
-                        '-4084' => '\\ccxt\\BadRequest', // Method is not allowed currently. Upcoming soon.
+                        //        4xxx
+                        //
                         '-4086' => '\\ccxt\\BadRequest', // Invalid price spread threshold.
                         '-4087' => '\\ccxt\\BadSymbol', // Invalid pair
                         '-4088' => '\\ccxt\\BadRequest', // Invalid time interval
                         '-4089' => '\\ccxt\\PermissionDenied', // User can only place reduce only order.
                         '-4090' => '\\ccxt\\PermissionDenied', // User can not place order currently.
-                        '-4104' => '\\ccxt\\BadRequest', // Invalid contract type
                         '-4110' => '\\ccxt\\BadRequest', // clientTranId is not valid
                         '-4111' => '\\ccxt\\BadRequest', // clientTranId is duplicated.
                         '-4112' => '\\ccxt\\OperationRejected', // ReduceOnly Order Failed. Please check your existing position and open orders.
                         '-4113' => '\\ccxt\\OperationRejected', // The counterparty's best price does not meet the PERCENT_PRICE filter limit.
-                        '-4135' => '\\ccxt\\BadRequest', // Invalid activation price.
-                        '-4137' => '\\ccxt\\BadRequest', // Quantity must be zero with closePosition equals true.
-                        '-4138' => '\\ccxt\\BadRequest', // Reduce only must be true with closePosition equals true.
-                        '-4139' => '\\ccxt\\BadRequest', // Order type can not be market if it's unable to cancel.
-                        '-4142' => '\\ccxt\\OrderImmediatelyFillable', // REJECT => take profit or stop order will be triggered immediately.
                         '-4150' => '\\ccxt\\OperationRejected', // Leverage reduction is not supported in Isolated Margin Mode with open positions.
                         '-4151' => '\\ccxt\\BadRequest', // Price is higher than stop price multiplier cap.
                         '-4152' => '\\ccxt\\BadRequest', // Price is lower than stop price multiplier floor.
                         '-4154' => '\\ccxt\\BadRequest', // Stop price is higher than price multiplier cap.
                         '-4155' => '\\ccxt\\BadRequest', // Stop price is lower than price multiplier floor
                         '-4178' => '\\ccxt\\BadRequest', // Order's notional must be no smaller than one (unless you choose reduce only)
+                        '-4188' => '\\ccxt\\BadRequest', // Timestamp for this request is outside of the ME recvWindow.
                         '-4192' => '\\ccxt\\PermissionDenied', // Trade forbidden due to Cooling-off Period.
                         '-4194' => '\\ccxt\\PermissionDenied', // Intermediate Personal Verification is required for adjusting leverage over 20x.
                         '-4195' => '\\ccxt\\PermissionDenied', // More than 20x leverage is available one month after account registration.
@@ -2063,124 +1968,215 @@ class binance extends Exchange {
                         '-4200' => '\\ccxt\\PermissionDenied', // More than 20x leverage is available %s days after Futures account registration.
                         '-4201' => '\\ccxt\\PermissionDenied', // Users in your location/country can only access a maximum leverage of %s
                         '-4202' => '\\ccxt\\OperationRejected', // Current symbol leverage cannot exceed 20 when using position limit adjustment service.
-                        '-4188' => '\\ccxt\\BadRequest', // Timestamp for this request is outside of the ME recvWindow.
-                        //
-                        // spot & futures algo
-                        //
-                        '-20121' => '\\ccxt\\BadSymbol', // Invalid symbol.
-                        '-20124' => '\\ccxt\\BadRequest', // Invalid algo id or it has been completed.
-                        '-20130' => '\\ccxt\\BadRequest', // Invalid data sent for a parameter
-                        '-20132' => '\\ccxt\\BadRequest', // The client algo id is duplicated
-                        '-20194' => '\\ccxt\\BadRequest', // Duration is too short to execute all required quantity.
-                        '-20195' => '\\ccxt\\BadRequest', // The total size is too small.
-                        '-20196' => '\\ccxt\\BadRequest', // The total size is too large.
-                        '-20198' => '\\ccxt\\OperationRejected', // Reach the max open orders allowed.
-                        '-20204' => '\\ccxt\\BadRequest', // The notional of USD is less or more than the limit.
                     ),
                 ),
                 'option' => array(
-                    // https://binance-docs.github.io/apidocs/voptions/en/#error-codes
                     'exact' => array(
-                        '-1000' => '\\ccxt\\OperationFailed', // array("code":-1000,"msg":"An unknown error occured while processing the request.")
-                        '-1001' => '\\ccxt\\OperationFailed', // array("code":-1001,"msg":"'Internal error; unable to process your request. Please try again.'")
-                        '-1002' => '\\ccxt\\AuthenticationError', // array("code":-1002,"msg":"'You are not authorized to execute this request.'")
-                        '-1008' => '\\ccxt\\RateLimitExceeded', // TOO_MANY_REQUESTS
-                        '-1014' => '\\ccxt\\InvalidOrder', // array("code":-1014,"msg":"Unsupported order combination.")
-                        '-1015' => '\\ccxt\\RateLimitExceeded', // array("code":-1015,"msg":"'Too many new orders; current limit is %s orders per %s.'")
-                        '-1016' => '\\ccxt\\BadRequest', // array("code":-1016,"msg":"'This service is no longer available.',")
-                        '-1020' => '\\ccxt\\BadRequest', // array("code":-1020,"msg":"'This operation is not supported.'")
-                        '-1021' => '\\ccxt\\InvalidNonce', // array("code":-1021,"msg":"'your time is ahead of server'")
-                        '-1022' => '\\ccxt\\AuthenticationError', // array("code":-1022,"msg":"Signature for this request is not valid.")
-                        '-1100' => '\\ccxt\\BadRequest', // array("code":-1100,"msg":"createOrder(symbol, 1, asdf) -> 'Illegal characters found in parameter 'price'")
-                        '-1101' => '\\ccxt\\BadRequest', // array("code":-1101,"msg":"Too many parameters; expected %s and received %s.")
-                        '-1102' => '\\ccxt\\BadRequest', // array("code":-1102,"msg":"Param %s or %s must be sent, but both were empty")
-                        '-1103' => '\\ccxt\\BadRequest', // array("code":-1103,"msg":"An unknown parameter was sent.")
-                        '-1104' => '\\ccxt\\BadRequest', // array("code":-1104,"msg":"Not all sent parameters were read, read 8 parameters but was sent 9")
-                        '-1105' => '\\ccxt\\BadRequest', // array("code":-1105,"msg":"Parameter %s was empty.")
-                        '-1106' => '\\ccxt\\BadRequest', // array("code":-1106,"msg":"Parameter %s sent when not required.")
-                        '-1111' => '\\ccxt\\BadRequest', // array("code":-1111,"msg":"Precision is over the maximum defined for this asset.")
-                        '-1115' => '\\ccxt\\BadRequest', // array("code":-1115,"msg":"Invalid timeInForce.")
-                        '-1116' => '\\ccxt\\BadRequest', // array("code":-1116,"msg":"Invalid orderType.")
-                        '-1117' => '\\ccxt\\BadRequest', // array("code":-1117,"msg":"Invalid side.")
-                        '-1118' => '\\ccxt\\BadRequest', // array("code":-1118,"msg":"New client order ID was empty.")
-                        '-1119' => '\\ccxt\\BadRequest', // array("code":-1119,"msg":"Original client order ID was empty.")
-                        '-1120' => '\\ccxt\\BadRequest', // array("code":-1120,"msg":"Invalid interval.")
-                        '-1121' => '\\ccxt\\BadSymbol', // array("code":-1121,"msg":"Invalid symbol.")
-                        '-1125' => '\\ccxt\\AuthenticationError', // array("code":-1125,"msg":"This listenKey does not exist.")
-                        '-1127' => '\\ccxt\\BadRequest', // array("code":-1127,"msg":"More than %s hours between startTime and endTime.")
+                        //
+                        //        1xxx
+                        //
+                        '-1003' => '\\ccxt\\ExchangeError', // override common
+                        '-1004' => '\\ccxt\\ExchangeError', // override common
+                        '-1006' => '\\ccxt\\ExchangeError', // override common
+                        '-1007' => '\\ccxt\\ExchangeError', // override common
+                        '-1008' => '\\ccxt\\RateLimitExceeded', // TOO_MANY_REQUEST
+                        '-1010' => '\\ccxt\\ExchangeError', // override common
+                        '-1013' => '\\ccxt\\ExchangeError', // override common
+                        '-1108' => '\\ccxt\\ExchangeError', // override common
+                        '-1112' => '\\ccxt\\ExchangeError', // override common
+                        '-1114' => '\\ccxt\\ExchangeError', // override common
                         '-1128' => '\\ccxt\\BadSymbol', // BAD_CONTRACT
                         '-1129' => '\\ccxt\\BadSymbol', // BAD_CURRENCY
-                        '-1130' => '\\ccxt\\BadRequest', // array("code":-1130,"msg":"Data sent for paramter %s is not valid.")
                         '-1131' => '\\ccxt\\BadRequest', // array("code":-1131,"msg":"recvWindow must be less than 60000")
-                        '-2010' => '\\ccxt\\InvalidOrder', // NEW_ORDER_REJECTED
-                        '-2013' => '\\ccxt\\OrderNotFound', // array("code":-2013,"msg":"fetchOrder (1, 'BTC/USDT') -> 'Order does not exist'")
-                        '-2014' => '\\ccxt\\AuthenticationError', // array("code":-2014,"msg":"API-key format invalid.")
-                        '-2015' => '\\ccxt\\AuthenticationError', // array("code":-2015,"msg":"Invalid API-key, IP, or permissions for action.")
+                        //
+                        //        2xxx
+                        //
+                        '-2011' => '\\ccxt\\ExchangeError', // override common
                         '-2018' => '\\ccxt\\InsufficientFunds', // BALANCE_NOT_SUFFICIENT
                         '-2027' => '\\ccxt\\InsufficientFunds', // OPTION_MARGIN_NOT_SUFFICIENT
+                        //
+                        //        3xxx
+                        //
                         '-3029' => '\\ccxt\\OperationFailed', // array("code":-3029,"msg":"Transfer failed.")
-                        '-4001' => '\\ccxt\\BadRequest', // PRICE_LESS_THAN_ZERO
-                        '-4002' => '\\ccxt\\BadRequest', // PRICE_GREATER_THAN_MAX_PRICE
-                        '-4003' => '\\ccxt\\BadRequest', // QTY_LESS_THAN_ZERO
-                        '-4004' => '\\ccxt\\BadRequest', // QTY_LESS_THAN_MIN_QTY
-                        '-4005' => '\\ccxt\\BadRequest', // QTY_GREATER_THAN_MAX_QTY
-                        '-4013' => '\\ccxt\\BadRequest', // PRICE_LESS_THAN_MIN_PRICE
-                        '-4029' => '\\ccxt\\BadRequest', // INVALID TICK SIZE PRECISION
-                        '-4030' => '\\ccxt\\BadRequest', // INVALID_QTY_PRECISION
-                        '-4055' => '\\ccxt\\BadRequest', // AMOUNT_MUST_BE_POSITIVE
+                        //
+                        //        4xxx
+                        //
+                        // -4001 inherited
+                        // -4002 inherited
+                        // -4003 inherited
+                        // -4004 inherited
+                        // -4005 inherited
+                        '-4006' => '\\ccxt\\ExchangeError', // override commons
+                        '-4007' => '\\ccxt\\ExchangeError', // override commons
+                        '-4008' => '\\ccxt\\ExchangeError', // override commons
+                        '-4009' => '\\ccxt\\ExchangeError', // override commons
+                        '-4010' => '\\ccxt\\ExchangeError', // override commons
+                        '-4011' => '\\ccxt\\ExchangeError', // override commons
+                        '-4012' => '\\ccxt\\ExchangeError', // override commons
+                        // -4013 inherited
+                        '-4014' => '\\ccxt\\ExchangeError', // override commons
+                        '-4015' => '\\ccxt\\ExchangeError', // override commons
+                        '-4016' => '\\ccxt\\ExchangeError', // override commons
+                        '-4017' => '\\ccxt\\ExchangeError', // override commons
+                        '-4018' => '\\ccxt\\ExchangeError', // override commons
+                        '-4019' => '\\ccxt\\ExchangeError', // override commons
+                        '-4020' => '\\ccxt\\ExchangeError', // override commons
+                        '-4021' => '\\ccxt\\ExchangeError', // override commons
+                        '-4022' => '\\ccxt\\ExchangeError', // override commons
+                        '-4023' => '\\ccxt\\ExchangeError', // override commons
+                        '-4024' => '\\ccxt\\ExchangeError', // override commons
+                        '-4025' => '\\ccxt\\ExchangeError', // override commons
+                        '-4026' => '\\ccxt\\ExchangeError', // override commons
+                        '-4027' => '\\ccxt\\ExchangeError', // override commons
+                        '-4028' => '\\ccxt\\ExchangeError', // override commons
+                        // -4029 inherited
+                        // -4030 inherited
+                        '-4031' => '\\ccxt\\ExchangeError', // override commons
+                        '-4032' => '\\ccxt\\ExchangeError', // override commons
+                        '-4033' => '\\ccxt\\ExchangeError', // override commons
+                        '-4034' => '\\ccxt\\ExchangeError', // override commons
+                        '-4035' => '\\ccxt\\ExchangeError', // override commons
+                        '-4036' => '\\ccxt\\ExchangeError', // override commons
+                        '-4037' => '\\ccxt\\ExchangeError', // override commons
+                        '-4038' => '\\ccxt\\ExchangeError', // override commons
+                        '-4039' => '\\ccxt\\ExchangeError', // override commons
+                        '-4040' => '\\ccxt\\ExchangeError', // override commons
+                        '-4041' => '\\ccxt\\ExchangeError', // override commons
+                        '-4042' => '\\ccxt\\ExchangeError', // override commons
+                        '-4043' => '\\ccxt\\ExchangeError', // override commons
+                        '-4044' => '\\ccxt\\ExchangeError', // override commons
+                        '-4045' => '\\ccxt\\ExchangeError', // override commons
+                        '-4046' => '\\ccxt\\ExchangeError', // override commons
+                        '-4047' => '\\ccxt\\ExchangeError', // override commons
+                        '-4048' => '\\ccxt\\ExchangeError', // override commons
+                        '-4049' => '\\ccxt\\ExchangeError', // override commons
+                        '-4050' => '\\ccxt\\ExchangeError', // override commons
+                        '-4051' => '\\ccxt\\ExchangeError', // override commons
+                        '-4052' => '\\ccxt\\ExchangeError', // override commons
+                        '-4053' => '\\ccxt\\ExchangeError', // override commons
+                        '-4054' => '\\ccxt\\ExchangeError', // override commons
+                        // -4055 inherited
+                        '-4056' => '\\ccxt\\ExchangeError', // override commons
+                        '-4057' => '\\ccxt\\ExchangeError', // override commons
+                        '-4058' => '\\ccxt\\ExchangeError', // override commons
+                        '-4059' => '\\ccxt\\ExchangeError', // override commons
+                        '-4060' => '\\ccxt\\ExchangeError', // override commons
+                        '-4061' => '\\ccxt\\ExchangeError', // override commons
+                        '-4062' => '\\ccxt\\ExchangeError', // override commons
+                        '-4063' => '\\ccxt\\ExchangeError', // override commons
+                        '-4064' => '\\ccxt\\ExchangeError', // override commons
+                        '-4065' => '\\ccxt\\ExchangeError', // override commons
+                        '-4066' => '\\ccxt\\ExchangeError', // override commons
+                        '-4067' => '\\ccxt\\ExchangeError', // override commons
+                        '-4068' => '\\ccxt\\ExchangeError', // override commons
+                        '-4069' => '\\ccxt\\ExchangeError', // override commons
+                        '-4070' => '\\ccxt\\ExchangeError', // override commons
+                        '-4071' => '\\ccxt\\ExchangeError', // override commons
+                        '-4072' => '\\ccxt\\ExchangeError', // override commons
+                        '-4073' => '\\ccxt\\ExchangeError', // override commons
+                        '-4074' => '\\ccxt\\ExchangeError', // override commons
+                        '-4075' => '\\ccxt\\ExchangeError', // override commons
+                        '-4076' => '\\ccxt\\ExchangeError', // override commons
+                        '-4077' => '\\ccxt\\ExchangeError', // override commons
+                        '-4078' => '\\ccxt\\ExchangeError', // override commons
+                        '-4079' => '\\ccxt\\ExchangeError', // override commons
+                        '-4080' => '\\ccxt\\ExchangeError', // override commons
+                        '-4081' => '\\ccxt\\ExchangeError', // override commons
+                        '-4082' => '\\ccxt\\ExchangeError', // override commons
+                        '-4083' => '\\ccxt\\ExchangeError', // override commons
+                        '-4084' => '\\ccxt\\ExchangeError', // override commons
+                        '-4085' => '\\ccxt\\ExchangeError', // override commons
+                        '-4086' => '\\ccxt\\ExchangeError', // override commons
+                        '-4087' => '\\ccxt\\ExchangeError', // override commons
+                        '-4088' => '\\ccxt\\ExchangeError', // override commons
+                        '-4089' => '\\ccxt\\ExchangeError', // override commons
+                        '-4091' => '\\ccxt\\ExchangeError', // override commons
+                        '-4092' => '\\ccxt\\ExchangeError', // override commons
+                        '-4093' => '\\ccxt\\ExchangeError', // override commons
+                        '-4094' => '\\ccxt\\ExchangeError', // override commons
+                        '-4095' => '\\ccxt\\ExchangeError', // override commons
+                        '-4096' => '\\ccxt\\ExchangeError', // override commons
+                        '-4097' => '\\ccxt\\ExchangeError', // override commons
+                        '-4098' => '\\ccxt\\ExchangeError', // override commons
+                        '-4099' => '\\ccxt\\ExchangeError', // override commons
+                        '-4101' => '\\ccxt\\ExchangeError', // override commons
+                        '-4102' => '\\ccxt\\ExchangeError', // override commons
+                        '-4103' => '\\ccxt\\ExchangeError', // override commons
+                        '-4104' => '\\ccxt\\ExchangeError', // override commons
+                        '-4105' => '\\ccxt\\ExchangeError', // override commons
+                        '-4106' => '\\ccxt\\ExchangeError', // override commons
+                        '-4107' => '\\ccxt\\ExchangeError', // override commons
+                        '-4108' => '\\ccxt\\ExchangeError', // override commons
+                        '-4109' => '\\ccxt\\ExchangeError', // override commons
+                        '-4110' => '\\ccxt\\ExchangeError', // override commons
+                        '-4112' => '\\ccxt\\ExchangeError', // override commons
+                        '-4113' => '\\ccxt\\ExchangeError', // override commons
+                        '-4114' => '\\ccxt\\ExchangeError', // override commons
+                        '-4115' => '\\ccxt\\ExchangeError', // override commons
+                        '-4116' => '\\ccxt\\ExchangeError', // override commons
+                        '-4117' => '\\ccxt\\ExchangeError', // override commons
+                        '-4118' => '\\ccxt\\ExchangeError', // override commons
+                        '-4119' => '\\ccxt\\ExchangeError', // override commons
+                        '-4120' => '\\ccxt\\ExchangeError', // override commons
+                        '-4121' => '\\ccxt\\ExchangeError', // override commons
+                        '-4122' => '\\ccxt\\ExchangeError', // override commons
+                        '-4123' => '\\ccxt\\ExchangeError', // override commons
+                        '-4124' => '\\ccxt\\ExchangeError', // override commons
+                        '-4125' => '\\ccxt\\ExchangeError', // override commons
+                        '-4126' => '\\ccxt\\ExchangeError', // override commons
+                        '-4127' => '\\ccxt\\ExchangeError', // override commons
+                        '-4128' => '\\ccxt\\ExchangeError', // override commons
+                        '-4129' => '\\ccxt\\ExchangeError', // override commons
+                        '-4130' => '\\ccxt\\ExchangeError', // override commons
+                        '-4131' => '\\ccxt\\ExchangeError', // override commons
+                        '-4132' => '\\ccxt\\ExchangeError', // override commons
+                        '-4133' => '\\ccxt\\ExchangeError', // override commons
+                        '-4134' => '\\ccxt\\ExchangeError', // override commons
+                        '-4135' => '\\ccxt\\ExchangeError', // override commons
+                        '-4136' => '\\ccxt\\ExchangeError', // override commons
+                        '-4137' => '\\ccxt\\ExchangeError', // override commons
+                        '-4138' => '\\ccxt\\ExchangeError', // override commons
+                        '-4139' => '\\ccxt\\ExchangeError', // override commons
+                        '-4141' => '\\ccxt\\ExchangeError', // override commons
+                        '-4142' => '\\ccxt\\ExchangeError', // override commons
+                        '-4143' => '\\ccxt\\ExchangeError', // override commons
+                        '-4144' => '\\ccxt\\ExchangeError', // override commons
+                        '-4145' => '\\ccxt\\ExchangeError', // override commons
+                        '-4146' => '\\ccxt\\ExchangeError', // override commons
+                        '-4147' => '\\ccxt\\ExchangeError', // override commons
+                        '-4148' => '\\ccxt\\ExchangeError', // override commons
+                        '-4149' => '\\ccxt\\ExchangeError', // override commons
+                        '-4150' => '\\ccxt\\ExchangeError', // override commons
+                        //
+                        //        2xxxx
+                        //
+                        '-20121' => '\\ccxt\\ExchangeError', // override commons
+                        '-20124' => '\\ccxt\\ExchangeError', // override commons
+                        '-20130' => '\\ccxt\\ExchangeError', // override commons
+                        '-20132' => '\\ccxt\\ExchangeError', // override commons
+                        '-20194' => '\\ccxt\\ExchangeError', // override commons
+                        '-20195' => '\\ccxt\\ExchangeError', // override commons
+                        '-20196' => '\\ccxt\\ExchangeError', // override commons
+                        '-20198' => '\\ccxt\\ExchangeError', // override commons
+                        '-20204' => '\\ccxt\\ExchangeError', // override commons
                     ),
                 ),
                 'portfolioMargin' => array(
                     'exact' => array(
-                        '-1000' => '\\ccxt\\OperationFailed', // array("code":-1000,"msg":"An unknown error occured while processing the request.")
-                        '-1001' => '\\ccxt\\OperationFailed', // array("code":-1001,"msg":"'Internal error; unable to process your request. Please try again.'")
-                        '-1002' => '\\ccxt\\AuthenticationError', // array("code":-1002,"msg":"'You are not authorized to execute this request.'")
-                        '-1003' => '\\ccxt\\RateLimitExceeded', // array("code":-1003,"msg":"Too much request weight used, current limit is 1200 request weight per 1 MINUTE. Please use the websocket for live updates to avoid polling the API.")
-                        '-1004' => '\\ccxt\\OperationRejected', // DUPLICATE_IP : This IP is already on the white list
+                        //
+                        //        1xxx
+                        //
                         '-1005' => '\\ccxt\\PermissionDenied', // array("code":-1005,"msg":"No such IP has been white listed")
-                        '-1006' => '\\ccxt\\OperationFailed', // array("code":-1006,"msg":"An unexpected response was received from the message bus. Execution status unknown.")
-                        '-1007' => '\\ccxt\\RequestTimeout', // array("code":-1007,"msg":"Timeout waiting for response from backend server. Send status unknown; execution status unknown.")
-                        '-1010' => '\\ccxt\\OperationFailed', // array("code":-1010,"msg":"ERROR_MSG_RECEIVED.")
                         '-1011' => '\\ccxt\\PermissionDenied', // array("code":-1011,"msg":"This IP cannot access this route.")
-                        '-1013' => '\\ccxt\\OperationFailed', //
-                        '-1014' => '\\ccxt\\InvalidOrder', // array("code":-1014,"msg":"Unsupported order combination.")
-                        '-1015' => '\\ccxt\\RateLimitExceeded', // array("code":-1015,"msg":"'Too many new orders; current limit is %s orders per %s.'")
-                        '-1016' => '\\ccxt\\BadRequest', // array("code":-1016,"msg":"'This service is no longer available.',")
-                        '-1020' => '\\ccxt\\BadRequest', // array("code":-1020,"msg":"'This operation is not supported.'")
-                        '-1021' => '\\ccxt\\InvalidNonce', // array("code":-1021,"msg":"'your time is ahead of server'")
-                        '-1022' => '\\ccxt\\AuthenticationError', // array("code":-1022,"msg":"Signature for this request is not valid.")
                         '-1023' => '\\ccxt\\BadRequest', // START_TIME_GREATER_THAN_END_TIME
-                        '-1100' => '\\ccxt\\BadRequest', // array("code":-1100,"msg":"createOrder(symbol, 1, asdf) -> 'Illegal characters found in parameter 'price'")
-                        '-1101' => '\\ccxt\\BadRequest', // array("code":-1101,"msg":"Too many parameters; expected %s and received %s.")
-                        '-1102' => '\\ccxt\\BadRequest', // array("code":-1102,"msg":"Param %s or %s must be sent, but both were empty")
-                        '-1103' => '\\ccxt\\BadRequest', // array("code":-1103,"msg":"An unknown parameter was sent.")
-                        '-1104' => '\\ccxt\\BadRequest', // array("code":-1104,"msg":"Not all sent parameters were read, read 8 parameters but was sent 9")
-                        '-1105' => '\\ccxt\\BadRequest', // array("code":-1105,"msg":"Parameter %s was empty.")
-                        '-1106' => '\\ccxt\\BadRequest', // array("code":-1106,"msg":"Parameter %s sent when not required.")
-                        '-1108' => '\\ccxt\\BadSymbol', // BAD_ASSET
                         '-1109' => '\\ccxt\\BadRequest', // BAD_ACCOUNT
                         '-1110' => '\\ccxt\\BadSymbol', // BAD_INSTRUMENT_TYPE
-                        '-1111' => '\\ccxt\\BadRequest', // array("code":-1111,"msg":"Precision is over the maximum defined for this asset.")
-                        '-1112' => '\\ccxt\\OperationFailed', // array("code":-1112,"msg":"No orders on book for symbol.")
                         '-1113' => '\\ccxt\\BadRequest', // array("code":-1113,"msg":"Withdrawal amount must be negative.")
-                        '-1114' => '\\ccxt\\BadRequest', // array("code":-1114,"msg":"TimeInForce parameter sent when not required.")
-                        '-1115' => '\\ccxt\\BadRequest', // array("code":-1115,"msg":"Invalid timeInForce.")
-                        '-1116' => '\\ccxt\\BadRequest', // array("code":-1116,"msg":"Invalid orderType.")
-                        '-1117' => '\\ccxt\\BadRequest', // array("code":-1117,"msg":"Invalid side.")
-                        '-1118' => '\\ccxt\\BadRequest', // array("code":-1118,"msg":"New client order ID was empty.")
-                        '-1119' => '\\ccxt\\BadRequest', // array("code":-1119,"msg":"Original client order ID was empty.")
-                        '-1120' => '\\ccxt\\BadRequest', // array("code":-1120,"msg":"Invalid interval.")
-                        '-1121' => '\\ccxt\\BadSymbol', // array("code":-1121,"msg":"Invalid symbol.")
-                        '-1125' => '\\ccxt\\AuthenticationError', // array("code":-1125,"msg":"This listenKey does not exist.")
-                        '-1127' => '\\ccxt\\BadRequest', // array("code":-1127,"msg":"More than %s hours between startTime and endTime.")
                         '-1128' => '\\ccxt\\BadRequest', // array("code":-1128,"msg":"Combination of optional parameters invalid.")
-                        '-1130' => '\\ccxt\\BadRequest', // array("code":-1130,"msg":"Data sent for paramter %s is not valid.")
                         '-1136' => '\\ccxt\\BadRequest', // INVALID_NEW_ORDER_RESP_TYPE
-                        '-2010' => '\\ccxt\\InvalidOrder', // NEW_ORDER_REJECTED
-                        '-2011' => '\\ccxt\\OrderNotFound', // array("code":-2011,"msg":"cancelOrder(1, 'BTC/USDT') -> 'UNKNOWN_ORDER'")
-                        '-2013' => '\\ccxt\\OrderNotFound', // array("code":-2013,"msg":"fetchOrder (1, 'BTC/USDT') -> 'Order does not exist'")
-                        '-2014' => '\\ccxt\\AuthenticationError', // array("code":-2014,"msg":"API-key format invalid.")
-                        '-2015' => '\\ccxt\\AuthenticationError', // array("code":-2015,"msg":"Invalid API-key, IP, or permissions for action.")
+                        //
+                        //        2xxx
+                        //
                         '-2016' => '\\ccxt\\OperationRejected', // array("code":-2016,"msg":"No trading window could be found for the symbol. Try ticker/24hrs instead.")
                         '-2018' => '\\ccxt\\InsufficientFunds', // array("code":-2018,"msg":"Balance is insufficient")
                         '-2019' => '\\ccxt\\InsufficientFunds', // Margin is insufficient
@@ -2193,65 +2189,13 @@ class binance extends Exchange {
                         '-2026' => '\\ccxt\\InvalidOrder', // This OrderType is not supported when reduceOnly.
                         '-2027' => '\\ccxt\\OperationRejected', // Exceeded the maximum allowable position at current leverage.
                         '-2028' => '\\ccxt\\OperationRejected', // Leverage is smaller than permitted => insufficient margin balance.
-                        '-4000' => '\\ccxt\\InvalidOrder', // INVALID_ORDER_STATUS
-                        '-4001' => '\\ccxt\\BadRequest', // PRICE_LESS_THAN_ZERO
-                        '-4002' => '\\ccxt\\BadRequest', // PRICE_GREATER_THAN_MAX_PRICE
-                        '-4003' => '\\ccxt\\BadRequest', // QTY_LESS_THAN_ZERO
-                        '-4004' => '\\ccxt\\BadRequest', // QTY_LESS_THAN_MIN_QTY
-                        '-4005' => '\\ccxt\\BadRequest', // QTY_GREATER_THAN_MAX_QTY
-                        '-4006' => '\\ccxt\\BadRequest', // STOP_PRICE_LESS_THAN_ZERO
-                        '-4007' => '\\ccxt\\BadRequest', // STOP_PRICE_GREATER_THAN_MAX_PRICE
-                        '-4008' => '\\ccxt\\BadRequest', // TICK SIZE LESS THAN ZERO
-                        '-4009' => '\\ccxt\\BadRequest', // MAX_PRICE_LESS_THAN_MIN_PRICE
-                        '-4010' => '\\ccxt\\BadRequest', // MAX_QTY_LESS_THAN_MIN_QTY
-                        '-4011' => '\\ccxt\\BadRequest', // STEP_SIZE_LESS_THAN_ZERO
-                        '-4012' => '\\ccxt\\BadRequest', // MAX_NUM_ORDERS_LESS_THAN_ZERO
-                        '-4013' => '\\ccxt\\BadRequest', // PRICE_LESS_THAN_MIN_PRICE
-                        '-4014' => '\\ccxt\\BadRequest', // PRICE NOT INCREASED BY TICK SIZE
-                        '-4015' => '\\ccxt\\BadRequest', // Client order id is not valid
-                        '-4016' => '\\ccxt\\BadRequest', // Price is higher than mark price multiplier cap.
-                        '-4017' => '\\ccxt\\BadRequest', // MULTIPLIER_UP_LESS_THAN_ZERO
-                        '-4018' => '\\ccxt\\BadRequest', // MULTIPLIER_DOWN_LESS_THAN_ZERO
-                        '-4019' => '\\ccxt\\OperationRejected', // COMPOSITE_SCALE_OVERFLOW
-                        '-4020' => '\\ccxt\\BadRequest', // TARGET_STRATEGY_INVALID
-                        '-4021' => '\\ccxt\\BadRequest', // INVALID_DEPTH_LIMIT
-                        '-4022' => '\\ccxt\\BadRequest', // WRONG_MARKET_STATUS
-                        '-4023' => '\\ccxt\\BadRequest', // QTY_NOT_INCREASED_BY_STEP_SIZE
-                        '-4024' => '\\ccxt\\BadRequest', // PRICE_LOWER_THAN_MULTIPLIER_DOWN
-                        '-4025' => '\\ccxt\\BadRequest', // MULTIPLIER_DECIMAL_LESS_THAN_ZERO
-                        '-4026' => '\\ccxt\\BadRequest', // COMMISSION_INVALID
-                        '-4027' => '\\ccxt\\BadRequest', // INVALID_ACCOUNT_TYPE
-                        '-4028' => '\\ccxt\\BadRequest', // INVALID_LEVERAGE
-                        '-4029' => '\\ccxt\\BadRequest', // INVALID TICK SIZE PRECISION
-                        '-4030' => '\\ccxt\\BadRequest', // INVALID_STEP_SIZE_PRECISION
-                        '-4031' => '\\ccxt\\BadRequest', // INVALID_WORKING_TYPE
-                        '-4032' => '\\ccxt\\OperationRejected', // EXCEED_MAX_CANCEL_ORDER_SIZE
-                        '-4033' => '\\ccxt\\BadRequest', // INSURANCE_ACCOUNT_NOT_FOUND
-                        '-4044' => '\\ccxt\\BadRequest', // INVALID_BALANCE_TYPE
-                        '-4045' => '\\ccxt\\OperationRejected', // MAX_STOP_ORDER_EXCEEDED
-                        '-4046' => '\\ccxt\\OperationRejected', // NO_NEED_TO_CHANGE_MARGIN_TYPE
-                        '-4047' => '\\ccxt\\OperationRejected', // Margin type cannot be changed if there exists open orders.
-                        '-4048' => '\\ccxt\\OperationRejected', // Margin type cannot be changed if there exists position.
-                        '-4049' => '\\ccxt\\BadRequest', // Add margin only support for isolated position.
-                        '-4050' => '\\ccxt\\InsufficientFunds', // Cross balance insufficient
-                        '-4051' => '\\ccxt\\InsufficientFunds', // Isolated balance insufficient.
-                        '-4052' => '\\ccxt\\OperationRejected', // No need to change auto add margin.
-                        '-4053' => '\\ccxt\\BadRequest', // Auto add margin only support for isolated position.
-                        '-4054' => '\\ccxt\\OperationRejected', // Cannot add position margin => position is 0.
-                        '-4055' => '\\ccxt\\BadRequest', // Amount must be positive.
-                        '-4056' => '\\ccxt\\AuthenticationError', // Invalid api key type.
-                        '-4057' => '\\ccxt\\AuthenticationError', // Invalid api public key
-                        '-4058' => '\\ccxt\\BadRequest', // MAX_PRICE_TOO_LARGE
-                        '-4059' => '\\ccxt\\OperationRejected', // NO_NEED_TO_CHANGE_POSITION_SIDE
-                        '-4060' => '\\ccxt\\BadRequest', // INVALID_POSITION_SIDE
-                        '-4061' => '\\ccxt\\BadRequest', // POSITION_SIDE_NOT_MATCH
-                        '-4062' => '\\ccxt\\BadRequest', // REDUCE_ONLY_CONFLICT
+                        //
+                        //        4xxx
+                        //
                         '-4063' => '\\ccxt\\BadRequest', // INVALID_OPTIONS_REQUEST_TYPE
                         '-4064' => '\\ccxt\\BadRequest', // INVALID_OPTIONS_TIME_FRAME
                         '-4065' => '\\ccxt\\BadRequest', // INVALID_OPTIONS_AMOUNT
                         '-4066' => '\\ccxt\\BadRequest', // INVALID_OPTIONS_EVENT_TYPE
-                        '-4067' => '\\ccxt\\OperationRejected', // Position side cannot be changed if there exists open orders.
-                        '-4068' => '\\ccxt\\OperationRejected', // Position side cannot be changed if there exists position.
                         '-4069' => '\\ccxt\\BadRequest', // Position INVALID_OPTIONS_PREMIUM_FEE
                         '-4070' => '\\ccxt\\BadRequest', // Client options id is not valid.
                         '-4071' => '\\ccxt\\BadRequest', // Invalid options direction
@@ -2265,36 +2209,183 @@ class binance extends Exchange {
                         '-4079' => '\\ccxt\\BadRequest', // invalid options id
                         '-4080' => '\\ccxt\\PermissionDenied', // user not found with id => %s
                         '-4081' => '\\ccxt\\BadRequest', // OPTIONS_NOT_FOUND
-                        '-4082' => '\\ccxt\\BadRequest', // Invalid number of batch place orders
-                        '-4083' => '\\ccxt\\OperationFailed', // Fail to place batch orders.
-                        '-4084' => '\\ccxt\\BadRequest', // UPCOMING_METHOD
                         '-4085' => '\\ccxt\\BadRequest', // Invalid notional limit coefficient
                         '-4086' => '\\ccxt\\BadRequest', // Invalid price spread threshold
                         '-4087' => '\\ccxt\\PermissionDenied', // User can only place reduce only order
                         '-4088' => '\\ccxt\\PermissionDenied', // User can not place order currently
-                        '-4104' => '\\ccxt\\BadRequest', // INVALID_CONTRACT_TYPE
                         '-4114' => '\\ccxt\\BadRequest', // INVALID_CLIENT_TRAN_ID_LEN
                         '-4115' => '\\ccxt\\BadRequest', // DUPLICATED_CLIENT_TRAN_ID
                         '-4118' => '\\ccxt\\OperationRejected', // REDUCE_ONLY_MARGIN_CHECK_FAILED
                         '-4131' => '\\ccxt\\OperationRejected', // The counterparty's best price does not meet the PERCENT_PRICE filter limit
-                        '-4135' => '\\ccxt\\BadRequest', // Invalid activation price
-                        '-4137' => '\\ccxt\\BadRequest', // Quantity must be zero with closePosition equals true
-                        '-4138' => '\\ccxt\\BadRequest', // Reduce only must be true with closePosition equals true
-                        '-4139' => '\\ccxt\\BadRequest', // Order type can not be market if it's unable to cancel
                         '-4140' => '\\ccxt\\BadRequest', // Invalid symbol status for opening position
                         '-4141' => '\\ccxt\\BadRequest', // Symbol is closed
-                        '-4142' => '\\ccxt\\OrderImmediatelyFillable', // REJECT => take profit or stop order will be triggered immediately
                         '-4144' => '\\ccxt\\BadSymbol', // Invalid pair
                         '-4161' => '\\ccxt\\OperationRejected', // Leverage reduction is not supported in Isolated Margin Mode with open positions
                         '-4164' => '\\ccxt\\OperationRejected', // Leverage reduction is not supported in Isolated Margin Mode with open positions
                         '-4165' => '\\ccxt\\BadRequest', // Invalid time interval
                         '-4183' => '\\ccxt\\BadRequest', // Price is higher than stop price multiplier cap.
                         '-4184' => '\\ccxt\\BadRequest', // Price is lower than stop price multiplier floor.
+                        //
+                        //        5xxx
+                        //
                         '-5021' => '\\ccxt\\OrderNotFillable', // Due to the order could not be filled immediately, the FOK order has been rejected.
                         '-5022' => '\\ccxt\\OrderNotFillable', // Due to the order could not be executed, the Post Only order will be rejected.
+                        //
+                        //        2xxxx
+                        //
+                        '-20121' => '\\ccxt\\ExchangeError', // override commons
+                        '-20124' => '\\ccxt\\ExchangeError', // override commons
+                        '-20130' => '\\ccxt\\ExchangeError', // override commons
+                        '-20132' => '\\ccxt\\ExchangeError', // override commons
+                        '-20194' => '\\ccxt\\ExchangeError', // override commons
+                        '-20195' => '\\ccxt\\ExchangeError', // override commons
+                        '-20196' => '\\ccxt\\ExchangeError', // override commons
+                        '-20198' => '\\ccxt\\ExchangeError', // override commons
+                        '-20204' => '\\ccxt\\ExchangeError', // override commons
+                        //   21xxx - PORTFOLIO MARGIN (is_array(spot docs) && array_key_exists(documented, spot docs))
+                        '-21001' => '\\ccxt\\BadRequest', // Request ID is not a Portfolio Margin Account.
+                        '-21002' => '\\ccxt\\BadRequest', // Portfolio Margin Account doesn't support transfer from margin to futures.
+                        '-21003' => '\\ccxt\\BadResponse', // Fail to retrieve margin assets.
+                        '-21004' => '\\ccxt\\OperationRejected', // User doesn’t have portfolio margin bankruptcy loan
+                        '-21005' => '\\ccxt\\InsufficientFunds', // User’s spot wallet doesn’t have enough BUSD to repay portfolio margin bankruptcy loan
+                        '-21006' => '\\ccxt\\OperationFailed', // User had portfolio margin bankruptcy loan repayment in process
+                        '-21007' => '\\ccxt\\OperationFailed', // User failed to repay portfolio margin bankruptcy loan since liquidation was in process
                     ),
                 ),
                 'exact' => array(
+                    // error codes to cover ALL market types (however, specific market type might have override)
+                    //
+                    //        1xxx
+                    //
+                    '-1000' => '\\ccxt\\OperationFailed', // array("code":-1000,"msg":"An unknown error occured while processing the request.")
+                    '-1001' => '\\ccxt\\OperationFailed', // array("code":-1001,"msg":"'Internal error; unable to process your request. Please try again.'")
+                    '-1002' => '\\ccxt\\AuthenticationError', // array("code":-1002,"msg":"'You are not authorized to execute this request.'")
+                    '-1003' => '\\ccxt\\RateLimitExceeded', // array("code":-1003,"msg":"Too much request weight used, current limit is 1200 request weight per 1 MINUTE. Please use the websocket for live updates to avoid polling the API.")
+                    '-1004' => '\\ccxt\\OperationRejected', // DUPLICATE_IP : This IP is already on the white list
+                    '-1006' => '\\ccxt\\OperationFailed', // array("code":-1006,"msg":"An unexpected response was received from the message bus. Execution status unknown.")
+                    '-1007' => '\\ccxt\\RequestTimeout', // array("code":-1007,"msg":"Timeout waiting for response from backend server. Send status unknown; execution status unknown.")
+                    '-1010' => '\\ccxt\\OperationFailed', // array("code":-1010,"msg":"ERROR_MSG_RECEIVED.")
+                    '-1013' => '\\ccxt\\BadRequest', // INVALID_MESSAGE
+                    '-1014' => '\\ccxt\\InvalidOrder', // array("code":-1014,"msg":"Unsupported order combination.")
+                    '-1015' => '\\ccxt\\RateLimitExceeded', // array("code":-1015,"msg":"'Too many new orders; current limit is %s orders per %s.'")
+                    '-1016' => '\\ccxt\\BadRequest', // array("code":-1016,"msg":"'This service is no longer available.',")
+                    '-1020' => '\\ccxt\\BadRequest', // array("code":-1020,"msg":"'This operation is not supported.'")
+                    '-1021' => '\\ccxt\\InvalidNonce', // array("code":-1021,"msg":"'your time is ahead of server'")
+                    '-1022' => '\\ccxt\\AuthenticationError', // array("code":-1022,"msg":"Signature for this request is not valid.")
+                    '-1100' => '\\ccxt\\BadRequest', // array("code":-1100,"msg":"createOrder(symbol, 1, asdf) -> 'Illegal characters found in parameter 'price'")
+                    '-1101' => '\\ccxt\\BadRequest', // array("code":-1101,"msg":"Too many parameters; expected %s and received %s.")
+                    '-1102' => '\\ccxt\\BadRequest', // array("code":-1102,"msg":"Param %s or %s must be sent, but both were empty")
+                    '-1103' => '\\ccxt\\BadRequest', // array("code":-1103,"msg":"An unknown parameter was sent.")
+                    '-1104' => '\\ccxt\\BadRequest', // array("code":-1104,"msg":"Not all sent parameters were read, read 8 parameters but was sent 9")
+                    '-1105' => '\\ccxt\\BadRequest', // array("code":-1105,"msg":"Parameter %s was empty.")
+                    '-1106' => '\\ccxt\\BadRequest', // array("code":-1106,"msg":"Parameter %s sent when not required.")
+                    '-1108' => '\\ccxt\\BadSymbol', // array("code":-1108,"msg":"Invalid asset.")
+                    '-1111' => '\\ccxt\\BadRequest', // array("code":-1111,"msg":"Precision is over the maximum defined for this asset.")
+                    '-1112' => '\\ccxt\\OperationFailed', // array("code":-1112,"msg":"No orders on book for symbol.")
+                    '-1114' => '\\ccxt\\BadRequest', // array("code":-1114,"msg":"TimeInForce parameter sent when not required.")
+                    '-1115' => '\\ccxt\\BadRequest', // array("code":-1115,"msg":"Invalid timeInForce.")
+                    '-1116' => '\\ccxt\\BadRequest', // array("code":-1116,"msg":"Invalid orderType.")
+                    '-1117' => '\\ccxt\\BadRequest', // array("code":-1117,"msg":"Invalid side.")
+                    '-1118' => '\\ccxt\\BadRequest', // array("code":-1118,"msg":"New client order ID was empty.")
+                    '-1119' => '\\ccxt\\BadRequest', // array("code":-1119,"msg":"Original client order ID was empty.")
+                    '-1120' => '\\ccxt\\BadRequest', // array("code":-1120,"msg":"Invalid interval.")
+                    '-1121' => '\\ccxt\\BadSymbol', // array("code":-1121,"msg":"Invalid symbol.")
+                    '-1125' => '\\ccxt\\AuthenticationError', // array("code":-1125,"msg":"This listenKey does not exist.")
+                    '-1127' => '\\ccxt\\BadRequest', // array("code":-1127,"msg":"More than %s hours between startTime and endTime.")
+                    '-1128' => '\\ccxt\\BadRequest', // array("code":-1128,"msg":"Combination of optional parameters invalid.")
+                    '-1130' => '\\ccxt\\BadRequest', // array("code":-1130,"msg":"Data sent for paramter %s is not valid.")
+                    //
+                    //        2xxx
+                    //
+                    '-2010' => '\\ccxt\\InvalidOrder', // NEW_ORDER_REJECTED
+                    '-2011' => '\\ccxt\\OrderNotFound', // array("code":-2011,"msg":"cancelOrder(1, 'BTC/USDT') -> 'UNKNOWN_ORDER'")
+                    '-2013' => '\\ccxt\\OrderNotFound', // array("code":-2013,"msg":"fetchOrder (1, 'BTC/USDT') -> 'Order does not exist'")
+                    '-2014' => '\\ccxt\\AuthenticationError', // array("code":-2014,"msg":"API-key format invalid.")
+                    '-2015' => '\\ccxt\\AuthenticationError', // array("code":-2015,"msg":"Invalid API-key, IP, or permissions for action.")
+                    //
+                    //        4xxx (common for linear, inverse, pm)
+                    //
+                    '-4000' => '\\ccxt\\InvalidOrder', // INVALID_ORDER_STATUS
+                    '-4001' => '\\ccxt\\BadRequest', // PRICE_LESS_THAN_ZERO
+                    '-4002' => '\\ccxt\\BadRequest', // PRICE_GREATER_THAN_MAX_PRICE
+                    '-4003' => '\\ccxt\\BadRequest', // QTY_LESS_THAN_ZERO
+                    '-4004' => '\\ccxt\\BadRequest', // QTY_LESS_THAN_MIN_QTY
+                    '-4005' => '\\ccxt\\BadRequest', // QTY_GREATER_THAN_MAX_QTY
+                    '-4006' => '\\ccxt\\BadRequest', // STOP_PRICE_LESS_THAN_ZERO
+                    '-4007' => '\\ccxt\\BadRequest', // STOP_PRICE_GREATER_THAN_MAX_PRICE
+                    '-4008' => '\\ccxt\\BadRequest', // TICK SIZE LESS THAN ZERO
+                    '-4009' => '\\ccxt\\BadRequest', // MAX_PRICE_LESS_THAN_MIN_PRICE
+                    '-4010' => '\\ccxt\\BadRequest', // MAX_QTY_LESS_THAN_MIN_QTY
+                    '-4011' => '\\ccxt\\BadRequest', // STEP_SIZE_LESS_THAN_ZERO
+                    '-4012' => '\\ccxt\\BadRequest', // MAX_NUM_ORDERS_LESS_THAN_ZERO
+                    '-4013' => '\\ccxt\\BadRequest', // PRICE_LESS_THAN_MIN_PRICE
+                    '-4014' => '\\ccxt\\BadRequest', // PRICE NOT INCREASED BY TICK SIZE
+                    '-4015' => '\\ccxt\\BadRequest', // Client order id is not valid
+                    '-4016' => '\\ccxt\\BadRequest', // Price is higher than mark price multiplier cap.
+                    '-4017' => '\\ccxt\\BadRequest', // MULTIPLIER_UP_LESS_THAN_ZERO
+                    '-4018' => '\\ccxt\\BadRequest', // MULTIPLIER_DOWN_LESS_THAN_ZERO
+                    '-4019' => '\\ccxt\\OperationRejected', // COMPOSITE_SCALE_OVERFLOW
+                    '-4020' => '\\ccxt\\BadRequest', // TARGET_STRATEGY_INVALID
+                    '-4021' => '\\ccxt\\BadRequest', // INVALID_DEPTH_LIMIT
+                    '-4022' => '\\ccxt\\BadRequest', // WRONG_MARKET_STATUS
+                    '-4023' => '\\ccxt\\BadRequest', // QTY_NOT_INCREASED_BY_STEP_SIZE
+                    '-4024' => '\\ccxt\\BadRequest', // PRICE_LOWER_THAN_MULTIPLIER_DOWN
+                    '-4025' => '\\ccxt\\BadRequest', // MULTIPLIER_DECIMAL_LESS_THAN_ZERO
+                    '-4026' => '\\ccxt\\BadRequest', // COMMISSION_INVALID
+                    '-4027' => '\\ccxt\\BadRequest', // INVALID_ACCOUNT_TYPE
+                    '-4028' => '\\ccxt\\BadRequest', // INVALID_LEVERAGE
+                    '-4029' => '\\ccxt\\BadRequest', // INVALID_TICK SIZE_PRECISION
+                    '-4030' => '\\ccxt\\BadRequest', // INVALID_STEP_SIZE_PRECISION
+                    '-4031' => '\\ccxt\\BadRequest', // INVALID_WORKING_TYPE
+                    '-4032' => '\\ccxt\\OperationRejected', // EXCEED_MAX_CANCEL_ORDER_SIZE (or Invalid parameter working type => %s)
+                    '-4033' => '\\ccxt\\BadRequest', // INSURANCE_ACCOUNT_NOT_FOUND
+                    '-4044' => '\\ccxt\\BadRequest', // INVALID_BALANCE_TYPE
+                    '-4045' => '\\ccxt\\OperationRejected', // MAX_STOP_ORDER_EXCEEDED
+                    '-4046' => '\\ccxt\\OperationRejected', // NO_NEED_TO_CHANGE_MARGIN_TYPE
+                    '-4047' => '\\ccxt\\OperationRejected', // Margin type cannot be changed if there exists open orders.
+                    '-4048' => '\\ccxt\\OperationRejected', // Margin type cannot be changed if there exists position.
+                    '-4049' => '\\ccxt\\BadRequest', // Add margin only support for isolated position.
+                    '-4050' => '\\ccxt\\InsufficientFunds', // Cross balance insufficient
+                    '-4051' => '\\ccxt\\InsufficientFunds', // Isolated balance insufficient.
+                    '-4052' => '\\ccxt\\OperationRejected', // No need to change auto add margin.
+                    '-4053' => '\\ccxt\\BadRequest', // Auto add margin only support for isolated position.
+                    '-4054' => '\\ccxt\\OperationRejected', // Cannot add position margin => position is 0.
+                    '-4055' => '\\ccxt\\BadRequest', // Amount must be positive.
+                    '-4056' => '\\ccxt\\AuthenticationError', // INVALID_API_KEY_TYPE
+                    '-4057' => '\\ccxt\\AuthenticationError', // INVALID_RSA_PUBLIC_KEY => Invalid api public key
+                    '-4058' => '\\ccxt\\BadRequest', // MAX_PRICE_TOO_LARGE
+                    '-4059' => '\\ccxt\\OperationRejected', // NO_NEED_TO_CHANGE_POSITION_SIDE
+                    '-4060' => '\\ccxt\\BadRequest', // INVALID_POSITION_SIDE
+                    '-4061' => '\\ccxt\\OperationRejected', // POSITION_SIDE_NOT_MATCH => Order's position side does not match user's setting.
+                    '-4062' => '\\ccxt\\BadRequest', // REDUCE_ONLY_CONFLICT => Invalid or improper reduceOnly value.
+                    '-4067' => '\\ccxt\\OperationRejected', // Position side cannot be changed if there exists open orders.
+                    '-4068' => '\\ccxt\\OperationRejected', // Position side cannot be changed if there exists position.
+                    '-4082' => '\\ccxt\\BadRequest', // Invalid number of batch place orders.
+                    '-4083' => '\\ccxt\\OperationRejected', // PLACE_BATCH_ORDERS_FAIL : Fail to place batch orders.
+                    '-4084' => '\\ccxt\\BadRequest', // UPCOMING_METHOD : Method is not allowed currently. Upcoming soon.
+                    '-4086' => '\\ccxt\\BadRequest', // Invalid price spread threshold.
+                    '-4104' => '\\ccxt\\BadRequest', // INVALID_CONTRACT_TYPE
+                    '-4135' => '\\ccxt\\BadRequest', // Invalid activation price
+                    '-4137' => '\\ccxt\\BadRequest', // Quantity must be zero with closePosition equals true
+                    '-4138' => '\\ccxt\\BadRequest', // Reduce only must be true with closePosition equals true
+                    '-4139' => '\\ccxt\\BadRequest', // Order type can not be market if it's unable to cancel
+                    '-4142' => '\\ccxt\\OrderImmediatelyFillable', // REJECT => take profit or stop order will be triggered immediately
+                    //
+                    //        2xxxx
+                    //
+                    // 20xxx - spot & futures algo (TBD for OPTIONS & PORTFOLIO MARGIN)
+                    '-20121' => '\\ccxt\\BadSymbol', // Invalid symbol.
+                    '-20124' => '\\ccxt\\BadRequest', // Invalid algo id or it has been completed.
+                    '-20130' => '\\ccxt\\BadRequest', // Invalid data sent for a parameter
+                    '-20132' => '\\ccxt\\BadRequest', // The client algo id is duplicated
+                    '-20194' => '\\ccxt\\BadRequest', // Duration is too short to execute all required quantity.
+                    '-20195' => '\\ccxt\\BadRequest', // The total size is too small.
+                    '-20196' => '\\ccxt\\BadRequest', // The total size is too large.
+                    '-20198' => '\\ccxt\\OperationRejected', // Reach the max open orders allowed.
+                    '-20204' => '\\ccxt\\BadRequest', // The notional of USD is less or more than the limit.
+                    //
+                    // strings
+                    //
                     'System is under maintenance.' => '\\ccxt\\OnMaintenance', // array("code":1,"msg":"System is under maintenance.")
                     'System abnormality' => '\\ccxt\\OperationFailed', // array("code":-1000,"msg":"System abnormality")
                     'You are not authorized to execute this request.' => '\\ccxt\\PermissionDenied', // array("msg":"You are not authorized to execute this request.")
@@ -2323,15 +2414,15 @@ class binance extends Exchange {
         ));
     }
 
-    public function is_inverse($type, $subType = null): bool {
+    public function is_inverse(string $type, ?string $subType = null): bool {
         if ($subType === null) {
-            return $type === 'delivery';
+            return ($type === 'delivery');
         } else {
             return $subType === 'inverse';
         }
     }
 
-    public function is_linear($type, $subType = null): bool {
+    public function is_linear(string $type, ?string $subType = null): bool {
         if ($subType === null) {
             return ($type === 'future') || ($type === 'swap');
         } else {
@@ -2339,18 +2430,9 @@ class binance extends Exchange {
         }
     }
 
-    public function set_sandbox_mode($enable) {
+    public function set_sandbox_mode(bool $enable) {
         parent::set_sandbox_mode($enable);
         $this->options['sandboxMode'] = $enable;
-    }
-
-    public function convert_expire_date($date) {
-        // parse YYMMDD to timestamp
-        $year = mb_substr($date, 0, 2 - 0);
-        $month = mb_substr($date, 2, 4 - 2);
-        $day = mb_substr($date, 4, 6 - 4);
-        $reconstructedDate = '20' . $year . '-' . $month . '-' . $day . 'T00:00:00Z';
-        return $reconstructedDate;
     }
 
     public function create_expired_option_market(string $symbol) {
@@ -2416,7 +2498,7 @@ class binance extends Exchange {
         );
     }
 
-    public function market($symbol) {
+    public function market(string $symbol): array {
         if ($this->markets === null) {
             throw new ExchangeError($this->id . ' $markets not loaded');
         }
@@ -2473,7 +2555,7 @@ class binance extends Exchange {
         throw new BadSymbol($this->id . ' does not have $market $symbol ' . $symbol);
     }
 
-    public function safe_market($marketId = null, $market = null, $delimiter = null, $marketType = null) {
+    public function safe_market(?string $marketId = null, ?array $market = null, ?string $delimiter = null, ?string $marketType = null): array {
         $isOption = ($marketId !== null) && ((mb_strpos($marketId, '-C') > -1) || (mb_strpos($marketId, '-P') > -1));
         if ($isOption && !(is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id))) {
             // handle expired option contracts
@@ -2507,6 +2589,7 @@ class binance extends Exchange {
              * @see https://binance-docs.github.io/apidocs/futures/en/#check-server-time    // swap
              * @see https://binance-docs.github.io/apidocs/delivery/en/#check-server-time   // future
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->subType] "linear" or "inverse"
              * @return {int} the current integer timestamp in milliseconds from the exchange server
              */
             $defaultType = $this->safe_string_2($this->options, 'fetchTime', 'defaultType', 'spot');
@@ -2526,7 +2609,7 @@ class binance extends Exchange {
         }) ();
     }
 
-    public function fetch_currencies($params = array ()) {
+    public function fetch_currencies($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches all available currencies on an exchange
@@ -2726,7 +2809,7 @@ class binance extends Exchange {
         }) ();
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * retrieves data on all $markets for binance
@@ -2763,14 +2846,12 @@ class binance extends Exchange {
                 }
             }
             $promises = Async\await(Promise\all($promisesRaw));
-            $spotMarkets = $this->safe_value($this->safe_value($promises, 0), 'symbols', array());
-            $futureMarkets = $this->safe_value($this->safe_value($promises, 1), 'symbols', array());
-            $deliveryMarkets = $this->safe_value($this->safe_value($promises, 2), 'symbols', array());
-            $optionMarkets = $this->safe_value($this->safe_value($promises, 3), 'optionSymbols', array());
-            $markets = $spotMarkets;
-            $markets = $this->array_concat($markets, $futureMarkets);
-            $markets = $this->array_concat($markets, $deliveryMarkets);
-            $markets = $this->array_concat($markets, $optionMarkets);
+            $markets = array();
+            for ($i = 0; $i < count($fetchMarkets); $i++) {
+                $promise = $this->safe_dict($promises, $i);
+                $promiseMarkets = $this->safe_list_2($promise, 'symbols', 'optionSymbols', array());
+                $markets = $this->array_concat($markets, $promiseMarkets);
+            }
             //
             // spot / margin
             //
@@ -3020,7 +3101,7 @@ class binance extends Exchange {
         $fees = $this->fees;
         $linear = null;
         $inverse = null;
-        $strike = $this->safe_integer($market, 'strikePrice');
+        $strike = $this->safe_string($market, 'strikePrice');
         $symbol = $base . '/' . $quote;
         if ($contract) {
             if ($swap) {
@@ -3028,7 +3109,7 @@ class binance extends Exchange {
             } elseif ($future) {
                 $symbol = $symbol . ':' . $settle . '-' . $this->yymmdd($expiry);
             } elseif ($option) {
-                $symbol = $symbol . ':' . $settle . '-' . $this->yymmdd($expiry) . '-' . $this->number_to_string($strike) . '-' . $this->safe_string($optionParts, 3);
+                $symbol = $symbol . ':' . $settle . '-' . $this->yymmdd($expiry) . '-' . $strike . '-' . $this->safe_string($optionParts, 3);
             }
             $contractSize = $this->safe_number_2($market, 'contractSize', 'unit', $this->parse_number('1'));
             $linear = $settle === $quote;
@@ -3058,6 +3139,10 @@ class binance extends Exchange {
             $unifiedType = 'option';
             $active = null;
         }
+        $parsedStrike = null;
+        if ($strike !== null) {
+            $parsedStrike = $this->parse_to_numeric($strike);
+        }
         $entry = array(
             'id' => $id,
             'lowercaseId' => $lowercaseId,
@@ -3083,7 +3168,7 @@ class binance extends Exchange {
             'contractSize' => $contractSize,
             'expiry' => $expiry,
             'expiryDatetime' => $this->iso8601($expiry),
-            'strike' => $strike,
+            'strike' => $parsedStrike,
             'optionType' => $this->safe_string_lower($market, 'side'),
             'precision' => array(
                 'amount' => $this->safe_integer_2($market, 'quantityPrecision', 'quantityScale'),
@@ -3285,6 +3370,7 @@ class binance extends Exchange {
              * @param {string} [$params->marginMode] 'cross' or 'isolated', for margin trading, uses $this->options.defaultMarginMode if not passed, defaults to null/None/null
              * @param {string[]|null} [$params->symbols] unified market $symbols, only used in isolated margin mode
              * @param {boolean} [$params->portfolioMargin] set to true if you would like to fetch the balance for a portfolio margin account
+             * @param {string} [$params->subType] "linear" or "inverse"
              * @return {array} a ~@link https://docs.ccxt.com/#/?$id=balance-structure balance structure~
              */
             Async\await($this->load_markets());
@@ -3851,31 +3937,29 @@ class binance extends Exchange {
              * @see https://binance-docs.github.io/apidocs/delivery/en/#symbol-order-book-ticker    // future
              * @param {string[]|null} $symbols unified $symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->subType] "linear" or "inverse"
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
              */
             Async\await($this->load_markets());
-            $symbols = $this->market_symbols($symbols);
-            $market = null;
-            if ($symbols !== null) {
-                $first = $this->safe_string($symbols, 0);
-                $market = $this->market($first);
-            }
+            $symbols = $this->market_symbols($symbols, null, true, true, true);
+            $market = $this->get_market_from_symbols($symbols);
             $type = null;
+            list($type, $params) = $this->handle_market_type_and_params('fetchBidsAsks', $market, $params);
             $subType = null;
             list($subType, $params) = $this->handle_sub_type_and_params('fetchBidsAsks', $market, $params);
-            list($type, $params) = $this->handle_market_type_and_params('fetchBidsAsks', $market, $params);
             $response = null;
             if ($this->is_linear($type, $subType)) {
                 $response = Async\await($this->fapiPublicGetTickerBookTicker ($params));
             } elseif ($this->is_inverse($type, $subType)) {
                 $response = Async\await($this->dapiPublicGetTickerBookTicker ($params));
-            } else {
+            } elseif ($type === 'spot') {
                 $request = array();
                 if ($symbols !== null) {
-                    $marketIds = $this->market_ids($symbols);
-                    $request['symbols'] = $this->json($marketIds);
+                    $request['symbols'] = $this->json($this->market_ids($symbols));
                 }
                 $response = Async\await($this->publicGetTickerBookTicker (array_merge($request, $params)));
+            } else {
+                throw new NotSupported($this->id . ' fetchBidsAsks() does not support ' . $type . ' markets yet');
             }
             return $this->parse_tickers($response, $symbols);
         }) ();
@@ -3890,15 +3974,16 @@ class binance extends Exchange {
              * @see https://binance-docs.github.io/apidocs/delivery/en/#symbol-price-ticker     // future
              * @param {string[]|null} $symbols unified $symbols of the markets to fetch the last prices
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->subType] "linear" or "inverse"
              * @return {array} a dictionary of lastprices structures
              */
             Async\await($this->load_markets());
-            $symbols = $this->market_symbols($symbols);
+            $symbols = $this->market_symbols($symbols, null, true, true, true);
             $market = $this->get_market_from_symbols($symbols);
             $type = null;
+            list($type, $params) = $this->handle_market_type_and_params('fetchLastPrices', $market, $params);
             $subType = null;
             list($subType, $params) = $this->handle_sub_type_and_params('fetchLastPrices', $market, $params);
-            list($type, $params) = $this->handle_market_type_and_params('fetchLastPrices', $market, $params);
             $response = null;
             if ($this->is_linear($type, $subType)) {
                 $response = Async\await($this->fapiPublicV2GetTickerPrice ($params));
@@ -3994,33 +4079,31 @@ class binance extends Exchange {
              * @see https://binance-docs.github.io/apidocs/voptions/en/#24hr-ticker-price-change-statistics     // option
              * @param {string[]} [$symbols] unified $symbols of the markets to fetch the ticker for, all $market tickers are returned if not assigned
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->subType] "linear" or "inverse"
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
              */
             Async\await($this->load_markets());
-            $type = null;
-            $market = null;
             $symbols = $this->market_symbols($symbols, null, true, true, true);
-            if ($symbols !== null) {
-                $first = $this->safe_string($symbols, 0);
-                $market = $this->market($first);
-            }
+            $market = $this->get_market_from_symbols($symbols);
+            $type = null;
             list($type, $params) = $this->handle_market_type_and_params('fetchTickers', $market, $params);
             $subType = null;
             list($subType, $params) = $this->handle_sub_type_and_params('fetchTickers', $market, $params);
             $response = null;
-            if ($type === 'option') {
-                $response = Async\await($this->eapiPublicGetTicker ($params));
-            } elseif ($this->is_linear($type, $subType)) {
+            if ($this->is_linear($type, $subType)) {
                 $response = Async\await($this->fapiPublicGetTicker24hr ($params));
             } elseif ($this->is_inverse($type, $subType)) {
                 $response = Async\await($this->dapiPublicGetTicker24hr ($params));
-            } else {
+            } elseif ($type === 'spot') {
                 $request = array();
                 if ($symbols !== null) {
-                    $marketIds = $this->market_ids($symbols);
-                    $request['symbols'] = $this->json($marketIds);
+                    $request['symbols'] = $this->json($this->market_ids($symbols));
                 }
                 $response = Async\await($this->publicGetTicker24hr (array_merge($request, $params)));
+            } elseif ($type === 'option') {
+                $response = Async\await($this->eapiPublicGetTicker ($params));
+            } else {
+                throw new NotSupported($this->id . ' fetchTickers() does not support ' . $type . ' markets yet');
             }
             return $this->parse_tickers($response, $symbols);
         }) ();
@@ -4078,9 +4161,10 @@ class binance extends Exchange {
         //         "closeTime" => 1677097200000
         //     }
         //
-        $volumeIndex = ($market['inverse']) ? 7 : 5;
+        $inverse = $this->safe_bool($market, 'inverse');
+        $volumeIndex = $inverse ? 7 : 5;
         return array(
-            $this->safe_integer_2($ohlcv, 0, 'closeTime'),
+            $this->safe_integer_2($ohlcv, 0, 'openTime'),
             $this->safe_number_2($ohlcv, 1, 'open'),
             $this->safe_number_2($ohlcv, 2, 'high'),
             $this->safe_number_2($ohlcv, 3, 'low'),
@@ -4130,10 +4214,13 @@ class binance extends Exchange {
                 'interval' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
                 'limit' => $limit,
             );
+            $marketId = $market['id'];
             if ($price === 'index') {
-                $request['pair'] = $market['id'];   // Index $price takes this argument instead of $symbol
+                $parts = explode('_', $marketId);
+                $pair = $this->safe_string($parts, 0);
+                $request['pair'] = $pair;   // Index $price takes this argument instead of $symbol
             } else {
-                $request['symbol'] = $market['id'];
+                $request['symbol'] = $marketId;
             }
             // $duration = $this->parse_timeframe($timeframe);
             if ($since !== null) {
@@ -4617,7 +4704,7 @@ class binance extends Exchange {
         }) ();
     }
 
-    public function edit_spot_order(string $id, $symbol, $type, $side, float $amount, ?float $price = null, $params = array ()) {
+    public function edit_spot_order(string $id, string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $type, $side, $amount, $price, $params) {
             /**
              * @ignore
@@ -4679,12 +4766,12 @@ class binance extends Exchange {
             //         }
             //     }
             //
-            $data = $this->safe_value($response, 'newOrderResponse');
+            $data = $this->safe_dict($response, 'newOrderResponse');
             return $this->parse_order($data, $market);
         }) ();
     }
 
-    public function edit_spot_order_request(string $id, $symbol, $type, $side, float $amount, ?float $price = null, $params = array ()) {
+    public function edit_spot_order_request(string $id, string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         /**
          * @ignore
          * helper function to build $request for editSpotOrder
@@ -4744,7 +4831,7 @@ class binance extends Exchange {
         $stopPriceIsRequired = false;
         $quantityIsRequired = false;
         if ($uppercaseType === 'MARKET') {
-            $quoteOrderQty = $this->safe_value($this->options, 'quoteOrderQty', true);
+            $quoteOrderQty = $this->safe_bool($this->options, 'quoteOrderQty', true);
             if ($quoteOrderQty) {
                 $quoteOrderQtyNew = $this->safe_value_2($params, 'quoteOrderQty', 'cost');
                 $precision = $market['precision']['price'];
@@ -4809,7 +4896,7 @@ class binance extends Exchange {
         return array_merge($request, $params);
     }
 
-    public function edit_contract_order(string $id, $symbol, $type, $side, float $amount, ?float $price = null, $params = array ()) {
+    public function edit_contract_order(string $id, string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $type, $side, $amount, $price, $params) {
             /**
              * edit a trade order
@@ -6350,6 +6437,7 @@ class binance extends Exchange {
              * @param {string} [$params->marginMode] 'cross' or 'isolated', for spot margin trading
              * @param {boolean} [$params->portfolioMargin] set to true if you would like to fetch open orders in the portfolio margin account
              * @param {boolean} [$params->stop] set to true if you would like to fetch portfolio margin account conditional orders
+             * @param {string} [$params->subType] "linear" or "inverse"
              * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
@@ -6697,6 +6785,39 @@ class binance extends Exchange {
             $orders = Async\await($this->fetch_orders($symbol, $since, null, $params));
             $filteredOrders = $this->filter_by($orders, 'status', 'canceled');
             return $this->filter_by_since_limit($filteredOrders, $since, $limit);
+        }) ();
+    }
+
+    public function fetch_canceled_and_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * fetches information on multiple canceled $orders made by the user
+             * @see https://binance-docs.github.io/apidocs/spot/en/#all-$orders-user_data
+             * @see https://binance-docs.github.io/apidocs/spot/en/#query-margin-account-39-s-all-$orders-user_data
+             * @see https://binance-docs.github.io/apidocs/voptions/en/#query-option-order-history-trade
+             * @see https://binance-docs.github.io/apidocs/pm/en/#query-all-um-$orders-user_data
+             * @see https://binance-docs.github.io/apidocs/pm/en/#query-all-cm-$orders-user_data
+             * @see https://binance-docs.github.io/apidocs/pm/en/#query-all-um-conditional-$orders-user_data
+             * @see https://binance-docs.github.io/apidocs/pm/en/#query-all-cm-conditional-$orders-user_data
+             * @see https://binance-docs.github.io/apidocs/pm/en/#query-all-margin-account-$orders-user_data
+             * @param {string} $symbol unified market $symbol of the market the $orders were made in
+             * @param {int} [$since] the earliest time in ms to fetch $orders for
+             * @param {int} [$limit] the maximum number of order structures to retrieve
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {boolean} [$params->paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
+             * @param {boolean} [$params->portfolioMargin] set to true if you would like to fetch $orders in a portfolio margin account
+             * @param {boolean} [$params->stop] set to true if you would like to fetch portfolio margin account stop or conditional $orders
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             */
+            if ($symbol === null) {
+                throw new ArgumentsRequired($this->id . ' fetchCanceledAndClosedOrders() requires a $symbol argument');
+            }
+            $orders = Async\await($this->fetch_orders($symbol, $since, null, $params));
+            $canceledOrders = $this->filter_by($orders, 'status', 'canceled');
+            $closedOrders = $this->filter_by($orders, 'status', 'closed');
+            $filteredOrders = $this->array_concat($canceledOrders, $closedOrders);
+            $sortedOrders = $this->sort_by($filteredOrders, 'timestamp');
+            return $this->filter_by_since_limit($sortedOrders, $since, $limit);
         }) ();
     }
 
@@ -7958,7 +8079,6 @@ class binance extends Exchange {
     public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
-             * @see https://binance-docs.github.io/apidocs/spot/en/#user-universal-transfer-user_data
              * fetch a history of internal transfers made on an account
              * @see https://binance-docs.github.io/apidocs/spot/en/#query-user-universal-transfer-history-user_data
              * @param {string} $code unified $currency $code of the $currency transferred
@@ -8391,7 +8511,7 @@ class binance extends Exchange {
         }) ();
     }
 
-    public function parse_trading_fee($fee, ?array $market = null) {
+    public function parse_trading_fee($fee, ?array $market = null): array {
         //
         // spot
         //     array(
@@ -8416,10 +8536,12 @@ class binance extends Exchange {
             'symbol' => $symbol,
             'maker' => $this->safe_number_2($fee, 'makerCommission', 'makerCommissionRate'),
             'taker' => $this->safe_number_2($fee, 'takerCommission', 'takerCommissionRate'),
+            'percentage' => null,
+            'tierBased' => null,
         );
     }
 
-    public function fetch_trading_fee(string $symbol, $params = array ()) {
+    public function fetch_trading_fee(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch the trading fees for a $market
@@ -8431,6 +8553,7 @@ class binance extends Exchange {
              * @param {string} $symbol unified $market $symbol
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {boolean} [$params->portfolioMargin] set to true if you would like to fetch trading fees in a portfolio margin account
+             * @param {string} [$params->subType] "linear" or "inverse"
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=fee-structure fee structure~
              */
             Async\await($this->load_markets());
@@ -8488,7 +8611,7 @@ class binance extends Exchange {
         }) ();
     }
 
-    public function fetch_trading_fees($params = array ()) {
+    public function fetch_trading_fees($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetch the trading fees for multiple markets
@@ -8496,6 +8619,7 @@ class binance extends Exchange {
              * @see https://binance-docs.github.io/apidocs/futures/en/#account-information-v2-user_data
              * @see https://binance-docs.github.io/apidocs/delivery/en/#account-information-user_data
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->subType] "linear" or "inverse"
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$fee-structure $fee structures~ indexed by $market $symbols
              */
             Async\await($this->load_markets());
@@ -8750,6 +8874,7 @@ class binance extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {int} [$params->until] $timestamp in ms of the latest funding rate
              * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
+             * @param {string} [$params->subType] "linear" or "inverse"
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=funding-rate-history-structure funding rate structures~
              */
             Async\await($this->load_markets());
@@ -8822,6 +8947,7 @@ class binance extends Exchange {
              * @see https://binance-docs.github.io/apidocs/delivery/en/#index-price-and-mark-price
              * @param {string[]|null} $symbols list of unified market $symbols
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->subType] "linear" or "inverse"
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=funding-rates-structure funding rates structures~, indexe by market $symbols
              */
             Async\await($this->load_markets());
@@ -8893,7 +9019,7 @@ class binance extends Exchange {
         );
     }
 
-    public function parse_account_positions($account) {
+    public function parse_account_positions($account, $filterClosed = false) {
         $positions = $this->safe_list($account, 'positions');
         $assets = $this->safe_list($account, 'assets', array());
         $balances = array();
@@ -8916,7 +9042,8 @@ class binance extends Exchange {
             $code = $market['linear'] ? $market['quote'] : $market['base'];
             $maintenanceMargin = $this->safe_string($position, 'maintMargin');
             // check for maintenance margin so empty $positions are not returned
-            if (($maintenanceMargin !== '0') && ($maintenanceMargin !== '0.00000000')) {
+            $isPositionOpen = ($maintenanceMargin !== '0') && ($maintenanceMargin !== '0.00000000');
+            if (!$filterClosed || $isPositionOpen) {
                 // sometimes not all the codes are correctly returned...
                 if (is_array($balances) && array_key_exists($code, $balances)) {
                     $parsed = $this->parse_account_position(array_merge($position, array(
@@ -9437,6 +9564,7 @@ class binance extends Exchange {
              * @param {string[]|null} $symbols list of unified market $symbols
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {boolean} [$params->portfolioMargin] set to true if you would like to fetch the leverage tiers for a portfolio margin account
+             * @param {string} [$params->subType] "linear" or "inverse"
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=leverage-tiers-structure leverage tiers structures~, indexed by market $symbols
              */
             Async\await($this->load_markets());
@@ -9745,9 +9873,11 @@ class binance extends Exchange {
              * @see https://binance-docs.github.io/apidocs/delivery/en/#account-information-user_data
              * @see https://binance-docs.github.io/apidocs/pm/en/#get-um-account-detail-user_data
              * @see https://binance-docs.github.io/apidocs/pm/en/#get-cm-account-detail-user_data
-             * @param {string[]|null} $symbols list of unified market $symbols
+             * @param {string[]} [$symbols] list of unified market $symbols
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {boolean} [$params->portfolioMargin] set to true if you would like to fetch positions in a portfolio margin account
+             * @param {string} [$params->subType] "linear" or "inverse"
+             * @param {boolean} [$params->filterClosed] set to true if you would like to filter out closed positions, default is false
              * @return {array} data on account positions
              */
             if ($symbols !== null) {
@@ -9780,7 +9910,9 @@ class binance extends Exchange {
             } else {
                 throw new NotSupported($this->id . ' fetchPositions() supports linear and inverse contracts only');
             }
-            $result = $this->parse_account_positions($response);
+            $filterClosed = null;
+            list($filterClosed, $params) = $this->handle_option_and_params($params, 'fetchAccountPositions', 'filterClosed', false);
+            $result = $this->parse_account_positions($response, $filterClosed);
             $symbols = $this->market_symbols($symbols);
             return $this->filter_by_array_positions($result, 'symbol', $symbols, false);
         }) ();
@@ -9798,6 +9930,7 @@ class binance extends Exchange {
              * @param {string[]|null} $symbols list of unified market $symbols
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {boolean} [$params->portfolioMargin] set to true if you would like to fetch positions for a portfolio margin account
+             * @param {string} [$params->subType] "linear" or "inverse"
              * @return {array} data on the positions risk
              */
             if ($symbols !== null) {
@@ -9954,6 +10087,7 @@ class binance extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {int} [$params->until] timestamp in ms of the latest funding history entry
              * @param {boolean} [$params->portfolioMargin] set to true if you would like to fetch the funding history for a portfolio margin account
+             * @param {string} [$params->subType] "linear" or "inverse"
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-history-structure funding history structure~
              */
             Async\await($this->load_markets());
@@ -10102,7 +10236,7 @@ class binance extends Exchange {
                 // POST https://fapi.binance.com/fapi/v1/marginType 400 Bad Request
                 // binanceusdm
                 if ($e instanceof MarginModeAlreadySet) {
-                    $throwMarginModeAlreadySet = $this->safe_value($this->options, 'throwMarginModeAlreadySet', false);
+                    $throwMarginModeAlreadySet = $this->safe_bool($this->options, 'throwMarginModeAlreadySet', false);
                     if ($throwMarginModeAlreadySet) {
                         throw $e;
                     } else {
@@ -10128,6 +10262,7 @@ class binance extends Exchange {
              * @param {string} $symbol not used by binance setPositionMode ()
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {boolean} [$params->portfolioMargin] set to true if you would like to set the position mode for a portfolio margin account
+             * @param {string} [$params->subType] "linear" or "inverse"
              * @return {array} $response from the exchange
              */
             $defaultType = $this->safe_string($this->options, 'defaultType', 'future');
@@ -10153,12 +10288,14 @@ class binance extends Exchange {
                 } else {
                     $response = Async\await($this->dapiPrivatePostPositionSideDual (array_merge($request, $params)));
                 }
-            } else {
+            } elseif ($this->is_linear($type, $subType)) {
                 if ($isPortfolioMargin) {
                     $response = Async\await($this->papiPostUmPositionSideDual (array_merge($request, $params)));
                 } else {
                     $response = Async\await($this->fapiPrivatePostPositionSideDual (array_merge($request, $params)));
                 }
+            } else {
+                throw new BadRequest($this->id . ' setPositionMode() supports linear and inverse contracts only');
             }
             //
             //     {
@@ -10168,6 +10305,76 @@ class binance extends Exchange {
             //
             return $response;
         }) ();
+    }
+
+    public function fetch_leverages(?array $symbols = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * fetch the set leverage for all markets
+             * @see https://binance-docs.github.io/apidocs/futures/en/#account-information-v2-user_data
+             * @see https://binance-docs.github.io/apidocs/delivery/en/#account-information-user_data
+             * @see https://binance-docs.github.io/apidocs/pm/en/#get-um-account-detail-user_data
+             * @see https://binance-docs.github.io/apidocs/pm/en/#get-cm-account-detail-user_data
+             * @param {string[]} [$symbols] a list of unified market $symbols
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->subType] "linear" or "inverse"
+             * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=leverage-structure leverage structures~
+             */
+            Async\await($this->load_markets());
+            Async\await($this->load_leverage_brackets(false, $params));
+            $type = null;
+            list($type, $params) = $this->handle_market_type_and_params('fetchLeverages', null, $params);
+            $subType = null;
+            list($subType, $params) = $this->handle_sub_type_and_params('fetchLeverages', null, $params, 'linear');
+            $isPortfolioMargin = null;
+            list($isPortfolioMargin, $params) = $this->handle_option_and_params_2($params, 'fetchLeverages', 'papi', 'portfolioMargin', false);
+            $response = null;
+            if ($this->is_linear($type, $subType)) {
+                if ($isPortfolioMargin) {
+                    $response = Async\await($this->papiGetUmAccount ($params));
+                } else {
+                    $response = Async\await($this->fapiPrivateV2GetAccount ($params));
+                }
+            } elseif ($this->is_inverse($type, $subType)) {
+                if ($isPortfolioMargin) {
+                    $response = Async\await($this->papiGetCmAccount ($params));
+                } else {
+                    $response = Async\await($this->dapiPrivateGetAccount ($params));
+                }
+            } else {
+                throw new NotSupported($this->id . ' fetchLeverages() supports linear and inverse contracts only');
+            }
+            $leverages = $this->safe_list($response, 'positions', array());
+            return $this->parse_leverages($leverages, $symbols, 'symbol');
+        }) ();
+    }
+
+    public function parse_leverage($leverage, $market = null): array {
+        $marketId = $this->safe_string($leverage, 'symbol');
+        $marginModeRaw = $this->safe_bool($leverage, 'isolated');
+        $marginMode = null;
+        if ($marginModeRaw !== null) {
+            $marginMode = $marginModeRaw ? 'isolated' : 'cross';
+        }
+        $side = $this->safe_string_lower($leverage, 'positionSide');
+        $longLeverage = null;
+        $shortLeverage = null;
+        $leverageValue = $this->safe_integer($leverage, 'leverage');
+        if ($side === 'both') {
+            $longLeverage = $leverageValue;
+            $shortLeverage = $leverageValue;
+        } elseif ($side === 'long') {
+            $longLeverage = $leverageValue;
+        } elseif ($side === 'short') {
+            $shortLeverage = $leverageValue;
+        }
+        return array(
+            'info' => $leverage,
+            'symbol' => $this->safe_symbol($marketId, $market),
+            'marginMode' => $marginMode,
+            'longLeverage' => $longLeverage,
+            'shortLeverage' => $shortLeverage,
+        );
     }
 
     public function fetch_settlement_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
@@ -10356,6 +10563,22 @@ class binance extends Exchange {
         return $result;
     }
 
+    public function fetch_ledger_entry(string $id, ?string $code = null, $params = array ()) {
+        return Async\async(function () use ($id, $code, $params) {
+            Async\await($this->load_markets());
+            $type = null;
+            list($type, $params) = $this->handle_market_type_and_params('fetchLedgerEntry', null, $params);
+            $query = array(
+                'recordId' => $id,
+                'type' => $type,
+            );
+            if ($type !== 'option') {
+                throw new BadRequest($this->id . ' fetchLedgerEntry () can only be used for $type option');
+            }
+            return Async\await($this->fetch_ledger($code, null, null, array_merge($query, $params)));
+        }) ();
+    }
+
     public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
@@ -10372,6 +10595,7 @@ class binance extends Exchange {
              * @param {int} [$params->until] timestamp in ms of the latest ledger entry
              * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @param {boolean} [$params->portfolioMargin] set to true if you would like to fetch the ledger for a portfolio margin account
+             * @param {string} [$params->subType] "linear" or "inverse"
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=ledger-structure ledger structure~
              */
             Async\await($this->load_markets());
@@ -10801,7 +11025,7 @@ class binance extends Exchange {
             }
             Async\await($this->load_markets());
             $market = $this->market($symbol);
-            $amount = $this->cost_to_precision($symbol, $amount);
+            $amount = $this->amount_to_precision($symbol, $amount);
             $request = array(
                 'type' => $addOrReduce,
                 'symbol' => $market['id'],
@@ -10830,23 +11054,52 @@ class binance extends Exchange {
         }) ();
     }
 
-    public function parse_margin_modification($data, ?array $market = null) {
+    public function parse_margin_modification($data, ?array $market = null): array {
+        //
+        // add/reduce margin
+        //
+        //     {
+        //         "code" => 200,
+        //         "msg" => "Successfully modify position margin.",
+        //         "amount" => 0.001,
+        //         "type" => 1
+        //     }
+        //
+        // fetchMarginAdjustmentHistory
+        //
+        //    {
+        //        symbol => "XRPUSDT",
+        //        type => "1",
+        //        deltaType => "TRADE",
+        //        amount => "2.57148240",
+        //        asset => "USDT",
+        //        time => "1711046271555",
+        //        positionSide => "BOTH",
+        //        clientTranId => ""
+        //    }
+        //
         $rawType = $this->safe_integer($data, 'type');
-        $resultType = ($rawType === 1) ? 'add' : 'reduce';
-        $resultAmount = $this->safe_number($data, 'amount');
         $errorCode = $this->safe_string($data, 'code');
-        $status = ($errorCode === '200') ? 'ok' : 'failed';
+        $marketId = $this->safe_string($data, 'symbol');
+        $timestamp = $this->safe_integer($data, 'time');
+        $market = $this->safe_market($marketId, $market, null, 'swap');
+        $noErrorCode = $errorCode === null;
+        $success = $errorCode === '200';
         return array(
             'info' => $data,
-            'type' => $resultType,
-            'amount' => $resultAmount,
-            'code' => null,
             'symbol' => $market['symbol'],
-            'status' => $status,
+            'type' => ($rawType === 1) ? 'add' : 'reduce',
+            'marginMode' => 'isolated',
+            'amount' => $this->safe_number($data, 'amount'),
+            'code' => $this->safe_string($data, 'asset'),
+            'total' => null,
+            'status' => ($success || $noErrorCode) ? 'ok' : 'failed',
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
         );
     }
 
-    public function reduce_margin(string $symbol, $amount, $params = array ()) {
+    public function reduce_margin(string $symbol, $amount, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $amount, $params) {
             /**
              * @see https://binance-docs.github.io/apidocs/delivery/en/#modify-isolated-position-margin-trade
@@ -10861,7 +11114,7 @@ class binance extends Exchange {
         }) ();
     }
 
-    public function add_margin(string $symbol, $amount, $params = array ()) {
+    public function add_margin(string $symbol, $amount, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $amount, $params) {
             /**
              * @see https://binance-docs.github.io/apidocs/delivery/en/#modify-isolated-position-margin-trade
@@ -11345,6 +11598,7 @@ class binance extends Exchange {
              * @param {int} [$limit] default 30, max 500
              * @param {array} [$params] exchange specific parameters
              * @param {int} [$params->until] the time(ms) of the latest record to retrieve unix timestamp
+             * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @return {array} an array of ~@link https://docs.ccxt.com/#/?id=open-interest-structure open interest structure~
              */
             if ($timeframe === '1m') {
@@ -11513,6 +11767,8 @@ class binance extends Exchange {
              * @param {int} [$params->until] timestamp in ms of the latest liquidation
              * @param {boolean} [$params->paginate] *spot only* default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @param {boolean} [$params->portfolioMargin] set to true if you would like to fetch $liquidations in a portfolio margin account
+             * @param {string} [$params->type] "spot"
+             * @param {string} [$params->subType] "linear" or "inverse"
              * @return {array} an array of ~@link https://docs.ccxt.com/#/?id=liquidation-structure liquidation structures~
              */
             Async\await($this->load_markets());
@@ -11815,5 +12071,421 @@ class binance extends Exchange {
             'underlyingPrice' => null,
             'info' => $greeks,
         );
+    }
+
+    public function fetch_trading_limits(?array $symbols = null, $params = array ()) {
+        return Async\async(function () use ($symbols, $params) {
+            // this method should not be called directly, use loadTradingLimits () instead
+            $markets = Async\await($this->fetch_markets());
+            $tradingLimits = array();
+            for ($i = 0; $i < count($markets); $i++) {
+                $market = $markets[$i];
+                $symbol = $market['symbol'];
+                if (($symbols === null) || ($this->in_array($symbol, $symbols))) {
+                    $tradingLimits[$symbol] = $market['limits']['amount'];
+                }
+            }
+            return $tradingLimits;
+        }) ();
+    }
+
+    public function fetch_position_mode(?string $symbol = null, $params = array ()) {
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * fetchs the position mode, hedged or one way, hedged for binance is set identically for all linear markets or all inverse markets
+             * @param {string} $symbol unified $symbol of the $market to fetch the order book for
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->subType] "linear" or "inverse"
+             * @return {array} an object detailing whether the $market is in hedged or one-way mode
+             */
+            $market = null;
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+            }
+            $subType = null;
+            list($subType, $params) = $this->handle_sub_type_and_params('fetchPositionMode', $market, $params);
+            $response = null;
+            if ($subType === 'linear') {
+                $response = Async\await($this->fapiPrivateGetPositionSideDual ($params));
+            } elseif ($subType === 'inverse') {
+                $response = Async\await($this->dapiPrivateGetPositionSideDual ($params));
+            } else {
+                throw new BadRequest($this->id . ' fetchPositionMode requires either a $symbol argument or $params["subType"]');
+            }
+            //
+            //    {
+            //        $dualSidePosition => false
+            //    }
+            //
+            $dualSidePosition = $this->safe_bool($response, 'dualSidePosition');
+            return array(
+                'info' => $response,
+                'hedged' => $dualSidePosition,
+            );
+        }) ();
+    }
+
+    public function fetch_margin_modes(?array $symbols = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * fetches margin modes ("isolated" or "cross") that the $market for the symbol in in, with symbol=null all markets for a $subType (linear/inverse) are returned
+             * @see https://binance-docs.github.io/apidocs/futures/en/#account-information-v2-user_data
+             * @param {string} symbol unified symbol of the $market the order was made in
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->subType] "linear" or "inverse"
+             * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=margin-mode-structure margin mode structures~
+             */
+            Async\await($this->load_markets());
+            $market = null;
+            if ($symbols !== null) {
+                $symbols = $this->market_symbols($symbols);
+                $market = $this->market($symbols[0]);
+            }
+            $subType = null;
+            list($subType, $params) = $this->handle_sub_type_and_params('fetchMarginMode', $market, $params);
+            $response = null;
+            if ($subType === 'linear') {
+                $response = Async\await($this->fapiPrivateV2GetAccount ($params));
+                //
+                //    {
+                //        feeTier => '0',
+                //        canTrade => true,
+                //        canDeposit => true,
+                //        canWithdraw => true,
+                //        tradeGroupId => '-1',
+                //        updateTime => '0',
+                //        multiAssetsMargin => true,
+                //        totalInitialMargin => '438.31134352',
+                //        totalMaintMargin => '5.90847101',
+                //        totalWalletBalance => '4345.15626338',
+                //        totalUnrealizedProfit => '376.45220224',
+                //        totalMarginBalance => '4721.60846562',
+                //        totalPositionInitialMargin => '425.45252687',
+                //        totalOpenOrderInitialMargin => '12.85881664',
+                //        totalCrossWalletBalance => '4345.15626338',
+                //        totalCrossUnPnl => '376.45220224',
+                //        availableBalance => '4281.84764041',
+                //        maxWithdrawAmount => '4281.84764041',
+                //        $assets => array(
+                //            array(
+                //                asset => 'ETH',
+                //                walletBalance => '0.00000000',
+                //                unrealizedProfit => '0.00000000',
+                //                marginBalance => '0.00000000',
+                //                maintMargin => '0.00000000',
+                //                initialMargin => '0.00000000',
+                //                positionInitialMargin => '0.00000000',
+                //                openOrderInitialMargin => '0.00000000',
+                //                maxWithdrawAmount => '0.00000000',
+                //                crossWalletBalance => '0.00000000',
+                //                crossUnPnl => '0.00000000',
+                //                availableBalance => '1.26075574',
+                //                marginAvailable => true,
+                //                updateTime => '0'
+                //            ),
+                //        ...
+                //        ),
+                //        positions => array(
+                //            array(
+                //              symbol => 'SNTUSDT',
+                //              initialMargin => '0',
+                //              maintMargin => '0',
+                //              unrealizedProfit => '0.00000000',
+                //              positionInitialMargin => '0',
+                //              openOrderInitialMargin => '0',
+                //              leverage => '20',
+                //              isolated => false,
+                //              entryPrice => '0.0',
+                //              breakEvenPrice => '0.0',
+                //              maxNotional => '25000',
+                //              positionSide => 'BOTH',
+                //              positionAmt => '0',
+                //              notional => '0',
+                //              isolatedWallet => '0',
+                //              updateTime => '0',
+                //              bidNotional => '0',
+                //              askNotional => '0'
+                //            ),
+                //            ...
+                //        )
+                //    }
+                //
+            } elseif ($subType === 'inverse') {
+                $response = Async\await($this->dapiPrivateGetAccount ($params));
+                //
+                //    {
+                //        feeTier => '0',
+                //        canTrade => true,
+                //        canDeposit => true,
+                //        canWithdraw => true,
+                //        updateTime => '0',
+                //        $assets => array(
+                //            array(
+                //                asset => 'APT',
+                //                walletBalance => '0.00000000',
+                //                unrealizedProfit => '0.00000000',
+                //                marginBalance => '0.00000000',
+                //                maintMargin => '0.00000000',
+                //                initialMargin => '0.00000000',
+                //                positionInitialMargin => '0.00000000',
+                //                openOrderInitialMargin => '0.00000000',
+                //                maxWithdrawAmount => '0.00000000',
+                //                crossWalletBalance => '0.00000000',
+                //                crossUnPnl => '0.00000000',
+                //                availableBalance => '0.00000000',
+                //                updateTime => '0'
+                //            ),
+                //            ...
+                //        ),
+                //        positions => array(
+                //            array(
+                //                symbol => 'BCHUSD_240329',
+                //                initialMargin => '0',
+                //                maintMargin => '0',
+                //                unrealizedProfit => '0.00000000',
+                //                positionInitialMargin => '0',
+                //                openOrderInitialMargin => '0',
+                //                leverage => '20',
+                //                isolated => false,
+                //                positionSide => 'BOTH',
+                //                entryPrice => '0.00000000',
+                //                maxQty => '1000',
+                //                notionalValue => '0',
+                //                isolatedWallet => '0',
+                //                updateTime => '0',
+                //                positionAmt => '0',
+                //                breakEvenPrice => '0.00000000'
+                //            ),
+                //            ...
+                //        )
+                //    }
+                //
+            } else {
+                throw new BadRequest($this->id . ' fetchMarginModes () supports linear and inverse subTypes only');
+            }
+            $assets = $this->safe_list($response, 'positions', array());
+            return $this->parse_margin_modes($assets, $symbols, 'symbol', 'swap');
+        }) ();
+    }
+
+    public function parse_margin_mode($marginMode, $market = null): array {
+        $marketId = $this->safe_string($marginMode, 'symbol');
+        $market = $this->safe_market($marketId, $market);
+        $isIsolated = $this->safe_bool($marginMode, 'isolated');
+        return array(
+            'info' => $marginMode,
+            'symbol' => $market['symbol'],
+            'marginMode' => $isIsolated ? 'isolated' : 'cross',
+        );
+    }
+
+    public function fetch_option(string $symbol, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * fetches option data that is commonly found in an option $chain
+             * @see https://binance-docs.github.io/apidocs/voptions/en/#24hr-ticker-price-change-statistics
+             * @param {string} $symbol unified $market $symbol
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} an ~@link https://docs.ccxt.com/#/?id=option-$chain-structure option $chain structure~
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'symbol' => $market['id'],
+            );
+            $response = Async\await($this->eapiPublicGetTicker (array_merge($request, $params)));
+            //
+            //     array(
+            //         {
+            //             "symbol" => "BTC-241227-80000-C",
+            //             "priceChange" => "0",
+            //             "priceChangePercent" => "0",
+            //             "lastPrice" => "2750",
+            //             "lastQty" => "0",
+            //             "open" => "2750",
+            //             "high" => "2750",
+            //             "low" => "2750",
+            //             "volume" => "0",
+            //             "amount" => "0",
+            //             "bidPrice" => "4880",
+            //             "askPrice" => "0",
+            //             "openTime" => 0,
+            //             "closeTime" => 0,
+            //             "firstTradeId" => 0,
+            //             "tradeCount" => 0,
+            //             "strikePrice" => "80000",
+            //             "exercisePrice" => "63944.09893617"
+            //         }
+            //     )
+            //
+            $chain = $this->safe_dict($response, 0, array());
+            return $this->parse_option($chain, null, $market);
+        }) ();
+    }
+
+    public function parse_option($chain, ?array $currency = null, ?array $market = null) {
+        //
+        //     {
+        //         "symbol" => "BTC-241227-80000-C",
+        //         "priceChange" => "0",
+        //         "priceChangePercent" => "0",
+        //         "lastPrice" => "2750",
+        //         "lastQty" => "0",
+        //         "open" => "2750",
+        //         "high" => "2750",
+        //         "low" => "2750",
+        //         "volume" => "0",
+        //         "amount" => "0",
+        //         "bidPrice" => "4880",
+        //         "askPrice" => "0",
+        //         "openTime" => 0,
+        //         "closeTime" => 0,
+        //         "firstTradeId" => 0,
+        //         "tradeCount" => 0,
+        //         "strikePrice" => "80000",
+        //         "exercisePrice" => "63944.09893617"
+        //     }
+        //
+        $marketId = $this->safe_string($chain, 'symbol');
+        $market = $this->safe_market($marketId, $market);
+        return array(
+            'info' => $chain,
+            'currency' => null,
+            'symbol' => $market['symbol'],
+            'timestamp' => null,
+            'datetime' => null,
+            'impliedVolatility' => null,
+            'openInterest' => null,
+            'bidPrice' => $this->safe_number($chain, 'bidPrice'),
+            'askPrice' => $this->safe_number($chain, 'askPrice'),
+            'midPrice' => null,
+            'markPrice' => null,
+            'lastPrice' => $this->safe_number($chain, 'lastPrice'),
+            'underlyingPrice' => $this->safe_number($chain, 'exercisePrice'),
+            'change' => $this->safe_number($chain, 'priceChange'),
+            'percentage' => $this->safe_number($chain, 'priceChangePercent'),
+            'baseVolume' => $this->safe_number($chain, 'volume'),
+            'quoteVolume' => null,
+        );
+    }
+
+    public function fetch_margin_adjustment_history(?string $symbol = null, ?string $type = null, ?float $since = null, ?float $limit = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $type, $since, $limit, $params) {
+            /**
+             * fetches the history of margin added or reduced from contract isolated positions
+             * @see https://binance-docs.github.io/apidocs/futures/en/#get-position-margin-change-history-trade
+             * @see https://binance-docs.github.io/apidocs/delivery/en/#get-position-margin-change-history-trade
+             * @param {string} $symbol unified $market $symbol
+             * @param {string} [$type] "add" or "reduce"
+             * @param {int} [$since] timestamp in ms of the earliest change to fetch
+             * @param {int} [$limit] the maximum amount of changes to fetch
+             * @param {array} $params extra parameters specific to the exchange api endpoint
+             * @param {int} [$params->until] timestamp in ms of the latest change to fetch
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=margin-loan-structure margin structures~
+             */
+            Async\await($this->load_markets());
+            if ($symbol === null) {
+                throw new ArgumentsRequired($this->id . ' fetchMarginAdjustmentHistory () requires a $symbol argument');
+            }
+            $market = $this->market($symbol);
+            $until = $this->safe_integer($params, 'until');
+            $params = $this->omit($params, 'until');
+            $request = array(
+                'symbol' => $market['id'],
+            );
+            if ($type !== null) {
+                $request['type'] = ($type === 'add') ? 1 : 2;
+            }
+            if ($since !== null) {
+                $request['startTime'] = $since;
+            }
+            if ($limit !== null) {
+                $request['limit'] = $limit;
+            }
+            if ($until !== null) {
+                $request['endTime'] = $until;
+            }
+            $response = null;
+            if ($market['linear']) {
+                $response = Async\await($this->fapiPrivateGetPositionMarginHistory (array_merge($request, $params)));
+            } elseif ($market['inverse']) {
+                $response = Async\await($this->dapiPrivateGetPositionMarginHistory (array_merge($request, $params)));
+            } else {
+                throw new BadRequest($this->id . 'fetchMarginAdjustmentHistory () is not supported for markets of $type ' . $market['type']);
+            }
+            //
+            //    array(
+            //        {
+            //            $symbol => "XRPUSDT",
+            //            $type => "1",
+            //            deltaType => "TRADE",
+            //            amount => "2.57148240",
+            //            asset => "USDT",
+            //            time => "1711046271555",
+            //            positionSide => "BOTH",
+            //            clientTranId => ""
+            //        }
+            //        ...
+            //    )
+            //
+            $modifications = $this->parse_margin_modifications($response);
+            return $this->filter_by_symbol_since_limit($modifications, $symbol, $since, $limit);
+        }) ();
+    }
+
+    public function fetch_convert_currencies($params = array ()): PromiseInterface {
+        return Async\async(function () use ($params) {
+            /**
+             * fetches all available currencies that can be converted
+             * @see https://binance-docs.github.io/apidocs/spot/en/#query-order-quantity-precision-per-asset-user_data
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} an associative dictionary of currencies
+             */
+            Async\await($this->load_markets());
+            $response = Async\await($this->sapiGetConvertAssetInfo ($params));
+            //
+            //     array(
+            //         array(
+            //             "asset" => "BTC",
+            //             "fraction" => 8
+            //         ),
+            //     )
+            //
+            $result = array();
+            for ($i = 0; $i < count($response); $i++) {
+                $entry = $response[$i];
+                $id = $this->safe_string($entry, 'asset');
+                $code = $this->safe_currency_code($id);
+                $result[$code] = array(
+                    'info' => $entry,
+                    'id' => $id,
+                    'code' => $code,
+                    'networks' => null,
+                    'type' => null,
+                    'name' => null,
+                    'active' => null,
+                    'deposit' => null,
+                    'withdraw' => null,
+                    'fee' => null,
+                    'precision' => $this->safe_integer($entry, 'fraction'),
+                    'limits' => array(
+                        'amount' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
+                        'withdraw' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
+                        'deposit' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
+                    ),
+                    'created' => null,
+                );
+            }
+            return $result;
+        }) ();
     }
 }
