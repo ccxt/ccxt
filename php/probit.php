@@ -341,7 +341,7 @@ class probit extends Exchange {
         );
     }
 
-    public function fetch_currencies($params = array ()) {
+    public function fetch_currencies($params = array ()): array {
         /**
          * @see https://docs-en.probit.com/reference/currency
          * fetches all available $currencies on an exchange
@@ -1465,10 +1465,9 @@ class probit extends Exchange {
         return $result;
     }
 
-    public function fetch_transactions(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
-         * @deprecated
-         * use fetchDepositsWithdrawals instead
+         * fetch history of deposits and withdrawals
          * @see https://docs-en.probit.com/reference/transferpayment
          * @param {string} $code unified $currency $code
          * @param {int} [$since] the earliest time in ms to fetch transactions for

@@ -1,5 +1,5 @@
 import Exchange from './abstract/bitstamp.js';
-import type { Balances, Currency, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry } from './base/types.js';
+import type { Balances, Currencies, Currency, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry } from './base/types.js';
 /**
  * @class bitstamp
  * @augments Exchange
@@ -39,7 +39,7 @@ export default class bitstamp extends Exchange {
         networks: {};
     };
     fetchMarketsFromCache(params?: {}): Promise<any>;
-    fetchCurrencies(params?: {}): Promise<{}>;
+    fetchCurrencies(params?: {}): Promise<Currencies>;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     parseTicker(ticker: any, market?: Market): Ticker;
     fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
@@ -52,28 +52,16 @@ export default class bitstamp extends Exchange {
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     parseBalance(response: any): Balances;
     fetchBalance(params?: {}): Promise<Balances>;
-    fetchTradingFee(symbol: string, params?: {}): Promise<{
-        info: any;
-        symbol: string;
-        maker: number;
-        taker: number;
-    }>;
-    parseTradingFee(fee: any, market?: Market): {
-        info: any;
-        symbol: string;
-        maker: number;
-        taker: number;
-    };
+    fetchTradingFee(symbol: string, params?: {}): Promise<TradingFeeInterface>;
+    parseTradingFee(fee: any, market?: Market): TradingFeeInterface;
     parseTradingFees(fees: any): {
         info: any;
     };
-    fetchTradingFees(params?: {}): Promise<{
-        info: any;
-    }>;
+    fetchTradingFees(params?: {}): Promise<TradingFees>;
     fetchTransactionFees(codes?: string[], params?: {}): Promise<{}>;
     parseTransactionFees(response: any, codes?: any): {};
-    fetchDepositWithdrawFees(codes?: Strings, params?: {}): Promise<{}>;
-    parseDepositWithdrawFees(response: any, codes?: any, currencyIdKey?: any): {};
+    fetchDepositWithdrawFees(codes?: any, params?: {}): Promise<any>;
+    parseDepositWithdrawFee(fee: any, currency?: any): any;
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
     cancelOrder(id: string, symbol?: Str, params?: {}): Promise<any>;
     cancelAllOrders(symbol?: Str, params?: {}): Promise<any>;

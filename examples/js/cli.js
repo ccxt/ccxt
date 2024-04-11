@@ -4,8 +4,6 @@ import path from 'path'
 import ansi from 'ansicolor'
 import asTable from 'as-table'
 import ololog from 'ololog'
-import util from 'util'
-import { execSync } from 'child_process'
 import ccxt from '../../js/ccxt.js'
 import { Agent } from 'https'
 
@@ -114,8 +112,11 @@ try {
     for (const [credential, isRequired] of Object.entries (requiredCredentials)) {
         if (isRequired && exchange[credential] === undefined) {
             const credentialEnvName = (exchangeId + '_' + credential).toUpperCase () // example: KRAKEN_APIKEY
-            const credentialValue = process.env[credentialEnvName]
+            let credentialValue = process.env[credentialEnvName]
             if (credentialValue) {
+                if (credentialValue.indexOf('---BEGIN') > -1) {
+                    credentialValue = credentialValue.replaceAll('\\n', '\n');
+                }
                 exchange[credential] = credentialValue
             }
         }

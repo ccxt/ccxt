@@ -416,9 +416,21 @@ public partial class Exchange
         return this.currencies;
     }
 
+    public async Task<Currencies> FetchCurrencies(object parameters = null)
+    {
+        var res = await this.fetchCurrencies(parameters);
+        return new Currencies(res);
+    }
+
     public virtual async Task<object> fetchCurrenciesWs(object parameters = null)
     {
         return this.currencies;
+    }
+
+        public async Task<Currencies> FetchCurrenciesWs(object parameters = null)
+    {
+        var res = await this.fetchCurrenciesWs(parameters);
+        return new Currencies(res);
     }
 
     public void log(object s)
@@ -813,6 +825,15 @@ public partial class Exchange
         }
         return returnRest;
         // return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
+    }
+
+    public string randomBytes(object length2)
+    {
+        var length = Convert.ToInt32(length2);
+        var bytes = new byte[length];
+        var rng = new Random();
+        rng.NextBytes(bytes);
+        return Convert.ToBase64String(bytes);
     }
 
     public void extendExchangeOptions(object options2)

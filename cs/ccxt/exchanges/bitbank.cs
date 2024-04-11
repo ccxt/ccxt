@@ -105,21 +105,23 @@ public partial class bitbank : Exchange
             } },
             { "precisionMode", TICK_SIZE },
             { "exceptions", new Dictionary<string, object>() {
-                { "20001", typeof(AuthenticationError) },
-                { "20002", typeof(AuthenticationError) },
-                { "20003", typeof(AuthenticationError) },
-                { "20005", typeof(AuthenticationError) },
-                { "20004", typeof(InvalidNonce) },
-                { "40020", typeof(InvalidOrder) },
-                { "40021", typeof(InvalidOrder) },
-                { "40025", typeof(ExchangeError) },
-                { "40013", typeof(OrderNotFound) },
-                { "40014", typeof(OrderNotFound) },
-                { "50008", typeof(PermissionDenied) },
-                { "50009", typeof(OrderNotFound) },
-                { "50010", typeof(OrderNotFound) },
-                { "60001", typeof(InsufficientFunds) },
-                { "60005", typeof(InvalidOrder) },
+                { "exact", new Dictionary<string, object>() {
+                    { "20001", typeof(AuthenticationError) },
+                    { "20002", typeof(AuthenticationError) },
+                    { "20003", typeof(AuthenticationError) },
+                    { "20005", typeof(AuthenticationError) },
+                    { "20004", typeof(InvalidNonce) },
+                    { "40020", typeof(InvalidOrder) },
+                    { "40021", typeof(InvalidOrder) },
+                    { "40025", typeof(ExchangeError) },
+                    { "40013", typeof(OrderNotFound) },
+                    { "40014", typeof(OrderNotFound) },
+                    { "50008", typeof(PermissionDenied) },
+                    { "50009", typeof(OrderNotFound) },
+                    { "50010", typeof(OrderNotFound) },
+                    { "60001", typeof(InsufficientFunds) },
+                    { "60005", typeof(InvalidOrder) },
+                } },
             } },
         });
     }
@@ -1036,17 +1038,10 @@ public partial class bitbank : Exchange
                 { "70009", "We are currently temporarily restricting orders to be carried out. Please use the limit order." },
                 { "70010", "We are temporarily raising the minimum order quantity as the system load is now rising." },
             };
-            object errorClasses = this.exceptions;
             object code = this.safeString(data, "code");
             object message = this.safeString(errorMessages, code, "Error");
-            object ErrorClass = this.safeValue(errorClasses, code);
-            if (isTrue(!isEqual(ErrorClass, null)))
-            {
-                throwDynamicException(getValue(errorClasses, code), message);
-            } else
-            {
-                throw new ExchangeError ((string)add(add(this.id, " "), this.json(response))) ;
-            }
+            this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), code, message);
+            throw new ExchangeError ((string)add(add(this.id, " "), this.json(response))) ;
         }
         return null;
     }

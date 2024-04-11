@@ -34,6 +34,7 @@ class coinex extends Exchange {
             // 60 per 2 seconds => 30 per second => weight = 13.334
             // 40 per 2 seconds => 20 per second => weight = 20
             // 20 per 2 seconds => 10 per second => weight = 40
+            // v1 is per 2 seconds and v2 is per 1 second
             'rateLimit' => 2.5,
             'pro' => true,
             'certified' => true,
@@ -85,6 +86,7 @@ class coinex extends Exchange {
                 'fetchLeverage' => 'emulated',
                 'fetchLeverages' => true,
                 'fetchLeverageTiers' => true,
+                'fetchMarginAdjustmentHistory' => true,
                 'fetchMarketLeverageTiers' => 'emulated',
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
@@ -140,156 +142,279 @@ class coinex extends Exchange {
                     'perpetualPrivate' => 'https://api.coinex.com/perpetual',
                 ),
                 'www' => 'https://www.coinex.com',
-                'doc' => 'https://viabtc.github.io/coinex_api_en_doc',
+                'doc' => 'https://docs.coinex.com/api/v2',
                 'fees' => 'https://www.coinex.com/fees',
                 'referral' => 'https://www.coinex.com/register?refer_code=yw5fz',
             ),
             'api' => array(
-                'public' => array(
-                    'get' => array(
-                        'amm/market' => 1,
-                        'common/currency/rate' => 1,
-                        'common/asset/config' => 1,
-                        'common/maintain/info' => 1,
-                        'common/temp-maintain/info' => 1,
-                        'margin/market' => 1,
-                        'market/info' => 1,
-                        'market/list' => 1,
-                        'market/ticker' => 1,
-                        'market/ticker/all' => 1,
-                        'market/depth' => 1,
-                        'market/deals' => 1,
-                        'market/kline' => 1,
-                        'market/detail' => 1,
+                'v1' => array(
+                    'public' => array(
+                        'get' => array(
+                            'amm/market' => 1,
+                            'common/currency/rate' => 1,
+                            'common/asset/config' => 1,
+                            'common/maintain/info' => 1,
+                            'common/temp-maintain/info' => 1,
+                            'margin/market' => 1,
+                            'market/info' => 1,
+                            'market/list' => 1,
+                            'market/ticker' => 1,
+                            'market/ticker/all' => 1,
+                            'market/depth' => 1,
+                            'market/deals' => 1,
+                            'market/kline' => 1,
+                            'market/detail' => 1,
+                        ),
+                    ),
+                    'private' => array(
+                        'get' => array(
+                            'account/amm/balance' => 40,
+                            'account/investment/balance' => 40,
+                            'account/balance/history' => 40,
+                            'account/market/fee' => 40,
+                            'balance/coin/deposit' => 40,
+                            'balance/coin/withdraw' => 40,
+                            'balance/info' => 40,
+                            'balance/deposit/address/{coin_type}' => 40,
+                            'contract/transfer/history' => 40,
+                            'credit/info' => 40,
+                            'credit/balance' => 40,
+                            'investment/transfer/history' => 40,
+                            'margin/account' => 1,
+                            'margin/config' => 1,
+                            'margin/loan/history' => 40,
+                            'margin/transfer/history' => 40,
+                            'order/deals' => 40,
+                            'order/finished' => 40,
+                            'order/pending' => 8,
+                            'order/status' => 8,
+                            'order/status/batch' => 8,
+                            'order/user/deals' => 40,
+                            'order/stop/finished' => 40,
+                            'order/stop/pending' => 8,
+                            'order/user/trade/fee' => 1,
+                            'order/market/trade/info' => 1,
+                            'sub_account/balance' => 1,
+                            'sub_account/transfer/history' => 40,
+                            'sub_account/auth/api' => 40,
+                            'sub_account/auth/api/{user_auth_id}' => 40,
+                        ),
+                        'post' => array(
+                            'balance/coin/withdraw' => 40,
+                            'contract/balance/transfer' => 40,
+                            'margin/flat' => 40,
+                            'margin/loan' => 40,
+                            'margin/transfer' => 40,
+                            'order/limit/batch' => 40,
+                            'order/ioc' => 13.334,
+                            'order/limit' => 13.334,
+                            'order/market' => 13.334,
+                            'order/modify' => 13.334,
+                            'order/stop/limit' => 13.334,
+                            'order/stop/market' => 13.334,
+                            'order/stop/modify' => 13.334,
+                            'sub_account/transfer' => 40,
+                            'sub_account/register' => 1,
+                            'sub_account/unfrozen' => 40,
+                            'sub_account/frozen' => 40,
+                            'sub_account/auth/api' => 40,
+                        ),
+                        'put' => array(
+                            'balance/deposit/address/{coin_type}' => 40,
+                            'sub_account/unfrozen' => 40,
+                            'sub_account/frozen' => 40,
+                            'sub_account/auth/api/{user_auth_id}' => 40,
+                            'v1/account/settings' => 40,
+                        ),
+                        'delete' => array(
+                            'balance/coin/withdraw' => 40,
+                            'order/pending/batch' => 40,
+                            'order/pending' => 13.334,
+                            'order/stop/pending' => 40,
+                            'order/stop/pending/{id}' => 13.334,
+                            'order/pending/by_client_id' => 40,
+                            'order/stop/pending/by_client_id' => 40,
+                            'sub_account/auth/api/{user_auth_id}' => 40,
+                            'sub_account/authorize/{id}' => 40,
+                        ),
+                    ),
+                    'perpetualPublic' => array(
+                        'get' => array(
+                            'ping' => 1,
+                            'time' => 1,
+                            'market/list' => 1,
+                            'market/limit_config' => 1,
+                            'market/ticker' => 1,
+                            'market/ticker/all' => 1,
+                            'market/depth' => 1,
+                            'market/deals' => 1,
+                            'market/funding_history' => 1,
+                            'market/kline' => 1,
+                        ),
+                    ),
+                    'perpetualPrivate' => array(
+                        'get' => array(
+                            'market/user_deals' => 1,
+                            'asset/query' => 40,
+                            'order/pending' => 8,
+                            'order/finished' => 40,
+                            'order/stop_finished' => 40,
+                            'order/stop_pending' => 8,
+                            'order/status' => 8,
+                            'order/stop_status' => 8,
+                            'position/finished' => 40,
+                            'position/pending' => 40,
+                            'position/funding' => 40,
+                            'position/adl_history' => 40,
+                            'market/preference' => 40,
+                            'position/margin_history' => 40,
+                            'position/settle_history' => 40,
+                        ),
+                        'post' => array(
+                            'market/adjust_leverage' => 1,
+                            'market/position_expect' => 1,
+                            'order/put_limit' => 20,
+                            'order/put_market' => 20,
+                            'order/put_stop_limit' => 20,
+                            'order/put_stop_market' => 20,
+                            'order/modify' => 20,
+                            'order/modify_stop' => 20,
+                            'order/cancel' => 20,
+                            'order/cancel_all' => 40,
+                            'order/cancel_batch' => 40,
+                            'order/cancel_stop' => 20,
+                            'order/cancel_stop_all' => 40,
+                            'order/close_limit' => 20,
+                            'order/close_market' => 20,
+                            'position/adjust_margin' => 20,
+                            'position/stop_loss' => 20,
+                            'position/take_profit' => 20,
+                            'position/market_close' => 20,
+                            'order/cancel/by_client_id' => 20,
+                            'order/cancel_stop/by_client_id' => 20,
+                            'market/preference' => 20,
+                        ),
                     ),
                 ),
-                'private' => array(
-                    'get' => array(
-                        'account/amm/balance' => 40,
-                        'account/investment/balance' => 40,
-                        'account/balance/history' => 40,
-                        'account/market/fee' => 40,
-                        'balance/coin/deposit' => 40,
-                        'balance/coin/withdraw' => 40,
-                        'balance/info' => 40,
-                        'balance/deposit/address/{coin_type}' => 40,
-                        'contract/transfer/history' => 40,
-                        'credit/info' => 40,
-                        'credit/balance' => 40,
-                        'investment/transfer/history' => 40,
-                        'margin/account' => 1,
-                        'margin/config' => 1,
-                        'margin/loan/history' => 40,
-                        'margin/transfer/history' => 40,
-                        'order/deals' => 40,
-                        'order/finished' => 40,
-                        'order/pending' => 8,
-                        'order/status' => 8,
-                        'order/status/batch' => 8,
-                        'order/user/deals' => 40,
-                        'order/stop/finished' => 40,
-                        'order/stop/pending' => 8,
-                        'order/user/trade/fee' => 1,
-                        'order/market/trade/info' => 1,
-                        'sub_account/balance' => 1,
-                        'sub_account/transfer/history' => 40,
-                        'sub_account/auth/api' => 40,
-                        'sub_account/auth/api/{user_auth_id}' => 40,
+                'v2' => array(
+                    'public' => array(
+                        'get' => array(
+                            'maintain-info' => 1,
+                            'ping' => 1,
+                            'time' => 1,
+                            'spot/market' => 1,
+                            'spot/ticker' => 1,
+                            'spot/depth' => 1,
+                            'spot/deals' => 1,
+                            'spot/kline' => 1,
+                            'spot/index' => 1,
+                            'futures/market' => 1,
+                            'futures/ticker' => 1,
+                            'futures/depth' => 1,
+                            'futures/deals' => 1,
+                            'futures/kline' => 1,
+                            'futures/index' => 1,
+                            'futures/funding-rate' => 1,
+                            'futures/funding-rate-history' => 1,
+                            'futures/position-level' => 1,
+                            'futures/liquidation-history' => 1,
+                            'futures/basis-history' => 1,
+                        ),
                     ),
-                    'post' => array(
-                        'balance/coin/withdraw' => 40,
-                        'contract/balance/transfer' => 40,
-                        'margin/flat' => 40,
-                        'margin/loan' => 40,
-                        'margin/transfer' => 40,
-                        'order/limit/batch' => 40,
-                        'order/ioc' => 13.334,
-                        'order/limit' => 13.334,
-                        'order/market' => 13.334,
-                        'order/modify' => 13.334,
-                        'order/stop/limit' => 13.334,
-                        'order/stop/market' => 13.334,
-                        'order/stop/modify' => 13.334,
-                        'sub_account/transfer' => 40,
-                        'sub_account/register' => 1,
-                        'sub_account/unfrozen' => 40,
-                        'sub_account/frozen' => 40,
-                        'sub_account/auth/api' => 40,
-                    ),
-                    'put' => array(
-                        'balance/deposit/address/{coin_type}' => 40,
-                        'sub_account/unfrozen' => 40,
-                        'sub_account/frozen' => 40,
-                        'sub_account/auth/api/{user_auth_id}' => 40,
-                        'v1/account/settings' => 40,
-                    ),
-                    'delete' => array(
-                        'balance/coin/withdraw' => 40,
-                        'order/pending/batch' => 40,
-                        'order/pending' => 13.334,
-                        'order/stop/pending' => 40,
-                        'order/stop/pending/{id}' => 13.334,
-                        'order/pending/by_client_id' => 40,
-                        'order/stop/pending/by_client_id' => 40,
-                        'sub_account/auth/api/{user_auth_id}' => 40,
-                        'sub_account/authorize/{id}' => 40,
-                    ),
-                ),
-                'perpetualPublic' => array(
-                    'get' => array(
-                        'ping' => 1,
-                        'time' => 1,
-                        'market/list' => 1,
-                        'market/limit_config' => 1,
-                        'market/ticker' => 1,
-                        'market/ticker/all' => 1,
-                        'market/depth' => 1,
-                        'market/deals' => 1,
-                        'market/funding_history' => 1,
-                        'market/kline' => 1,
-                    ),
-                ),
-                'perpetualPrivate' => array(
-                    'get' => array(
-                        'market/user_deals' => 1,
-                        'asset/query' => 40,
-                        'order/pending' => 8,
-                        'order/finished' => 40,
-                        'order/stop_finished' => 40,
-                        'order/stop_pending' => 8,
-                        'order/status' => 8,
-                        'order/stop_status' => 8,
-                        'position/finished' => 40,
-                        'position/pending' => 40,
-                        'position/funding' => 40,
-                        'position/adl_history' => 40,
-                        'market/preference' => 40,
-                        'position/margin_history' => 40,
-                        'position/settle_history' => 40,
-                    ),
-                    'post' => array(
-                        'market/adjust_leverage' => 1,
-                        'market/position_expect' => 1,
-                        'order/put_limit' => 20,
-                        'order/put_market' => 20,
-                        'order/put_stop_limit' => 20,
-                        'order/put_stop_market' => 20,
-                        'order/modify' => 20,
-                        'order/modify_stop' => 20,
-                        'order/cancel' => 20,
-                        'order/cancel_all' => 40,
-                        'order/cancel_batch' => 40,
-                        'order/cancel_stop' => 20,
-                        'order/cancel_stop_all' => 40,
-                        'order/close_limit' => 20,
-                        'order/close_market' => 20,
-                        'position/adjust_margin' => 20,
-                        'position/stop_loss' => 20,
-                        'position/take_profit' => 20,
-                        'position/market_close' => 20,
-                        'order/cancel/by_client_id' => 20,
-                        'order/cancel_stop/by_client_id' => 20,
-                        'market/preference' => 20,
+                    'private' => array(
+                        'get' => array(
+                            'account/subs' => 1,
+                            'account/subs/api-detail' => 40,
+                            'account/subs/info' => 1,
+                            'account/subs/api' => 40,
+                            'account/subs/transfer-history' => 40,
+                            'account/subs/spot-balance' => 1,
+                            'account/trade-fee-rate' => 40,
+                            'assets/spot/balance' => 40,
+                            'assets/futures/balance' => 40,
+                            'assets/margin/balance' => 1,
+                            'assets/financial/balance' => 40,
+                            'assets/amm/liquidity' => 40,
+                            'assets/credit/info' => 40,
+                            'assets/margin/borrow-history' => 40,
+                            'assets/margin/interest-limit' => 1,
+                            'assets/deposit-address' => 40,
+                            'assets/deposit-history' => 40,
+                            'assets/withdraw' => 40,
+                            'assets/deposit-withdraw-config' => 1,
+                            'assets/transfer-history' => 40,
+                            'spot/order-status' => 8,
+                            'spot/batch-order-status' => 8,
+                            'spot/pending-order' => 8,
+                            'spot/finished-order' => 40,
+                            'spot/pending-stop-order' => 8,
+                            'spot/finished-stop-order' => 40,
+                            'spot/user-deals' => 40,
+                            'spot/order-deals' => 40,
+                            'futures/order-status' => 8,
+                            'futures/batch-order-status' => 1,
+                            'futures/pending-order' => 8,
+                            'futures/finished-order' => 40,
+                            'futures/pending-stop-order' => 8,
+                            'futures/finished-stop-order' => 40,
+                            'futures/user-deals' => 1,
+                            'futures/order-deals' => 1,
+                            'futures/pending-position' => 40,
+                            'futures/finished-position' => 1,
+                            'futures/position-margin-history' => 1,
+                            'futures/position-funding-history' => 40,
+                            'futures/position-adl-history' => 1,
+                            'futures/position-settle-history' => 1,
+                        ),
+                        'post' => array(
+                            'account/subs' => 40,
+                            'account/subs/frozen' => 40,
+                            'account/subs/unfrozen' => 40,
+                            'account/subs/api' => 40,
+                            'account/subs/edit-api' => 40,
+                            'account/subs/delete-api' => 40,
+                            'account/subs/transfer' => 40,
+                            'account/settings' => 40,
+                            'assets/margin/borrow' => 40,
+                            'assets/margin/repay' => 40,
+                            'assets/renewal-deposit-address' => 40,
+                            'assets/withdraw' => 40,
+                            'assets/cancel-withdraw' => 40,
+                            'assets/transfer' => 40,
+                            'assets/amm/add-liquidity' => 1,
+                            'assets/amm/remove-liquidity' => 1,
+                            'spot/order' => 13.334,
+                            'spot/stop-order' => 13.334,
+                            'spot/batch-order' => 40,
+                            'spot/batch-stop-order' => 1,
+                            'spot/modify-order' => 13.334,
+                            'spot/modify-stop-order' => 13.334,
+                            'spot/cancel-all-order' => 1,
+                            'spot/cancel-order' => 6.667,
+                            'spot/cancel-stop-order' => 6.667,
+                            'spot/cancel-batch-order' => 10,
+                            'spot/cancel-batch-stop-order' => 10,
+                            'spot/cancel-order-by-client-id' => 1,
+                            'spot/cancel-stop-order-by-client-id' => 1,
+                            'futures/order' => 20,
+                            'futures/stop-order' => 20,
+                            'futures/batch-order' => 1,
+                            'futures/batch-stop-order' => 1,
+                            'futures/modify-order' => 20,
+                            'futures/modify-stop-order' => 20,
+                            'futures/cancel-all-order' => 1,
+                            'futures/cancel-order' => 10,
+                            'futures/cancel-stop-order' => 10,
+                            'futures/cancel-batch-order' => 20,
+                            'futures/cancel-batch-stop-order' => 20,
+                            'futures/cancel-order-by-client-id' => 1,
+                            'futures/cancel-stop-order-by-client-id' => 1,
+                            'futures/close-position' => 20,
+                            'futures/adjust-position-margin' => 20,
+                            'futures/adjust-position-leverage' => 20,
+                            'futures/set-position-stop-loss' => 20,
+                            'futures/set-position-take-profit' => 20,
+                        ),
                     ),
                 ),
             ),
@@ -360,9 +485,9 @@ class coinex extends Exchange {
         ));
     }
 
-    public function fetch_currencies($params = array ()) {
+    public function fetch_currencies($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
-            $response = Async\await($this->publicGetCommonAssetConfig ($params));
+            $response = Async\await($this->v1PublicGetCommonAssetConfig ($params));
             //     {
             //         "code" => 0,
             //         "data" => array(
@@ -514,7 +639,7 @@ class coinex extends Exchange {
 
     public function fetch_spot_markets($params) {
         return Async\async(function () use ($params) {
-            $response = Async\await($this->publicGetMarketInfo ($params));
+            $response = Async\await($this->v1PublicGetMarketInfo ($params));
             //
             //     {
             //         "code" => 0,
@@ -606,7 +731,7 @@ class coinex extends Exchange {
 
     public function fetch_contract_markets($params) {
         return Async\async(function () use ($params) {
-            $response = Async\await($this->perpetualPublicGetMarketList ($params));
+            $response = Async\await($this->v1PerpetualPublicGetMarketList ($params));
             //
             //     {
             //         "code" => 0,
@@ -790,9 +915,9 @@ class coinex extends Exchange {
             );
             $response = null;
             if ($market['swap']) {
-                $response = Async\await($this->perpetualPublicGetMarketTicker (array_merge($request, $params)));
+                $response = Async\await($this->v1PerpetualPublicGetMarketTicker (array_merge($request, $params)));
             } else {
-                $response = Async\await($this->publicGetMarketTicker (array_merge($request, $params)));
+                $response = Async\await($this->v1PublicGetMarketTicker (array_merge($request, $params)));
             }
             //
             // Spot
@@ -872,9 +997,9 @@ class coinex extends Exchange {
             list($marketType, $query) = $this->handle_market_type_and_params('fetchTickers', $market, $params);
             $response = null;
             if ($marketType === 'swap') {
-                $response = Async\await($this->perpetualPublicGetMarketTickerAll ($query));
+                $response = Async\await($this->v1PerpetualPublicGetMarketTickerAll ($query));
             } else {
-                $response = Async\await($this->publicGetMarketTickerAll ());
+                $response = Async\await($this->v1PublicGetMarketTickerAll ());
             }
             //
             // Spot
@@ -958,19 +1083,22 @@ class coinex extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * fetches the current integer timestamp in milliseconds from the exchange server
-             * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http005_system_time
+             * @see https://docs.coinex.com/api/v2/common/http/time
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {int} the current integer timestamp in milliseconds from the exchange server
              */
-            $response = Async\await($this->perpetualPublicGetTime ($params));
+            $response = Async\await($this->v2PublicGetTime ($params));
             //
             //     {
-            //         "code" => "0",
-            //         "data" => "1653261274414",
+            //         "code" => 0,
+            //         "data" => array(
+            //             "timestamp" => 1711699867777
+            //         ),
             //         "message" => "OK"
             //     }
             //
-            return $this->safe_integer($response, 'data');
+            $data = $this->safe_dict($response, 'data', array());
+            return $this->safe_integer($data, 'timestamp');
         }) ();
     }
 
@@ -997,9 +1125,9 @@ class coinex extends Exchange {
             );
             $response = null;
             if ($market['swap']) {
-                $response = Async\await($this->perpetualPublicGetMarketDepth (array_merge($request, $params)));
+                $response = Async\await($this->v1PerpetualPublicGetMarketDepth (array_merge($request, $params)));
             } else {
-                $response = Async\await($this->publicGetMarketDepth (array_merge($request, $params)));
+                $response = Async\await($this->v1PublicGetMarketDepth (array_merge($request, $params)));
             }
             //
             // Spot
@@ -1199,9 +1327,9 @@ class coinex extends Exchange {
             }
             $response = null;
             if ($market['swap']) {
-                $response = Async\await($this->perpetualPublicGetMarketDeals (array_merge($request, $params)));
+                $response = Async\await($this->v1PerpetualPublicGetMarketDeals (array_merge($request, $params)));
             } else {
-                $response = Async\await($this->publicGetMarketDeals (array_merge($request, $params)));
+                $response = Async\await($this->v1PublicGetMarketDeals (array_merge($request, $params)));
             }
             //
             // Spot and Swap
@@ -1225,11 +1353,12 @@ class coinex extends Exchange {
         }) ();
     }
 
-    public function fetch_trading_fee(string $symbol, $params = array ()) {
+    public function fetch_trading_fee(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch the trading fees for a $market
-             * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot001_market003_single_market_info
+             * @see https://docs.coinex.com/api/v2/spot/market/http/list-$market
+             * @see https://docs.coinex.com/api/v2/futures/market/http/list-$market
              * @param {string} $symbol unified $market $symbol
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=fee-structure fee structure~
@@ -1239,70 +1368,133 @@ class coinex extends Exchange {
             $request = array(
                 'market' => $market['id'],
             );
-            $response = Async\await($this->publicGetMarketDetail (array_merge($request, $params)));
-            //
-            //     {
-            //         "code" => 0,
-            //         "data" => array(
-            //           "name" => "BTCUSDC",
-            //           "min_amount" => "0.0005",
-            //           "maker_fee_rate" => "0.002",
-            //           "taker_fee_rate" => "0.002",
-            //           "pricing_name" => "USDC",
-            //           "pricing_decimal" => 2,
-            //           "trading_name" => "BTC",
-            //           "trading_decimal" => 8
-            //         ),
-            //         "message" => "OK"
-            //      }
-            //
-            $data = $this->safe_value($response, 'data', array());
-            return $this->parse_trading_fee($data, $market);
+            $response = null;
+            if ($market['spot']) {
+                $response = Async\await($this->v2PublicGetSpotMarket (array_merge($request, $params)));
+                //
+                //     {
+                //         "code" => 0,
+                //         "data" => array(
+                //             {
+                //                 "base_ccy" => "BTC",
+                //                 "base_ccy_precision" => 8,
+                //                 "is_amm_available" => false,
+                //                 "is_margin_available" => true,
+                //                 "maker_fee_rate" => "0.002",
+                //                 "market" => "BTCUSDT",
+                //                 "min_amount" => "0.0001",
+                //                 "quote_ccy" => "USDT",
+                //                 "quote_ccy_precision" => 2,
+                //                 "taker_fee_rate" => "0.002"
+                //             }
+                //         ),
+                //         "message" => "OK"
+                //     }
+                //
+            } else {
+                $response = Async\await($this->v2PublicGetFuturesMarket (array_merge($request, $params)));
+                //
+                //     {
+                //         "code" => 0,
+                //         "data" => [
+                //             {
+                //                 "base_ccy" => "BTC",
+                //                 "base_ccy_precision" => 8,
+                //                 "contract_type" => "linear",
+                //                 "leverage" => ["1","2","3","5","8","10","15","20","30","50","100"],
+                //                 "maker_fee_rate" => "0",
+                //                 "market" => "BTCUSDT",
+                //                 "min_amount" => "0.0001",
+                //                 "open_interest_volume" => "185.7498",
+                //                 "quote_ccy" => "USDT",
+                //                 "quote_ccy_precision" => 2,
+                //                 "taker_fee_rate" => "0"
+                //             }
+                //         ],
+                //         "message" => "OK"
+                //     }
+                //
+            }
+            $data = $this->safe_list($response, 'data', array());
+            $result = $this->safe_dict($data, 0, array());
+            return $this->parse_trading_fee($result, $market);
         }) ();
     }
 
-    public function fetch_trading_fees($params = array ()) {
+    public function fetch_trading_fees($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetch the trading fees for multiple markets
-             * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot001_market002_all_market_info
+             * @see https://docs.coinex.com/api/v2/spot/market/http/list-$market
+             * @see https://docs.coinex.com/api/v2/futures/market/http/list-$market
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$fee-structure $fee structures~ indexed by $market symbols
+             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=fee-structure fee structures~ indexed by $market symbols
              */
             Async\await($this->load_markets());
-            $response = Async\await($this->publicGetMarketInfo ($params));
-            //
-            //     {
-            //         "code" => 0,
-            //         "data" => {
-            //             "WAVESBTC" => {
-            //                 "name" => "WAVESBTC",
-            //                 "min_amount" => "1",
-            //                 "maker_fee_rate" => "0.001",
-            //                 "taker_fee_rate" => "0.001",
-            //                 "pricing_name" => "BTC",
-            //                 "pricing_decimal" => 8,
-            //                 "trading_name" => "WAVES",
-            //                 "trading_decimal" => 8
-            //             }
-            //             ...
-            //         }
-            //     }
-            //
-            $data = $this->safe_value($response, 'data', array());
+            $type = null;
+            list($type, $params) = $this->handle_market_type_and_params('fetchTradingFees', null, $params);
+            $response = null;
+            if ($type === 'swap') {
+                $response = Async\await($this->v2PublicGetFuturesMarket ($params));
+                //
+                //     {
+                //         "code" => 0,
+                //         "data" => [
+                //             {
+                //                 "base_ccy" => "BTC",
+                //                 "base_ccy_precision" => 8,
+                //                 "contract_type" => "linear",
+                //                 "leverage" => ["1","2","3","5","8","10","15","20","30","50","100"],
+                //                 "maker_fee_rate" => "0",
+                //                 "market" => "BTCUSDT",
+                //                 "min_amount" => "0.0001",
+                //                 "open_interest_volume" => "185.7498",
+                //                 "quote_ccy" => "USDT",
+                //                 "quote_ccy_precision" => 2,
+                //                 "taker_fee_rate" => "0"
+                //             }
+                //         ],
+                //         "message" => "OK"
+                //     }
+                //
+            } else {
+                $response = Async\await($this->v2PublicGetSpotMarket ($params));
+                //
+                //     {
+                //         "code" => 0,
+                //         "data" => array(
+                //             array(
+                //                 "base_ccy" => "BTC",
+                //                 "base_ccy_precision" => 8,
+                //                 "is_amm_available" => false,
+                //                 "is_margin_available" => true,
+                //                 "maker_fee_rate" => "0.002",
+                //                 "market" => "BTCUSDT",
+                //                 "min_amount" => "0.0001",
+                //                 "quote_ccy" => "USDT",
+                //                 "quote_ccy_precision" => 2,
+                //                 "taker_fee_rate" => "0.002"
+                //             ),
+                //         ),
+                //         "message" => "OK"
+                //     }
+                //
+            }
+            $data = $this->safe_list($response, 'data', array());
             $result = array();
-            for ($i = 0; $i < count($this->symbols); $i++) {
-                $symbol = $this->symbols[$i];
-                $market = $this->market($symbol);
-                $fee = $this->safe_value($data, $market['id'], array());
-                $result[$symbol] = $this->parse_trading_fee($fee, $market);
+            for ($i = 0; $i < count($data); $i++) {
+                $entry = $data[$i];
+                $marketId = $this->safe_string($entry, 'market');
+                $market = $this->safe_market($marketId, null, null, $type);
+                $symbol = $market['symbol'];
+                $result[$symbol] = $this->parse_trading_fee($entry, $market);
             }
             return $result;
         }) ();
     }
 
-    public function parse_trading_fee($fee, ?array $market = null) {
-        $marketId = $this->safe_value($fee, 'name');
+    public function parse_trading_fee($fee, ?array $market = null): array {
+        $marketId = $this->safe_value($fee, 'market');
         $symbol = $this->safe_symbol($marketId, $market);
         return array(
             'info' => $fee,
@@ -1361,9 +1553,9 @@ class coinex extends Exchange {
             }
             $response = null;
             if ($market['swap']) {
-                $response = Async\await($this->perpetualPublicGetMarketKline (array_merge($request, $params)));
+                $response = Async\await($this->v1PerpetualPublicGetMarketKline (array_merge($request, $params)));
             } else {
-                $response = Async\await($this->publicGetMarketKline (array_merge($request, $params)));
+                $response = Async\await($this->v1PublicGetMarketKline (array_merge($request, $params)));
             }
             //
             // Spot
@@ -1411,7 +1603,7 @@ class coinex extends Exchange {
             $request = array(
                 'market' => $marketId,
             );
-            $response = Async\await($this->privateGetMarginAccount (array_merge($request, $params)));
+            $response = Async\await($this->v1PrivateGetMarginAccount (array_merge($request, $params)));
             //
             //      {
             //          "code" =>    0,
@@ -1481,7 +1673,7 @@ class coinex extends Exchange {
     public function fetch_spot_balance($params = array ()) {
         return Async\async(function () use ($params) {
             Async\await($this->load_markets());
-            $response = Async\await($this->privateGetBalanceInfo ($params));
+            $response = Async\await($this->v1PrivateGetBalanceInfo ($params));
             //
             //     {
             //       "code" => 0,
@@ -1521,7 +1713,7 @@ class coinex extends Exchange {
     public function fetch_swap_balance($params = array ()) {
         return Async\async(function () use ($params) {
             Async\await($this->load_markets());
-            $response = Async\await($this->perpetualPrivateGetAssetQuery ($params));
+            $response = Async\await($this->v1PerpetualPrivateGetAssetQuery ($params));
             //
             //     {
             //         "code" => 0,
@@ -1558,7 +1750,7 @@ class coinex extends Exchange {
     public function fetch_financial_balance($params = array ()) {
         return Async\async(function () use ($params) {
             Async\await($this->load_markets());
-            $response = Async\await($this->privateGetAccountInvestmentBalance ($params));
+            $response = Async\await($this->v1PrivateGetAccountInvestmentBalance ($params));
             //
             //     {
             //          "code" => 0,
@@ -2183,42 +2375,42 @@ class coinex extends Exchange {
             if ($market['spot']) {
                 if ($isTriggerOrder) {
                     if ($type === 'limit') {
-                        $response = Async\await($this->privatePostOrderStopLimit ($request));
+                        $response = Async\await($this->v1PrivatePostOrderStopLimit ($request));
                     } else {
-                        $response = Async\await($this->privatePostOrderStopMarket ($request));
+                        $response = Async\await($this->v1PrivatePostOrderStopMarket ($request));
                     }
                 } else {
                     if ($type === 'limit') {
-                        $response = Async\await($this->privatePostOrderLimit ($request));
+                        $response = Async\await($this->v1PrivatePostOrderLimit ($request));
                     } else {
-                        $response = Async\await($this->privatePostOrderMarket ($request));
+                        $response = Async\await($this->v1PrivatePostOrderMarket ($request));
                     }
                 }
             } else {
                 if ($isTriggerOrder) {
                     if ($type === 'limit') {
-                        $response = Async\await($this->perpetualPrivatePostOrderPutStopLimit ($request));
+                        $response = Async\await($this->v1PerpetualPrivatePostOrderPutStopLimit ($request));
                     } else {
-                        $response = Async\await($this->perpetualPrivatePostOrderPutStopMarket ($request));
+                        $response = Async\await($this->v1PerpetualPrivatePostOrderPutStopMarket ($request));
                     }
                 } elseif ($isStopLossOrTakeProfitTrigger) {
                     if ($isStopLossTriggerOrder) {
-                        $response = Async\await($this->perpetualPrivatePostPositionStopLoss ($request));
+                        $response = Async\await($this->v1PerpetualPrivatePostPositionStopLoss ($request));
                     } elseif ($isTakeProfitTriggerOrder) {
-                        $response = Async\await($this->perpetualPrivatePostPositionTakeProfit ($request));
+                        $response = Async\await($this->v1PerpetualPrivatePostPositionTakeProfit ($request));
                     }
                 } else {
                     if ($reduceOnly) {
                         if ($type === 'limit') {
-                            $response = Async\await($this->perpetualPrivatePostOrderCloseLimit ($request));
+                            $response = Async\await($this->v1PerpetualPrivatePostOrderCloseLimit ($request));
                         } else {
-                            $response = Async\await($this->perpetualPrivatePostOrderCloseMarket ($request));
+                            $response = Async\await($this->v1PerpetualPrivatePostOrderCloseMarket ($request));
                         }
                     } else {
                         if ($type === 'limit') {
-                            $response = Async\await($this->perpetualPrivatePostOrderPutLimit ($request));
+                            $response = Async\await($this->v1PerpetualPrivatePostOrderPutLimit ($request));
                         } else {
-                            $response = Async\await($this->perpetualPrivatePostOrderPutMarket ($request));
+                            $response = Async\await($this->v1PerpetualPrivatePostOrderPutMarket ($request));
                         }
                     }
                 }
@@ -2346,7 +2538,7 @@ class coinex extends Exchange {
                 'market' => $market['id'],
                 'batch_orders' => $this->json($ordersRequests),
             );
-            $response = Async\await($this->privatePostOrderLimitBatch ($request));
+            $response = Async\await($this->v1PrivatePostOrderLimitBatch ($request));
             //
             //     {
             //         "code" => 0,
@@ -2429,10 +2621,10 @@ class coinex extends Exchange {
             $response = null;
             if ($market['spot']) {
                 $request['batch_ids'] = $idsString;
-                $response = Async\await($this->privateDeleteOrderPendingBatch (array_merge($request, $params)));
+                $response = Async\await($this->v1PrivateDeleteOrderPendingBatch (array_merge($request, $params)));
             } else {
                 $request['order_ids'] = $idsString;
-                $response = Async\await($this->perpetualPrivatePostOrderCancelBatch (array_merge($request, $params)));
+                $response = Async\await($this->v1PerpetualPrivatePostOrderCancelBatch (array_merge($request, $params)));
             }
             //
             // spot
@@ -2570,7 +2762,7 @@ class coinex extends Exchange {
             if ($price !== null) {
                 $request['price'] = $this->price_to_precision($symbol, $price);
             }
-            $response = Async\await($this->privatePostOrderModify (array_merge($request, $params)));
+            $response = Async\await($this->v1PrivatePostOrderModify (array_merge($request, $params)));
             //
             //     {
             //         "code" => 0,
@@ -2652,15 +2844,15 @@ class coinex extends Exchange {
                 $request['client_id'] = $clientOrderId;
                 if ($stop) {
                     if ($swap) {
-                        $response = Async\await($this->perpetualPrivatePostOrderCancelStopByClientId (array_merge($request, $query)));
+                        $response = Async\await($this->v1PerpetualPrivatePostOrderCancelStopByClientId (array_merge($request, $query)));
                     } else {
-                        $response = Async\await($this->privateDeleteOrderStopPendingByClientId (array_merge($request, $query)));
+                        $response = Async\await($this->v1PrivateDeleteOrderStopPendingByClientId (array_merge($request, $query)));
                     }
                 } else {
                     if ($swap) {
-                        $response = Async\await($this->perpetualPrivatePostOrderCancelByClientId (array_merge($request, $query)));
+                        $response = Async\await($this->v1PerpetualPrivatePostOrderCancelByClientId (array_merge($request, $query)));
                     } else {
-                        $response = Async\await($this->privateDeleteOrderPendingByClientId (array_merge($request, $query)));
+                        $response = Async\await($this->v1PrivateDeleteOrderPendingByClientId (array_merge($request, $query)));
                     }
                 }
             } else {
@@ -2668,15 +2860,15 @@ class coinex extends Exchange {
                 $request[$idRequest] = $id;
                 if ($stop) {
                     if ($swap) {
-                        $response = Async\await($this->perpetualPrivatePostOrderCancelStop (array_merge($request, $query)));
+                        $response = Async\await($this->v1PerpetualPrivatePostOrderCancelStop (array_merge($request, $query)));
                     } else {
-                        $response = Async\await($this->privateDeleteOrderStopPendingId (array_merge($request, $query)));
+                        $response = Async\await($this->v1PrivateDeleteOrderStopPendingId (array_merge($request, $query)));
                     }
                 } else {
                     if ($swap) {
-                        $response = Async\await($this->perpetualPrivatePostOrderCancel (array_merge($request, $query)));
+                        $response = Async\await($this->v1PerpetualPrivatePostOrderCancel (array_merge($request, $query)));
                     } else {
-                        $response = Async\await($this->privateDeleteOrderPending (array_merge($request, $query)));
+                        $response = Async\await($this->v1PrivateDeleteOrderPending (array_merge($request, $query)));
                     }
                 }
             }
@@ -2821,16 +3013,16 @@ class coinex extends Exchange {
             $response = null;
             if ($swap) {
                 if ($stop) {
-                    $response = Async\await($this->perpetualPrivatePostOrderCancelStopAll (array_merge($request, $params)));
+                    $response = Async\await($this->v1PerpetualPrivatePostOrderCancelStopAll (array_merge($request, $params)));
                 } else {
-                    $response = Async\await($this->perpetualPrivatePostOrderCancelAll (array_merge($request, $params)));
+                    $response = Async\await($this->v1PerpetualPrivatePostOrderCancelAll (array_merge($request, $params)));
                 }
             } else {
                 $request['account_id'] = $accountId;
                 if ($stop) {
-                    $response = Async\await($this->privateDeleteOrderStopPending (array_merge($request, $params)));
+                    $response = Async\await($this->v1PrivateDeleteOrderStopPending (array_merge($request, $params)));
                 } else {
-                    $response = Async\await($this->privateDeleteOrderPending (array_merge($request, $params)));
+                    $response = Async\await($this->v1PrivateDeleteOrderPending (array_merge($request, $params)));
                 }
             }
             //
@@ -2875,12 +3067,12 @@ class coinex extends Exchange {
             $response = null;
             if ($swap) {
                 if ($stop) {
-                    $response = Async\await($this->perpetualPrivateGetOrderStopStatus (array_merge($request, $params)));
+                    $response = Async\await($this->v1PerpetualPrivateGetOrderStopStatus (array_merge($request, $params)));
                 } else {
-                    $response = Async\await($this->perpetualPrivateGetOrderStatus (array_merge($request, $params)));
+                    $response = Async\await($this->v1PerpetualPrivateGetOrderStatus (array_merge($request, $params)));
                 }
             } else {
-                $response = Async\await($this->privateGetOrderStatus (array_merge($request, $params)));
+                $response = Async\await($this->v1PrivateGetOrderStatus (array_merge($request, $params)));
             }
             //
             // Spot
@@ -3026,27 +3218,27 @@ class coinex extends Exchange {
                 }
                 $request['offset'] = 0;
                 if ($stop) {
-                    $response = Async\await($this->perpetualPrivateGetOrderStopPending (array_merge($request, $params)));
+                    $response = Async\await($this->v1PerpetualPrivateGetOrderStopPending (array_merge($request, $params)));
                 } else {
                     if ($status === 'finished') {
-                        $response = Async\await($this->perpetualPrivateGetOrderFinished (array_merge($request, $params)));
+                        $response = Async\await($this->v1PerpetualPrivateGetOrderFinished (array_merge($request, $params)));
                     } elseif ($status === 'pending') {
-                        $response = Async\await($this->perpetualPrivateGetOrderPending (array_merge($request, $params)));
+                        $response = Async\await($this->v1PerpetualPrivateGetOrderPending (array_merge($request, $params)));
                     }
                 }
             } else {
                 $request['page'] = 1;
                 if ($status === 'finished') {
                     if ($stop) {
-                        $response = Async\await($this->privateGetOrderStopFinished (array_merge($request, $params)));
+                        $response = Async\await($this->v1PrivateGetOrderStopFinished (array_merge($request, $params)));
                     } else {
-                        $response = Async\await($this->privateGetOrderFinished (array_merge($request, $params)));
+                        $response = Async\await($this->v1PrivateGetOrderFinished (array_merge($request, $params)));
                     }
                 } elseif ($status === 'pending') {
                     if ($stop) {
-                        $response = Async\await($this->privateGetOrderStopPending (array_merge($request, $params)));
+                        $response = Async\await($this->v1PrivateGetOrderStopPending (array_merge($request, $params)));
                     } else {
-                        $response = Async\await($this->privateGetOrderPending (array_merge($request, $params)));
+                        $response = Async\await($this->v1PrivateGetOrderPending (array_merge($request, $params)));
                     }
                 }
             }
@@ -3261,7 +3453,7 @@ class coinex extends Exchange {
                 $params = $this->omit($params, 'network');
                 $request['smart_contract_name'] = $network;
             }
-            $response = Async\await($this->privatePutBalanceDepositAddressCoinType (array_merge($request, $params)));
+            $response = Async\await($this->v1PrivatePutBalanceDepositAddressCoinType (array_merge($request, $params)));
             //
             //     {
             //         "code" => 0,
@@ -3306,7 +3498,7 @@ class coinex extends Exchange {
             if ($network !== null) {
                 $request['smart_contract_name'] = $network;
             }
-            $response = Async\await($this->privateGetBalanceDepositAddressCoinType (array_merge($request, $params)));
+            $response = Async\await($this->v1PrivateGetBalanceDepositAddressCoinType (array_merge($request, $params)));
             //
             //      {
             //          "code" => 0,
@@ -3425,10 +3617,10 @@ class coinex extends Exchange {
                     $request['start_time'] = $since;
                 }
                 $request['side'] = 0;
-                $response = Async\await($this->perpetualPrivateGetMarketUserDeals (array_merge($request, $params)));
+                $response = Async\await($this->v1PerpetualPrivateGetMarketUserDeals (array_merge($request, $params)));
             } else {
                 $request['page'] = 1;
-                $response = Async\await($this->privateGetOrderUserDeals (array_merge($request, $params)));
+                $response = Async\await($this->v1PrivateGetOrderUserDeals (array_merge($request, $params)));
             }
             //
             // Spot and Margin
@@ -3523,8 +3715,8 @@ class coinex extends Exchange {
              */
             Async\await($this->load_markets());
             $defaultMethod = null;
-            list($defaultMethod, $params) = $this->handle_option_and_params($params, 'fetchPositions', 'method', 'perpetualPrivateGetPositionPending');
-            $isHistory = ($defaultMethod === 'perpetualPrivateGetPositionFinished');
+            list($defaultMethod, $params) = $this->handle_option_and_params($params, 'fetchPositions', 'method', 'v1PerpetualPrivateGetPositionPending');
+            $isHistory = ($defaultMethod === 'v1PerpetualPrivateGetPositionFinished');
             $symbols = $this->market_symbols($symbols);
             $request = array();
             $market = null;
@@ -3551,10 +3743,10 @@ class coinex extends Exchange {
                 $request['side'] = $this->safe_integer($params, 'side', 0); // 0 => All, 1 => Sell, 2 => Buy
             }
             $response = null;
-            if ($defaultMethod === 'perpetualPrivateGetPositionPending') {
-                $response = Async\await($this->perpetualPrivateGetPositionPending (array_merge($request, $params)));
+            if ($defaultMethod === 'v1PerpetualPrivateGetPositionPending') {
+                $response = Async\await($this->v1PerpetualPrivateGetPositionPending (array_merge($request, $params)));
             } else {
-                $response = Async\await($this->perpetualPrivateGetPositionFinished (array_merge($request, $params)));
+                $response = Async\await($this->v1PerpetualPrivateGetPositionFinished (array_merge($request, $params)));
             }
             //
             //     {
@@ -3638,7 +3830,7 @@ class coinex extends Exchange {
             $request = array(
                 'market' => $market['id'],
             );
-            $response = Async\await($this->perpetualPrivateGetPositionPending (array_merge($request, $params)));
+            $response = Async\await($this->v1PerpetualPrivateGetPositionPending (array_merge($request, $params)));
             //
             //     {
             //         "code" => 0,
@@ -3853,7 +4045,7 @@ class coinex extends Exchange {
                 'leverage' => (string) $leverage,
                 'position_type' => $positionType, // 1 => isolated, 2 => cross
             );
-            return Async\await($this->perpetualPrivatePostMarketAdjustLeverage (array_merge($request, $params)));
+            return Async\await($this->v1PerpetualPrivatePostMarketAdjustLeverage (array_merge($request, $params)));
         }) ();
     }
 
@@ -3894,7 +4086,7 @@ class coinex extends Exchange {
                 'leverage' => (string) $leverage,
                 'position_type' => $positionType, // 1 => isolated, 2 => cross
             );
-            return Async\await($this->perpetualPrivatePostMarketAdjustLeverage (array_merge($request, $params)));
+            return Async\await($this->v1PerpetualPrivatePostMarketAdjustLeverage (array_merge($request, $params)));
         }) ();
     }
 
@@ -3908,7 +4100,7 @@ class coinex extends Exchange {
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=leverage-tiers-structure leverage tiers structures~, indexed by market $symbols
              */
             Async\await($this->load_markets());
-            $response = Async\await($this->perpetualPublicGetMarketLimitConfig ($params));
+            $response = Async\await($this->v1PerpetualPublicGetMarketLimitConfig ($params));
             //
             //     {
             //         "code" => 0,
@@ -3929,37 +4121,6 @@ class coinex extends Exchange {
             $data = $this->safe_value($response, 'data', array());
             return $this->parse_leverage_tiers($data, $symbols, null);
         }) ();
-    }
-
-    public function parse_leverage_tiers($response, ?array $symbols = null, $marketIdKey = null) {
-        //
-        //     {
-        //         "BTCUSD" => [
-        //             ["500001", "100", "0.005"],
-        //             ["1000001", "50", "0.01"],
-        //             ["2000001", "30", "0.015"],
-        //             ["5000001", "20", "0.02"],
-        //             ["10000001", "15", "0.025"],
-        //             ["20000001", "10", "0.03"]
-        //         ],
-        //         ...
-        //     }
-        //
-        $tiers = array();
-        $marketIds = is_array($response) ? array_keys($response) : array();
-        for ($i = 0; $i < count($marketIds); $i++) {
-            $marketId = $marketIds[$i];
-            $market = $this->safe_market($marketId, null, null, 'spot');
-            $symbol = $this->safe_string($market, 'symbol');
-            $symbolsLength = 0;
-            if ($symbols !== null) {
-                $symbolsLength = count($symbols);
-            }
-            if ($symbol !== null && ($symbolsLength === 0 || $this->in_array($symbols, $symbol))) {
-                $tiers[$symbol] = $this->parse_market_leverage_tiers($response[$marketId], $market);
-            }
-        }
-        return $tiers;
     }
 
     public function parse_market_leverage_tiers($item, ?array $market = null) {
@@ -3991,7 +4152,7 @@ class coinex extends Exchange {
                 'amount' => $this->amount_to_precision($symbol, $amount),
                 'type' => $addOrReduce,
             );
-            $response = Async\await($this->perpetualPrivatePostPositionAdjustMargin (array_merge($request, $params)));
+            $response = Async\await($this->v1PerpetualPrivatePostPositionAdjustMargin (array_merge($request, $params)));
             //
             //     {
             //         "code" => 0,
@@ -4049,28 +4210,107 @@ class coinex extends Exchange {
             //         "message":"OK"
             //     }
             //
+            $data = $this->safe_dict($response, 'data');
             $status = $this->safe_string($response, 'message');
-            $type = ($addOrReduce === 1) ? 'add' : 'reduce';
-            return array_merge($this->parse_margin_modification($response, $market), array(
+            return array_merge($this->parse_margin_modification($data, $market), array(
                 'amount' => $this->parse_number($amount),
-                'type' => $type,
                 'status' => $status,
             ));
         }) ();
     }
 
-    public function parse_margin_modification($data, ?array $market = null) {
+    public function parse_margin_modification($data, ?array $market = null): array {
+        //
+        // addMargin/reduceMargin
+        //
+        //    {
+        //        "adl_sort" => 1,
+        //        "adl_sort_val" => "0.00004320",
+        //        "amount" => "0.0005",
+        //        "amount_max" => "0.0005",
+        //        "amount_max_margin" => "6.57352000000000000000",
+        //        "bkr_price" => "16294.08000000000000011090",
+        //        "bkr_price_imply" => "0.00000000000000000000",
+        //        "close_left" => "0.0005",
+        //        "create_time" => 1651202571.320778,
+        //        "deal_all" => "19.72000000000000000000",
+        //        "deal_asset_fee" => "0.00000000000000000000",
+        //        "fee_asset" => "",
+        //        "finish_type" => 1,
+        //        "first_price" => "39441.12",
+        //        "insurance" => "0.00000000000000000000",
+        //        "latest_price" => "39441.12",
+        //        "leverage" => "3",
+        //        "liq_amount" => "0.00000000000000000000",
+        //        "liq_order_price" => "0",
+        //        "liq_order_time" => 0,
+        //        "liq_price" => "16491.28560000000000011090",
+        //        "liq_price_imply" => "0.00000000000000000000",
+        //        "liq_profit" => "0.00000000000000000000",
+        //        "liq_time" => 0,
+        //        "mainten_margin" => "0.005",
+        //        "mainten_margin_amount" => "0.09860280000000000000",
+        //        "maker_fee" => "0.00000000000000000000",
+        //        "margin_amount" => "11.57352000000000000000",
+        //        "market" => "BTCUSDT",
+        //        "open_margin" => "0.58687582908396110455",
+        //        "open_margin_imply" => "0.00000000000000000000",
+        //        "open_price" => "39441.12000000000000000000",
+        //        "open_val" => "19.72056000000000000000",
+        //        "open_val_max" => "19.72056000000000000000",
+        //        "position_id" => 65171206,
+        //        "profit_clearing" => "-0.00986028000000000000",
+        //        "profit_real" => "-0.00986028000000000000",
+        //        "profit_unreal" => "0.00",
+        //        "side" => 2,
+        //        "stop_loss_price" => "0.00000000000000000000",
+        //        "stop_loss_type" => 0,
+        //        "sys" => 0,
+        //        "take_profit_price" => "0.00000000000000000000",
+        //        "take_profit_type" => 0,
+        //        "taker_fee" => "0.00000000000000000000",
+        //        "total" => 3464,
+        //        "type" => 1,
+        //        "update_time" => 1651202638.911212,
+        //        "user_id" => 3620173
+        //    }
+        //
+        // fetchMarginAdjustmentHistory
+        //
+        //    {
+        //        bkr_price => '0',
+        //        leverage => '3',
+        //        liq_price => '0',
+        //        margin_amount => '5.33236666666666666666',
+        //        margin_change => '3',
+        //        $market => 'XRPUSDT',
+        //        position_amount => '11',
+        //        position_id => '297155652',
+        //        position_type => '2',
+        //        settle_price => '0.6361',
+        //        time => '1711050906.382891',
+        //        $type => '1',
+        //        user_id => '3685860'
+        //    }
+        //
+        $marketId = $this->safe_string($data, 'market');
+        $type = $this->safe_string($data, 'type');
+        $timestamp = $this->safe_integer_product_2($data, 'time', 'update_time', 1000);
         return array(
             'info' => $data,
-            'type' => null,
-            'amount' => null,
+            'symbol' => $this->safe_symbol($marketId, $market, null, 'swap'),
+            'type' => ($type === '1') ? 'add' : 'reduce',
+            'marginMode' => 'isolated',
+            'amount' => $this->safe_number($data, 'margin_change'),
+            'total' => $this->safe_number($data, 'position_amount'),
             'code' => $market['quote'],
-            'symbol' => $this->safe_symbol(null, $market),
             'status' => null,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
         );
     }
 
-    public function add_margin(string $symbol, $amount, $params = array ()) {
+    public function add_margin(string $symbol, $amount, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $amount, $params) {
             /**
              * add margin
@@ -4084,7 +4324,7 @@ class coinex extends Exchange {
         }) ();
     }
 
-    public function reduce_margin(string $symbol, $amount, $params = array ()) {
+    public function reduce_margin(string $symbol, $amount, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $amount, $params) {
             /**
              * remove margin from a position
@@ -4125,7 +4365,7 @@ class coinex extends Exchange {
             if ($since !== null) {
                 $request['start_time'] = $since;
             }
-            $response = Async\await($this->perpetualPrivateGetPositionFunding (array_merge($request, $params)));
+            $response = Async\await($this->v1PerpetualPrivateGetPositionFunding (array_merge($request, $params)));
             //
             //     {
             //         "code" => 0,
@@ -4192,7 +4432,7 @@ class coinex extends Exchange {
             $request = array(
                 'market' => $market['id'],
             );
-            $response = Async\await($this->perpetualPublicGetMarketTicker (array_merge($request, $params)));
+            $response = Async\await($this->v1PerpetualPublicGetMarketTicker (array_merge($request, $params)));
             //
             //     {
             //          "code" => 0,
@@ -4306,7 +4546,7 @@ class coinex extends Exchange {
                     throw new BadSymbol($this->id . ' fetchFundingRates() supports swap contracts only');
                 }
             }
-            $response = Async\await($this->perpetualPublicGetMarketTickerAll ($params));
+            $response = Async\await($this->v1PerpetualPublicGetMarketTickerAll ($params));
             //
             //     {
             //         "code" => 0,
@@ -4389,7 +4629,7 @@ class coinex extends Exchange {
             if ($networkCode !== null) {
                 $request['smart_contract_name'] = $this->network_code_to_id($networkCode);
             }
-            $response = Async\await($this->privatePostBalanceCoinWithdraw (array_merge($request, $params)));
+            $response = Async\await($this->v1PrivatePostBalanceCoinWithdraw (array_merge($request, $params)));
             //
             //     {
             //         "code" => 0,
@@ -4463,7 +4703,7 @@ class coinex extends Exchange {
                 $request['start_time'] = $since;
             }
             list($request, $params) = $this->handle_until_option('end_time', $request, $params);
-            $response = Async\await($this->perpetualPublicGetMarketFundingHistory (array_merge($request, $params)));
+            $response = Async\await($this->v1PerpetualPublicGetMarketFundingHistory (array_merge($request, $params)));
             //
             //     {
             //         "code" => 0,
@@ -4641,10 +4881,10 @@ class coinex extends Exchange {
             $response = null;
             if (($fromAccount === 'spot') && ($toAccount === 'swap')) {
                 $request['transfer_side'] = 'in'; // 'in' spot to swap, 'out' swap to spot
-                $response = Async\await($this->privatePostContractBalanceTransfer (array_merge($request, $params)));
+                $response = Async\await($this->v1PrivatePostContractBalanceTransfer (array_merge($request, $params)));
             } elseif (($fromAccount === 'swap') && ($toAccount === 'spot')) {
                 $request['transfer_side'] = 'out'; // 'in' spot to swap, 'out' swap to spot
-                $response = Async\await($this->privatePostContractBalanceTransfer (array_merge($request, $params)));
+                $response = Async\await($this->v1PrivatePostContractBalanceTransfer (array_merge($request, $params)));
             } else {
                 $accountsById = $this->safe_value($this->options, 'accountsById', array());
                 $fromId = $this->safe_string($accountsById, $fromAccount, $fromAccount);
@@ -4653,7 +4893,7 @@ class coinex extends Exchange {
                 // spot is 0, use fetchBalance() to find the margin account id
                 $request['from_account'] = intval($fromId);
                 $request['to_account'] = intval($toId);
-                $response = Async\await($this->privatePostMarginTransfer (array_merge($request, $params)));
+                $response = Async\await($this->v1PrivatePostMarginTransfer (array_merge($request, $params)));
             }
             //
             //     array("code" => 0, "data" => null, "message" => "Success")
@@ -4721,6 +4961,7 @@ class coinex extends Exchange {
         $currencyId = $this->safe_string($transfer, 'asset');
         $currencyCode = $this->safe_currency_code($currencyId, $currency);
         return array(
+            'info' => $transfer,
             'id' => $this->safe_integer($transfer, 'id'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -4775,9 +5016,9 @@ class coinex extends Exchange {
             list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchTransfers', $params);
             $response = null;
             if ($marginMode !== null) {
-                $response = Async\await($this->privateGetMarginTransferHistory (array_merge($request, $params)));
+                $response = Async\await($this->v1PrivateGetMarginTransferHistory (array_merge($request, $params)));
             } else {
-                $response = Async\await($this->privateGetContractTransferHistory (array_merge($request, $params)));
+                $response = Async\await($this->v1PrivateGetContractTransferHistory (array_merge($request, $params)));
             }
             //
             // Swap
@@ -4850,7 +5091,7 @@ class coinex extends Exchange {
             if ($limit !== null) {
                 $request['Limit'] = $limit;
             }
-            $response = Async\await($this->privateGetBalanceCoinWithdraw (array_merge($request, $params)));
+            $response = Async\await($this->v1PrivateGetBalanceCoinWithdraw (array_merge($request, $params)));
             //
             //    {
             //        "code" => 0,
@@ -4918,7 +5159,7 @@ class coinex extends Exchange {
             if ($limit !== null) {
                 $request['Limit'] = $limit;
             }
-            $response = Async\await($this->privateGetBalanceCoinDeposit (array_merge($request, $params)));
+            $response = Async\await($this->v1PrivateGetBalanceCoinDeposit (array_merge($request, $params)));
             //
             //    {
             //        "code" => 0,
@@ -5013,7 +5254,7 @@ class coinex extends Exchange {
             $request = array(
                 'market' => $market['id'],
             );
-            $response = Async\await($this->privateGetMarginConfig (array_merge($request, $params)));
+            $response = Async\await($this->v1PrivateGetMarginConfig (array_merge($request, $params)));
             //
             //     {
             //         "code" => 0,
@@ -5048,7 +5289,7 @@ class coinex extends Exchange {
              * @return {array} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#isolated-borrow-rate-structure isolated borrow rate structures}
              */
             Async\await($this->load_markets());
-            $response = Async\await($this->privateGetMarginConfig ($params));
+            $response = Async\await($this->v1PrivateGetMarginConfig ($params));
             //
             //     {
             //         "code" => 0,
@@ -5092,7 +5333,7 @@ class coinex extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $response = Async\await($this->privateGetMarginLoanHistory (array_merge($request, $params)));
+            $response = Async\await($this->v1PrivateGetMarginLoanHistory (array_merge($request, $params)));
             //
             //     {
             //         "code" => 0,
@@ -5190,7 +5431,7 @@ class coinex extends Exchange {
                 'coin_type' => $currency['id'],
                 'amount' => $this->currency_to_precision($code, $amount),
             );
-            $response = Async\await($this->privatePostMarginLoan (array_merge($request, $params)));
+            $response = Async\await($this->v1PrivatePostMarginLoan (array_merge($request, $params)));
             //
             //     {
             //         "code" => 0,
@@ -5229,7 +5470,7 @@ class coinex extends Exchange {
                 'coin_type' => $currency['id'],
                 'amount' => $this->currency_to_precision($code, $amount),
             );
-            $response = Async\await($this->privatePostMarginFlat (array_merge($request, $params)));
+            $response = Async\await($this->v1PrivatePostMarginFlat (array_merge($request, $params)));
             //
             //     {
             //         "code" => 0,
@@ -5289,7 +5530,7 @@ class coinex extends Exchange {
                     $request['coin_type'] = $this->safe_value($codes, 0);
                 }
             }
-            $response = Async\await($this->publicGetCommonAssetConfig (array_merge($request, $params)));
+            $response = Async\await($this->v1PublicGetCommonAssetConfig (array_merge($request, $params)));
             //
             //    {
             //        "code" => 0,
@@ -5390,7 +5631,7 @@ class coinex extends Exchange {
             if ($marketType !== 'spot') {
                 throw new NotSupported($this->id . ' fetchLeverages() supports spot margin markets only');
             }
-            $response = Async\await($this->privateGetMarginConfig ($params));
+            $response = Async\await($this->v1PrivateGetMarginConfig ($params));
             //
             //     {
             //         "code" => 0,
@@ -5453,9 +5694,11 @@ class coinex extends Exchange {
         return $this->milliseconds();
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, $api = [], $method = 'GET', $params = array (), $headers = null, $body = null) {
         $path = $this->implode_params($path, $params);
-        $url = $this->urls['api'][$api] . '/' . $this->version . '/' . $path;
+        $version = $api[0];
+        $requestUrl = $api[1];
+        $url = $this->urls['api'][$requestUrl] . '/' . $version . '/' . $path;
         $query = $this->omit($params, $this->extract_params($path));
         $nonce = (string) $this->nonce();
         if ($method === 'POST') {
@@ -5484,7 +5727,7 @@ class coinex extends Exchange {
                 }
             }
         }
-        if ($api === 'perpetualPrivate') {
+        if ($requestUrl === 'perpetualPrivate') {
             $this->check_required_credentials();
             $query = array_merge(array(
                 'access_id' => $this->apiKey,
@@ -5503,27 +5746,45 @@ class coinex extends Exchange {
                 $headers['Content-Type'] = 'application/x-www-form-urlencoded';
                 $body = $urlencoded;
             }
-        } elseif ($api === 'public' || $api === 'perpetualPublic') {
+        } elseif ($requestUrl === 'public' || $requestUrl === 'perpetualPublic') {
             if ($query) {
                 $url .= '?' . $this->urlencode($query);
             }
         } else {
-            $this->check_required_credentials();
-            $query = array_merge(array(
-                'access_id' => $this->apiKey,
-                'tonce' => $nonce,
-            ), $query);
-            $query = $this->keysort($query);
-            $urlencoded = $this->rawencode($query);
-            $signature = $this->hash($this->encode($urlencoded . '&secret_key=' . $this->secret), 'md5');
-            $headers = array(
-                'Authorization' => strtoupper($signature),
-                'Content-Type' => 'application/json',
-            );
-            if (($method === 'GET') || ($method === 'DELETE') || ($method === 'PUT')) {
-                $url .= '?' . $urlencoded;
-            } else {
-                $body = $this->json($query);
+            if ($version === 'v1') {
+                $this->check_required_credentials();
+                $query = array_merge(array(
+                    'access_id' => $this->apiKey,
+                    'tonce' => $nonce,
+                ), $query);
+                $query = $this->keysort($query);
+                $urlencoded = $this->rawencode($query);
+                $signature = $this->hash($this->encode($urlencoded . '&secret_key=' . $this->secret), 'md5');
+                $headers = array(
+                    'Authorization' => strtoupper($signature),
+                    'Content-Type' => 'application/json',
+                );
+                if (($method === 'GET') || ($method === 'DELETE') || ($method === 'PUT')) {
+                    $url .= '?' . $urlencoded;
+                } else {
+                    $body = $this->json($query);
+                }
+            } elseif ($version === 'v2') {
+                $this->check_required_credentials();
+                $query = $this->keysort($query);
+                $urlencoded = $this->rawencode($query);
+                $preparedString = $method . '/' . $version . '/' . $path . '?' . $urlencoded . $nonce . $this->secret;
+                $signature = $this->hash($this->encode($preparedString), 'sha256');
+                $headers = array(
+                    'X-COINEX-KEY' => $this->apiKey,
+                    'X-COINEX-SIGN' => $signature,
+                    'X-COINEX-TIMESTAMP' => $nonce,
+                );
+                if (($method === 'GET') || ($method === 'DELETE') || ($method === 'PUT')) {
+                    $url .= '?' . $urlencoded;
+                } else {
+                    $body = $this->json($query);
+                }
             }
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
@@ -5543,5 +5804,78 @@ class coinex extends Exchange {
             throw new ExchangeError($feedback);
         }
         return null;
+    }
+
+    public function fetch_margin_adjustment_history(?string $symbol = null, ?string $type = null, ?float $since = null, ?float $limit = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $type, $since, $limit, $params) {
+            /**
+             * fetches the history of margin added or reduced from contract isolated positions
+             * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http046_position_margin_history
+             * @param {string} [$symbol] unified $market $symbol
+             * @param {string} [$type] not used by coinex fetchMarginAdjustmentHistory
+             * @param {int} [$since] timestamp in ms of the earliest change to fetch
+             * @param {int} [$limit] the maximum amount of changes to fetch, default=100, max=100
+             * @param {array} $params extra parameters specific to the exchange api endpoint
+             * @param {int} [$params->until] timestamp in ms of the latest change to fetch
+             *
+             * EXCHANGE SPECIFIC PARAMETERS
+             * @param {int} [$params->offset] offset
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=margin-loan-structure margin structures~
+             */
+            Async\await($this->load_markets());
+            $until = $this->safe_integer($params, 'until');
+            $params = $this->omit($params, 'until');
+            if ($limit === null) {
+                $limit = 100;
+            }
+            $request = array(
+                'market' => '',
+                'position_id' => 0,
+                'offset' => 0,
+                'limit' => $limit,
+            );
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+                $request['market'] = $market['id'];
+            }
+            if ($since !== null) {
+                $request['start_time'] = $since;
+            }
+            if ($until !== null) {
+                $request['end_time'] = $until;
+            }
+            $response = Async\await($this->v1PerpetualPrivateGetPositionMarginHistory (array_merge($request, $params)));
+            //
+            //    {
+            //        code => '0',
+            //        $data => {
+            //            $limit => '100',
+            //            offset => '0',
+            //            $records => array(
+            //                array(
+            //                    bkr_price => '0',
+            //                    leverage => '3',
+            //                    liq_price => '0',
+            //                    margin_amount => '5.33236666666666666666',
+            //                    margin_change => '3',
+            //                    $market => 'XRPUSDT',
+            //                    position_amount => '11',
+            //                    position_id => '297155652',
+            //                    position_type => '2',
+            //                    settle_price => '0.6361',
+            //                    time => '1711050906.382891',
+            //                    $type => '1',
+            //                    user_id => '3685860'
+            //                }
+            //            )
+            //        ),
+            //        message => 'OK'
+            //    }
+            //
+            $data = $this->safe_dict($response, 'data', array());
+            $records = $this->safe_list($data, 'records', array());
+            $modifications = $this->parse_margin_modifications($records, null, 'market', 'swap');
+            return $this->filter_by_symbol_since_limit($modifications, $symbol, $since, $limit);
+        }) ();
     }
 }

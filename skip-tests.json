@@ -301,7 +301,8 @@
                 "high": "same",
                 "previousClose": "same",
                 "vwap": "same",
-                "baseVolume":"temp"
+                "baseVolume":"temp",
+                "spread": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269724413#L3725"
             },
             "fetchPositions": {
                 "stopLossPrice": "undefined",
@@ -364,8 +365,7 @@
         }
     },
     "onetrading": {
-        "skip": true,
-        "until": "2024-03-28",
+        "skip": "Api changed, as mentioned https://github.com/ccxt/ccxt/pull/21991",
         "skipWs": true,
         "skipMethods": {
             "fetchCurrencies": {
@@ -1066,6 +1066,7 @@
     "latoken": {
         "skipMethods":{
             "loadMarkets": {
+                "precision": "messed just for one pair https://app.travis-ci.com/github/ccxt/ccxt/builds/269924468#L4006",
                 "currency": "messed",
                 "currencyIdAndCode": "messed"
             },
@@ -1297,6 +1298,9 @@
         "skipMethods": {
             "fetchOHLCV": {
                 "compareAmountToZero": "sometimes zero amount returned"
+            },
+            "watchOrderBook": {
+                "spread": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269769010#L3644"
             }
         }
     },
@@ -1350,6 +1354,10 @@
             },
             "watchTrades": {
                 "timestamp": "timestamp reversed: https://app.travis-ci.com/github/ccxt/ccxt/builds/269484317#L3681"
+            },
+            "watchBidsAsks": {
+                "bidVolume": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269878519#L3759",
+                "askVolume": "same"
             }
         },
         "timeout": 120000

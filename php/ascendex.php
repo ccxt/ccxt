@@ -384,7 +384,7 @@ class ascendex extends Exchange {
         return $this->capitalize($lowercaseAccount);
     }
 
-    public function fetch_currencies($params = array ()) {
+    public function fetch_currencies($params = array ()): array {
         /**
          * fetches all available currencies on an exchange
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1428,7 +1428,7 @@ class ascendex extends Exchange {
         ), $market);
     }
 
-    public function fetch_trading_fees($params = array ()) {
+    public function fetch_trading_fees($params = array ()): array {
         /**
          * fetch the trading $fees for multiple markets
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1471,6 +1471,8 @@ class ascendex extends Exchange {
                 'symbol' => $symbol,
                 'maker' => $this->safe_number($takerMaker, 'maker'),
                 'taker' => $this->safe_number($takerMaker, 'taker'),
+                'percentage' => null,
+                'tierBased' => null,
             );
         }
         return $result;
@@ -2806,7 +2808,7 @@ class ascendex extends Exchange {
         return $this->filter_by_array($result, 'symbol', $symbols);
     }
 
-    public function modify_margin_helper(string $symbol, $amount, $type, $params = array ()) {
+    public function modify_margin_helper(string $symbol, $amount, $type, $params = array ()): array {
         $this->load_markets();
         $this->load_accounts();
         $market = $this->market($symbol);
@@ -2835,20 +2837,31 @@ class ascendex extends Exchange {
         ));
     }
 
-    public function parse_margin_modification($data, ?array $market = null) {
+    public function parse_margin_modification($data, ?array $market = null): array {
+        //
+        // addMargin/reduceMargin
+        //
+        //     {
+        //          "code" => 0
+        //     }
+        //
         $errorCode = $this->safe_string($data, 'code');
         $status = ($errorCode === '0') ? 'ok' : 'failed';
         return array(
             'info' => $data,
-            'type' => null,
-            'amount' => null,
-            'code' => $market['quote'],
             'symbol' => $market['symbol'],
+            'type' => null,
+            'marginMode' => 'isolated',
+            'amount' => null,
+            'total' => null,
+            'code' => $market['quote'],
             'status' => $status,
+            'timestamp' => null,
+            'datetime' => null,
         );
     }
 
-    public function reduce_margin(string $symbol, $amount, $params = array ()) {
+    public function reduce_margin(string $symbol, $amount, $params = array ()): array {
         /**
          * remove margin from a position
          * @param {string} $symbol unified market $symbol
@@ -2859,7 +2872,7 @@ class ascendex extends Exchange {
         return $this->modify_margin_helper($symbol, -$amount, 'reduce', $params);
     }
 
-    public function add_margin(string $symbol, $amount, $params = array ()) {
+    public function add_margin(string $symbol, $amount, $params = array ()): array {
         /**
          * add margin
          * @param {string} $symbol unified market $symbol

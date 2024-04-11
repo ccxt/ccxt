@@ -182,7 +182,7 @@ var woo$1 = require('./src/pro/woo.js');
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
-const version = '4.2.85';
+const version = '4.2.94';
 Exchange["default"].ccxtVersion = version;
 const exchanges = {
     'ace': ace,
@@ -374,8 +374,10 @@ exports.BadResponse = errors.BadResponse;
 exports.BadSymbol = errors.BadSymbol;
 exports.BaseError = errors.BaseError;
 exports.CancelPending = errors.CancelPending;
+exports.ContractUnavailable = errors.ContractUnavailable;
 exports.DDoSProtection = errors.DDoSProtection;
 exports.DuplicateOrderId = errors.DuplicateOrderId;
+exports.ExchangeClosedByUser = errors.ExchangeClosedByUser;
 exports.ExchangeError = errors.ExchangeError;
 exports.ExchangeNotAvailable = errors.ExchangeNotAvailable;
 exports.InsufficientFunds = errors.InsufficientFunds;
@@ -388,11 +390,14 @@ exports.NoChange = errors.NoChange;
 exports.NotSupported = errors.NotSupported;
 exports.NullResponse = errors.NullResponse;
 exports.OnMaintenance = errors.OnMaintenance;
+exports.OperationFailed = errors.OperationFailed;
+exports.OperationRejected = errors.OperationRejected;
 exports.OrderImmediatelyFillable = errors.OrderImmediatelyFillable;
 exports.OrderNotCached = errors.OrderNotCached;
 exports.OrderNotFillable = errors.OrderNotFillable;
 exports.OrderNotFound = errors.OrderNotFound;
 exports.PermissionDenied = errors.PermissionDenied;
+exports.ProxyError = errors.ProxyError;
 exports.RateLimitExceeded = errors.RateLimitExceeded;
 exports.RequestTimeout = errors.RequestTimeout;
 exports.errors = errors;

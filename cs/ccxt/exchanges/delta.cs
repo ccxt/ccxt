@@ -2686,7 +2686,7 @@ public partial class delta : Exchange
         return this.parseMarginModification(result, market);
     }
 
-    public virtual object parseMarginModification(object data, object market = null)
+    public override object parseMarginModification(object data, object market = null)
     {
         //
         //     {
@@ -2712,12 +2712,15 @@ public partial class delta : Exchange
         market = this.safeMarket(marketId, market);
         return new Dictionary<string, object>() {
             { "info", data },
+            { "symbol", getValue(market, "symbol") },
             { "type", null },
+            { "marginMode", "isolated" },
             { "amount", null },
             { "total", this.safeNumber(data, "margin") },
             { "code", null },
-            { "symbol", getValue(market, "symbol") },
             { "status", null },
+            { "timestamp", null },
+            { "datetime", null },
         };
     }
 

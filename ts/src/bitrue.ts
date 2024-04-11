@@ -6,7 +6,7 @@ import { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InsufficientFun
 import { Precise } from './base/Precise.js';
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Balances, Currency, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry } from './base/types.js';
+import type { Balances, Currencies, Currency, Int, MarginModification, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -585,7 +585,7 @@ export default class bitrue extends Exchange {
         return this.safeString2 (networksById, networkId, uppercaseNetworkId, networkId);
     }
 
-    async fetchCurrencies (params = {}) {
+    async fetchCurrencies (params = {}): Promise<Currencies> {
         /**
          * @method
          * @name bitrue#fetchCurrencies
@@ -1349,9 +1349,6 @@ export default class bitrue extends Exchange {
                 'interval': this.safeString (timeframesFuture, timeframe, '1min'),
             };
             if (limit !== undefined) {
-                if (limit > 300) {
-                    limit = 300;
-                }
                 request['limit'] = limit;
             }
             if (market['linear']) {
@@ -1368,9 +1365,6 @@ export default class bitrue extends Exchange {
                 'scale': this.safeString (timeframesSpot, timeframe, '1m'),
             };
             if (limit !== undefined) {
-                if (limit > 1440) {
-                    limit = 1440;
-                }
                 request['limit'] = limit;
             }
             if (since !== undefined) {
@@ -3031,18 +3025,31 @@ export default class bitrue extends Exchange {
         return response;
     }
 
-    parseMarginModification (data, market = undefined) {
+    parseMarginModification (data, market = undefined): MarginModification {
+        //
+        // setMargin
+        //
+        //     {
+        //         "code": 0,
+        //         "msg": "success"
+        //         "data": null
+        //     }
+        //
         return {
             'info': data,
-            'type': undefined,
-            'amount': undefined,
-            'code': undefined,
             'symbol': market['symbol'],
+            'type': undefined,
+            'marginMode': 'isolated',
+            'amount': undefined,
+            'total': undefined,
+            'code': undefined,
             'status': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
         };
     }
 
-    async setMargin (symbol: string, amount: number, params = {}) {
+    async setMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
         /**
          * @method
          * @name bitrue#setMargin

@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.delta import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, Greeks, Int, Leverage, MarginMode, Market, MarketInterface, Num, Option, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Balances, Currencies, Currency, Greeks, Int, Leverage, MarginMode, MarginModification, Market, MarketInterface, Num, Option, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
@@ -409,7 +409,7 @@ class delta(Exchange, ImplicitAPI):
             'info': response,
         }
 
-    async def fetch_currencies(self, params={}):
+    async def fetch_currencies(self, params={}) -> Currencies:
         """
         fetches all available currencies on an exchange
         :see: https://docs.delta.exchange/#get-list-of-all-assets
@@ -2480,7 +2480,7 @@ class delta(Exchange, ImplicitAPI):
             'previousFundingDatetime': None,
         }
 
-    async def add_margin(self, symbol: str, amount, params={}):
+    async def add_margin(self, symbol: str, amount, params={}) -> MarginModification:
         """
         add margin
         :see: https://docs.delta.exchange/#add-remove-position-margin
@@ -2491,7 +2491,7 @@ class delta(Exchange, ImplicitAPI):
         """
         return await self.modify_margin_helper(symbol, amount, 'add', params)
 
-    async def reduce_margin(self, symbol: str, amount, params={}):
+    async def reduce_margin(self, symbol: str, amount, params={}) -> MarginModification:
         """
         remove margin from a position
         :see: https://docs.delta.exchange/#add-remove-position-margin
@@ -2502,7 +2502,7 @@ class delta(Exchange, ImplicitAPI):
         """
         return await self.modify_margin_helper(symbol, amount, 'reduce', params)
 
-    async def modify_margin_helper(self, symbol: str, amount, type, params={}):
+    async def modify_margin_helper(self, symbol: str, amount, type, params={}) -> MarginModification:
         await self.load_markets()
         market = self.market(symbol)
         amount = str(amount)
@@ -2539,7 +2539,7 @@ class delta(Exchange, ImplicitAPI):
         result = self.safe_dict(response, 'result', {})
         return self.parse_margin_modification(result, market)
 
-    def parse_margin_modification(self, data, market: Market = None):
+    def parse_margin_modification(self, data, market: Market = None) -> MarginModification:
         #
         #     {
         #         "auto_topup": False,
@@ -2564,12 +2564,15 @@ class delta(Exchange, ImplicitAPI):
         market = self.safe_market(marketId, market)
         return {
             'info': data,
+            'symbol': market['symbol'],
             'type': None,
+            'marginMode': 'isolated',
             'amount': None,
             'total': self.safe_number(data, 'margin'),
             'code': None,
-            'symbol': market['symbol'],
             'status': None,
+            'timestamp': None,
+            'datetime': None,
         }
 
     async def fetch_open_interest(self, symbol: str, params={}):

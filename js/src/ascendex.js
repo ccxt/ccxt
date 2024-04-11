@@ -1486,6 +1486,8 @@ export default class ascendex extends Exchange {
                 'symbol': symbol,
                 'maker': this.safeNumber(takerMaker, 'maker'),
                 'taker': this.safeNumber(takerMaker, 'taker'),
+                'percentage': undefined,
+                'tierBased': undefined,
             };
         }
         return result;
@@ -2876,15 +2878,26 @@ export default class ascendex extends Exchange {
         });
     }
     parseMarginModification(data, market = undefined) {
+        //
+        // addMargin/reduceMargin
+        //
+        //     {
+        //          "code": 0
+        //     }
+        //
         const errorCode = this.safeString(data, 'code');
         const status = (errorCode === '0') ? 'ok' : 'failed';
         return {
             'info': data,
-            'type': undefined,
-            'amount': undefined,
-            'code': market['quote'],
             'symbol': market['symbol'],
+            'type': undefined,
+            'marginMode': 'isolated',
+            'amount': undefined,
+            'total': undefined,
+            'code': market['quote'],
             'status': status,
+            'timestamp': undefined,
+            'datetime': undefined,
         };
     }
     async reduceMargin(symbol, amount, params = {}) {

@@ -90,6 +90,7 @@ class bitget(ccxt.async_support.bitget):
                         '30015': AuthenticationError,  # {event: 'error', code: 30015, msg: 'Invalid sign'}
                         '30016': BadRequest,  # {event: 'error', code: 30016, msg: 'Param error'}
                     },
+                    'broad': {},
                 },
             },
         })
@@ -1626,6 +1627,8 @@ class bitget(ccxt.async_support.bitget):
             'ordersAlgo': self.handle_order,
             'account': self.handle_balance,
             'positions': self.handle_positions,
+            'account-isolated': self.handle_balance,
+            'account-crossed': self.handle_balance,
         }
         arg = self.safe_value(message, 'arg', {})
         topic = self.safe_value(arg, 'channel', '')

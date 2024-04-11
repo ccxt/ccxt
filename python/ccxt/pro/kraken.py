@@ -5,7 +5,7 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
-from ccxt.base.types import Int, Num, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade
+from ccxt.base.types import Int, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -34,10 +34,12 @@ class kraken(ccxt.async_support.kraken):
                 'watchMyTrades': True,
                 'watchOHLCV': True,
                 'watchOrderBook': True,
+                'watchOrderBookForSymbols': True,
                 'watchOrders': True,
                 'watchTicker': True,
-                'watchTickers': False,  # for now
+                'watchTickers': True,
                 'watchTrades': True,
+                'watchTradesForSymbols': True,
                 'createOrderWs': True,
                 'editOrderWs': True,
                 'cancelOrderWs': True,
@@ -317,10 +319,9 @@ class kraken(ccxt.async_support.kraken):
         #     ]
         #
         wsName = message[3]
-        name = 'ticker'
-        messageHash = name + ':' + wsName
         market = self.safe_value(self.options['marketsByWsName'], wsName)
         symbol = market['symbol']
+        messageHash = self.get_message_hash('ticker', None, symbol)
         ticker = message[1]
         vwap = self.safe_string(ticker['p'], 0)
         quoteVolume = None
@@ -350,9 +351,6 @@ class kraken(ccxt.async_support.kraken):
             'quoteVolume': quoteVolume,
             'info': ticker,
         })
-        # todo add support for multiple tickers(may be tricky)
-        # kraken confirms multi-pair subscriptions separately one by one
-        # trigger correct watchTickers calls upon receiving any of symbols
         self.tickers[symbol] = result
         client.resolve(result, messageHash)
 
@@ -370,9 +368,9 @@ class kraken(ccxt.async_support.kraken):
         #
         wsName = self.safe_string(message, 3)
         name = self.safe_string(message, 2)
-        messageHash = name + ':' + wsName
         market = self.safe_value(self.options['marketsByWsName'], wsName)
         symbol = market['symbol']
+        messageHash = self.get_message_hash(name, None, symbol)
         stored = self.safe_value(self.trades, symbol)
         if stored is None:
             limit = self.safe_integer(self.options, 'tradesLimit', 1000)
@@ -467,43 +465,85 @@ class kraken(ccxt.async_support.kraken):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
-        return await self.watch_public('ticker', symbol, params)
+        await self.load_markets()
+        symbol = self.symbol(symbol)
+        tickers = await self.watch_tickers([symbol], params)
+        return tickers[symbol]
+
+    async def watch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
+        """
+        watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        """
+        await self.load_markets()
+        symbols = self.market_symbols(symbols, None, False)
+        ticker = await self.watch_multi_helper('ticker', 'ticker', symbols, None, params)
+        if self.newUpdates:
+            result = {}
+            result[ticker['symbol']] = ticker
+            return result
+        return self.filter_by_array(self.tickers, 'symbol', symbols)
 
     async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
+        :see: https://docs.kraken.com/websockets/#message-trade
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
         """
-        await self.load_markets()
-        symbol = self.symbol(symbol)
-        name = 'trade'
-        trades = await self.watch_public(name, symbol, params)
+        return await self.watch_trades_for_symbols([symbol], since, limit, params)
+
+    async def watch_trades_for_symbols(self, symbols: List[str], since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+        """
+        :see: https://docs.kraken.com/websockets/#message-trade
+        get the list of most recent trades for a list of symbols
+        :param str[] symbols: unified symbol of the market to fetch trades for
+        :param int [since]: timestamp in ms of the earliest trade to fetch
+        :param int [limit]: the maximum amount of trades to fetch
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
+        """
+        trades = await self.watch_multi_helper('trade', 'trade', symbols, None, params)
         if self.newUpdates:
-            limit = trades.getLimit(symbol, limit)
+            first = self.safe_list(trades, 0)
+            tradeSymbol = self.safe_string(first, 'symbol')
+            limit = trades.getLimit(tradeSymbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
     async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        :see: https://docs.kraken.com/websockets/#message-book
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
-        name = 'book'
+        return await self.watch_order_book_for_symbols([symbol], limit, params)
+
+    async def watch_order_book_for_symbols(self, symbols: List[str], limit: Int = None, params={}) -> OrderBook:
+        """
+        watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        :see: https://docs.kraken.com/websockets/#message-book
+        :param str[] symbols: unified array of symbols
+        :param int [limit]: the maximum amount of order book entries to return
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        """
         request = {}
         if limit is not None:
-            if (limit == 10) or (limit == 25) or (limit == 100) or (limit == 500) or (limit == 1000):
+            if self.in_array(limit, [10, 25, 100, 500, 1000]):
                 request['subscription'] = {
                     'depth': limit,  # default 10, valid options 10, 25, 100, 500, 1000
                 }
             else:
                 raise NotSupported(self.id + ' watchOrderBook accepts limit values of 10, 25, 100, 500 and 1000 only')
-        orderbook = await self.watch_public(name, symbol, self.extend(request, params))
+        orderbook = await self.watch_multi_helper('orderbook', 'book', symbols, {'limit': limit}, self.extend(request, params))
         return orderbook.limit()
 
     async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
@@ -625,7 +665,7 @@ class kraken(ccxt.async_support.kraken):
         market = self.safe_value(self.options['marketsByWsName'], wsName)
         symbol = market['symbol']
         timestamp = None
-        messageHash = 'book:' + wsName
+        messageHash = self.get_message_hash('orderbook', None, symbol)
         # if self is a snapshot
         if 'as' in message[1]:
             # todo get depth from marketsByWsName
@@ -695,6 +735,7 @@ class kraken(ccxt.async_support.kraken):
                 if localChecksum != c:
                     error = InvalidNonce(self.id + ' invalid checksum')
                     client.reject(error, messageHash)
+                    return
             orderbook['symbol'] = symbol
             orderbook['timestamp'] = timestamp
             orderbook['datetime'] = self.iso8601(timestamp)
@@ -1178,6 +1219,43 @@ class kraken(ccxt.async_support.kraken):
             'fee': fee,
             'trades': trades,
         })
+
+    async def watch_multi_helper(self, unifiedName: str, channelName: str, symbols: Strings = None, subscriptionArgs=None, params={}):
+        await self.load_markets()
+        # symbols are required
+        symbols = self.market_symbols(symbols, None, False, True, False)
+        messageHashes = []
+        for i in range(0, len(symbols)):
+            messageHashes.append(self.get_message_hash(unifiedName, None, self.symbol(symbols[i])))
+        # for WS subscriptions, we can't use .market_ids(symbols), instead a custom is field needed
+        markets = self.markets_for_symbols(symbols)
+        wsMarketIds = []
+        for i in range(0, len(markets)):
+            wsMarketId = self.safe_string(markets[i]['info'], 'wsname')
+            wsMarketIds.append(wsMarketId)
+        request = {
+            'event': 'subscribe',
+            'reqid': self.request_id(),
+            'pair': wsMarketIds,
+            'subscription': {
+                'name': channelName,
+            },
+        }
+        url = self.urls['api']['ws']['public']
+        return await self.watch_multiple(url, messageHashes, self.extend(request, params), messageHashes, subscriptionArgs)
+
+    def get_message_hash(self, unifiedElementName: str, subChannelName: Str = None, symbol: Str = None):
+        # unifiedElementName can be : orderbook, trade, ticker, bidask ...
+        # subChannelName only applies to channel that needs specific variation(i.e. depth_50, depth_100..) to be selected
+        withSymbol = symbol is not None
+        messageHash = unifiedElementName
+        if not withSymbol:
+            messageHash += 's'
+        else:
+            messageHash += '@' + symbol
+        if subChannelName is not None:
+            messageHash += '#' + subChannelName
+        return messageHash
 
     def handle_subscription_status(self, client: Client, message):
         #

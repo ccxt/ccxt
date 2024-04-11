@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.bitfinex import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
+from ccxt.base.types import Balances, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -480,7 +480,7 @@ class bitfinex(Exchange, ImplicitAPI):
             'info': fee,
         }
 
-    def fetch_trading_fees(self, params={}):
+    def fetch_trading_fees(self, params={}) -> TradingFees:
         """
         fetch the trading fees for multiple markets
         :see: https://docs.bitfinex.com/v1/reference/rest-auth-summary
@@ -1259,6 +1259,8 @@ class bitfinex(Exchange, ImplicitAPI):
         self.load_markets()
         if limit is None:
             limit = 100
+        else:
+            limit = min(limit, 10000)
         market = self.market(symbol)
         v2id = 't' + market['id']
         request = {

@@ -150,13 +150,15 @@ public partial class idex : Exchange
                 { "network", "MATIC" },
             } },
             { "exceptions", new Dictionary<string, object>() {
-                { "INVALID_ORDER_QUANTITY", typeof(InvalidOrder) },
-                { "INSUFFICIENT_FUNDS", typeof(InsufficientFunds) },
-                { "SERVICE_UNAVAILABLE", typeof(ExchangeNotAvailable) },
-                { "EXCEEDED_RATE_LIMIT", typeof(DDoSProtection) },
-                { "INVALID_PARAMETER", typeof(BadRequest) },
-                { "WALLET_NOT_ASSOCIATED", typeof(InvalidAddress) },
-                { "INVALID_WALLET_SIGNATURE", typeof(AuthenticationError) },
+                { "exact", new Dictionary<string, object>() {
+                    { "INVALID_ORDER_QUANTITY", typeof(InvalidOrder) },
+                    { "INSUFFICIENT_FUNDS", typeof(InsufficientFunds) },
+                    { "SERVICE_UNAVAILABLE", typeof(ExchangeNotAvailable) },
+                    { "EXCEEDED_RATE_LIMIT", typeof(DDoSProtection) },
+                    { "INVALID_PARAMETER", typeof(BadRequest) },
+                    { "WALLET_NOT_ASSOCIATED", typeof(InvalidAddress) },
+                    { "INVALID_WALLET_SIGNATURE", typeof(AuthenticationError) },
+                } },
             } },
             { "requiredCredentials", new Dictionary<string, object>() {
                 { "walletAddress", true },
@@ -470,7 +472,7 @@ public partial class idex : Exchange
         }
         if (isTrue(!isEqual(limit, null)))
         {
-            ((IDictionary<string,object>)request)["limit"] = limit;
+            ((IDictionary<string,object>)request)["limit"] = mathMin(limit, 1000);
         }
         object response = await this.publicGetCandles(this.extend(request, parameters));
         if (isTrue(((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
@@ -1582,13 +1584,9 @@ public partial class idex : Exchange
     {
         object errorCode = this.safeString(response, "code");
         object message = this.safeString(response, "message");
-        if (isTrue(inOp(this.exceptions, errorCode)))
-        {
-            object Exception = getValue(this.exceptions, errorCode);
-            throwDynamicException(Exception, add(add(this.id, " "), message));return null;
-        }
         if (isTrue(!isEqual(errorCode, null)))
         {
+            this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorCode, message);
             throw new ExchangeError ((string)add(add(this.id, " "), message)) ;
         }
         return null;

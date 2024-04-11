@@ -216,7 +216,7 @@ class bitopro extends Exchange {
         ));
     }
 
-    public function fetch_currencies($params = array ()) {
+    public function fetch_currencies($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches all available $currencies on an exchange
@@ -643,7 +643,7 @@ class bitopro extends Exchange {
         }) ();
     }
 
-    public function fetch_trading_fees($params = array ()) {
+    public function fetch_trading_fees($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetch the trading fees for multiple markets
@@ -767,6 +767,8 @@ class bitopro extends Exchange {
             // we need to have a $limit argument because "to" and "from" are required
             if ($limit === null) {
                 $limit = 500;
+            } else {
+                $limit = min ($limit, 75000); // supports slightly more than 75k candles atm, but $limit here to avoid errors
             }
             $timeframeInSeconds = $this->parse_timeframe($timeframe);
             $alignedSince = null;

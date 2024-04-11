@@ -254,22 +254,25 @@ class exmo extends Exchange {
         return $margin;
     }
 
-    public function parse_margin_modification($data, ?array $market = null) {
+    public function parse_margin_modification($data, ?array $market = null): array {
         //
         //      array()
         //
         return array(
             'info' => $data,
-            'type' => null,
-            'amount' => null,
-            'code' => $this->safe_value($market, 'quote'),
             'symbol' => $this->safe_symbol(null, $market),
+            'type' => null,
+            'marginMode' => 'isolated',
+            'amount' => null,
             'total' => null,
+            'code' => $this->safe_value($market, 'quote'),
             'status' => 'ok',
+            'timestamp' => null,
+            'datetime' => null,
         );
     }
 
-    public function reduce_margin(string $symbol, $amount, $params = array ()) {
+    public function reduce_margin(string $symbol, $amount, $params = array ()): array {
         /**
          * remove margin from a position
          * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#eebf9f25-0289-4946-9482-89872c738449
@@ -281,7 +284,7 @@ class exmo extends Exchange {
         return $this->modify_margin_helper($symbol, $amount, 'reduce', $params);
     }
 
-    public function add_margin(string $symbol, $amount, $params = array ()) {
+    public function add_margin(string $symbol, $amount, $params = array ()): array {
         /**
          * add margin
          * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#143ef808-79ca-4e49-9e79-a60ea4d8c0e3
@@ -293,7 +296,7 @@ class exmo extends Exchange {
         return $this->modify_margin_helper($symbol, $amount, 'add', $params);
     }
 
-    public function fetch_trading_fees($params = array ()) {
+    public function fetch_trading_fees($params = array ()): array {
         /**
          * fetch the trading fees for multiple markets
          * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#90927062-256c-4b03-900f-2b99131f9a54
@@ -582,7 +585,7 @@ class exmo extends Exchange {
         return $this->assign_default_deposit_withdraw_fees($result);
     }
 
-    public function fetch_currencies($params = array ()) {
+    public function fetch_currencies($params = array ()): array {
         /**
          * fetches all available currencies on an exchange
          * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#7cdf0ca8-9ff6-4cf3-aa33-bcec83155c49
@@ -849,30 +852,26 @@ class exmo extends Exchange {
             'symbol' => $market['id'],
             'resolution' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
         );
-        $options = $this->safe_value($this->options, 'fetchOHLCV');
-        $maxLimit = $this->safe_integer($options, 'maxLimit', 3000);
+        $maxLimit = 3000;
         $duration = $this->parse_timeframe($timeframe);
         $now = $this->milliseconds();
         if ($since === null) {
             if ($limit === null) {
                 $limit = 1000; // cap default at generous amount
-            }
-            if ($limit > $maxLimit) {
-                $limit = $maxLimit; // avoid exception
+            } else {
+                $limit = min ($limit, $maxLimit);
             }
             $request['from'] = $this->parse_to_int($now / 1000) - $limit * $duration - 1;
             $request['to'] = $this->parse_to_int($now / 1000);
         } else {
             $request['from'] = $this->parse_to_int($since / 1000) - 1;
             if ($limit === null) {
-                $request['to'] = $this->parse_to_int($now / 1000);
+                $limit = $maxLimit;
             } else {
-                if ($limit > $maxLimit) {
-                    throw new BadRequest($this->id . ' fetchOHLCV() will serve ' . (string) $maxLimit . ' $candles at most');
-                }
-                $to = $this->sum($since, $limit * $duration * 1000);
-                $request['to'] = $this->parse_to_int($to / 1000);
+                $limit = min ($limit, $maxLimit);
             }
+            $to = $this->sum($since, $limit * $duration * 1000);
+            $request['to'] = $this->parse_to_int($to / 1000);
         }
         $response = $this->publicGetCandlesHistory (array_merge($request, $params));
         //

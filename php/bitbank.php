@@ -136,21 +136,23 @@ class bitbank extends Exchange {
             ),
             'precisionMode' => TICK_SIZE,
             'exceptions' => array(
-                '20001' => '\\ccxt\\AuthenticationError',
-                '20002' => '\\ccxt\\AuthenticationError',
-                '20003' => '\\ccxt\\AuthenticationError',
-                '20005' => '\\ccxt\\AuthenticationError',
-                '20004' => '\\ccxt\\InvalidNonce',
-                '40020' => '\\ccxt\\InvalidOrder',
-                '40021' => '\\ccxt\\InvalidOrder',
-                '40025' => '\\ccxt\\ExchangeError',
-                '40013' => '\\ccxt\\OrderNotFound',
-                '40014' => '\\ccxt\\OrderNotFound',
-                '50008' => '\\ccxt\\PermissionDenied',
-                '50009' => '\\ccxt\\OrderNotFound',
-                '50010' => '\\ccxt\\OrderNotFound',
-                '60001' => '\\ccxt\\InsufficientFunds',
-                '60005' => '\\ccxt\\InvalidOrder',
+                'exact' => array(
+                    '20001' => '\\ccxt\\AuthenticationError',
+                    '20002' => '\\ccxt\\AuthenticationError',
+                    '20003' => '\\ccxt\\AuthenticationError',
+                    '20005' => '\\ccxt\\AuthenticationError',
+                    '20004' => '\\ccxt\\InvalidNonce',
+                    '40020' => '\\ccxt\\InvalidOrder',
+                    '40021' => '\\ccxt\\InvalidOrder',
+                    '40025' => '\\ccxt\\ExchangeError',
+                    '40013' => '\\ccxt\\OrderNotFound',
+                    '40014' => '\\ccxt\\OrderNotFound',
+                    '50008' => '\\ccxt\\PermissionDenied',
+                    '50009' => '\\ccxt\\OrderNotFound',
+                    '50010' => '\\ccxt\\OrderNotFound',
+                    '60001' => '\\ccxt\\InsufficientFunds',
+                    '60005' => '\\ccxt\\InvalidOrder',
+                ),
             ),
         ));
     }
@@ -387,7 +389,7 @@ class bitbank extends Exchange {
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
-    public function fetch_trading_fees($params = array ()) {
+    public function fetch_trading_fees($params = array ()): array {
         /**
          * fetch the trading fees for multiple markets
          * @see https://github.com/bitbankinc/bitbank-api-docs/blob/38d6d7c6f486c793872fd4b4087a0d090a04cd0a/rest-api.md#get-all-$pairs-info
@@ -976,15 +978,10 @@ class bitbank extends Exchange {
                 '70009' => 'We are currently temporarily restricting orders to be carried out. Please use the limit order.',
                 '70010' => 'We are temporarily raising the minimum order quantity system load is now rising.',
             );
-            $errorClasses = $this->exceptions;
             $code = $this->safe_string($data, 'code');
             $message = $this->safe_string($errorMessages, $code, 'Error');
-            $ErrorClass = $this->safe_value($errorClasses, $code);
-            if ($ErrorClass !== null) {
-                throw new $errorClasses[$code]($message);
-            } else {
-                throw new ExchangeError($this->id . ' ' . $this->json($response));
-            }
+            $this->throw_exactly_matched_exception($this->exceptions['exact'], $code, $message);
+            throw new ExchangeError($this->id . ' ' . $this->json($response));
         }
         return null;
     }

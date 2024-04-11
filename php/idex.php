@@ -156,13 +156,15 @@ class idex extends Exchange {
                 'network' => 'MATIC',
             ),
             'exceptions' => array(
-                'INVALID_ORDER_QUANTITY' => '\\ccxt\\InvalidOrder',
-                'INSUFFICIENT_FUNDS' => '\\ccxt\\InsufficientFunds',
-                'SERVICE_UNAVAILABLE' => '\\ccxt\\ExchangeNotAvailable',
-                'EXCEEDED_RATE_LIMIT' => '\\ccxt\\DDoSProtection',
-                'INVALID_PARAMETER' => '\\ccxt\\BadRequest',
-                'WALLET_NOT_ASSOCIATED' => '\\ccxt\\InvalidAddress',
-                'INVALID_WALLET_SIGNATURE' => '\\ccxt\\AuthenticationError',
+                'exact' => array(
+                    'INVALID_ORDER_QUANTITY' => '\\ccxt\\InvalidOrder',
+                    'INSUFFICIENT_FUNDS' => '\\ccxt\\InsufficientFunds',
+                    'SERVICE_UNAVAILABLE' => '\\ccxt\\ExchangeNotAvailable',
+                    'EXCEEDED_RATE_LIMIT' => '\\ccxt\\DDoSProtection',
+                    'INVALID_PARAMETER' => '\\ccxt\\BadRequest',
+                    'WALLET_NOT_ASSOCIATED' => '\\ccxt\\InvalidAddress',
+                    'INVALID_WALLET_SIGNATURE' => '\\ccxt\\AuthenticationError',
+                ),
             ),
             'requiredCredentials' => array(
                 'walletAddress' => true,
@@ -453,7 +455,7 @@ class idex extends Exchange {
             $request['start'] = $since;
         }
         if ($limit !== null) {
-            $request['limit'] = $limit;
+            $request['limit'] = min ($limit, 1000);
         }
         $response = $this->publicGetCandles (array_merge($request, $params));
         if (gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response))) {
@@ -608,7 +610,7 @@ class idex extends Exchange {
         ), $market);
     }
 
-    public function fetch_trading_fees($params = array ()) {
+    public function fetch_trading_fees($params = array ()): array {
         /**
          * fetch the trading fees for multiple markets
          * @see https://api-docs-v3.idex.io/#get-api-account
@@ -717,7 +719,7 @@ class idex extends Exchange {
         return $this->sort_by($result, 0, $descending);
     }
 
-    public function fetch_currencies($params = array ()) {
+    public function fetch_currencies($params = array ()): array {
         /**
          * fetches all available currencies on an exchange
          * @see https://api-docs-v3.idex.io/#get-assets
@@ -1469,11 +1471,8 @@ class idex extends Exchange {
     public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         $errorCode = $this->safe_string($response, 'code');
         $message = $this->safe_string($response, 'message');
-        if (is_array($this->exceptions) && array_key_exists($errorCode, $this->exceptions)) {
-            $Exception = $this->exceptions[$errorCode];
-            throw new $Exception($this->id . ' ' . $message);
-        }
         if ($errorCode !== null) {
+            $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $message);
             throw new ExchangeError($this->id . ' ' . $message);
         }
         return null;

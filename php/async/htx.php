@@ -92,6 +92,7 @@ class htx extends Exchange {
                 'fetchLeverage' => false,
                 'fetchLeverageTiers' => true,
                 'fetchLiquidations' => true,
+                'fetchMarginAdjustmentHistory' => false,
                 'fetchMarketLeverageTiers' => true,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => true,
@@ -1489,7 +1490,7 @@ class htx extends Exchange {
         }) ();
     }
 
-    public function parse_trading_fee($fee, ?array $market = null) {
+    public function parse_trading_fee($fee, ?array $market = null): array {
         //
         //     {
         //         "symbol":"btcusdt",
@@ -1505,10 +1506,12 @@ class htx extends Exchange {
             'symbol' => $this->safe_symbol($marketId, $market),
             'maker' => $this->safe_number($fee, 'actualMakerRate'),
             'taker' => $this->safe_number($fee, 'actualTakerRate'),
+            'percentage' => null,
+            'tierBased' => null,
         );
     }
 
-    public function fetch_trading_fee(string $symbol, $params = array ()) {
+    public function fetch_trading_fee(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch the trading fees for a $market
@@ -2958,7 +2961,7 @@ class htx extends Exchange {
             $untilSeconds = ($until !== null) ? $this->parse_to_int($until / 1000) : null;
             if ($market['contract']) {
                 if ($limit !== null) {
-                    $request['size'] = $limit; // when using $limit => from & to are ignored
+                    $request['size'] = min ($limit, 2000); // when using $limit => from & to are ignored
                     // https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-get-kline-$data
                 } else {
                     $limit = 2000; // only used for from/to calculation
@@ -3032,7 +3035,7 @@ class htx extends Exchange {
                 list($useHistorical, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'useHistoricalEndpointForSpot', true);
                 if (!$useHistorical) {
                     if ($limit !== null) {
-                        $request['size'] = min (2000, $limit); // max 2000
+                        $request['size'] = min ($limit, 2000); // max 2000
                     }
                     $response = Async\await($this->spotPublicGetMarketHistoryKline (array_merge($request, $params)));
                 } else {
@@ -3142,7 +3145,7 @@ class htx extends Exchange {
         }) ();
     }
 
-    public function fetch_currencies($params = array ()) {
+    public function fetch_currencies($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches all available currencies on an exchange

@@ -4293,7 +4293,7 @@ public partial class phemex : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public virtual object parseMarginModification(object data, object market = null)
+    public override object parseMarginModification(object data, object market = null)
     {
         //
         //     {
@@ -4307,12 +4307,15 @@ public partial class phemex : Exchange
         object codeCurrency = ((bool) isTrue(inverse)) ? "base" : "quote";
         return new Dictionary<string, object>() {
             { "info", data },
+            { "symbol", this.safeSymbol(null, market) },
             { "type", "set" },
+            { "marginMode", "isolated" },
             { "amount", null },
             { "total", null },
             { "code", getValue(market, codeCurrency) },
-            { "symbol", this.safeSymbol(null, market) },
             { "status", this.parseMarginStatus(this.safeString(data, "code")) },
+            { "timestamp", null },
+            { "datetime", null },
         };
     }
 

@@ -6,7 +6,7 @@ import { AccountNotEnabled, ArgumentsRequired, AuthenticationError, ExchangeErro
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE, TRUNCATE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { BorrowRate, TransferEntry, Int, OrderSide, OrderType, Order, OHLCV, Trade, FundingRateHistory, Balances, Str, Transaction, Ticker, OrderBook, Tickers, OrderRequest, Strings, Market, Currency, Num, Account } from './base/types.js';
+import type { BorrowRate, TransferEntry, Int, OrderSide, OrderType, Order, OHLCV, Trade, FundingRateHistory, Balances, Str, Transaction, Ticker, OrderBook, Tickers, OrderRequest, Strings, Market, Currency, Num, Account, TradingFeeInterface, Currencies } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -86,6 +86,7 @@ export default class htx extends Exchange {
                 'fetchLeverage': false,
                 'fetchLeverageTiers': true,
                 'fetchLiquidations': true,
+                'fetchMarginAdjustmentHistory': false,
                 'fetchMarketLeverageTiers': true,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': true,
@@ -1481,7 +1482,7 @@ export default class htx extends Exchange {
         return this.safeInteger2 (response, 'data', 'ts');
     }
 
-    parseTradingFee (fee, market: Market = undefined) {
+    parseTradingFee (fee, market: Market = undefined): TradingFeeInterface {
         //
         //     {
         //         "symbol":"btcusdt",
@@ -1497,10 +1498,12 @@ export default class htx extends Exchange {
             'symbol': this.safeSymbol (marketId, market),
             'maker': this.safeNumber (fee, 'actualMakerRate'),
             'taker': this.safeNumber (fee, 'actualTakerRate'),
+            'percentage': undefined,
+            'tierBased': undefined,
         };
     }
 
-    async fetchTradingFee (symbol: string, params = {}) {
+    async fetchTradingFee (symbol: string, params = {}): Promise<TradingFeeInterface> {
         /**
          * @method
          * @name huobi#fetchTradingFee
@@ -2943,7 +2946,7 @@ export default class htx extends Exchange {
         const untilSeconds = (until !== undefined) ? this.parseToInt (until / 1000) : undefined;
         if (market['contract']) {
             if (limit !== undefined) {
-                request['size'] = limit; // when using limit: from & to are ignored
+                request['size'] = Math.min (limit, 2000); // when using limit: from & to are ignored
                 // https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-get-kline-data
             } else {
                 limit = 2000; // only used for from/to calculation
@@ -3017,7 +3020,7 @@ export default class htx extends Exchange {
             [ useHistorical, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'useHistoricalEndpointForSpot', true);
             if (!useHistorical) {
                 if (limit !== undefined) {
-                    request['size'] = Math.min (2000, limit); // max 2000
+                    request['size'] = Math.min (limit, 2000); // max 2000
                 }
                 response = await this.spotPublicGetMarketHistoryKline (this.extend (request, params));
             } else {
@@ -3124,7 +3127,7 @@ export default class htx extends Exchange {
         return this.safeString (defaultAccount, 'id');
     }
 
-    async fetchCurrencies (params = {}) {
+    async fetchCurrencies (params = {}): Promise<Currencies> {
         /**
          * @method
          * @name huobi#fetchCurrencies

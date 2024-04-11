@@ -5,7 +5,7 @@
 
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.oceanex import ImplicitAPI
-from ccxt.base.types import Balances, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Balances, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -543,7 +543,7 @@ class oceanex(Exchange, ImplicitAPI):
         #
         return self.safe_timestamp(response, 'data')
 
-    def fetch_trading_fees(self, params={}):
+    def fetch_trading_fees(self, params={}) -> TradingFees:
         """
         fetch the trading fees for multiple markets
         :see: https://api.oceanex.pro/doc/v1/#trading-fees-post
@@ -750,7 +750,7 @@ class oceanex(Exchange, ImplicitAPI):
         if since is not None:
             request['timestamp'] = since
         if limit is not None:
-            request['limit'] = limit
+            request['limit'] = min(limit, 10000)
         response = self.publicPostK(self.extend(request, params))
         ohlcvs = self.safe_list(response, 'data', [])
         return self.parse_ohlcvs(ohlcvs, market, timeframe, since, limit)

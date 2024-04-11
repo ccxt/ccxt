@@ -1164,6 +1164,8 @@ export default class timex extends Exchange {
             'symbol': this.safeSymbol(marketId, market),
             'maker': rate,
             'taker': rate,
+            'percentage': undefined,
+            'tierBased': undefined,
         };
     }
     async fetchTradingFee(symbol, params = {}) {

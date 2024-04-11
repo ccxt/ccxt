@@ -8,11 +8,18 @@
 import { hmac as _hmac } from '../../static_dependencies/noble-hashes/hmac.js';
 import { base16, base64, base58 } from '../../static_dependencies/scure-base/index.js';
 import { Base64 } from '../../static_dependencies/jsencrypt/lib/asn1js/base64.js';
+import { ASN1 } from "../../static_dependencies/jsencrypt/lib/asn1js/asn1.js";
+import { secp256k1 } from '../../static_dependencies/noble-curves/secp256k1.js';
+import { P256 } from '../../static_dependencies/noble-curves/p256.js';
 /*  ------------------------------------------------------------------------ */
 const encoders = {
     binary: x => x,
     hex: base16.encode,
     base64: base64.encode,
+};
+const supportedCurve = {
+    '1.3.132.0.10': secp256k1,
+    '1.2.840.10045.3.1.7': P256,
 };
 /*  .............................................   */
 const hash = (request, hash, digest = 'hex') => {
@@ -28,6 +35,36 @@ const hmac = (request, secret, hash, digest = 'hex') => {
 function ecdsa(request, secret, curve, prehash = null) {
     if (prehash) {
         request = hash(request, prehash, 'hex');
+    }
+    if (typeof secret === 'string' && secret.length > 64) {
+        // decode pem key
+        if (secret.startsWith('-----BEGIN EC PRIVATE KEY-----')) {
+            const der = Base64.unarmor(secret);
+            let asn1 = ASN1.decode(der);
+            if (asn1.sub.length === 4) {
+                // ECPrivateKey ::= SEQUENCE {
+                //     version        INTEGER { ecPrivkeyVer1(1) } (ecPrivkeyVer1),
+                //     privateKey     OCTET STRING,
+                //     parameters [0] ECParameters {{ NamedCurve }} OPTIONAL,
+                //     publicKey  [1] BIT STRING OPTIONAL
+                // }
+                if (typeof asn1.sub[2].sub !== null && asn1.sub[2].sub.length > 0) {
+                    const oid = asn1.sub[2].sub[0].content(undefined);
+                    if (supportedCurve[oid] === undefined)
+                        throw new Error('Unsupported curve');
+                    curve = supportedCurve[oid];
+                }
+                secret = asn1.sub[1].getHexStringValue();
+            }
+            else {
+                // maybe return false
+                throw new Error('Unsupported key format');
+            }
+        }
+        else {
+            // maybe return false
+            throw new Error('Unsupported key format');
+        }
     }
     const signature = curve.sign(request, secret);
     return {

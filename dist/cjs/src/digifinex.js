@@ -1505,7 +1505,7 @@ class digifinex extends digifinex$1 {
             request['instrument_id'] = market['id'];
             request['granularity'] = timeframe;
             if (limit !== undefined) {
-                request['limit'] = limit;
+                request['limit'] = Math.min(limit, 100);
             }
             response = await this.publicSwapGetPublicCandles(this.extend(request, params));
         }
@@ -3366,6 +3366,8 @@ class digifinex extends digifinex$1 {
             'symbol': symbol,
             'maker': this.safeNumber(fee, 'maker_fee_rate'),
             'taker': this.safeNumber(fee, 'taker_fee_rate'),
+            'percentage': undefined,
+            'tierBased': undefined,
         };
     }
     async fetchPositions(symbols = undefined, params = {}) {
@@ -3803,28 +3805,7 @@ class digifinex extends digifinex$1 {
         //
         const data = this.safeValue(response, 'data', []);
         symbols = this.marketSymbols(symbols);
-        return this.parseLeverageTiers(data, symbols, 'symbol');
-    }
-    parseLeverageTiers(response, symbols = undefined, marketIdKey = undefined) {
-        const result = {};
-        for (let i = 0; i < response.length; i++) {
-            const entry = response[i];
-            const marketId = this.safeString(entry, 'instrument_id');
-            const market = this.safeMarket(marketId);
-            const symbol = this.safeSymbol(marketId, market);
-            let symbolsLength = 0;
-            this.parseMarketLeverageTiers(response[i], market);
-            if (symbols !== undefined) {
-                symbolsLength = symbols.length;
-                if (this.inArray(symbol, symbols)) {
-                    result[symbol] = this.parseMarketLeverageTiers(response[i], market);
-                }
-            }
-            if (symbol !== undefined && (symbolsLength === 0 || this.inArray(symbols, symbol))) {
-                result[symbol] = this.parseMarketLeverageTiers(response[i], market);
-            }
-        }
-        return result;
+        return this.parseLeverageTiers(data, symbols, 'instrument_id');
     }
     async fetchMarketLeverageTiers(symbol, params = {}) {
         /**
@@ -4131,12 +4112,15 @@ class digifinex extends digifinex$1 {
         const rawType = this.safeInteger(data, 'type');
         return {
             'info': data,
+            'symbol': this.safeSymbol(marketId, market, undefined, 'swap'),
             'type': (rawType === 1) ? 'add' : 'reduce',
+            'marginMode': 'isolated',
             'amount': this.safeNumber(data, 'amount'),
             'total': undefined,
             'code': market['settle'],
-            'symbol': this.safeSymbol(marketId, market, undefined, 'swap'),
             'status': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
         };
     }
     async fetchFundingHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {

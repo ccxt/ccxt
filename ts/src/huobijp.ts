@@ -6,7 +6,7 @@ import { AuthenticationError, ExchangeError, PermissionDenied, ExchangeNotAvaila
 import { Precise } from './base/Precise.js';
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Account, Balances, Currency, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import type { Account, Balances, Currencies, Currency, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -968,7 +968,7 @@ export default class huobijp extends Exchange {
             'period': this.safeString (this.timeframes, timeframe, timeframe),
         };
         if (limit !== undefined) {
-            request['size'] = limit;
+            request['size'] = Math.min (limit, 2000);
         }
         const response = await this.marketGetHistoryKline (this.extend (request, params));
         //
@@ -1000,7 +1000,7 @@ export default class huobijp extends Exchange {
         return response['data'];
     }
 
-    async fetchCurrencies (params = {}) {
+    async fetchCurrencies (params = {}): Promise<Currencies> {
         /**
          * @method
          * @name huobijp#fetchCurrencies

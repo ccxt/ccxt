@@ -1532,6 +1532,8 @@ public partial class hitbtc : Exchange
             { "symbol", symbol },
             { "taker", taker },
             { "maker", maker },
+            { "percentage", null },
+            { "tierBased", null },
         };
     }
 
@@ -1663,7 +1665,7 @@ public partial class hitbtc : Exchange
         parameters = ((IList<object>)requestparametersVariable)[1];
         if (isTrue(!isEqual(limit, null)))
         {
-            ((IDictionary<string,object>)request)["limit"] = limit;
+            ((IDictionary<string,object>)request)["limit"] = mathMin(limit, 1000);
         }
         object price = this.safeString(parameters, "price");
         parameters = this.omit(parameters, "price");
@@ -3375,17 +3377,42 @@ public partial class hitbtc : Exchange
         });
     }
 
-    public virtual object parseMarginModification(object data, object market = null)
+    public override object parseMarginModification(object data, object market = null)
     {
+        //
+        // addMargin/reduceMargin
+        //
+        //     {
+        //         "symbol": "BTCUSDT_PERP",
+        //         "type": "isolated",
+        //         "leverage": "8.00",
+        //         "created_at": "2022-03-30T23:34:27.161Z",
+        //         "updated_at": "2022-03-30T23:34:27.161Z",
+        //         "currencies": [
+        //             {
+        //                 "code": "USDT",
+        //                 "margin_balance": "7.000000000000",
+        //                 "reserved_orders": "0",
+        //                 "reserved_positions": "0"
+        //             }
+        //         ],
+        //         "positions": null
+        //     }
+        //
         object currencies = this.safeValue(data, "currencies", new List<object>() {});
         object currencyInfo = this.safeValue(currencies, 0);
+        object datetime = this.safeString(data, "updated_at");
         return new Dictionary<string, object>() {
             { "info", data },
-            { "type", null },
-            { "amount", null },
-            { "code", this.safeString(currencyInfo, "code") },
             { "symbol", getValue(market, "symbol") },
+            { "type", null },
+            { "marginMode", "isolated" },
+            { "amount", null },
+            { "total", null },
+            { "code", this.safeString(currencyInfo, "code") },
             { "status", null },
+            { "timestamp", this.parse8601(datetime) },
+            { "datetime", datetime },
         };
     }
 

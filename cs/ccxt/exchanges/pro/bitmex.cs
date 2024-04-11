@@ -559,8 +559,8 @@ public partial class bitmex : ccxt.bitmex
         {
             object marketId = getValue(marketIds, i);
             object market = this.safeMarket(marketId);
-            object messageHash = add(add(table, ":"), marketId);
             object symbol = getValue(market, "symbol");
+            object messageHash = add(add(table, ":"), symbol);
             object trades = this.parseTrades(getValue(dataByMarketIds, marketId), market);
             object stored = this.safeValue(this.trades, symbol);
             if (isTrue(isEqual(stored, null)))
@@ -590,22 +590,7 @@ public partial class bitmex : ccxt.bitmex
         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
         */
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
-        object market = this.market(symbol);
-        symbol = getValue(market, "symbol");
-        object table = "trade";
-        object messageHash = add(add(table, ":"), getValue(market, "id"));
-        object url = getValue(getValue(this.urls, "api"), "ws");
-        object request = new Dictionary<string, object>() {
-            { "op", "subscribe" },
-            { "args", new List<object>() {messageHash} },
-        };
-        object trades = await this.watch(url, messageHash, this.extend(request, parameters), messageHash);
-        if (isTrue(this.newUpdates))
-        {
-            limit = callDynamically(trades, "getLimit", new object[] {symbol, limit});
-        }
-        return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
+        return await this.watchTradesForSymbols(new List<object>() {symbol}, since, limit, parameters);
     }
 
     public async virtual Task<object> authenticate(object parameters = null)
@@ -1277,6 +1262,48 @@ public partial class bitmex : ccxt.bitmex
         };
         object orderbook = await this.watchMultiple(url, messageHashes, this.deepExtend(request, parameters), topics);
         return (orderbook as IOrderBook).limit();
+    }
+
+    public async override Task<object> watchTradesForSymbols(object symbols, object since = null, object limit = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name bitmex#watchTradesForSymbols
+        * @description get the list of most recent trades for a list of symbols
+        * @param {string[]} symbols unified symbol of the market to fetch trades for
+        * @param {int} [since] timestamp in ms of the earliest trade to fetch
+        * @param {int} [limit] the maximum amount of trades to fetch
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols, null, false);
+        object table = "trade";
+        object topics = new List<object>() {};
+        object messageHashes = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        {
+            object symbol = getValue(symbols, i);
+            object market = this.market(symbol);
+            object topic = add(add(table, ":"), getValue(market, "id"));
+            ((IList<object>)topics).Add(topic);
+            object messageHash = add(add(table, ":"), symbol);
+            ((IList<object>)messageHashes).Add(messageHash);
+        }
+        object url = getValue(getValue(this.urls, "api"), "ws");
+        object request = new Dictionary<string, object>() {
+            { "op", "subscribe" },
+            { "args", topics },
+        };
+        object trades = await this.watchMultiple(url, messageHashes, this.deepExtend(request, parameters), topics);
+        if (isTrue(this.newUpdates))
+        {
+            object first = this.safeValue(trades, 0);
+            object tradeSymbol = this.safeString(first, "symbol");
+            limit = callDynamically(trades, "getLimit", new object[] {tradeSymbol, limit});
+        }
+        return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
     }
 
     public async override Task<object> watchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)

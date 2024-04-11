@@ -576,7 +576,7 @@ class bitrue extends Exchange {
         return $this->safe_string_2($networksById, $networkId, $uppercaseNetworkId, $networkId);
     }
 
-    public function fetch_currencies($params = array ()) {
+    public function fetch_currencies($params = array ()): array {
         /**
          * fetches all available currencies on an exchange
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1328,9 +1328,6 @@ class bitrue extends Exchange {
                 'interval' => $this->safe_string($timeframesFuture, $timeframe, '1min'),
             );
             if ($limit !== null) {
-                if ($limit > 300) {
-                    $limit = 300;
-                }
                 $request['limit'] = $limit;
             }
             if ($market['linear']) {
@@ -1347,9 +1344,6 @@ class bitrue extends Exchange {
                 'scale' => $this->safe_string($timeframesSpot, $timeframe, '1m'),
             );
             if ($limit !== null) {
-                if ($limit > 1440) {
-                    $limit = 1440;
-                }
                 $request['limit'] = $limit;
             }
             if ($since !== null) {
@@ -2974,18 +2968,31 @@ class bitrue extends Exchange {
         return $response;
     }
 
-    public function parse_margin_modification($data, $market = null) {
+    public function parse_margin_modification($data, $market = null): array {
+        //
+        // setMargin
+        //
+        //     {
+        //         "code" => 0,
+        //         "msg" => "success"
+        //         "data" => null
+        //     }
+        //
         return array(
             'info' => $data,
-            'type' => null,
-            'amount' => null,
-            'code' => null,
             'symbol' => $market['symbol'],
+            'type' => null,
+            'marginMode' => 'isolated',
+            'amount' => null,
+            'total' => null,
+            'code' => null,
             'status' => null,
+            'timestamp' => null,
+            'datetime' => null,
         );
     }
 
-    public function set_margin(string $symbol, float $amount, $params = array ()) {
+    public function set_margin(string $symbol, float $amount, $params = array ()): array {
         /**
          * Either adds or reduces margin in an isolated position in order to set the margin to a specific value
          * @see https://www.bitrue.com/api-docs#modify-isolated-position-margin-trade-hmac-sha256

@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.bitfinex2 import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, Int, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
+from ccxt.base.types import Balances, Currencies, Currency, Int, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -630,7 +630,7 @@ class bitfinex2(Exchange, ImplicitAPI):
             })
         return result
 
-    def fetch_currencies(self, params={}):
+    def fetch_currencies(self, params={}) -> Currencies:
         """
         fetches all available currencies on an exchange
         :see: https://docs.bitfinex.com/reference/rest-public-conf
@@ -1343,6 +1343,8 @@ class bitfinex2(Exchange, ImplicitAPI):
         market = self.market(symbol)
         if limit is None:
             limit = 10000
+        else:
+            limit = min(limit, 10000)
         request = {
             'symbol': market['id'],
             'timeframe': self.safe_string(self.timeframes, timeframe, timeframe),
@@ -2259,7 +2261,7 @@ class bitfinex2(Exchange, ImplicitAPI):
             },
         }
 
-    def fetch_trading_fees(self, params={}):
+    def fetch_trading_fees(self, params={}) -> TradingFees:
         """
         fetch the trading fees for multiple markets
         :see: https://docs.bitfinex.com/reference/rest-auth-summary
@@ -3279,7 +3281,7 @@ class bitfinex2(Exchange, ImplicitAPI):
             'datetime': self.iso8601(timestamp),
         })
 
-    def set_margin(self, symbol: str, amount: float, params={}):
+    def set_margin(self, symbol: str, amount: float, params={}) -> MarginModification:
         """
         either adds or reduces margin in a swap position in order to set the margin to a specific value
         :see: https://docs.bitfinex.com/reference/rest-auth-deriv-pos-collateral-set
@@ -3307,16 +3309,29 @@ class bitfinex2(Exchange, ImplicitAPI):
         data = self.safe_value(response, 0)
         return self.parse_margin_modification(data, market)
 
-    def parse_margin_modification(self, data, market=None):
+    def parse_margin_modification(self, data, market=None) -> MarginModification:
+        #
+        # setMargin
+        #
+        #     [
+        #         [
+        #             1
+        #         ]
+        #     ]
+        #
         marginStatusRaw = data[0]
         marginStatus = 'ok' if (marginStatusRaw == 1) else 'failed'
         return {
             'info': data,
-            'type': None,
-            'amount': None,
-            'code': None,
             'symbol': market['symbol'],
+            'type': None,
+            'marginMode': 'isolated',
+            'amount': None,
+            'total': None,
+            'code': None,
             'status': marginStatus,
+            'timestamp': None,
+            'datetime': None,
         }
 
     def fetch_order(self, id: str, symbol: Str = None, params={}):

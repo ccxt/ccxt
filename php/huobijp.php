@@ -945,7 +945,7 @@ class huobijp extends Exchange {
             'period' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
         );
         if ($limit !== null) {
-            $request['size'] = $limit;
+            $request['size'] = min ($limit, 2000);
         }
         $response = $this->marketGetHistoryKline (array_merge($request, $params));
         //
@@ -975,7 +975,7 @@ class huobijp extends Exchange {
         return $response['data'];
     }
 
-    public function fetch_currencies($params = array ()) {
+    public function fetch_currencies($params = array ()): array {
         /**
          * fetches all available $currencies on an exchange
          * @param {array} [$params] extra parameters specific to the exchange API endpoint

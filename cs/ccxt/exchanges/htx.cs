@@ -77,6 +77,7 @@ public partial class htx : Exchange
                 { "fetchLeverage", false },
                 { "fetchLeverageTiers", true },
                 { "fetchLiquidations", true },
+                { "fetchMarginAdjustmentHistory", false },
                 { "fetchMarketLeverageTiers", true },
                 { "fetchMarkets", true },
                 { "fetchMarkOHLCV", true },
@@ -1420,6 +1421,8 @@ public partial class htx : Exchange
             { "symbol", this.safeSymbol(marketId, market) },
             { "maker", this.safeNumber(fee, "actualMakerRate") },
             { "taker", this.safeNumber(fee, "actualTakerRate") },
+            { "percentage", null },
+            { "tierBased", null },
         };
     }
 
@@ -2927,7 +2930,7 @@ public partial class htx : Exchange
         {
             if (isTrue(!isEqual(limit, null)))
             {
-                ((IDictionary<string,object>)request)["size"] = limit; // when using limit: from & to are ignored
+                ((IDictionary<string,object>)request)["size"] = mathMin(limit, 2000); // when using limit: from & to are ignored
             } else
             {
                 limit = 2000; // only used for from/to calculation
@@ -3031,7 +3034,7 @@ public partial class htx : Exchange
             {
                 if (isTrue(!isEqual(limit, null)))
                 {
-                    ((IDictionary<string,object>)request)["size"] = mathMin(2000, limit); // max 2000
+                    ((IDictionary<string,object>)request)["size"] = mathMin(limit, 2000); // max 2000
                 }
                 response = await this.spotPublicGetMarketHistoryKline(this.extend(request, parameters));
             } else

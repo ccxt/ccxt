@@ -1133,8 +1133,10 @@ class okcoin extends okcoin$1 {
         const request = {
             'instId': market['id'],
             'bar': bar,
-            'limit': limit,
         };
+        if (limit !== undefined) {
+            request['limit'] = limit; // default 100, max 100
+        }
         let method = undefined;
         [method, params] = this.handleOptionAndParams(params, 'fetchOHLCV', 'method', 'publicGetMarketCandles');
         let response = undefined;

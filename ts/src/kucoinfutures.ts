@@ -5,7 +5,7 @@ import { ArgumentsRequired, ExchangeNotAvailable, InvalidOrder, InsufficientFund
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import kucoin from './abstract/kucoinfutures.js';
-import type { TransferEntry, Int, OrderSide, OrderType, OHLCV, Order, Trade, OrderRequest, FundingHistory, Balances, Str, Ticker, Tickers, OrderBook, Transaction, Strings, Market, Currency, Num } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, OHLCV, Order, Trade, OrderRequest, FundingHistory, Balances, Str, Ticker, Tickers, OrderBook, Transaction, Strings, Market, Currency, Num, MarginModification } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -69,6 +69,7 @@ export default class kucoinfutures extends kucoin {
                 'fetchL3OrderBook': true,
                 'fetchLedger': true,
                 'fetchLeverageTiers': false,
+                'fetchMarginAdjustmentHistory': false,
                 'fetchMarginMode': false,
                 'fetchMarketLeverageTiers': true,
                 'fetchMarkets': true,
@@ -1497,7 +1498,7 @@ export default class kucoinfutures extends kucoin {
         return this.safeValue (response, 'data');
     }
 
-    async addMargin (symbol: string, amount, params = {}) {
+    async addMargin (symbol: string, amount, params = {}): Promise<MarginModification> {
         /**
          * @method
          * @name kucoinfutures#addMargin
@@ -1573,7 +1574,7 @@ export default class kucoinfutures extends kucoin {
         });
     }
 
-    parseMarginModification (info, market: Market = undefined) {
+    parseMarginModification (info, market: Market = undefined): MarginModification {
         //
         //    {
         //        "id": "62311d26064e8f00013f2c6d",
@@ -1625,14 +1626,18 @@ export default class kucoinfutures extends kucoin {
         const crossMode = this.safeValue (info, 'crossMode');
         const mode = crossMode ? 'cross' : 'isolated';
         const marketId = this.safeString (market, 'symbol');
+        const timestamp = this.safeInteger (info, 'currentTimestamp');
         return {
             'info': info,
-            'direction': undefined,
-            'mode': mode,
-            'amount': undefined,
-            'code': this.safeCurrencyCode (currencyId),
             'symbol': this.safeSymbol (marketId, market),
+            'type': undefined,
+            'marginMode': mode,
+            'amount': undefined,
+            'total': undefined,
+            'code': this.safeCurrencyCode (currencyId),
             'status': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
         };
     }
 
@@ -1771,6 +1776,33 @@ export default class kucoinfutures extends kucoin {
             return await this.fetchPaginatedCallDynamic ('fetchClosedOrders', symbol, since, limit, params) as Order[];
         }
         return await this.fetchOrdersByStatus ('done', symbol, since, limit, params);
+    }
+
+    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        /**
+         * @method
+         * @name kucoinfutures#fetchOpenOrders
+         * @description fetches information on multiple open orders made by the user
+         * @see https://docs.kucoin.com/futures/#get-order-list
+         * @see https://docs.kucoin.com/futures/#get-untriggered-stop-order-list
+         * @param {string} symbol unified market symbol of the market orders were made in
+         * @param {int} [since] the earliest time in ms to fetch orders for
+         * @param {int} [limit] the maximum number of order structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {int} [params.till] end time in ms
+         * @param {string} [params.side] buy or sell
+         * @param {string} [params.type] limit, or market
+         * @param {boolean} [params.trigger] set to true to retrieve untriggered stop orders
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOpenOrders', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallDynamic ('fetchOpenOrders', symbol, since, limit, params) as Order[];
+        }
+        return await this.fetchOrdersByStatus ('open', symbol, since, limit, params);
     }
 
     async fetchOrder (id: Str = undefined, symbol: Str = undefined, params = {}) {

@@ -363,7 +363,8 @@ class krakenfutures(Exchange, ImplicitAPI):
             # swap == perpetual
             settle = None
             settleId = None
-            amountPrecision = self.parse_number(self.parse_precision(self.safe_string(market, 'contractValueTradePrecision', '0')))
+            cvtp = self.safe_string(market, 'contractValueTradePrecision')
+            amountPrecision = self.parse_number(self.integer_precision_to_amount(cvtp))
             pricePrecision = self.safe_number(market, 'tickSize')
             contract = (swap or future or index)
             swapOrFutures = (swap or future)
@@ -635,14 +636,12 @@ class krakenfutures(Exchange, ImplicitAPI):
             request['from'] = self.parse_to_int(since / 1000)
             if limit is None:
                 limit = 5000
-            elif limit > 5000:
-                raise BadRequest(self.id + ' fetchOHLCV() limit cannot exceed 5000')
+            limit = min(limit, 5000)
             toTimestamp = self.sum(request['from'], limit * duration - 1)
             currentTimestamp = self.seconds()
             request['to'] = min(toTimestamp, currentTimestamp)
         elif limit is not None:
-            if limit > 5000:
-                raise BadRequest(self.id + ' fetchOHLCV() limit cannot exceed 5000')
+            limit = min(limit, 5000)
             duration = self.parse_timeframe(timeframe)
             request['to'] = self.seconds()
             request['from'] = self.parse_to_int(request['to'] - (duration * limit))

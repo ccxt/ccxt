@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.huobijp import ImplicitAPI
 import hashlib
-from ccxt.base.types import Account, Balances, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Account, Balances, Currencies, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -927,7 +927,7 @@ class huobijp(Exchange, ImplicitAPI):
             'period': self.safe_string(self.timeframes, timeframe, timeframe),
         }
         if limit is not None:
-            request['size'] = limit
+            request['size'] = min(limit, 2000)
         response = self.marketGetHistoryKline(self.extend(request, params))
         #
         #     {
@@ -954,7 +954,7 @@ class huobijp(Exchange, ImplicitAPI):
         response = self.privateGetAccountAccounts(params)
         return response['data']
 
-    def fetch_currencies(self, params={}):
+    def fetch_currencies(self, params={}) -> Currencies:
         """
         fetches all available currencies on an exchange
         :param dict [params]: extra parameters specific to the exchange API endpoint

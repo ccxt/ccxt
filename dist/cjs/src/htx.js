@@ -84,6 +84,7 @@ class htx extends htx$1 {
                 'fetchLeverage': false,
                 'fetchLeverageTiers': true,
                 'fetchLiquidations': true,
+                'fetchMarginAdjustmentHistory': false,
                 'fetchMarketLeverageTiers': true,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': true,
@@ -1500,6 +1501,8 @@ class htx extends htx$1 {
             'symbol': this.safeSymbol(marketId, market),
             'maker': this.safeNumber(fee, 'actualMakerRate'),
             'taker': this.safeNumber(fee, 'actualTakerRate'),
+            'percentage': undefined,
+            'tierBased': undefined,
         };
     }
     async fetchTradingFee(symbol, params = {}) {
@@ -2962,7 +2965,7 @@ class htx extends htx$1 {
         const untilSeconds = (until !== undefined) ? this.parseToInt(until / 1000) : undefined;
         if (market['contract']) {
             if (limit !== undefined) {
-                request['size'] = limit; // when using limit: from & to are ignored
+                request['size'] = Math.min(limit, 2000); // when using limit: from & to are ignored
                 // https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-get-kline-data
             }
             else {
@@ -3054,7 +3057,7 @@ class htx extends htx$1 {
             [useHistorical, params] = this.handleOptionAndParams(params, 'fetchOHLCV', 'useHistoricalEndpointForSpot', true);
             if (!useHistorical) {
                 if (limit !== undefined) {
-                    request['size'] = Math.min(2000, limit); // max 2000
+                    request['size'] = Math.min(limit, 2000); // max 2000
                 }
                 response = await this.spotPublicGetMarketHistoryKline(this.extend(request, params));
             }

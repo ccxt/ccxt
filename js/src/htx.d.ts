@@ -1,5 +1,5 @@
 import Exchange from './abstract/htx.js';
-import type { BorrowRate, TransferEntry, Int, OrderSide, OrderType, Order, OHLCV, Trade, FundingRateHistory, Balances, Str, Transaction, Ticker, OrderBook, Tickers, OrderRequest, Strings, Market, Currency, Num, Account } from './base/types.js';
+import type { BorrowRate, TransferEntry, Int, OrderSide, OrderType, Order, OHLCV, Trade, FundingRateHistory, Balances, Str, Transaction, Ticker, OrderBook, Tickers, OrderRequest, Strings, Market, Currency, Num, Account, TradingFeeInterface, Currencies } from './base/types.js';
 /**
  * @class huobi
  * @augments Exchange
@@ -14,18 +14,8 @@ export default class htx extends Exchange {
         info: any;
     }>;
     fetchTime(params?: {}): Promise<number>;
-    parseTradingFee(fee: any, market?: Market): {
-        info: any;
-        symbol: string;
-        maker: number;
-        taker: number;
-    };
-    fetchTradingFee(symbol: string, params?: {}): Promise<{
-        info: any;
-        symbol: string;
-        maker: number;
-        taker: number;
-    }>;
+    parseTradingFee(fee: any, market?: Market): TradingFeeInterface;
+    fetchTradingFee(symbol: string, params?: {}): Promise<TradingFeeInterface>;
     fetchTradingLimits(symbols?: Strings, params?: {}): Promise<{}>;
     fetchTradingLimitsById(id: string, params?: {}): Promise<{
         info: any;
@@ -76,7 +66,7 @@ export default class htx extends Exchange {
         code: any;
     };
     fetchAccountIdByType(type: any, marginMode?: any, symbol?: any, params?: {}): Promise<any>;
-    fetchCurrencies(params?: {}): Promise<{}>;
+    fetchCurrencies(params?: {}): Promise<Currencies>;
     networkIdToCode(networkId: any, currencyCode?: any): string;
     networkCodeToId(networkCode: any, currencyCode?: any): any;
     fetchBalance(params?: {}): Promise<Balances>;

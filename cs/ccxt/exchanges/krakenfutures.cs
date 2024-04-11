@@ -289,7 +289,8 @@ public partial class krakenfutures : Exchange
             // swap == perpetual
             object settle = null;
             object settleId = null;
-            object amountPrecision = this.parseNumber(this.parsePrecision(this.safeString(market, "contractValueTradePrecision", "0")));
+            object cvtp = this.safeString(market, "contractValueTradePrecision");
+            object amountPrecision = this.parseNumber(this.integerPrecisionToAmount(cvtp));
             object pricePrecision = this.safeNumber(market, "tickSize");
             object contract = (isTrue(isTrue(swap) || isTrue(future)) || isTrue(index));
             object swapOrFutures = (isTrue(swap) || isTrue(future));
@@ -600,19 +601,14 @@ public partial class krakenfutures : Exchange
             if (isTrue(isEqual(limit, null)))
             {
                 limit = 5000;
-            } else if (isTrue(isGreaterThan(limit, 5000)))
-            {
-                throw new BadRequest ((string)add(this.id, " fetchOHLCV() limit cannot exceed 5000")) ;
             }
+            limit = mathMin(limit, 5000);
             object toTimestamp = this.sum(getValue(request, "from"), subtract(multiply(limit, duration), 1));
             object currentTimestamp = this.seconds();
             ((IDictionary<string,object>)request)["to"] = mathMin(toTimestamp, currentTimestamp);
         } else if (isTrue(!isEqual(limit, null)))
         {
-            if (isTrue(isGreaterThan(limit, 5000)))
-            {
-                throw new BadRequest ((string)add(this.id, " fetchOHLCV() limit cannot exceed 5000")) ;
-            }
+            limit = mathMin(limit, 5000);
             object duration = this.parseTimeframe(timeframe);
             ((IDictionary<string,object>)request)["to"] = this.seconds();
             ((IDictionary<string,object>)request)["from"] = this.parseToInt(subtract(getValue(request, "to"), (multiply(duration, limit))));

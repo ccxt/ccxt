@@ -935,6 +935,9 @@ export default class bitvavo extends Exchange {
             if (limit === undefined) {
                 limit = 1440;
             }
+            else {
+                limit = Math.min(limit, 1440);
+            }
             request['end'] = this.sum(since, limit * duration * 1000);
         }
         [request, params] = this.handleUntilOption('end', request, params);

@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.bitbank import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Transaction
+from ccxt.base.types import Balances, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, TradingFees, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -146,21 +146,23 @@ class bitbank(Exchange, ImplicitAPI):
             },
             'precisionMode': TICK_SIZE,
             'exceptions': {
-                '20001': AuthenticationError,
-                '20002': AuthenticationError,
-                '20003': AuthenticationError,
-                '20005': AuthenticationError,
-                '20004': InvalidNonce,
-                '40020': InvalidOrder,
-                '40021': InvalidOrder,
-                '40025': ExchangeError,
-                '40013': OrderNotFound,
-                '40014': OrderNotFound,
-                '50008': PermissionDenied,
-                '50009': OrderNotFound,
-                '50010': OrderNotFound,
-                '60001': InsufficientFunds,
-                '60005': InvalidOrder,
+                'exact': {
+                    '20001': AuthenticationError,
+                    '20002': AuthenticationError,
+                    '20003': AuthenticationError,
+                    '20005': AuthenticationError,
+                    '20004': InvalidNonce,
+                    '40020': InvalidOrder,
+                    '40021': InvalidOrder,
+                    '40025': ExchangeError,
+                    '40013': OrderNotFound,
+                    '40014': OrderNotFound,
+                    '50008': PermissionDenied,
+                    '50009': OrderNotFound,
+                    '50010': OrderNotFound,
+                    '60001': InsufficientFunds,
+                    '60005': InvalidOrder,
+                },
             },
         })
 
@@ -388,7 +390,7 @@ class bitbank(Exchange, ImplicitAPI):
         trades = self.safe_list(data, 'transactions', [])
         return self.parse_trades(trades, market, since, limit)
 
-    def fetch_trading_fees(self, params={}):
+    def fetch_trading_fees(self, params={}) -> TradingFees:
         """
         fetch the trading fees for multiple markets
         :see: https://github.com/bitbankinc/bitbank-api-docs/blob/38d6d7c6f486c793872fd4b4087a0d090a04cd0a/rest-api.md#get-all-pairs-info
@@ -944,12 +946,8 @@ class bitbank(Exchange, ImplicitAPI):
                 '70009': 'We are currently temporarily restricting orders to be carried out. Please use the limit order.',
                 '70010': 'We are temporarily raising the minimum order quantity system load is now rising.',
             }
-            errorClasses = self.exceptions
             code = self.safe_string(data, 'code')
             message = self.safe_string(errorMessages, code, 'Error')
-            ErrorClass = self.safe_value(errorClasses, code)
-            if ErrorClass is not None:
-                raise errorClasses[code](message)
-            else:
-                raise ExchangeError(self.id + ' ' + self.json(response))
+            self.throw_exactly_matched_exception(self.exceptions['exact'], code, message)
+            raise ExchangeError(self.id + ' ' + self.json(response))
         return None

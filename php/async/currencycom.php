@@ -323,7 +323,7 @@ class currencycom extends Exchange {
         }) ();
     }
 
-    public function fetch_currencies($params = array ()) {
+    public function fetch_currencies($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches all available currencies on an exchange
@@ -645,7 +645,7 @@ class currencycom extends Exchange {
         }) ();
     }
 
-    public function fetch_trading_fees($params = array ()) {
+    public function fetch_trading_fees($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetch the trading fees for multiple markets
@@ -1003,7 +1003,7 @@ class currencycom extends Exchange {
                 $request['startTime'] = $since;
             }
             if ($limit !== null) {
-                $request['limit'] = $limit; // default 500, max 1000
+                $request['limit'] = min ($limit, 1000); // default 500, max 1000
             }
             $response = Async\await($this->publicGetV2Klines (array_merge($request, $params)));
             //

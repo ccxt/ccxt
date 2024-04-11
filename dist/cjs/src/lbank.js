@@ -1000,6 +1000,9 @@ class lbank extends lbank$1 {
         if (limit === undefined) {
             limit = 100;
         }
+        else {
+            limit = Math.min(limit, 2000);
+        }
         if (since === undefined) {
             const duration = this.parseTimeframe(timeframe);
             since = this.milliseconds() - duration * 1000 * limit;
@@ -1238,6 +1241,8 @@ class lbank extends lbank$1 {
             'symbol': symbol,
             'maker': this.safeNumber(fee, 'makerCommission'),
             'taker': this.safeNumber(fee, 'takerCommission'),
+            'percentage': undefined,
+            'tierBased': undefined,
         };
     }
     async fetchTradingFee(symbol, params = {}) {
@@ -1252,7 +1257,7 @@ class lbank extends lbank$1 {
          */
         const market = this.market(symbol);
         const result = await this.fetchTradingFees(this.extend(params, { 'category': market['id'] }));
-        return result;
+        return this.safeDict(result, symbol);
     }
     async fetchTradingFees(params = {}) {
         /**

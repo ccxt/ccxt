@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.htx import ImplicitAPI
 import hashlib
-from ccxt.base.types import Account, Balances, Currency, Int, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
+from ccxt.base.types import Account, Balances, Currencies, Currency, Int, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -102,6 +102,7 @@ class htx(Exchange, ImplicitAPI):
                 'fetchLeverage': False,
                 'fetchLeverageTiers': True,
                 'fetchLiquidations': True,
+                'fetchMarginAdjustmentHistory': False,
                 'fetchMarketLeverageTiers': True,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': True,
@@ -1485,7 +1486,7 @@ class htx(Exchange, ImplicitAPI):
         #
         return self.safe_integer_2(response, 'data', 'ts')
 
-    def parse_trading_fee(self, fee, market: Market = None):
+    def parse_trading_fee(self, fee, market: Market = None) -> TradingFeeInterface:
         #
         #     {
         #         "symbol":"btcusdt",
@@ -1501,9 +1502,11 @@ class htx(Exchange, ImplicitAPI):
             'symbol': self.safe_symbol(marketId, market),
             'maker': self.safe_number(fee, 'actualMakerRate'),
             'taker': self.safe_number(fee, 'actualTakerRate'),
+            'percentage': None,
+            'tierBased': None,
         }
 
-    def fetch_trading_fee(self, symbol: str, params={}):
+    def fetch_trading_fee(self, symbol: str, params={}) -> TradingFeeInterface:
         """
         fetch the trading fees for a market
         :param str symbol: unified market symbol
@@ -2833,7 +2836,7 @@ class htx(Exchange, ImplicitAPI):
         untilSeconds = self.parse_to_int(until / 1000) if (until is not None) else None
         if market['contract']:
             if limit is not None:
-                request['size'] = limit  # when using limit: from & to are ignored
+                request['size'] = min(limit, 2000)  # when using limit: from & to are ignored
                 # https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-get-kline-data
             else:
                 limit = 2000  # only used for from/to calculation
@@ -2897,7 +2900,7 @@ class htx(Exchange, ImplicitAPI):
             useHistorical, params = self.handle_option_and_params(params, 'fetchOHLCV', 'useHistoricalEndpointForSpot', True)
             if not useHistorical:
                 if limit is not None:
-                    request['size'] = min(2000, limit)  # max 2000
+                    request['size'] = min(limit, 2000)  # max 2000
                 response = self.spotPublicGetMarketHistoryKline(self.extend(request, params))
             else:
                 # "from & to" only available for the self endpoint
@@ -2986,7 +2989,7 @@ class htx(Exchange, ImplicitAPI):
         defaultAccount = self.safe_value(accounts, 0, {})
         return self.safe_string(defaultAccount, 'id')
 
-    def fetch_currencies(self, params={}):
+    def fetch_currencies(self, params={}) -> Currencies:
         """
         fetches all available currencies on an exchange
         :param dict [params]: extra parameters specific to the exchange API endpoint
