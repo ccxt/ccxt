@@ -6,7 +6,7 @@ import { ExchangeNotAvailable, ExchangeError, DDoSProtection, BadSymbol, Invalid
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import type { TransferEntry, Balances, Bool, Currency, Int, Market, MarketType, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Num, Currencies, TradingFees } from './base/types.js';
+import type { TransferEntry, Balances, Bool, Dict, Currency, Int, Market, MarketType, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Num, Currencies, TradingFees } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -31,6 +31,7 @@ export default class whitebit extends Exchange {
                 'future': false,
                 'option': false,
                 'cancelAllOrders': false,
+                'cancelAllOrdersAfter': true,
                 'cancelOrder': true,
                 'cancelOrders': false,
                 'createOrder': true,
@@ -209,6 +210,10 @@ export default class whitebit extends Exchange {
                             'order/stop_limit',
                             'order/stop_market',
                             'order/cancel',
+                            'order/kill-switch',
+                            'order/kill-switch/status',
+                            'order/bulk',
+                            'order/modify',
                             'orders',
                             'profile/websocket_token',
                         ],
@@ -1290,6 +1295,42 @@ export default class whitebit extends Exchange {
             'orderId': parseInt (id),
         };
         return await this.v4PrivatePostOrderCancel (this.extend (request, params));
+    }
+
+    async cancelAllOrdersAfter (timeout: number, activated: Bool = undefined, params = {}) {
+        /**
+         * @method
+         * @name whitebit#cancelAllOrdersAfter
+         * @description dead man's switch, cancel all orders after the given timeout
+         * @see https://docs.whitebit.com/private/http-trade-v4/#sync-kill-switch-timer
+         * @param {number} countdown time in seconds
+         * @param {boolean} activated countdown
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.types] Order types value. Example: "spot", "margin", "futures" or null
+         * @param {string} [params.symbol] symbol unified symbol of the market the order was made in
+         * @returns {object} the api result
+         */
+        await this.loadMarkets ();
+        const symbol = this.safeString (params, 'symbol');
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelAllOrdersAfter() requires a symbol params');
+        }
+        const market = this.market (symbol);
+        params = this.omit (params, 'symbol');
+        const request: Dict = {
+            'market': market['id'],
+            'timeout': (activated) ? timeout.toString () : null,
+        };
+        const response = await this.v4PrivatePostOrderKillSwitch (this.extend (request, params));
+        //
+        //     {
+        //         "market": "BTC_USDT", // currency market,
+        //         "startTime": 1662478154, // now timestamp,
+        //         "cancellationTime": 1662478154, // now + timer_value,
+        //         "types": ["spot", "margin"]
+        //     }
+        //
+        return response;
     }
 
     parseBalance (response): Balances {

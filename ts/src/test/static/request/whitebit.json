@@ -106,6 +106,34 @@
                 "output": "{\"request\":\"/api/v4/order/collateral/trigger_market\",\"nonce\":\"1701937579352\",\"market\":\"DOGE_PERP\",\"side\":\"buy\",\"amount\":\"100\",\"clientOrderId\":\"ccxt79f2861ea4fbae32\",\"activation_price\":\"0.08\"}"
             }
         ],
+        "cancelAllOrdersAfter": [
+            {
+                "description": "Cancel all orders after",
+                "method": "cancelAllOrdersAfter",
+                "url": "https://whitebit.com/api/v4/order/kill-switch",
+                "input": [
+                    10,
+                    true,
+                    {
+                        "symbol": "BTC/USDT"
+                    }
+                ],
+                "output": "{\"request\":\"/api/v4/order/kill-switch\",\"nonce\":\"1701937579352\",\"market\":\"BTC_USDT\",\"timeout\":\"10\"}"
+            },
+            {
+                "description": "Close cancel all orders after",
+                "method": "cancelAllOrdersAfter",
+                "url": "https://whitebit.com/api/v4/order/kill-switch",
+                "input": [
+                    10,
+                    false,
+                    {
+                        "symbol": "BTC/USDT"
+                    }
+                ],
+                "output": "{\"request\":\"/api/v4/order/kill-switch\",\"nonce\":\"1701937579352\",\"market\":\"BTC_USDT\",\"timeout\":null}"
+            }
+        ],
         "fetchBalance": [
             {
                 "description": "Fetch Balance - trade",
