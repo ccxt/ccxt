@@ -1041,6 +1041,7 @@
     "latoken": {
         "skipMethods":{
             "loadMarkets": {
+                "precision": "messed just for one pair https://app.travis-ci.com/github/ccxt/ccxt/builds/269924468#L4006",
                 "currency": "messed",
                 "currencyIdAndCode": "messed"
             },
