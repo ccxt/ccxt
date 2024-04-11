@@ -7763,13 +7763,13 @@ export default class okx extends Exchange {
         return this.filterBySymbolSinceLimit (modifications, symbol, since, limit);
     }
 
-    async fetchPositionHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
+    async fetchPositionsHistory (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
         /**
          * @method
-         * @name okx#fetchPositionHistory
+         * @name okx#fetchPositionsHistory
          * @description fetches historical positions
          * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-positions-history
-         * @param {string} [symbol] unified market symbol
+         * @param {string} [symbols] unified market symbols
          * @param {int} [since] timestamp in ms of the earliest position to fetch
          * @param {int} [limit] the maximum amount of records to fetch, default=100, max=100
          * @param {object} params extra parameters specific to the exchange api endpoint
@@ -7793,9 +7793,12 @@ export default class okx extends Exchange {
         const request = {
             'limit': limit,
         };
-        if (symbol !== undefined) {
-            const market = this.market (symbol);
-            request['instId'] = market['id'];
+        if (symbols !== undefined) {
+            const symbolsLength = symbols.length;
+            if (symbolsLength === 1) {
+                const market = this.market (symbols[0]);
+                request['instId'] = market['id'];
+            }
         }
         if (since !== undefined) {
             request['before'] = since.toString ();
@@ -7844,7 +7847,7 @@ export default class okx extends Exchange {
         //    }
         //
         const data = this.safeList (response, 'data');
-        const positions = this.parsePositions (data);
-        return this.filterBySymbolSinceLimit (positions, symbol, since, limit);
+        const positions = this.parsePositions (data, symbols, params);
+        return this.filterBySinceLimit (positions, since, limit);
     }
 }

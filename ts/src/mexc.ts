@@ -93,6 +93,7 @@ export default class mexc extends Exchange {
                 'fetchOrderTrades': true,
                 'fetchPosition': true,
                 'fetchPositionHistory': true,
+                'fetchPositionsHistory': true,
                 'fetchPositionMode': true,
                 'fetchPositions': true,
                 'fetchPositionsRisk': undefined,
@@ -4896,7 +4897,7 @@ export default class mexc extends Exchange {
         //         "autoAddIm": false
         //     }
         //
-        // fetchPositionHistory
+        // fetchPositionsHistory
         //
         //    {
         //        positionId: '390281084',
@@ -5581,14 +5582,14 @@ export default class mexc extends Exchange {
         return [ marginMode, params ];
     }
 
-    async fetchPositionHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
+    async fetchPositionsHistory (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
         /**
          * @method
-         * @name mexc#fetchPositionHistory
+         * @name mexc#fetchPositionsHistory
          * @description fetches historical positions
          * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-user-s-history-position-information
-         * @param {string} [symbol] unified market symbol
-         * @param {int} [since] not used by mexc fetchPositionHistory
+         * @param {string[]} [symbols] unified contract symbols
+         * @param {int} [since] not used by mexc fetchPositionsHistory
          * @param {int} [limit] the maximum amount of candles to fetch, default=1000
          * @param {object} params extra parameters specific to the exchange api endpoint
          *
@@ -5599,9 +5600,12 @@ export default class mexc extends Exchange {
          */
         await this.loadMarkets ();
         const request = {};
-        if (symbol !== undefined) {
-            const market = this.market (symbol);
-            request['symbol'] = market['id'];
+        if (symbols !== undefined) {
+            const symbolsLength = symbols.length;
+            if (symbolsLength === 1) {
+                const market = this.market (symbols[0]);
+                request['symbol'] = market['id'];
+            }
         }
         if (limit !== undefined) {
             request['page_size'] = limit;
@@ -5648,8 +5652,8 @@ export default class mexc extends Exchange {
         //    }
         //
         const data = this.safeList (response, 'data');
-        const positions = this.parsePositions (data);
-        return this.filterBySymbolSinceLimit (positions, symbol, since, limit);
+        const positions = this.parsePositions (data, symbols, params);
+        return this.filterBySinceLimit (positions, since, limit);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

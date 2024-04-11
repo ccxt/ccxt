@@ -78,6 +78,7 @@ export default class bitmex extends Exchange {
                 'fetchOrders': true,
                 'fetchPosition': false,
                 'fetchPositionHistory': false,
+                'fetchPositionsHistory': false,
                 'fetchPositions': true,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,

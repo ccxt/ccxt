@@ -81,6 +81,7 @@ export default class cryptocom extends Exchange {
                 'fetchOrders': true,
                 'fetchPosition': true,
                 'fetchPositionHistory': false,
+                'fetchPositionsHistory': false,
                 'fetchPositionMode': false,
                 'fetchPositions': true,
                 'fetchPremiumIndexOHLCV': false,

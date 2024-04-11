@@ -595,19 +595,19 @@
                 ]
             }
         ],
-        "fetchPositionHistory": [
+        "fetchPositionsHistory": [
             {
                 "description": "with no arguments",
-                "method": "fetchPositionHistory",
+                "method": "fetchPositionsHistory",
                 "url": "https://contract.mexc.com/api/v1/private/position/list/history_positions",
                 "input": []
             },
             {
                 "description": "with symbol and limit argument",
-                "method": "fetchPositionHistory",
+                "method": "fetchPositionsHistory",
                 "url": "https://contract.mexc.com/api/v1/private/position/list/history_positions?page_size=5&symbol=SOL_USDT",
                 "input": [
-                  "SOL/USDT:USDT",
+                  [ "SOL/USDT:USDT" ],
                   null,
                   5
                 ]

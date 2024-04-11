@@ -92,7 +92,9 @@ export default class coinex extends Exchange {
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchPosition': true,
+                'fetchPositionHistory': true,
                 'fetchPositions': true,
+                'fetchPositionsHistory': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
@@ -5713,13 +5715,13 @@ export default class coinex extends Exchange {
         } as Leverage;
     }
 
-    async fetchPositionHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
+    async fetchPositionHistory (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position> {
         /**
          * @method
          * @name coinex#fetchPositionHistory
          * @description fetches historical positions
          * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http033-0_finished_position
-         * @param {string} symbol unified market symbol
+         * @param {string} symbol unified contract symbol
          * @param {int} [since] not used by coinex fetchPositionHistory
          * @param {int} [limit] the maximum amount of records to fetch, default=1000
          * @param {object} params extra parameters specific to the exchange api endpoint
@@ -5729,9 +5731,6 @@ export default class coinex extends Exchange {
          * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
          */
         await this.loadMarkets ();
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchPositionHistory () requires a symbol argument');
-        }
         const market = this.market (symbol);
         if (limit === undefined) {
             limit = 1000;

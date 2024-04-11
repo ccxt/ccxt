@@ -103,6 +103,7 @@ export default class bybit extends Exchange {
                 'fetchOrderTrades': true,
                 'fetchPosition': true,
                 'fetchPositionHistory': true,
+                'fetchPositionsHistory': true,
                 'fetchPositions': true,
                 'fetchPremiumIndexOHLCV': true,
                 'fetchSettlementHistory': true,
@@ -6357,7 +6358,7 @@ export default class bybit extends Exchange {
         //         "tradeMode": 0
         //     }
         //
-        // fetchPositionHistory
+        // fetchPositionsHistory
         //
         //    {
         //        symbol: 'XRPUSDT',
@@ -6407,7 +6408,7 @@ export default class bybit extends Exchange {
         let marginMode = undefined;
         if ((!this.options['enableUnifiedAccount']) || (this.options['enableUnifiedAccount'] && market['inverse'])) {
             // tradeMode would work for classic and UTA(inverse)
-            if (!isHistory) {     // cannot tell marginMode for fetchPositionHistory, and closedSize will only be defined for fetchPositionHistory response
+            if (!isHistory) {     // cannot tell marginMode for fetchPositionsHistory, and closedSize will only be defined for fetchPositionsHistory response
                 marginMode = (tradeMode === 1) ? 'isolated' : 'cross';
             }
         }
@@ -8423,13 +8424,13 @@ export default class bybit extends Exchange {
         };
     }
 
-    async fetchPositionHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
+    async fetchPositionsHistory (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
         /**
          * @method
-         * @name bybit#fetchPositionHistory
+         * @name bybit#fetchPositionsHistory
          * @description fetches historical positions
          * @see https://bybit-exchange.github.io/docs/v5/position/close-pnl
-         * @param {string} [symbol] unified market symbol
+         * @param {string} [symbol] unified market symbols, symbols must have the same subType (must all be linear or all be inverse)
          * @param {int} [since] timestamp in ms of the earliest position to fetch, params["until"] - since <= 7 days
          * @param {int} [limit] the maximum amount of records to fetch, default=50, max=100
          * @param {object} params extra parameters specific to the exchange api endpoint
@@ -8440,14 +8441,20 @@ export default class bybit extends Exchange {
         await this.loadMarkets ();
         let market = undefined;
         let subType = undefined;
+        let symbolsLength = 0;
+        if (symbols !== undefined) {
+            symbolsLength = symbols.length;
+            if (symbolsLength > 0) {
+                market = this.market (symbols[0]);
+            }
+        }
         const until = this.safeInteger (params, 'until');
-        [ subType, params ] = this.handleSubTypeAndParams ('fetchPositionHistory', market, params, 'linear');
+        [ subType, params ] = this.handleSubTypeAndParams ('fetchPositionsHistory', market, params, 'linear');
         params = this.omit (params, 'until');
         const request = {
             'category': subType,
         };
-        if (symbol !== undefined) {
-            market = this.market (symbol);
+        if ((symbols !== undefined) && (symbolsLength === 1)) {
             request['symbol'] = market['id'];
         }
         if (since === undefined) {
@@ -8495,8 +8502,8 @@ export default class bybit extends Exchange {
         //
         const result = this.safeDict (response, 'result');
         const list = this.safeList (result, 'list');
-        const positions = this.parsePositions (list);
-        return this.filterBySymbolSinceLimit (positions, symbol, since, limit);
+        const positions = this.parsePositions (list, symbols, params);
+        return this.filterBySinceLimit (positions, since, limit);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

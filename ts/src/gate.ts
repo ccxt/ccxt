@@ -138,7 +138,8 @@ export default class gate extends Exchange {
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchPosition': true,
-                'fetchPositionHistory': false,
+                'fetchPositionHistory': true,
+                'fetchPositionsHistory': true,
                 'fetchPositionMode': false,
                 'fetchPositions': true,
                 'fetchPremiumIndexOHLCV': false,
@@ -5281,7 +5282,7 @@ export default class gate extends Exchange {
         //         "pending_orders": 0
         //     }
         //
-        // fetchPositionHistory (swap and future)
+        // fetchPositionsHistory (swap and future)
         //
         //    {
         //        "contract": "SLERF_USDT",         // Futures contract
@@ -7387,14 +7388,14 @@ export default class gate extends Exchange {
         };
     }
 
-    async fetchPositionHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
+    async fetchPositionsHistory (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
         /**
          * @method
-         * @name gate#fetchPositionHistory
+         * @name gate#fetchPositionsHistory
          * @description fetches historical positions
          * @see https://www.gate.io/docs/developers/apiv4/#list-position-close-history
          * @see https://www.gate.io/docs/developers/apiv4/#list-position-close-history-2
-         * @param {string} symbol unified market symbol
+         * @param {string[]} symbols unified conract symbols, must all have the same settle currency and the same market type
          * @param {int} [since] the earliest time in ms to fetch positions for
          * @param {int} [limit] the maximum amount of records to fetch, default=1000
          * @param {object} params extra parameters specific to the exchange api endpoint
@@ -7408,11 +7409,14 @@ export default class gate extends Exchange {
          */
         await this.loadMarkets ();
         let market = undefined;
-        if (symbol !== undefined) {
-            market = this.market (symbol);
+        if (symbols !== undefined) {
+            const symbolsLength = symbols.length;
+            if (symbolsLength === 1) {
+                market = this.market (symbols[0]);
+            }
         }
         let marketType = undefined;
-        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchPositionHistory', market, params);
+        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchPositionsHistory', market, params);
         const until = this.safeInteger (params, 'until');
         params = this.omit (params, 'until');
         let request = {};
@@ -7432,7 +7436,7 @@ export default class gate extends Exchange {
         } else if (marketType === 'future') {
             response = await this.privateDeliveryGetSettlePositionClose (this.extend (request, params));
         } else {
-            throw new NotSupported (this.id + ' fetchPositionHistory() does not support markets of type ' + marketType);
+            throw new NotSupported (this.id + ' fetchPositionsHistory() does not support markets of type ' + marketType);
         }
         //
         //    [
@@ -7454,8 +7458,8 @@ export default class gate extends Exchange {
         //        ...
         //    ]
         //
-        const positions = this.parsePositions (response);
-        return this.filterBySymbolSinceLimit (positions, symbol, since, limit);
+        const positions = this.parsePositions (response, symbols, params);
+        return this.filterBySinceLimit (positions, since, limit);
     }
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {

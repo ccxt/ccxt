@@ -1365,19 +1365,19 @@
                 ]
             }
         ],
-        "fetchPositionHistory": [
+        "fetchPositionsHistory": [
             {
-                "description": "Fetch Position History",
+                "description": "Fetch Positions History",
                 "method": "fetchPositionHistory",
                 "url": "https://www.okx.com/api/v5/account/positions-history?limit=100",
                 "input": []
             },
             {
-                "description": "Fetch Position History with symbol, since, limit, params['until'], params['marginMode'], and params['instType'] assigned",
-                "method": "fetchPositionHistory",
+                "description": "Fetch Positions History with symbol, since, limit, params['until'], params['marginMode'], and params['instType'] assigned",
+                "method": "fetchPositionsHistory",
                 "url": "https://www.okx.com/api/v5/account/positions-history?limit=2&instId=LTC-USDT-SWAP&before=1704067200000&after=1712624819000&mgnMode=cross&instType=SWAP",
                 "input": [
-                  "LTC/USDT:USDT",
+                  [ "LTC/USDT:USDT" ],
                   1704067200000,
                   2,
                   {
