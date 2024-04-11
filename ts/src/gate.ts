@@ -7416,7 +7416,7 @@ export default class gate extends Exchange {
             }
         }
         let marketType = undefined;
-        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchPositionsHistory', market, params);
+        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchPositionsHistory', market, params, 'swap');
         const until = this.safeInteger (params, 'until');
         params = this.omit (params, 'until');
         let request = {};
