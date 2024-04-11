@@ -214,6 +214,12 @@
         ],
         "fetchPositionsHistory": [
             {
+                "description": "Fetchs positions history",
+                "method": "fetchPositionsHistory",
+                "url": "https://api.gateio.ws/api/v4/futures/usdt/position_close",
+                "input": []
+            },
+            {
                 "description": "Fetch Positions History with all params assigned",
                 "method": "fetchPositionsHistory",
                 "url": "https://api.gateio.ws/api/v4/futures/usdt/position_close?contract=XRP_USDT&limit=1&from=1709589714736&to=1709590068602",
