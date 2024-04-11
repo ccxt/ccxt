@@ -1945,6 +1945,133 @@
                   }
                 ]
             }
+        ],
+        "createOrder": [
+            {
+                "description": "Spot limit buy order",
+                "method": "createOrder",
+                "input": [
+                    "DOGE/USDC",
+                    "limit",
+                    "buy",
+                    10,
+                    0.1832
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "data": [
+                        {
+                            "clOrdId": "e847386590ce4dBCbdc5ec847458b1b5",
+                            "ordId": "698589472514314242",
+                            "sCode": "0",
+                            "sMsg": "Order placed",
+                            "tag": "e847386590ce4dBC"
+                        }
+                    ],
+                    "inTime": "1712828709412182",
+                    "msg": "",
+                    "outTime": "1712828709413558"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "clOrdId": "e847386590ce4dBCbdc5ec847458b1b5",
+                        "ordId": "698589472514314242",
+                        "sCode": "0",
+                        "sMsg": "Order placed",
+                        "tag": "e847386590ce4dBC"
+                    },
+                    "id": "698589472514314242",
+                    "clientOrderId": "e847386590ce4dBCbdc5ec847458b1b5",
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "symbol": "DOGE/USDC",
+                    "type": "limit",
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "side": "buy",
+                    "price": null,
+                    "stopLossPrice": null,
+                    "takeProfitPrice": null,
+                    "stopPrice": null,
+                    "triggerPrice": null,
+                    "average": null,
+                    "cost": null,
+                    "amount": null,
+                    "filled": null,
+                    "remaining": null,
+                    "status": null,
+                    "fee": null,
+                    "trades": [],
+                    "reduceOnly": false,
+                    "fees": []
+                }
+            }
+        ],
+        "editOrder": [
+            {
+                "description": "Spot edit an order amount",
+                "method": "editOrder",
+                "input": [
+                    "698589472514314242",
+                    "DOGE/USDC",
+                    "limit",
+                    "buy",
+                    10,
+                    0.1833
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "data": [
+                        {
+                        "clOrdId": "e847386590ce4dBCbdc5ec847458b1b5",
+                        "ordId": "698589472514314242",
+                        "reqId": "",
+                        "sCode": "0",
+                        "sMsg": ""
+                        }
+                    ],
+                    "inTime": "1712829334356476",
+                    "msg": "",
+                    "outTime": "1712829334357789"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "clOrdId": "e847386590ce4dBCbdc5ec847458b1b5",
+                        "ordId": "698589472514314242",
+                        "reqId": "",
+                        "sCode": "0",
+                        "sMsg": ""
+                    },
+                    "id": "698589472514314242",
+                    "clientOrderId": "e847386590ce4dBCbdc5ec847458b1b5",
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "symbol": "DOGE/USDC",
+                    "type": "limit",
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "side": "buy",
+                    "price": null,
+                    "stopLossPrice": null,
+                    "takeProfitPrice": null,
+                    "stopPrice": null,
+                    "triggerPrice": null,
+                    "average": null,
+                    "cost": null,
+                    "amount": null,
+                    "filled": null,
+                    "remaining": null,
+                    "status": null,
+                    "fee": null,
+                    "trades": [],
+                    "reduceOnly": false,
+                    "fees": []
+                }
+            }
         ]
     }
 }
