@@ -3750,7 +3750,7 @@ public partial class bitfinex2 : Exchange
         return this.parseMarginModification(data, market);
     }
 
-    public virtual object parseMarginModification(object data, object market = null)
+    public override object parseMarginModification(object data, object market = null)
     {
         //
         // setMargin
@@ -3767,6 +3767,7 @@ public partial class bitfinex2 : Exchange
             { "info", data },
             { "symbol", getValue(market, "symbol") },
             { "type", null },
+            { "marginMode", "isolated" },
             { "amount", null },
             { "total", null },
             { "code", null },

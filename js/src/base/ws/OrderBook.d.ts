@@ -1,8 +1,15 @@
+import { IOrderBookSide } from './OrderBookSide.js';
+import { Int, Str } from '../types.js';
 interface CustomOrderBookProp {
     cache: any[];
 }
 declare class OrderBook implements CustomOrderBookProp {
     cache: any[];
+    asks: IOrderBookSide<any>;
+    bids: IOrderBookSide<any>;
+    timestamp: Int;
+    datetime: Str;
+    nonce: Int;
     constructor(snapshot?: {}, depth?: any);
     limit(): this;
     update(snapshot: any): this;

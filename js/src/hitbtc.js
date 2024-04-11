@@ -1628,6 +1628,8 @@ export default class hitbtc extends Exchange {
             'symbol': symbol,
             'taker': taker,
             'maker': maker,
+            'percentage': undefined,
+            'tierBased': undefined,
         };
     }
     async fetchTradingFee(symbol, params = {}) {
@@ -3322,6 +3324,7 @@ export default class hitbtc extends Exchange {
             'info': data,
             'symbol': market['symbol'],
             'type': undefined,
+            'marginMode': 'isolated',
             'amount': undefined,
             'total': undefined,
             'code': this.safeString(currencyInfo, 'code'),

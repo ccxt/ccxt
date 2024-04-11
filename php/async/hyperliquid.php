@@ -205,7 +205,7 @@ class hyperliquid extends Exchange {
         $this->options['sandboxMode'] = $enabled;
     }
 
-    public function fetch_currencies($params = array ()) {
+    public function fetch_currencies($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches all available currencies on an exchange
@@ -2178,6 +2178,7 @@ class hyperliquid extends Exchange {
             'info' => $data,
             'symbol' => $this->safe_symbol(null, $market),
             'type' => null,
+            'marginMode' => 'isolated',
             'amount' => null,
             'total' => null,
             'code' => $this->safe_string($market, 'settle'),

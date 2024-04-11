@@ -35,6 +35,15 @@ export interface FeeInterface {
     rate?: Num;
 }
 
+export interface TradingFeeInterface {
+    info: any;
+    symbol: Str;
+    maker: Num;
+    taker: Num;
+    percentage: Bool;
+    tierBased: Bool;
+}
+
 export type Fee = FeeInterface | undefined
 
 export interface MarketInterface {
@@ -189,8 +198,29 @@ export interface Tickers extends Dictionary<Ticker> {
 export interface CurrencyInterface {
     id: string;
     code: string;
-    numericId?: number;
+    numericId?: Int;
     precision: number;
+    type?: Str;
+    margin?: Bool;
+    name?: Str;
+    active?: Bool;
+    deposit?: Bool;
+    withdraw?: Bool;
+    fee?: Num;
+    limits: {
+        amount: {
+            min?: Num;
+            max?: Num;
+        },
+        withdraw: {
+            min?: Num;
+            max?: Num;
+        },
+    },
+    networks: {
+        string: any,
+    },
+    info: any;
 }
 
 export interface Balance {
@@ -280,7 +310,7 @@ export interface Position {
     liquidationPrice?: number;
     marginMode?: Str;
     hedged?: boolean;
-    maintenenceMargin?: number;
+    maintenanceMargin?: number;
     maintenanceMarginPercentage?: number;
     initialMargin?: number;
     initialMarginPercentage?: number;
@@ -441,6 +471,19 @@ export interface Greeks {
     info: any;
 }
 
+export interface Conversion {
+    info: any;
+    timestamp?: number
+    datetime?: string;
+    id: string;
+    fromCurrency: string;
+    fromAmount: number;
+    toCurrency: string;
+    toAmount: number;
+    price: number;
+    fee: number;
+}
+
 export interface Option {
     info: any;
     currency: string;
@@ -482,6 +525,7 @@ export interface MarginModification {
     'info': any,
     'symbol': string,
     'type': 'add' | 'reduce' | 'set' | undefined,
+    'marginMode': 'cross' | 'isolated' | undefined,
     'amount': Num,
     'total': Num,
     'code': Str,
@@ -494,6 +538,11 @@ export interface Leverages extends Dictionary<Leverage> {
 }
 
 export interface LastPrices extends Dictionary<LastPrice> {
+}
+export interface Currencies extends Dictionary<CurrencyInterface> {
+}
+
+export interface TradingFees extends Dictionary<TradingFeeInterface> {
 }
 
 export interface MarginModes extends Dictionary<MarginMode> {
@@ -512,3 +561,4 @@ export type implicitReturnType = any;
 
 export type Market = MarketInterface | undefined;
 export type Currency = CurrencyInterface | undefined;
+

@@ -76,6 +76,7 @@ public partial class deribit
     /// </summary>
     /// <remarks>
     /// See <see href="https://docs.deribit.com/#public-get_currencies"/>  <br/>
+    /// See <see href="https://docs.deribit.com/#public-get_instruments"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -293,10 +294,10 @@ public partial class deribit
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols.</returns>
-    public async Task<Dictionary<string, object>> FetchTradingFees(Dictionary<string, object> parameters = null)
+    public async Task<TradingFees> FetchTradingFees(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchTradingFees(parameters);
-        return ((Dictionary<string, object>)res);
+        return new TradingFees(res);
     }
     /// <summary>
     /// fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data

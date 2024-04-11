@@ -6,7 +6,7 @@ import { ArgumentsRequired, ExchangeError, OrderNotFound, AuthenticationError, I
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import type { Dictionary, Int, Order, OrderSide, OrderType, Trade, OrderBook, OHLCV, Balances, Str, Transaction, Ticker, Tickers, Strings, Market, Currency, Num, MarginModification } from './base/types.js';
+import type { Dictionary, Int, Order, OrderSide, OrderType, Trade, OrderBook, OHLCV, Balances, Str, Transaction, Ticker, Tickers, Strings, Market, Currency, Num, MarginModification, Currencies, TradingFees } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -267,6 +267,7 @@ export default class exmo extends Exchange {
             'info': data,
             'symbol': this.safeSymbol (undefined, market),
             'type': undefined,
+            'marginMode': 'isolated',
             'amount': undefined,
             'total': undefined,
             'code': this.safeValue (market, 'quote'),
@@ -304,7 +305,7 @@ export default class exmo extends Exchange {
         return await this.modifyMarginHelper (symbol, amount, 'add', params);
     }
 
-    async fetchTradingFees (params = {}) {
+    async fetchTradingFees (params = {}): Promise<TradingFees> {
         /**
          * @method
          * @name exmo#fetchTradingFees
@@ -599,7 +600,7 @@ export default class exmo extends Exchange {
         return this.assignDefaultDepositWithdrawFees (result);
     }
 
-    async fetchCurrencies (params = {}) {
+    async fetchCurrencies (params = {}): Promise<Currencies> {
         /**
          * @method
          * @name exmo#fetchCurrencies

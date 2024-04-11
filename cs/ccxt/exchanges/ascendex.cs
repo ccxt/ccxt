@@ -1547,6 +1547,8 @@ public partial class ascendex : Exchange
                 { "symbol", symbol },
                 { "maker", this.safeNumber(takerMaker, "maker") },
                 { "taker", this.safeNumber(takerMaker, "taker") },
+                { "percentage", null },
+                { "tierBased", null },
             };
         }
         return result;
@@ -3035,7 +3037,7 @@ public partial class ascendex : Exchange
         });
     }
 
-    public virtual object parseMarginModification(object data, object market = null)
+    public override object parseMarginModification(object data, object market = null)
     {
         //
         // addMargin/reduceMargin
@@ -3050,6 +3052,7 @@ public partial class ascendex : Exchange
             { "info", data },
             { "symbol", getValue(market, "symbol") },
             { "type", null },
+            { "marginMode", "isolated" },
             { "amount", null },
             { "total", null },
             { "code", getValue(market, "quote") },

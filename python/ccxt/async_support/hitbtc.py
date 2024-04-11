@@ -6,9 +6,10 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.hitbtc import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, Int, Leverage, MarginMode, MarginModes, MarginModification, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
+from ccxt.base.types import Balances, Currencies, Currency, Int, Leverage, MarginMode, MarginModes, MarginModification, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import AccountSuspended
 from ccxt.base.errors import ArgumentsRequired
@@ -21,7 +22,6 @@ from ccxt.base.errors import NotSupported
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import OnMaintenance
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -802,7 +802,7 @@ class hitbtc(Exchange, ImplicitAPI):
             })
         return result
 
-    async def fetch_currencies(self, params={}):
+    async def fetch_currencies(self, params={}) -> Currencies:
         """
         fetches all available currencies on an exchange
         :see: https://api.hitbtc.com/#currencies
@@ -1547,7 +1547,7 @@ class hitbtc(Exchange, ImplicitAPI):
         timestamp = self.parse8601(self.safe_string(response, 'timestamp'))
         return self.parse_order_book(response, symbol, timestamp, 'bid', 'ask')
 
-    def parse_trading_fee(self, fee, market: Market = None):
+    def parse_trading_fee(self, fee, market: Market = None) -> TradingFeeInterface:
         #
         #     {
         #         "symbol":"ARVUSDT",  # returned from fetchTradingFees only
@@ -1564,9 +1564,11 @@ class hitbtc(Exchange, ImplicitAPI):
             'symbol': symbol,
             'taker': taker,
             'maker': maker,
+            'percentage': None,
+            'tierBased': None,
         }
 
-    async def fetch_trading_fee(self, symbol: str, params={}):
+    async def fetch_trading_fee(self, symbol: str, params={}) -> TradingFeeInterface:
         """
         fetch the trading fees for a market
         :see: https://api.hitbtc.com/#get-trading-commission
@@ -1595,7 +1597,7 @@ class hitbtc(Exchange, ImplicitAPI):
         #
         return self.parse_trading_fee(response, market)
 
-    async def fetch_trading_fees(self, params={}):
+    async def fetch_trading_fees(self, params={}) -> TradingFees:
         """
         fetch the trading fees for multiple markets
         :see: https://api.hitbtc.com/#get-all-trading-commissions
@@ -3080,6 +3082,7 @@ class hitbtc(Exchange, ImplicitAPI):
             'info': data,
             'symbol': market['symbol'],
             'type': None,
+            'marginMode': 'isolated',
             'amount': None,
             'total': None,
             'code': self.safe_string(currencyInfo, 'code'),

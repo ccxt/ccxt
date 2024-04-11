@@ -945,6 +945,8 @@ public partial class luno : Exchange
             { "symbol", symbol },
             { "maker", this.safeNumber(response, "maker_fee") },
             { "taker", this.safeNumber(response, "taker_fee") },
+            { "percentage", null },
+            { "tierBased", null },
         };
     }
 

@@ -7,13 +7,13 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.ndax import ImplicitAPI
 import hashlib
 import json
-from ccxt.base.types import Account, Balances, Currency, IndexType, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Transaction
+from ccxt.base.types import Account, Balances, Currencies, Currency, IndexType, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import OrderNotFound
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -329,7 +329,7 @@ class ndax(Exchange, ImplicitAPI):
             return responseInner
         return response
 
-    async def fetch_currencies(self, params={}):
+    async def fetch_currencies(self, params={}) -> Currencies:
         """
         fetches all available currencies on an exchange
         :see: https://apidoc.ndax.io/#getproduct

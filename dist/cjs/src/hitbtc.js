@@ -1625,6 +1625,8 @@ class hitbtc extends hitbtc$1 {
             'symbol': symbol,
             'taker': taker,
             'maker': maker,
+            'percentage': undefined,
+            'tierBased': undefined,
         };
     }
     async fetchTradingFee(symbol, params = {}) {
@@ -3319,6 +3321,7 @@ class hitbtc extends hitbtc$1 {
             'info': data,
             'symbol': market['symbol'],
             'type': undefined,
+            'marginMode': 'isolated',
             'amount': undefined,
             'total': undefined,
             'code': this.safeString(currencyInfo, 'code'),

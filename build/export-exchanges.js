@@ -518,23 +518,66 @@ function getErrorHierarchy() {
 
 // ----------------------------------------------------------------------------
 
+function generateErrorsTs () {
+    const classBlock = (className, extendedClassName) => {
+        return '' + 
+            `class ${className} extends ${extendedClassName} {\n` +
+            `    constructor (message) {\n` +
+            `        super (message);\n` +
+            `        this.name = '${className}';\n` +
+            `    }\n` +
+            `}`;
+    }
+    const errorsHierarchyJson = getErrorHierarchy ();
+    const errorsFlatArray = [];
+    let result = '/* eslint-disable max-classes-per-file */\n\n';
+    // recursively go through the error hierarchy
+    const generateErrorClasses = (errorObject, parentClassName) => {
+        for (const key in errorObject) {
+            const className = key;
+            const extendedClassName = parentClassName;
+            errorsFlatArray.push(className);
+            result += classBlock(className, extendedClassName) + '\n';
+            if (Object.keys(errorObject[key]).length) {
+                generateErrorClasses(errorObject[key], className);
+            }
+        }
+    }
+    generateErrorClasses(errorsHierarchyJson, 'Error');
+    result += '\n';
+    result += 'export { ' + errorsFlatArray.join(', ') + ' };\n';
+    result += '\n';
+    result += 'export default { ' + errorsFlatArray.join(', ') + ' };\n';
+    const errorsTsPath = './ts/src/base/errors.ts';
+    fs.writeFileSync(errorsTsPath, result);
+}
+
+// ----------------------------------------------------------------------------
+
 async function exportEverything () {
     const ids = getIncludedExchangeIds ('./ts/src')
 
     const wsIds = getIncludedExchangeIds ('./ts/src/pro')
 
+    generateErrorsTs();
     const errorHierarchy = getErrorHierarchy()
-    const flat = flatten (errorHierarchy)
+    const flat = flatten (errorHierarchy);
+    const errorsExports = [...flat];
     flat.push ('error_hierarchy')
 
-    const typeExports = ['Market', 'Trade' , 'Fee', 'Ticker', 'OrderBook', 'Order', 'Transaction', 'Tickers', 'Currency', 'Balance', 'DepositAddress', 'WithdrawalResponse', 'DepositAddressResponse', 'OHLCV', 'Balances', 'PartialBalances', 'Dictionary', 'MinMax', 'Position', 'FundingRateHistory', 'Liquidation', 'FundingHistory', 'MarginMode', 'Greeks', 'Leverage', 'Leverages', 'Option', 'OptionChain' ]
-    const errorsExports = ['BaseError', 'ExchangeError', 'PermissionDenied', 'AccountNotEnabled', 'AccountSuspended', 'ArgumentsRequired', 'BadRequest', 'BadSymbol', 'MarginModeAlreadySet', 'BadResponse', 'NullResponse', 'InsufficientFunds', 'InvalidAddress', 'InvalidOrder', 'OrderNotFound', 'OrderNotCached', 'CancelPending', 'OrderImmediatelyFillable', 'OrderNotFillable', 'DuplicateOrderId', 'NotSupported', 'NetworkError', 'DDoSProtection', 'RateLimitExceeded', 'ExchangeNotAvailable', 'OnMaintenance', 'InvalidNonce', 'RequestTimeout', 'AuthenticationError', 'AddressPending', 'NoChange']
+    const typeExports = ['Market', 'Trade' , 'Fee', 'Ticker', 'OrderBook', 'Order', 'Transaction', 'Tickers', 'Currency', 'Balance', 'DepositAddress', 'WithdrawalResponse', 'DepositAddressResponse', 'OHLCV', 'Balances', 'PartialBalances', 'Dictionary', 'MinMax', 'Position', 'FundingRateHistory', 'Liquidation', 'FundingHistory', 'MarginMode', 'Greeks', 'Leverage', 'Leverages', 'Option', 'OptionChain', 'Conversion' ]
     const staticExports = ['version', 'Exchange', 'exchanges', 'pro', 'Precise', 'functions', 'errors'].concat(errorsExports).concat(typeExports)
 
     const fullExports  = staticExports.concat(ids)
 
     const ccxtFileDir = './ts/ccxt.ts'
     const replacements = [
+        {
+            // exceptions automatic import statement
+            file: ccxtFileDir,
+            regex:  /(import\s+\{)(.*?)(\}\s+from\s+'.\/src\/base\/errors.js'\n+)/g,
+            replacement: '$1' + errorsExports.join(", ") + '$3'
+        },
         {
             file: ccxtFileDir,
             regex:  /(?:(import)\s(\w+)\sfrom\s+'.\/src\/(\2).js'\n)+/g,

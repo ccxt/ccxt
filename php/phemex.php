@@ -961,7 +961,7 @@ class phemex extends Exchange {
         return $result;
     }
 
-    public function fetch_currencies($params = array ()) {
+    public function fetch_currencies($params = array ()): array {
         /**
          * fetches all available $currencies on an exchange
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -3984,6 +3984,7 @@ class phemex extends Exchange {
             'info' => $data,
             'symbol' => $this->safe_symbol(null, $market),
             'type' => 'set',
+            'marginMode' => 'isolated',
             'amount' => null,
             'total' => null,
             'code' => $market[$codeCurrency],

@@ -5,7 +5,7 @@ import Exchange from './abstract/probit.js';
 import { ExchangeError, ExchangeNotAvailable, BadResponse, BadRequest, InvalidOrder, InsufficientFunds, AuthenticationError, InvalidAddress, RateLimitExceeded, DDoSProtection, BadSymbol, ArgumentsRequired } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Currency, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import type { Balances, Currencies, Currency, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -347,7 +347,7 @@ export default class probit extends Exchange {
         };
     }
 
-    async fetchCurrencies (params = {}) {
+    async fetchCurrencies (params = {}): Promise<Currencies> {
         /**
          * @method
          * @name probit#fetchCurrencies
@@ -1509,12 +1509,11 @@ export default class probit extends Exchange {
         return result;
     }
 
-    async fetchTransactions (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchDepositsWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
-         * @name probit#fetchTransactions
-         * @deprecated
-         * @description use fetchDepositsWithdrawals instead
+         * @name probit#fetchDepositsWithdrawals
+         * @description fetch history of deposits and withdrawals
          * @see https://docs-en.probit.com/reference/transferpayment
          * @param {string} code unified currency code
          * @param {int} [since] the earliest time in ms to fetch transactions for

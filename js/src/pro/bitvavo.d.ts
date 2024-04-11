@@ -1,5 +1,5 @@
 import bitvavoRest from '../bitvavo.js';
-import { Int, Str, OrderSide, OrderType, OrderBook, Ticker, Trade, Order, OHLCV, Balances, Num } from '../base/types.js';
+import { Int, Str, OrderSide, OrderType, OrderBook, Ticker, Trade, Order, OHLCV, Balances, Num, TradingFees } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class bitvavo extends bitvavoRest {
     describe(): any;
@@ -40,7 +40,7 @@ export default class bitvavo extends bitvavoRest {
     fetchOHLCVWs(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     fetchDepositsWs(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
     handleDeposits(client: Client, message: any): void;
-    fetchTradingFeesWs(params?: {}): Promise<any>;
+    fetchTradingFeesWs(params?: {}): Promise<TradingFees>;
     fetchMarketsWs(params?: {}): Promise<any>;
     fetchCurrenciesWs(params?: {}): Promise<any>;
     handleFetchCurrencies(client: Client, message: any): void;

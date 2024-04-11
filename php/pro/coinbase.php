@@ -194,6 +194,9 @@ class coinbase extends \ccxt\async\coinbase {
                 $messageHash = $channel . '::' . $wsMarketId;
                 $newTickers[] = $result;
                 $client->resolve ($result, $messageHash);
+                if (str_ends_with($messageHash, 'USD')) {
+                    $client->resolve ($result, $messageHash . 'C'); // sometimes we subscribe to BTC/USDC and coinbase returns BTC/USD
+                }
             }
         }
         $messageHashes = $this->find_message_hashes($client, 'ticker_batch::');
@@ -205,6 +208,9 @@ class coinbase extends \ccxt\async\coinbase {
             $tickers = $this->filter_by_array($newTickers, 'symbol', $symbols);
             if (!$this->is_empty($tickers)) {
                 $client->resolve ($tickers, $messageHash);
+                if (str_ends_with($messageHash, 'USD')) {
+                    $client->resolve ($tickers, $messageHash . 'C'); // sometimes we subscribe to BTC/USDC and coinbase returns BTC/USD
+                }
             }
         }
         return $message;
@@ -359,6 +365,9 @@ class coinbase extends \ccxt\async\coinbase {
             }
         }
         $client->resolve ($tradesArray, $messageHash);
+        if (str_ends_with($marketId, 'USD')) {
+            $client->resolve ($tradesArray, $messageHash . 'C'); // sometimes we subscribe to BTC/USDC and coinbase returns BTC/USD
+        }
         return $message;
     }
 
@@ -415,6 +424,9 @@ class coinbase extends \ccxt\async\coinbase {
             $marketId = $marketIds[$i];
             $messageHash = 'user::' . $marketId;
             $client->resolve ($this->orders, $messageHash);
+            if (str_ends_with($messageHash, 'USD')) {
+                $client->resolve ($this->orders, $messageHash . 'C'); // sometimes we subscribe to BTC/USDC and coinbase returns BTC/USD
+            }
         }
         $client->resolve ($this->orders, 'user');
         return $message;
@@ -530,6 +542,9 @@ class coinbase extends \ccxt\async\coinbase {
                 $orderbook['datetime'] = null;
                 $orderbook['symbol'] = $symbol;
                 $client->resolve ($orderbook, $messageHash);
+                if (str_ends_with($messageHash, 'USD')) {
+                    $client->resolve ($orderbook, $messageHash . 'C'); // sometimes we subscribe to BTC/USDC and coinbase returns BTC/USD
+                }
             } elseif ($type === 'update') {
                 $orderbook = $this->orderbooks[$symbol];
                 $this->handle_order_book_helper($orderbook, $updates);
@@ -537,6 +552,9 @@ class coinbase extends \ccxt\async\coinbase {
                 $orderbook['timestamp'] = $this->parse8601($datetime);
                 $orderbook['symbol'] = $symbol;
                 $client->resolve ($orderbook, $messageHash);
+                if (str_ends_with($messageHash, 'USD')) {
+                    $client->resolve ($orderbook, $messageHash . 'C'); // sometimes we subscribe to BTC/USDC and coinbase returns BTC/USD
+                }
             }
         }
         return $message;

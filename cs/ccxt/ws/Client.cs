@@ -279,7 +279,10 @@ public partial class Exchange
             await _sendSemaphore.WaitAsync();
             try
             {
-                await webSocket.SendAsync(ArraySegment, WebSocketMessageType, endOnMessage, CancellationToken);
+                if (webSocket.State == WebSocketState.Open)
+                {
+                    await webSocket.SendAsync(ArraySegment, WebSocketMessageType, endOnMessage, CancellationToken);
+                }
             }
             finally
             {

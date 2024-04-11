@@ -1110,10 +1110,10 @@ public partial class kucoin
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchTradingFee(string symbol, Dictionary<string, object> parameters = null)
+    public async Task<TradingFeeInterface> FetchTradingFee(string symbol, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchTradingFee(symbol, parameters);
-        return ((Dictionary<string, object>)res);
+        return new TradingFeeInterface(res);
     }
     /// <summary>
     /// make a withdrawal
@@ -1233,9 +1233,9 @@ public partial class kucoin
     /// query for balance and get the amount of funds available for trading or funds locked in orders
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.kucoin.com/#list-accounts"/>  <br/>
     /// See <see href="https://www.kucoin.com/docs/rest/account/basic-info/get-account-list-spot-margin-trade_hf"/>  <br/>
-    /// See <see href="https://docs.kucoin.com/#query-isolated-margin-account-info"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs/rest/funding/funding-overview/get-account-detail-margin"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs/rest/funding/funding-overview/get-account-detail-isolated-margin"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>

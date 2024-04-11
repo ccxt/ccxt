@@ -270,6 +270,7 @@ class exmo extends Exchange {
             'info' => $data,
             'symbol' => $this->safe_symbol(null, $market),
             'type' => null,
+            'marginMode' => 'isolated',
             'amount' => null,
             'total' => null,
             'code' => $this->safe_value($market, 'quote'),
@@ -307,7 +308,7 @@ class exmo extends Exchange {
         }) ();
     }
 
-    public function fetch_trading_fees($params = array ()) {
+    public function fetch_trading_fees($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetch the trading fees for multiple markets
@@ -606,7 +607,7 @@ class exmo extends Exchange {
         return $this->assign_default_deposit_withdraw_fees($result);
     }
 
-    public function fetch_currencies($params = array ()) {
+    public function fetch_currencies($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches all available currencies on an exchange
