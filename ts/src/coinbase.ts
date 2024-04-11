@@ -6,7 +6,7 @@ import { ExchangeError, ArgumentsRequired, AuthenticationError, BadRequest, Inva
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Int, OrderSide, OrderType, Order, Trade, OHLCV, Ticker, OrderBook, Str, Transaction, Balances, Tickers, Strings, Market, Currency, Num, Account } from './base/types.js';
+import type { Int, OrderSide, OrderType, Order, Trade, OHLCV, Ticker, OrderBook, Str, Transaction, Balances, Tickers, Strings, Market, Currency, Num, Account, Conversion } from './base/types.js';
 
 // ----------------------------------------------------------------------------
 
@@ -3805,14 +3805,14 @@ export default class coinbase extends Exchange {
         return this.parseTransaction (data);
     }
 
-    async fetchConvertQuote (from: string, to: string, amount: number = undefined, params = {}) {
+    async fetchConvertQuote (fromCode: string, toCode: string, amount: Num = undefined, params = {}): Promise<Conversion> {
         /**
          * @method
          * @name coinbase#fetchConvertQuote
          * @description fetch a quote for converting from one currency to another
          * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_createconvertquote
-         * @param {string} from the currency that you want to sell and convert from
-         * @param {string} to the currency that you want to buy and convert into
+         * @param {string} fromCode the currency that you want to sell and convert from
+         * @param {string} toCode the currency that you want to buy and convert into
          * @param {float} [amount] how much you want to trade in units of the from currency
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {object} [params.trade_incentive_metadata] an object to fill in user incentive data
@@ -3822,24 +3822,24 @@ export default class coinbase extends Exchange {
          */
         await this.loadMarkets ();
         const request = {
-            'from_account': from.toUpperCase (),
-            'to_account': to.toUpperCase (),
+            'from_account': fromCode.toUpperCase (),
+            'to_account': toCode.toUpperCase (),
             'amount': this.numberToString (amount),
         };
         const response = await this.v3PrivatePostBrokerageConvertQuote (this.extend (request, params));
         const data = this.safeDict (response, 'trade', {});
-        return this.parseOrder (data, undefined);
+        return this.parseConversion (data);
     }
 
-    async createConvertTrade (id: string, from: string, to: string, amount: number = undefined, params = {}) {
+    async createConvertTrade (id: string, fromCode: string, toCode: string, amount: Num = undefined, params = {}): Promise<Conversion> {
         /**
          * @method
          * @name coinbase#createConvertTrade
          * @description convert from one currency to another
          * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_commitconverttrade
          * @param {string} id the id of the trade that you want to make
-         * @param {string} from the currency that you want to sell and convert from
-         * @param {string} to the currency that you want to buy and convert into
+         * @param {string} fromCode the currency that you want to sell and convert from
+         * @param {string} toCode the currency that you want to buy and convert into
          * @param {float} [amount] how much you want to trade in units of the from currency
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -3847,35 +3847,57 @@ export default class coinbase extends Exchange {
         await this.loadMarkets ();
         const request = {
             'trade_id': id,
-            'from_account': from.toUpperCase (),
-            'to_account': to.toUpperCase (),
+            'from_account': fromCode.toUpperCase (),
+            'to_account': toCode.toUpperCase (),
         };
         const response = await this.v3PrivatePostBrokerageConvertTradeTradeId (this.extend (request, params));
         const data = this.safeDict (response, 'trade', {});
-        return this.parseOrder (data, undefined);
+        return this.parseConversion (data);
     }
 
-    async fetchConvertTrade (id: string, from: string, to: string, params = {}) {
+    async fetchConvertTrade (id: string, fromCode: string, toCode: string, params = {}): Promise<Conversion> {
         /**
          * @method
          * @name coinbase#fetchConvertTrade
          * @description fetch the data for a conversion trade
          * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getconverttrade
          * @param {string} id the id of the trade that you want to commit
-         * @param {string} from the currency that you want to sell and convert from
-         * @param {string} to the currency that you want to buy and convert into
+         * @param {string} fromCode the currency that you want to sell and convert from
+         * @param {string} toCode the currency that you want to buy and convert into
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         const request = {
             'trade_id': id,
-            'from_account': from.toUpperCase (),
-            'to_account': to.toUpperCase (),
+            'from_account': fromCode.toUpperCase (),
+            'to_account': toCode.toUpperCase (),
         };
         const response = await this.v3PrivateGetBrokerageConvertTradeTradeId (this.extend (request, params));
         const data = this.safeDict (response, 'trade', {});
-        return this.parseOrder (data, undefined);
+        return this.parseConversion (data);
+    }
+
+    parseConversion (conversion, fromCurrency: Currency = undefined, toCurrency: Currency = undefined): Conversion {
+        const fromCoin = this.safeString (conversion, 'source_currency');
+        const fromCode = this.safeCurrencyCode (fromCoin, fromCurrency);
+        const to = this.safeString (conversion, 'target_currency');
+        const toCode = this.safeCurrencyCode (to, toCurrency);
+        const fromAmountStructure = this.safeDict (conversion, 'user_entered_amount');
+        const feeStructure = this.safeDict (conversion, 'total_fee');
+        const feeAmountStructure = this.safeDict (feeStructure, 'amount');
+        return {
+            'info': conversion,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'id': this.safeString (conversion, 'id'),
+            'fromCurrency': fromCode,
+            'fromAmount': this.safeNumber (fromAmountStructure, 'value'),
+            'toCurrency': toCode,
+            'toAmount': undefined,
+            'price': undefined,
+            'fee': this.safeNumber (feeAmountStructure, 'value'),
+        } as Conversion;
     }
 
     sign (path, api = [], method = 'GET', params = {}, headers = undefined, body = undefined) {
