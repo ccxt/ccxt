@@ -34,7 +34,7 @@ interface IOrderBookSide<T> extends Array<T> {
     limit();
 }
 
-class OrderBookSide implements IOrderBookSide extends Array {
+class OrderBookSide extends Array implements IOrderBookSide {
     constructor (deltas = [], depth = undefined) {
         super ()
         // a string-keyed dictionary of price levels / ids / indices
@@ -148,7 +148,7 @@ class CountedOrderBookSide extends OrderBookSide {
 // ----------------------------------------------------------------------------
 // stores vector arrays indexed by id (3rd value in a bidask delta array)
 
-class IndexedOrderBookSide implements IOrderBookSide extends Array  {
+class IndexedOrderBookSide extends Array implements IOrderBookSide {
     constructor (deltas = [], depth = Number.MAX_SAFE_INTEGER) {
         super (deltas.length)
         // a string-keyed dictionary of price levels / ids / indices
