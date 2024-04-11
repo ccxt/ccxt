@@ -28,6 +28,10 @@ class OrderBook implements CustomOrderBookProp {
 
     cache = [] // make prop visible so we use typed OrderBooks
 
+    asks: Array<any>;
+
+    bids: Array<any>;
+
     constructor (snapshot = {}, depth = undefined) {
 
         Object.defineProperty (this, 'cache', {
