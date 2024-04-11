@@ -4041,37 +4041,6 @@ class coinex extends Exchange {
         return $this->parse_leverage_tiers($data, $symbols, null);
     }
 
-    public function parse_leverage_tiers($response, ?array $symbols = null, $marketIdKey = null) {
-        //
-        //     {
-        //         "BTCUSD" => [
-        //             ["500001", "100", "0.005"],
-        //             ["1000001", "50", "0.01"],
-        //             ["2000001", "30", "0.015"],
-        //             ["5000001", "20", "0.02"],
-        //             ["10000001", "15", "0.025"],
-        //             ["20000001", "10", "0.03"]
-        //         ],
-        //         ...
-        //     }
-        //
-        $tiers = array();
-        $marketIds = is_array($response) ? array_keys($response) : array();
-        for ($i = 0; $i < count($marketIds); $i++) {
-            $marketId = $marketIds[$i];
-            $market = $this->safe_market($marketId, null, null, 'spot');
-            $symbol = $this->safe_string($market, 'symbol');
-            $symbolsLength = 0;
-            if ($symbols !== null) {
-                $symbolsLength = count($symbols);
-            }
-            if ($symbol !== null && ($symbolsLength === 0 || $this->in_array($symbols, $symbol))) {
-                $tiers[$symbol] = $this->parse_market_leverage_tiers($response[$marketId], $market);
-            }
-        }
-        return $tiers;
-    }
-
     public function parse_market_leverage_tiers($item, ?array $market = null) {
         $tiers = array();
         $minNotional = 0;

@@ -1318,6 +1318,10 @@
             },
             "watchTrades": {
                 "timestamp": "timestamp reversed: https://app.travis-ci.com/github/ccxt/ccxt/builds/269484317#L3681"
+            },
+            "watchBidsAsks": {
+                "bidVolume": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269878519#L3759",
+                "askVolume": "same"
             }
         },
         "timeout": 120000

@@ -471,6 +471,19 @@ export interface Greeks {
     info: any;
 }
 
+export interface Conversion {
+    info: any;
+    timestamp?: number
+    datetime?: string;
+    id: string;
+    fromCurrency: string;
+    fromAmount: number;
+    toCurrency: string;
+    toAmount: number;
+    price: number;
+    fee: number;
+}
+
 export interface Option {
     info: any;
     currency: string;

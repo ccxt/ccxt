@@ -67,6 +67,8 @@ class okx extends Exchange {
                 'fetchCanceledOrders' => true,
                 'fetchClosedOrder' => null,
                 'fetchClosedOrders' => true,
+                'fetchConvertCurrencies' => true,
+                'fetchConvertQuote' => true,
                 'fetchCrossBorrowRate' => true,
                 'fetchCrossBorrowRates' => true,
                 'fetchCurrencies' => true,
@@ -7628,6 +7630,160 @@ class okx extends Exchange {
             'baseVolume' => $this->safe_number($chain, 'volCcy24h'),
             'quoteVolume' => null,
         );
+    }
+
+    public function fetch_convert_quote(string $fromCode, string $toCode, ?float $amount = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($fromCode, $toCode, $amount, $params) {
+            /**
+             * fetch a quote for converting from one currency to another
+             * @see https://www.okx.com/docs-v5/en/#funding-account-rest-api-estimate-quote
+             * @param {string} $fromCode the currency that you want to sell and convert from
+             * @param {string} $toCode the currency that you want to buy and convert into
+             * @param {float} [$amount] how much you want to trade in units of the from currency
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=conversion-structure conversion structure~
+             */
+            Async\await($this->load_markets());
+            $request = array(
+                'baseCcy' => strtoupper($fromCode),
+                'quoteCcy' => strtoupper($toCode),
+                'rfqSzCcy' => strtoupper($fromCode),
+                'rfqSz' => $this->number_to_string($amount),
+                'side' => 'sell',
+            );
+            $response = Async\await($this->privatePostAssetConvertEstimateQuote (array_merge($request, $params)));
+            //
+            //     {
+            //         "code" => "0",
+            //         "data" => array(
+            //             {
+            //                 "baseCcy" => "ETH",
+            //                 "baseSz" => "0.01023052",
+            //                 "clQReqId" => "",
+            //                 "cnvtPx" => "2932.40104429",
+            //                 "origRfqSz" => "30",
+            //                 "quoteCcy" => "USDT",
+            //                 "quoteId" => "quoterETH-USDT16461885104612381",
+            //                 "quoteSz" => "30",
+            //                 "quoteTime" => "1646188510461",
+            //                 "rfqSz" => "30",
+            //                 "rfqSzCcy" => "USDT",
+            //                 "side" => "buy",
+            //                 "ttlMs" => "10000"
+            //             }
+            //         ),
+            //         "msg" => ""
+            //     }
+            //
+            $data = $this->safe_list($response, 'data', array());
+            $result = $this->safe_dict($data, 0, array());
+            $fromCurrencyId = $this->safe_string($result, 'baseCcy', $fromCode);
+            $fromCurrency = $this->currency($fromCurrencyId);
+            $toCurrencyId = $this->safe_string($result, 'quoteCcy', $toCode);
+            $toCurrency = $this->currency($toCurrencyId);
+            return $this->parse_conversion($result, $fromCurrency, $toCurrency);
+        }) ();
+    }
+
+    public function parse_conversion($conversion, ?array $fromCurrency = null, ?array $toCurrency = null): Conversion {
+        //
+        // fetchConvertQuote
+        //
+        //     {
+        //         "baseCcy" => "ETH",
+        //         "baseSz" => "0.01023052",
+        //         "clQReqId" => "",
+        //         "cnvtPx" => "2932.40104429",
+        //         "origRfqSz" => "30",
+        //         "quoteCcy" => "USDT",
+        //         "quoteId" => "quoterETH-USDT16461885104612381",
+        //         "quoteSz" => "30",
+        //         "quoteTime" => "1646188510461",
+        //         "rfqSz" => "30",
+        //         "rfqSzCcy" => "USDT",
+        //         "side" => "buy",
+        //         "ttlMs" => "10000"
+        //     }
+        //
+        $timestamp = $this->safe_integer($conversion, 'quoteTime');
+        $fromCoin = $this->safe_string($conversion, 'baseCcy');
+        $fromCode = $this->safe_currency_code($fromCoin, $fromCurrency);
+        $to = $this->safe_string($conversion, 'quoteCcy');
+        $toCode = $this->safe_currency_code($to, $toCurrency);
+        return array(
+            'info' => $conversion,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'id' => $this->safe_string($conversion, 'clQReqId'),
+            'fromCurrency' => $fromCode,
+            'fromAmount' => $this->safe_number($conversion, 'baseSz'),
+            'toCurrency' => $toCode,
+            'toAmount' => $this->safe_number($conversion, 'quoteSz'),
+            'price' => $this->safe_number($conversion, 'cnvtPx'),
+            'fee' => null,
+        );
+    }
+
+    public function fetch_convert_currencies($params = array ()): PromiseInterface {
+        return Async\async(function () use ($params) {
+            /**
+             * fetches all available currencies that can be converted
+             * @see https://www.okx.com/docs-v5/en/#funding-account-rest-api-get-convert-currencies
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} an associative dictionary of currencies
+             */
+            Async\await($this->load_markets());
+            $response = Async\await($this->privateGetAssetConvertCurrencies ($params));
+            //
+            //     {
+            //         "code" => "0",
+            //         "data" => array(
+            //             array(
+            //                 "ccy" => "BTC",
+            //                 "max" => "",
+            //                 "min" => ""
+            //             ),
+            //         ),
+            //         "msg" => ""
+            //     }
+            //
+            $result = array();
+            $data = $this->safe_list($response, 'data', array());
+            for ($i = 0; $i < count($data); $i++) {
+                $entry = $data[$i];
+                $id = $this->safe_string($entry, 'ccy');
+                $code = $this->safe_currency_code($id);
+                $result[$code] = array(
+                    'info' => $entry,
+                    'id' => $id,
+                    'code' => $code,
+                    'networks' => null,
+                    'type' => null,
+                    'name' => null,
+                    'active' => null,
+                    'deposit' => null,
+                    'withdraw' => null,
+                    'fee' => null,
+                    'precision' => null,
+                    'limits' => array(
+                        'amount' => array(
+                            'min' => $this->safe_number($entry, 'min'),
+                            'max' => $this->safe_number($entry, 'max'),
+                        ),
+                        'withdraw' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
+                        'deposit' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
+                    ),
+                    'created' => null,
+                );
+            }
+            return $result;
+        }) ();
     }
 
     public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {

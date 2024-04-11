@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.okx import ImplicitAPI
 import hashlib
-from ccxt.base.types import Account, Balances, Currencies, Currency, Greeks, Int, Leverage, MarginModification, Market, MarketInterface, Num, Option, OptionChain, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry
+from ccxt.base.types import Account, Balances, Conversion, Currencies, Currency, Greeks, Int, Leverage, MarginModification, Market, MarketInterface, Num, Option, OptionChain, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -82,6 +82,8 @@ class okx(Exchange, ImplicitAPI):
                 'fetchCanceledOrders': True,
                 'fetchClosedOrder': None,
                 'fetchClosedOrders': True,
+                'fetchConvertCurrencies': True,
+                'fetchConvertQuote': True,
                 'fetchCrossBorrowRate': True,
                 'fetchCrossBorrowRates': True,
                 'fetchCurrencies': True,
@@ -7096,6 +7098,152 @@ class okx(Exchange, ImplicitAPI):
             'baseVolume': self.safe_number(chain, 'volCcy24h'),
             'quoteVolume': None,
         }
+
+    def fetch_convert_quote(self, fromCode: str, toCode: str, amount: Num = None, params={}) -> Conversion:
+        """
+        fetch a quote for converting from one currency to another
+        :see: https://www.okx.com/docs-v5/en/#funding-account-rest-api-estimate-quote
+        :param str fromCode: the currency that you want to sell and convert from
+        :param str toCode: the currency that you want to buy and convert into
+        :param float [amount]: how much you want to trade in units of the from currency
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `conversion structure <https://docs.ccxt.com/#/?id=conversion-structure>`
+        """
+        self.load_markets()
+        request = {
+            'baseCcy': fromCode.upper(),
+            'quoteCcy': toCode.upper(),
+            'rfqSzCcy': fromCode.upper(),
+            'rfqSz': self.number_to_string(amount),
+            'side': 'sell',
+        }
+        response = self.privatePostAssetConvertEstimateQuote(self.extend(request, params))
+        #
+        #     {
+        #         "code": "0",
+        #         "data": [
+        #             {
+        #                 "baseCcy": "ETH",
+        #                 "baseSz": "0.01023052",
+        #                 "clQReqId": "",
+        #                 "cnvtPx": "2932.40104429",
+        #                 "origRfqSz": "30",
+        #                 "quoteCcy": "USDT",
+        #                 "quoteId": "quoterETH-USDT16461885104612381",
+        #                 "quoteSz": "30",
+        #                 "quoteTime": "1646188510461",
+        #                 "rfqSz": "30",
+        #                 "rfqSzCcy": "USDT",
+        #                 "side": "buy",
+        #                 "ttlMs": "10000"
+        #             }
+        #         ],
+        #         "msg": ""
+        #     }
+        #
+        data = self.safe_list(response, 'data', [])
+        result = self.safe_dict(data, 0, {})
+        fromCurrencyId = self.safe_string(result, 'baseCcy', fromCode)
+        fromCurrency = self.currency(fromCurrencyId)
+        toCurrencyId = self.safe_string(result, 'quoteCcy', toCode)
+        toCurrency = self.currency(toCurrencyId)
+        return self.parse_conversion(result, fromCurrency, toCurrency)
+
+    def parse_conversion(self, conversion, fromCurrency: Currency = None, toCurrency: Currency = None) -> Conversion:
+        #
+        # fetchConvertQuote
+        #
+        #     {
+        #         "baseCcy": "ETH",
+        #         "baseSz": "0.01023052",
+        #         "clQReqId": "",
+        #         "cnvtPx": "2932.40104429",
+        #         "origRfqSz": "30",
+        #         "quoteCcy": "USDT",
+        #         "quoteId": "quoterETH-USDT16461885104612381",
+        #         "quoteSz": "30",
+        #         "quoteTime": "1646188510461",
+        #         "rfqSz": "30",
+        #         "rfqSzCcy": "USDT",
+        #         "side": "buy",
+        #         "ttlMs": "10000"
+        #     }
+        #
+        timestamp = self.safe_integer(conversion, 'quoteTime')
+        fromCoin = self.safe_string(conversion, 'baseCcy')
+        fromCode = self.safe_currency_code(fromCoin, fromCurrency)
+        to = self.safe_string(conversion, 'quoteCcy')
+        toCode = self.safe_currency_code(to, toCurrency)
+        return {
+            'info': conversion,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'id': self.safe_string(conversion, 'clQReqId'),
+            'fromCurrency': fromCode,
+            'fromAmount': self.safe_number(conversion, 'baseSz'),
+            'toCurrency': toCode,
+            'toAmount': self.safe_number(conversion, 'quoteSz'),
+            'price': self.safe_number(conversion, 'cnvtPx'),
+            'fee': None,
+        }
+
+    def fetch_convert_currencies(self, params={}) -> Currencies:
+        """
+        fetches all available currencies that can be converted
+        :see: https://www.okx.com/docs-v5/en/#funding-account-rest-api-get-convert-currencies
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an associative dictionary of currencies
+        """
+        self.load_markets()
+        response = self.privateGetAssetConvertCurrencies(params)
+        #
+        #     {
+        #         "code": "0",
+        #         "data": [
+        #             {
+        #                 "ccy": "BTC",
+        #                 "max": "",
+        #                 "min": ""
+        #             },
+        #         ],
+        #         "msg": ""
+        #     }
+        #
+        result = {}
+        data = self.safe_list(response, 'data', [])
+        for i in range(0, len(data)):
+            entry = data[i]
+            id = self.safe_string(entry, 'ccy')
+            code = self.safe_currency_code(id)
+            result[code] = {
+                'info': entry,
+                'id': id,
+                'code': code,
+                'networks': None,
+                'type': None,
+                'name': None,
+                'active': None,
+                'deposit': None,
+                'withdraw': None,
+                'fee': None,
+                'precision': None,
+                'limits': {
+                    'amount': {
+                        'min': self.safe_number(entry, 'min'),
+                        'max': self.safe_number(entry, 'max'),
+                    },
+                    'withdraw': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'deposit': {
+                        'min': None,
+                        'max': None,
+                    },
+                },
+                'created': None,
+            }
+        return result
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if not response:

@@ -1894,7 +1894,7 @@
             {
                 "description": "Fetch OHLCV - inverse, price=index",
                 "method": "fetchOHLCV",
-                "url": "https://dapi.binance.com/dapi/v1/indexPriceKlines?interval=1m&limit=5&pair=BTCUSD_PERP&startTime=1699381234000&endTime=1699381533999",
+                "url": "https://dapi.binance.com/dapi/v1/indexPriceKlines?interval=1m&limit=5&pair=BTCUSD&startTime=1699381234000&endTime=1699381533999",
                 "input": [
                     "BTC/USD:BTC",
                     "1m",

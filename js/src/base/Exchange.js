@@ -406,6 +406,8 @@ export default class Exchange {
                 'fetchClosedOrder': undefined,
                 'fetchClosedOrders': undefined,
                 'fetchClosedOrdersWs': undefined,
+                'fetchConvertCurrencies': undefined,
+                'fetchConvertQuote': undefined,
                 'fetchCrossBorrowRate': undefined,
                 'fetchCrossBorrowRates': undefined,
                 'fetchCurrencies': 'emulated',
@@ -3165,6 +3167,16 @@ export default class Exchange {
         }
         return result;
     }
+    marketsForSymbols(symbols = undefined) {
+        if (symbols === undefined) {
+            return symbols;
+        }
+        const result = [];
+        for (let i = 0; i < symbols.length; i++) {
+            result.push(this.market(symbols[i]));
+        }
+        return result;
+    }
     marketSymbols(symbols = undefined, type = undefined, allowEmpty = true, sameTypeOnly = false, sameSubTypeOnly = false) {
         if (symbols === undefined) {
             if (!allowEmpty) {
@@ -3434,14 +3446,34 @@ export default class Exchange {
         // marketIdKey should only be undefined when response is a dictionary
         symbols = this.marketSymbols(symbols);
         const tiers = {};
-        for (let i = 0; i < response.length; i++) {
-            const item = response[i];
-            const id = this.safeString(item, marketIdKey);
-            const market = this.safeMarket(id, undefined, undefined, 'swap');
-            const symbol = market['symbol'];
-            const contract = this.safeBool(market, 'contract', false);
-            if (contract && ((symbols === undefined) || this.inArray(symbol, symbols))) {
-                tiers[symbol] = this.parseMarketLeverageTiers(item, market);
+        let symbolsLength = 0;
+        if (symbols !== undefined) {
+            symbolsLength = symbols.length;
+        }
+        const noSymbols = (symbols === undefined) || (symbolsLength === 0);
+        if (Array.isArray(response)) {
+            for (let i = 0; i < response.length; i++) {
+                const item = response[i];
+                const id = this.safeString(item, marketIdKey);
+                const market = this.safeMarket(id, undefined, undefined, 'swap');
+                const symbol = market['symbol'];
+                const contract = this.safeBool(market, 'contract', false);
+                if (contract && (noSymbols || this.inArray(symbol, symbols))) {
+                    tiers[symbol] = this.parseMarketLeverageTiers(item, market);
+                }
+            }
+        }
+        else {
+            const keys = Object.keys(response);
+            for (let i = 0; i < keys.length; i++) {
+                const marketId = keys[i];
+                const item = response[marketId];
+                const market = this.safeMarket(marketId, undefined, undefined, 'swap');
+                const symbol = market['symbol'];
+                const contract = this.safeBool(market, 'contract', false);
+                if (contract && (noSymbols || this.inArray(symbol, symbols))) {
+                    tiers[symbol] = this.parseMarketLeverageTiers(item, market);
+                }
             }
         }
         return tiers;
@@ -4493,6 +4525,9 @@ export default class Exchange {
     async fetchOption(symbol, params = {}) {
         throw new NotSupported(this.id + ' fetchOption() is not supported yet');
     }
+    async fetchConvertQuote(fromCode, toCode, amount = undefined, params = {}) {
+        throw new NotSupported(this.id + ' fetchConvertQuote() is not supported yet');
+    }
     async fetchDepositsWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
@@ -5040,6 +5075,9 @@ export default class Exchange {
         }
         const fees = await this.fetchTradingFees(params);
         return this.safeDict(fees, symbol);
+    }
+    async fetchConvertCurrencies(params = {}) {
+        throw new NotSupported(this.id + ' fetchConvertCurrencies() is not supported yet');
     }
     parseOpenInterest(interest, market = undefined) {
         throw new NotSupported(this.id + ' parseOpenInterest () is not supported yet');
@@ -5738,7 +5776,10 @@ export default class Exchange {
         return leverageStructures;
     }
     parseLeverage(leverage, market = undefined) {
-        throw new NotSupported(this.id + ' parseLeverage() is not supported yet');
+        throw new NotSupported(this.id + ' parseLeverage () is not supported yet');
+    }
+    parseConversion(conversion, fromCurrency = undefined, toCurrency = undefined) {
+        throw new NotSupported(this.id + ' parseConversion () is not supported yet');
     }
     convertExpireDate(date) {
         // parse YYMMDD to datetime string

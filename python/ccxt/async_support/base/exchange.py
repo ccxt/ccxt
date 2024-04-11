@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.2.92'
+__version__ = '4.2.94'
 
 # -----------------------------------------------------------------------------
 
@@ -1281,6 +1281,9 @@ class Exchange(BaseExchange):
     async def fetch_option(self, symbol: str, params={}):
         raise NotSupported(self.id + ' fetchOption() is not supported yet')
 
+    async def fetch_convert_quote(self, fromCode: str, toCode: str, amount: Num = None, params={}):
+        raise NotSupported(self.id + ' fetchConvertQuote() is not supported yet')
+
     async def fetch_deposits_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch history of deposits and withdrawals
@@ -1420,6 +1423,9 @@ class Exchange(BaseExchange):
             raise NotSupported(self.id + ' fetchTradingFee() is not supported yet')
         fees = await self.fetch_trading_fees(params)
         return self.safe_dict(fees, symbol)
+
+    async def fetch_convert_currencies(self, params={}):
+        raise NotSupported(self.id + ' fetchConvertCurrencies() is not supported yet')
 
     async def fetch_funding_rate(self, symbol: str, params={}):
         if self.has['fetchFundingRates']:
