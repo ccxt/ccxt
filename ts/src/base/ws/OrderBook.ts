@@ -11,6 +11,7 @@ import {
     CountedBids,
     IndexedAsks,
     IndexedBids,
+    IOrderBookSide
     // IncrementalAsks,
     // IncrementalBids,
     // IncrementalIndexedAsks,
@@ -29,9 +30,9 @@ class OrderBook implements CustomOrderBookProp {
 
     cache = [] // make prop visible so we use typed OrderBooks
 
-    asks: Array<any>;
+    asks: IOrderBookSide<any>;
 
-    bids: Array<any>;
+    bids: IOrderBookSide<any>;
 
     timestamp: Int;
 

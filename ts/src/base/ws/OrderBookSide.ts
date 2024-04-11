@@ -7,7 +7,12 @@
 // Email: carlo.revelli@berkeley.edu
 //
 
-function bisectLeft(array, x) {
+/**
+ *
+ * @param array
+ * @param x
+ */
+function bisectLeft (array, x) {
     let low = 0
     let high = array.length - 1
     while (low <= high) {
@@ -21,7 +26,15 @@ function bisectLeft(array, x) {
 const SIZE = 1024
 const SEED = new Float64Array (new Array (SIZE).fill (Number.MAX_VALUE))
 
-class OrderBookSide extends Array {
+
+interface IOrderBookSide<T> extends Array<T> {
+    store(price: any, size: any);
+    store(price: any, size: any, index: any);
+    storeArray(array: any[]);
+    limit();
+}
+
+class OrderBookSide implements IOrderBookSide extends Array {
     constructor (deltas = [], depth = undefined) {
         super ()
         // a string-keyed dictionary of price levels / ids / indices
@@ -135,7 +148,7 @@ class CountedOrderBookSide extends OrderBookSide {
 // ----------------------------------------------------------------------------
 // stores vector arrays indexed by id (3rd value in a bidask delta array)
 
-class IndexedOrderBookSide extends Array  {
+class IndexedOrderBookSide implements IOrderBookSide extends Array  {
     constructor (deltas = [], depth = Number.MAX_SAFE_INTEGER) {
         super (deltas.length)
         // a string-keyed dictionary of price levels / ids / indices
@@ -162,7 +175,7 @@ class IndexedOrderBookSide extends Array  {
     }
 
     store (price, size, id) {
-        this.storeArray([ price, size, id ])
+        this.storeArray ([ price, size, id ])
     }
 
     storeArray (delta) {
@@ -279,5 +292,6 @@ export {
     IndexedAsks,
     IndexedBids,
     IndexedOrderBookSide,
-    
+    IOrderBookSide
+
 };
