@@ -656,7 +656,6 @@ export default class gate extends Exchange {
                     'option': 'options',
                     'options': 'options',
                 },
-                'defaultType': 'spot',
                 'swap': {
                     'fetchMarkets': {
                         'settlementCurrencies': [ 'usdt', 'btc' ],
