@@ -1,7 +1,7 @@
 //  ---------------------------------------------------------------------------
 
 import poloniexfuturesRest from '../poloniexfutures.js';
-import { AuthenticationError, BadRequest, ExchangeError } from '../base/errors.js';
+import { AuthenticationError, BadRequest, InvalidNonceSequence } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import type { Int, Str, OrderBook, Order, Trade, Ticker, Balances } from '../base/types.js';
 import Client from '../base/ws/Client.js';
@@ -877,7 +877,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
         const sequence = this.safeInteger (delta, 'sequence');
         const nonce = this.safeInteger (orderbook, 'nonce');
         if (nonce !== sequence - 1) {
-            throw new ExchangeError (this.id + ' watchOrderBook received an out-of-order nonce');
+            throw new InvalidNonceSequence (this.id + ' watchOrderBook received an out-of-order nonce');
         }
         const change = this.safeString (delta, 'change');
         const splitChange = change.split (',');
