@@ -1919,7 +1919,7 @@ export default class htx extends Exchange {
         return result;
     }
 
-    trySetSymbolFromFutureMarkets (symbolOrMarketId: string) {
+    tryGetSymbolFromFutureMarkets (symbolOrMarketId: string) {
         if (symbolOrMarketId in this.markets) {
             return symbolOrMarketId;
         }
@@ -2007,7 +2007,7 @@ export default class htx extends Exchange {
         //
         const marketId = this.safeString2 (ticker, 'symbol', 'contract_code');
         let symbol = this.safeSymbol (marketId, market);
-        symbol = this.trySetSymbolFromFutureMarkets (symbol);
+        symbol = this.tryGetSymbolFromFutureMarkets (symbol);
         const timestamp = this.safeInteger2 (ticker, 'ts', 'quoteTime');
         let bid = undefined;
         let bidVolume = undefined;
