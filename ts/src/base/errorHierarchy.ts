@@ -34,7 +34,7 @@ const errorHierarchy = {
             },
             'NotSupported': {},
             'ProxyError': {},
-            'InvalidNonceSequence': {}, // when incoming WS orderbook nonce does not fit `= last + 1` rule
+            'InvalidNonce': {}, // when incoming WS orderbook nonce does not fit `= last + 1` rule
         },
         'OperationFailed': {
             'NetworkError': {
