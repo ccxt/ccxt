@@ -16,6 +16,7 @@ import {
     // IncrementalIndexedAsks,
     // IncrementalIndexedBids, // check this
 } from './OrderBookSide.js';
+import { Int, Str } from '../types.js';
 
 // ----------------------------------------------------------------------------
 // overwrites absolute volumes at price levels
@@ -31,6 +32,12 @@ class OrderBook implements CustomOrderBookProp {
     asks: Array<any>;
 
     bids: Array<any>;
+
+    timestamp: Int;
+
+    datetime: Str;
+
+    nonce: Int;
 
     constructor (snapshot = {}, depth = undefined) {
 
