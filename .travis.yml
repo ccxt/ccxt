@@ -33,28 +33,28 @@ before_install:
 - git checkout package.json package-lock.json
 - git config pull.rebase false
 - if [ "$RUNSTEP" == "PY_JS_PHP" ]; then
-  pip install tox cryptography requests ruff # common packages
-  pip install twine # used to publish python package
-  pip install pyopenssl aiohttp # used to run real-time tests
-  pip install typing-extensions # required by python <3.11
-  php -i | grep php.ini
-  composer install
-  sudo apt update
-  sudo apt install apt-transport-https -y
-  sudo apt update -y
-else 
-  sudo apt-get install -y dotnet-sdk-7.0
-  sudo apt-get install -y dotnet-runtime-7.0
-  dotnet --version
-  dotnet --info
-fi
+    pip install tox cryptography requests ruff # common packages
+    pip install twine # used to publish python package
+    pip install pyopenssl aiohttp # used to run real-time tests
+    pip install typing-extensions # required by python <3.11
+    php -i | grep php.ini
+    composer install
+    sudo apt update
+    sudo apt install apt-transport-https -y
+    sudo apt update -y
+  else 
+    sudo apt-get install -y dotnet-sdk-7.0
+    sudo apt-get install -y dotnet-runtime-7.0
+    dotnet --version
+    dotnet --info
+  fi
 - type -p curl >/dev/null || ( apt update &&  apt install curl -y)
 - curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg && sudo chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null && sudo apt update && sudo apt install gh -y
 
 script:
 - ./build.sh 2>&1
 - git checkout master composer.json
-- if [ "$TRAVIS_PULL_REQUEST" = "false" ] && [ "$TRAVIS_BRANCH" = "master" ]; then
+- if [ "$RUNSTEP" == "PY_JS_PHP" ] && [ "$TRAVIS_PULL_REQUEST" = "false" ] && [ "$TRAVIS_BRANCH" = "master" ]; then
     export SHOULD_DEPLOY=false;
     DEPLOY_OUTPUT=$(env DEPLOY_CACHE=.cache/deploy SECONDS_BEFORE_NEXT_DEPLOY=43200 TRAVIS_COMMIT_MESSAGE="${TRAVIS_COMMIT_MESSAGE}" ./build/deploy.sh) && SHOULD_DEPLOY=true;
     echo "----------------";
