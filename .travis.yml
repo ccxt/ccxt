@@ -73,7 +73,7 @@ deploy:
     condition: $SHOULD_DEPLOY = true
 after_deploy:
 - cat ~/.npm/_logs/*-debug.log
-env:env:
+env:
   jobs:
     - RUNSTEP=PY_JS_PHP
     - RUNSTEP=C#
