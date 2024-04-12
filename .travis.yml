@@ -1,3 +1,19 @@
+env:
+  global:
+  # PYPI_TOKEN
+  - secure: QCQa8tn40loCqSx9tR7PFAa7h5Gucl9IaEARiskiPF3zlLoZTst6ThnFl1rQDKx2jIJsN1z8Vwd12I4kYGED+Tgd345kE+J/n2hVEpTwSB+oOUWlwgkTQbCQB0XxPJRPila9lt3Ogpbvrp//L7IkFM06gu+N+qwQEOjn7dkLrVAkg5vl9nouuzqHadaQ1oOMG/v3DgPq5NHaCEWK0285Oqs8dqecVRSFGAtRPTDHzO/nv4stsbnmEWO1pu/SYXyxum1CYv9glfFaRNWoQ9EWjl8ogCzBsH3lkFeNhwLOcSyMFmTpXH1soXcLzJTWoUgfx9hiiC8IqOxx4nGurOK6OyY9QO8aVwyRdYlbpdLFuEiGuadfI6Rbz41TewZ+r3OmFn4gy5oRIM0fE+2Osj3btmsdZYktXdErqhRm18bV/oO/IOteKEXdbC7+PJ5obnpbBKKfcSNOAF8F/en+qouAywghq8UBJ9zHtWSsDXOUeCdvXLGKA01pbdaDpmtHBU9u5iX+KnSbBP+iAb7+i/uymxFTJbseYllPa1IFUf4wNf6AFlfgLnZT064KF1oiIGnvpczqD+UV4fDIukKaBaC0gK2nUQUiSNPs1kFJbs7QiQO5I07RgpAACigDWlp6tKLSUoA4wUXIG1APF5Eh001FAQ01lCjsxhMh3OmtgEIaxkI=
+  # new new GITHUB_TOKEN
+  - secure: koZWVx9bBt1QZ43OUGH6DE0tQseqYxL+LGubjSndpCQfx1OLbUOjuxa4ka8S2mVTX61IQ+Pl7VambRahmXrSp/+cIYf2l/7BfE/vmaAxs+mM7+YbvAmIbmp3ohw2Ib+SnkCPUsQWBPdOedbuDXUkTvd6T22EwftFOBYrcBxmABpvNNRwaaK7fnNJQMnJo3yiaM0sCOjcyBJOzGhO2+aW7T7LaSa0CdmD/yBIAfqxmfFCf8gOTnRep8iCay/fMAhdDD/zzUNBJoKupMWHkwSik8BeKA/Ny4OO0zvR1ZF+t1PD4qXnK17bKf3kS+JKPCK8q7wGwJWTJFezKRG0JbIZRMxi4Dsawu+QvHs4+ekSCWLuPD0bnn6TMue+bOWaCnLVQAmzTbiykWF2tuHN0Zj/c8DJJKjA62EKPKJh/69OdEV6VIwy5m2o+ij6MWK0yaAcNNOfDRiM9sAJL8eUcncFVOOzyEkFTRuke/gerJEUknH/25tYCXbmRYRolSoFvSW8PaB2Q8RXizL9LtnyRcR02wxs12jpCTAJ9rpR0XIb3D4W8BWkWgJvHp9JZOAlzESz4moROv3C6EvPFX4uZAAx/RgdFicLB7tgP9EC6RAPs1yPJwjNcv7EPLsl5OPBsFkOa8Qq5guNbeX6XuBWsIRJL+XJBODw29kISxiWDh49Dlg=
+  # NUGGET_TOKEN
+  - secure: chdCyiT8Sc8aEdcqNgjjESyIUyI9hAsSVgtmbU2DId93brLUgkbOlkKjb8MlEfByvV3njVslN52OHfI8hiBg+3PonS6vzD0HDxJZjo9HZb3EMnfpupRwp14WDDrxhjX/tt4Y/rBhjQBV/DALdVcl9P20pqKGWloO8yfzw8Ytqd45kyMb7GG8xl8YH0xOiIH+yMklsIyoLAe73R47eqyDwy87AOLyR3+tZxNAqI7SwkOUXWKNoBacFkWOQsae2mBm9W5osJPMARo7HQ+0DYnpRhrRNKcxQIhdIhDAOZtGEE+n0ZeWUXeQbAEhwSLyB60kccZ0p19MTO2+61Od86gutKjNo8jSiEKvQNjedOpi3nybQOd2F18N6IrJKO/4VXMZVyl8va2rb9QRfwbfBZqGdC4VgkFBgfzI0CvkTte0BJKwzpSN3bN3MDgVWP2ttsujYVlw9RXgGF3dduekppUm+p3jUnQyZDe13VfQkT5+XtPYmZID9K+bunSYMMWwqol5ND0cCNulWDxFMKMfX5N+BpavIAwMotjH434FmB/0TyWg8lbjchgsgNsTYyxE69sW0MEAt0WeEh55yIXHPymFR7tS3EybiT0Wuj8kY3RxjM76jKMv8evk6Y6XEWArVoGeJQfWEAScorTWAA1q3JZUhhl0zTZwryhU3OwZESuwIzo=
+
+  s2:
+  - secure: chdCyiT8Sc8aEdcqNgjjESyIUyI9hAsSVgtmbU2DId93brLUgkbOlkKjb8MlEfByvV3njVslN52OHfI8hiBg
+
+  matrix:
+    - SKIP_STACK=true
+    - SKIP_PACKAGES=true
+    
 language: python
 dist: jammy
 python:
@@ -19,26 +35,29 @@ before_install:
 - git checkout package.json package-lock.json
 - git config pull.rebase false
 - git fetch --depth=1 --no-tags --verbose --progress
-- pip install tox cryptography requests ruff # common packages
-- pip install twine # used to publish python package
-- pip install pyopenssl aiohttp # used to run real-time tests
-- pip install typing-extensions # required by python <3.11
-- php -i | grep php.ini
-- composer install
-- sudo apt update
-- sudo apt install apt-transport-https -y
-- sudo apt update -y
-- sudo apt-get install -y dotnet-sdk-7.0
-- sudo apt-get install -y dotnet-runtime-7.0
-- dotnet --version
-- dotnet --info
+- if [ "$RUNSTEP" == "PY_JS_PHP" ]; then
+  - pip install tox cryptography requests ruff # common packages
+  - pip install twine # used to publish python package
+  - pip install pyopenssl aiohttp # used to run real-time tests
+  - pip install typing-extensions # required by python <3.11
+  - php -i | grep php.ini
+  - composer install
+  - sudo apt update
+  - sudo apt install apt-transport-https -y
+  - sudo apt update -y
+else 
+  - sudo apt-get install -y dotnet-sdk-7.0
+  - sudo apt-get install -y dotnet-runtime-7.0
+  - dotnet --version
+  - dotnet --info
+fi
 - type -p curl >/dev/null || ( apt update &&  apt install curl -y)
 - curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg && sudo chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null && sudo apt update && sudo apt install gh -y
 
 script:
 - ./build.sh 2>&1
 - git checkout master composer.json
-- if [ "$TRAVIS_PULL_REQUEST" = "false" ] && [ "$TRAVIS_BRANCH" = "master" ]; then
+- if [ "$RUNSTEP" == "PY_JS_PHP" ] && [ "$TRAVIS_PULL_REQUEST" = "false" ] && [ "$TRAVIS_BRANCH" = "master" ]; then
     export SHOULD_DEPLOY=false;
     DEPLOY_OUTPUT=$(env DEPLOY_CACHE=.cache/deploy SECONDS_BEFORE_NEXT_DEPLOY=43200 TRAVIS_COMMIT_MESSAGE="${TRAVIS_COMMIT_MESSAGE}" ./build/deploy.sh) && SHOULD_DEPLOY=true;
     echo "----------------";
@@ -70,18 +89,3 @@ deploy:
     condition: $SHOULD_DEPLOY = true
 after_deploy:
 - cat ~/.npm/_logs/*-debug.log
-env:
-  global:
-  # PYPI_TOKEN
-  - secure: QCQa8tn40loCqSx9tR7PFAa7h5Gucl9IaEARiskiPF3zlLoZTst6ThnFl1rQDKx2jIJsN1z8Vwd12I4kYGED+Tgd345kE+J/n2hVEpTwSB+oOUWlwgkTQbCQB0XxPJRPila9lt3Ogpbvrp//L7IkFM06gu+N+qwQEOjn7dkLrVAkg5vl9nouuzqHadaQ1oOMG/v3DgPq5NHaCEWK0285Oqs8dqecVRSFGAtRPTDHzO/nv4stsbnmEWO1pu/SYXyxum1CYv9glfFaRNWoQ9EWjl8ogCzBsH3lkFeNhwLOcSyMFmTpXH1soXcLzJTWoUgfx9hiiC8IqOxx4nGurOK6OyY9QO8aVwyRdYlbpdLFuEiGuadfI6Rbz41TewZ+r3OmFn4gy5oRIM0fE+2Osj3btmsdZYktXdErqhRm18bV/oO/IOteKEXdbC7+PJ5obnpbBKKfcSNOAF8F/en+qouAywghq8UBJ9zHtWSsDXOUeCdvXLGKA01pbdaDpmtHBU9u5iX+KnSbBP+iAb7+i/uymxFTJbseYllPa1IFUf4wNf6AFlfgLnZT064KF1oiIGnvpczqD+UV4fDIukKaBaC0gK2nUQUiSNPs1kFJbs7QiQO5I07RgpAACigDWlp6tKLSUoA4wUXIG1APF5Eh001FAQ01lCjsxhMh3OmtgEIaxkI=
-  # new new GITHUB_TOKEN
-  - secure: koZWVx9bBt1QZ43OUGH6DE0tQseqYxL+LGubjSndpCQfx1OLbUOjuxa4ka8S2mVTX61IQ+Pl7VambRahmXrSp/+cIYf2l/7BfE/vmaAxs+mM7+YbvAmIbmp3ohw2Ib+SnkCPUsQWBPdOedbuDXUkTvd6T22EwftFOBYrcBxmABpvNNRwaaK7fnNJQMnJo3yiaM0sCOjcyBJOzGhO2+aW7T7LaSa0CdmD/yBIAfqxmfFCf8gOTnRep8iCay/fMAhdDD/zzUNBJoKupMWHkwSik8BeKA/Ny4OO0zvR1ZF+t1PD4qXnK17bKf3kS+JKPCK8q7wGwJWTJFezKRG0JbIZRMxi4Dsawu+QvHs4+ekSCWLuPD0bnn6TMue+bOWaCnLVQAmzTbiykWF2tuHN0Zj/c8DJJKjA62EKPKJh/69OdEV6VIwy5m2o+ij6MWK0yaAcNNOfDRiM9sAJL8eUcncFVOOzyEkFTRuke/gerJEUknH/25tYCXbmRYRolSoFvSW8PaB2Q8RXizL9LtnyRcR02wxs12jpCTAJ9rpR0XIb3D4W8BWkWgJvHp9JZOAlzESz4moROv3C6EvPFX4uZAAx/RgdFicLB7tgP9EC6RAPs1yPJwjNcv7EPLsl5OPBsFkOa8Qq5guNbeX6XuBWsIRJL+XJBODw29kISxiWDh49Dlg=
-  # NUGGET_TOKEN
-  - secure: chdCyiT8Sc8aEdcqNgjjESyIUyI9hAsSVgtmbU2DId93brLUgkbOlkKjb8MlEfByvV3njVslN52OHfI8hiBg+3PonS6vzD0HDxJZjo9HZb3EMnfpupRwp14WDDrxhjX/tt4Y/rBhjQBV/DALdVcl9P20pqKGWloO8yfzw8Ytqd45kyMb7GG8xl8YH0xOiIH+yMklsIyoLAe73R47eqyDwy87AOLyR3+tZxNAqI7SwkOUXWKNoBacFkWOQsae2mBm9W5osJPMARo7HQ+0DYnpRhrRNKcxQIhdIhDAOZtGEE+n0ZeWUXeQbAEhwSLyB60kccZ0p19MTO2+61Od86gutKjNo8jSiEKvQNjedOpi3nybQOd2F18N6IrJKO/4VXMZVyl8va2rb9QRfwbfBZqGdC4VgkFBgfzI0CvkTte0BJKwzpSN3bN3MDgVWP2ttsujYVlw9RXgGF3dduekppUm+p3jUnQyZDe13VfQkT5+XtPYmZID9K+bunSYMMWwqol5ND0cCNulWDxFMKMfX5N+BpavIAwMotjH434FmB/0TyWg8lbjchgsgNsTYyxE69sW0MEAt0WeEh55yIXHPymFR7tS3EybiT0Wuj8kY3RxjM76jKMv8evk6Y6XEWArVoGeJQfWEAScorTWAA1q3JZUhhl0zTZwryhU3OwZESuwIzo=
-
-  s2:
-  - secure: chdCyiT8Sc8aEdcqNgjjESyIUyI9hAsSVgtmbU2DId93brLUgkbOlkKjb8MlEfByvV3njVslN52OHfI8hiBg
-
-  matrix:
-    - SKIP_STACK=true
-    - SKIP_PACKAGES=true
