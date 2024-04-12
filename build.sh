@@ -36,7 +36,6 @@ function run_tests {
     if [ -z "$rest_args" ] || { [ -n "$rest_args" ] && [ "$rest_args" != "skip" ]; }; then
       # shellcheck disable=SC2086
       if [ "$IS_PYJSPHP" == "TRUE" ]; then
-        node test-commonjs.cjs
         node run-tests --js --python-async --php-async --useProxy $rest_args &
       else
         node run-tests --csharp --useProxy $rest_args &
@@ -66,7 +65,11 @@ function run_tests {
 }
 
 build_and_test_all () {
-  npm run force-build
+  if [ "$IS_PYJSPHP" == "TRUE" ]; then
+    npm run force-build-pyjsphp
+  else
+    npm run force-build-cs
+  fi
   if [ "$IS_TRAVIS" = "TRUE" ]; then
     merged_pull_request="$(git show --format="%s" -s HEAD | sed -nE 's/Merge pull request #([0-9]{5}).+$/\1/p')"
     echo "DEBUG: $merged_pull_request" # for debugging
