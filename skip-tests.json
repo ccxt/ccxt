@@ -69,12 +69,6 @@
             },
             "orderBook": {
                 "timestamp": "not present https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L3539 & https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L4119"
-            },
-            "watchOrderBook.cs": {
-                "bid": "bid ask sequence is being updated in multi-thread, causing test breaks"
-            },
-            "watchOrderBookForSymbols.cs": {
-                "bid": "bid ask sequence is being updated in multi-thread, causing test breaks"
             }
         }
     },
@@ -104,12 +98,6 @@
             },
             "orderBook": {
                 "timestamp": "not present https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L3458 https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L3866"
-            },
-            "watchOrderBook.cs": {
-                "bid": "bid ask sequence is being updated in multi-thread https://app.travis-ci.com/github/ccxt/ccxt/builds/269614608#L3632"
-            },
-            "watchOrderBookForSymbols.cs": {
-                "bid": "same as above"
             },
             "fetchStatus": "private endpoints"
         }
@@ -142,12 +130,6 @@
                 "fee": "not provided",
                 "code": "not provided",
                 "referenceId": "not provided"
-            },
-            "watchOrderBook.cs": {
-                "bid": "bid ask sequence is being updated in multi-thread https://app.travis-ci.com/github/ccxt/ccxt/builds/269614608#L3645"
-            },
-            "watchOrderBookForSymbols.cs": {
-                "bid": "same as above"
             },
             "fetchBalance": "tmp skip"
         }
@@ -275,12 +257,6 @@
             },
             "watchOrderBookForSymbols": {
                 "spread": "same"
-            },
-            "watchOrderBook.cs": {
-                "bid": "bid ask sequence is being updated in multi-thread https://app.travis-ci.com/github/ccxt/ccxt/builds/269614608#L3670"
-            },
-            "watchOrderBookForSymbols.cs": {
-                "bid": "same as above"
             }
         }
     },
@@ -1465,6 +1441,12 @@
             "watchBidsAsks": {
                 "bidVolume": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269878519#L3759",
                 "askVolume": "same"
+            },
+            "watchOrderBook.cs": {
+                "bid": "strange issue specifically for krakenfutures, todo in near future https://app.travis-ci.com/github/ccxt/ccxt/builds/269965859#L4781"
+            },
+            "watchOrderBookForSymbols.cs": {
+                "bid": "same as above"
             }
         },
         "timeout": 120000
