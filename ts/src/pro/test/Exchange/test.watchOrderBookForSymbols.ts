@@ -2,6 +2,7 @@
 import assert from 'assert';
 import testOrderBook from '../../../test/Exchange/base/test.orderBook.js';
 import testSharedMethods from '../../../test/Exchange/base/test.sharedMethods.js';
+import { InvalidNonce } from '../../../base/errors.js';
 
 async function testWatchOrderBookForSymbols (exchange, skippedProperties, symbols) {
     const method = 'watchOrderBookForSymbols';
@@ -12,7 +13,8 @@ async function testWatchOrderBookForSymbols (exchange, skippedProperties, symbol
         try {
             response = await exchange.watchOrderBookForSymbols (symbols);
         } catch (e) {
-            if (!testSharedMethods.isTemporaryFailure (e)) {
+            // temporary fix for InvalidNonce for c#
+            if (!testSharedMethods.isTemporaryFailure (e) && !(e instanceof InvalidNonce)) {
                 throw e;
             }
             now = exchange.milliseconds ();
