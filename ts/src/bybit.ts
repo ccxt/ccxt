@@ -982,6 +982,7 @@ export default class bybit extends Exchange {
                 'sandboxMode': false,
                 'enableDemoTrading': false,
                 'fetchMarkets': [ 'spot', 'linear', 'inverse', 'option' ],
+                'baseCoinsForOptions': [ 'BTC', 'ETH', 'SOL' ],
                 'createOrder': {
                     'method': 'privatePostV5OrderCreate', // 'privatePostV5PositionTradingStop'
                 },
@@ -2133,19 +2134,24 @@ export default class bybit extends Exchange {
         };
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
-        // Calls like `.fetchTickers (undefined, {subType:'inverse'})` should be supported for this exchange, so
+        // .fetchTickers (undefined, `{subType:'inverse'}` or `{type:'option'}` should be supported for this exchange, so
         // as "options.defaultSubType" is also set in exchange options, we should consider `params.subType`
         // with higher priority and only default to spot, if `subType` is not set in params
-        const passedSubType = this.safeString (params, 'subType');
+        const subTypePresent = ('subType' in params);
         let subType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchTickers', market, params, 'linear');
         // only if passedSubType is undefined, then use spot
-        if (type === 'spot' && passedSubType === undefined) {
+        if (type === 'spot' && !subTypePresent) {
             request['category'] = 'spot';
-        } else if (type === 'swap' || type === 'future' || subType !== undefined) {
+        } else if (type === 'swap' || type === 'future' || subTypePresent) {
             request['category'] = subType;
         } else if (type === 'option') {
             request['category'] = 'option';
+            // throw meaningful error here, because exchange returns unreadable error if baseCoin not present
+            const baseCoins = this.safeList (this.options, 'baseCoinsForOptions', [ 'BTC', 'ETH', 'SOL' ]);
+            if ('baseCoin' in params) {
+                throw new ArgumentsRequired (this.id + ' fetchTickers() requires a params["baseCoin"]  for options markets, one from ' + this.json (baseCoins));
+            }
         }
         const response = await this.publicGetV5MarketTickers (this.extend (request, params));
         //
