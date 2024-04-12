@@ -311,6 +311,19 @@ class Greeks(TypedDict):
     info: Dict[str, Any]
 
 
+class Conversion(TypedDict):
+    info: Dict[str, Any]
+    timestamp: Int
+    datetime: Str
+    id: Str
+    fromCurrency: Str
+    fromAmount: Num
+    toCurrency: Str
+    toAmount: Num
+    price: Num
+    fee: Num
+
+
 class Option(TypedDict):
     info: Dict[str, Any]
     currency: Str
@@ -410,6 +423,7 @@ class MarginModification(TypedDict):
     info: Dict[str, any]
     symbol: str
     type: Optional[Literal['add', 'reduce', 'set']]
+    marginMode: Optional[Literal['isolated', 'cross']]
     amount: Optional[float]
     code: Str
     status: Str

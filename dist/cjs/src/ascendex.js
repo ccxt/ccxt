@@ -2888,6 +2888,7 @@ class ascendex extends ascendex$1 {
             'info': data,
             'symbol': market['symbol'],
             'type': undefined,
+            'marginMode': 'isolated',
             'amount': undefined,
             'total': undefined,
             'code': market['quote'],

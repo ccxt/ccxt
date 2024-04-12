@@ -9,6 +9,7 @@ import hashlib
 from ccxt.base.types import Account, Balances, Currencies, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InvalidOrder
@@ -16,7 +17,6 @@ from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import InvalidNonce
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -337,6 +337,7 @@ class coinbase(Exchange, ImplicitAPI):
                 'CGLD': 'CELO',
             },
             'options': {
+                'brokerId': 'ccxt',
                 'stablePairs': ['BUSD-USD', 'CBETH-ETH', 'DAI-USD', 'GUSD-USD', 'GYEN-USD', 'PAX-USD', 'PAX-USDT', 'USDC-EUR', 'USDC-GBP', 'USDT-EUR', 'USDT-GBP', 'USDT-USD', 'USDT-USDC', 'WBTC-BTC'],
                 'fetchCurrencies': {
                     'expires': 5000,
@@ -2251,8 +2252,9 @@ class coinbase(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
+        id = self.safe_string(self.options, 'brokerId', 'ccxt')
         request = {
-            'client_order_id': self.uuid(),
+            'client_order_id': id + '-' + self.uuid(),
             'product_id': market['id'],
             'side': side.upper(),
         }
@@ -3573,25 +3575,14 @@ class coinbase(Exchange, ImplicitAPI):
         url = self.urls['api']['rest'] + fullPath
         if signed:
             authorization = self.safe_string(self.headers, 'Authorization')
+            authorizationString = None
             if authorization is not None:
-                headers = {
-                    'Authorization': authorization,
-                    'Content-Type': 'application/json',
-                }
-                if method != 'GET':
-                    if query:
-                        body = self.json(query)
+                authorizationString = authorization
             elif self.token and not self.check_required_credentials(False):
-                headers = {
-                    'Authorization': 'Bearer ' + self.token,
-                    'Content-Type': 'application/json',
-                }
-                if method != 'GET':
-                    if query:
-                        body = self.json(query)
+                authorizationString = 'Bearer ' + self.token
             else:
                 self.check_required_credentials()
-                timestampString = str(self.seconds())
+                seconds = self.seconds()
                 payload = ''
                 if method != 'GET':
                     if query:
@@ -3605,14 +3596,45 @@ class coinbase(Exchange, ImplicitAPI):
                 # https://docs.cloud.coinbase.com/advanced-trade-api/docs/auth#example-request
                 # v2: 'GET' require payload in the signature
                 # https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-key-authentication
-                auth = timestampString + method + savedPath + payload
-                signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)
+                isCloudAPiKey = (self.apiKey.find('organizations/') >= 0) or (self.secret.startswith('-----BEGIN'))
+                if isCloudAPiKey:
+                    if self.apiKey.startswith('-----BEGIN'):
+                        raise ArgumentsRequired(self.id + ' apiKey should contain the name(eg: organizations/3b910e93....) and not the public key')
+                    # it may not work for v2
+                    uri = method + ' ' + url.replace('https://', '')
+                    quesPos = uri.find('?')
+                    if quesPos >= 0:
+                        uri = uri[0:quesPos]
+                    nonce = self.random_bytes(16)
+                    request = {
+                        'aud': ['retail_rest_api_proxy'],
+                        'iss': 'coinbase-cloud',
+                        'nbf': seconds,
+                        'exp': seconds + 120,
+                        'sub': self.apiKey,
+                        'uri': uri,
+                        'iat': seconds,
+                    }
+                    token = self.jwt(request, self.encode(self.secret), 'sha256', False, {'kid': self.apiKey, 'nonce': nonce, 'alg': 'ES256'})
+                    authorizationString = 'Bearer ' + token
+                else:
+                    timestampString = str(self.seconds())
+                    auth = timestampString + method + savedPath + payload
+                    signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)
+                    headers = {
+                        'CB-ACCESS-KEY': self.apiKey,
+                        'CB-ACCESS-SIGN': signature,
+                        'CB-ACCESS-TIMESTAMP': timestampString,
+                        'Content-Type': 'application/json',
+                    }
+            if authorizationString is not None:
                 headers = {
-                    'CB-ACCESS-KEY': self.apiKey,
-                    'CB-ACCESS-SIGN': signature,
-                    'CB-ACCESS-TIMESTAMP': timestampString,
+                    'Authorization': authorizationString,
                     'Content-Type': 'application/json',
                 }
+                if method != 'GET':
+                    if query:
+                        body = self.json(query)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):

@@ -202,6 +202,10 @@ public partial class coinbase : ccxt.coinbase
                 object messageHash = add(add(channel, "::"), wsMarketId);
                 ((IList<object>)newTickers).Add(result);
                 callDynamically(client as WebSocketClient, "resolve", new object[] {result, messageHash});
+                if (isTrue(((string)messageHash).EndsWith(((string)"USD"))))
+                {
+                    callDynamically(client as WebSocketClient, "resolve", new object[] {result, add(messageHash, "C")}); // sometimes we subscribe to BTC/USDC and coinbase returns BTC/USD
+                }
             }
         }
         object messageHashes = this.findMessageHashes(client as WebSocketClient, "ticker_batch::");
@@ -215,6 +219,10 @@ public partial class coinbase : ccxt.coinbase
             if (!isTrue(this.isEmpty(tickers)))
             {
                 callDynamically(client as WebSocketClient, "resolve", new object[] {tickers, messageHash});
+                if (isTrue(((string)messageHash).EndsWith(((string)"USD"))))
+                {
+                    callDynamically(client as WebSocketClient, "resolve", new object[] {tickers, add(messageHash, "C")}); // sometimes we subscribe to BTC/USDC and coinbase returns BTC/USD
+                }
             }
         }
         return message;
@@ -382,6 +390,10 @@ public partial class coinbase : ccxt.coinbase
             }
         }
         callDynamically(client as WebSocketClient, "resolve", new object[] {tradesArray, messageHash});
+        if (isTrue(((string)marketId).EndsWith(((string)"USD"))))
+        {
+            callDynamically(client as WebSocketClient, "resolve", new object[] {tradesArray, add(messageHash, "C")}); // sometimes we subscribe to BTC/USDC and coinbase returns BTC/USD
+        }
         return message;
     }
 
@@ -444,6 +456,10 @@ public partial class coinbase : ccxt.coinbase
             object marketId = getValue(marketIds, i);
             object messageHash = add("user::", marketId);
             callDynamically(client as WebSocketClient, "resolve", new object[] {this.orders, messageHash});
+            if (isTrue(((string)messageHash).EndsWith(((string)"USD"))))
+            {
+                callDynamically(client as WebSocketClient, "resolve", new object[] {this.orders, add(messageHash, "C")}); // sometimes we subscribe to BTC/USDC and coinbase returns BTC/USD
+            }
         }
         callDynamically(client as WebSocketClient, "resolve", new object[] {this.orders, "user"});
         return message;
@@ -565,6 +581,10 @@ public partial class coinbase : ccxt.coinbase
                 ((IDictionary<string,object>)orderbook)["datetime"] = null;
                 ((IDictionary<string,object>)orderbook)["symbol"] = symbol;
                 callDynamically(client as WebSocketClient, "resolve", new object[] {orderbook, messageHash});
+                if (isTrue(((string)messageHash).EndsWith(((string)"USD"))))
+                {
+                    callDynamically(client as WebSocketClient, "resolve", new object[] {orderbook, add(messageHash, "C")}); // sometimes we subscribe to BTC/USDC and coinbase returns BTC/USD
+                }
             } else if (isTrue(isEqual(type, "update")))
             {
                 object orderbook = getValue(this.orderbooks, symbol);
@@ -573,6 +593,10 @@ public partial class coinbase : ccxt.coinbase
                 ((IDictionary<string,object>)orderbook)["timestamp"] = this.parse8601(datetime);
                 ((IDictionary<string,object>)orderbook)["symbol"] = symbol;
                 callDynamically(client as WebSocketClient, "resolve", new object[] {orderbook, messageHash});
+                if (isTrue(((string)messageHash).EndsWith(((string)"USD"))))
+                {
+                    callDynamically(client as WebSocketClient, "resolve", new object[] {orderbook, add(messageHash, "C")}); // sometimes we subscribe to BTC/USDC and coinbase returns BTC/USD
+                }
             }
         }
         return message;

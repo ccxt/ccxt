@@ -324,6 +324,7 @@ class coinbase extends Exchange {
                 'CGLD' => 'CELO',
             ),
             'options' => array(
+                'brokerId' => 'ccxt',
                 'stablePairs' => array( 'BUSD-USD', 'CBETH-ETH', 'DAI-USD', 'GUSD-USD', 'GYEN-USD', 'PAX-USD', 'PAX-USDT', 'USDC-EUR', 'USDC-GBP', 'USDT-EUR', 'USDT-GBP', 'USDT-USD', 'USDT-USDC', 'WBTC-BTC' ),
                 'fetchCurrencies' => array(
                     'expires' => 5000,
@@ -2327,12 +2328,13 @@ class coinbase extends Exchange {
          * @param {string} [$params->end_time] '2023-05-25T17:01:05.092Z' for 'GTD' orders
          * @param {float} [$params->cost] *spot $market buy only* the quote quantity that can be used alternative for the $amount
          * @param {boolean} [$params->preview] default to false, wether to use the test/preview endpoint or not
-         * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+         * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
+        $id = $this->safe_string($this->options, 'brokerId', 'ccxt');
         $request = array(
-            'client_order_id' => $this->uuid(),
+            'client_order_id' => $id . '-' . $this->uuid(),
             'product_id' => $market['id'],
             'side' => strtoupper($side),
         );
@@ -3749,29 +3751,14 @@ class coinbase extends Exchange {
         $url = $this->urls['api']['rest'] . $fullPath;
         if ($signed) {
             $authorization = $this->safe_string($this->headers, 'Authorization');
+            $authorizationString = null;
             if ($authorization !== null) {
-                $headers = array(
-                    'Authorization' => $authorization,
-                    'Content-Type' => 'application/json',
-                );
-                if ($method !== 'GET') {
-                    if ($query) {
-                        $body = $this->json($query);
-                    }
-                }
+                $authorizationString = $authorization;
             } elseif ($this->token && !$this->check_required_credentials(false)) {
-                $headers = array(
-                    'Authorization' => 'Bearer ' . $this->token,
-                    'Content-Type' => 'application/json',
-                );
-                if ($method !== 'GET') {
-                    if ($query) {
-                        $body = $this->json($query);
-                    }
-                }
+                $authorizationString = 'Bearer ' . $this->token;
             } else {
                 $this->check_required_credentials();
-                $timestampString = (string) $this->seconds();
+                $seconds = $this->seconds();
                 $payload = '';
                 if ($method !== 'GET') {
                     if ($query) {
@@ -3786,17 +3773,54 @@ class coinbase extends Exchange {
                     }
                 }
                 // v3 => 'GET' doesn't need $payload in the $signature-> inside $url is enough
-                // https://docs.cloud.coinbase.com/advanced-trade-api/docs/auth#example-request
+                // https://docs.cloud.coinbase.com/advanced-trade-api/docs/auth#example-$request
                 // v2 => 'GET' require $payload in the $signature
                 // https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-key-authentication
-                $auth = $timestampString . $method . $savedPath . $payload;
-                $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256');
+                $isCloudAPiKey = (mb_strpos($this->apiKey, 'organizations/') !== false) || (str_starts_with($this->secret, '-----BEGIN'));
+                if ($isCloudAPiKey) {
+                    if (str_starts_with($this->apiKey, '-----BEGIN')) {
+                        throw new ArgumentsRequired($this->id . ' apiKey should contain the name (eg => organizations/3b910e93....) and not the public key');
+                    }
+                    // it may not work for v2
+                    $uri = $method . ' ' . str_replace('https://', '', $url);
+                    $quesPos = mb_strpos($uri, '?');
+                    if ($quesPos >= 0) {
+                        $uri = mb_substr($uri, 0, $quesPos - 0);
+                    }
+                    $nonce = $this->random_bytes(16);
+                    $request = array(
+                        'aud' => array( 'retail_rest_api_proxy' ),
+                        'iss' => 'coinbase-cloud',
+                        'nbf' => $seconds,
+                        'exp' => $seconds + 120,
+                        'sub' => $this->apiKey,
+                        'uri' => $uri,
+                        'iat' => $seconds,
+                    );
+                    $token = $this->jwt($request, $this->encode($this->secret), 'sha256', false, array( 'kid' => $this->apiKey, 'nonce' => $nonce, 'alg' => 'ES256' ));
+                    $authorizationString = 'Bearer ' . $token;
+                } else {
+                    $timestampString = (string) $this->seconds();
+                    $auth = $timestampString . $method . $savedPath . $payload;
+                    $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256');
+                    $headers = array(
+                        'CB-ACCESS-KEY' => $this->apiKey,
+                        'CB-ACCESS-SIGN' => $signature,
+                        'CB-ACCESS-TIMESTAMP' => $timestampString,
+                        'Content-Type' => 'application/json',
+                    );
+                }
+            }
+            if ($authorizationString !== null) {
                 $headers = array(
-                    'CB-ACCESS-KEY' => $this->apiKey,
-                    'CB-ACCESS-SIGN' => $signature,
-                    'CB-ACCESS-TIMESTAMP' => $timestampString,
+                    'Authorization' => $authorizationString,
                     'Content-Type' => 'application/json',
                 );
+                if ($method !== 'GET') {
+                    if ($query) {
+                        $body = $this->json($query);
+                    }
+                }
             }
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );

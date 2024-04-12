@@ -4065,6 +4065,7 @@ export default class phemex extends Exchange {
             'info': data,
             'symbol': this.safeSymbol(undefined, market),
             'type': 'set',
+            'marginMode': 'isolated',
             'amount': undefined,
             'total': undefined,
             'code': market[codeCurrency],

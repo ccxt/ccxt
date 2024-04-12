@@ -1,5 +1,5 @@
 import kucoinfuturesRest from '../kucoinfutures.js';
-import type { Int, Str, OrderBook, Order, Trade, Ticker, Balances, Position } from '../base/types.js';
+import type { Int, Str, OrderBook, Order, Trade, Ticker, Balances, Position, Strings, Tickers } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class kucoinfutures extends kucoinfuturesRest {
     describe(): any;
@@ -7,9 +7,14 @@ export default class kucoinfutures extends kucoinfuturesRest {
     negotiateHelper(privateChannel: any, params?: {}): Promise<string>;
     requestId(): any;
     subscribe(url: any, messageHash: any, subscriptionHash: any, subscription: any, params?: {}): Promise<any>;
-    subscribeMultiple(url: any, messageHashes: any, topic: any, subscriptionHashes: any, subscription: any, params?: {}): Promise<any>;
+    subscribeMultiple(url: any, messageHashes: any, topic: any, subscriptionHashes: any, subscriptionArgs: any, params?: {}): Promise<any>;
     watchTicker(symbol: string, params?: {}): Promise<Ticker>;
-    handleTicker(client: Client, message: any): any;
+    watchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
+    handleTicker(client: Client, message: any): void;
+    watchBidsAsks(symbols?: Strings, params?: {}): Promise<Tickers>;
+    watchMultiRequest(methodName: any, channelName: string, symbols?: Strings, params?: {}): Promise<any>;
+    handleBidAsk(client: Client, message: any): void;
+    parseWsBidAsk(ticker: any, market?: any): Ticker;
     watchPosition(symbol?: Str, params?: {}): Promise<Position>;
     getCurrentPosition(symbol: any): any;
     setPositionCache(client: Client, symbol: string): void;
@@ -24,8 +29,6 @@ export default class kucoinfutures extends kucoinfuturesRest {
     handleDeltas(bookside: any, deltas: any): void;
     handleOrderBook(client: Client, message: any): void;
     getCacheIndex(orderbook: any, cache: any): any;
-    handleOrderBookSubscription(client: Client, message: any, subscription: any): void;
-    handleSubscriptionStatus(client: Client, message: any): void;
     handleSystemStatus(client: Client, message: any): any;
     watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     parseWsOrderStatus(status: any): string;
@@ -36,6 +39,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
     handleBalanceSubscription(client: Client, message: any, subscription: any): void;
     fetchBalanceSnapshot(client: any, message: any): Promise<void>;
     handleSubject(client: Client, message: any): void;
+    getMessageHash(elementName: string, symbol?: Str): string;
     ping(client: any): {
         id: any;
         type: string;

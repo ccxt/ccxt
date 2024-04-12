@@ -190,6 +190,9 @@ export default class coinbase extends coinbaseRest {
                 const messageHash = channel + '::' + wsMarketId;
                 newTickers.push (result);
                 client.resolve (result, messageHash);
+                if (messageHash.endsWith ('USD')) {
+                    client.resolve (result, messageHash + 'C'); // sometimes we subscribe to BTC/USDC and coinbase returns BTC/USD
+                }
             }
         }
         const messageHashes = this.findMessageHashes (client, 'ticker_batch::');
@@ -201,6 +204,9 @@ export default class coinbase extends coinbaseRest {
             const tickers = this.filterByArray (newTickers, 'symbol', symbols);
             if (!this.isEmpty (tickers)) {
                 client.resolve (tickers, messageHash);
+                if (messageHash.endsWith ('USD')) {
+                    client.resolve (tickers, messageHash + 'C'); // sometimes we subscribe to BTC/USDC and coinbase returns BTC/USD
+                }
             }
         }
         return message;
@@ -355,6 +361,9 @@ export default class coinbase extends coinbaseRest {
             }
         }
         client.resolve (tradesArray, messageHash);
+        if (marketId.endsWith ('USD')) {
+            client.resolve (tradesArray, messageHash + 'C'); // sometimes we subscribe to BTC/USDC and coinbase returns BTC/USD
+        }
         return message;
     }
 
@@ -411,6 +420,9 @@ export default class coinbase extends coinbaseRest {
             const marketId = marketIds[i];
             const messageHash = 'user::' + marketId;
             client.resolve (this.orders, messageHash);
+            if (messageHash.endsWith ('USD')) {
+                client.resolve (this.orders, messageHash + 'C'); // sometimes we subscribe to BTC/USDC and coinbase returns BTC/USD
+            }
         }
         client.resolve (this.orders, 'user');
         return message;
@@ -526,6 +538,9 @@ export default class coinbase extends coinbaseRest {
                 orderbook['datetime'] = undefined;
                 orderbook['symbol'] = symbol;
                 client.resolve (orderbook, messageHash);
+                if (messageHash.endsWith ('USD')) {
+                    client.resolve (orderbook, messageHash + 'C'); // sometimes we subscribe to BTC/USDC and coinbase returns BTC/USD
+                }
             } else if (type === 'update') {
                 const orderbook = this.orderbooks[symbol];
                 this.handleOrderBookHelper (orderbook, updates);
@@ -533,6 +548,9 @@ export default class coinbase extends coinbaseRest {
                 orderbook['timestamp'] = this.parse8601 (datetime);
                 orderbook['symbol'] = symbol;
                 client.resolve (orderbook, messageHash);
+                if (messageHash.endsWith ('USD')) {
+                    client.resolve (orderbook, messageHash + 'C'); // sometimes we subscribe to BTC/USDC and coinbase returns BTC/USD
+                }
             }
         }
         return message;
