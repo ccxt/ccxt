@@ -40,6 +40,8 @@ class OrderBook implements CustomOrderBookProp {
 
     nonce: Int;
 
+    symbol: Str;
+
     constructor (snapshot = {}, depth = undefined) {
 
         Object.defineProperty (this, 'cache', {
