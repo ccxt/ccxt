@@ -113,7 +113,7 @@ import {
     inArray as inArrayFunc,
     vwap as vwapFunc
 } from './functions.js'
-// import exceptions from "./errors.js"
+// import exceptions from './errors.js'
 
  import { // eslint-disable-line object-curly-newline
     ExchangeError
