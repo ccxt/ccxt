@@ -1736,7 +1736,7 @@ export default class binance extends binanceRest {
         client.resolve (parsedBalances, messageHash);
     }
 
-    async fetchPositionWs (symbol: string, params = {}) {
+    async fetchPositionWs (symbol: string, params = {}): Promise<Position[]> {
         /**
          * @method
          * @name binance#fetchPositionWs
@@ -1749,7 +1749,7 @@ export default class binance extends binanceRest {
         return await this.fetchPositionsWs ([ symbol ], params);
     }
 
-    async fetchPositionsWs (symbols: Strings = undefined, params = {}) {
+    async fetchPositionsWs (symbols: Strings = undefined, params = {}): Promise<Position[]> {
         /**
          * @method
          * @name binance#fetchPositionsWs
@@ -1988,28 +1988,6 @@ export default class binance extends binanceRest {
             type = 'delivery';
         }
         return type;
-    }
-
-    checkIsSpotOrFuture (method: string, symbol: string, params = {}) {
-        /**
-         * @method
-         * @ignore
-         * @description checks if symbols is a spot market if not throws an error
-         * @param {string} method name of the method to be checked
-         * @param {string} symbol symbol or marketId of the market to be checked
-         */
-        if (symbol === undefined) {
-            const type = this.safeString (params, 'type', 'spot');
-            const defaultType = this.safeString (this.options, 'defaultType', type);
-            if (defaultType === 'spot' || defaultType === 'future') {
-                return;
-            }
-            throw new BadRequest (this.id + ' ' + method + ' only supports spot or future markets');
-        }
-        const market = this.market (symbol);
-        if (!market['spot'] || !market['future']) {
-            throw new BadRequest (this.id + ' ' + method + ' only supports spot or future markets');
-        }
     }
 
     async createOrderWs (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {

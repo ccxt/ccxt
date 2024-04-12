@@ -4192,9 +4192,9 @@ export default class Exchange {
         throw new NotSupported (this.id + ' fetchPosition() is not supported yet');
     }
 
-    // async fetchPositionWs (symbol: string, params = {}): Promise<Position> {
-    // throw new NotSupported (this.id + ' fetchPosition() is not supported yet');
-    // }
+    async fetchPositionWs (symbol: string, params = {}): Promise<Position[]> {
+        throw new NotSupported (this.id + ' fetchPositionWs() is not supported yet');
+    }
 
     async watchPosition (symbol: Str = undefined, params = {}): Promise<Position> {
         throw new NotSupported (this.id + ' watchPosition() is not supported yet');
