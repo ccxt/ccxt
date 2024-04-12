@@ -291,259 +291,259 @@
       "fetchPositions": [
         {
           "description": "ada position",
-          "method": "fetchPosition",
+          "method": "fetchPositions",
           "input": [
-            "ADA/USDC:USDC",
+            [
+              "ADA/USDC:USDC"
+            ],
             {
               "portfolio": "018ebd63-1f6d-7c8e-ada9-0761c5a2235f"
             }
           ],
           "httpResponse": {
-            "position": {
-              "product_id": "1r4njf84-0-0",
-              "product_uuid": "cd34c18b-3665-4ed8-9305-3db277c49fc5",
-              "symbol": "ADA-PERP-INTX",
-              "vwap": {
-                "value": "0.5873",
-                "currency": "USDC"
-              },
-              "position_side": "POSITION_SIDE_LONG",
-              "net_size": "20",
-              "buy_order_size": "0",
-              "sell_order_size": "0",
-              "im_contribution": "0.1",
+            "positions": [
+              {
+                "product_id": "1r4njf84-0-0",
+                "product_uuid": "cd34c18b-3665-4ed8-9305-3db277c49fc5",
+                "symbol": "ADA-PERP-INTX",
+                "vwap": {
+                  "value": "0.5648",
+                  "currency": "USDC"
+                },
+                "position_side": "POSITION_SIDE_LONG",
+                "net_size": "20",
+                "buy_order_size": "0",
+                "sell_order_size": "0",
+                "im_contribution": "0.1",
+                "unrealized_pnl": {
+                  "value": "0.018",
+                  "currency": "USDC"
+                },
+                "mark_price": {
+                  "value": "0.5657",
+                  "currency": "USDC"
+                },
+                "liquidation_price": {
+                  "value": "0",
+                  "currency": "USDC"
+                },
+                "leverage": "1",
+                "im_notional": {
+                  "value": "11.296",
+                  "currency": "USDC"
+                },
+                "mm_notional": {
+                  "value": "0.745536",
+                  "currency": "USDC"
+                },
+                "position_notional": {
+                  "value": "11.296",
+                  "currency": "USDC"
+                },
+                "margin_type": "MARGIN_TYPE_CROSS",
+                "liquidation_buffer": "18.621364",
+                "liquidation_percentage": "4848.5055",
+                "portfolio_summary": {
+                  "portfolio_uuid": "018ebd63-1f6d-7c8e-ada9-0761c5a2235f",
+                  "collateral": "19.3489",
+                  "position_notional": "11.296",
+                  "open_position_notional": "11.296",
+                  "pending_fees": "0",
+                  "borrow": "0",
+                  "accrued_interest": "0",
+                  "rolling_debt": "0",
+                  "portfolio_initial_margin": "0.1",
+                  "portfolio_im_notional": {
+                    "value": "11.296",
+                    "currency": "USDC"
+                  },
+                  "portfolio_maintenance_margin": "0.066",
+                  "portfolio_mm_notional": {
+                    "value": "0.745536",
+                    "currency": "USDC"
+                  },
+                  "liquidation_percentage": "4848.5055",
+                  "liquidation_buffer": "18.621364",
+                  "margin_type": "MARGIN_TYPE_CROSS",
+                  "margin_flags": "PORTFOLIO_MARGIN_FLAGS_UNSPECIFIED",
+                  "liquidation_status": "PORTFOLIO_LIQUIDATION_STATUS_NOT_LIQUIDATING",
+                  "unrealized_pnl": {
+                    "value": "0.018",
+                    "currency": "USDC"
+                  },
+                  "buying_power": {
+                    "value": "8.0709",
+                    "currency": "USDC"
+                  },
+                  "total_balance": {
+                    "value": "19.3669",
+                    "currency": "USDC"
+                  },
+                  "max_withdrawal": {
+                    "value": "8.0529",
+                    "currency": "USDC"
+                  }
+                },
+                "entry_vwap": {
+                  "value": "0.6091",
+                  "currency": "USDC"
+                }
+              }
+            ],
+            "portfolio_summary": {
+              "portfolio_uuid": "018ebd63-1f6d-7c8e-ada9-0761c5a2235f",
+              "collateral": "",
+              "position_notional": "",
+              "open_position_notional": "",
+              "pending_fees": "",
+              "borrow": "",
+              "accrued_interest": "",
+              "rolling_debt": "",
+              "portfolio_initial_margin": "",
+              "portfolio_im_notional": null,
+              "portfolio_maintenance_margin": "",
+              "portfolio_mm_notional": null,
+              "liquidation_percentage": "",
+              "liquidation_buffer": "",
+              "margin_type": "MARGIN_TYPE_UNSPECIFIED",
+              "margin_flags": "PORTFOLIO_MARGIN_FLAGS_UNSPECIFIED",
+              "liquidation_status": "PORTFOLIO_LIQUIDATION_STATUS_UNSPECIFIED",
               "unrealized_pnl": {
-                "value": "0.008",
-                "currency": "USDC"
-              },
-              "mark_price": {
-                "value": "0.5877",
-                "currency": "USDC"
-              },
-              "liquidation_price": {
                 "value": "0",
                 "currency": "USDC"
               },
-              "leverage": "1",
-              "im_notional": {
-                "value": "11.746",
-                "currency": "USDC"
-              },
-              "mm_notional": {
-                "value": "0.775236",
-                "currency": "USDC"
-              },
-              "position_notional": {
-                "value": "11.746",
-                "currency": "USDC"
-              },
-              "margin_type": "MARGIN_TYPE_CROSS",
-              "liquidation_buffer": "19.033964",
-              "liquidation_percentage": "4766.069",
-              "portfolio_summary": {
-                "portfolio_uuid": "018ebd63-1f6d-7c8e-ada9-0761c5a2235f",
-                "collateral": "19.8012",
-                "position_notional": "11.746",
-                "open_position_notional": "11.746",
-                "pending_fees": "0",
-                "borrow": "0",
-                "accrued_interest": "0",
-                "rolling_debt": "0",
-                "portfolio_initial_margin": "0.1",
-                "portfolio_im_notional": {
-                  "value": "11.746",
-                  "currency": "USDC"
-                },
-                "portfolio_maintenance_margin": "0.066",
-                "portfolio_mm_notional": {
-                  "value": "0.775236",
-                  "currency": "USDC"
-                },
-                "liquidation_percentage": "4766.069",
-                "liquidation_buffer": "19.033964",
-                "margin_type": "MARGIN_TYPE_CROSS",
-                "margin_flags": "PORTFOLIO_MARGIN_FLAGS_UNSPECIFIED",
-                "liquidation_status": "PORTFOLIO_LIQUIDATION_STATUS_NOT_LIQUIDATING",
-                "unrealized_pnl": {
-                  "value": "0.008",
-                  "currency": "USDC"
-                },
-                "buying_power": {
-                  "value": "8.0632",
-                  "currency": "USDC"
-                },
-                "total_balance": {
-                  "value": "19.8092",
-                  "currency": "USDC"
-                },
-                "max_withdrawal": {
-                  "value": "8.0552",
-                  "currency": "USDC"
-                }
-              },
-              "entry_vwap": {
-                "value": "0.6091",
-                "currency": "USDC"
-              }
-            },
-            "portfolio_summary": {
-              "portfolio_uuid": "018ebd63-1f6d-7c8e-ada9-0761c5a2235f",
-              "collateral": "19.8012",
-              "position_notional": "11.746",
-              "open_position_notional": "11.746",
-              "pending_fees": "0",
-              "borrow": "0",
-              "accrued_interest": "0",
-              "rolling_debt": "0",
-              "portfolio_initial_margin": "0.1",
-              "portfolio_im_notional": {
-                "value": "11.746",
-                "currency": "USDC"
-              },
-              "portfolio_maintenance_margin": "0.066",
-              "portfolio_mm_notional": {
-                "value": "0.775236",
-                "currency": "USDC"
-              },
-              "liquidation_percentage": "4766.069",
-              "liquidation_buffer": "19.033964",
-              "margin_type": "MARGIN_TYPE_CROSS",
-              "margin_flags": "PORTFOLIO_MARGIN_FLAGS_UNSPECIFIED",
-              "liquidation_status": "PORTFOLIO_LIQUIDATION_STATUS_NOT_LIQUIDATING",
-              "unrealized_pnl": {
-                "value": "0.008",
-                "currency": "USDC"
-              },
               "buying_power": {
-                "value": "8.0632",
+                "value": "8.0709",
                 "currency": "USDC"
               },
               "total_balance": {
-                "value": "19.8092",
+                "value": "0",
                 "currency": "USDC"
               },
               "max_withdrawal": {
-                "value": "8.0552",
+                "value": "8.0529",
                 "currency": "USDC"
               }
             }
           },
-          "parsedResponse": {
-            "info": {
-              "product_id": "1r4njf84-0-0",
-              "product_uuid": "cd34c18b-3665-4ed8-9305-3db277c49fc5",
-              "symbol": "ADA-PERP-INTX",
-              "vwap": {
-                "value": "0.5873",
-                "currency": "USDC"
-              },
-              "position_side": "POSITION_SIDE_LONG",
-              "net_size": "20",
-              "buy_order_size": "0",
-              "sell_order_size": "0",
-              "im_contribution": "0.1",
-              "unrealized_pnl": {
-                "value": "0.008",
-                "currency": "USDC"
-              },
-              "mark_price": {
-                "value": "0.5877",
-                "currency": "USDC"
-              },
-              "liquidation_price": {
-                "value": "0",
-                "currency": "USDC"
-              },
-              "leverage": "1",
-              "im_notional": {
-                "value": "11.746",
-                "currency": "USDC"
-              },
-              "mm_notional": {
-                "value": "0.775236",
-                "currency": "USDC"
-              },
-              "position_notional": {
-                "value": "11.746",
-                "currency": "USDC"
-              },
-              "margin_type": "MARGIN_TYPE_CROSS",
-              "liquidation_buffer": "19.033964",
-              "liquidation_percentage": "4766.069",
-              "portfolio_summary": {
-                "portfolio_uuid": "018ebd63-1f6d-7c8e-ada9-0761c5a2235f",
-                "collateral": "19.8012",
-                "position_notional": "11.746",
-                "open_position_notional": "11.746",
-                "pending_fees": "0",
-                "borrow": "0",
-                "accrued_interest": "0",
-                "rolling_debt": "0",
-                "portfolio_initial_margin": "0.1",
-                "portfolio_im_notional": {
-                  "value": "11.746",
+          "parsedResponse": [
+            {
+              "info": {
+                "product_id": "1r4njf84-0-0",
+                "product_uuid": "cd34c18b-3665-4ed8-9305-3db277c49fc5",
+                "symbol": "ADA-PERP-INTX",
+                "vwap": {
+                  "value": "0.5648",
                   "currency": "USDC"
                 },
-                "portfolio_maintenance_margin": "0.066",
-                "portfolio_mm_notional": {
-                  "value": "0.775236",
-                  "currency": "USDC"
-                },
-                "liquidation_percentage": "4766.069",
-                "liquidation_buffer": "19.033964",
-                "margin_type": "MARGIN_TYPE_CROSS",
-                "margin_flags": "PORTFOLIO_MARGIN_FLAGS_UNSPECIFIED",
-                "liquidation_status": "PORTFOLIO_LIQUIDATION_STATUS_NOT_LIQUIDATING",
+                "position_side": "POSITION_SIDE_LONG",
+                "net_size": "20",
+                "buy_order_size": "0",
+                "sell_order_size": "0",
+                "im_contribution": "0.1",
                 "unrealized_pnl": {
-                  "value": "0.008",
+                  "value": "0.018",
                   "currency": "USDC"
                 },
-                "buying_power": {
-                  "value": "8.0632",
+                "mark_price": {
+                  "value": "0.5657",
                   "currency": "USDC"
                 },
-                "total_balance": {
-                  "value": "19.8092",
+                "liquidation_price": {
+                  "value": "0",
                   "currency": "USDC"
                 },
-                "max_withdrawal": {
-                  "value": "8.0552",
+                "leverage": "1",
+                "im_notional": {
+                  "value": "11.296",
+                  "currency": "USDC"
+                },
+                "mm_notional": {
+                  "value": "0.745536",
+                  "currency": "USDC"
+                },
+                "position_notional": {
+                  "value": "11.296",
+                  "currency": "USDC"
+                },
+                "margin_type": "MARGIN_TYPE_CROSS",
+                "liquidation_buffer": "18.621364",
+                "liquidation_percentage": "4848.5055",
+                "portfolio_summary": {
+                  "portfolio_uuid": "018ebd63-1f6d-7c8e-ada9-0761c5a2235f",
+                  "collateral": "19.3489",
+                  "position_notional": "11.296",
+                  "open_position_notional": "11.296",
+                  "pending_fees": "0",
+                  "borrow": "0",
+                  "accrued_interest": "0",
+                  "rolling_debt": "0",
+                  "portfolio_initial_margin": "0.1",
+                  "portfolio_im_notional": {
+                    "value": "11.296",
+                    "currency": "USDC"
+                  },
+                  "portfolio_maintenance_margin": "0.066",
+                  "portfolio_mm_notional": {
+                    "value": "0.745536",
+                    "currency": "USDC"
+                  },
+                  "liquidation_percentage": "4848.5055",
+                  "liquidation_buffer": "18.621364",
+                  "margin_type": "MARGIN_TYPE_CROSS",
+                  "margin_flags": "PORTFOLIO_MARGIN_FLAGS_UNSPECIFIED",
+                  "liquidation_status": "PORTFOLIO_LIQUIDATION_STATUS_NOT_LIQUIDATING",
+                  "unrealized_pnl": {
+                    "value": "0.018",
+                    "currency": "USDC"
+                  },
+                  "buying_power": {
+                    "value": "8.0709",
+                    "currency": "USDC"
+                  },
+                  "total_balance": {
+                    "value": "19.3669",
+                    "currency": "USDC"
+                  },
+                  "max_withdrawal": {
+                    "value": "8.0529",
+                    "currency": "USDC"
+                  }
+                },
+                "entry_vwap": {
+                  "value": "0.6091",
                   "currency": "USDC"
                 }
               },
-              "entry_vwap": {
-                "value": "0.6091",
-                "currency": "USDC"
-              }
-            },
-            "id": "1r4njf84-0-0",
-            "symbol": "ADA/USDC:USDC",
-            "notional": 11.746,
-            "marginMode": "cross",
-            "liquidationPrice": 0,
-            "entryPrice": 0.5873,
-            "unrealizedPnl": 0.008,
-            "realizedPnl": null,
-            "percentage": null,
-            "contracts": 20,
-            "contractSize": 1,
-            "markPrice": null,
-            "lastPrice": null,
-            "side": "long",
-            "hedged": null,
-            "timestamp": null,
-            "datetime": null,
-            "lastUpdateTimestamp": null,
-            "maintenanceMargin": null,
-            "maintenanceMarginPercentage": null,
-            "collateral": 19.8012,
-            "initialMargin": null,
-            "initialMarginPercentage": null,
-            "leverage": 1,
-            "marginRatio": null,
-            "stopLossPrice": null,
-            "takeProfitPrice": null
-          }
+              "id": "1r4njf84-0-0",
+              "symbol": "ADA/USDC:USDC",
+              "notional": 11.296,
+              "marginMode": "cross",
+              "liquidationPrice": 0,
+              "entryPrice": 0.5648,
+              "unrealizedPnl": 0.018,
+              "realizedPnl": null,
+              "percentage": null,
+              "contracts": 20,
+              "contractSize": 1,
+              "markPrice": null,
+              "lastPrice": null,
+              "side": "long",
+              "hedged": null,
+              "timestamp": null,
+              "datetime": null,
+              "lastUpdateTimestamp": null,
+              "maintenanceMargin": null,
+              "maintenanceMarginPercentage": null,
+              "collateral": 19.3489,
+              "initialMargin": null,
+              "initialMarginPercentage": null,
+              "leverage": 1,
+              "marginRatio": null,
+              "stopLossPrice": null,
+              "takeProfitPrice": null
+            }
+          ]
         }
       ]
     }
