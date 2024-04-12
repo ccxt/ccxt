@@ -75,6 +75,79 @@
               ]
             }
           ]
+        },
+        {
+          "description": "swap trade",
+          "method": "fetchMyTrades",
+          "input": [
+            "ADA/USDC:USDC",
+            null,
+            1
+          ],
+          "httpResponse": {
+            "fills": [
+              {
+                "entry_id": "88d1e03f8fa6fc46ba8e1fc99545edd7e07f430cfffa2f95d59ce4ff4442f5f7",
+                "trade_id": "f8e23d3d-29a4-44f9-804d-1c74e4908055",
+                "order_id": "efed4cba-7395-4b02-b927-0c1dce00e0d8",
+                "trade_time": "2024-04-09T11:45:50.552204Z",
+                "trade_type": "FILL",
+                "price": "0.6091",
+                "size": "20",
+                "commission": "0.0036",
+                "product_id": "ADA-PERP-INTX",
+                "sequence_timestamp": "2024-04-09T11:45:50.653257Z",
+                "liquidity_indicator": "TAKER",
+                "size_in_quote": false,
+                "user_id": "dbcb91e7-2bc9-5152-bb6f-72d6677e6727",
+                "side": "BUY",
+                "cursor": "244975901"
+              }
+            ],
+            "cursor": "244975901"
+          },
+          "parsedResponse": [
+            {
+              "info": {
+                "entry_id": "88d1e03f8fa6fc46ba8e1fc99545edd7e07f430cfffa2f95d59ce4ff4442f5f7",
+                "trade_id": "f8e23d3d-29a4-44f9-804d-1c74e4908055",
+                "order_id": "efed4cba-7395-4b02-b927-0c1dce00e0d8",
+                "trade_time": "2024-04-09T11:45:50.552204Z",
+                "trade_type": "FILL",
+                "price": "0.6091",
+                "size": "20",
+                "commission": "0.0036",
+                "product_id": "ADA-PERP-INTX",
+                "sequence_timestamp": "2024-04-09T11:45:50.653257Z",
+                "liquidity_indicator": "TAKER",
+                "size_in_quote": false,
+                "user_id": "dbcb91e7-2bc9-5152-bb6f-72d6677e6727",
+                "side": "BUY",
+                "cursor": "244975901"
+              },
+              "id": "f8e23d3d-29a4-44f9-804d-1c74e4908055",
+              "order": "efed4cba-7395-4b02-b927-0c1dce00e0d8",
+              "timestamp": 1712663150552,
+              "datetime": "2024-04-09T11:45:50.552204Z",
+              "symbol": "ADA/USDC:USDC",
+              "type": null,
+              "side": "buy",
+              "takerOrMaker": "taker",
+              "price": 0.6091,
+              "amount": 20,
+              "cost": 12.182,
+              "fee": {
+                "cost": 0.0036,
+                "currency": "USDC"
+              },
+              "fees": [
+                {
+                  "cost": 0.0036,
+                  "currency": "USDC"
+                }
+              ]
+            }
+          ]
         }
       ],
       "fetchClosedOrders": [
