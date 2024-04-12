@@ -55,6 +55,14 @@
                 "input": [
                   "BTC/GUSD:GUSD"
                 ]
+            },
+            {
+                "description": "paxg ticker",
+                "method": "fetchTicker",
+                "url": "https://api.gemini.com/v1/pubticker/paxgusd",
+                "input": [
+                  "PAXG/USD"
+                ]
             }
         ],
         "fetchTickers": [
