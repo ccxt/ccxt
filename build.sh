@@ -220,18 +220,24 @@ ws_args=$(IFS=" " ; echo "${WS_EXCHANGES[*]}") || "skip"
 
 #request static tests
 for exchange in "${REST_EXCHANGES[@]}"; do
-  npm run request-js -- $exchange
-  npm run request-py -- $exchange
-  php php/test/test_async.php $exchange --requestTests
-  npm run request-cs -- $exchange
+  if [ "$IS_PYJSPHP" == "TRUE" ]; then
+    npm run request-js -- $exchange
+    npm run request-py -- $exchange
+    php php/test/test_async.php $exchange --requestTests
+  else
+    npm run request-cs -- $exchange
+  fi
 done
 
 #response static tests
 for exchange in "${REST_EXCHANGES[@]}"; do
-  npm run response-js -- $exchange
-  npm run response-py -- $exchange
-  php php/test/test_async.php $exchange --responseTests
-  npm run response-cs -- $exchange
+  if [ "$IS_PYJSPHP" == "TRUE" ]; then
+    npm run response-js -- $exchange
+    npm run response-py -- $exchange
+    php php/test/test_async.php $exchange --responseTests
+  else
+    npm run response-cs -- $exchange
+  fi
 done
 
 run_tests "$rest_args" "$ws_args"
