@@ -34,14 +34,22 @@ function run_tests {
   if [ -z "$rest_pid" ]; then
     if [ -z "$rest_args" ] || { [ -n "$rest_args" ] && [ "$rest_args" != "skip" ]; }; then
       # shellcheck disable=SC2086
-      node test-commonjs.cjs && node run-tests --js --python-async --php-async --csharp --useProxy $rest_args &
+      if [ "$RUNSTEP" = "PY_JS_PHP" ]; then
+        node test-commonjs.cjs && node run-tests --js --python-async --php-async --csharp --useProxy $rest_args &
+      else
+        node node run-tests --csharp --useProxy $rest_args &
+      fi
       local rest_pid=$!
     fi
   fi
   if [ -z "$ws_pid" ]; then
     if [ -z "$ws_args" ] || { [ -n "$ws_args" ] && [ "$ws_args" != "skip" ]; }; then
       # shellcheck disable=SC2086
-      node run-tests --ws --js --python-async --php-async --csharp --useProxy $ws_args &
+      if [ "$RUNSTEP" = "PY_JS_PHP" ]; then
+        node run-tests --ws --js --python-async --php-async --useProxy $ws_args &
+      else
+        node run-tests --ws --csharp --useProxy $ws_args &
+      fi
       local ws_pid=$!
     fi
   fi
@@ -153,21 +161,30 @@ npm run validate-types ${REST_EXCHANGES[*]}
 echo "$msgPrefix REST_EXCHANGES TO BE TRANSPILED: ${REST_EXCHANGES[*]}"
 PYTHON_FILES=()
 for exchange in "${REST_EXCHANGES[@]}"; do
-  npm run eslint "ts/src/$exchange.ts"
-  node build/transpile.js $exchange --force --child
-  node --loader ts-node/esm build/csharpTranspiler.ts $exchange
-  PYTHON_FILES+=("python/ccxt/$exchange.py")
-  PYTHON_FILES+=("python/ccxt/async_support/$exchange.py")
+  if [ "$RUNSTEP" = "PY_JS_PHP" ]; then
+    npm run eslint "ts/src/$exchange.ts"
+    node build/transpile.js $exchange --force --child
+    PYTHON_FILES+=("python/ccxt/$exchange.py")
+    PYTHON_FILES+=("python/ccxt/async_support/$exchange.py")
+  else
+    node --loader ts-node/esm build/csharpTranspiler.ts $exchange
+  fi
 done
 echo "$msgPrefix WS_EXCHANGES TO BE TRANSPILED: ${WS_EXCHANGES[*]}"
 for exchange in "${WS_EXCHANGES[@]}"; do
-  npm run eslint "ts/src/pro/$exchange.ts"
-  node build/transpileWS.js $exchange --force --child
-  node --loader ts-node/esm build/csharpTranspiler.ts $exchange --ws
-  PYTHON_FILES+=("python/ccxt/pro/$exchange.py")
+  if [ "$RUNSTEP" = "PY_JS_PHP" ]; then
+    npm run eslint "ts/src/pro/$exchange.ts"
+    node build/transpileWS.js $exchange --force --child
+    PYTHON_FILES+=("python/ccxt/pro/$exchange.py")
+  else
+    node --loader ts-node/esm build/csharpTranspiler.ts $exchange --ws
+  fi
 done
 # faster version of post-transpile
-npm run check-php-syntax
+
+if [ "$RUNSTEP" = "PY_JS_PHP" ]; then
+  npm run check-php-syntax
+fi
 
 # only run the python linter if exchange related files are changed
 if [ ${#PYTHON_FILES[@]} -gt 0 ]; then
@@ -185,12 +202,14 @@ if [ ${#REST_EXCHANGES[@]} -eq 0 ] && [ ${#WS_EXCHANGES[@]} -eq 0 ]; then
   exit
 fi
 
-# build dotnet project
-npm run buildCS
-
-# run base tests (base js,py,php, brokerId )
-# npm run test-base
-npm run test-js-base && npm run test-python-base && npm run test-php-base && npm run id-tests
+if [ "$RUNSTEP" = "C#" ]; then
+  # build dotnet project
+  npm run buildCS
+else
+  # run base tests (base js,py,php, brokerId )
+  # npm run test-base
+  npm run test-js-base && npm run test-python-base && npm run test-php-base && npm run id-tests
+fi
 
 # rest_args=${REST_EXCHANGES[*]} || "skip"
 rest_args=$(IFS=" " ; echo "${REST_EXCHANGES[*]}") || "skip"
