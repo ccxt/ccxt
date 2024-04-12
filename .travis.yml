@@ -33,10 +33,10 @@ before_install:
 - git checkout package.json package-lock.json
 - git config pull.rebase false
 - if [ "$RUNSTEP" == "PY_JS_PHP" ]; then
-    pip install tox cryptography requests ruff; # common packages
-    pip install twine; # used to publish python package
-    pip install pyopenssl aiohttp; # used to run real-time tests
-    pip install typing-extensions; # required by python <3.11
+    pip install tox cryptography requests ruff;
+    pip install twine;
+    pip install pyopenssl aiohttp;
+    pip install typing-extensions;
     php -i | grep php.ini;
     composer install;
     sudo apt update;
