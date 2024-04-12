@@ -12,6 +12,7 @@ if [ $# -gt 0 ]; then
 fi
 
 [[ -n "$TRAVIS_BUILD_ID" ]] && IS_TRAVIS="TRUE" || IS_TRAVIS="FALSE"
+[[ "$RUNSTEP" == "PY_JS_PHP" ]] && IS_PYJSPHP="TRUE" || IS_PYJSPHP="FALSE"
 
 msgPrefix="⬤ BUILD.SH : "
 
@@ -34,7 +35,7 @@ function run_tests {
   if [ -z "$rest_pid" ]; then
     if [ -z "$rest_args" ] || { [ -n "$rest_args" ] && [ "$rest_args" != "skip" ]; }; then
       # shellcheck disable=SC2086
-      if [ "$RUNSTEP" = "PY_JS_PHP" ]; then
+      if [ "$IS_PYJSPHP" == "TRUE" ]; then
         node test-commonjs.cjs && node run-tests --js --python-async --php-async --csharp --useProxy $rest_args &
       else
         node node run-tests --csharp --useProxy $rest_args &
@@ -45,7 +46,7 @@ function run_tests {
   if [ -z "$ws_pid" ]; then
     if [ -z "$ws_args" ] || { [ -n "$ws_args" ] && [ "$ws_args" != "skip" ]; }; then
       # shellcheck disable=SC2086
-      if [ "$RUNSTEP" = "PY_JS_PHP" ]; then
+      if [ "$IS_PYJSPHP" == "TRUE" ]; then
         node run-tests --ws --js --python-async --php-async --useProxy $ws_args &
       else
         node run-tests --ws --csharp --useProxy $ws_args &
@@ -161,7 +162,7 @@ npm run validate-types ${REST_EXCHANGES[*]}
 echo "$msgPrefix REST_EXCHANGES TO BE TRANSPILED: ${REST_EXCHANGES[*]}"
 PYTHON_FILES=()
 for exchange in "${REST_EXCHANGES[@]}"; do
-  if [ "$RUNSTEP" = "PY_JS_PHP" ]; then
+  if [ "$IS_PYJSPHP" == "TRUE" ]; then
     npm run eslint "ts/src/$exchange.ts"
     node build/transpile.js $exchange --force --child
     PYTHON_FILES+=("python/ccxt/$exchange.py")
@@ -172,7 +173,7 @@ for exchange in "${REST_EXCHANGES[@]}"; do
 done
 echo "$msgPrefix WS_EXCHANGES TO BE TRANSPILED: ${WS_EXCHANGES[*]}"
 for exchange in "${WS_EXCHANGES[@]}"; do
-  if [ "$RUNSTEP" = "PY_JS_PHP" ]; then
+  if [ "$IS_PYJSPHP" == "TRUE" ]; then
     npm run eslint "ts/src/pro/$exchange.ts"
     node build/transpileWS.js $exchange --force --child
     PYTHON_FILES+=("python/ccxt/pro/$exchange.py")
@@ -182,7 +183,7 @@ for exchange in "${WS_EXCHANGES[@]}"; do
 done
 # faster version of post-transpile
 
-if [ "$RUNSTEP" = "PY_JS_PHP" ]; then
+if [ "$IS_PYJSPHP" == "TRUE" ]; then
   npm run check-php-syntax
 fi
 
@@ -202,7 +203,7 @@ if [ ${#REST_EXCHANGES[@]} -eq 0 ] && [ ${#WS_EXCHANGES[@]} -eq 0 ]; then
   exit
 fi
 
-if [ "$RUNSTEP" = "C#" ]; then
+if [ "$IS_PYJSPHP" != "TRUE" ]; then
   # build dotnet project
   npm run buildCS
 else
