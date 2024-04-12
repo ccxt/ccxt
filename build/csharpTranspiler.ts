@@ -1359,7 +1359,7 @@ class NewTranspiler {
                 // add ws-tests specific regeces
                 regexes = regexes.concat([
                     [/await exchange.watchOrderBook\(symbol\)/g, '((IOrderBook)(await exchange.watchOrderBook(symbol))).Copy()'],
-                    [/await exchange.watchOrderBookForSymbols\((.*?)\)/g, '((IOrderBook)(await exchange.watchOrderBook($1))).Copy()'],
+                    [/await exchange.watchOrderBookForSymbols\((.*?)\)/g, '((IOrderBook)(await exchange.watchOrderBookForSymbols($1))).Copy()'],
                 ]);
             }
 
