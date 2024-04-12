@@ -1194,7 +1194,6 @@ export default class coinbase extends Exchange {
         const spotUnresolvedPromises = [
             this.v3PrivateGetBrokerageProducts (params),
             this.v3PrivateGetBrokerageTransactionSummary (params),
-
         ];
         const unresolvedContractPromises = [
             this.v3PrivateGetBrokerageProducts (this.extend (params, { 'product_type': 'FUTURE' })),
