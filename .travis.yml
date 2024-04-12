@@ -74,9 +74,8 @@ deploy:
 after_deploy:
 - cat ~/.npm/_logs/*-debug.log
 env:
-  jobs:
-    - RUNSTEP=PY_JS_PHP
-    - RUNSTEP=C#
+  - RUNSTEP=PY_JS_PHP
+  - RUNSTEP=C#
 
   global:
   # PYPI_TOKEN
