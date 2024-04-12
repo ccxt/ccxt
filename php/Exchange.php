@@ -1265,7 +1265,7 @@ class Exchange {
             $signature = \base64_decode(static::rsa($token, $secret, $algorithm));
         } else if ($algoType === 'ES') {
             $signed = static::ecdsa($token, $secret, 'p256', $algorithm);
-            $signature = hex2bin($signed['r'] . $signed['s']);
+            $signature = hex2bin(str_pad($signed['r'], 64, '0', STR_PAD_LEFT) . str_pad($signed['s'], 64, '0', STR_PAD_LEFT));
         } else {
             $signature = static::hmac($token, $secret, $algorithm, 'binary');
         }

@@ -10,6 +10,7 @@ import { Base64 } from '../../static_dependencies/jsencrypt/lib/asn1js/base64.js
 import { ASN1 } from "../../static_dependencies/jsencrypt/lib/asn1js/asn1.js";
 import { secp256k1 } from '../../static_dependencies/noble-curves/secp256k1.js';
 import { P256 } from '../../static_dependencies/noble-curves/p256.js';
+import { numberToBytesLE } from '../../static_dependencies/noble-curves/abstract/utils.js';
 /*  ------------------------------------------------------------------------ */
 
 const encoders = {
@@ -41,7 +42,7 @@ const hmac = (request: Input, secret: Input, hash: CHash, digest: Digest = 'hex'
 
 /*  .............................................   */
 
-function ecdsa (request: Hex, secret: Hex, curve: CurveFn, prehash: CHash = null) {
+function ecdsa (request: Hex, secret: Hex, curve: CurveFn, prehash: CHash = null, fixedLength = false) {
     if (prehash) {
         request = hash (request, prehash, 'hex')
     }
@@ -72,7 +73,19 @@ function ecdsa (request: Hex, secret: Hex, curve: CurveFn, prehash: CHash = null
             throw new Error('Unsupported key format');
         }
     }
-    const signature = curve.sign (request, secret)
+    let signature = curve.sign(request, secret, {
+      lowS: true,
+    });
+    const minimumSize = (BigInt(1) << (BigInt(8) * BigInt(31))) - BigInt(1);
+    const halfOrder = curve.CURVE.n / BigInt(2);
+    let counter = 0;
+    while (fixedLength && (signature.r > halfOrder || signature.r <= minimumSize || signature.s <= minimumSize)) {
+      signature = curve.sign(request, secret, {
+        lowS: true,
+        extraEntropy: numberToBytesLE(BigInt(counter), 32)
+      });
+      counter += 1;
+    }
     return {
         'r': signature.r.toString (16),
         's': signature.s.toString (16),
