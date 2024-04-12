@@ -205,11 +205,11 @@ fi
 
 if [ "$IS_PYJSPHP" != "TRUE" ]; then
   # build dotnet project
-  npm run buildCS
+  npm run buildCS && npm run id-tests-cs
 else
   # run base tests (base js,py,php, brokerId )
   # npm run test-base
-  npm run test-js-base && npm run test-python-base && npm run test-php-base && npm run id-tests
+  npm run test-js-base && npm run test-python-base && npm run test-php-base && npm run id-tests-py && npm run id-tests-js && npm run id-tests-php
 fi
 
 # rest_args=${REST_EXCHANGES[*]} || "skip"
