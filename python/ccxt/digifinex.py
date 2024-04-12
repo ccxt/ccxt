@@ -7,9 +7,10 @@ from ccxt.base.exchange import Exchange
 from ccxt.abstract.digifinex import ImplicitAPI
 import hashlib
 import json
-from ccxt.base.types import Balances, Currency, Int, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
+from ccxt.base.types import Balances, Currencies, Currency, Int, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import AccountSuspended
 from ccxt.base.errors import ArgumentsRequired
@@ -25,7 +26,6 @@ from ccxt.base.errors import NetworkError
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import InvalidNonce
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -365,7 +365,7 @@ class digifinex(Exchange, ImplicitAPI):
             },
         })
 
-    def fetch_currencies(self, params={}):
+    def fetch_currencies(self, params={}) -> Currencies:
         """
         fetches all available currencies on an exchange
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -3075,7 +3075,7 @@ class digifinex(Exchange, ImplicitAPI):
         sorted = self.sort_by(rates, 'timestamp')
         return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
 
-    def fetch_trading_fee(self, symbol: str, params={}):
+    def fetch_trading_fee(self, symbol: str, params={}) -> TradingFeeInterface:
         """
         fetch the trading fees for a market
         :see: https://docs.digifinex.com/en-ww/swap/v2/rest.html#tradingfee
@@ -3104,7 +3104,7 @@ class digifinex(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', {})
         return self.parse_trading_fee(data, market)
 
-    def parse_trading_fee(self, fee, market: Market = None):
+    def parse_trading_fee(self, fee, market: Market = None) -> TradingFeeInterface:
         #
         #     {
         #         "instrument_id": "BTCUSDTPERP",
@@ -3119,6 +3119,8 @@ class digifinex(Exchange, ImplicitAPI):
             'symbol': symbol,
             'maker': self.safe_number(fee, 'maker_fee_rate'),
             'taker': self.safe_number(fee, 'taker_fee_rate'),
+            'percentage': None,
+            'tierBased': None,
         }
 
     def fetch_positions(self, symbols: Strings = None, params={}):
@@ -3516,51 +3518,7 @@ class digifinex(Exchange, ImplicitAPI):
         #
         data = self.safe_value(response, 'data', [])
         symbols = self.market_symbols(symbols)
-        return self.parse_leverage_tiers(data, symbols, 'symbol')
-
-    def parse_leverage_tiers(self, response, symbols: Strings = None, marketIdKey=None):
-        #
-        #     [
-        #         {
-        #             "instrument_id": "BTCUSDTPERP",
-        #             "type": "REAL",
-        #             "contract_type": "PERPETUAL",
-        #             "base_currency": "BTC",
-        #             "quote_currency": "USDT",
-        #             "clear_currency": "USDT",
-        #             "contract_value": "0.001",
-        #             "contract_value_currency": "BTC",
-        #             "is_inverse": False,
-        #             "is_trading": True,
-        #             "status": "ONLINE",
-        #             "price_precision": 1,
-        #             "tick_size": "0.1",
-        #             "min_order_amount": 1,
-        #             "open_max_limits": [
-        #                 {
-        #                     "leverage": "50",
-        #                     "max_limit": "1000000"
-        #                 }
-        #             ]
-        #         },
-        #     ]
-        #
-        tiers = {}
-        result = {}
-        for i in range(0, len(response)):
-            entry = response[i]
-            marketId = self.safe_string(entry, 'instrument_id')
-            market = self.safe_market(marketId)
-            symbol = self.safe_symbol(marketId, market)
-            symbolsLength = 0
-            tiers[symbol] = self.parse_market_leverage_tiers(response[i], market)
-            if symbols is not None:
-                symbolsLength = len(symbols)
-                if self.in_array(symbol, symbols):
-                    result[symbol] = self.parse_market_leverage_tiers(response[i], market)
-            if symbol is not None and (symbolsLength == 0 or self.in_array(symbols, symbol)):
-                result[symbol] = self.parse_market_leverage_tiers(response[i], market)
-        return result
+        return self.parse_leverage_tiers(data, symbols, 'instrument_id')
 
     def fetch_market_leverage_tiers(self, symbol: str, params={}):
         """
@@ -3848,6 +3806,7 @@ class digifinex(Exchange, ImplicitAPI):
             'info': data,
             'symbol': self.safe_symbol(marketId, market, None, 'swap'),
             'type': 'add' if (rawType == 1) else 'reduce',
+            'marginMode': 'isolated',
             'amount': self.safe_number(data, 'amount'),
             'total': None,
             'code': market['settle'],

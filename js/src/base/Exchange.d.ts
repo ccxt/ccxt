@@ -3,8 +3,8 @@ import { // eslint-disable-line object-curly-newline
 ExchangeError, AuthenticationError, DDoSProtection, RequestTimeout, ExchangeNotAvailable, RateLimitExceeded } from "./errors.js";
 import WsClient from './ws/WsClient.js';
 import { OrderBook as WsOrderBook, IndexedOrderBook, CountedOrderBook } from './ws/OrderBook.js';
-import type { Market, Trade, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRate, DepositWithdrawFeeNetwork, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks, Option, OptionChain, Str, Num, MarketInterface, CurrencyInterface, BalanceAccount, MarginModes, MarketType, Leverage, Leverages, LastPrice, LastPrices, Account, Strings, MarginModification } from './types.js';
-export type { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, BorrowRate, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks, Option, OptionChain, Str, Num, MarketInterface, CurrencyInterface, BalanceAccount, MarginModes, MarketType, Leverage, Leverages, LastPrice, LastPrices, Account, Strings } from './types.js';
+import type { Market, Trade, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRate, DepositWithdrawFeeNetwork, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks, Option, OptionChain, Str, Num, MarketInterface, CurrencyInterface, BalanceAccount, MarginModes, MarketType, Leverage, Leverages, LastPrice, LastPrices, Account, Strings, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion } from './types.js';
+export type { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, BorrowRate, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks, Option, OptionChain, Str, Num, MarketInterface, CurrencyInterface, BalanceAccount, MarginModes, MarketType, Leverage, Leverages, LastPrice, LastPrices, Account, Strings, Conversion } from './types.js';
 import { ArrayCache, ArrayCacheByTimestamp } from './ws/Cache.js';
 import { OrderBook as Ob } from './ws/OrderBook.js';
 /**
@@ -141,7 +141,7 @@ export default class Exchange {
     markets_by_id: Dictionary<any>;
     symbols: string[];
     ids: string[];
-    currencies: Dictionary<Currency>;
+    currencies: Currencies;
     baseCurrencies: any;
     quoteCurrencies: any;
     currencies_by_id: any;
@@ -219,7 +219,7 @@ export default class Exchange {
     }, digest?: "binary" | "hex" | "base64") => any;
     arrayConcat: (a: any, b: any) => any;
     encode: (str: string) => Uint8Array;
-    urlencode: (object: any) => string;
+    urlencode: (object: object) => string;
     hmac: (request: import("../static_dependencies/noble-hashes/utils.js").Input, secret: import("../static_dependencies/noble-hashes/utils.js").Input, hash: {
         (message: import("../static_dependencies/noble-hashes/utils.js").Input): Uint8Array;
         outputLen: number;
@@ -234,12 +234,12 @@ export default class Exchange {
     yyyymmdd: (timestamp: any, infix?: string) => string;
     safeStringUpper: (o: any, k: IndexType, $default?: string) => string;
     safeTimestamp: (o: any, k: IndexType, $default?: number) => number;
-    binaryConcatArray: (arr: any) => Uint8Array;
+    binaryConcatArray: (arr: any[]) => Uint8Array;
     uuidv1: () => string;
     numberToLE: (n: number, padding: number) => Uint8Array;
     ymdhms: (timestamp: any, infix?: string) => string;
     yymmdd: (timestamp: any, infix?: string) => string;
-    stringToBase64: (string: any) => string;
+    stringToBase64: (string: string) => string;
     decode: (data: Uint8Array) => string;
     uuid22: (a?: any) => string;
     safeIntegerProduct2: (o: any, k1: IndexType, k2: IndexType, $factor: number, $default?: number) => number;
@@ -248,7 +248,7 @@ export default class Exchange {
     base58ToBinary: (str: string) => Uint8Array;
     base64ToBinary: (str: string) => Uint8Array;
     safeTimestamp2: (o: any, k1: IndexType, k2: IndexType, $default?: any) => number;
-    rawencode: (object: any) => string;
+    rawencode: (object: object) => string;
     keysort: (x: any, out?: {}) => {};
     inArray: (needle: any, haystack: any) => any;
     safeStringLower2: (o: any, k1: IndexType, k2: IndexType, $default?: string) => string;
@@ -257,7 +257,7 @@ export default class Exchange {
     ordered: (x: any) => any;
     filterBy: (x: any, k: any, value?: any, out?: any[]) => any[];
     uuid16: (a?: any) => string;
-    urlencodeWithArrayRepeat: (object: any) => string;
+    urlencodeWithArrayRepeat: (object: object) => string;
     microseconds: () => number;
     binaryToBase64: (data: Uint8Array) => string;
     strip: (s: string) => string;
@@ -270,10 +270,10 @@ export default class Exchange {
     safeStringN: (o: any, k: IndexType[], $default?: string) => string;
     safeStringLowerN: (o: any, k: IndexType[], $default?: string) => string;
     safeStringUpperN: (o: any, k: IndexType[], $default?: string) => string;
-    urlencodeNested: (object: any) => string;
+    urlencodeNested: (object: object) => string;
     parseDate: (x: any) => number;
     ymd: (timestamp: any, infix: any, fullYear?: boolean) => string;
-    base64ToString: (string: any) => string;
+    base64ToString: (string: string) => string;
     crc32: typeof functions.crc32;
     packb: typeof functions.packb;
     describe(): {
@@ -348,6 +348,8 @@ export default class Exchange {
             fetchClosedOrder: any;
             fetchClosedOrders: any;
             fetchClosedOrdersWs: any;
+            fetchConvertCurrencies: any;
+            fetchConvertQuote: any;
             fetchCrossBorrowRate: any;
             fetchCrossBorrowRates: any;
             fetchCurrencies: string;
@@ -369,6 +371,7 @@ export default class Exchange {
             fetchIndexOHLCV: any;
             fetchIsolatedBorrowRate: any;
             fetchIsolatedBorrowRates: any;
+            fetchMarginAdjustmentHistory: any;
             fetchIsolatedPositions: any;
             fetchL2OrderBook: boolean;
             fetchL3OrderBook: any;
@@ -588,7 +591,7 @@ export default class Exchange {
     onJsonResponse(responseBody: any): any;
     loadMarketsHelper(reload?: boolean, params?: {}): Promise<Dictionary<any>>;
     loadMarkets(reload?: boolean, params?: {}): Promise<Dictionary<Market>>;
-    fetchCurrencies(params?: {}): Promise<unknown>;
+    fetchCurrencies(params?: {}): Promise<Currencies>;
     fetchCurrenciesWs(params?: {}): Promise<unknown>;
     fetchMarkets(params?: {}): Promise<Market[]>;
     fetchMarketsWs(params?: {}): Promise<Market[]>;
@@ -625,6 +628,7 @@ export default class Exchange {
     intToBase16(elem: any): string;
     extendExchangeOptions(newOptions: any): void;
     createSafeDictionary(): {};
+    randomBytes(length: any): string;
     safeBoolN(dictionaryOrList: any, keys: IndexType[], defaultValue?: boolean): boolean | undefined;
     safeBool2(dictionary: any, key1: IndexType, key2: IndexType, defaultValue?: boolean): boolean | undefined;
     safeBool(dictionary: any, key: IndexType, defaultValue?: boolean): boolean | undefined;
@@ -700,6 +704,7 @@ export default class Exchange {
     addMargin(symbol: string, amount: number, params?: {}): Promise<MarginModification>;
     reduceMargin(symbol: string, amount: number, params?: {}): Promise<MarginModification>;
     setMargin(symbol: string, amount: number, params?: {}): Promise<{}>;
+    fetchMarginAdjustmentHistory(symbol?: Str, type?: Str, since?: Num, limit?: Num, params?: {}): Promise<MarginModification[]>;
     setMarginMode(marginMode: string, symbol?: Str, params?: {}): Promise<{}>;
     fetchDepositAddressesByNetwork(code: string, params?: {}): Promise<{}>;
     fetchOpenInterestHistory(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OpenInterest[]>;
@@ -741,7 +746,7 @@ export default class Exchange {
         fee: any;
         info: Dictionary<any>;
     };
-    safeCurrencyStructure(currency: object): any;
+    safeCurrencyStructure(currency: object): CurrencyInterface;
     safeMarketStructure(market?: any): MarketInterface;
     setMarkets(markets: any, currencies?: any): Dictionary<any>;
     getDescribeForExtendedWsExchange(currentRestInstance: any, parentRestInstance: any, wsBaseDescribe: Dictionary<any>): any;
@@ -773,6 +778,7 @@ export default class Exchange {
     convertOHLCVToTradingView(ohlcvs: number[][], timestamp?: string, open?: string, high?: string, low?: string, close?: string, volume?: string, ms?: boolean): {};
     fetchWebEndpoint(method: any, endpointMethod: any, returnAsJson: any, startRegex?: any, endRegex?: any): Promise<any>;
     marketIds(symbols?: Strings): any[];
+    marketsForSymbols(symbols?: Strings): any[];
     marketSymbols(symbols?: Strings, type?: Str, allowEmpty?: boolean, sameTypeOnly?: boolean, sameSubTypeOnly?: boolean): any[];
     marketCodes(codes?: Strings): any[];
     parseBidsAsks(bidasks: any, priceKey?: IndexType, amountKey?: IndexType, countOrIdKey?: IndexType): any[];
@@ -789,7 +795,7 @@ export default class Exchange {
     safeNumber2(dictionary: object, key1: IndexType, key2: IndexType, d?: any): number;
     parseOrderBook(orderbook: object, symbol: string, timestamp?: Int, bidsKey?: string, asksKey?: string, priceKey?: IndexType, amountKey?: IndexType, countOrIdKey?: IndexType): OrderBook;
     parseOHLCVs(ohlcvs: object[], market?: any, timeframe?: string, since?: Int, limit?: Int): OHLCV[];
-    parseLeverageTiers(response: object[], symbols?: string[], marketIdKey?: any): {};
+    parseLeverageTiers(response: any, symbols?: string[], marketIdKey?: any): {};
     loadTradingLimits(symbols?: string[], reload?: boolean, params?: {}): Promise<Dictionary<any>>;
     safePosition(position: any): Position;
     parsePositions(positions: any[], symbols?: string[], params?: {}): Position[];
@@ -907,6 +913,7 @@ export default class Exchange {
     fetchGreeks(symbol: string, params?: {}): Promise<Greeks>;
     fetchOptionChain(code: string, params?: {}): Promise<OptionChain>;
     fetchOption(symbol: string, params?: {}): Promise<Option>;
+    fetchConvertQuote(fromCode: string, toCode: string, amount?: Num, params?: {}): Promise<Conversion>;
     fetchDepositsWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     fetchDeposits(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     fetchWithdrawals(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
@@ -920,7 +927,7 @@ export default class Exchange {
     parseLastPrice(price: any, market?: Market): LastPrice;
     fetchDepositAddress(code: string, params?: {}): Promise<any>;
     account(): BalanceAccount;
-    commonCurrencyCode(currency: string): string;
+    commonCurrencyCode(code: string): string;
     currency(code: string): any;
     market(symbol: string): MarketInterface;
     createExpiredOptionMarket(symbol: string): MarketInterface;
@@ -943,6 +950,7 @@ export default class Exchange {
     safeNumber(obj: object, key: IndexType, defaultNumber?: Num): Num;
     safeNumberN(obj: object, arr: IndexType[], defaultNumber?: Num): Num;
     parsePrecision(precision?: string): string;
+    integerPrecisionToAmount(precision: Str): string;
     loadTimeDifference(params?: {}): Promise<any>;
     implodeHostname(url: string): any;
     fetchMarketLeverageTiers(symbol: string, params?: {}): Promise<any>;
@@ -967,9 +975,10 @@ export default class Exchange {
     isPostOnly(isMarketOrder: boolean, exchangeSpecificParam: any, params?: {}): boolean;
     handlePostOnly(isMarketOrder: boolean, exchangeSpecificPostOnlyOption: boolean, params?: any): any[];
     fetchLastPrices(symbols?: string[], params?: {}): Promise<LastPrices>;
-    fetchTradingFees(params?: {}): Promise<{}>;
-    fetchTradingFeesWs(params?: {}): Promise<{}>;
-    fetchTradingFee(symbol: string, params?: {}): Promise<{}>;
+    fetchTradingFees(params?: {}): Promise<TradingFees>;
+    fetchTradingFeesWs(params?: {}): Promise<TradingFees>;
+    fetchTradingFee(symbol: string, params?: {}): Promise<TradingFeeInterface>;
+    fetchConvertCurrencies(params?: {}): Promise<Currencies>;
     parseOpenInterest(interest: any, market?: Market): OpenInterest;
     parseOpenInterests(response: any, market?: any, since?: Int, limit?: Int): OpenInterest[];
     fetchFundingRate(symbol: string, params?: {}): Promise<FundingRate>;
@@ -1011,8 +1020,11 @@ export default class Exchange {
     parseMarginMode(marginMode: any, market?: Market): MarginMode;
     parseLeverages(response: object[], symbols?: string[], symbolKey?: Str, marketType?: MarketType): Leverages;
     parseLeverage(leverage: any, market?: Market): Leverage;
+    parseConversion(conversion: any, fromCurrency?: Currency, toCurrency?: Currency): Conversion;
     convertExpireDate(date: string): string;
     convertExpireDateToMarketIdDate(date: string): string;
     convertMarketIdExpireDate(date: string): string;
+    parseMarginModification(data: any, market?: Market): MarginModification;
+    parseMarginModifications(response: object[], symbols?: string[], symbolKey?: Str, marketType?: MarketType): MarginModification[];
 }
 export { Exchange, };

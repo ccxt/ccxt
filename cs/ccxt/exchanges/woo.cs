@@ -50,6 +50,8 @@ public partial class woo : Exchange
                 { "fetchCanceledOrders", false },
                 { "fetchClosedOrder", false },
                 { "fetchClosedOrders", true },
+                { "fetchConvertCurrencies", true },
+                { "fetchConvertQuote", true },
                 { "fetchCurrencies", true },
                 { "fetchDepositAddress", true },
                 { "fetchDeposits", true },
@@ -61,6 +63,7 @@ public partial class woo : Exchange
                 { "fetchIndexOHLCV", false },
                 { "fetchLedger", true },
                 { "fetchLeverage", true },
+                { "fetchMarginAdjustmentHistory", false },
                 { "fetchMarginMode", false },
                 { "fetchMarkets", true },
                 { "fetchMarkOHLCV", false },
@@ -3225,6 +3228,152 @@ public partial class woo : Exchange
             { "stopLossPrice", null },
             { "takeProfitPrice", null },
         });
+    }
+
+    public async override Task<object> fetchConvertQuote(object fromCode, object toCode, object amount = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name woo#fetchConvertQuote
+        * @description fetch a quote for converting from one currency to another
+        * @see https://docs.woo.org/#get-quote-rfq
+        * @param {string} fromCode the currency that you want to sell and convert from
+        * @param {string} toCode the currency that you want to buy and convert into
+        * @param {float} [amount] how much you want to trade in units of the from currency
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object request = new Dictionary<string, object>() {
+            { "sellToken", ((string)fromCode).ToUpper() },
+            { "buyToken", ((string)toCode).ToUpper() },
+            { "sellQuantity", this.numberToString(amount) },
+        };
+        object response = await this.v3PrivateGetConvertRfq(this.extend(request, parameters));
+        //
+        //     {
+        //         "success": true,
+        //         "data": {
+        //             "quoteId": 123123123,
+        //             "counterPartyId": "",
+        //             "sellToken": "ETH",
+        //             "sellQuantity": "0.0445",
+        //             "buyToken": "USDT",
+        //             "buyQuantity": "33.45",
+        //             "buyPrice": "6.77",
+        //             "expireTimestamp": 1659084466000,
+        //             "message": 1659084466000
+        //         }
+        //     }
+        //
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        object fromCurrencyId = this.safeString(data, "sellToken", fromCode);
+        object fromCurrency = this.currency(fromCurrencyId);
+        object toCurrencyId = this.safeString(data, "buyToken", toCode);
+        object toCurrency = this.currency(toCurrencyId);
+        return this.parseConversion(data, fromCurrency, toCurrency);
+    }
+
+    public override object parseConversion(object conversion, object fromCurrency = null, object toCurrency = null)
+    {
+        //
+        // fetchConvertQuote
+        //
+        //     {
+        //         "quoteId": 123123123,
+        //         "counterPartyId": "",
+        //         "sellToken": "ETH",
+        //         "sellQuantity": "0.0445",
+        //         "buyToken": "USDT",
+        //         "buyQuantity": "33.45",
+        //         "buyPrice": "6.77",
+        //         "expireTimestamp": 1659084466000,
+        //         "message": 1659084466000
+        //     }
+        //
+        object timestamp = this.safeInteger(conversion, "expireTimestamp");
+        object fromCoin = this.safeString(conversion, "sellToken");
+        object fromCode = this.safeCurrencyCode(fromCoin, fromCurrency);
+        object to = this.safeString(conversion, "buyToken");
+        object toCode = this.safeCurrencyCode(to, toCurrency);
+        return new Dictionary<string, object>() {
+            { "info", conversion },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
+            { "id", this.safeString(conversion, "quoteId") },
+            { "fromCurrency", fromCode },
+            { "fromAmount", this.safeNumber(conversion, "sellQuantity") },
+            { "toCurrency", toCode },
+            { "toAmount", this.safeNumber(conversion, "buyQuantity") },
+            { "price", this.safeNumber(conversion, "buyPrice") },
+            { "fee", null },
+        };
+    }
+
+    public async override Task<object> fetchConvertCurrencies(object parameters = null)
+    {
+        /**
+        * @method
+        * @name woo#fetchConvertCurrencies
+        * @description fetches all available currencies that can be converted
+        * @see https://docs.woo.org/#get-quote-asset-info
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} an associative dictionary of currencies
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object response = await this.v3PrivateGetConvertAssetInfo(parameters);
+        //
+        //     {
+        //         "success": true,
+        //         "rows": [
+        //             {
+        //                 "token": "BTC",
+        //                 "tick": 0.0001,
+        //                 "createdTime": "1575014248.99", // Unix epoch time in seconds
+        //                 "updatedTime": "1575014248.99"  // Unix epoch time in seconds
+        //             },
+        //         ]
+        //     }
+        //
+        object result = new Dictionary<string, object>() {};
+        object data = this.safeList(response, "rows", new List<object>() {});
+        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+        {
+            object entry = getValue(data, i);
+            object id = this.safeString(entry, "token");
+            object code = this.safeCurrencyCode(id);
+            ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
+                { "info", entry },
+                { "id", id },
+                { "code", code },
+                { "networks", null },
+                { "type", null },
+                { "name", null },
+                { "active", null },
+                { "deposit", null },
+                { "withdraw", null },
+                { "fee", null },
+                { "precision", this.safeNumber(entry, "tick") },
+                { "limits", new Dictionary<string, object>() {
+                    { "amount", new Dictionary<string, object>() {
+                        { "min", null },
+                        { "max", null },
+                    } },
+                    { "withdraw", new Dictionary<string, object>() {
+                        { "min", null },
+                        { "max", null },
+                    } },
+                    { "deposit", new Dictionary<string, object>() {
+                        { "min", null },
+                        { "max", null },
+                    } },
+                } },
+                { "created", this.safeTimestamp(entry, "createdTime") },
+            };
+        }
+        return result;
     }
 
     public virtual object defaultNetworkCodeForCurrency(object code)

@@ -34,7 +34,7 @@ const errorHierarchy = {
             },
             'NotSupported': {},
             'ProxyError': {},
-            'InvalidNonce': {}, // when incoming WS orderbook nonce does not fit `= last + 1` rule
+            'ExchangeClosedByUser': {},
         },
         'OperationFailed': {
             'NetworkError': {
@@ -47,7 +47,6 @@ const errorHierarchy = {
                 'RequestTimeout': {},
             },
         },
-        'ExchangeClosedByUser': {},
     },
 };
 

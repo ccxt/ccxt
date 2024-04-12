@@ -5,7 +5,7 @@ import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { ExchangeError, BadRequest, ArgumentsRequired, AuthenticationError, PermissionDenied, AccountSuspended, InsufficientFunds, RateLimitExceeded, ExchangeNotAvailable, BadSymbol, InvalidOrder, OrderNotFound, NotSupported, AccountNotEnabled, OrderImmediatelyFillable, BadResponse } from './base/errors.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import type { Int, OrderSide, OrderType, OHLCV, Trade, FundingRateHistory, OpenInterest, Order, Balances, OrderRequest, FundingHistory, Str, Transaction, Ticker, OrderBook, Tickers, Greeks, Strings, Market, Currency, MarketInterface, TransferEntry, Leverage, Leverages, Num, OptionChain, Option, MarginModification } from './base/types.js';
+import type { Int, OrderSide, OrderType, OHLCV, Trade, FundingRateHistory, OpenInterest, Order, Balances, OrderRequest, FundingHistory, Str, Transaction, Ticker, OrderBook, Tickers, Greeks, Strings, Market, Currency, MarketInterface, TransferEntry, Leverage, Leverages, Num, OptionChain, Option, MarginModification, TradingFeeInterface, Currencies, TradingFees } from './base/types.js';
 
 /**
  * @class gate
@@ -120,6 +120,7 @@ export default class gate extends Exchange {
                 'fetchLeverages': true,
                 'fetchLeverageTiers': true,
                 'fetchLiquidations': true,
+                'fetchMarginAdjustmentHistory': false,
                 'fetchMarginMode': false,
                 'fetchMarketLeverageTiers': true,
                 'fetchMarkets': true,
@@ -1552,7 +1553,7 @@ export default class gate extends Exchange {
         return this.safeValue (fetchMarketsContractOptions, 'settlementCurrencies', defaultSettle);
     }
 
-    async fetchCurrencies (params = {}) {
+    async fetchCurrencies (params = {}): Promise<Currencies> {
         /**
          * @method
          * @name gate#fetchCurrencies
@@ -1871,7 +1872,7 @@ export default class gate extends Exchange {
         await this.loadMarkets ();
         const currency = this.currency (code);
         const request = {
-            'currency': currency['id'],
+            'currency': currency['id'], // todo: currencies have network-junctions
         };
         const response = await this.privateWalletGetDepositAddress (this.extend (request, params));
         const addresses = this.safeValue (response, 'multichain_addresses');
@@ -1923,7 +1924,7 @@ export default class gate extends Exchange {
         const rawNetwork = this.safeStringUpper (params, 'network');
         params = this.omit (params, 'network');
         const request = {
-            'currency': currency['id'],
+            'currency': currency['id'], // todo: currencies have network-junctions
         };
         const response = await this.privateWalletGetDepositAddress (this.extend (request, params));
         //
@@ -1989,7 +1990,7 @@ export default class gate extends Exchange {
         };
     }
 
-    async fetchTradingFee (symbol: string, params = {}) {
+    async fetchTradingFee (symbol: string, params = {}): Promise<TradingFeeInterface> {
         /**
          * @method
          * @name gate#fetchTradingFee
@@ -2022,7 +2023,7 @@ export default class gate extends Exchange {
         return this.parseTradingFee (response, market);
     }
 
-    async fetchTradingFees (params = {}) {
+    async fetchTradingFees (params = {}): Promise<TradingFees> {
         /**
          * @method
          * @name gate#fetchTradingFees
@@ -2086,6 +2087,8 @@ export default class gate extends Exchange {
             'symbol': this.safeString (market, 'symbol'),
             'maker': this.safeNumber (info, makerKey),
             'taker': this.safeNumber (info, takerKey),
+            'percentage': undefined,
+            'tierBased': undefined,
         };
     }
 
@@ -3523,7 +3526,7 @@ export default class gate extends Exchange {
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
-            request['currency'] = currency['id'];
+            request['currency'] = currency['id']; // todo: currencies have network-junctions
         }
         if (limit !== undefined) {
             request['limit'] = limit;
@@ -3562,7 +3565,7 @@ export default class gate extends Exchange {
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
-            request['currency'] = currency['id'];
+            request['currency'] = currency['id']; // todo: currencies have network-junctions
         }
         if (limit !== undefined) {
             request['limit'] = limit;
@@ -3595,7 +3598,7 @@ export default class gate extends Exchange {
         await this.loadMarkets ();
         const currency = this.currency (code);
         const request = {
-            'currency': currency['id'],
+            'currency': currency['id'], // todo: currencies have network-junctions
             'address': address,
             'amount': this.currencyToPrecision (code, amount),
         };
@@ -3609,7 +3612,7 @@ export default class gate extends Exchange {
             request['chain'] = network;
             params = this.omit (params, 'network');
         } else {
-            request['chain'] = currency['id'];
+            request['chain'] = currency['id']; // todo: currencies have network-junctions
         }
         const response = await this.privateWithdrawalsPostWithdrawals (this.extend (request, params));
         //
@@ -5080,7 +5083,7 @@ export default class gate extends Exchange {
         const toId = this.convertTypeToAccount (toAccount);
         const truncated = this.currencyToPrecision (code, amount);
         const request = {
-            'currency': currency['id'],
+            'currency': currency['id'], // todo: currencies have network-junctions
             'amount': truncated,
         };
         if (!(fromId in this.options['accountsByType'])) {
@@ -5105,7 +5108,7 @@ export default class gate extends Exchange {
             params = this.omit (params, 'symbol');
         }
         if ((toId === 'futures') || (toId === 'delivery') || (fromId === 'futures') || (fromId === 'delivery')) {
-            request['settle'] = currency['id'];
+            request['settle'] = currency['id']; // todo: currencies have network-junctions
         }
         const response = await this.privateWalletPostTransfers (this.extend (request, params));
         //
@@ -5762,7 +5765,7 @@ export default class gate extends Exchange {
         await this.loadMarkets ();
         const currency = this.currency (code);
         const request = {
-            'currency': currency['id'].toUpperCase (),
+            'currency': currency['id'].toUpperCase (), // todo: currencies have network-junctions
             'amount': this.currencyToPrecision (code, amount),
         };
         const market = this.market (symbol);
@@ -5792,7 +5795,7 @@ export default class gate extends Exchange {
         await this.loadMarkets ();
         const currency = this.currency (code);
         const request = {
-            'currency': currency['id'].toUpperCase (),
+            'currency': currency['id'].toUpperCase (), // todo: currencies have network-junctions
             'amount': this.currencyToPrecision (code, amount),
         };
         let response = await this.privateMarginPostCrossRepayments (this.extend (request, params));
@@ -5832,7 +5835,7 @@ export default class gate extends Exchange {
         await this.loadMarkets ();
         const currency = this.currency (code);
         const request = {
-            'currency': currency['id'].toUpperCase (),
+            'currency': currency['id'].toUpperCase (), // todo: currencies have network-junctions
             'amount': this.currencyToPrecision (code, amount),
         };
         let response = undefined;
@@ -5878,7 +5881,7 @@ export default class gate extends Exchange {
         await this.loadMarkets ();
         const currency = this.currency (code);
         const request = {
-            'currency': currency['id'].toUpperCase (),
+            'currency': currency['id'].toUpperCase (), // todo: currencies have network-junctions
             'amount': this.currencyToPrecision (code, amount),
         };
         const response = await this.privateMarginPostCrossLoans (this.extend (request, params));
@@ -6077,6 +6080,7 @@ export default class gate extends Exchange {
             'info': data,
             'symbol': market['symbol'],
             'type': undefined,
+            'marginMode': 'isolated',
             'amount': undefined,
             'total': total,
             'code': this.safeValue (market, 'quote'),
@@ -6422,7 +6426,7 @@ export default class gate extends Exchange {
         if ((type === 'spot') || (type === 'margin')) {
             if (code !== undefined) {
                 currency = this.currency (code);
-                request['currency'] = currency['id'];
+                request['currency'] = currency['id']; // todo: currencies have network-junctions
             }
         }
         if ((type === 'swap') || (type === 'future')) {
@@ -7242,7 +7246,7 @@ export default class gate extends Exchange {
         await this.loadMarkets ();
         const currency = this.currency (code);
         const request = {
-            'underlying': currency['code'] + '_USDT',
+            'underlying': currency['code'] + '_USDT', // todo: currency['id'].toUpperCase () &  network junctions
         };
         const response = await this.publicOptionsGetContracts (this.extend (request, params));
         //

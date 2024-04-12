@@ -20,7 +20,6 @@ Current feature list:
 
 
 ## Sponsored Promotion
-[![bitget](https://github.com/ccxt/ccxt/assets/43336371/71359af3-c78f-4077-a64c-ac0bfe1fa01c)](https://www.bitget.com/events/competition/86c98f96df155e6bb397e866dcd86afc?channelCode=ccxt&vipCode=tg9j)
 
 ## See Also
 
@@ -53,7 +52,7 @@ Current feature list:
 | [![okx](https://user-images.githubusercontent.com/1294454/152485636-38b19e4a-bece-4dec-979a-5982859ffc04.jpg)](https://www.okx.com/join/CCXT2023)                                                             | okx                   | [OKX](https://www.okx.com/join/CCXT2023)                                                              | [![API Version 5](https://img.shields.io/badge/5-lightgray)](https://www.okx.com/docs-v5/en/)                                 | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) | [![Sign up with OKX using CCXT's referral link for a 20% discount!](https://img.shields.io/static/v1?label=Fee&message=%2d20%25&color=orange)](https://www.okx.com/join/CCXT2023)                                                              |
 | [![woo](https://user-images.githubusercontent.com/1294454/150730761-1a00e5e0-d28c-480f-9e65-089ce3e6ef3b.jpg)](https://x.woo.org/register?ref=YWOWC96B)                                                       | woo                   | [WOO X](https://x.woo.org/register?ref=YWOWC96B)                                                      | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://docs.woo.org/)                                           | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) | [![Sign up with WOO X using CCXT's referral link for a 35% discount!](https://img.shields.io/static/v1?label=Fee&message=%2d35%25&color=orange)](https://x.woo.org/register?ref=YWOWC96B)                                                      |
 
-## Supported Cryptocurrency Exchange Markets
+## Supported Cryptocurrency Exchanges
 
 The CCXT library currently supports the following 97 cryptocurrency exchange markets and trading APIs:
 
@@ -213,13 +212,13 @@ console.log(version, Object.keys(exchanges));
 
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
-* jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@4.2.87/dist/ccxt.browser.js
-* unpkg: https://unpkg.com/ccxt@4.2.87/dist/ccxt.browser.js
+* jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@4.2.95/dist/ccxt.browser.js
+* unpkg: https://unpkg.com/ccxt@4.2.95/dist/ccxt.browser.js
 
 CDNs are not updated in real-time and may have delays. Defaulting to the most recent version without specifying the version number is not recommended. Please, keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 ```HTML
-<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@4.2.87/dist/ccxt.browser.js"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@4.2.95/dist/ccxt.browser.js"></script>
 ```
 
 Creates a global `ccxt` object:

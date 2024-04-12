@@ -182,6 +182,8 @@ class coinbase(ccxt.async_support.coinbase):
                 messageHash = channel + '::' + wsMarketId
                 newTickers.append(result)
                 client.resolve(result, messageHash)
+                if messageHash.endswith('USD'):
+                    client.resolve(result, messageHash + 'C')  # sometimes we subscribe to BTC/USDC and coinbase returns BTC/USD
         messageHashes = self.find_message_hashes(client, 'ticker_batch::')
         for i in range(0, len(messageHashes)):
             messageHash = messageHashes[i]
@@ -191,6 +193,8 @@ class coinbase(ccxt.async_support.coinbase):
             tickers = self.filter_by_array(newTickers, 'symbol', symbols)
             if not self.is_empty(tickers):
                 client.resolve(tickers, messageHash)
+                if messageHash.endswith('USD'):
+                    client.resolve(tickers, messageHash + 'C')  # sometimes we subscribe to BTC/USDC and coinbase returns BTC/USD
         return message
 
     def parse_ws_ticker(self, ticker, market=None):
@@ -327,6 +331,8 @@ class coinbase(ccxt.async_support.coinbase):
                 item = currentTrades[i]
                 tradesArray.append(self.parse_trade(item))
         client.resolve(tradesArray, messageHash)
+        if marketId.endswith('USD'):
+            client.resolve(tradesArray, messageHash + 'C')  # sometimes we subscribe to BTC/USDC and coinbase returns BTC/USD
         return message
 
     def handle_order(self, client, message):
@@ -378,6 +384,8 @@ class coinbase(ccxt.async_support.coinbase):
             marketId = marketIds[i]
             messageHash = 'user::' + marketId
             client.resolve(self.orders, messageHash)
+            if messageHash.endswith('USD'):
+                client.resolve(self.orders, messageHash + 'C')  # sometimes we subscribe to BTC/USDC and coinbase returns BTC/USD
         client.resolve(self.orders, 'user')
         return message
 
@@ -488,6 +496,8 @@ class coinbase(ccxt.async_support.coinbase):
                 orderbook['datetime'] = None
                 orderbook['symbol'] = symbol
                 client.resolve(orderbook, messageHash)
+                if messageHash.endswith('USD'):
+                    client.resolve(orderbook, messageHash + 'C')  # sometimes we subscribe to BTC/USDC and coinbase returns BTC/USD
             elif type == 'update':
                 orderbook = self.orderbooks[symbol]
                 self.handle_order_book_helper(orderbook, updates)
@@ -495,6 +505,8 @@ class coinbase(ccxt.async_support.coinbase):
                 orderbook['timestamp'] = self.parse8601(datetime)
                 orderbook['symbol'] = symbol
                 client.resolve(orderbook, messageHash)
+                if messageHash.endswith('USD'):
+                    client.resolve(orderbook, messageHash + 'C')  # sometimes we subscribe to BTC/USDC and coinbase returns BTC/USD
         return message
 
     def handle_subscription_status(self, client, message):

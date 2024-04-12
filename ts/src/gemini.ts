@@ -6,7 +6,7 @@ import { ExchangeError, ArgumentsRequired, BadRequest, OrderNotFound, InvalidOrd
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha384 } from './static_dependencies/noble-hashes/sha512.js';
-import type { Balances, Currency, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import type { Balances, Currencies, Currency, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -109,6 +109,7 @@ export default class gemini extends Exchange {
                     // https://github.com/ccxt/ccxt/issues/7874
                     // https://github.com/ccxt/ccxt/issues/7894
                     'web': 'https://docs.gemini.com',
+                    'webExchange': 'https://exchange.gemini.com',
                 },
                 'fees': [
                     'https://gemini.com/api-fee-schedule',
@@ -291,7 +292,7 @@ export default class gemini extends Exchange {
         });
     }
 
-    async fetchCurrencies (params = {}) {
+    async fetchCurrencies (params = {}): Promise<Currencies> {
         /**
          * @method
          * @name gemini#fetchCurrencies
@@ -448,7 +449,8 @@ export default class gemini extends Exchange {
             //         '<td>0.01 USD', // quote currency price increment
             //         '</tr>'
             //     ]
-            const marketId = cells[0].replace ('<td>', '');
+            let marketId = cells[0].replace ('<td>', '');
+            marketId = marketId.replace ('*', '');
             // const base = this.safeCurrencyCode (baseId);
             const minAmountString = cells[1].replace ('<td>', '');
             const minAmountParts = minAmountString.split (' ');
@@ -652,7 +654,7 @@ export default class gemini extends Exchange {
         let quoteId = undefined;
         let settleId = undefined;
         let tickSize = undefined;
-        let increment = undefined;
+        let amountPrecision = undefined;
         let minSize = undefined;
         let status = undefined;
         let swap = false;
@@ -663,9 +665,9 @@ export default class gemini extends Exchange {
         const isArray = (Array.isArray (response));
         if (!isString && !isArray) {
             marketId = this.safeStringLower (response, 'symbol');
+            amountPrecision = this.safeNumber (response, 'tick_size'); // right, exchange has an imperfect naming and this turns out to be an amount-precision
+            tickSize = this.safeNumber (response, 'quote_increment'); // this is tick-size actually
             minSize = this.safeNumber (response, 'min_order_size');
-            tickSize = this.safeNumber (response, 'tick_size');
-            increment = this.safeNumber (response, 'quote_increment');
             status = this.parseMarketActive (this.safeString (response, 'status'));
             baseId = this.safeString (response, 'base_currency');
             quoteId = this.safeString (response, 'quote_currency');
@@ -676,9 +678,9 @@ export default class gemini extends Exchange {
                 marketId = response;
             } else {
                 marketId = this.safeStringLower (response, 0);
-                minSize = this.safeNumber (response, 3);
-                tickSize = this.parseNumber (this.parsePrecision (this.safeString (response, 1)));
-                increment = this.parseNumber (this.parsePrecision (this.safeString (response, 2)));
+                tickSize = this.parseNumber (this.parsePrecision (this.safeString (response, 1))); // priceTickDecimalPlaces
+                amountPrecision = this.parseNumber (this.parsePrecision (this.safeString (response, 2))); // quantityTickDecimalPlaces
+                minSize = this.safeNumber (response, 3); // quantityMinimum
             }
             const marketIdUpper = marketId.toUpperCase ();
             const isPerp = (marketIdUpper.indexOf ('PERP') >= 0);
@@ -687,7 +689,8 @@ export default class gemini extends Exchange {
             for (let i = 0; i < quoteQurrencies.length; i++) {
                 const quoteCurrency = quoteQurrencies[i];
                 if (marketIdWithoutPerp.endsWith (quoteCurrency)) {
-                    baseId = marketIdWithoutPerp.replace (quoteCurrency, '');
+                    const quoteLength = this.parseToInt (-1 * quoteCurrency.length);
+                    baseId = marketIdWithoutPerp.slice (0, quoteLength);
                     quoteId = quoteCurrency;
                     if (isPerp) {
                         settleId = quoteCurrency; // always same
@@ -733,8 +736,8 @@ export default class gemini extends Exchange {
             'strike': undefined,
             'optionType': undefined,
             'precision': {
-                'price': increment,
-                'amount': tickSize,
+                'price': tickSize,
+                'amount': amountPrecision,
             },
             'limits': {
                 'leverage': {
@@ -1105,7 +1108,7 @@ export default class gemini extends Exchange {
         return this.safeBalance (result);
     }
 
-    async fetchTradingFees (params = {}) {
+    async fetchTradingFees (params = {}): Promise<TradingFees> {
         /**
          * @method
          * @name gemini#fetchTradingFees
@@ -1827,7 +1830,7 @@ export default class gemini extends Exchange {
             if (apiKey.indexOf ('account') < 0) {
                 throw new AuthenticationError (this.id + ' sign() requires an account-key, master-keys are not-supported');
             }
-            const nonce = this.nonce ();
+            const nonce = this.nonce ().toString ();
             const request = this.extend ({
                 'request': url,
                 'nonce': nonce,

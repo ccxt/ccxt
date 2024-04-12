@@ -9,8 +9,8 @@ use Exception; // a common import
 use ccxt\async\abstract\upbit as Exchange;
 use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
-use ccxt\InvalidOrder;
 use ccxt\AddressPending;
+use ccxt\InvalidOrder;
 use ccxt\Precise;
 use React\Async;
 use React\Promise\PromiseInterface;
@@ -882,7 +882,7 @@ class upbit extends Exchange {
         }) ();
     }
 
-    public function fetch_trading_fee(string $symbol, $params = array ()) {
+    public function fetch_trading_fee(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * @see https://docs.upbit.com/reference/%EC%A3%BC%EB%AC%B8-%EA%B0%80%EB%8A%A5-%EC%A0%95%EB%B3%B4

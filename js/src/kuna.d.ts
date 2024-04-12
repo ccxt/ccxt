@@ -1,5 +1,5 @@
 import Exchange from './abstract/kuna.js';
-import type { Balances, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import type { Balances, Currencies, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 /**
  * @class kuna
  * @augments Exchange
@@ -8,7 +8,7 @@ import type { Balances, Currency, Int, Market, Num, Order, OrderBook, OrderSide,
 export default class kuna extends Exchange {
     describe(): any;
     fetchTime(params?: {}): Promise<number>;
-    fetchCurrencies(params?: {}): Promise<{}>;
+    fetchCurrencies(params?: {}): Promise<Currencies>;
     parseCurrencies(currencies: any, params?: {}): {};
     parseCurrency(currency: any): {
         info: any;
