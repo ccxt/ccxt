@@ -202,7 +202,23 @@
                   0.55
                 ],
                 "output": "{\"client_order_id\":\"ccxt-30a1ba55-f7b6-4b58-ad9f-8328cabb9e3b\",\"product_id\":\"ADA-PERP-INTX\",\"side\":\"BUY\",\"order_configuration\":{\"limit_limit_gtc\":{\"base_size\":\"20\",\"limit_price\":\"0.55\",\"post_only\":false}}}"
-            }
+            },
+            {
+                "description": "swap preview order",
+                "method": "createOrder",
+                "url": "https://api.coinbase.com/api/v3/brokerage/orders/preview",
+                "input": [
+                  "ADA/USDC:USDC",
+                  "market",
+                  "buy",
+                  20,
+                  null,
+                  {
+                    "test": true
+                  }
+                ],
+                "output": "{\"product_id\":\"ADA-PERP-INTX\",\"side\":\"BUY\",\"order_configuration\":{\"market_market_ioc\":{\"base_size\":\"20\"}}}"
+              }
         ],
         "createMarketBuyOrderWithCost": [
             {

@@ -2618,6 +2618,9 @@ export default class coinbase extends Exchange {
          * @param {boolean} [params.preview] default to false, wether to use the test/preview endpoint or not
          * @param {float} [params.leverage] default to 1, the leverage to use for the order
          * @param {string} [params.marginMode] 'cross' or 'isolated'
+         * @param {string} [params.retail_portfolio_id] portfolio uid
+         * @param {boolean} [params.is_max] Used in conjunction with tradable_balance to indicate the user wants to use their entire tradable balance
+         * @param {string} [params.tradable_balance] amount of tradable balance
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
