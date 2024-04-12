@@ -429,8 +429,11 @@ export default class binance extends binanceRest {
                                 client.resolve (orderbook, messageHash);
                             }
                         } else {
-                            // todo: client.reject from handleOrderBookMessage properly
-                            throw new InvalidNonce (this.id + ' handleOrderBook received an out-of-order nonce');
+                            const checksum = this.safeBool (this.options, 'checksum', true);
+                            if (checksum) {
+                                // todo: client.reject from handleOrderBookMessage properly
+                                throw new InvalidNonce (this.id + ' handleOrderBook received an out-of-order nonce');
+                            }
                         }
                     }
                 } else {
@@ -445,8 +448,11 @@ export default class binance extends binanceRest {
                                 client.resolve (orderbook, messageHash);
                             }
                         } else {
-                            // todo: client.reject from handleOrderBookMessage properly
-                            throw new InvalidNonce (this.id + ' handleOrderBook received an out-of-order nonce');
+                            const checksum = this.safeBool (this.options, 'checksum', true);
+                            if (checksum) {
+                                // todo: client.reject from handleOrderBookMessage properly
+                                throw new InvalidNonce (this.id + ' handleOrderBook received an out-of-order nonce');
+                            }
                         }
                     }
                 }
