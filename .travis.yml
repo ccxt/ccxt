@@ -86,6 +86,3 @@ env:
   matrix:
     - SKIP_STACK=true
     - SKIP_PACKAGES=true
-  jobs:
-    - RUNSTEP=PY_JS_PHP
-    - RUNSTEP=C#
