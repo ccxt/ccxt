@@ -951,7 +951,7 @@ export default class binance extends binanceRest {
             'params': this.signParams (this.extend (payload, params)),
         };
         const ticker = await this.watch (url, messageHash, message, messageHash, subscription);
-        return ticker;
+        return ticker as Ticker;
     }
 
     async fetchOHLCVWs (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
@@ -1686,7 +1686,7 @@ export default class binance extends binanceRest {
          */
         return await this.fetchPositionsWs ([ symbol ], params);
     }
- 
+
     async fetchPositionsWs (symbols: Strings = undefined, params = {}) {
         /**
          * @method
@@ -1704,9 +1704,11 @@ export default class binance extends binanceRest {
         const requestId = this.requestId (url);
         const messageHash = requestId.toString ();
         const payload = {};
-        const symbolsLength = symbols.length;
-        if (symbolsLength === 1) {
-            payload['symbol'] = this.marketId (symbols[0]);
+        if (symbols !== undefined) {
+            const symbolsLength = symbols.length;
+            if (symbolsLength === 1) {
+                payload['symbol'] = this.marketId (symbols[0]);
+            }
         }
         let returnRateLimits = false;
         [ returnRateLimits, params ] = this.handleOptionAndParams (params, 'fetchPositionsWs', 'returnRateLimits', false);
