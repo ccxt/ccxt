@@ -80,7 +80,6 @@ interface Exchange {
     v3PrivateGetBrokeragePaymentMethods (params?: {}): Promise<implicitReturnType>;
     v3PrivateGetBrokeragePaymentMethodsPaymentMethodId (params?: {}): Promise<implicitReturnType>;
     v3PrivatePostBrokerageOrders (params?: {}): Promise<implicitReturnType>;
-    v3PrivatePostBrokerageOrdersClosePosition (params?: {}): Promise<implicitReturnType>;
     v3PrivatePostBrokerageOrdersBatchCancel (params?: {}): Promise<implicitReturnType>;
     v3PrivatePostBrokerageOrdersEdit (params?: {}): Promise<implicitReturnType>;
     v3PrivatePostBrokerageOrdersEditPreview (params?: {}): Promise<implicitReturnType>;
@@ -91,6 +90,7 @@ interface Exchange {
     v3PrivatePostBrokerageConvertTradeTradeId (params?: {}): Promise<implicitReturnType>;
     v3PrivatePostBrokerageCfmSweepsSchedule (params?: {}): Promise<implicitReturnType>;
     v3PrivatePostBrokerageIntxAllocate (params?: {}): Promise<implicitReturnType>;
+    v3PrivatePostBrokerageOrdersClosePosition (params?: {}): Promise<implicitReturnType>;
     v3PrivatePutBrokeragePortfoliosPortfolioUuid (params?: {}): Promise<implicitReturnType>;
     v3PrivateDeleteBrokeragePortfoliosPortfolioUuid (params?: {}): Promise<implicitReturnType>;
     v3PrivateDeleteBrokerageCfmSweeps (params?: {}): Promise<implicitReturnType>;

@@ -220,9 +220,6 @@ abstract class coinbase extends \ccxt\async\Exchange {
     public function v3_private_post_brokerage_orders($params = array()) {
         return $this->request('brokerage/orders', array('v3', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
-    public function v3_private_post_brokerage_orders_close_position($params = array()) {
-        return $this->request('brokerage/orders/close_position', array('v3', 'private'), 'POST', $params, null, null, array("cost" => 1));
-    }
     public function v3_private_post_brokerage_orders_batch_cancel($params = array()) {
         return $this->request('brokerage/orders/batch_cancel', array('v3', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
@@ -252,6 +249,9 @@ abstract class coinbase extends \ccxt\async\Exchange {
     }
     public function v3_private_post_brokerage_intx_allocate($params = array()) {
         return $this->request('brokerage/intx/allocate', array('v3', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function v3_private_post_brokerage_orders_close_position($params = array()) {
+        return $this->request('brokerage/orders/close_position', array('v3', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
     public function v3_private_put_brokerage_portfolios_portfolio_uuid($params = array()) {
         return $this->request('brokerage/portfolios/{portfolio_uuid}', array('v3', 'private'), 'PUT', $params, null, null, array("cost" => 1));
@@ -475,9 +475,6 @@ abstract class coinbase extends \ccxt\async\Exchange {
     public function v3PrivatePostBrokerageOrders($params = array()) {
         return $this->request('brokerage/orders', array('v3', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
-    public function v3PrivatePostBrokerageOrdersClosePosition($params = array()) {
-        return $this->request('brokerage/orders/close_position', array('v3', 'private'), 'POST', $params, null, null, array("cost" => 1));
-    }
     public function v3PrivatePostBrokerageOrdersBatchCancel($params = array()) {
         return $this->request('brokerage/orders/batch_cancel', array('v3', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
@@ -507,6 +504,9 @@ abstract class coinbase extends \ccxt\async\Exchange {
     }
     public function v3PrivatePostBrokerageIntxAllocate($params = array()) {
         return $this->request('brokerage/intx/allocate', array('v3', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function v3PrivatePostBrokerageOrdersClosePosition($params = array()) {
+        return $this->request('brokerage/orders/close_position', array('v3', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
     public function v3PrivatePutBrokeragePortfoliosPortfolioUuid($params = array()) {
         return $this->request('brokerage/portfolios/{portfolio_uuid}', array('v3', 'private'), 'PUT', $params, null, null, array("cost" => 1));
