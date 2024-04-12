@@ -1191,21 +1191,30 @@ export default class coinbase extends Exchange {
     }
 
     async fetchMarketsV3 (params = {}) {
-        const promisesUnresolved = [
+        const spotUnresolvedPromises = [
             this.v3PrivateGetBrokerageProducts (params),
+            this.v3PrivateGetBrokerageTransactionSummary (params),
+
+        ];
+        const unresolvedContractPromises = [
             this.v3PrivateGetBrokerageProducts (this.extend (params, { 'product_type': 'FUTURE' })),
             this.v3PrivateGetBrokerageProducts (this.extend (params, { 'product_type': 'FUTURE', 'contract_expiry_type': 'PERPETUAL' })),
-            this.v3PrivateGetBrokerageTransactionSummary (params),
             this.v3PrivateGetBrokerageTransactionSummary (this.extend (params, { 'product_type': 'FUTURE' })),
             this.v3PrivateGetBrokerageTransactionSummary (this.extend (params, { 'product_type': 'FUTURE', 'contract_expiry_type': 'PERPETUAL' })),
         ];
-        const promises = await Promise.all (promisesUnresolved);
+        const promises = await Promise.all (spotUnresolvedPromises);
+        let contractPromises = undefined;
+        try {
+            contractPromises = await Promise.all (unresolvedContractPromises); // some users don't have access to contracts
+        } catch (e) {
+            contractPromises = [];
+        }
         const spot = this.safeDict (promises, 0, {});
-        const expiringFutures = this.safeDict (promises, 1, {});
-        const perpetualFutures = this.safeDict (promises, 2, {});
-        const fees = this.safeDict (promises, 4, {});
-        const expiringFees = this.safeDict (promises, 5, {});
-        const perpetualFees = this.safeDict (promises, 6, {});
+        const fees = this.safeDict (promises, 1, {});
+        const expiringFutures = this.safeDict (contractPromises, 0, {});
+        const perpetualFutures = this.safeDict (contractPromises, 1, {});
+        const expiringFees = this.safeDict (contractPromises, 2, {});
+        const perpetualFees = this.safeDict (contractPromises, 3, {});
         //
         //     {
         //         "total_volume": 0,
