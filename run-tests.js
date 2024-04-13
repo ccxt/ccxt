@@ -271,15 +271,9 @@ const testExchange = async (exchange) => {
         '--php-async':   { language: 'PHP Async',    exec: ['php', '-f', 'php/test/test_async.php',                 ...args] },
         '--csharp':      { language: 'C#',           exec: ['dotnet', 'run', '--project', 'cs/tests/tests.csproj',  ...args] },
         '--ts':          { language: 'TypeScript',   exec: ['node',  '--import', 'tsx', 'ts/src/test/test.ts',      ...args] },
+        '--python':      { language: 'Python',       exec: ['python3',   'python/ccxt/test/test_sync.py',           ...args] },
+        '--php':         { language: 'PHP',          exec: ['php', '-f', 'php/test/test_sync.php',                  ...args] },
     };
-    // if it's not WS tests, then also add sync versions (php & python) to the list
-    if (!wsFlag) {
-        allTests = Object.assign(allTests, {
-         '--python':     { language: 'Python',       exec: ['python3',   'python/ccxt/test/test_sync.py',  ...args] },
-         '--php':        { language: 'PHP',          exec: ['php', '-f', 'php/test/test_sync.php',         ...args] },
-        });
-    }
-
     // select tests based on cli arguments
     let selectedTests = [];
     const langsAreProvided = (Object.values (langKeys).filter (x => x===true)).length > 0;
@@ -303,6 +297,12 @@ const testExchange = async (exchange) => {
             selectedTests = selectedTests.filter (t => t.language !== 'PHP Async');
         }
     }
+    // if it's WS tests, then remove sync versions (php & python) from queue
+    if (wsFlag) {
+        selectedTests = selectedTests.filter (t => t.language !== 'Python');
+        selectedTests = selectedTests.filter (t => t.language !== 'PHP');
+    }
+
 
         const completeTests  = await sequentialMap (scheduledTests, async test => Object.assign (test, await  exec (...test.exec)))
         , failed         = completeTests.find (test => test.failed)
