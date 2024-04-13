@@ -265,43 +265,43 @@ const testExchange = async (exchange) => {
     if (debugKeys['--info']) {
         args.push ('--info')
     }
-    const allTestsWithoutTs = [
-            { language: 'JavaScript',     key: '--js',           exec: ['node',      'js/src/test/test.js',           ...args] },
-            { language: 'Python 3',       key: '--python',       exec: ['python3',   'python/ccxt/test/test_sync.py',  ...args] },
-            { language: 'Python 3 Async', key: '--python-async', exec: ['python3',   'python/ccxt/test/test_async.py', ...args] },
-            { language: 'PHP',            key: '--php',          exec: ['php', '-f', 'php/test/test_sync.php',         ...args] },
-            { language: 'PHP Async',      key: '--php-async',    exec: ['php', '-f', 'php/test/test_async.php',   ...args] },
-        ]
+    const allTests = [
+        { language: 'JavaScript',   key: '--js',           exec: ['node',      'js/src/test/test.js',            ...args] },
+        { language: 'Python',       key: '--python',       exec: ['python3',   'python/ccxt/test/test_sync.py',  ...args] },
+        { language: 'Python Async', key: '--python-async', exec: ['python3',   'python/ccxt/test/test_async.py', ...args] },
+        { language: 'PHP',          key: '--php',          exec: ['php', '-f', 'php/test/test_sync.php',         ...args] },
+        { language: 'PHP Async',    key: '--php-async',    exec: ['php', '-f', 'php/test/test_async.php',        ...args] },
+        { language: 'C#',           key: '--csharp',       exec: ['dotnet', 'run', '--project', 'cs/tests/tests.csproj', ...args] },
+        { language: 'TypeScript',   key: '--ts',           exec: ['node',  '--loader', 'ts-node/esm',  'ts/src/test/test.ts', ...args] },
+    ];
 
-        if (!skipSettings[exchange] || !skipSettings[exchange].skipCSharp) {
-            allTestsWithoutTs.push (
-                { language: 'C#',             key: '--csharp',        exec: ['dotnet', 'run', '--project', 'cs/tests/tests.csproj',               ...args] },
-            )
+    let selectedTests = [];
+    const langsAreProvided = (Object.values (langKeys).filter (x => x===true)).length > 0;
+    if (langsAreProvided) {
+        for (const test of allTests) {
+            if (langKeys[test.key]) {
+                selectedTests.push(test);
+            }
         }
-        // if it's not WS tests, then add sync versions to tests queue
-        if (!wsFlag) {
-            allTestsWithoutTs.push (
-                { language: 'PHP',            key: '--php',          exec: ['php', '-f', 'php/test/test_sync.php',         ...args] } 
-            );
-            allTestsWithoutTs.push (
-                { language: 'Python 3',       key: '--python',       exec: ['python3',   'python/ccxt/test/test_sync.py',    ...args] }
-            );
-        }
+    } else {
+        selectedTests = allTests.filter (t => t.key !== '--ts');
+    }
 
-        const allTests = allTestsWithoutTs.concat([
-            { language: 'TypeScript',     key: '--ts',           exec: ['node',  '--loader', 'ts-node/esm',  'ts/src/test/test.ts',           ...args] },
-        ]);
-
-        const selectedTests  = allTests.filter (t => langKeys[t.key]);
-        let scheduledTests = selectedTests.length ? selectedTests : allTestsWithoutTs
-        // when bulk tests are run, we skip php-async, however, if your specifically run php-async (as a single language from run-tests), lets allow it
-        const specificLangSet = (Object.values (langKeys).filter (x => x)).length === 1;
-        if (skipSettings[exchange] && skipSettings[exchange].skipPhpAsync && !specificLangSet) {
-            // some exchanges are failing in php async tests with this error:
-            // An error occured on the underlying stream while buffering: Unexpected end of response body after 212743/262800 bytes
-            scheduledTests = scheduledTests.filter (x => x.key !== '--php-async');
+    if (skipSettings[exchange]) {
+        if (skipSettings[exchange].skipCSharp) {
+            selectedTests = selectedTests.filter (t => t.key !== '--csharp');
         }
-        const completeTests  = await sequentialMap (scheduledTests, async test => Object.assign (test, await  exec (...test.exec)))
+        if (skipSettings[exchange].skipPhpAsync) {
+            selectedTests = selectedTests.filter (t => t.key !== '--php-async');
+        }
+    }
+    // if it's WS tests, then remove sync versions (php & python) from test queue
+    if (wsFlag) {
+        selectedTests = selectedTests.filter (t => t.key !== '--python');
+        selectedTests = selectedTests.filter (t => t.key !== '--php');
+    }
+
+        const completeTests  = await sequentialMap (selectedTests, async test => Object.assign (test, await  exec (...test.exec)))
         , failed         = completeTests.find (test => test.failed)
         , hasWarnings    = completeTests.find (test => test.warnings.length)
         , warnings       = completeTests.reduce (
