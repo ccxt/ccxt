@@ -10,6 +10,7 @@ declare class OrderBook implements CustomOrderBookProp {
     timestamp: Int;
     datetime: Str;
     nonce: Int;
+    symbol: Str;
     constructor(snapshot?: {}, depth?: any);
     limit(): this;
     update(snapshot: any): this;
