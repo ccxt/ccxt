@@ -5858,7 +5858,7 @@ export default class binance extends Exchange {
         }
         let postOnly = undefined;
         if (!isPortfolioMargin) {
-            request['newOrderRespType'] = this.safeString (this.options['newOrderRespType'], type, 'RESULT'); // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
+            request['newOrderRespType'] = this.safeString (this.options['newOrderRespType'], type, 'FULL'); // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
             postOnly = this.isPostOnly (isMarketOrder, initialUppercaseType === 'LIMIT_MAKER', params);
             if (market['spot'] || marketType === 'margin') {
                 // only supported for spot/margin api (all margin markets are spot markets)
