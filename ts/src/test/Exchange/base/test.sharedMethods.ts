@@ -406,7 +406,7 @@ async function tryFetchOrder (exchange, symbol, orderId, skippedProperties) {
         if (exchange.has[singularFetchName]) {
             const currentOrder = await exchange[singularFetchName] (originalId, symbol);
             // if there is an id inside the order, it means the order was fetched successfully
-            if (currentOrder.id === originalId) {
+            if (currentOrder['id'] === originalId) {
                 fetchedOrder = currentOrder;
                 break;
             }
@@ -423,7 +423,7 @@ async function tryFetchOrder (exchange, symbol, orderId, skippedProperties) {
                 let found = false;
                 for (let j = 0; j < orders.length; j++) {
                     const currentOrder = orders[j];
-                    if (currentOrder.id === originalId) {
+                    if (currentOrder['id'] === originalId) {
                         fetchedOrder = currentOrder;
                         found = true;
                         break;

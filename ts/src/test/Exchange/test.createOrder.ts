@@ -10,7 +10,7 @@ function debugOutput (exchange, symbol, message) {
     // just for debugging purposes
     const debugCreateOrder = true;
     if (debugCreateOrder) {
-        console.log (' >>>>> testCreateOrder [' + exchange['id'] + ' : ' + symbol + '] ', message);
+        console.log (' >>>>> testCreateOrder [' + exchange['id'].toString () + ' : ' + symbol + '] ', message);
     }
 }
 // ----------------------------------------------------------------------------
