@@ -93,8 +93,13 @@ build_and_test_all () {
       #   cd  ..
       # fi
     fi
-    npm run test-base
-    npm run test-base-ws
+    if [ "$IS_PYJSPHP" == "TRUE" ]; then
+      npm run test-base-pyjsphp
+      npm run test-base-ws-pyjsphp
+    else
+      npm run test-base-cs
+      npm run test-base-ws-cs
+    fi
     last_commit_message=$(git log -1 --pretty=%B)
     echo "Last commit: $last_commit_message" # for debugging
     if [[ "$last_commit_message" == *"skip-tests"* ]]; then
