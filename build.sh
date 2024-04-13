@@ -36,9 +36,9 @@ function run_tests {
     if [ -z "$rest_args" ] || { [ -n "$rest_args" ] && [ "$rest_args" != "skip" ]; }; then
       # shellcheck disable=SC2086
       if [ "$IS_PYJSPHP" == "TRUE" ]; then
-        node run-tests --js --python-async --php-async --useProxy $rest_args &
+        npm run test-pyjsphp -- $rest_args &
       else
-        node run-tests --csharp --useProxy $rest_args &
+        npm run test-cs -- $rest_args &
       fi
       local rest_pid=$!
     fi
@@ -47,9 +47,9 @@ function run_tests {
     if [ -z "$ws_args" ] || { [ -n "$ws_args" ] && [ "$ws_args" != "skip" ]; }; then
       # shellcheck disable=SC2086
       if [ "$IS_PYJSPHP" == "TRUE" ]; then
-        node run-tests --js --python-async --php-async --useProxy --ws $ws_args &
+        npm run test-pyjsphp-ws $ws_args &
       else
-        node run-tests --csharp --useProxy --ws $ws_args &
+        npm run test-cs-ws $ws_args &
       fi
       local ws_pid=$!
     fi
