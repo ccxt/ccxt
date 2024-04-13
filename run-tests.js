@@ -265,46 +265,41 @@ const testExchange = async (exchange) => {
     if (debugKeys['--info']) {
         args.push ('--info')
     }
-    let allTests = {
-        '--js':          { language: 'JavaScript',   exec: ['node',      'js/src/test/test.js',                     ...args] },
-        '--python-async':{ language: 'Python Async', exec: ['python3',   'python/ccxt/test/test_async.py',          ...args] },
-        '--php-async':   { language: 'PHP Async',    exec: ['php', '-f', 'php/test/test_async.php',                 ...args] },
-        '--csharp':      { language: 'C#',           exec: ['dotnet', 'run', '--project', 'cs/tests/tests.csproj',  ...args] },
-        '--ts':          { language: 'TypeScript',   exec: ['node',  '--import', 'tsx', 'ts/src/test/test.ts',      ...args] },
-        '--python':      { language: 'Python',       exec: ['python3',   'python/ccxt/test/test_sync.py',           ...args] },
-        '--php':         { language: 'PHP',          exec: ['php', '-f', 'php/test/test_sync.php',                  ...args] },
-    };
+    let allTests = [
+        { key: '--js',           language: 'JavaScript',   exec: ['node',      'js/src/test/test.js',                     ...args] },
+        { key: '--python-async', language: 'Python Async', exec: ['python3',   'python/ccxt/test/test_async.py',          ...args] },
+        { key: '--php-async',    language: 'PHP Async',    exec: ['php', '-f', 'php/test/test_async.php',                 ...args] },
+        { key: '--csharp',       language: 'C#',           exec: ['dotnet', 'run', '--project', 'cs/tests/tests.csproj',  ...args] },
+        { key: '--ts',           language: 'TypeScript',   exec: ['node',  '--import', 'tsx', 'ts/src/test/test.ts',      ...args] },
+        { key: '--python',       language: 'Python',       exec: ['python3',   'python/ccxt/test/test_sync.py',           ...args] },
+        { key: '--php',          language: 'PHP',          exec: ['php', '-f', 'php/test/test_sync.php',                  ...args] },
+    ];
     // select tests based on cli arguments
     let selectedTests = [];
     const langsAreProvided = (Object.values (langKeys).filter (x => x===true)).length > 0;
     if (langsAreProvided) {
-        for (const [key, value] of Object.entries (langKeys)) {
-            if (value) {
-                selectedTests.push(allTests[key]);
-            }
-        }
+        selectedTests = allTests.filter (t => langKeys[t.key]);
     } else {
-        // all tests except TypeScript
-        selectedTests = Object.values (allTests).filter (t => t.language !== 'TypeScript');
+        selectedTests = allTests.filter (t => t.key !== '--ts'); // all tests except TypeScript
     }
 
     // remove skipped tests
     if (skipSettings[exchange]) {
         if (skipSettings[exchange].skipCSharp) {
-            selectedTests = selectedTests.filter (t => t.language !== 'C#');
+            selectedTests = selectedTests.filter (t => t.key !== '--csharp');
         }
         if (skipSettings[exchange].skipPhpAsync) {
-            selectedTests = selectedTests.filter (t => t.language !== 'PHP Async');
+            selectedTests = selectedTests.filter (t => t.key !== '--php-async');
         }
     }
     // if it's WS tests, then remove sync versions (php & python) from queue
     if (wsFlag) {
-        selectedTests = selectedTests.filter (t => t.language !== 'Python');
-        selectedTests = selectedTests.filter (t => t.language !== 'PHP');
+        selectedTests = selectedTests.filter (t => t.key !== '--python');
+        selectedTests = selectedTests.filter (t => t.key !== '--php');
     }
 
 
-        const completeTests  = await sequentialMap (scheduledTests, async test => Object.assign (test, await  exec (...test.exec)))
+        const completeTests  = await sequentialMap (selectedTests, async test => Object.assign (test, await  exec (...test.exec)))
         , failed         = completeTests.find (test => test.failed)
         , hasWarnings    = completeTests.find (test => test.warnings.length)
         , warnings       = completeTests.reduce (
