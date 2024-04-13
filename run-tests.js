@@ -265,46 +265,43 @@ const testExchange = async (exchange) => {
     if (debugKeys['--info']) {
         args.push ('--info')
     }
-    let allTests = {
-        '--js':          { language: 'JavaScript',   exec: ['node',      'js/src/test/test.js',                     ...args] },
-        '--python-async':{ language: 'Python Async', exec: ['python3',   'python/ccxt/test/test_async.py',          ...args] },
-        '--php-async':   { language: 'PHP Async',    exec: ['php', '-f', 'php/test/test_async.php',                 ...args] },
-        '--csharp':      { language: 'C#',           exec: ['dotnet', 'run', '--project', 'cs/tests/tests.csproj',  ...args] },
-        '--ts':          { language: 'TypeScript',   exec: ['node',  '--import', 'tsx', 'ts/src/test/test.ts',      ...args] },
-    };
-    // if it's not WS tests, then also add sync versions (php & python) to the list
-    if (!wsFlag) {
-        allTests = Object.assign(allTests, {
-         '--python':     { language: 'Python',       exec: ['python3',   'python/ccxt/test/test_sync.py',  ...args] },
-         '--php':        { language: 'PHP',          exec: ['php', '-f', 'php/test/test_sync.php',         ...args] },
-        });
-    }
+    const allTestsWithoutTs = [
+            { language: 'JavaScript',     key: '--js',           exec: ['node',      'js/src/test/test.js',           ...args] },
+            { language: 'Python 3',       key: '--python',       exec: ['python3',   'python/ccxt/test/test_sync.py',  ...args] },
+            { language: 'Python 3 Async', key: '--python-async', exec: ['python3',   'python/ccxt/test/test_async.py', ...args] },
+            { language: 'PHP',            key: '--php',          exec: ['php', '-f', 'php/test/test_sync.php',         ...args] },
+            { language: 'PHP Async',      key: '--php-async',    exec: ['php', '-f', 'php/test/test_async.php',   ...args] },
+        ]
 
-    // select tests based on cli arguments
-    let selectedTests = [];
-    const langsAreProvided = (Object.values (langKeys).filter (x => x===true)).length > 0;
-    if (langsAreProvided) {
-        for (const [key, value] of Object.entries (langKeys)) {
-            if (value) {
-                selectedTests.push(allTests[key]);
-            }
+        if (!skipSettings[exchange] || !skipSettings[exchange].skipCSharp) {
+            allTestsWithoutTs.push (
+                { language: 'C#',             key: '--csharp',        exec: ['dotnet', 'run', '--project', 'cs/tests/tests.csproj',               ...args] },
+            )
         }
-    } else {
-        // all tests except TypeScript
-        selectedTests = Object.values (allTests).filter (t => t.language !== 'TypeScript');
-    }
+        // if it's not WS tests, then add sync versions to tests queue
+        if (!wsFlag) {
+            allTestsWithoutTs.push (
+                { language: 'PHP',            key: '--php',          exec: ['php', '-f', 'php/test/test_sync.php',         ...args] } 
+            );
+            allTestsWithoutTs.push (
+                { language: 'Python 3',       key: '--python',       exec: ['python3',   'python/ccxt/test/test_sync.py',    ...args] }
+            );
+        }
 
-    // remove skipped tests
-    if (skipSettings[exchange]) {
-        if (skipSettings[exchange].skipCSharp) {
-            selectedTests = selectedTests.filter (t => t.language !== 'C#');
-        }
-        if (skipSettings[exchange].skipPhpAsync) {
-            selectedTests = selectedTests.filter (t => t.language !== 'PHP Async');
-        }
-    }
+        const allTests = allTestsWithoutTs.concat([
+            { language: 'TypeScript',     key: '--ts',           exec: ['node',  '--loader', 'ts-node/esm',  'ts/src/test/test.ts',           ...args] },
+        ]);
 
-        const completeTests  = await sequentialMap (selectedTests, async test => Object.assign (test, await  exec (...test.exec)))
+        const selectedTests  = allTests.filter (t => langKeys[t.key]);
+        let scheduledTests = selectedTests.length ? selectedTests : allTestsWithoutTs
+        // when bulk tests are run, we skip php-async, however, if your specifically run php-async (as a single language from run-tests), lets allow it
+        const specificLangSet = (Object.values (langKeys).filter (x => x)).length === 1;
+        if (skipSettings[exchange] && skipSettings[exchange].skipPhpAsync && !specificLangSet) {
+            // some exchanges are failing in php async tests with this error:
+            // An error occured on the underlying stream while buffering: Unexpected end of response body after 212743/262800 bytes
+            scheduledTests = scheduledTests.filter (x => x.key !== '--php-async');
+        }
+        const completeTests  = await sequentialMap (scheduledTests, async test => Object.assign (test, await  exec (...test.exec)))
         , failed         = completeTests.find (test => test.failed)
         , hasWarnings    = completeTests.find (test => test.warnings.length)
         , warnings       = completeTests.reduce (
