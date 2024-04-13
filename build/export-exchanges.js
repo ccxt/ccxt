@@ -510,7 +510,6 @@ function getErrorHierarchy() {
     const path = './ts/src/base/errorHierarchy.ts';
     const content = fs.readFileSync (path, 'utf8');
     let errorObject = content.matchAll (/const\s*[\w\d]+\s*=\s({(.|\n)+});/gm).next().value[1];
-    errorObject = errorObject.replace(/\s+\/\/(.*?)\n/g, '\n'); // remove comments
     errorObject = errorObject.replace(/(,)(\n\s*[}|\]])/g, '$2'); //remove trailing comma
     errorObject = errorObject.replace(/'/g, '"');
     return JSON.parse(errorObject);
