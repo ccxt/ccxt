@@ -262,6 +262,12 @@ public partial class gemini : Exchange
                     { "DOT", "polkadot" },
                 } },
                 { "nonce", "milliseconds" },
+                { "conflictingMarkets", new Dictionary<string, object>() {
+                    { "paxgusd", new Dictionary<string, object>() {
+                        { "base", "PAXG" },
+                        { "quote", "USD" },
+                    } },
+                } },
             } },
         });
     }
@@ -441,6 +447,7 @@ public partial class gemini : Exchange
             //         '</tr>'
             //     ]
             object marketId = ((string)getValue(cells, 0)).Replace((string)"<td>", (string)"");
+            marketId = ((string)marketId).Replace((string)"*", (string)"");
             // const base = this.safeCurrencyCode (baseId);
             object minAmountString = ((string)getValue(cells, 1)).Replace((string)"<td>", (string)"");
             object minAmountParts = ((string)minAmountString).Split(new [] {((string)" ")}, StringSplitOptions.None).ToList<object>();
@@ -687,19 +694,34 @@ public partial class gemini : Exchange
             object marketIdUpper = ((string)marketId).ToUpper();
             object isPerp = (isGreaterThanOrEqual(getIndexOf(marketIdUpper, "PERP"), 0));
             object marketIdWithoutPerp = ((string)marketIdUpper).Replace((string)"PERP", (string)"");
-            object quoteQurrencies = this.handleOption("fetchMarketsFromAPI", "quoteCurrencies", new List<object>() {});
-            for (object i = 0; isLessThan(i, getArrayLength(quoteQurrencies)); postFixIncrement(ref i))
+            object conflictingMarkets = this.safeDict(this.options, "conflictingMarkets", new Dictionary<string, object>() {});
+            object lowerCaseId = ((string)marketIdWithoutPerp).ToLower();
+            if (isTrue(inOp(conflictingMarkets, lowerCaseId)))
             {
-                object quoteCurrency = getValue(quoteQurrencies, i);
-                if (isTrue(((string)marketIdWithoutPerp).EndsWith(((string)quoteCurrency))))
+                object conflictingMarket = getValue(conflictingMarkets, lowerCaseId);
+                baseId = getValue(conflictingMarket, "base");
+                quoteId = getValue(conflictingMarket, "quote");
+                if (isTrue(isPerp))
                 {
-                    baseId = ((string)marketIdWithoutPerp).Replace((string)quoteCurrency, (string)"");
-                    quoteId = quoteCurrency;
-                    if (isTrue(isPerp))
+                    settleId = getValue(conflictingMarket, "quote");
+                }
+            } else
+            {
+                object quoteCurrencies = this.handleOption("fetchMarketsFromAPI", "quoteCurrencies", new List<object>() {});
+                for (object i = 0; isLessThan(i, getArrayLength(quoteCurrencies)); postFixIncrement(ref i))
+                {
+                    object quoteCurrency = getValue(quoteCurrencies, i);
+                    if (isTrue(((string)marketIdWithoutPerp).EndsWith(((string)quoteCurrency))))
                     {
-                        settleId = quoteCurrency; // always same
+                        object quoteLength = this.parseToInt(multiply(-1, getArrayLength(quoteCurrency)));
+                        baseId = slice(marketIdWithoutPerp, 0, quoteLength);
+                        quoteId = quoteCurrency;
+                        if (isTrue(isPerp))
+                        {
+                            settleId = quoteCurrency; // always same
+                        }
+                        break;
                     }
-                    break;
                 }
             }
         }

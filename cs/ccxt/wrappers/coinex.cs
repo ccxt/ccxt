@@ -103,8 +103,8 @@ public partial class coinex
     /// fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
     /// </summary>
     /// <remarks>
-    /// See <see href="https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot001_market004_market_depth"/>  <br/>
-    /// See <see href="https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http010_market_depth"/>  <br/>
+    /// See <see href="https://docs.coinex.com/api/v2/spot/market/http/list-market-depth"/>  <br/>
+    /// See <see href="https://docs.coinex.com/api/v2/futures/market/http/list-market-depth"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>

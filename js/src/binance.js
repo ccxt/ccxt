@@ -74,6 +74,8 @@ export default class binance extends Exchange {
                 'fetchCanceledOrders': 'emulated',
                 'fetchClosedOrder': false,
                 'fetchClosedOrders': 'emulated',
+                'fetchConvertCurrencies': true,
+                'fetchConvertQuote': false,
                 'fetchCrossBorrowRate': true,
                 'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
@@ -973,6 +975,7 @@ export default class binance extends Exchange {
                     },
                     'post': {
                         'order/oco': 0.2,
+                        'orderList/oco': 0.2,
                         'sor/order': 0.2,
                         'sor/order/test': 0.2,
                         'order': 0.2,
@@ -4240,11 +4243,14 @@ export default class binance extends Exchange {
             'interval': this.safeString(this.timeframes, timeframe, timeframe),
             'limit': limit,
         };
+        const marketId = market['id'];
         if (price === 'index') {
-            request['pair'] = market['id']; // Index price takes this argument instead of symbol
+            const parts = marketId.split('_');
+            const pair = this.safeString(parts, 0);
+            request['pair'] = pair; // Index price takes this argument instead of symbol
         }
         else {
-            request['symbol'] = market['id'];
+            request['symbol'] = marketId;
         }
         // const duration = this.parseTimeframe (timeframe);
         if (since !== undefined) {
@@ -12588,5 +12594,60 @@ export default class binance extends Exchange {
         //
         const modifications = this.parseMarginModifications(response);
         return this.filterBySymbolSinceLimit(modifications, symbol, since, limit);
+    }
+    async fetchConvertCurrencies(params = {}) {
+        /**
+         * @method
+         * @name binance#fetchConvertCurrencies
+         * @description fetches all available currencies that can be converted
+         * @see https://binance-docs.github.io/apidocs/spot/en/#query-order-quantity-precision-per-asset-user_data
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an associative dictionary of currencies
+         */
+        await this.loadMarkets();
+        const response = await this.sapiGetConvertAssetInfo(params);
+        //
+        //     [
+        //         {
+        //             "asset": "BTC",
+        //             "fraction": 8
+        //         },
+        //     ]
+        //
+        const result = {};
+        for (let i = 0; i < response.length; i++) {
+            const entry = response[i];
+            const id = this.safeString(entry, 'asset');
+            const code = this.safeCurrencyCode(id);
+            result[code] = {
+                'info': entry,
+                'id': id,
+                'code': code,
+                'networks': undefined,
+                'type': undefined,
+                'name': undefined,
+                'active': undefined,
+                'deposit': undefined,
+                'withdraw': undefined,
+                'fee': undefined,
+                'precision': this.safeInteger(entry, 'fraction'),
+                'limits': {
+                    'amount': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'withdraw': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'deposit': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
+                'created': undefined,
+            };
+        }
+        return result;
     }
 }

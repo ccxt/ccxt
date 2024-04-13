@@ -9,8 +9,8 @@ from ccxt.base.types import Balances, Int, Order, OrderBook, Str, Ticker, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import BadRequest
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import BadRequest
 
 
 class poloniexfutures(ccxt.async_support.poloniexfutures):

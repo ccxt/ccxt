@@ -866,6 +866,11 @@ public partial class bybit : Exchange
         return await this.callAsync ("privateGetV5BrokerAccountInfo",parameters);
     }
 
+    public async Task<object> privateGetV5BrokerAssetQuerySubMemberDepositRecord (object parameters = null)
+    {
+        return await this.callAsync ("privateGetV5BrokerAssetQuerySubMemberDepositRecord",parameters);
+    }
+
     public async Task<object> privatePostOptionUsdcOpenapiPrivateV1PlaceOrder (object parameters = null)
     {
         return await this.callAsync ("privatePostOptionUsdcOpenapiPrivateV1PlaceOrder",parameters);

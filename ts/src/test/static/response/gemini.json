@@ -106,6 +106,102 @@
                         }
                     }
                 }
+            },
+            {
+                "description": "usdcusc ticker",
+                "method": "fetchTicker",
+                "input": [
+                  "USDC/USD"
+                ],
+                "httpResponse": {
+                  "bid": "1.00001",
+                  "ask": "1.00026",
+                  "last": "1.00026",
+                  "volume": {
+                    "USDC": "2444794.70237",
+                    "USD": "2445430.3489926162",
+                    "timestamp": "1712847810000"
+                  }
+                },
+                "parsedResponse": {
+                  "symbol": "USDC/USD",
+                  "timestamp": 1712847810000,
+                  "datetime": "2024-04-11T15:03:30.000Z",
+                  "high": null,
+                  "low": null,
+                  "bid": 1.00001,
+                  "bidVolume": null,
+                  "ask": 1.00026,
+                  "askVolume": null,
+                  "vwap": 1.00026,
+                  "open": null,
+                  "close": 1.00026,
+                  "last": 1.00026,
+                  "previousClose": null,
+                  "change": null,
+                  "percentage": null,
+                  "average": null,
+                  "baseVolume": 2444794.70237,
+                  "quoteVolume": 2445430.3489926164,
+                  "info": {
+                    "bid": "1.00001",
+                    "ask": "1.00026",
+                    "last": "1.00026",
+                    "volume": {
+                      "USDC": "2444794.70237",
+                      "USD": "2445430.3489926162",
+                      "timestamp": "1712847810000"
+                    }
+                  }
+                }
+            },
+            {
+                "description": "swap ticker",
+                "method": "fetchTicker",
+                "input": [
+                  "BTC/GUSD:GUSD"
+                ],
+                "httpResponse": {
+                  "bid": "69755.00",
+                  "ask": "69785.00",
+                  "last": "69835.00",
+                  "volume": {
+                    "BTC": "41.7433",
+                    "GUSD": "2915143.3555",
+                    "timestamp": "1712847943000"
+                  }
+                },
+                "parsedResponse": {
+                  "symbol": "BTC/GUSD:GUSD",
+                  "timestamp": 1712847943000,
+                  "datetime": "2024-04-11T15:05:43.000Z",
+                  "high": null,
+                  "low": null,
+                  "bid": 69755,
+                  "bidVolume": null,
+                  "ask": 69785,
+                  "askVolume": null,
+                  "vwap": 69835,
+                  "open": null,
+                  "close": 69835,
+                  "last": 69835,
+                  "previousClose": null,
+                  "change": null,
+                  "percentage": null,
+                  "average": null,
+                  "baseVolume": 41.7433,
+                  "quoteVolume": 2915143.3555,
+                  "info": {
+                    "bid": "69755.00",
+                    "ask": "69785.00",
+                    "last": "69835.00",
+                    "volume": {
+                      "BTC": "41.7433",
+                      "GUSD": "2915143.3555",
+                      "timestamp": "1712847943000"
+                    }
+                  }
+                }
             }
         ],
         "fetchOHLCV": [

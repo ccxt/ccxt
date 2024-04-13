@@ -608,6 +608,7 @@ class ImplicitAPI:
     private_get_myallocations = privateGetMyAllocations = Entry('myAllocations', 'private', 'GET', {'cost': 4})
     private_get_account_commission = privateGetAccountCommission = Entry('account/commission', 'private', 'GET', {'cost': 4})
     private_post_order_oco = privatePostOrderOco = Entry('order/oco', 'private', 'POST', {'cost': 0.2})
+    private_post_orderlist_oco = privatePostOrderListOco = Entry('orderList/oco', 'private', 'POST', {'cost': 0.2})
     private_post_sor_order = privatePostSorOrder = Entry('sor/order', 'private', 'POST', {'cost': 0.2})
     private_post_sor_order_test = privatePostSorOrderTest = Entry('sor/order/test', 'private', 'POST', {'cost': 0.2})
     private_post_order = privatePostOrder = Entry('order', 'private', 'POST', {'cost': 0.2})

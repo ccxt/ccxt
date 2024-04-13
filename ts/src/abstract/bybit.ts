@@ -180,6 +180,7 @@ interface Exchange {
     privateGetV5BrokerEarningRecord (params?: {}): Promise<implicitReturnType>;
     privateGetV5BrokerEarningsInfo (params?: {}): Promise<implicitReturnType>;
     privateGetV5BrokerAccountInfo (params?: {}): Promise<implicitReturnType>;
+    privateGetV5BrokerAssetQuerySubMemberDepositRecord (params?: {}): Promise<implicitReturnType>;
     privatePostOptionUsdcOpenapiPrivateV1PlaceOrder (params?: {}): Promise<implicitReturnType>;
     privatePostOptionUsdcOpenapiPrivateV1ReplaceOrder (params?: {}): Promise<implicitReturnType>;
     privatePostOptionUsdcOpenapiPrivateV1CancelOrder (params?: {}): Promise<implicitReturnType>;
