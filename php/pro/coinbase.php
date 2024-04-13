@@ -148,6 +148,11 @@ class coinbase extends \ccxt\async\coinbase {
         //                        "low_52_w" => "15460",
         //                        "high_52_w" => "48240",
         //                        "price_percent_chg_24_h" => "-4.15775596190603"
+        // new 2024-04-12
+        //                        "best_bid":"21835.29",
+        //                        "best_bid_quantity" => "0.02000000",
+        //                        "best_ask":"23011.18",
+        //                        "best_ask_quantity" => "0.01500000"
         //                    }
         //                )
         //            }
@@ -173,6 +178,11 @@ class coinbase extends \ccxt\async\coinbase {
         //                        "low_52_w" => "0.04908",
         //                        "high_52_w" => "0.1801",
         //                        "price_percent_chg_24_h" => "0.50177456859626"
+        // new 2024-04-12
+        //                        "best_bid":"0.07989",
+        //                        "best_bid_quantity" => "500.0",
+        //                        "best_ask":"0.08308",
+        //                        "best_ask_quantity" => "300.0"
         //                    }
         //                )
         //            }
@@ -228,6 +238,11 @@ class coinbase extends \ccxt\async\coinbase {
         //         "low_52_w" => "0.04908",
         //         "high_52_w" => "0.1801",
         //         "price_percent_chg_24_h" => "0.50177456859626"
+        // new 2024-04-12
+        //         "best_bid":"0.07989",
+        //         "best_bid_quantity" => "500.0",
+        //         "best_ask":"0.08308",
+        //         "best_ask_quantity" => "300.0"
         //     }
         //
         $marketId = $this->safe_string($ticker, 'product_id');
@@ -240,10 +255,10 @@ class coinbase extends \ccxt\async\coinbase {
             'datetime' => $this->iso8601($timestamp),
             'high' => $this->safe_string($ticker, 'high_24_h'),
             'low' => $this->safe_string($ticker, 'low_24_h'),
-            'bid' => null,
-            'bidVolume' => null,
-            'ask' => null,
-            'askVolume' => null,
+            'bid' => $this->safe_string($ticker, 'best_bid'),
+            'bidVolume' => $this->safe_string($ticker, 'best_bid_quantity'),
+            'ask' => $this->safe_string($ticker, 'best_ask'),
+            'askVolume' => $this->safe_string($ticker, 'best_ask_quantity'),
             'vwap' => null,
             'open' => null,
             'close' => $last,

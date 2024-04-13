@@ -1363,6 +1363,7 @@
                 "currencyIdAndCode": "some currencies does not exist in currencies"
             },
             "fetchCurrencies": {
+                "currencyIdAndCode": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269956260#L4357",
                 "withdraw": "undefined",
                 "deposit": "undefined",
                 "networks": "networks key is missing",

@@ -4,7 +4,7 @@ interface IOrderBookSide<T> extends Array<T> {
     storeArray(array: any[]): any;
     limit(): any;
 }
-declare class OrderBookSide implements IOrderBookSide extends Array {
+declare class OrderBookSide extends Array implements IOrderBookSide {
     constructor(deltas?: any[], depth?: any);
     storeArray(delta: any): void;
     store(price: any, size: any): void;
@@ -14,7 +14,7 @@ declare class CountedOrderBookSide extends OrderBookSide {
     store(price: any, size: any, count: any): void;
     storeArray(delta: any): void;
 }
-declare class IndexedOrderBookSide implements IOrderBookSide extends Array {
+declare class IndexedOrderBookSide extends Array implements IOrderBookSide {
     constructor(deltas?: any[], depth?: number);
     store(price: any, size: any, id: any): void;
     storeArray(delta: any): void;
