@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.2.94'
+__version__ = '4.2.96'
 
 # -----------------------------------------------------------------------------
 
@@ -1341,7 +1341,7 @@ class Exchange(object):
             signature = Exchange.base64_to_binary(Exchange.rsa(token, Exchange.decode(secret), algorithm))
         elif algoType == 'ES':
             rawSignature = Exchange.ecdsa(token, secret, 'p256', algorithm)
-            signature = Exchange.base16_to_binary(rawSignature['r'] + rawSignature['s'])
+            signature = Exchange.base16_to_binary(rawSignature['r'].rjust(64, "0") + rawSignature['s'].rjust(64, "0"))
         else:
             signature = Exchange.hmac(Exchange.encode(token), secret, algos[algorithm], 'binary')
         return token + '.' + Exchange.base64urlencode(signature)

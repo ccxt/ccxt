@@ -1171,4 +1171,34 @@ public partial class bitstamp : Exchange
         return await this.callAsync ("privatePostVextAddress",parameters);
     }
 
+    public async Task<object> privatePostCsprWithdrawal (object parameters = null)
+    {
+        return await this.callAsync ("privatePostCsprWithdrawal",parameters);
+    }
+
+    public async Task<object> privatePostCsprAddress (object parameters = null)
+    {
+        return await this.callAsync ("privatePostCsprAddress",parameters);
+    }
+
+    public async Task<object> privatePostVchfWithdrawal (object parameters = null)
+    {
+        return await this.callAsync ("privatePostVchfWithdrawal",parameters);
+    }
+
+    public async Task<object> privatePostVchfAddress (object parameters = null)
+    {
+        return await this.callAsync ("privatePostVchfAddress",parameters);
+    }
+
+    public async Task<object> privatePostVeurWithdrawal (object parameters = null)
+    {
+        return await this.callAsync ("privatePostVeurWithdrawal",parameters);
+    }
+
+    public async Task<object> privatePostVeurAddress (object parameters = null)
+    {
+        return await this.callAsync ("privatePostVeurAddress",parameters);
+    }
+
 }

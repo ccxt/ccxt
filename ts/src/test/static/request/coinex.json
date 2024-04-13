@@ -577,35 +577,19 @@
         ],
         "fetchOrderBook": [
             {
-                "description": "Spot fetch orderbook",
+                "description": "Spot fetch order book",
                 "method": "fetchOrderBook",
-                "url": "https://api.coinex.com/v1/market/depth?market=BTCUSDT&merge=0&limit=20",
+                "url": "https://api.coinex.com/v2/spot/depth?market=BTCUSDT&limit=20&interval=0",
                 "input": [
-                    "BTC/USDT"
+                  "BTC/USDT"
                 ]
             },
             {
-                "description": "Swap fetch orderbook",
+                "description": "Swap fetch order book",
                 "method": "fetchOrderBook",
-                "url": "https://api.coinex.com/perpetual/v1/market/depth?market=BTCUSDT&merge=0&limit=20",
+                "url": "https://api.coinex.com/v2/futures/depth?market=BTCUSDT&limit=20&interval=0",
                 "input": [
-                    "BTC/USDT:USDT"
-                ]
-            },
-            {
-                "description": "spot orderbook",
-                "method": "fetchOrderBook",
-                "url": "https://api.coinex.com/v1/market/depth?market=BTCUSDT&merge=0&limit=20",
-                "input": [
-                    "BTC/USDT"
-                ]
-            },
-            {
-                "description": "swap orderbook",
-                "method": "fetchOrderBook",
-                "url": "https://api.coinex.com/perpetual/v1/market/depth?market=BTCUSDT&merge=0&limit=20",
-                "input": [
-                    "BTC/USDT:USDT"
+                  "BTC/USDT:USDT"
                 ]
             }
         ],

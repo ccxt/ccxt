@@ -285,7 +285,13 @@ class gemini extends gemini$1 {
                     'ATOM': 'cosmos',
                     'DOT': 'polkadot',
                 },
-                'nonce': 'milliseconds', // if getting a Network 400 error change to seconds
+                'nonce': 'milliseconds',
+                'conflictingMarkets': {
+                    'paxgusd': {
+                        'base': 'PAXG',
+                        'quote': 'USD',
+                    },
+                },
             },
         });
     }
@@ -679,16 +685,29 @@ class gemini extends gemini$1 {
             const marketIdUpper = marketId.toUpperCase();
             const isPerp = (marketIdUpper.indexOf('PERP') >= 0);
             const marketIdWithoutPerp = marketIdUpper.replace('PERP', '');
-            const quoteQurrencies = this.handleOption('fetchMarketsFromAPI', 'quoteCurrencies', []);
-            for (let i = 0; i < quoteQurrencies.length; i++) {
-                const quoteCurrency = quoteQurrencies[i];
-                if (marketIdWithoutPerp.endsWith(quoteCurrency)) {
-                    baseId = marketIdWithoutPerp.replace(quoteCurrency, '');
-                    quoteId = quoteCurrency;
-                    if (isPerp) {
-                        settleId = quoteCurrency; // always same
+            const conflictingMarkets = this.safeDict(this.options, 'conflictingMarkets', {});
+            const lowerCaseId = marketIdWithoutPerp.toLowerCase();
+            if (lowerCaseId in conflictingMarkets) {
+                const conflictingMarket = conflictingMarkets[lowerCaseId];
+                baseId = conflictingMarket['base'];
+                quoteId = conflictingMarket['quote'];
+                if (isPerp) {
+                    settleId = conflictingMarket['quote'];
+                }
+            }
+            else {
+                const quoteCurrencies = this.handleOption('fetchMarketsFromAPI', 'quoteCurrencies', []);
+                for (let i = 0; i < quoteCurrencies.length; i++) {
+                    const quoteCurrency = quoteCurrencies[i];
+                    if (marketIdWithoutPerp.endsWith(quoteCurrency)) {
+                        const quoteLength = this.parseToInt(-1 * quoteCurrency.length);
+                        baseId = marketIdWithoutPerp.slice(0, quoteLength);
+                        quoteId = quoteCurrency;
+                        if (isPerp) {
+                            settleId = quoteCurrency; // always same
+                        }
+                        break;
                     }
-                    break;
                 }
             }
         }

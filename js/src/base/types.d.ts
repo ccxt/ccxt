@@ -129,6 +129,7 @@ export interface OrderBook {
     datetime: Str;
     timestamp: Int;
     nonce: Int;
+    symbol: Str;
 }
 export interface Ticker {
     symbol: string;
