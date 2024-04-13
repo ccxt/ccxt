@@ -129,6 +129,7 @@ fi
 diff=$(git diff origin/master --name-only)
 # temporarily remove the below scripts from diff
 diff=$(echo "$diff" | sed -e "s/^build\.sh//")
+diff=$(echo "$diff" | sed -e "s/^run\-tests//")
 diff=$(echo "$diff" | sed -e "s/^skip\-tests\.json//")
 diff=$(echo "$diff" | sed -e "s/^ts\/src\/test\/static.*json//") #remove static tests and markets
 # diff=$(echo "$diff" | sed -e "s/^\.travis\.yml//")
