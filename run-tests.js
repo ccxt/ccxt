@@ -274,30 +274,25 @@ const testExchange = async (exchange) => {
         { key: '--python',       language: 'Python',       exec: ['python3',   'python/ccxt/test/test_sync.py',           ...args] },
         { key: '--php',          language: 'PHP',          exec: ['php', '-f', 'php/test/test_sync.php',                  ...args] },
     ];
+
     // select tests based on cli arguments
     let selectedTests = [];
     const langsAreProvided = (Object.values (langKeys).filter (x => x===true)).length > 0;
     if (langsAreProvided) {
         selectedTests = allTests.filter (t => langKeys[t.key]);
     } else {
-        selectedTests = allTests.filter (t => t.key !== '--ts'); // all tests except TypeScript
+        selectedTests = allTests.filter (t => t.key !== '--ts'); // exclude TypeScript when running all tests without specific languages
     }
 
     // remove skipped tests
     if (skipSettings[exchange]) {
-        if (skipSettings[exchange].skipCSharp) {
-            selectedTests = selectedTests.filter (t => t.key !== '--csharp');
-        }
-        if (skipSettings[exchange].skipPhpAsync) {
-            selectedTests = selectedTests.filter (t => t.key !== '--php-async');
-        }
+        if (skipSettings[exchange].skipCSharp)   selectedTests = selectedTests.filter (t => t.key !== '--csharp'); 
+        if (skipSettings[exchange].skipPhpAsync) selectedTests = selectedTests.filter (t => t.key !== '--php-async');
     }
     // if it's WS tests, then remove sync versions (php & python) from queue
     if (wsFlag) {
-        selectedTests = selectedTests.filter (t => t.key !== '--python');
-        selectedTests = selectedTests.filter (t => t.key !== '--php');
+        selectedTests = selectedTests.filter (t => t.key !== '--python' && t.key !== '--php');
     }
-
 
         const completeTests  = await sequentialMap (selectedTests, async test => Object.assign (test, await  exec (...test.exec)))
         , failed         = completeTests.find (test => test.failed)
