@@ -3266,7 +3266,7 @@ export default class okx extends Exchange {
         return this.parseOrders (ordersData, market, undefined, undefined, params);
     }
 
-    async cancelAllOrdersAfter (timeout: number, activated: Bool = undefined, params = {}) {
+    async cancelAllOrdersAfter (timeout: Int, activated: Bool = undefined, params = {}) {
         /**
          * @method
          * @name okx#cancelAllOrdersAfter

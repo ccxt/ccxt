@@ -1297,7 +1297,7 @@ export default class whitebit extends Exchange {
         return await this.v4PrivatePostOrderCancel (this.extend (request, params));
     }
 
-    async cancelAllOrdersAfter (timeout: number, activated: Bool = undefined, params = {}) {
+    async cancelAllOrdersAfter (timeout: Int, activated: Bool = undefined, params = {}) {
         /**
          * @method
          * @name whitebit#cancelAllOrdersAfter

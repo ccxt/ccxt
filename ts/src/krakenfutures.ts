@@ -1273,7 +1273,7 @@ export default class krakenfutures extends Exchange {
         return response;
     }
 
-    async cancelAllOrdersAfter (timeout: number, activated: Bool = undefined, params = {}) {
+    async cancelAllOrdersAfter (timeout: Int, activated: Bool = undefined, params = {}) {
         /**
          * @method
          * @name krakenfutures#cancelAllOrdersAfter

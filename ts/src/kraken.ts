@@ -2150,7 +2150,7 @@ export default class kraken extends Exchange {
         return await this.privatePostCancelAll (params);
     }
 
-    async cancelAllOrdersAfter (timeout: number, activated: Bool = undefined, params = {}) {
+    async cancelAllOrdersAfter (timeout: Int, activated: Bool = undefined, params = {}) {
         /**
          * @method
          * @name kraken#cancelAllOrdersAfter

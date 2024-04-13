@@ -2133,7 +2133,7 @@ export default class bitmex extends Exchange {
         return this.parseOrders (response, market);
     }
 
-    async cancelAllOrdersAfter (timeout: number, activated: Bool = undefined, params = {}) {
+    async cancelAllOrdersAfter (timeout: Int, activated: Bool = undefined, params = {}) {
         /**
          * @method
          * @name bitmex#cancelAllOrdersAfter
