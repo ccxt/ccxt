@@ -81,7 +81,6 @@ function testTicker (exchange: Exchange, skippedProperties: object, method: stri
     if (!('spread' in skippedProperties) && !('ask' in skippedProperties) && !('bid' in skippedProperties)) {
         const askString = exchange.safeString (entry, 'ask');
         const bidString = exchange.safeString (entry, 'bid');
-        // check bid-ask spread to be > 0
         if ((askString !== undefined) && (bidString !== undefined)) {
             testSharedMethods.assertGreater (exchange, skippedProperties, method, entry, 'ask', exchange.safeString (entry, 'bid'));
         }
