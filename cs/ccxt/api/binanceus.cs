@@ -3301,6 +3301,11 @@ public partial class binanceus : binance
         return await this.callAsync ("privatePostOrderOco",parameters);
     }
 
+    public async Task<object> privatePostOrderListOco (object parameters = null)
+    {
+        return await this.callAsync ("privatePostOrderListOco",parameters);
+    }
+
     public async Task<object> privatePostSorOrder (object parameters = null)
     {
         return await this.callAsync ("privatePostSorOrder",parameters);

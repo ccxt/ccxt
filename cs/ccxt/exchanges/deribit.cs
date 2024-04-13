@@ -699,119 +699,136 @@ public partial class deribit : Exchange
         * @name deribit#fetchMarkets
         * @description retrieves data on all markets for deribit
         * @see https://docs.deribit.com/#public-get_currencies
+        * @see https://docs.deribit.com/#public-get_instruments
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object[]} an array of objects representing market data
         */
         parameters ??= new Dictionary<string, object>();
-        object currenciesResponse = await this.publicGetGetCurrencies(parameters);
-        //
-        //     {
-        //         "jsonrpc": "2.0",
-        //         "result": [
-        //             {
-        //                 "withdrawal_priorities": [
-        //                     { value: 0.15, name: "very_low" },
-        //                     { value: 1.5, name: "very_high" },
-        //                 ],
-        //                 "withdrawal_fee": 0.0005,
-        //                 "min_withdrawal_fee": 0.0005,
-        //                 "min_confirmations": 1,
-        //                 "fee_precision": 4,
-        //                 "currency_long": "Bitcoin",
-        //                 "currency": "BTC",
-        //                 "coin_type": "BITCOIN"
-        //             }
-        //         ],
-        //         "usIn": 1583761588590479,
-        //         "usOut": 1583761588590544,
-        //         "usDiff": 65,
-        //         "testnet": false
-        //     }
-        //
-        object parsedMarkets = new Dictionary<string, object>() {};
-        object currenciesResult = this.safeValue(currenciesResponse, "result", new List<object>() {});
+        object instrumentsResponses = new List<object>() {};
         object result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(currenciesResult)); postFixIncrement(ref i))
+        object parsedMarkets = new Dictionary<string, object>() {};
+        object fetchAllMarkets = null;
+        var fetchAllMarketsparametersVariable = this.handleOptionAndParams(parameters, "fetchMarkets", "fetchAllMarkets", true);
+        fetchAllMarkets = ((IList<object>)fetchAllMarketsparametersVariable)[0];
+        parameters = ((IList<object>)fetchAllMarketsparametersVariable)[1];
+        if (isTrue(fetchAllMarkets))
         {
-            object currencyId = this.safeString(getValue(currenciesResult, i), "currency");
-            object request = new Dictionary<string, object>() {
-                { "currency", currencyId },
-            };
-            object instrumentsResponse = await this.publicGetGetInstruments(this.extend(request, parameters));
+            object instrumentsResponse = await this.publicGetGetInstruments(parameters);
+            ((IList<object>)instrumentsResponses).Add(instrumentsResponse);
+        } else
+        {
+            object currenciesResponse = await this.publicGetGetCurrencies(parameters);
             //
             //     {
-            //         "jsonrpc":"2.0",
-            //         "result":[
+            //         "jsonrpc": "2.0",
+            //         "result": [
             //             {
-            //                 "tick_size":0.0005,
-            //                 "taker_commission":0.0003,
-            //                 "strike":52000.0,
-            //                 "settlement_period":"month",
-            //                 "settlement_currency":"BTC",
-            //                 "quote_currency":"BTC",
-            //                 "option_type":"put", // put, call
-            //                 "min_trade_amount":0.1,
-            //                 "maker_commission":0.0003,
-            //                 "kind":"option",
-            //                 "is_active":true,
-            //                 "instrument_name":"BTC-24JUN22-52000-P",
-            //                 "expiration_timestamp":1656057600000,
-            //                 "creation_timestamp":1648199543000,
-            //                 "counter_currency":"USD",
-            //                 "contract_size":1.0,
-            //                 "block_trade_commission":0.0003,
-            //                 "base_currency":"BTC"
-            //             },
-            //             {
-            //                 "tick_size":0.5,
-            //                 "taker_commission":0.0005,
-            //                 "settlement_period":"month", // month, week
-            //                 "settlement_currency":"BTC",
-            //                 "quote_currency":"USD",
-            //                 "min_trade_amount":10.0,
-            //                 "max_liquidation_commission":0.0075,
-            //                 "max_leverage":50,
-            //                 "maker_commission":0.0,
-            //                 "kind":"future",
-            //                 "is_active":true,
-            //                 "instrument_name":"BTC-27MAY22",
-            //                 "future_type":"reversed",
-            //                 "expiration_timestamp":1653638400000,
-            //                 "creation_timestamp":1648195209000,
-            //                 "counter_currency":"USD",
-            //                 "contract_size":10.0,
-            //                 "block_trade_commission":0.0001,
-            //                 "base_currency":"BTC"
-            //             },
-            //             {
-            //                 "tick_size":0.5,
-            //                 "taker_commission":0.0005,
-            //                 "settlement_period":"perpetual",
-            //                 "settlement_currency":"BTC",
-            //                 "quote_currency":"USD",
-            //                 "min_trade_amount":10.0,
-            //                 "max_liquidation_commission":0.0075,
-            //                 "max_leverage":50,
-            //                 "maker_commission":0.0,
-            //                 "kind":"future",
-            //                 "is_active":true,
-            //                 "instrument_name":"BTC-PERPETUAL",
-            //                 "future_type":"reversed",
-            //                 "expiration_timestamp":32503708800000,
-            //                 "creation_timestamp":1534242287000,
-            //                 "counter_currency":"USD",
-            //                 "contract_size":10.0,
-            //                 "block_trade_commission":0.0001,
-            //                 "base_currency":"BTC"
-            //             },
+            //                 "withdrawal_priorities": [
+            //                     { value: 0.15, name: "very_low" },
+            //                     { value: 1.5, name: "very_high" },
+            //                 ],
+            //                 "withdrawal_fee": 0.0005,
+            //                 "min_withdrawal_fee": 0.0005,
+            //                 "min_confirmations": 1,
+            //                 "fee_precision": 4,
+            //                 "currency_long": "Bitcoin",
+            //                 "currency": "BTC",
+            //                 "coin_type": "BITCOIN"
+            //             }
             //         ],
-            //         "usIn":1648691472831791,
-            //         "usOut":1648691472831896,
-            //         "usDiff":105,
-            //         "testnet":false
+            //         "usIn": 1583761588590479,
+            //         "usOut": 1583761588590544,
+            //         "usDiff": 65,
+            //         "testnet": false
             //     }
             //
-            object instrumentsResult = this.safeValue(instrumentsResponse, "result", new List<object>() {});
+            object currenciesResult = this.safeValue(currenciesResponse, "result", new List<object>() {});
+            for (object i = 0; isLessThan(i, getArrayLength(currenciesResult)); postFixIncrement(ref i))
+            {
+                object currencyId = this.safeString(getValue(currenciesResult, i), "currency");
+                object request = new Dictionary<string, object>() {
+                    { "currency", currencyId },
+                };
+                object instrumentsResponse = await this.publicGetGetInstruments(this.extend(request, parameters));
+                //
+                //     {
+                //         "jsonrpc":"2.0",
+                //         "result":[
+                //             {
+                //                 "tick_size":0.0005,
+                //                 "taker_commission":0.0003,
+                //                 "strike":52000.0,
+                //                 "settlement_period":"month",
+                //                 "settlement_currency":"BTC",
+                //                 "quote_currency":"BTC",
+                //                 "option_type":"put", // put, call
+                //                 "min_trade_amount":0.1,
+                //                 "maker_commission":0.0003,
+                //                 "kind":"option",
+                //                 "is_active":true,
+                //                 "instrument_name":"BTC-24JUN22-52000-P",
+                //                 "expiration_timestamp":1656057600000,
+                //                 "creation_timestamp":1648199543000,
+                //                 "counter_currency":"USD",
+                //                 "contract_size":1.0,
+                //                 "block_trade_commission":0.0003,
+                //                 "base_currency":"BTC"
+                //             },
+                //             {
+                //                 "tick_size":0.5,
+                //                 "taker_commission":0.0005,
+                //                 "settlement_period":"month", // month, week
+                //                 "settlement_currency":"BTC",
+                //                 "quote_currency":"USD",
+                //                 "min_trade_amount":10.0,
+                //                 "max_liquidation_commission":0.0075,
+                //                 "max_leverage":50,
+                //                 "maker_commission":0.0,
+                //                 "kind":"future",
+                //                 "is_active":true,
+                //                 "instrument_name":"BTC-27MAY22",
+                //                 "future_type":"reversed",
+                //                 "expiration_timestamp":1653638400000,
+                //                 "creation_timestamp":1648195209000,
+                //                 "counter_currency":"USD",
+                //                 "contract_size":10.0,
+                //                 "block_trade_commission":0.0001,
+                //                 "base_currency":"BTC"
+                //             },
+                //             {
+                //                 "tick_size":0.5,
+                //                 "taker_commission":0.0005,
+                //                 "settlement_period":"perpetual",
+                //                 "settlement_currency":"BTC",
+                //                 "quote_currency":"USD",
+                //                 "min_trade_amount":10.0,
+                //                 "max_liquidation_commission":0.0075,
+                //                 "max_leverage":50,
+                //                 "maker_commission":0.0,
+                //                 "kind":"future",
+                //                 "is_active":true,
+                //                 "instrument_name":"BTC-PERPETUAL",
+                //                 "future_type":"reversed",
+                //                 "expiration_timestamp":32503708800000,
+                //                 "creation_timestamp":1534242287000,
+                //                 "counter_currency":"USD",
+                //                 "contract_size":10.0,
+                //                 "block_trade_commission":0.0001,
+                //                 "base_currency":"BTC"
+                //             },
+                //         ],
+                //         "usIn":1648691472831791,
+                //         "usOut":1648691472831896,
+                //         "usDiff":105,
+                //         "testnet":false
+                //     }
+                //
+                ((IList<object>)instrumentsResponses).Add(instrumentsResponse);
+            }
+        }
+        for (object i = 0; isLessThan(i, getArrayLength(instrumentsResponses)); postFixIncrement(ref i))
+        {
+            object instrumentsResult = this.safeValue(getValue(instrumentsResponses, i), "result", new List<object>() {});
             for (object k = 0; isLessThan(k, getArrayLength(instrumentsResult)); postFixIncrement(ref k))
             {
                 object market = getValue(instrumentsResult, k);

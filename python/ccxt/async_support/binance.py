@@ -11,11 +11,13 @@ import json
 from ccxt.base.types import Balances, Currencies, Currency, Greeks, Int, Leverage, Leverages, MarginMode, MarginModes, MarginModification, Market, MarketInterface, Num, Option, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import AccountSuspended
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
+from ccxt.base.errors import OperationRejected
 from ccxt.base.errors import MarginModeAlreadySet
 from ccxt.base.errors import BadResponse
 from ccxt.base.errors import InsufficientFunds
@@ -24,14 +26,12 @@ from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import OrderImmediatelyFillable
 from ccxt.base.errors import OrderNotFillable
 from ccxt.base.errors import NotSupported
+from ccxt.base.errors import OperationFailed
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import InvalidNonce
 from ccxt.base.errors import RequestTimeout
-from ccxt.base.errors import AuthenticationError
-from ccxt.base.errors import OperationRejected
-from ccxt.base.errors import OperationFailed
 from ccxt.base.decimal_to_precision import TRUNCATE
 from ccxt.base.decimal_to_precision import DECIMAL_PLACES
 from ccxt.base.precise import Precise
@@ -94,6 +94,8 @@ class binance(Exchange, ImplicitAPI):
                 'fetchCanceledOrders': 'emulated',
                 'fetchClosedOrder': False,
                 'fetchClosedOrders': 'emulated',
+                'fetchConvertCurrencies': True,
+                'fetchConvertQuote': False,
                 'fetchCrossBorrowRate': True,
                 'fetchCrossBorrowRates': False,
                 'fetchCurrencies': True,
@@ -993,6 +995,7 @@ class binance(Exchange, ImplicitAPI):
                     },
                     'post': {
                         'order/oco': 0.2,
+                        'orderList/oco': 0.2,
                         'sor/order': 0.2,
                         'sor/order/test': 0.2,
                         'order': 0.2,
@@ -4109,10 +4112,13 @@ class binance(Exchange, ImplicitAPI):
             'interval': self.safe_string(self.timeframes, timeframe, timeframe),
             'limit': limit,
         }
+        marketId = market['id']
         if price == 'index':
-            request['pair'] = market['id']   # Index price takes self argument instead of symbol
+            parts = marketId.split('_')
+            pair = self.safe_string(parts, 0)
+            request['pair'] = pair   # Index price takes self argument instead of symbol
         else:
-            request['symbol'] = market['id']
+            request['symbol'] = marketId
         # duration = self.parse_timeframe(timeframe)
         if since is not None:
             request['startTime'] = since
@@ -11578,3 +11584,55 @@ class binance(Exchange, ImplicitAPI):
         #
         modifications = self.parse_margin_modifications(response)
         return self.filter_by_symbol_since_limit(modifications, symbol, since, limit)
+
+    async def fetch_convert_currencies(self, params={}) -> Currencies:
+        """
+        fetches all available currencies that can be converted
+        :see: https://binance-docs.github.io/apidocs/spot/en/#query-order-quantity-precision-per-asset-user_data
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an associative dictionary of currencies
+        """
+        await self.load_markets()
+        response = await self.sapiGetConvertAssetInfo(params)
+        #
+        #     [
+        #         {
+        #             "asset": "BTC",
+        #             "fraction": 8
+        #         },
+        #     ]
+        #
+        result = {}
+        for i in range(0, len(response)):
+            entry = response[i]
+            id = self.safe_string(entry, 'asset')
+            code = self.safe_currency_code(id)
+            result[code] = {
+                'info': entry,
+                'id': id,
+                'code': code,
+                'networks': None,
+                'type': None,
+                'name': None,
+                'active': None,
+                'deposit': None,
+                'withdraw': None,
+                'fee': None,
+                'precision': self.safe_integer(entry, 'fraction'),
+                'limits': {
+                    'amount': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'withdraw': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'deposit': {
+                        'min': None,
+                        'max': None,
+                    },
+                },
+                'created': None,
+            }
+        return result

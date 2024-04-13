@@ -1483,7 +1483,7 @@ class testMainClass extends baseMainTestClass {
         //  -----------------------------------------------------------------------------
         //  --- Init of brokerId tests functions-----------------------------------------
         //  -----------------------------------------------------------------------------
-        $promises = [$this->test_binance(), $this->test_okx(), $this->test_cryptocom(), $this->test_bybit(), $this->test_kucoin(), $this->test_kucoinfutures(), $this->test_bitget(), $this->test_mexc(), $this->test_htx(), $this->test_woo(), $this->test_bitmart(), $this->test_coinex(), $this->test_bingx(), $this->test_phemex(), $this->test_blofin(), $this->test_hyperliquid(), $this->test_coinbaseinternational()];
+        $promises = [$this->test_binance(), $this->test_okx(), $this->test_cryptocom(), $this->test_bybit(), $this->test_kucoin(), $this->test_kucoinfutures(), $this->test_bitget(), $this->test_mexc(), $this->test_htx(), $this->test_woo(), $this->test_bitmart(), $this->test_coinex(), $this->test_bingx(), $this->test_phemex(), $this->test_blofin(), $this->test_hyperliquid(), $this->test_coinbaseinternational(), $this->test_coinbase_advanced()];
         ($promises);
         $success_message = '[' . $this->lang . '][TEST_SUCCESS] brokerId tests passed.';
         dump('[INFO]' . $success_message);
@@ -1814,6 +1814,22 @@ class testMainClass extends baseMainTestClass {
         $request = null;
         try {
             $exchange->create_order('BTC/USDC:USDC', 'limit', 'buy', 1, 20000);
+        } catch(\Throwable $e) {
+            $request = json_parse($exchange->last_request_body);
+        }
+        $client_order_id = $request['client_order_id'];
+        assert(str_starts_with($client_order_id, ((string) $id)), 'clientOrderId does not start with id');
+        close($exchange);
+        return true;
+    }
+
+    public function test_coinbase_advanced() {
+        $exchange = $this->init_offline_exchange('coinbase');
+        $id = 'ccxt';
+        assert($exchange->options['brokerId'] === $id, 'id not in options');
+        $request = null;
+        try {
+            $exchange->create_order('BTC/USDC', 'limit', 'buy', 1, 20000);
         } catch(\Throwable $e) {
             $request = json_parse($exchange->last_request_body);
         }

@@ -439,4 +439,5 @@ export default class binance extends Exchange {
         quoteVolume: any;
     };
     fetchMarginAdjustmentHistory(symbol?: Str, type?: Str, since?: Num, limit?: Num, params?: {}): Promise<MarginModification[]>;
+    fetchConvertCurrencies(params?: {}): Promise<Currencies>;
 }

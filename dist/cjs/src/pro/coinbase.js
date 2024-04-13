@@ -140,6 +140,11 @@ class coinbase extends coinbase$1 {
         //                        "low_52_w": "15460",
         //                        "high_52_w": "48240",
         //                        "price_percent_chg_24_h": "-4.15775596190603"
+        // new as of 2024-04-12
+        //                        "best_bid":"21835.29",
+        //                        "best_bid_quantity": "0.02000000",
+        //                        "best_ask":"23011.18",
+        //                        "best_ask_quantity": "0.01500000"
         //                    }
         //                ]
         //            }
@@ -165,6 +170,11 @@ class coinbase extends coinbase$1 {
         //                        "low_52_w": "0.04908",
         //                        "high_52_w": "0.1801",
         //                        "price_percent_chg_24_h": "0.50177456859626"
+        // new as of 2024-04-12
+        //                        "best_bid":"0.07989",
+        //                        "best_bid_quantity": "500.0",
+        //                        "best_ask":"0.08308",
+        //                        "best_ask_quantity": "300.0"
         //                    }
         //                ]
         //            }
@@ -186,6 +196,9 @@ class coinbase extends coinbase$1 {
                 const messageHash = channel + '::' + wsMarketId;
                 newTickers.push(result);
                 client.resolve(result, messageHash);
+                if (messageHash.endsWith('USD')) {
+                    client.resolve(result, messageHash + 'C'); // sometimes we subscribe to BTC/USDC and coinbase returns BTC/USD
+                }
             }
         }
         const messageHashes = this.findMessageHashes(client, 'ticker_batch::');
@@ -197,6 +210,9 @@ class coinbase extends coinbase$1 {
             const tickers = this.filterByArray(newTickers, 'symbol', symbols);
             if (!this.isEmpty(tickers)) {
                 client.resolve(tickers, messageHash);
+                if (messageHash.endsWith('USD')) {
+                    client.resolve(tickers, messageHash + 'C'); // sometimes we subscribe to BTC/USDC and coinbase returns BTC/USD
+                }
             }
         }
         return message;
@@ -213,6 +229,11 @@ class coinbase extends coinbase$1 {
         //         "low_52_w": "0.04908",
         //         "high_52_w": "0.1801",
         //         "price_percent_chg_24_h": "0.50177456859626"
+        // new as of 2024-04-12
+        //         "best_bid":"0.07989",
+        //         "best_bid_quantity": "500.0",
+        //         "best_ask":"0.08308",
+        //         "best_ask_quantity": "300.0"
         //     }
         //
         const marketId = this.safeString(ticker, 'product_id');
@@ -225,10 +246,10 @@ class coinbase extends coinbase$1 {
             'datetime': this.iso8601(timestamp),
             'high': this.safeString(ticker, 'high_24_h'),
             'low': this.safeString(ticker, 'low_24_h'),
-            'bid': undefined,
-            'bidVolume': undefined,
-            'ask': undefined,
-            'askVolume': undefined,
+            'bid': this.safeString(ticker, 'best_bid'),
+            'bidVolume': this.safeString(ticker, 'best_bid_quantity'),
+            'ask': this.safeString(ticker, 'best_ask'),
+            'askVolume': this.safeString(ticker, 'best_ask_quantity'),
             'vwap': undefined,
             'open': undefined,
             'close': last,
@@ -346,6 +367,9 @@ class coinbase extends coinbase$1 {
             }
         }
         client.resolve(tradesArray, messageHash);
+        if (marketId.endsWith('USD')) {
+            client.resolve(tradesArray, messageHash + 'C'); // sometimes we subscribe to BTC/USDC and coinbase returns BTC/USD
+        }
         return message;
     }
     handleOrder(client, message) {
@@ -401,6 +425,9 @@ class coinbase extends coinbase$1 {
             const marketId = marketIds[i];
             const messageHash = 'user::' + marketId;
             client.resolve(this.orders, messageHash);
+            if (messageHash.endsWith('USD')) {
+                client.resolve(this.orders, messageHash + 'C'); // sometimes we subscribe to BTC/USDC and coinbase returns BTC/USD
+            }
         }
         client.resolve(this.orders, 'user');
         return message;
@@ -513,6 +540,9 @@ class coinbase extends coinbase$1 {
                 orderbook['datetime'] = undefined;
                 orderbook['symbol'] = symbol;
                 client.resolve(orderbook, messageHash);
+                if (messageHash.endsWith('USD')) {
+                    client.resolve(orderbook, messageHash + 'C'); // sometimes we subscribe to BTC/USDC and coinbase returns BTC/USD
+                }
             }
             else if (type === 'update') {
                 const orderbook = this.orderbooks[symbol];
@@ -521,6 +551,9 @@ class coinbase extends coinbase$1 {
                 orderbook['timestamp'] = this.parse8601(datetime);
                 orderbook['symbol'] = symbol;
                 client.resolve(orderbook, messageHash);
+                if (messageHash.endsWith('USD')) {
+                    client.resolve(orderbook, messageHash + 'C'); // sometimes we subscribe to BTC/USDC and coinbase returns BTC/USD
+                }
             }
         }
         return message;

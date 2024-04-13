@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.2.90'
+__version__ = '4.2.96'
 
 # -----------------------------------------------------------------------------
 
@@ -1341,7 +1341,7 @@ class Exchange(object):
             signature = Exchange.base64_to_binary(Exchange.rsa(token, Exchange.decode(secret), algorithm))
         elif algoType == 'ES':
             rawSignature = Exchange.ecdsa(token, secret, 'p256', algorithm)
-            signature = Exchange.base16_to_binary(rawSignature['r'] + rawSignature['s'])
+            signature = Exchange.base16_to_binary(rawSignature['r'].rjust(64, "0") + rawSignature['s'].rjust(64, "0"))
         else:
             signature = Exchange.hmac(Exchange.encode(token), secret, algos[algorithm], 'binary')
         return token + '.' + Exchange.base64urlencode(signature)
@@ -2303,7 +2303,7 @@ class Exchange(object):
     def parse_to_int(self, number):
         # Solve Common intmisuse ex: int((since / str(1000)))
         # using a number which is not valid in ts
-        stringifiedNumber = str(number)
+        stringifiedNumber = self.number_to_string(number)
         convertedNumber = float(stringifiedNumber)
         return int(convertedNumber)
 
@@ -3225,6 +3225,14 @@ class Exchange(object):
             result.append(self.market_id(symbols[i]))
         return result
 
+    def markets_for_symbols(self, symbols: Strings = None):
+        if symbols is None:
+            return symbols
+        result = []
+        for i in range(0, len(symbols)):
+            result.append(self.market(symbols[i]))
+        return result
+
     def market_symbols(self, symbols: Strings = None, type: Str = None, allowEmpty=True, sameTypeOnly=False, sameSubTypeOnly=False):
         if symbols is None:
             if not allowEmpty:
@@ -3441,18 +3449,33 @@ class Exchange(object):
         sorted = self.sort_by(results, 0)
         return self.filter_by_since_limit(sorted, since, limit, 0)
 
-    def parse_leverage_tiers(self, response: List[object], symbols: List[str] = None, marketIdKey=None):
+    def parse_leverage_tiers(self, response: Any, symbols: List[str] = None, marketIdKey=None):
         # marketIdKey should only be None when response is a dictionary
         symbols = self.market_symbols(symbols)
         tiers = {}
-        for i in range(0, len(response)):
-            item = response[i]
-            id = self.safe_string(item, marketIdKey)
-            market = self.safe_market(id, None, None, 'swap')
-            symbol = market['symbol']
-            contract = self.safe_bool(market, 'contract', False)
-            if contract and ((symbols is None) or self.in_array(symbol, symbols)):
-                tiers[symbol] = self.parse_market_leverage_tiers(item, market)
+        symbolsLength = 0
+        if symbols is not None:
+            symbolsLength = len(symbols)
+        noSymbols = (symbols is None) or (symbolsLength == 0)
+        if isinstance(response, list):
+            for i in range(0, len(response)):
+                item = response[i]
+                id = self.safe_string(item, marketIdKey)
+                market = self.safe_market(id, None, None, 'swap')
+                symbol = market['symbol']
+                contract = self.safe_bool(market, 'contract', False)
+                if contract and (noSymbols or self.in_array(symbol, symbols)):
+                    tiers[symbol] = self.parse_market_leverage_tiers(item, market)
+        else:
+            keys = list(response.keys())
+            for i in range(0, len(keys)):
+                marketId = keys[i]
+                item = response[marketId]
+                market = self.safe_market(marketId, None, None, 'swap')
+                symbol = market['symbol']
+                contract = self.safe_bool(market, 'contract', False)
+                if contract and (noSymbols or self.in_array(symbol, symbols)):
+                    tiers[symbol] = self.parse_market_leverage_tiers(item, market)
         return tiers
 
     def load_trading_limits(self, symbols: List[str] = None, reload=False, params={}):
@@ -4354,6 +4377,9 @@ class Exchange(object):
     def fetch_option(self, symbol: str, params={}):
         raise NotSupported(self.id + ' fetchOption() is not supported yet')
 
+    def fetch_convert_quote(self, fromCode: str, toCode: str, amount: Num = None, params={}):
+        raise NotSupported(self.id + ' fetchConvertQuote() is not supported yet')
+
     def fetch_deposits_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch history of deposits and withdrawals
@@ -4425,12 +4451,6 @@ class Exchange(object):
 
     def common_currency_code(self, code: str):
         if not self.substituteCommonCurrencyCodes:
-            return code
-        # if the provided code already exists value in commonCurrencies dict, then we should not again transform it
-        # more details at: https://github.com/ccxt/ccxt/issues/21112#issuecomment-2031293691
-        commonCurrencies = list(self.commonCurrencies.values())
-        exists = self.in_array(code, commonCurrencies)
-        if exists:
             return code
         return self.safe_string(self.commonCurrencies, code, code)
 
@@ -4833,6 +4853,9 @@ class Exchange(object):
         fees = self.fetch_trading_fees(params)
         return self.safe_dict(fees, symbol)
 
+    def fetch_convert_currencies(self, params={}):
+        raise NotSupported(self.id + ' fetchConvertCurrencies() is not supported yet')
+
     def parse_open_interest(self, interest, market: Market = None):
         raise NotSupported(self.id + ' parseOpenInterest() is not supported yet')
 
@@ -4985,7 +5008,6 @@ class Exchange(object):
         :returns dict: objects with withdraw and deposit fees, indexed by currency codes
         """
         depositWithdrawFees = {}
-        codes = self.marketCodes(codes)
         isArray = isinstance(response, list)
         responseKeys = response
         if not isArray:
@@ -5417,6 +5439,9 @@ class Exchange(object):
     def parse_leverage(self, leverage, market: Market = None):
         raise NotSupported(self.id + ' parseLeverage() is not supported yet')
 
+    def parse_conversion(self, conversion, fromCurrency: Currency = None, toCurrency: Currency = None):
+        raise NotSupported(self.id + ' parseConversion() is not supported yet')
+
     def convert_expire_date(self, date: str):
         # parse YYMMDD to datetime string
         year = date[0:2]
@@ -5459,7 +5484,7 @@ class Exchange(object):
         return reconstructedDate
 
     def convert_market_id_expire_date(self, date: str):
-        # parse 19JAN24 to 240119
+        # parse 03JAN24 to 240103
         monthMappping = {
             'JAN': '01',
             'FEB': '02',
@@ -5474,6 +5499,9 @@ class Exchange(object):
             'NOV': '11',
             'DEC': '12',
         }
+        # if exchange omits first zero and provides i.e. '3JAN24' instead of '03JAN24'
+        if len(date) == 6:
+            date = '0' + date
         year = date[0:2]
         monthName = date[2:5]
         month = self.safe_string(monthMappping, monthName)
