@@ -75,6 +75,7 @@
     "cli.php": "php ./examples/php/cli.php",
     "cli.ts": "node --loader ts-node/esm examples/ts/cli.ts",
     "cli.cs": "dotnet run --project \"./cs/cli/cli.csproj\"",
+    "tsx": "(tsc ./ts/src/static_dependencies/jsencrypt/lib/jsbn/jsbn.ts || echo \"\") && tsx",
     "export-exchanges": "node build/export-exchanges",
     "capabilities": "node ./examples/js/exchange-capabilities.js",
     "git-ignore-generated-files": "node build/git-ignore-generated-files.cjs",

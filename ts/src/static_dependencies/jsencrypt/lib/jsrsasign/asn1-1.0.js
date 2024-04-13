@@ -12,7 +12,7 @@
  * included in all copies or substantial portions of the Software.
  */
 
-import { BigInteger } from "../jsbn/jsbn";
+import { BigInteger } from "../jsbn/jsbn.js";
 import { YAHOO } from "./yahoo.js";
 
 /**
