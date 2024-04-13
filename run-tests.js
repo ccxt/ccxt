@@ -265,40 +265,43 @@ const testExchange = async (exchange) => {
     if (debugKeys['--info']) {
         args.push ('--info')
     }
-    const allTests = [
-        { language: 'JavaScript',   key: '--js',           exec: ['node',      'js/src/test/test.js',            ...args] },
-        { language: 'Python',       key: '--python',       exec: ['python3',   'python/ccxt/test/test_sync.py',  ...args] },
-        { language: 'Python Async', key: '--python-async', exec: ['python3',   'python/ccxt/test/test_async.py', ...args] },
-        { language: 'PHP',          key: '--php',          exec: ['php', '-f', 'php/test/test_sync.php',         ...args] },
-        { language: 'PHP Async',    key: '--php-async',    exec: ['php', '-f', 'php/test/test_async.php',        ...args] },
-        { language: 'C#',           key: '--csharp',       exec: ['dotnet', 'run', '--project', 'cs/tests/tests.csproj', ...args] },
-        { language: 'TypeScript',   key: '--ts',           exec: ['node',  '--loader', 'ts-node/esm',  'ts/src/test/test.ts', ...args] },
-    ];
+    let allTests = {
+        '--js':          { language: 'JavaScript',   exec: ['node',      'js/src/test/test.js',                     ...args] },
+        '--python-async':{ language: 'Python Async', exec: ['python3',   'python/ccxt/test/test_async.py',          ...args] },
+        '--php-async':   { language: 'PHP Async',    exec: ['php', '-f', 'php/test/test_async.php',                 ...args] },
+        '--csharp':      { language: 'C#',           exec: ['dotnet', 'run', '--project', 'cs/tests/tests.csproj',  ...args] },
+        '--ts':          { language: 'TypeScript',   exec: ['node',  '--import', 'tsx', 'ts/src/test/test.ts',      ...args] },
+    };
+    // if it's not WS tests, then also add sync versions (php & python) to the list
+    if (!wsFlag) {
+        allTests = Object.assign(allTests, {
+         '--python':     { language: 'Python',       exec: ['python3',   'python/ccxt/test/test_sync.py',  ...args] },
+         '--php':        { language: 'PHP',          exec: ['php', '-f', 'php/test/test_sync.php',         ...args] },
+        });
+    }
 
+    // select tests based on cli arguments
     let selectedTests = [];
     const langsAreProvided = (Object.values (langKeys).filter (x => x===true)).length > 0;
     if (langsAreProvided) {
-        for (const test of allTests) {
-            if (langKeys[test.key]) {
-                selectedTests.push(test);
+        for (const [key, value] of Object.entries (langKeys)) {
+            if (value) {
+                selectedTests.push(allTests[key]);
             }
         }
     } else {
-        selectedTests = allTests.filter (t => t.key !== '--ts');
+        // all tests except TypeScript
+        selectedTests = Object.values (allTests).filter (t => t.language !== 'TypeScript');
     }
 
+    // remove skipped tests
     if (skipSettings[exchange]) {
         if (skipSettings[exchange].skipCSharp) {
-            selectedTests = selectedTests.filter (t => t.key !== '--csharp');
+            selectedTests = selectedTests.filter (t => t.language !== 'C#');
         }
         if (skipSettings[exchange].skipPhpAsync) {
-            selectedTests = selectedTests.filter (t => t.key !== '--php-async');
+            selectedTests = selectedTests.filter (t => t.language !== 'PHP Async');
         }
-    }
-    // if it's WS tests, then remove sync versions (php & python) from test queue
-    if (wsFlag) {
-        selectedTests = selectedTests.filter (t => t.key !== '--python');
-        selectedTests = selectedTests.filter (t => t.key !== '--php');
     }
 
         const completeTests  = await sequentialMap (selectedTests, async test => Object.assign (test, await  exec (...test.exec)))
