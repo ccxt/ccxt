@@ -212,13 +212,13 @@ if [ ${#REST_EXCHANGES[@]} -eq 0 ] && [ ${#WS_EXCHANGES[@]} -eq 0 ]; then
   exit
 fi
 
-if [ "$IS_PYJSPHP" != "TRUE" ]; then
+if [ "$IS_PYJSPHP" == "TRUE" ]; then
   # build dotnet project
   npm run buildCS && npm run id-tests-cs
 else
   # run base tests (base js,py,php, brokerId )
   # npm run test-base
-  npm run test-js-base && npm run test-python-base && npm run test-php-base && npm run id-tests-py && npm run id-tests-js && npm run id-tests-php
+  npm run test-js-base && npm run test-python-base && npm run test-php-base && npm run id-tests-pyjsphp
 fi
 
 # rest_args=${REST_EXCHANGES[*]} || "skip"
