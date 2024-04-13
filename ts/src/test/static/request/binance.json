@@ -319,6 +319,22 @@
                 "output": "timestamp=1707113537828&symbol=BTCUSDT&side=BUY&newOrderRespType=FULL&newClientOrderId=x-R4BD3S82e9ef29d8346440f0b28b86&type=LIMIT&quantity=0.001&price=35000&timeInForce=GTC&recvWindow=10000&signature=08d71bf9a60d5184cc256964f1175179c813d11e038718c0d64d5cc5b982f2f5"
             },
             {
+                "description": "Spot margin portfolio margin limit buy order with only portfolioMargin set to true",
+                "method": "createOrder",
+                "url": "https://papi.binance.com/papi/v1/margin/order",
+                "input": [
+                  "BTC/USDT",
+                  "limit",
+                  "buy",
+                  0.0001,
+                  50000,
+                  {
+                    "portfolioMargin": true
+                  }
+                ],
+                "output": "timestamp=1712974976336&symbol=BTCUSDT&side=BUY&newClientOrderId=x-R4BD3S828b7395b12d0846afa4643c&type=LIMIT&quantity=0.0001&price=50000&timeInForce=GTC&recvWindow=10000&signature=bf3748a7adae072d411444d031d45b17ba8c8febf47bb0b5f4236e33b963b49f"
+            },
+            {
                 "description": "swap order with priceMatch",
                 "method": "createOrder",
                 "url": "https://testnet.binancefuture.com/fapi/v1/order",
@@ -488,6 +504,18 @@
                         "portfolioMargin": true,
                         "marginMode": "cross"
                     }
+                ]
+            },
+            {
+                "description": "Spot margin portfolio margin cancel order with only portfolioMargin set to true",
+                "method": "cancelOrder",
+                "url": "https://papi.binance.com/papi/v1/margin/order?timestamp=1712975069995&symbol=BTCUSDT&orderId=26447758109&recvWindow=10000&signature=5dc7c88abd58e4adbdc8153a19e33dc189e402184f42694de7a5ce3febfac2e8",
+                "input": [
+                  "26447758109",
+                  "BTC/USDT",
+                  {
+                    "portfolioMargin": true
+                  }
                 ]
             },
             {
