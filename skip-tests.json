@@ -867,7 +867,8 @@
                 "bid": "same",
                 "ask": "same",
                 "average": "same"
-            }
+            },
+            "fetchTickers": "requires custom param"
         }
     },
     "fmfwio": {
