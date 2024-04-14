@@ -2484,7 +2484,7 @@ export default class Exchange {
 
     afterConstruct () {
         this.createNetworksByIdObject ();
-        this.commonStrings['messageForInvalidNonceSequence'] = 'incoming orderbook update has an out-of-order nonce. You should either implement your reconnection handling or for temporary cases, set .options["checkOrderBookNonce"] = false';
+        this.commonStrings['messageForInvalidNonceSequence'] = 'incoming orderbook data checksum/nonce validation failed. You should either implement your reconnection logic or for temporary cases, set .options["validateIncomingOrderBookNonce"] = false';
     }
 
     createNetworksByIdObject () {
