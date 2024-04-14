@@ -878,7 +878,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
         const sequence = this.safeInteger (delta, 'sequence');
         const nonce = this.safeInteger (orderbook, 'nonce');
         if (nonce !== sequence - 1) {
-            const validate = this.safeBool2 (this.options, 'checkOrderBookNonce', 'checksum', true);
+            const validate = this.safeBool2 (this.options, 'validateOrderBookSequences', 'checksum', true);
             if (validate) {
                 // todo: client.reject from handleOrderBookMessage properly
                 throw new InvalidNonce (this.id + this.commonStrings['messageForInvalidNonceSequence']);

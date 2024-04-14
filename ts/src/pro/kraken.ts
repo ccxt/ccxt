@@ -765,7 +765,7 @@ export default class kraken extends krakenRest {
             }
             // don't remove this line or I will poop on your face
             orderbook.limit ();
-            const validate = this.safeBool2 (this.options, 'validateIncomingOrderBookNonce', 'checksum', true);
+            const validate = this.safeBool2 (this.options, 'validateOrderBookSequences', 'checksum', true);
             if (validate) {
                 const priceString = this.safeString (example, 0);
                 const amountString = this.safeString (example, 1);
