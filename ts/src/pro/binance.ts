@@ -429,10 +429,10 @@ export default class binance extends binanceRest {
                                 client.resolve (orderbook, messageHash);
                             }
                         } else {
-                            const checksum = this.safeBool (this.options, 'checksum', true);
-                            if (checksum) {
+                            const validate = this.safeBool2 (this.options, 'checkOrderBookNonce', 'checksum', true);
+                            if (validate) {
                                 // todo: client.reject from handleOrderBookMessage properly
-                                throw new InvalidNonce (this.id + ' handleOrderBook received an out-of-order nonce');
+                                throw new InvalidNonce (this.id + this.commonStrings['messageForInvalidNonceSequence']);
                             }
                         }
                     }
@@ -448,10 +448,10 @@ export default class binance extends binanceRest {
                                 client.resolve (orderbook, messageHash);
                             }
                         } else {
-                            const checksum = this.safeBool (this.options, 'checksum', true);
-                            if (checksum) {
+                            const validate = this.safeBool2 (this.options, 'checkOrderBookNonce', 'checksum', true);
+                            if (validate) {
                                 // todo: client.reject from handleOrderBookMessage properly
-                                throw new InvalidNonce (this.id + ' handleOrderBook received an out-of-order nonce');
+                                throw new InvalidNonce (this.id + this.commonStrings['messageForInvalidNonceSequence']);
                             }
                         }
                     }
