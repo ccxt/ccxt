@@ -224,7 +224,7 @@ export default class gate extends gateRest {
         } else {
             const validate = this.safeBool2 (this.options, 'validateOrderBookSequences', 'checksum', true);
             if (validate) {
-                const error = new InvalidNonce (this.id + this.commonStrings['messageForInvalidNonceSequence']);
+                const error = new InvalidNonce (this.id + this.commonStrings['invalidOrderBookSequence']);
                 delete client.subscriptions[messageHash];
                 delete this.orderbooks[symbol];
                 client.reject (error, messageHash);
