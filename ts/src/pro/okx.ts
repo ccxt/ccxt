@@ -591,8 +591,8 @@ export default class okx extends okxRest {
         const storedBids = orderbook['bids'];
         this.handleDeltas (storedAsks, asks);
         this.handleDeltas (storedBids, bids);
-        const checksum = this.safeBool (this.options, 'checksum', true);
-        if (checksum) {
+        const validate = this.safeBool2 (this.options, 'validateIncomingOrderBookNonce', 'checksum', true);
+        if (validate) {
             const asksLength = storedAsks.length;
             const bidsLength = storedBids.length;
             const payloadArray = [];
@@ -610,7 +610,7 @@ export default class okx extends okxRest {
             const responseChecksum = this.safeInteger (message, 'checksum');
             const localChecksum = this.crc32 (payload, true);
             if (responseChecksum !== localChecksum) {
-                const error = new InvalidNonce (this.id + ' invalid checksum');
+                const error = new InvalidNonce (this.id + this.commonStrings['messageForInvalidNonceSequence']);
                 client.reject (error, messageHash);
             }
         }
