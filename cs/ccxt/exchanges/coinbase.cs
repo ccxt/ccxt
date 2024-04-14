@@ -1202,7 +1202,10 @@ public partial class coinbase : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         object spotUnresolvedPromises = new List<object> {this.v3PrivateGetBrokerageProducts(parameters), this.v3PrivateGetBrokerageTransactionSummary(parameters)};
-        object unresolvedContractPromises = new List<object> {this.v3PrivateGetBrokerageProducts(this.extend(parameters, new Dictionary<string, object>() {
+        object unresolvedContractPromises = new List<object>() {};
+        try
+        {
+            unresolvedContractPromises = new List<object> {this.v3PrivateGetBrokerageProducts(this.extend(parameters, new Dictionary<string, object>() {
     { "product_type", "FUTURE" },
 })), this.v3PrivateGetBrokerageProducts(this.extend(parameters, new Dictionary<string, object>() {
     { "product_type", "FUTURE" },
@@ -1213,6 +1216,10 @@ public partial class coinbase : Exchange
     { "product_type", "FUTURE" },
     { "contract_expiry_type", "PERPETUAL" },
 }))};
+        } catch(Exception e)
+        {
+            unresolvedContractPromises = new List<object>() {}; // the sync version of ccxt won't have the promise.all line so the request is made here
+        }
         object promises = await promiseAll(spotUnresolvedPromises);
         object contractPromises = null;
         try

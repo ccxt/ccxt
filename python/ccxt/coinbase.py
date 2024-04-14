@@ -1144,12 +1144,16 @@ class coinbase(Exchange, ImplicitAPI):
             self.v3PrivateGetBrokerageProducts(params),
             self.v3PrivateGetBrokerageTransactionSummary(params),
         ]
-        unresolvedContractPromises = [
-            self.v3PrivateGetBrokerageProducts(self.extend(params, {'product_type': 'FUTURE'})),
-            self.v3PrivateGetBrokerageProducts(self.extend(params, {'product_type': 'FUTURE', 'contract_expiry_type': 'PERPETUAL'})),
-            self.v3PrivateGetBrokerageTransactionSummary(self.extend(params, {'product_type': 'FUTURE'})),
-            self.v3PrivateGetBrokerageTransactionSummary(self.extend(params, {'product_type': 'FUTURE', 'contract_expiry_type': 'PERPETUAL'})),
-        ]
+        unresolvedContractPromises = []
+        try:
+            unresolvedContractPromises = [
+                self.v3PrivateGetBrokerageProducts(self.extend(params, {'product_type': 'FUTURE'})),
+                self.v3PrivateGetBrokerageProducts(self.extend(params, {'product_type': 'FUTURE', 'contract_expiry_type': 'PERPETUAL'})),
+                self.v3PrivateGetBrokerageTransactionSummary(self.extend(params, {'product_type': 'FUTURE'})),
+                self.v3PrivateGetBrokerageTransactionSummary(self.extend(params, {'product_type': 'FUTURE', 'contract_expiry_type': 'PERPETUAL'})),
+            ]
+        except Exception as e:
+            unresolvedContractPromises = []  # the sync version of ccxt won't have the promise.all line so the request is made here
         promises = spotUnresolvedPromises
         contractPromises = None
         try:

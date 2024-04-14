@@ -1030,7 +1030,7 @@ public partial class okx : Exchange
         });
     }
 
-    public override object handleMarketTypeAndParams(object methodName, object market = null, object parameters = null)
+    public override object handleMarketTypeAndParams(object methodName, object market = null, object parameters = null, object defaultValue = null)
     {
         parameters ??= new Dictionary<string, object>();
         object instType = this.safeString(parameters, "instType");
@@ -1040,7 +1040,7 @@ public partial class okx : Exchange
         {
             ((IDictionary<string,object>)parameters)["type"] = instType;
         }
-        return base.handleMarketTypeAndParams(methodName, market, parameters);
+        return base.handleMarketTypeAndParams(methodName, market, parameters, defaultValue);
     }
 
     public virtual object convertToInstrumentType(object type)

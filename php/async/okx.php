@@ -1116,14 +1116,14 @@ class okx extends Exchange {
         ));
     }
 
-    public function handle_market_type_and_params($methodName, $market = null, $params = array ()) {
+    public function handle_market_type_and_params(string $methodName, ?array $market = null, $params = array (), $defaultValue = null): mixed {
         $instType = $this->safe_string($params, 'instType');
         $params = $this->omit($params, 'instType');
         $type = $this->safe_string($params, 'type');
         if (($type === null) && ($instType !== null)) {
             $params['type'] = $instType;
         }
-        return parent::handle_market_type_and_params($methodName, $market, $params);
+        return parent::handle_market_type_and_params($methodName, $market, $params, $defaultValue);
     }
 
     public function convert_to_instrument_type($type) {

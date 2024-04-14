@@ -1107,14 +1107,14 @@ class okx extends okx$1 {
             },
         });
     }
-    handleMarketTypeAndParams(methodName, market = undefined, params = {}) {
+    handleMarketTypeAndParams(methodName, market = undefined, params = {}, defaultValue = undefined) {
         const instType = this.safeString(params, 'instType');
         params = this.omit(params, 'instType');
         const type = this.safeString(params, 'type');
         if ((type === undefined) && (instType !== undefined)) {
             params['type'] = instType;
         }
-        return super.handleMarketTypeAndParams(methodName, market, params);
+        return super.handleMarketTypeAndParams(methodName, market, params, defaultValue);
     }
     convertToInstrumentType(type) {
         const exchangeTypes = this.safeDict(this.options, 'exchangeType', {});

@@ -1183,12 +1183,18 @@ export default class coinbase extends Exchange {
             this.v3PrivateGetBrokerageProducts(params),
             this.v3PrivateGetBrokerageTransactionSummary(params),
         ];
-        const unresolvedContractPromises = [
-            this.v3PrivateGetBrokerageProducts(this.extend(params, { 'product_type': 'FUTURE' })),
-            this.v3PrivateGetBrokerageProducts(this.extend(params, { 'product_type': 'FUTURE', 'contract_expiry_type': 'PERPETUAL' })),
-            this.v3PrivateGetBrokerageTransactionSummary(this.extend(params, { 'product_type': 'FUTURE' })),
-            this.v3PrivateGetBrokerageTransactionSummary(this.extend(params, { 'product_type': 'FUTURE', 'contract_expiry_type': 'PERPETUAL' })),
-        ];
+        let unresolvedContractPromises = [];
+        try {
+            unresolvedContractPromises = [
+                this.v3PrivateGetBrokerageProducts(this.extend(params, { 'product_type': 'FUTURE' })),
+                this.v3PrivateGetBrokerageProducts(this.extend(params, { 'product_type': 'FUTURE', 'contract_expiry_type': 'PERPETUAL' })),
+                this.v3PrivateGetBrokerageTransactionSummary(this.extend(params, { 'product_type': 'FUTURE' })),
+                this.v3PrivateGetBrokerageTransactionSummary(this.extend(params, { 'product_type': 'FUTURE', 'contract_expiry_type': 'PERPETUAL' })),
+            ];
+        }
+        catch (e) {
+            unresolvedContractPromises = []; // the sync version of ccxt won't have the promise.all line so the request is made here
+        }
         const promises = await Promise.all(spotUnresolvedPromises);
         let contractPromises = undefined;
         try {

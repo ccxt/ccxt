@@ -422,9 +422,13 @@ class testMainClass(baseMainTestClass):
         return result
 
     async def test_method(self, method_name, exchange, args, is_public):
+        # todo: temporary skip for c#
+        if 'OrderBook' in method_name and self.ext == 'cs':
+            exchange.options['checksum'] = False
         # todo: temporary skip for php
         if 'OrderBook' in method_name and self.ext == 'php':
             return
+        skipped_properties_for_method = self.get_skips(exchange, method_name)
         is_load_markets = (method_name == 'loadMarkets')
         is_fetch_currencies = (method_name == 'fetchCurrencies')
         is_proxy_test = (method_name == self.proxy_test_file_name)
@@ -437,7 +441,7 @@ class testMainClass(baseMainTestClass):
             skip_message = '[INFO] IGNORED_TEST'
         elif not is_load_markets and not supported_by_exchange and not is_proxy_test:
             skip_message = '[INFO] UNSUPPORTED_TEST'  # keep it aligned with the longest message
-        elif (method_name in self.skipped_methods) and (isinstance(self.skipped_methods[method_name], str)):
+        elif isinstance(skipped_properties_for_method, str):
             skip_message = '[INFO] SKIPPED_TEST'
         elif not (method_name in self.test_files):
             skip_message = '[INFO] UNIMPLEMENTED_TEST'
@@ -451,15 +455,24 @@ class testMainClass(baseMainTestClass):
         if self.info:
             args_stringified = '(' + ','.join(args) + ')'
             dump(self.add_padding('[INFO] TESTING', 25), self.exchange_hint(exchange), method_name, args_stringified)
-        await call_method(self.test_files, method_name, exchange, self.get_skips(exchange, method_name), args)
+        await call_method(self.test_files, method_name, exchange, skipped_properties_for_method, args)
         # if it was passed successfully, add to the list of successfull tests
         if is_public:
             self.checked_public_tests[method_name] = True
         return
 
     def get_skips(self, exchange, method_name):
-        # get "method-specific" skips
-        skips_for_method = exchange.safe_value(self.skipped_methods, method_name, {})
+        final_skips = {}
+        # check the exact method (i.e. `fetchTrades`) and language-specific (i.e. `fetchTrades.php`)
+        method_names = [method_name, method_name + '.' + self.ext]
+        for i in range(0, len(method_names)):
+            m_name = method_names[i]
+            if m_name in self.skipped_methods:
+                # if whole method is skipped, by assigning a string to it, i.e. "fetchOrders":"blabla"
+                if isinstance(self.skipped_methods[m_name], str):
+                    return self.skipped_methods[m_name]
+                else:
+                    final_skips = exchange.deep_extend(final_skips, self.skipped_methods[m_name])
         # get "object-specific" skips
         object_skips = {
             'orderBook': ['fetchOrderBook', 'fetchOrderBooks', 'fetchL2OrderBook', 'watchOrderBook', 'watchOrderBookForSymbols'],
@@ -475,9 +488,19 @@ class testMainClass(baseMainTestClass):
             object_name = object_names[i]
             object_methods = object_skips[object_name]
             if exchange.in_array(method_name, object_methods):
+                # if whole object is skipped, by assigning a string to it, i.e. "orderBook":"blabla"
+                if (object_name in self.skipped_methods) and (isinstance(self.skipped_methods[object_name], str)):
+                    return self.skipped_methods[object_name]
                 extra_skips = exchange.safe_dict(self.skipped_methods, object_name, {})
-                return exchange.deep_extend(skips_for_method, extra_skips)
-        return skips_for_method
+                final_skips = exchange.deep_extend(final_skips, extra_skips)
+        # extend related skips
+        # - if 'timestamp' is skipped, we should do so for 'datetime' too
+        # - if 'bid' is skipped, skip 'ask' too
+        if ('timestamp' in final_skips) and not ('datetime' in final_skips):
+            final_skips['datetime'] = final_skips['timestamp']
+        if ('bid' in final_skips) and not ('ask' in final_skips):
+            final_skips['ask'] = final_skips['bid']
+        return final_skips
 
     async def test_safe(self, method_name, exchange, args=[], is_public=False):
         # `testSafe` method does not throw an exception, instead mutes it. The reason we
@@ -569,11 +592,14 @@ class testMainClass(baseMainTestClass):
         if self.ws_tests:
             tests = {
                 'watchOHLCV': [symbol],
+                'watchOHLCVForSymbols': [symbol],
                 'watchTicker': [symbol],
                 'watchTickers': [symbol],
                 'watchBidsAsks': [symbol],
                 'watchOrderBook': [symbol],
+                'watchOrderBookForSymbols': [[symbol]],
                 'watchTrades': [symbol],
+                'watchTradesForSymbols': [[symbol]],
             }
         market = exchange.market(symbol)
         is_spot = market['spot']

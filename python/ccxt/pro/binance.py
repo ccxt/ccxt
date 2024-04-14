@@ -9,10 +9,10 @@ import hashlib
 from ccxt.base.types import Balances, Int, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
-from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import NotSupported
+from ccxt.base.errors import InvalidNonce
 from ccxt.base.precise import Precise
 
 
@@ -400,8 +400,10 @@ class binance(ccxt.async_support.binance):
                             if nonce < orderbook['nonce']:
                                 client.resolve(orderbook, messageHash)
                         else:
-                            # todo: client.reject from handleOrderBookMessage properly
-                            raise ExchangeError(self.id + ' handleOrderBook received an out-of-order nonce')
+                            checksum = self.safe_bool(self.options, 'checksum', True)
+                            if checksum:
+                                # todo: client.reject from handleOrderBookMessage properly
+                                raise InvalidNonce(self.id + ' handleOrderBook received an out-of-order nonce')
                 else:
                     # future
                     # 4. Drop any event where u is < lastUpdateId in the snapshot
@@ -413,8 +415,10 @@ class binance(ccxt.async_support.binance):
                             if nonce <= orderbook['nonce']:
                                 client.resolve(orderbook, messageHash)
                         else:
-                            # todo: client.reject from handleOrderBookMessage properly
-                            raise ExchangeError(self.id + ' handleOrderBook received an out-of-order nonce')
+                            checksum = self.safe_bool(self.options, 'checksum', True)
+                            if checksum:
+                                # todo: client.reject from handleOrderBookMessage properly
+                                raise InvalidNonce(self.id + ' handleOrderBook received an out-of-order nonce')
             except Exception as e:
                 del self.orderbooks[symbol]
                 del client.subscriptions[messageHash]

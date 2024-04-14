@@ -6,10 +6,10 @@ namespace ccxt\pro;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
 use ccxt\NotSupported;
+use ccxt\InvalidNonce;
 use ccxt\Precise;
 use React\Async;
 use React\Promise\PromiseInterface;
@@ -432,8 +432,11 @@ class binance extends \ccxt\async\binance {
                                 $client->resolve ($orderbook, $messageHash);
                             }
                         } else {
-                            // todo => $client->reject from handleOrderBookMessage properly
-                            throw new ExchangeError($this->id . ' handleOrderBook received an out-of-order nonce');
+                            $checksum = $this->safe_bool($this->options, 'checksum', true);
+                            if ($checksum) {
+                                // todo => $client->reject from handleOrderBookMessage properly
+                                throw new InvalidNonce($this->id . ' handleOrderBook received an out-of-order nonce');
+                            }
                         }
                     }
                 } else {
@@ -448,8 +451,11 @@ class binance extends \ccxt\async\binance {
                                 $client->resolve ($orderbook, $messageHash);
                             }
                         } else {
-                            // todo => $client->reject from handleOrderBookMessage properly
-                            throw new ExchangeError($this->id . ' handleOrderBook received an out-of-order nonce');
+                            $checksum = $this->safe_bool($this->options, 'checksum', true);
+                            if ($checksum) {
+                                // todo => $client->reject from handleOrderBookMessage properly
+                                throw new InvalidNonce($this->id . ' handleOrderBook received an out-of-order nonce');
+                            }
                         }
                     }
                 }

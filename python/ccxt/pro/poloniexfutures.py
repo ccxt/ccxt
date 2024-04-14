@@ -8,9 +8,9 @@ from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById
 from ccxt.base.types import Balances, Int, Order, OrderBook, Str, Ticker, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
-from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import BadRequest
+from ccxt.base.errors import InvalidNonce
 
 
 class poloniexfutures(ccxt.async_support.poloniexfutures):
@@ -817,7 +817,10 @@ class poloniexfutures(ccxt.async_support.poloniexfutures):
         sequence = self.safe_integer(delta, 'sequence')
         nonce = self.safe_integer(orderbook, 'nonce')
         if nonce != sequence - 1:
-            raise ExchangeError(self.id + ' watchOrderBook received an out-of-order nonce')
+            checksum = self.safe_bool(self.options, 'checksum', True)
+            if checksum:
+                # todo: client.reject from handleOrderBookMessage properly
+                raise InvalidNonce(self.id + ' watchOrderBook received an out-of-order nonce')
         change = self.safe_string(delta, 'change')
         splitChange = change.split(',')
         price = self.safe_number(splitChange, 0)
