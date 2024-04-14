@@ -219,11 +219,14 @@ export default class cryptocom extends cryptocomRest {
             orderbook['datetime'] = this.iso8601 (timestamp);
             orderbook['nonce'] = nonce;
         } else {
-            books = this.safeValue (data, 'update', {});
-            const previousNonce = this.safeInteger (data, 'pu');
-            const currentNonce = orderbook['nonce'];
-            if (currentNonce !== previousNonce) {
-                throw new InvalidNonce (this.id + ' watchOrderBook() ' + symbol + ' ' + previousNonce + ' != ' + nonce);
+            const validate = this.safeBool2 (this.options, 'validateOrderBookSequences', 'checksum', true);
+            if (validate) {
+                books = this.safeValue (data, 'update', {});
+                const previousNonce = this.safeInteger (data, 'pu');
+                const currentNonce = orderbook['nonce'];
+                if (currentNonce !== previousNonce) {
+                    throw new InvalidNonce (this.id + this.commonStrings['invalidOrderBookSequence']);
+                }
             }
         }
         this.handleDeltas (orderbook['asks'], this.safeValue (books, 'asks', []));
