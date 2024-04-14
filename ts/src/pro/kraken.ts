@@ -765,8 +765,8 @@ export default class kraken extends krakenRest {
             }
             // don't remove this line or I will poop on your face
             orderbook.limit ();
-            const checksum = this.safeBool (this.options, 'checksum', true);
-            if (checksum) {
+            const validate = this.safeBool2 (this.options, 'validateIncomingOrderBookNonce', 'checksum', true);
+            if (validate) {
                 const priceString = this.safeString (example, 0);
                 const amountString = this.safeString (example, 1);
                 const priceParts = priceString.split ('.');
@@ -787,7 +787,7 @@ export default class kraken extends krakenRest {
                 const payload = payloadArray.join ('');
                 const localChecksum = this.crc32 (payload, false);
                 if (localChecksum !== c) {
-                    const error = new InvalidNonce (this.id + ' invalid checksum');
+                    const error = new InvalidNonce (this.id + this.commonStrings['messageForInvalidNonceSequence']);
                     client.reject (error, messageHash);
                     return;
                 }
