@@ -659,6 +659,10 @@ export default class bitfinex2 extends bitfinex2Rest {
         //
         // [ 173904, "cs", -890884919 ]
         //
+        const validate = this.safeBool2 (this.options, 'validateOrderBookSequences', 'checksum', true);
+        if (!validate) {
+            return;
+        }
         const marketId = this.safeString (subscription, 'symbol');
         const symbol = this.safeSymbol (marketId);
         const channel = 'book';
@@ -692,7 +696,7 @@ export default class bitfinex2 extends bitfinex2Rest {
         const localChecksum = this.crc32 (payload, true);
         const responseChecksum = this.safeInteger (message, 2);
         if (responseChecksum !== localChecksum) {
-            const error = new InvalidNonce (this.id + ' invalid checksum');
+            const error = new InvalidNonce (this.id + this.commonStrings['messageForInvalidNonceSequence']);
             client.reject (error, messageHash);
         }
     }
