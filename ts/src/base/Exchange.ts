@@ -4491,11 +4491,26 @@ export default class Exchange {
         return result;
     }
 
-    handleMarketTypeAndParams (methodName: string, market: Market = undefined, params = {}): any {
+    handleMarketTypeAndParams (methodName: string, market: Market = undefined, params = {}, defaultValue = undefined): any {
+        /**
+         * @ignore
+         * @method
+         * @name exchange#handleMarketTypeAndParams
+         * @param methodName the method calling handleMarketTypeAndParams
+         * @param {Market} market
+         * @param {object} params
+         * @param {string} [params.type] type assigned by user
+         * @param {string} [params.defaultType] same as params.type
+         * @param {string} [defaultValue] assigned programatically in the method calling handleMarketTypeAndParams
+         * @returns {[string, object]} the market type and params with type and defaultType omitted
+         */
         const defaultType = this.safeString2 (this.options, 'defaultType', 'type', 'spot');
+        if (defaultValue === undefined) {  // defaultValue takes precendence over exchange wide defaultType
+            defaultValue = defaultType;
+        }
         const methodOptions = this.safeDict (this.options, methodName);
-        let methodType = defaultType;
-        if (methodOptions !== undefined) {
+        let methodType = defaultValue;
+        if (methodOptions !== undefined) {  // user defined methodType takes precedence over defaultValue
             if (typeof methodOptions === 'string') {
                 methodType = methodOptions;
             } else {
