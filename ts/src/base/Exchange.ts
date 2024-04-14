@@ -287,7 +287,7 @@ export default class Exchange {
 
     markets: Dictionary<any> = undefined
     has: Dictionary<boolean | 'emulated'>
-
+    commonStrings: Dictionary<string> = {};
     status = undefined
 
     requiredCredentials: {
@@ -2484,6 +2484,7 @@ export default class Exchange {
 
     afterConstruct () {
         this.createNetworksByIdObject ();
+        this.commonStrings['messageForInvalidNonceSequence'] = 'incoming orderbook update has an out-of-order nonce. You should either implement your reconnection handling or for temporary cases, set .options["checkOrderBookNonce"] = false';
     }
 
     createNetworksByIdObject () {

@@ -381,6 +381,7 @@ class Exchange(object):
         'watchBalance': None,
         'watchOHLCV': None,
     }
+    commonStrings = {}
     precisionMode = DECIMAL_PLACES
     paddingMode = NO_PADDING
     minFundingAddressLength = 1  # used in check_address

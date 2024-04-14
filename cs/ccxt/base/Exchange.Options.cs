@@ -64,6 +64,7 @@ public partial class Exchange
 
     public object number { get; set; } = typeof(float);
     public Dictionary<string, object> has { get; set; } = new dict();
+    public Dictionary<string, string> commonStrings { get; set; } = new Dictionary<string, object>;
     public ConcurrentDictionary<string, object> options { get; set; } = new ConcurrentDictionary<string, object>();
     public object markets { get; set; } = null;
     public object currencies { get; set; } = null;
