@@ -696,7 +696,7 @@ export default class bitfinex2 extends bitfinex2Rest {
         const localChecksum = this.crc32 (payload, true);
         const responseChecksum = this.safeInteger (message, 2);
         if (responseChecksum !== localChecksum) {
-            const error = new InvalidNonce (this.id + this.commonStrings['messageForInvalidNonceSequence']);
+            const error = new InvalidNonce (this.id + this.commonStrings['invalidOrderBookSequence']);
             client.reject (error, messageHash);
         }
     }

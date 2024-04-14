@@ -787,7 +787,7 @@ export default class kraken extends krakenRest {
                 const payload = payloadArray.join ('');
                 const localChecksum = this.crc32 (payload, false);
                 if (localChecksum !== c) {
-                    const error = new InvalidNonce (this.id + this.commonStrings['messageForInvalidNonceSequence']);
+                    const error = new InvalidNonce (this.id + this.commonStrings['invalidOrderBookSequence']);
                     client.reject (error, messageHash);
                     return;
                 }

@@ -432,7 +432,7 @@ export default class binance extends binanceRest {
                             const validate = this.safeBool2 (this.options, 'validateOrderBookSequences', 'checksum', true);
                             if (validate) {
                                 // todo: client.reject from handleOrderBookMessage properly
-                                throw new InvalidNonce (this.id + this.commonStrings['messageForInvalidNonceSequence']);
+                                throw new InvalidNonce (this.id + this.commonStrings['invalidOrderBookSequence']);
                             }
                         }
                     }
@@ -451,7 +451,7 @@ export default class binance extends binanceRest {
                             const validate = this.safeBool2 (this.options, 'validateOrderBookSequences', 'checksum', true);
                             if (validate) {
                                 // todo: client.reject from handleOrderBookMessage properly
-                                throw new InvalidNonce (this.id + this.commonStrings['messageForInvalidNonceSequence']);
+                                throw new InvalidNonce (this.id + this.commonStrings['invalidOrderBookSequence']);
                             }
                         }
                     }
