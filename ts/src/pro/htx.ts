@@ -577,7 +577,10 @@ export default class htx extends htxRest {
             orderbook['nonce'] = version;
         }
         if ((prevSeqNum !== undefined) && prevSeqNum > orderbook['nonce']) {
-            throw new InvalidNonce (this.id + ' watchOrderBook() received a mesage out of order');
+            const validate = this.safeBool2 (this.options, 'validateOrderBookSequences', 'checksum', true);
+            if (validate) {
+                throw new InvalidNonce (this.id + this.commonStrings['invalidOrderBookSequence']);
+            }
         }
         const spotConditon = market['spot'] && (prevSeqNum === orderbook['nonce']);
         const nonSpotCondition = market['contract'] && (version - 1 === orderbook['nonce']);
