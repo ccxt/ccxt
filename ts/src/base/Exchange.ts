@@ -287,7 +287,6 @@ export default class Exchange {
 
     markets: Dictionary<any> = undefined
     has: Dictionary<boolean | 'emulated'>
-    commonStrings: Dictionary<string> = {};
     status = undefined
 
     requiredCredentials: {
@@ -2484,7 +2483,15 @@ export default class Exchange {
 
     afterConstruct () {
         this.createNetworksByIdObject ();
-        this.commonStrings['messageForInvalidNonceSequence'] = 'incoming orderbook data checksum/nonce validation failed. You should either implement your reconnection logic or for temporary cases, set .options["validateOrderBookSequences"] = false';
+    }
+
+    invalidOrderBookSequenceMessage (symbol:Str, storedNonceOrChecksum, incomingNonceOrChecksum) {
+        let msg = this.id + ' incoming orderbook data checksum/nonce validation failed. You should either implement your reconnection logic or for temporary cases, set .options["validateOrderBookSequences"] = false';
+        const safeSymbol = (symbol === undefined) ? '' : symbol;
+        const storedString = (storedNonceOrChecksum === undefined) ? '' : storedNonceOrChecksum.toString ();
+        const incomingString = (incomingNonceOrChecksum === undefined) ? '' : incomingNonceOrChecksum.toString ();
+        msg += ' symbol:' + safeSymbol + ', stored: ' + storedString + ', incoming: ' + incomingString;
+        return msg;
     }
 
     createNetworksByIdObject () {

@@ -225,7 +225,7 @@ export default class cryptocom extends cryptocomRest {
                 const previousNonce = this.safeInteger (data, 'pu');
                 const currentNonce = orderbook['nonce'];
                 if (currentNonce !== previousNonce) {
-                    throw new InvalidNonce (this.id + this.commonStrings['invalidOrderBookSequence']);
+                    throw new InvalidNonce (this.invalidOrderBookSequenceMessage (symbol, previousNonce, currentNonce));
                 }
             }
         }

@@ -572,7 +572,7 @@ export default class bitget extends bitgetRest {
                 if (calculatedChecksum !== responseChecksum) {
                     const validate = this.safeBool2 (this.options, 'validateOrderBookSequences', 'checksum', true);
                     if (validate) {
-                        const error = new InvalidNonce (this.id + this.commonStrings['invalidOrderBookSequence']);
+                        const error = new InvalidNonce (this.invalidOrderBookSequenceMessage (symbol, calculatedChecksum, responseChecksum));
                         client.reject (error, messageHash);
                     }
                 }

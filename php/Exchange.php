@@ -324,7 +324,6 @@ class Exchange {
         'transfer' => null,
         'withdraw' => null,
     );
-    public $commonStrings = [];
     public $precisionMode = DECIMAL_PLACES;
     public $paddingMode = NO_PADDING;
     public $number = 'floatval';

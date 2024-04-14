@@ -224,7 +224,7 @@ export default class independentreserve extends independentreserveRest {
             const calculatedChecksum = this.crc32 (payload, true);
             const responseChecksum = this.safeInteger (orderBook, 'Crc32');
             if (calculatedChecksum !== responseChecksum) {
-                const error = new InvalidNonce (this.id + this.commonStrings['invalidOrderBookSequence']);
+                const error = new InvalidNonce (this.invalidOrderBookSequenceMessage (symbol, calculatedChecksum, responseChecksum));
                 client.reject (error, messageHash);
             }
         }

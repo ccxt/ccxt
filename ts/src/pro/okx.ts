@@ -610,7 +610,7 @@ export default class okx extends okxRest {
             const responseChecksum = this.safeInteger (message, 'checksum');
             const localChecksum = this.crc32 (payload, true);
             if (responseChecksum !== localChecksum) {
-                const error = new InvalidNonce (this.id + this.commonStrings['invalidOrderBookSequence']);
+                const error = new InvalidNonce (this.invalidOrderBookSequenceMessage (orderbook['symbol'], localChecksum, responseChecksum));
                 client.reject (error, messageHash);
             }
         }
