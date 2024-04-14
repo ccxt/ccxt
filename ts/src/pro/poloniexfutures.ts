@@ -55,6 +55,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
                 'streamLimit': 5, // called tunnels by poloniexfutures docs
                 'streamBySubscriptionsHash': {},
                 'streamIndex': -1,
+                'checksum': true,
             },
             'streaming': {
                 'keepAlive': 30000,
@@ -877,10 +878,10 @@ export default class poloniexfutures extends poloniexfuturesRest {
         const sequence = this.safeInteger (delta, 'sequence');
         const nonce = this.safeInteger (orderbook, 'nonce');
         if (nonce !== sequence - 1) {
-            const checksum = this.safeBool (this.options, 'checksum', true);
-            if (checksum) {
+            const validate = this.safeBool2 (this.options, 'checkOrderBookNonce', 'checksum', true);
+            if (validate) {
                 // todo: client.reject from handleOrderBookMessage properly
-                throw new InvalidNonce (this.id + ' watchOrderBook received an out-of-order nonce');
+                throw new InvalidNonce (this.id + this.commonStrings['messageForInvalidNonceSequence']);
             }
         }
         const change = this.safeString (delta, 'change');
