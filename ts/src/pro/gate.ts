@@ -222,10 +222,13 @@ export default class gate extends gateRest {
         } else if (nonce >= deltaStart - 1) {
             this.handleDelta (storedOrderBook, delta);
         } else {
-            const error = new InvalidNonce (this.id + ' orderbook update has a nonce bigger than u');
-            delete client.subscriptions[messageHash];
-            delete this.orderbooks[symbol];
-            client.reject (error, messageHash);
+            const validate = this.safeBool2 (this.options, 'validateOrderBookSequences', 'checksum', true);
+            if (validate) {
+                const error = new InvalidNonce (this.id + this.commonStrings['messageForInvalidNonceSequence']);
+                delete client.subscriptions[messageHash];
+                delete this.orderbooks[symbol];
+                client.reject (error, messageHash);
+            }
         }
         client.resolve (storedOrderBook, messageHash);
     }
