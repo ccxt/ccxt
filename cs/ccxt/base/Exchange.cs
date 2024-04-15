@@ -135,6 +135,7 @@ public partial class Exchange
         }
     }
 
+    private static object httpDefaultHeaderLock = new object();
     public async virtual Task<object> fetch(object url2, object method2 = null, object headers2 = null, object body2 = null)
     {
 
@@ -157,21 +158,27 @@ public partial class Exchange
         // add headers
         httpClient.DefaultRequestHeaders.Accept.Clear();
         httpClient.DefaultRequestHeaders.Clear();
-        var headersList = new List<string>(headers.Keys);
-
+        var headersCopy = headers.ToDictionary(entry => entry.Key, entry => entry.Value);
         var contentType = "";
-        foreach (string key in headersList)
+        foreach (var kvp in headersCopy)
         {
-
+            string key = kvp.Key;
+            var value = kvp.Value;
             if (key.ToLower() != "content-type")
             {
-                httpClient.DefaultRequestHeaders.Add(key, headers[key].ToString());
+                string headerValue = value.ToString();
+                lock (httpDefaultHeaderLock)  {
+                    if (!httpClient.DefaultRequestHeaders.Contains(key))
+                    {
+                        httpClient.DefaultRequestHeaders.Add(key, headerValue);
+                    }
+                }
             }
             else
             {
                 // can't set content type header here, because it's part of the content
                 // check: https://nzpcmad.blogspot.com/2017/07/aspnet-misused-header-name-make-sure.html
-                contentType = headers[key].ToString();
+                contentType = value.ToString();
 
             }
         }
