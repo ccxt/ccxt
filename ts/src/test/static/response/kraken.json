@@ -3,6 +3,65 @@
     "skipKeys": [],
     "options": {},
     "methods": {
+        "createOrder": [
+            {
+                "description": "create order",
+                "method": "createOrder",
+                "input": [
+                  "LTC/USDT",
+                  "market",
+                  "buy",
+                  0.1
+                ],
+                "httpResponse": {
+                  "error": [],
+                  "result": {
+                    "txid": [
+                      "OL7LNO-R4SAD-6UINEU"
+                    ],
+                    "descr": {
+                      "order": "buy 0.10000000 LTCUSDT @ market"
+                    }
+                  }
+                },
+                "parsedResponse": {
+                  "id": "OL7LNO-R4SAD-6UINEU",
+                  "clientOrderId": null,
+                  "info": {
+                    "txid": [
+                      "OL7LNO-R4SAD-6UINEU"
+                    ],
+                    "descr": {
+                      "order": "buy 0.10000000 LTCUSDT @ market"
+                    }
+                  },
+                  "timestamp": null,
+                  "datetime": null,
+                  "lastTradeTimestamp": null,
+                  "status": null,
+                  "symbol": "LTC/USDT",
+                  "type": "market",
+                  "timeInForce": "IOC",
+                  "postOnly": false,
+                  "side": "buy",
+                  "price": null,
+                  "stopPrice": null,
+                  "triggerPrice": null,
+                  "takeProfitPrice": null,
+                  "stopLossPrice": null,
+                  "cost": null,
+                  "amount": 0.1,
+                  "filled": null,
+                  "average": null,
+                  "remaining": null,
+                  "fee": null,
+                  "trades": [],
+                  "fees": [],
+                  "lastUpdateTimestamp": null,
+                  "reduceOnly": null
+                }
+            }
+        ],
         "fetchOrder": [
             {
                 "description": "fetch spot limit order",

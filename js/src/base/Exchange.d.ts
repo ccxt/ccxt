@@ -860,7 +860,7 @@ export default class Exchange {
     handleOptionAndParams(params: object, methodName: string, optionName: string, defaultValue?: any): any[];
     handleOptionAndParams2(params: object, methodName: string, methodName2: string, optionName: string, defaultValue?: any): any[];
     handleOption(methodName: string, optionName: string, defaultValue?: any): any;
-    handleMarketTypeAndParams(methodName: string, market?: Market, params?: {}): any;
+    handleMarketTypeAndParams(methodName: string, market?: Market, params?: {}, defaultValue?: any): any;
     handleSubTypeAndParams(methodName: string, market?: any, params?: {}, defaultValue?: any): any[];
     handleMarginModeAndParams(methodName: string, params?: {}, defaultValue?: any): any[];
     throwExactlyMatchedException(exact: any, string: any, message: any): void;

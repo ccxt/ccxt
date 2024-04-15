@@ -5796,7 +5796,7 @@ class binance extends binance$1 {
                 response = await this.dapiPrivatePostOrder(request);
             }
         }
-        else if (marketType === 'margin' || marginMode !== undefined) {
+        else if (marketType === 'margin' || marginMode !== undefined || isPortfolioMargin) {
             if (isPortfolioMargin) {
                 response = await this.papiPostMarginOrder(request);
             }
@@ -5898,15 +5898,6 @@ class binance extends binance$1 {
                 uppercaseType = market['contract'] ? 'TAKE_PROFIT' : 'TAKE_PROFIT_LIMIT';
             }
         }
-        if ((marketType === 'spot') || (marketType === 'margin')) {
-            request['newOrderRespType'] = this.safeString(this.options['newOrderRespType'], type, 'RESULT'); // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
-        }
-        else {
-            // swap, futures and options
-            if (!isPortfolioMargin) {
-                request['newOrderRespType'] = 'RESULT'; // "ACK", "RESULT", default "ACK"
-            }
-        }
         if (market['option']) {
             if (type === 'market') {
                 throw new errors.InvalidOrder(this.id + ' ' + type + ' is not a valid order type for the ' + symbol + ' market');
@@ -5945,6 +5936,14 @@ class binance extends binance$1 {
                     request['isIsolated'] = true;
                 }
             }
+        }
+        // handle newOrderRespType response type
+        if (((marketType === 'spot') || (marketType === 'margin')) && !isPortfolioMargin) {
+            request['newOrderRespType'] = this.safeString(this.options['newOrderRespType'], type, 'FULL'); // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
+        }
+        else {
+            // swap, futures and options
+            request['newOrderRespType'] = 'RESULT'; // "ACK", "RESULT", default "ACK"
         }
         const typeRequest = isPortfolioMarginConditional ? 'strategyType' : 'type';
         request[typeRequest] = uppercaseType;
@@ -6599,7 +6598,7 @@ class binance extends binance$1 {
                 response = await this.dapiPrivateGetOpenOrders(this.extend(request, params));
             }
         }
-        else if (type === 'margin' || marginMode !== undefined) {
+        else if (type === 'margin' || marginMode !== undefined || isPortfolioMargin) {
             if (isPortfolioMargin) {
                 response = await this.papiGetMarginOpenOrders(this.extend(request, params));
             }
@@ -7100,7 +7099,7 @@ class binance extends binance$1 {
                 response = await this.dapiPrivateDeleteAllOpenOrders(this.extend(request, params));
             }
         }
-        else if ((type === 'margin') || (marginMode !== undefined)) {
+        else if ((type === 'margin') || (marginMode !== undefined) || isPortfolioMargin) {
             if (isPortfolioMargin) {
                 response = await this.papiDeleteMarginAllOpenOrders(this.extend(request, params));
             }

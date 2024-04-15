@@ -5549,7 +5549,7 @@ class binance(Exchange, ImplicitAPI):
                     response = await self.papiPostCmOrder(request)
             else:
                 response = await self.dapiPrivatePostOrder(request)
-        elif marketType == 'margin' or marginMode is not None:
+        elif marketType == 'margin' or marginMode is not None or isPortfolioMargin:
             if isPortfolioMargin:
                 response = await self.papiPostMarginOrder(request)
             else:
@@ -5631,12 +5631,6 @@ class binance(Exchange, ImplicitAPI):
                 uppercaseType = 'TAKE_PROFIT_MARKET' if market['contract'] else 'TAKE_PROFIT'
             elif isLimitOrder:
                 uppercaseType = 'TAKE_PROFIT' if market['contract'] else 'TAKE_PROFIT_LIMIT'
-        if (marketType == 'spot') or (marketType == 'margin'):
-            request['newOrderRespType'] = self.safe_string(self.options['newOrderRespType'], type, 'RESULT')  # 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
-        else:
-            # swap, futures and options
-            if not isPortfolioMargin:
-                request['newOrderRespType'] = 'RESULT'  # "ACK", "RESULT", default "ACK"
         if market['option']:
             if type == 'market':
                 raise InvalidOrder(self.id + ' ' + type + ' is not a valid order type for the ' + symbol + ' market')
@@ -5664,6 +5658,12 @@ class binance(Exchange, ImplicitAPI):
                     uppercaseType = 'LIMIT_MAKER'
                 if marginMode == 'isolated':
                     request['isIsolated'] = True
+        # handle newOrderRespType response type
+        if ((marketType == 'spot') or (marketType == 'margin')) and not isPortfolioMargin:
+            request['newOrderRespType'] = self.safe_string(self.options['newOrderRespType'], type, 'FULL')  # 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
+        else:
+            # swap, futures and options
+            request['newOrderRespType'] = 'RESULT'  # "ACK", "RESULT", default "ACK"
         typeRequest = 'strategyType' if isPortfolioMarginConditional else 'type'
         request[typeRequest] = uppercaseType
         # additional required fields depending on the order type
@@ -6217,7 +6217,7 @@ class binance(Exchange, ImplicitAPI):
                     response = await self.papiGetCmOpenOrders(self.extend(request, params))
             else:
                 response = await self.dapiPrivateGetOpenOrders(self.extend(request, params))
-        elif type == 'margin' or marginMode is not None:
+        elif type == 'margin' or marginMode is not None or isPortfolioMargin:
             if isPortfolioMargin:
                 response = await self.papiGetMarginOpenOrders(self.extend(request, params))
             else:
@@ -6646,7 +6646,7 @@ class binance(Exchange, ImplicitAPI):
                     response = await self.papiDeleteCmAllOpenOrders(self.extend(request, params))
             else:
                 response = await self.dapiPrivateDeleteAllOpenOrders(self.extend(request, params))
-        elif (type == 'margin') or (marginMode is not None):
+        elif (type == 'margin') or (marginMode is not None) or isPortfolioMargin:
             if isPortfolioMargin:
                 response = await self.papiDeleteMarginAllOpenOrders(self.extend(request, params))
             else:

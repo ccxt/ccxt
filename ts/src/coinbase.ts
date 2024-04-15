@@ -1473,6 +1473,7 @@ export default class coinbase extends Exchange {
         const contractExpiryType = this.safeString (futureProductDetails, 'contract_expiry_type');
         const contractSize = this.safeNumber (futureProductDetails, 'contract_size');
         const contractExpire = this.safeString (futureProductDetails, 'contract_expiry');
+        const expireTimestamp = this.parse8601 (contractExpire);
         const isSwap = (contractExpiryType === 'PERPETUAL');
         const baseId = this.safeString (futureProductDetails, 'contract_root_unit');
         const quoteId = this.safeString (market, 'quote_currency_id');
@@ -1486,7 +1487,7 @@ export default class coinbase extends Exchange {
             symbol = symbol + ':' + quote;
         } else {
             type = 'future';
-            symbol = symbol + ':' + quote + '-' + this.yymmdd (contractExpire);
+            symbol = symbol + ':' + quote + '-' + this.yymmdd (expireTimestamp);
         }
         const takerFeeRate = this.safeNumber (feeTier, 'taker_fee_rate');
         const makerFeeRate = this.safeNumber (feeTier, 'maker_fee_rate');
@@ -1514,7 +1515,7 @@ export default class coinbase extends Exchange {
             'taker': taker,
             'maker': maker,
             'contractSize': contractSize,
-            'expiry': this.parse8601 (contractExpire),
+            'expiry': expireTimestamp,
             'expiryDatetime': contractExpire,
             'strike': undefined,
             'optionType': undefined,

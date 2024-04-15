@@ -39,7 +39,7 @@ use BN\BN;
 use Sop\ASN1\Type\UnspecifiedType;
 use Exception;
 
-$version = '4.2.96';
+$version = '4.2.98';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -58,7 +58,7 @@ const PAD_WITH_ZERO = 6;
 
 class Exchange {
 
-    const VERSION = '4.2.96';
+    const VERSION = '4.2.98';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -4929,11 +4929,24 @@ class Exchange {
         return $result;
     }
 
-    public function handle_market_type_and_params(string $methodName, ?array $market = null, $params = array ()) {
+    public function handle_market_type_and_params(string $methodName, ?array $market = null, $params = array (), $defaultValue = null) {
+        /**
+         * @ignore
+         * @param $methodName the method calling handleMarketTypeAndParams
+         * @param {Market} $market
+         * @param {array} $params
+         * @param {string} [$params->type] $type assigned by user
+         * @param {string} [$params->defaultType] same.type
+         * @param {string} [$defaultValue] assigned programatically in the method calling handleMarketTypeAndParams
+         * @return array([string, object]) the $market $type and $params with $type and $defaultType omitted
+         */
         $defaultType = $this->safe_string_2($this->options, 'defaultType', 'type', 'spot');
+        if ($defaultValue === null) {  // $defaultValue takes precendence over exchange wide $defaultType
+            $defaultValue = $defaultType;
+        }
         $methodOptions = $this->safe_dict($this->options, $methodName);
-        $methodType = $defaultType;
-        if ($methodOptions !== null) {
+        $methodType = $defaultValue;
+        if ($methodOptions !== null) {  // user defined $methodType takes precedence over $defaultValue
             if (gettype($methodOptions) === 'string') {
                 $methodType = $methodOptions;
             } else {
