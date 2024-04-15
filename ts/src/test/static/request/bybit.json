@@ -1007,7 +1007,7 @@
             {
                 "description": "Fill this with a description of the method call",
                 "method": "fetchPositionsHistory",
-                "url": "https://api-testnet.bybit.com/v5/position/closed-pnl?category=linear&symbol=XRPUSDT",
+                "url": "https://api-testnet.bybit.com/v5/position/closed-pnl?category=linear&symbol=XRPUSDT&startTime=1709589714736&limit=1&endTime=1709590068602",
                 "input": [
                   [
                     "XRP/USDT:USDT"
@@ -1018,7 +1018,7 @@
                     "until": 1709590068602
                   }
                 ]
-            }
+              }
         ]
     },
     "disabled": []

@@ -103,8 +103,8 @@ export default class bybit extends Exchange {
                 'fetchOrderTrades': true,
                 'fetchPosition': true,
                 'fetchPositionHistory': 'emulated',
-                'fetchPositionsHistory': true,
                 'fetchPositions': true,
+                'fetchPositionsHistory': true,
                 'fetchPremiumIndexOHLCV': true,
                 'fetchSettlementHistory': true,
                 'fetchTicker': true,
@@ -8458,13 +8458,13 @@ export default class bybit extends Exchange {
         if ((symbols !== undefined) && (symbolsLength === 1)) {
             request['symbol'] = market['id'];
         }
-        if (since === undefined) {
+        if (since !== undefined) {
             request['startTime'] = since;
         }
-        if (limit === undefined) {
+        if (limit !== undefined) {
             request['limit'] = limit;
         }
-        if (until === undefined) {
+        if (until !== undefined) {
             request['endTime'] = until;
         }
         const response = await this.privateGetV5PositionClosedPnl (this.extend (request, params));
