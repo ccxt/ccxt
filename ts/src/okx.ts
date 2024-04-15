@@ -7931,16 +7931,16 @@ export default class okx extends Exchange {
          * @param {int} [limit] the maximum amount of records to fetch, default=100, max=100
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @param {string} [params.marginMode] "cross" or "isolated"
-         * @param {int} [params.until] timestamp in ms of the latest position to fetch
          *
          * EXCHANGE SPECIFIC PARAMETERS
          * @param {string} [params.instType] margin, swap, futures or option
          * @param {string} [params.type] the type of latest close position 1: close position partially, 2：close all, 3：liquidation, 4：partial liquidation; 5：adl, is it is the latest type if there are several types for the same position
          * @param {string} [params.posId] position id, there is attribute expiration, the posid will be expired if it is more than 30 days after the last full close position, then position will use new posid
+         * @param {string} [params.before] timestamp in ms of the earliest position to fetch based on the last update time of the position
+         * @param {string} [params.after] timestamp in ms of the latest position to fetch based on the last update time of the position
          * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
          */
         await this.loadMarkets ();
-        const until = this.safeInteger (params, 'until');
         const marginMode = this.safeString (params, 'marginMode');
         const instType = this.safeStringUpper (params, 'instType');
         params = this.omit (params, [ 'until', 'marginMode', 'instType' ]);
@@ -7956,12 +7956,6 @@ export default class okx extends Exchange {
                 const market = this.market (symbols[0]);
                 request['instId'] = market['id'];
             }
-        }
-        if (since !== undefined) {
-            request['before'] = since.toString ();
-        }
-        if (until !== undefined) {
-            request['after'] = until.toString ();
         }
         if (marginMode !== undefined) {
             request['mgnMode'] = marginMode;
