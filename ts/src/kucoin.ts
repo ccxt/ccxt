@@ -1360,7 +1360,7 @@ export default class kucoin extends Exchange {
             request['chain'] = this.networkCodeToId (networkCode).toLowerCase ();
         }
         const response = await this.privateGetWithdrawalsQuotas (this.extend (request, params));
-        const data = this.safeValue (response, 'data');
+        const data = this.safeList (response, 'data', []);
         const withdrawFees = {};
         withdrawFees[code] = this.safeNumber (data, 'withdrawMinFee');
         return {
