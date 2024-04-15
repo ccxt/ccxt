@@ -996,6 +996,29 @@
                   "BTC/USDC:USDC-241227-55000-P"
                 ]
             }
+        ],
+        "fetchPositionsHistory": [
+            {
+                "description": "Fill this with a description of the method call",
+                "method": "fetchPositionsHistory",
+                "url": "https://api-testnet.bybit.com/v5/position/closed-pnl?category=linear",
+                "input": []
+            },
+            {
+                "description": "Fill this with a description of the method call",
+                "method": "fetchPositionsHistory",
+                "url": "https://api-testnet.bybit.com/v5/position/closed-pnl?category=linear&symbol=XRPUSDT",
+                "input": [
+                  [
+                    "XRP/USDT:USDT"
+                  ],
+                  1709589714736,
+                  1,
+                  {
+                    "until": 1709590068602
+                  }
+                ]
+            }
         ]
     },
     "disabled": []
