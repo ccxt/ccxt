@@ -40,7 +40,7 @@ public class Throttler
             var first = this.queue.Peek();
             var task = first.Item1;
             var cost = first.Item2;
-            var tokensAsString = Convert.ToString(config["tokens"], CultureInfo.InvariantCulture);
+            var tokensAsString = Convert.ToString(this.config["tokens"], CultureInfo.InvariantCulture);
             var floatTokens = double.Parse(tokensAsString, CultureInfo.InvariantCulture);
             if (floatTokens >= 0)
             {
