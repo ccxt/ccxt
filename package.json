@@ -94,6 +94,7 @@
     "test-js-cache": "node js/src/pro/test/base/test.Cache.js",
     "test-js-orderbook": "node js/src/pro/test/base/test.OrderBook.js",
     "test-python-future": "python python/ccxt/pro/test/base/test_future.py",
+    "test-python-close": "python python/ccxt/pro/test/base/test_close.py",
     "test-python-cache": "python python/ccxt/pro/test/base/test_cache.py",
     "test-python-orderbook": "python python/ccxt/pro/test/base/test_order_book.py",
     "test-cs-cache": "dotnet run --project cs/tests/tests.csproj --cache",
