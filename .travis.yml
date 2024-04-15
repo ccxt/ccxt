@@ -1,6 +1,7 @@
 jobs:
   include:
     - stage: final_stage
+      env: RUNSTEP=finalstage
       script:
         - ./build.sh 2>&1
         - git checkout master composer.json
@@ -37,8 +38,9 @@ jobs:
       after_deploy:
       - cat ~/.npm/_logs/*-debug.log
 env:
-  - RUNSTEP=PY_JS_PHP
-  - RUNSTEP=C_SHARP
+  jobs:
+    - RUNSTEP=PY_JS_PHP
+    - RUNSTEP=CSHARP
 
   global:
   # PYPI_TOKEN

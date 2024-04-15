@@ -13,6 +13,8 @@ fi
 
 [[ -n "$TRAVIS_BUILD_ID" ]] && IS_TRAVIS="TRUE" || IS_TRAVIS="FALSE"
 [[ "$RUNSTEP" == "PY_JS_PHP" ]] && IS_PYJSPHP="TRUE" || IS_PYJSPHP="FALSE"
+[[ "$RUNSTEP" == "CSHARP" ]] && IS_CSHARP="TRUE" || IS_CSHARP="FALSE"
+[[ "$RUNSTEP" == "finalstage" ]] && IS_DEPLOY_STAGE="TRUE" || IS_DEPLOY_STAGE="FALSE"
 
 echo "RUNSTEP: $RUNSTEP"
 msgPrefix="⬤ BUILD.SH : "
@@ -38,7 +40,8 @@ function run_tests {
       # shellcheck disable=SC2086
       if [ "$IS_PYJSPHP" == "TRUE" ]; then
         npm run test-pyjsphp -- $rest_args &
-      else
+      fi
+      if [ "$IS_CSHARP" == "TRUE" ]; then
         npm run test-cs -- $rest_args &
       fi
       local rest_pid=$!
@@ -49,7 +52,8 @@ function run_tests {
       # shellcheck disable=SC2086
       if [ "$IS_PYJSPHP" == "TRUE" ]; then
         npm run test-pyjsphp-ws $ws_args &
-      else
+      fi
+      if [ "$IS_CSHARP" == "TRUE" ]; then
         npm run test-cs-ws $ws_args &
       fi
       local ws_pid=$!
@@ -68,7 +72,8 @@ function run_tests {
 build_and_test_all () {
   if [ "$IS_PYJSPHP" == "TRUE" ]; then
     npm run force-build-pyjsphp
-  else
+  fi
+  if [ "$IS_CSHARP" == "TRUE" ]; then
     npm run force-build-cs
   fi
   if [ "$IS_TRAVIS" = "TRUE" ]; then
@@ -94,10 +99,14 @@ build_and_test_all () {
       #   cd  ..
       # fi
     fi
+    if [ "$IS_DEPLOY_STAGE" == "TRUE" ]; then
+      return
+    fi
     if [ "$IS_PYJSPHP" == "TRUE" ]; then
       npm run test-base-pyjsphp
       npm run test-base-ws-pyjsphp
-    else
+    fi
+    if [ "$IS_CSHARP" == "TRUE" ]; then
       npm run test-base-cs
       npm run test-base-ws-cs
     fi
@@ -177,7 +186,8 @@ for exchange in "${REST_EXCHANGES[@]}"; do
     node build/transpile.js $exchange --force --child
     PYTHON_FILES+=("python/ccxt/$exchange.py")
     PYTHON_FILES+=("python/ccxt/async_support/$exchange.py")
-  else
+  fi
+  if [ "$IS_CSHARP" == "TRUE" ]; then
     node --loader ts-node/esm build/csharpTranspiler.ts $exchange
   fi
 done
@@ -187,7 +197,8 @@ for exchange in "${WS_EXCHANGES[@]}"; do
     npm run eslint "ts/src/pro/$exchange.ts"
     node build/transpileWS.js $exchange --force --child
     PYTHON_FILES+=("python/ccxt/pro/$exchange.py")
-  else
+  fi
+  if [ "$IS_CSHARP" == "TRUE" ]; then
     node --loader ts-node/esm build/csharpTranspiler.ts $exchange --ws
   fi
 done
@@ -213,10 +224,11 @@ if [ ${#REST_EXCHANGES[@]} -eq 0 ] && [ ${#WS_EXCHANGES[@]} -eq 0 ]; then
   exit
 fi
 
-if [ "$IS_PYJSPHP" == "TRUE" ]; then
+if [ "$IS_CSHARP" == "TRUE" ]; then
   # build dotnet project
   npm run buildCS && npm run id-tests-cs
-else
+fi
+if [ "$IS_PYJSPHP" == "TRUE" ]; then
   # run base tests (base js,py,php, brokerId )
   # npm run test-base
   npm run test-js-base && npm run test-python-base && npm run test-php-base && npm run id-tests-pyjsphp
@@ -234,7 +246,8 @@ for exchange in "${REST_EXCHANGES[@]}"; do
     npm run request-js -- $exchange
     npm run request-py -- $exchange
     php php/test/test_async.php $exchange --requestTests
-  else
+  fi
+  if [ "$IS_CSHARP" == "TRUE" ]; then
     npm run request-cs -- $exchange
   fi
 done
@@ -245,7 +258,8 @@ for exchange in "${REST_EXCHANGES[@]}"; do
     npm run response-js -- $exchange
     npm run response-py -- $exchange
     php php/test/test_async.php $exchange --responseTests
-  else
+  fi
+  if [ "$IS_CSHARP" == "TRUE" ]; then
     npm run response-cs -- $exchange
   fi
 done
