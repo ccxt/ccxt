@@ -17,7 +17,9 @@ public partial class testMainClass : BaseTest
             { "datetime", "2017-09-01T00:00:00" },
             { "nonce", 134234234 },
         };
-        object emptyAllowedFor = new List<object>() {"symbol", "nonce", "datetime", "timestamp"}; // todo: make timestamp required
+        object emptyAllowedFor = new List<object>() {"nonce"};
+        // turn into copy: https://discord.com/channels/690203284119617602/921046068555313202/1220626834887282728
+        orderbook = exchange.deepExtend(new Dictionary<string, object>() {}, orderbook);
         testSharedMethods.assertStructure(exchange, skippedProperties, method, orderbook, format, emptyAllowedFor);
         // testSharedMethods.assertTimestampAndDatetime (exchange, skippedProperties, method, orderbook);
         testSharedMethods.assertSymbol(exchange, skippedProperties, method, orderbook, "symbol", symbol);
@@ -33,30 +35,42 @@ public partial class testMainClass : BaseTest
         for (object i = 0; isLessThan(i, bidsLength); postFixIncrement(ref i))
         {
             object currentBidString = exchange.safeString(getValue(bids, i), 0);
-            object nextI = add(i, 1);
-            if (isTrue(isGreaterThan(bidsLength, nextI)))
+            if (!isTrue((inOp(skippedProperties, "compareToNextItem"))))
             {
-                object nextBidString = exchange.safeString(getValue(bids, nextI), 0);
-                object hasCorrectOrder = Precise.stringGt(currentBidString, nextBidString);
-                assert(hasCorrectOrder, add(add(add(add("current bid should be > than the next one: ", currentBidString), ">"), nextBidString), logText));
+                object nextI = add(i, 1);
+                if (isTrue(isGreaterThan(bidsLength, nextI)))
+                {
+                    object nextBidString = exchange.safeString(getValue(bids, nextI), 0);
+                    assert(Precise.stringGt(currentBidString, nextBidString), add(add(add(add("current bid should be > than the next one: ", currentBidString), ">"), nextBidString), logText));
+                }
             }
-            testSharedMethods.assertGreater(exchange, skippedProperties, method, getValue(bids, i), 0, "0");
-            testSharedMethods.assertGreater(exchange, skippedProperties, method, getValue(bids, i), 1, "0");
+            if (!isTrue((inOp(skippedProperties, "compareToZero"))))
+            {
+                // compare price & volume to zero
+                testSharedMethods.assertGreater(exchange, skippedProperties, method, getValue(bids, i), 0, "0");
+                testSharedMethods.assertGreater(exchange, skippedProperties, method, getValue(bids, i), 1, "0");
+            }
         }
         object asks = getValue(orderbook, "asks");
         object asksLength = getArrayLength(asks);
         for (object i = 0; isLessThan(i, asksLength); postFixIncrement(ref i))
         {
             object currentAskString = exchange.safeString(getValue(asks, i), 0);
-            object nextI = add(i, 1);
-            if (isTrue(isGreaterThan(asksLength, nextI)))
+            if (!isTrue((inOp(skippedProperties, "compareToNextItem"))))
             {
-                object nextAskString = exchange.safeString(getValue(asks, nextI), 0);
-                object hasCorrectOrder = Precise.stringLt(currentAskString, nextAskString);
-                assert(hasCorrectOrder, add(add(add(add("current ask should be < than the next one: ", currentAskString), "<"), nextAskString), logText));
+                object nextI = add(i, 1);
+                if (isTrue(isGreaterThan(asksLength, nextI)))
+                {
+                    object nextAskString = exchange.safeString(getValue(asks, nextI), 0);
+                    assert(Precise.stringLt(currentAskString, nextAskString), add(add(add(add("current ask should be < than the next one: ", currentAskString), "<"), nextAskString), logText));
+                }
             }
-            testSharedMethods.assertGreater(exchange, skippedProperties, method, getValue(asks, i), 0, "0");
-            testSharedMethods.assertGreater(exchange, skippedProperties, method, getValue(asks, i), 1, "0");
+            if (!isTrue((inOp(skippedProperties, "compareToZero"))))
+            {
+                // compare price & volume to zero
+                testSharedMethods.assertGreater(exchange, skippedProperties, method, getValue(asks, i), 0, "0");
+                testSharedMethods.assertGreater(exchange, skippedProperties, method, getValue(asks, i), 1, "0");
+            }
         }
         if (!isTrue((inOp(skippedProperties, "spread"))))
         {

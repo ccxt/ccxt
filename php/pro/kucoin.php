@@ -191,22 +191,45 @@ class kucoin extends \ccxt\async\kucoin {
     public function watch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
+             * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/ticker
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
-             * @param {string[]} $symbols unified symbol of the market to fetch the ticker for
+             * @param {string[]} $symbols unified $symbol of the $market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->method] either '/market/snapshot' or '/market/ticker' default is '/market/ticker'
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
              */
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols);
             $messageHash = 'tickers';
+            $method = null;
+            list($method, $params) = $this->handle_option_and_params($params, 'watchTickers', 'method', '/market/ticker');
+            $messageHashes = array();
+            $topics = array();
             if ($symbols !== null) {
-                $messageHash = 'tickers::' . implode(',', $symbols);
+                for ($i = 0; $i < count($symbols); $i++) {
+                    $symbol = $symbols[$i];
+                    $messageHashes[] = 'ticker:' . $symbol;
+                    $market = $this->market($symbol);
+                    $topics[] = $method . ':' . $market['id'];
+                }
             }
             $url = Async\await($this->negotiate(false));
-            $topic = '/market/ticker:all';
-            $tickers = Async\await($this->subscribe($url, $messageHash, $topic, $params));
-            if ($this->newUpdates) {
-                return $tickers;
+            $tickers = null;
+            if ($symbols === null) {
+                $allTopic = $method . ':all';
+                $tickers = Async\await($this->subscribe($url, $messageHash, $allTopic, $params));
+                if ($this->newUpdates) {
+                    return $tickers;
+                }
+            } else {
+                $marketIds = $this->market_ids($symbols);
+                $symbolsTopic = $method . ':' . implode(',', $marketIds);
+                $tickers = Async\await($this->subscribe_multiple($url, $messageHashes, $symbolsTopic, $topics, $params));
+                if ($this->newUpdates) {
+                    $newDict = array();
+                    $newDict[$tickers['symbol']] = $tickers;
+                    return $newDict;
+                }
             }
             return $this->filter_by_array($this->tickers, 'symbol', $symbols);
         }) ();
@@ -291,19 +314,6 @@ class kucoin extends \ccxt\async\kucoin {
         $allTickers = array();
         $allTickers[$symbol] = $ticker;
         $client->resolve ($allTickers, 'tickers');
-        $messageHashes = $this->find_message_hashes($client, 'tickers::');
-        for ($i = 0; $i < count($messageHashes); $i++) {
-            $currentMessageHash = $messageHashes[$i];
-            $parts = explode('::', $currentMessageHash);
-            $symbolsString = $parts[1];
-            $symbols = explode(',', $symbolsString);
-            $tickers = $this->filter_by_array($this->tickers, 'symbol', $symbols);
-            $tickersSymbols = is_array($tickers) ? array_keys($tickers) : array();
-            $numTickers = count($tickersSymbols);
-            if ($numTickers > 0) {
-                $client->resolve ($tickers, $currentMessageHash);
-            }
-        }
     }
 
     public function watch_bids_asks(?array $symbols = null, $params = array ()): PromiseInterface {

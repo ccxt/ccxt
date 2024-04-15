@@ -899,6 +899,17 @@
                 "input": []
             }
         ],
+        "fetchTransfer": [
+            {
+                "description": "Fetch transfer",
+                "method": "fetchTransfer",
+                "url": "https://www.okx.com/api/v5/asset/transfer-state?transId=0",
+                "input": [
+                    0,
+                    "USDC"
+                ]
+            }
+        ],
         "addMargin": [
             {
                 "description": "Add margin to an inverse swap long position",
@@ -1391,6 +1402,14 @@
                   1709251200000,
                   3
                 ]
+            }
+        ],
+        "fetchConvertCurrencies": [
+            {
+                "description": "Fetch currencies that can be converted",
+                "method": "fetchConvertCurrencies",
+                "url": "https://www.okx.com/api/v5/asset/convert/currencies",
+                "input": []
             }
         ]
     }

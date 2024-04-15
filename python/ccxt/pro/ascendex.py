@@ -9,8 +9,8 @@ import hashlib
 from ccxt.base.types import Balances, Int, Order, OrderBook, Str, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
-from ccxt.base.errors import NetworkError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import NetworkError
 
 
 class ascendex(ccxt.async_support.ascendex):
