@@ -313,6 +313,14 @@
                 "input": [
                     "BTC/USDT"
                 ]
+            },
+            {
+                "description": "future trade",
+                "method": "fetchTrades",
+                "url": "https://api.coinbase.com/api/v3/brokerage/products/BIT-26APR24-CDE/ticker",
+                "input": [
+                  "BTC/USD:USD-240426"
+                ]
             }
         ],
         "fetchOHLCV": [
