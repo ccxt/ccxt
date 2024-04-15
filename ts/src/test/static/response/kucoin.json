@@ -1036,6 +1036,63 @@
                     "nonce": 11149534850
                 }
             }
+        ],
+        "fetchTransactionFee": [
+            {
+                "description": "Fetch transaction fee",
+                "method": "fetchTransactionFee",
+                "input": [
+                    "ETH"
+                ],
+                "httpResponse": {
+                    "code": "200000",
+                    "data": {
+                        "currency": "ETH",
+                        "limitBTCAmount": "15.71610959",
+                        "usedBTCAmount": "0.00000000",
+                        "quotaCurrency": "USDT",
+                        "limitQuotaCurrencyAmount": "999999.00000000",
+                        "usedQuotaCurrencyAmount": "0",
+                        "remainAmount": "330.24656372",
+                        "availableAmount": "0",
+                        "withdrawMinFee": "0.005",
+                        "innerWithdrawMinFee": "0",
+                        "withdrawMinSize": "0.01",
+                        "isWithdrawEnabled": true,
+                        "precision": 8,
+                        "chain": "ERC20",
+                        "reason": null,
+                        "lockedAmount": "0"
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "code": "200000",
+                        "data": {
+                        "currency": "ETH",
+                        "limitBTCAmount": "15.71610959",
+                        "usedBTCAmount": "0.00000000",
+                        "quotaCurrency": "USDT",
+                        "limitQuotaCurrencyAmount": "999999.00000000",
+                        "usedQuotaCurrencyAmount": "0",
+                        "remainAmount": "330.24656372",
+                        "availableAmount": "0",
+                        "withdrawMinFee": "0.005",
+                        "innerWithdrawMinFee": "0",
+                        "withdrawMinSize": "0.01",
+                        "isWithdrawEnabled": true,
+                        "precision": 8,
+                        "chain": "ERC20",
+                        "reason": null,
+                        "lockedAmount": "0"
+                    }
+                },
+                    "withdraw": {
+                        "ETH": 0.005
+                    },
+                    "deposit": {}
+                }
+            }
         ]
     }
 }
