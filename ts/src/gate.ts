@@ -7424,10 +7424,10 @@ export default class gate extends Exchange {
             request['limit'] = limit;
         }
         if (since !== undefined) {
-            request['from'] = since;
+            request['from'] = this.parseToInt (since / 1000);
         }
         if (until !== undefined) {
-            request['to'] = until;
+            request['to'] = this.parseToInt (until / 1000);
         }
         let response = undefined;
         if (marketType === 'swap') {
@@ -7457,8 +7457,7 @@ export default class gate extends Exchange {
         //        ...
         //    ]
         //
-        const positions = this.parsePositions (response, symbols, params);
-        return this.filterBySinceLimit (positions, since, limit);
+        return this.parsePositions (response, symbols, params);
     }
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
