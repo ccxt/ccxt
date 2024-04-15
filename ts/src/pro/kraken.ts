@@ -161,7 +161,7 @@ export default class kraken extends krakenRest {
         //        "txid": "OTI672-HJFAO-XOIPPK"
         //    }
         //
-        const order = this.parseOrder (message);
+        const order = this.parseWsOrder (message);
         const messageHash = this.safeValue (message, 'reqid');
         client.resolve (order, messageHash);
     }
