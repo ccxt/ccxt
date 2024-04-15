@@ -1207,12 +1207,17 @@ class coinbase extends Exchange {
                 $this->v3PrivateGetBrokerageProducts ($params),
                 $this->v3PrivateGetBrokerageTransactionSummary ($params),
             );
-            $unresolvedContractPromises = array(
-                $this->v3PrivateGetBrokerageProducts (array_merge($params, array( 'product_type' => 'FUTURE' ))),
-                $this->v3PrivateGetBrokerageProducts (array_merge($params, array( 'product_type' => 'FUTURE', 'contract_expiry_type' => 'PERPETUAL' ))),
-                $this->v3PrivateGetBrokerageTransactionSummary (array_merge($params, array( 'product_type' => 'FUTURE' ))),
-                $this->v3PrivateGetBrokerageTransactionSummary (array_merge($params, array( 'product_type' => 'FUTURE', 'contract_expiry_type' => 'PERPETUAL' ))),
-            );
+            $unresolvedContractPromises = array();
+            try {
+                $unresolvedContractPromises = array(
+                    $this->v3PrivateGetBrokerageProducts (array_merge($params, array( 'product_type' => 'FUTURE' ))),
+                    $this->v3PrivateGetBrokerageProducts (array_merge($params, array( 'product_type' => 'FUTURE', 'contract_expiry_type' => 'PERPETUAL' ))),
+                    $this->v3PrivateGetBrokerageTransactionSummary (array_merge($params, array( 'product_type' => 'FUTURE' ))),
+                    $this->v3PrivateGetBrokerageTransactionSummary (array_merge($params, array( 'product_type' => 'FUTURE', 'contract_expiry_type' => 'PERPETUAL' ))),
+                );
+            } catch (Exception $e) {
+                $unresolvedContractPromises = array(); // the sync version of ccxt won't have the promise.all line so the request is made here
+            }
             $promises = Async\await(Promise\all($spotUnresolvedPromises));
             $contractPromises = null;
             try {

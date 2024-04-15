@@ -3395,12 +3395,28 @@ public partial class Exchange
         return result;
     }
 
-    public virtual object handleMarketTypeAndParams(object methodName, object market = null, object parameters = null)
+    public virtual object handleMarketTypeAndParams(object methodName, object market = null, object parameters = null, object defaultValue = null)
     {
+        /**
+        * @ignore
+        * @method
+        * @name exchange#handleMarketTypeAndParams
+        * @param methodName the method calling handleMarketTypeAndParams
+        * @param {Market} market
+        * @param {object} params
+        * @param {string} [params.type] type assigned by user
+        * @param {string} [params.defaultType] same as params.type
+        * @param {string} [defaultValue] assigned programatically in the method calling handleMarketTypeAndParams
+        * @returns {[string, object]} the market type and params with type and defaultType omitted
+        */
         parameters ??= new Dictionary<string, object>();
         object defaultType = this.safeString2(this.options, "defaultType", "type", "spot");
+        if (isTrue(isEqual(defaultValue, null)))
+        {
+            defaultValue = defaultType;
+        }
         object methodOptions = this.safeDict(this.options, methodName);
-        object methodType = defaultType;
+        object methodType = defaultValue;
         if (isTrue(!isEqual(methodOptions, null)))
         {
             if (isTrue((methodOptions is string)))

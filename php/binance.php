@@ -5694,7 +5694,7 @@ class binance extends Exchange {
             } else {
                 $response = $this->dapiPrivatePostOrder ($request);
             }
-        } elseif ($marketType === 'margin' || $marginMode !== null) {
+        } elseif ($marketType === 'margin' || $marginMode !== null || $isPortfolioMargin) {
             if ($isPortfolioMargin) {
                 $response = $this->papiPostMarginOrder ($request);
             } else {
@@ -5787,14 +5787,6 @@ class binance extends Exchange {
                 $uppercaseType = $market['contract'] ? 'TAKE_PROFIT' : 'TAKE_PROFIT_LIMIT';
             }
         }
-        if (($marketType === 'spot') || ($marketType === 'margin')) {
-            $request['newOrderRespType'] = $this->safe_string($this->options['newOrderRespType'], $type, 'RESULT'); // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
-        } else {
-            // swap, futures and options
-            if (!$isPortfolioMargin) {
-                $request['newOrderRespType'] = 'RESULT';  // "ACK", "RESULT", default "ACK"
-            }
-        }
         if ($market['option']) {
             if ($type === 'market') {
                 throw new InvalidOrder($this->id . ' ' . $type . ' is not a valid order $type for the ' . $symbol . ' market');
@@ -5830,6 +5822,13 @@ class binance extends Exchange {
                     $request['isIsolated'] = true;
                 }
             }
+        }
+        // handle newOrderRespType response $type
+        if ((($marketType === 'spot') || ($marketType === 'margin')) && !$isPortfolioMargin) {
+            $request['newOrderRespType'] = $this->safe_string($this->options['newOrderRespType'], $type, 'FULL'); // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
+        } else {
+            // swap, futures and options
+            $request['newOrderRespType'] = 'RESULT';  // "ACK", "RESULT", default "ACK"
         }
         $typeRequest = $isPortfolioMarginConditional ? 'strategyType' : 'type';
         $request[$typeRequest] = $uppercaseType;
@@ -6438,7 +6437,7 @@ class binance extends Exchange {
             } else {
                 $response = $this->dapiPrivateGetOpenOrders (array_merge($request, $params));
             }
-        } elseif ($type === 'margin' || $marginMode !== null) {
+        } elseif ($type === 'margin' || $marginMode !== null || $isPortfolioMargin) {
             if ($isPortfolioMargin) {
                 $response = $this->papiGetMarginOpenOrders (array_merge($request, $params));
             } else {
@@ -6904,7 +6903,7 @@ class binance extends Exchange {
             } else {
                 $response = $this->dapiPrivateDeleteAllOpenOrders (array_merge($request, $params));
             }
-        } elseif (($type === 'margin') || ($marginMode !== null)) {
+        } elseif (($type === 'margin') || ($marginMode !== null) || $isPortfolioMargin) {
             if ($isPortfolioMargin) {
                 $response = $this->papiDeleteMarginAllOpenOrders (array_merge($request, $params));
             } else {
