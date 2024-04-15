@@ -1575,9 +1575,10 @@ export default class kraken extends Exchange {
         //  }
         //
         const description = this.safeDict (order, 'descr', {});
+        const orderDescriptionObj = this.safeDict (order, 'descr'); // can be null
         let orderDescription = undefined;
-        if (description !== undefined) {
-            orderDescription = this.safeString (description, 'order');
+        if (orderDescriptionObj !== undefined) {
+            orderDescription = this.safeString (orderDescriptionObj, 'order');
         } else {
             orderDescription = this.safeString (order, 'descr');
         }
