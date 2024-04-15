@@ -8538,7 +8538,7 @@ export default class bitget extends Exchange {
         //     {"code":"40108","msg":"","requestTime":1595885064600,"data":null}
         //     {"order_id":"513468410013679613","client_oid":null,"symbol":"ethusd","result":false,"err_code":"order_no_exist_error","err_msg":"订单不存在！"}
         //
-        const message = this.safeString (response, 'err_msg');
+        const message = this.safeString2 (response, 'err_msg', 'msg');
         const errorCode = this.safeString2 (response, 'code', 'err_code');
         const feedback = this.id + ' ' + body;
         const nonEmptyMessage = ((message !== undefined) && (message !== ''));
