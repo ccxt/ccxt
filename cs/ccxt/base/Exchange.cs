@@ -169,7 +169,7 @@ public partial class Exchange
                 lock (httpDefaultHeaderLock)  {
                     if (!httpClient.DefaultRequestHeaders.Contains(key))
                     {
-                        httpClient.DefaultRequestHeaders.Add(key, value.ToString());
+                        httpClient.DefaultRequestHeaders.Add(key, value);
                     }
                 }
             }
