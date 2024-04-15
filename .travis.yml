@@ -1,8 +1,5 @@
 jobs:
   include:
-    - env:
-      - RUNSTEP=ABC
-
     - stage: final_stage
       script:
         - ./build.sh 2>&1
