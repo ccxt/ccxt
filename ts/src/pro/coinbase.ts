@@ -76,15 +76,31 @@ export default class coinbase extends coinbaseRest {
         }
         const url = this.urls['api']['ws'];
         const timestamp = this.numberToString (this.seconds ());
+        const isCloudAPiKey = (this.apiKey.indexOf ('organizations/') >= 0) || (this.secret.startsWith ('-----BEGIN'));
         const auth = timestamp + name + productIds.join (',');
         const subscribe = {
             'type': 'subscribe',
             'product_ids': productIds,
             'channel': name,
-            'api_key': this.apiKey,
-            'timestamp': timestamp,
-            'signature': this.hmac (this.encode (auth), this.encode (this.secret), sha256),
+            // 'api_key': this.apiKey,
+            // 'timestamp': timestamp,
+            // 'signature': this.hmac (this.encode (auth), this.encode (this.secret), sha256),
         };
+        if (!isCloudAPiKey) {
+            subscribe['api_key'] = this.apiKey;
+            subscribe['timestamp'] = timestamp;
+            subscribe['signature'] = this.hmac (this.encode (auth), this.encode (this.secret), sha256);
+        } else {
+            const currentToken = this.safeString (this.options, 'wsToken');
+            const tokenTimestamp = this.safeInteger (this.options, 'wsTokenTimestamp', 0);
+            const seconds = this.seconds ();
+            if (currentToken === undefined || tokenTimestamp + 120 < seconds) {
+                // we should generate new token
+                const token = this.createJWT (seconds);
+                this.options['wsToken'] = token;
+            }
+            subscribe['jwt'] = this.safeString (this.options, 'wsToken');
+        }
         return await this.watch (url, messageHash, subscribe, messageHash);
     }
 
