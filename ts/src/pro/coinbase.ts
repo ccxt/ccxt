@@ -1,7 +1,7 @@
 //  ---------------------------------------------------------------------------
 
 import coinbaseRest from '../coinbase.js';
-import { ExchangeError } from '../base/errors.js';
+import { ArgumentsRequired, ExchangeError } from '../base/errors.js';
 import { ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import { Strings, Tickers, Ticker, Int, Trade, OrderBook, Order, Str } from '../base/types.js';
@@ -91,6 +91,9 @@ export default class coinbase extends coinbaseRest {
             subscribe['timestamp'] = timestamp;
             subscribe['signature'] = this.hmac (this.encode (auth), this.encode (this.secret), sha256);
         } else {
+            if (this.apiKey.startsWith ('-----BEGIN')) {
+                throw new ArgumentsRequired (this.id + ' apiKey should contain the name (eg: organizations/3b910e93....) and not the public key');
+            }
             const currentToken = this.safeString (this.options, 'wsToken');
             const tokenTimestamp = this.safeInteger (this.options, 'wsTokenTimestamp', 0);
             const seconds = this.seconds ();
