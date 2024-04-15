@@ -156,34 +156,41 @@ public partial class Exchange
         // to do: add all proxies support
         this.checkProxySettings();
         // add headers
-        httpClient.DefaultRequestHeaders.Accept.Clear();
-        httpClient.DefaultRequestHeaders.Clear();
-        var headersCopy = headers.ToDictionary(entry => entry.Key, entry => entry.Value);
-        var contentType = "";
-        foreach (var kvp in headersCopy)
+        lock (httpDefaultHeaderLock)
         {
-            string key = kvp.Key;
-            var value = kvp.Value;
-            if (key.ToLower() != "content-type")
+            httpClient.DefaultRequestHeaders.Accept.Clear();
+            httpClient.DefaultRequestHeaders.Clear();
+        }
+        var contentType = "";
+        lock (httpDefaultHeaderLock)
+        {
+            foreach (var kvp in headers)
             {
-                lock (httpDefaultHeaderLock)  {
+                string key = kvp.Key;
+                var value = kvp.Value;
+                if (key.ToLower() != "content-type")
+                {
                     if (!httpClient.DefaultRequestHeaders.Contains(key))
                     {
                         httpClient.DefaultRequestHeaders.Add(key, value.ToString());
                     }
                 }
-            }
-            else
-            {
-                // can't set content type header here, because it's part of the content
-                // check: https://nzpcmad.blogspot.com/2017/07/aspnet-misused-header-name-make-sure.html
-                contentType = value.ToString();
-
+                else
+                {
+                    // can't set content type header here, because it's part of the content
+                    // check: https://nzpcmad.blogspot.com/2017/07/aspnet-misused-header-name-make-sure.html
+                    contentType = value.ToString();
+                }
             }
         }
         // user agent
         if (this.userAgent != null && this.userAgent.Length > 0)
-            httpClient.DefaultRequestHeaders.Add("User-Agent", userAgent);
+        {
+            lock (httpDefaultHeaderLock)
+            {
+                httpClient.DefaultRequestHeaders.Add("User-Agent", userAgent);
+            }
+        }
 
 
         var result = "";
@@ -244,8 +251,10 @@ public partial class Exchange
             }
             throw e;
         }
-
-        this.httpClient.DefaultRequestHeaders.Clear();
+        lock (httpDefaultHeaderLock)
+        {
+            this.httpClient.DefaultRequestHeaders.Clear();
+        }          
 
         var responseHeaders = response?.Headers.ToDictionary(x => x, y => y.Value.First());
         this.last_response_headers = responseHeaders;
