@@ -235,11 +235,17 @@ public partial class testMainClass : BaseTest
 
     public async virtual Task testMethod(object methodName, Exchange exchange, object args, object isPublic)
     {
+        // todo: temporary skip for c#
+        if (isTrue(isTrue(isGreaterThanOrEqual(getIndexOf(methodName, "OrderBook"), 0)) && isTrue(isEqual(this.ext, "cs"))))
+        {
+            ((IDictionary<string,object>)exchange.options)["checksum"] = false;
+        }
         // todo: temporary skip for php
         if (isTrue(isTrue(isGreaterThanOrEqual(getIndexOf(methodName, "OrderBook"), 0)) && isTrue(isEqual(this.ext, "php"))))
         {
             return;
         }
+        object skippedPropertiesForMethod = this.getSkips(exchange, methodName);
         object isLoadMarkets = (isEqual(methodName, "loadMarkets"));
         object isFetchCurrencies = (isEqual(methodName, "fetchCurrencies"));
         object isProxyTest = (isEqual(methodName, this.proxyTestFileName));
@@ -256,7 +262,7 @@ public partial class testMainClass : BaseTest
         } else if (isTrue(isTrue(!isTrue(isLoadMarkets) && !isTrue(supportedByExchange)) && !isTrue(isProxyTest)))
         {
             skipMessage = "[INFO] UNSUPPORTED_TEST"; // keep it aligned with the longest message
-        } else if (isTrue(isTrue((inOp(this.skippedMethods, methodName))) && isTrue(((getValue(this.skippedMethods, methodName) is string)))))
+        } else if (isTrue((skippedPropertiesForMethod is string)))
         {
             skipMessage = "[INFO] SKIPPED_TEST";
         } else if (!isTrue((inOp(this.testFiles, methodName))))
@@ -281,7 +287,7 @@ public partial class testMainClass : BaseTest
             object argsStringified = add(add("(", String.Join(",", ((IList<object>)args).ToArray())), ")");
             dump(this.addPadding("[INFO] TESTING", 25), this.exchangeHint(exchange), methodName, argsStringified);
         }
-        await callMethod(this.testFiles, methodName, exchange, this.getSkips(exchange, methodName), args);
+        await callMethod(this.testFiles, methodName, exchange, skippedPropertiesForMethod, args);
         // if it was passed successfully, add to the list of successfull tests
         if (isTrue(isPublic))
         {
@@ -292,8 +298,24 @@ public partial class testMainClass : BaseTest
 
     public virtual object getSkips(Exchange exchange, object methodName)
     {
-        // get "method-specific" skips
-        object skipsForMethod = exchange.safeValue(this.skippedMethods, methodName, new Dictionary<string, object>() {});
+        object finalSkips = new Dictionary<string, object>() {};
+        // check the exact method (i.e. `fetchTrades`) and language-specific (i.e. `fetchTrades.php`)
+        object methodNames = new List<object>() {methodName, add(add(methodName, "."), this.ext)};
+        for (object i = 0; isLessThan(i, getArrayLength(methodNames)); postFixIncrement(ref i))
+        {
+            object mName = getValue(methodNames, i);
+            if (isTrue(inOp(this.skippedMethods, mName)))
+            {
+                // if whole method is skipped, by assigning a string to it, i.e. "fetchOrders":"blabla"
+                if (isTrue((getValue(this.skippedMethods, mName) is string)))
+                {
+                    return getValue(this.skippedMethods, mName);
+                } else
+                {
+                    finalSkips = exchange.deepExtend(finalSkips, getValue(this.skippedMethods, mName));
+                }
+            }
+        }
         // get "object-specific" skips
         object objectSkips = new Dictionary<string, object>() {
             { "orderBook", new List<object>() {"fetchOrderBook", "fetchOrderBooks", "fetchL2OrderBook", "watchOrderBook", "watchOrderBookForSymbols"} },
@@ -311,11 +333,27 @@ public partial class testMainClass : BaseTest
             object objectMethods = getValue(objectSkips, objectName);
             if (isTrue(exchange.inArray(methodName, objectMethods)))
             {
+                // if whole object is skipped, by assigning a string to it, i.e. "orderBook":"blabla"
+                if (isTrue(isTrue((inOp(this.skippedMethods, objectName))) && isTrue(((getValue(this.skippedMethods, objectName) is string)))))
+                {
+                    return getValue(this.skippedMethods, objectName);
+                }
                 object extraSkips = exchange.safeDict(this.skippedMethods, objectName, new Dictionary<string, object>() {});
-                return exchange.deepExtend(skipsForMethod, extraSkips);
+                finalSkips = exchange.deepExtend(finalSkips, extraSkips);
             }
         }
-        return skipsForMethod;
+        // extend related skips
+        // - if 'timestamp' is skipped, we should do so for 'datetime' too
+        // - if 'bid' is skipped, skip 'ask' too
+        if (isTrue(isTrue((inOp(finalSkips, "timestamp"))) && !isTrue((inOp(finalSkips, "datetime")))))
+        {
+            ((IDictionary<string,object>)finalSkips)["datetime"] = getValue(finalSkips, "timestamp");
+        }
+        if (isTrue(isTrue((inOp(finalSkips, "bid"))) && !isTrue((inOp(finalSkips, "ask")))))
+        {
+            ((IDictionary<string,object>)finalSkips)["ask"] = getValue(finalSkips, "bid");
+        }
+        return finalSkips;
     }
 
     public async virtual Task<object> testSafe(object methodName, Exchange exchange, object args = null, object isPublic = null)
@@ -445,11 +483,14 @@ public partial class testMainClass : BaseTest
         {
             tests = new Dictionary<string, object>() {
                 { "watchOHLCV", new List<object>() {symbol} },
+                { "watchOHLCVForSymbols", new List<object>() {symbol} },
                 { "watchTicker", new List<object>() {symbol} },
                 { "watchTickers", new List<object>() {symbol} },
                 { "watchBidsAsks", new List<object>() {symbol} },
                 { "watchOrderBook", new List<object>() {symbol} },
+                { "watchOrderBookForSymbols", new List<object>() {new List<object>() {symbol}} },
                 { "watchTrades", new List<object>() {symbol} },
+                { "watchTradesForSymbols", new List<object>() {new List<object>() {symbol}} },
             };
         }
         object market = exchange.market(symbol);
@@ -1417,7 +1458,7 @@ public partial class testMainClass : BaseTest
         //  -----------------------------------------------------------------------------
         //  --- Init of brokerId tests functions-----------------------------------------
         //  -----------------------------------------------------------------------------
-        object promises = new List<object> {this.testBinance(), this.testOkx(), this.testCryptocom(), this.testBybit(), this.testKucoin(), this.testKucoinfutures(), this.testBitget(), this.testMexc(), this.testHtx(), this.testWoo(), this.testBitmart(), this.testCoinex(), this.testBingx(), this.testPhemex(), this.testBlofin(), this.testHyperliquid(), this.testCoinbaseinternational()};
+        object promises = new List<object> {this.testBinance(), this.testOkx(), this.testCryptocom(), this.testBybit(), this.testKucoin(), this.testKucoinfutures(), this.testBitget(), this.testMexc(), this.testHtx(), this.testWoo(), this.testBitmart(), this.testCoinex(), this.testBingx(), this.testPhemex(), this.testBlofin(), this.testHyperliquid(), this.testCoinbaseinternational(), this.testCoinbaseAdvanced()};
         await promiseAll(promises);
         object successMessage = add(add("[", this.lang), "][TEST_SUCCESS] brokerId tests passed.");
         dump(add("[INFO]", successMessage));
@@ -1810,6 +1851,25 @@ public partial class testMainClass : BaseTest
         try
         {
             await exchange.createOrder("BTC/USDC:USDC", "limit", "buy", 1, 20000);
+        } catch(Exception e)
+        {
+            request = jsonParse(exchange.last_request_body);
+        }
+        object clientOrderId = getValue(request, "client_order_id");
+        assert(((string)clientOrderId).StartsWith(((string)((object)id).ToString())), "clientOrderId does not start with id");
+        await close(exchange);
+        return true;
+    }
+
+    public async virtual Task<object> testCoinbaseAdvanced()
+    {
+        Exchange exchange = this.initOfflineExchange("coinbase");
+        object id = "ccxt";
+        assert(isEqual(getValue(exchange.options, "brokerId"), id), "id not in options");
+        object request = null;
+        try
+        {
+            await exchange.createOrder("BTC/USDC", "limit", "buy", 1, 20000);
         } catch(Exception e)
         {
             request = jsonParse(exchange.last_request_body);

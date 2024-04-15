@@ -78,6 +78,11 @@ public static class Program
                 {
                     var parsedKey = instance.id.ToUpper() + "_" + key.ToUpper();
                     credentialValue = Environment.GetEnvironmentVariable(parsedKey);
+                    if (credentialValue.StartsWith("-----BEGIN"))
+                    {
+                        credentialValue = credentialValue.Replace("\\n", "\n");
+
+                    }
                 }
 
                 // If a value was found, set the property on the instance

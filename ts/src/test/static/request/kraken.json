@@ -260,15 +260,11 @@
         ],
         "fetchPositions": [
             {
-                "description": "Fetch linear position",
+                "description": "fetch positions",
                 "method": "fetchPositions",
                 "url": "https://api.kraken.com/0/private/OpenPositions",
-                "input": [
-                    [
-                        "LTC/USDT:USDT"
-                    ]
-                ],
-                "output": "nonce=1699458296389"
+                "input": [],
+                "output": "nonce=1712572467788&docalcs=true&consolidation=market"
             }
         ],
         "fetchLedger": [

@@ -83,6 +83,7 @@ export default class bybit extends Exchange {
                 'fetchLedger': true,
                 'fetchLeverage': true,
                 'fetchLeverageTiers': true,
+                'fetchMarginAdjustmentHistory': false,
                 'fetchMarketLeverageTiers': true,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': true,
@@ -371,6 +372,7 @@ export default class bybit extends Exchange {
                         'v5/broker/earning-record': 5,
                         'v5/broker/earnings-info': 5,
                         'v5/broker/account-info': 5,
+                        'v5/broker/asset/query-sub-member-deposit-record': 10,
                     },
                     'post': {
                         // Legacy option USDC

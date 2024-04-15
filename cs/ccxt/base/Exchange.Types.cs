@@ -389,6 +389,7 @@ public struct MarginModification
 {
     public string symbol; 
     public string? type;
+    public string? marginMode;
     public double? amount;
     public double? total;
     public string? code;
@@ -402,6 +403,7 @@ public struct MarginModification
         var marginModification = (Dictionary<string, object>)marginModification2;
         symbol = Exchange.SafeString(marginModification, "symbol");
         type = Exchange.SafeString(marginModification, "type");
+        marginMode = Exchange.SafeString(marginModification, "marginMode");
         amount = Exchange.SafeFloat(marginModification, "amount");
         total = Exchange.SafeFloat(marginModification, "total");
         code = Exchange.SafeString(marginModification, "code");
@@ -1250,6 +1252,35 @@ public struct Greeks
         markPrice = Exchange.SafeFloat(greeks, "markPrice");
         lastPrice = Exchange.SafeFloat(greeks, "lastPrice");
         underlyingPrice = Exchange.SafeFloat(greeks, "underlyingPrice");
+    }
+}
+
+
+public struct Conversion
+{
+    public Dictionary<string, object>? info;
+    public Int64? timestamp;
+    public string? datetime;
+    public string? id;
+    public string? fromCurrency;
+    public double? fromAmount;
+    public string? toCurrency;
+    public double? toAmount;
+    public double? price;
+    public double? fee;
+
+    public Conversion(object conversion)
+    {
+        info = Exchange.SafeValue(conversion, "info") != null ? (Dictionary<string, object>)Exchange.SafeValue(conversion, "info") : null;
+        timestamp = Exchange.SafeInteger(conversion, "timestamp");
+        datetime = Exchange.SafeString(conversion, "datetime"); ;
+        id = Exchange.SafeString(conversion, "id");
+        fromCurrency = Exchange.SafeString(conversion, "fromCurrency");
+        fromAmount = Exchange.SafeFloat(conversion, "fromAmount");
+        toCurrency = Exchange.SafeString(conversion, "toCurrency");
+        toAmount = Exchange.SafeFloat(conversion, "toAmount");
+        price = Exchange.SafeFloat(conversion, "price");
+        fee = Exchange.SafeFloat(conversion, "fee");
     }
 }
 

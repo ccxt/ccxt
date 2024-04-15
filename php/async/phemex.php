@@ -4042,6 +4042,7 @@ class phemex extends Exchange {
             'info' => $data,
             'symbol' => $this->safe_symbol(null, $market),
             'type' => 'set',
+            'marginMode' => 'isolated',
             'amount' => null,
             'total' => null,
             'code' => $market[$codeCurrency],

@@ -34,6 +34,7 @@ const errorHierarchy = {
             },
             'NotSupported': {},
             'ProxyError': {},
+            'ExchangeClosedByUser': {},
         },
         'OperationFailed': {
             'NetworkError': {
@@ -46,7 +47,6 @@ const errorHierarchy = {
                 'RequestTimeout': {},
             },
         },
-        'ExchangeClosedByUser': {},
     },
 };
 

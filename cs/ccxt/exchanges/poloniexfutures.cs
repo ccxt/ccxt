@@ -371,7 +371,10 @@ public partial class poloniexfutures : Exchange
         //
         object marketId = this.safeString(ticker, "symbol");
         object symbol = this.safeSymbol(marketId, market);
-        object timestamp = this.safeIntegerProduct(ticker, "ts", 0.000001);
+        object timestampString = this.safeString(ticker, "ts");
+        // check timestamp bcz bug: https://app.travis-ci.com/github/ccxt/ccxt/builds/269959181#L4011
+        object multiplier = ((bool) isTrue((isEqual(((string)timestampString).Length, 18)))) ? 0.00001 : 0.000001;
+        object timestamp = this.safeIntegerProduct(ticker, "ts", multiplier);
         object last = this.safeString2(ticker, "price", "lastPrice");
         object percentage = Precise.stringMul(this.safeString(ticker, "priceChgPct"), "100");
         return this.safeTicker(new Dictionary<string, object>() {

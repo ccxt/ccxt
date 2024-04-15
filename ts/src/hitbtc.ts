@@ -3310,6 +3310,7 @@ export default class hitbtc extends Exchange {
             'info': data,
             'symbol': market['symbol'],
             'type': undefined,
+            'marginMode': 'isolated',
             'amount': undefined,
             'total': undefined,
             'code': this.safeString (currencyInfo, 'code'),

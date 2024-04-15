@@ -71,6 +71,7 @@ class kucoinfutures extends kucoin {
                 'fetchL3OrderBook' => true,
                 'fetchLedger' => true,
                 'fetchLeverageTiers' => false,
+                'fetchMarginAdjustmentHistory' => false,
                 'fetchMarginMode' => false,
                 'fetchMarketLeverageTiers' => true,
                 'fetchMarkets' => true,
@@ -1575,7 +1576,7 @@ class kucoinfutures extends kucoin {
         }) ();
     }
 
-    public function parse_margin_modification($info, ?array $market = null) {
+    public function parse_margin_modification($info, ?array $market = null): array {
         //
         //    {
         //        "id" => "62311d26064e8f00013f2c6d",
@@ -1627,14 +1628,18 @@ class kucoinfutures extends kucoin {
         $crossMode = $this->safe_value($info, 'crossMode');
         $mode = $crossMode ? 'cross' : 'isolated';
         $marketId = $this->safe_string($market, 'symbol');
+        $timestamp = $this->safe_integer($info, 'currentTimestamp');
         return array(
             'info' => $info,
-            'direction' => null,
-            'mode' => $mode,
-            'amount' => null,
-            'code' => $this->safe_currency_code($currencyId),
             'symbol' => $this->safe_symbol($marketId, $market),
+            'type' => null,
+            'marginMode' => $mode,
+            'amount' => null,
+            'total' => null,
+            'code' => $this->safe_currency_code($currencyId),
             'status' => null,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
         );
     }
 
@@ -1772,6 +1777,33 @@ class kucoinfutures extends kucoin {
                 return Async\await($this->fetch_paginated_call_dynamic('fetchClosedOrders', $symbol, $since, $limit, $params));
             }
             return Async\await($this->fetch_orders_by_status('done', $symbol, $since, $limit, $params));
+        }) ();
+    }
+
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * fetches information on multiple open orders made by the user
+             * @see https://docs.kucoin.com/futures/#get-order-list
+             * @see https://docs.kucoin.com/futures/#get-untriggered-stop-order-list
+             * @param {string} $symbol unified market $symbol of the market orders were made in
+             * @param {int} [$since] the earliest time in ms to fetch orders for
+             * @param {int} [$limit] the maximum number of order structures to retrieve
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {int} [$params->till] end time in ms
+             * @param {string} [$params->side] buy or sell
+             * @param {string} [$params->type] $limit, or market
+             * @param {boolean} [$params->trigger] set to true to retrieve untriggered stop orders
+             * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
+             * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             */
+            Async\await($this->load_markets());
+            $paginate = false;
+            list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOpenOrders', 'paginate');
+            if ($paginate) {
+                return Async\await($this->fetch_paginated_call_dynamic('fetchOpenOrders', $symbol, $since, $limit, $params));
+            }
+            return Async\await($this->fetch_orders_by_status('open', $symbol, $since, $limit, $params));
         }) ();
     }
 
