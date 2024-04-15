@@ -14,6 +14,7 @@ fi
 [[ -n "$TRAVIS_BUILD_ID" ]] && IS_TRAVIS="TRUE" || IS_TRAVIS="FALSE"
 [[ "$RUNSTEP" == "PY_JS_PHP" ]] && IS_PYJSPHP="TRUE" || IS_PYJSPHP="FALSE"
 
+echo "RUNSTEP: $RUNSTEP"
 msgPrefix="⬤ BUILD.SH : "
 
 function run_tests {
