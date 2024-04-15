@@ -1042,25 +1042,25 @@
                 "description": "Fetch transaction fee",
                 "method": "fetchTransactionFee",
                 "input": [
-                    "ETH"
+                    "BTC"
                 ],
                 "httpResponse": {
                     "code": "200000",
                     "data": {
-                        "currency": "ETH",
+                        "currency": "BTC",
                         "limitBTCAmount": "15.71610959",
                         "usedBTCAmount": "0.00000000",
                         "quotaCurrency": "USDT",
                         "limitQuotaCurrencyAmount": "999999.00000000",
                         "usedQuotaCurrencyAmount": "0",
-                        "remainAmount": "330.24656372",
+                        "remainAmount": "15.71610959",
                         "availableAmount": "0",
-                        "withdrawMinFee": "0.005",
+                        "withdrawMinFee": "0.0004",
                         "innerWithdrawMinFee": "0",
-                        "withdrawMinSize": "0.01",
+                        "withdrawMinSize": "0.001",
                         "isWithdrawEnabled": true,
                         "precision": 8,
-                        "chain": "ERC20",
+                        "chain": "BTC",
                         "reason": null,
                         "lockedAmount": "0"
                     }
@@ -1069,28 +1069,28 @@
                     "info": {
                         "code": "200000",
                         "data": {
-                        "currency": "ETH",
+                        "currency": "BTC",
                         "limitBTCAmount": "15.71610959",
                         "usedBTCAmount": "0.00000000",
                         "quotaCurrency": "USDT",
                         "limitQuotaCurrencyAmount": "999999.00000000",
                         "usedQuotaCurrencyAmount": "0",
-                        "remainAmount": "330.24656372",
+                        "remainAmount": "15.71610959",
                         "availableAmount": "0",
-                        "withdrawMinFee": "0.005",
+                        "withdrawMinFee": "0.0004",
                         "innerWithdrawMinFee": "0",
-                        "withdrawMinSize": "0.01",
+                        "withdrawMinSize": "0.001",
                         "isWithdrawEnabled": true,
                         "precision": 8,
-                        "chain": "ERC20",
+                        "chain": "BTC",
                         "reason": null,
                         "lockedAmount": "0"
-                    }
-                },
-                    "withdraw": {
-                        "ETH": 0.005
-                    },
-                    "deposit": {}
+                        }
+                  },
+                  "withdraw": {
+                        "BTC": 0.0004
+                  },
+                  "deposit": {}
                 }
             }
         ]
