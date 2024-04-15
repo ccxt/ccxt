@@ -166,11 +166,10 @@ public partial class Exchange
             var value = kvp.Value;
             if (key.ToLower() != "content-type")
             {
-                string headerValue = value.ToString();
                 lock (httpDefaultHeaderLock)  {
                     if (!httpClient.DefaultRequestHeaders.Contains(key))
                     {
-                        httpClient.DefaultRequestHeaders.Add(key, headerValue);
+                        httpClient.DefaultRequestHeaders.Add(key, value.ToString());
                     }
                 }
             }
