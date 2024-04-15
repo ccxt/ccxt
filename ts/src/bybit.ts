@@ -102,7 +102,7 @@ export default class bybit extends Exchange {
                 'fetchOrders': false,
                 'fetchOrderTrades': true,
                 'fetchPosition': true,
-                'fetchPositionHistory': true,
+                'fetchPositionHistory': 'emulated',
                 'fetchPositionsHistory': true,
                 'fetchPositions': true,
                 'fetchPremiumIndexOHLCV': true,

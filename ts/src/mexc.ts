@@ -92,7 +92,7 @@ export default class mexc extends Exchange {
                 'fetchOrders': true,
                 'fetchOrderTrades': true,
                 'fetchPosition': true,
-                'fetchPositionHistory': true,
+                'fetchPositionHistory': 'emulated',
                 'fetchPositionsHistory': true,
                 'fetchPositionMode': true,
                 'fetchPositions': true,
