@@ -1,11 +1,11 @@
 jobs:
   include:
-    - stage: first_stage
       script: ./build.sh 2>&1
       script: ./build.sh 2>&1
 
     - stage: final_stage
       script:
+        - ./build.sh 2>&1
         - git checkout master composer.json
         - if [ "$RUNSTEP" == "PY_JS_PHP" ] && [ "$TRAVIS_PULL_REQUEST" = "false" ] && [ "$TRAVIS_BRANCH" = "master" ]; then
             export SHOULD_DEPLOY=false;
