@@ -76,6 +76,7 @@ public partial class deribit
     /// </summary>
     /// <remarks>
     /// See <see href="https://docs.deribit.com/#public-get_currencies"/>  <br/>
+    /// See <see href="https://docs.deribit.com/#public-get_instruments"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -181,6 +182,12 @@ public partial class deribit
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.code</term>
+    /// <description>
+    /// string : *required* the currency code to fetch the tickers for, eg. 'BTC', 'ETH'
     /// </description>
     /// </item>
     /// </list>

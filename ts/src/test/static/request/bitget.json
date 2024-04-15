@@ -1579,6 +1579,26 @@
                   "USDT"
                 ]
             }
+        ],
+        "fetchConvertQuote": [
+            {
+                "description": "Fetch a quote for a conversion trade",
+                "method": "fetchConvertQuote",
+                "url": "https://api.bitget.com/api/v2/convert/quoted-price?fromCoin=USDC&fromCoinSize=3&toCoin=USDT",
+                "input": [
+                  "USDC",
+                  "USDT",
+                  3
+                ]
+            }
+        ],
+        "fetchConvertCurrencies": [
+            {
+                "description": "Fetch currencies that can be converted",
+                "method": "fetchConvertCurrencies",
+                "url": "https://api.bitget.com/api/v2/convert/currencies",
+                "input": []
+            }
         ]
     }
 }

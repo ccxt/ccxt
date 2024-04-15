@@ -6,7 +6,7 @@ import { ExchangeError, ExchangeNotAvailable, OnMaintenance, ArgumentsRequired, 
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { TransferEntry, Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Str, Transaction, Ticker, OrderBook, Balances, Tickers, Market, Greeks, Strings, MarketInterface, Currency, Leverage, Num, Account, OptionChain, Option, MarginModification, TradingFeeInterface, Currencies, Position } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Str, Transaction, Ticker, OrderBook, Balances, Tickers, Market, Greeks, Strings, MarketInterface, Currency, Leverage, Num, Account, OptionChain, Option, MarginModification, TradingFeeInterface, Currencies, Conversion, Position } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -62,6 +62,8 @@ export default class okx extends Exchange {
                 'fetchCanceledOrders': true,
                 'fetchClosedOrder': undefined,
                 'fetchClosedOrders': true,
+                'fetchConvertCurrencies': true,
+                'fetchConvertQuote': true,
                 'fetchCrossBorrowRate': true,
                 'fetchCrossBorrowRates': true,
                 'fetchCurrencies': true,
@@ -1109,18 +1111,18 @@ export default class okx extends Exchange {
         });
     }
 
-    handleMarketTypeAndParams (methodName, market = undefined, params = {}) {
+    handleMarketTypeAndParams (methodName: string, market: Market = undefined, params = {}, defaultValue = undefined): any {
         const instType = this.safeString (params, 'instType');
         params = this.omit (params, 'instType');
         const type = this.safeString (params, 'type');
         if ((type === undefined) && (instType !== undefined)) {
             params['type'] = instType;
         }
-        return super.handleMarketTypeAndParams (methodName, market, params);
+        return super.handleMarketTypeAndParams (methodName, market, params, defaultValue);
     }
 
     convertToInstrumentType (type) {
-        const exchangeTypes = this.safeValue (this.options, 'exchangeType', {});
+        const exchangeTypes = this.safeDict (this.options, 'exchangeType', {});
         return this.safeString (exchangeTypes, type, type);
     }
 
@@ -1226,7 +1228,7 @@ export default class okx extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         const dataLength = data.length;
         const update = {
             'updated': undefined,
@@ -1272,8 +1274,8 @@ export default class okx extends Exchange {
         //         "msg": ""
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
-        const first = this.safeValue (data, 0, {});
+        const data = this.safeList (response, 'data', []);
+        const first = this.safeDict (data, 0, {});
         return this.safeInteger (first, 'ts');
     }
 
@@ -1306,7 +1308,7 @@ export default class okx extends Exchange {
         //         "msg": ""
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         const result = [];
         for (let i = 0; i < data.length; i++) {
             const account = data[i];
@@ -1332,7 +1334,7 @@ export default class okx extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} an array of objects representing market data
          */
-        const types = this.safeValue (this.options, 'fetchMarkets');
+        const types = this.safeList (this.options, 'fetchMarkets', []);
         let promises = [];
         let result = [];
         for (let i = 0; i < types.length; i++) {
@@ -1436,7 +1438,7 @@ export default class okx extends Exchange {
             }
         }
         const tickSize = this.safeString (market, 'tickSz');
-        const fees = this.safeValue2 (this.fees, type, 'trading', {});
+        const fees = this.safeDict2 (this.fees, type, 'trading', {});
         let maxLeverage = this.safeString (market, 'lever', '1');
         maxLeverage = Precise.stringMax (maxLeverage, '1');
         const maxSpotCost = this.safeNumber (market, 'maxMktSz');
@@ -1496,7 +1498,7 @@ export default class okx extends Exchange {
             'instType': this.convertToInstrumentType (type),
         };
         if (type === 'option') {
-            const optionsUnderlying = this.safeValue (this.options, 'defaultUnderlying', [ 'BTC-USD', 'ETH-USD' ]);
+            const optionsUnderlying = this.safeList (this.options, 'defaultUnderlying', [ 'BTC-USD', 'ETH-USD' ]);
             const promises = [];
             for (let i = 0; i < optionsUnderlying.length; i++) {
                 const underlying = optionsUnderlying[i];
@@ -1506,8 +1508,8 @@ export default class okx extends Exchange {
             const promisesResult = await Promise.all (promises);
             let markets = [];
             for (let i = 0; i < promisesResult.length; i++) {
-                const res = this.safeValue (promisesResult, i, {});
-                const options = this.safeValue (res, 'data', []);
+                const res = this.safeDict (promisesResult, i, {});
+                const options = this.safeList (res, 'data', []);
                 markets = this.arrayConcat (markets, options);
             }
             return this.parseMarkets (markets);
@@ -1546,7 +1548,7 @@ export default class okx extends Exchange {
         //         "msg": ""
         //     }
         //
-        const dataResponse = this.safeValue (response, 'data', []);
+        const dataResponse = this.safeList (response, 'data', []);
         return this.parseMarkets (dataResponse);
     }
 
@@ -1625,7 +1627,7 @@ export default class okx extends Exchange {
         //        "msg": ""
         //    }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         const result = {};
         const dataByCurrencyId = this.groupBy (data, 'ccy');
         const currencyIds = Object.keys (dataByCurrencyId);
@@ -1641,11 +1643,11 @@ export default class okx extends Exchange {
             let maxPrecision = undefined;
             for (let j = 0; j < chains.length; j++) {
                 const chain = chains[j];
-                const canDeposit = this.safeValue (chain, 'canDep');
+                const canDeposit = this.safeBool (chain, 'canDep');
                 depositEnabled = (canDeposit) ? canDeposit : depositEnabled;
-                const canWithdraw = this.safeValue (chain, 'canWd');
+                const canWithdraw = this.safeBool (chain, 'canWd');
                 withdrawEnabled = (canWithdraw) ? canWithdraw : withdrawEnabled;
-                const canInternal = this.safeValue (chain, 'canInternal');
+                const canInternal = this.safeBool (chain, 'canInternal');
                 const active = (canDeposit && canWithdraw && canInternal) ? true : false;
                 currencyActive = (active) ? active : currencyActive;
                 const networkId = this.safeString (chain, 'chain');
@@ -1677,7 +1679,7 @@ export default class okx extends Exchange {
                     };
                 }
             }
-            const firstChain = this.safeValue (chains, 0);
+            const firstChain = this.safeDict (chains, 0, {});
             result[code] = {
                 'info': undefined,
                 'code': code,
@@ -1753,8 +1755,8 @@ export default class okx extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
-        const first = this.safeValue (data, 0, {});
+        const data = this.safeList (response, 'data', []);
+        const first = this.safeDict (data, 0, {});
         const timestamp = this.safeInteger (first, 'ts');
         return this.parseOrderBook (first, symbol, timestamp);
     }
@@ -1857,7 +1859,7 @@ export default class okx extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         const first = this.safeDict (data, 0, {});
         return this.parseTicker (first, market);
     }
@@ -1881,7 +1883,7 @@ export default class okx extends Exchange {
             'instType': this.convertToInstrumentType (marketType),
         };
         if (marketType === 'option') {
-            const defaultUnderlying = this.safeValue (this.options, 'defaultUnderlying', 'BTC-USD');
+            const defaultUnderlying = this.safeString (this.options, 'defaultUnderlying', 'BTC-USD');
             const currencyId = this.safeString2 (params, 'uly', 'marketId', defaultUnderlying);
             if (currencyId === undefined) {
                 throw new ArgumentsRequired (this.id + ' fetchTickers() requires an underlying uly or marketId parameter for options markets');
@@ -2147,7 +2149,7 @@ export default class okx extends Exchange {
         }
         const price = this.safeString (params, 'price');
         params = this.omit (params, 'price');
-        const options = this.safeValue (this.options, 'fetchOHLCV', {});
+        const options = this.safeDict (this.options, 'fetchOHLCV', {});
         const timezone = this.safeString (options, 'timezone', 'UTC');
         if (limit === undefined) {
             limit = 100; // default 100, max 100
@@ -2276,7 +2278,7 @@ export default class okx extends Exchange {
         //     }
         //
         const rates = [];
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         for (let i = 0; i < data.length; i++) {
             const rate = data[i];
             const timestamp = this.safeInteger (rate, 'fundingTime');
@@ -2302,10 +2304,10 @@ export default class okx extends Exchange {
 
     parseTradingBalance (response) {
         const result = { 'info': response };
-        const data = this.safeValue (response, 'data', []);
-        const first = this.safeValue (data, 0, {});
+        const data = this.safeList (response, 'data', []);
+        const first = this.safeDict (data, 0, {});
         const timestamp = this.safeInteger (first, 'uTime');
-        const details = this.safeValue (first, 'details', []);
+        const details = this.safeList (first, 'details', []);
         for (let i = 0; i < details.length; i++) {
             const balance = details[i];
             const currencyId = this.safeString (balance, 'ccy');
@@ -2330,7 +2332,7 @@ export default class okx extends Exchange {
 
     parseFundingBalance (response) {
         const result = { 'info': response };
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         for (let i = 0; i < data.length; i++) {
             const balance = data[i];
             const currencyId = this.safeString (balance, 'ccy');
@@ -2414,8 +2416,8 @@ export default class okx extends Exchange {
         //         "msg": ""
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
-        const first = this.safeValue (data, 0, {});
+        const data = this.safeList (response, 'data', []);
+        const first = this.safeDict (data, 0, {});
         return this.parseTradingFee (first, market);
     }
 
@@ -2884,8 +2886,8 @@ export default class okx extends Exchange {
         } else {
             response = await this.privatePostTradeBatchOrders (request);
         }
-        const data = this.safeValue (response, 'data', []);
-        const first = this.safeValue (data, 0);
+        const data = this.safeList (response, 'data', []);
+        const first = this.safeDict (data, 0, {});
         const order = this.parseOrder (first, market);
         order['type'] = type;
         order['side'] = side;
@@ -2910,7 +2912,7 @@ export default class okx extends Exchange {
             const side = this.safeString (rawOrder, 'side');
             const amount = this.safeValue (rawOrder, 'amount');
             const price = this.safeValue (rawOrder, 'price');
-            const orderParams = this.safeValue (rawOrder, 'params', {});
+            const orderParams = this.safeDict (rawOrder, 'params', {});
             const extendedParams = this.extend (orderParams, params); // the request does not accept extra params since it's a list, so we're extending each order with the common params
             const orderRequest = this.createOrderRequest (marketId, type, side, amount, price, extendedParams);
             ordersRequests.push (orderRequest);
@@ -3096,8 +3098,8 @@ export default class okx extends Exchange {
         //        "msg": ""
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
-        const first = this.safeValue (data, 0);
+        const data = this.safeList (response, 'data', []);
+        const first = this.safeDict (data, 0, {});
         const order = this.parseOrder (first, market);
         order['type'] = type;
         order['side'] = side;
@@ -4287,7 +4289,7 @@ export default class okx extends Exchange {
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchLedger', code, since, limit, params);
         }
-        const options = this.safeValue (this.options, 'fetchLedger', {});
+        const options = this.safeDict (this.options, 'fetchLedger', {});
         let method = this.safeString (options, 'method');
         method = this.safeString (params, 'method', method);
         params = this.omit (params, 'method');
@@ -4383,7 +4385,7 @@ export default class okx extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         return this.parseLedger (data, currency, since, limit);
     }
 
@@ -4618,7 +4620,7 @@ export default class okx extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         const filtered = this.filterBy (data, 'selected', true);
         const parsed = this.parseDepositAddresses (filtered, [ currency['code'] ], false);
         return this.indexBy (parsed, 'network');
@@ -4694,7 +4696,7 @@ export default class okx extends Exchange {
         };
         let network = this.safeString (params, 'network'); // this line allows the user to specify either ERC20 or ETH
         if (network !== undefined) {
-            const networks = this.safeValue (this.options, 'networks', {});
+            const networks = this.safeDict (this.options, 'networks', {});
             network = this.safeString (networks, network.toUpperCase (), network); // handle ETH>ERC20 alias
             request['chain'] = currency['id'] + '-' + network;
             params = this.omit (params, 'network');
@@ -4703,7 +4705,7 @@ export default class okx extends Exchange {
         if (fee === undefined) {
             const currencies = await this.fetchCurrencies ();
             this.currencies = this.deepExtend (this.currencies, currencies);
-            const targetNetwork = this.safeValue (currency['networks'], this.networkIdToCode (network), {});
+            const targetNetwork = this.safeDict (currency['networks'], this.networkIdToCode (network), {});
             fee = this.safeString (targetNetwork, 'fee');
             if (fee === undefined) {
                 throw new ArgumentsRequired (this.id + ' withdraw() requires a "fee" string parameter, network transaction fee must be ≥ 0. Withdrawals to OKCoin or OKX are fee-free, please set "0". Withdrawing to external digital asset address requires network transaction fee.');
@@ -4725,7 +4727,7 @@ export default class okx extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         const transaction = this.safeDict (data, 0);
         return this.parseTransaction (transaction, currency);
     }
@@ -4954,7 +4956,7 @@ export default class okx extends Exchange {
         //        "msg": ''
         //    }
         //
-        const data = this.safeValue (response, 'data');
+        const data = this.safeList (response, 'data', []);
         const withdrawal = this.safeDict (data, 0, {});
         return this.parseTransaction (withdrawal);
     }
@@ -5242,8 +5244,8 @@ export default class okx extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
-        const position = this.safeValue (data, 0);
+        const data = this.safeList (response, 'data', []);
+        const position = this.safeDict (data, 0);
         if (position === undefined) {
             return undefined;
         }
@@ -5280,7 +5282,7 @@ export default class okx extends Exchange {
                 request['instId'] = marketIds.join (',');
             }
         }
-        const fetchPositionsOptions = this.safeValue (this.options, 'fetchPositions', {});
+        const fetchPositionsOptions = this.safeDict (this.options, 'fetchPositions', {});
         const method = this.safeString (fetchPositionsOptions, 'method', 'privateGetAccountPositions');
         let response = undefined;
         if (method === 'privateGetAccountPositionsHistory') {
@@ -5334,7 +5336,7 @@ export default class okx extends Exchange {
         //         ]
         //     }
         //
-        const positions = this.safeValue (response, 'data', []);
+        const positions = this.safeList (response, 'data', []);
         const result = [];
         for (let i = 0; i < positions.length; i++) {
             result.push (this.parsePosition (positions[i]));
@@ -5540,7 +5542,7 @@ export default class okx extends Exchange {
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const accountsByType = this.safeValue (this.options, 'accountsByType', {});
+        const accountsByType = this.safeDict (this.options, 'accountsByType', {});
         const fromId = this.safeString (accountsByType, fromAccount, fromAccount);
         const toId = this.safeString (accountsByType, toAccount, toAccount);
         const request = {
@@ -5581,7 +5583,7 @@ export default class okx extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         const rawTransfer = this.safeDict (data, 0, {});
         return this.parseTransfer (rawTransfer, currency);
     }
@@ -5645,7 +5647,7 @@ export default class okx extends Exchange {
         let amount = this.safeNumber (transfer, 'amt');
         const fromAccountId = this.safeString (transfer, 'from');
         const toAccountId = this.safeString (transfer, 'to');
-        const accountsById = this.safeValue (this.options, 'accountsById', {});
+        const accountsById = this.safeDict (this.options, 'accountsById', {});
         const timestamp = this.safeInteger (transfer, 'ts');
         const balanceChange = this.safeString (transfer, 'sz');
         if (balanceChange !== undefined) {
@@ -5698,7 +5700,7 @@ export default class okx extends Exchange {
         //         "msg": ""
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         const transfer = this.safeDict (data, 0);
         return this.parseTransfer (transfer);
     }
@@ -5905,8 +5907,8 @@ export default class okx extends Exchange {
         //        "msg": ""
         //    }
         //
-        const data = this.safeValue (response, 'data', []);
-        const entry = this.safeValue (data, 0, {});
+        const data = this.safeList (response, 'data', []);
+        const entry = this.safeDict (data, 0, {});
         return this.parseFundingRate (entry, market);
     }
 
@@ -6046,7 +6048,7 @@ export default class okx extends Exchange {
         //        "type": "8"
         //    }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         const result = [];
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
@@ -6241,7 +6243,7 @@ export default class okx extends Exchange {
         //        ],
         //    }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         const rates = [];
         for (let i = 0; i < data.length; i++) {
             rates.push (this.parseBorrowRate (data[i]));
@@ -6278,8 +6280,8 @@ export default class okx extends Exchange {
         //        "msg": ""
         //    }
         //
-        const data = this.safeValue (response, 'data');
-        const rate = this.safeValue (data, 0);
+        const data = this.safeList (response, 'data', []);
+        const rate = this.safeDict (data, 0, {});
         return this.parseBorrowRate (rate);
     }
 
@@ -6387,7 +6389,7 @@ export default class okx extends Exchange {
         //         "msg": ""
         //     }
         //
-        const data = this.safeValue (response, 'data');
+        const data = this.safeList (response, 'data', []);
         return this.parseBorrowRateHistories (data, codes, since, limit);
     }
 
@@ -6432,7 +6434,7 @@ export default class okx extends Exchange {
         //         "msg": ""
         //     }
         //
-        const data = this.safeValue (response, 'data');
+        const data = this.safeList (response, 'data', []);
         return this.parseBorrowRateHistory (data, code, since, limit);
     }
 
@@ -6628,7 +6630,7 @@ export default class okx extends Exchange {
         //        ]
         //    }
         //
-        const data = this.safeValue (response, 'data');
+        const data = this.safeList (response, 'data', []);
         return this.parseMarketLeverageTiers (data, market);
     }
 
@@ -6732,7 +6734,7 @@ export default class okx extends Exchange {
         //        "msg": ""
         //    }
         //
-        const data = this.safeValue (response, 'data');
+        const data = this.safeList (response, 'data', []);
         const interest = this.parseBorrowInterests (data);
         return this.filterByCurrencySinceLimit (interest, code, since, limit);
     }
@@ -6790,8 +6792,8 @@ export default class okx extends Exchange {
         //         "msg": ""
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
-        const loan = this.safeValue (data, 0);
+        const data = this.safeList (response, 'data', []);
+        const loan = this.safeDict (data, 0, {});
         return this.parseMarginLoan (loan, currency);
     }
 
@@ -6836,8 +6838,8 @@ export default class okx extends Exchange {
         //         "msg": ""
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
-        const loan = this.safeValue (data, 0);
+        const data = this.safeList (response, 'data', []);
+        const loan = this.safeDict (data, 0, {});
         return this.parseMarginLoan (loan, currency);
     }
 
@@ -6922,8 +6924,8 @@ export default class okx extends Exchange {
          * @param {int} [params.until] The time in ms of the latest record to retrieve as a unix timestamp
          * @returns An array of [open interest structures]{@link https://docs.ccxt.com/#/?id=open-interest-structure}
          */
-        const options = this.safeValue (this.options, 'fetchOpenInterestHistory', {});
-        const timeframes = this.safeValue (options, 'timeframes', {});
+        const options = this.safeDict (this.options, 'fetchOpenInterestHistory', {});
+        const timeframes = this.safeDict (options, 'timeframes', {});
         timeframe = this.safeString (timeframes, timeframe, timeframe);
         if (timeframe !== '5m' && timeframe !== '1H' && timeframe !== '1D') {
             throw new BadRequest (this.id + ' fetchOpenInterestHistory cannot only use the 5m, 1h, and 1d timeframe');
@@ -7213,7 +7215,7 @@ export default class okx extends Exchange {
         //         "msg": ""
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         const settlements = this.parseSettlements (data, market);
         const sorted = this.sortBy (settlements, 'timestamp');
         return this.filterBySymbolSinceLimit (sorted, market['symbol'], since, limit);
@@ -7254,7 +7256,7 @@ export default class okx extends Exchange {
         for (let i = 0; i < settlements.length; i++) {
             const entry = settlements[i];
             const timestamp = this.safeInteger (entry, 'ts');
-            const details = this.safeValue (entry, 'details', []);
+            const details = this.safeList (entry, 'details', []);
             for (let j = 0; j < details.length; j++) {
                 const settlement = this.parseSettlement (details[j], market);
                 result.push (this.extend (settlement, {
@@ -7301,7 +7303,7 @@ export default class okx extends Exchange {
         //         "msg": ""
         //     }
         //
-        const underlyings = this.safeValue (response, 'data', []);
+        const underlyings = this.safeList (response, 'data', []);
         return underlyings[0];
     }
 
@@ -7354,7 +7356,7 @@ export default class okx extends Exchange {
         //         "msg": ""
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
             const entryMarketId = this.safeString (entry, 'instId');
@@ -7477,7 +7479,7 @@ export default class okx extends Exchange {
         //        "outTime": "1701877077102579"
         //    }
         //
-        const data = this.safeValue (response, 'data');
+        const data = this.safeList (response, 'data', []);
         const order = this.safeDict (data, 0);
         return this.parseOrder (order, market);
     }
@@ -7622,6 +7624,160 @@ export default class okx extends Exchange {
         };
     }
 
+    async fetchConvertQuote (fromCode: string, toCode: string, amount: Num = undefined, params = {}): Promise<Conversion> {
+        /**
+         * @method
+         * @name okx#fetchConvertQuote
+         * @description fetch a quote for converting from one currency to another
+         * @see https://www.okx.com/docs-v5/en/#funding-account-rest-api-estimate-quote
+         * @param {string} fromCode the currency that you want to sell and convert from
+         * @param {string} toCode the currency that you want to buy and convert into
+         * @param {float} [amount] how much you want to trade in units of the from currency
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+         */
+        await this.loadMarkets ();
+        const request = {
+            'baseCcy': fromCode.toUpperCase (),
+            'quoteCcy': toCode.toUpperCase (),
+            'rfqSzCcy': fromCode.toUpperCase (),
+            'rfqSz': this.numberToString (amount),
+            'side': 'sell',
+        };
+        const response = await this.privatePostAssetConvertEstimateQuote (this.extend (request, params));
+        //
+        //     {
+        //         "code": "0",
+        //         "data": [
+        //             {
+        //                 "baseCcy": "ETH",
+        //                 "baseSz": "0.01023052",
+        //                 "clQReqId": "",
+        //                 "cnvtPx": "2932.40104429",
+        //                 "origRfqSz": "30",
+        //                 "quoteCcy": "USDT",
+        //                 "quoteId": "quoterETH-USDT16461885104612381",
+        //                 "quoteSz": "30",
+        //                 "quoteTime": "1646188510461",
+        //                 "rfqSz": "30",
+        //                 "rfqSzCcy": "USDT",
+        //                 "side": "buy",
+        //                 "ttlMs": "10000"
+        //             }
+        //         ],
+        //         "msg": ""
+        //     }
+        //
+        const data = this.safeList (response, 'data', []);
+        const result = this.safeDict (data, 0, {});
+        const fromCurrencyId = this.safeString (result, 'baseCcy', fromCode);
+        const fromCurrency = this.currency (fromCurrencyId);
+        const toCurrencyId = this.safeString (result, 'quoteCcy', toCode);
+        const toCurrency = this.currency (toCurrencyId);
+        return this.parseConversion (result, fromCurrency, toCurrency);
+    }
+
+    parseConversion (conversion, fromCurrency: Currency = undefined, toCurrency: Currency = undefined): Conversion {
+        //
+        // fetchConvertQuote
+        //
+        //     {
+        //         "baseCcy": "ETH",
+        //         "baseSz": "0.01023052",
+        //         "clQReqId": "",
+        //         "cnvtPx": "2932.40104429",
+        //         "origRfqSz": "30",
+        //         "quoteCcy": "USDT",
+        //         "quoteId": "quoterETH-USDT16461885104612381",
+        //         "quoteSz": "30",
+        //         "quoteTime": "1646188510461",
+        //         "rfqSz": "30",
+        //         "rfqSzCcy": "USDT",
+        //         "side": "buy",
+        //         "ttlMs": "10000"
+        //     }
+        //
+        const timestamp = this.safeInteger (conversion, 'quoteTime');
+        const fromCoin = this.safeString (conversion, 'baseCcy');
+        const fromCode = this.safeCurrencyCode (fromCoin, fromCurrency);
+        const to = this.safeString (conversion, 'quoteCcy');
+        const toCode = this.safeCurrencyCode (to, toCurrency);
+        return {
+            'info': conversion,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'id': this.safeString (conversion, 'clQReqId'),
+            'fromCurrency': fromCode,
+            'fromAmount': this.safeNumber (conversion, 'baseSz'),
+            'toCurrency': toCode,
+            'toAmount': this.safeNumber (conversion, 'quoteSz'),
+            'price': this.safeNumber (conversion, 'cnvtPx'),
+            'fee': undefined,
+        } as Conversion;
+    }
+
+    async fetchConvertCurrencies (params = {}): Promise<Currencies> {
+        /**
+         * @method
+         * @name okx#fetchConvertCurrencies
+         * @description fetches all available currencies that can be converted
+         * @see https://www.okx.com/docs-v5/en/#funding-account-rest-api-get-convert-currencies
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an associative dictionary of currencies
+         */
+        await this.loadMarkets ();
+        const response = await this.privateGetAssetConvertCurrencies (params);
+        //
+        //     {
+        //         "code": "0",
+        //         "data": [
+        //             {
+        //                 "ccy": "BTC",
+        //                 "max": "",
+        //                 "min": ""
+        //             },
+        //         ],
+        //         "msg": ""
+        //     }
+        //
+        const result = {};
+        const data = this.safeList (response, 'data', []);
+        for (let i = 0; i < data.length; i++) {
+            const entry = data[i];
+            const id = this.safeString (entry, 'ccy');
+            const code = this.safeCurrencyCode (id);
+            result[code] = {
+                'info': entry,
+                'id': id,
+                'code': code,
+                'networks': undefined,
+                'type': undefined,
+                'name': undefined,
+                'active': undefined,
+                'deposit': undefined,
+                'withdraw': undefined,
+                'fee': undefined,
+                'precision': undefined,
+                'limits': {
+                    'amount': {
+                        'min': this.safeNumber (entry, 'min'),
+                        'max': this.safeNumber (entry, 'max'),
+                    },
+                    'withdraw': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'deposit': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
+                'created': undefined,
+            };
+        }
+        return result;
+    }
+
     handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (!response) {
             return undefined; // fallback to default error handler
@@ -7649,7 +7805,7 @@ export default class okx extends Exchange {
         const code = this.safeString (response, 'code');
         if ((code !== '0') && (code !== '2')) { // 2 means that bulk operation partially succeeded
             const feedback = this.id + ' ' + body;
-            const data = this.safeValue (response, 'data', []);
+            const data = this.safeList (response, 'data', []);
             for (let i = 0; i < data.length; i++) {
                 const error = data[i];
                 const errorCode = this.safeString (error, 'sCode');

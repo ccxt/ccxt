@@ -39,7 +39,7 @@ use BN\BN;
 use Sop\ASN1\Type\UnspecifiedType;
 use Exception;
 
-$version = '4.2.90';
+$version = '4.2.98';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -58,7 +58,7 @@ const PAD_WITH_ZERO = 6;
 
 class Exchange {
 
-    const VERSION = '4.2.90';
+    const VERSION = '4.2.98';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -1265,7 +1265,7 @@ class Exchange {
             $signature = \base64_decode(static::rsa($token, $secret, $algorithm));
         } else if ($algoType === 'ES') {
             $signed = static::ecdsa($token, $secret, 'p256', $algorithm);
-            $signature = hex2bin($signed['r'] . $signed['s']);
+            $signature = hex2bin(str_pad($signed['r'], 64, '0', STR_PAD_LEFT) . str_pad($signed['s'], 64, '0', STR_PAD_LEFT));
         } else {
             $signature = static::hmac($token, $secret, $algorithm, 'binary');
         }
@@ -1699,9 +1699,6 @@ class Exchange {
 
     public function __wakeup() {
         $this->curl = curl_init();
-        if ($this->api) {
-            $this->define_rest_api($this->api, 'request');
-        }
     }
 
     public function __destruct() {
@@ -2907,7 +2904,7 @@ class Exchange {
     public function parse_to_int($number) {
         // Solve Common intvalmisuse ex => intval((since / (string) 1000))
         // using a $number which is not valid in ts
-        $stringifiedNumber = (string) $number;
+        $stringifiedNumber = $this->number_to_string($number);
         $convertedNumber = floatval($stringifiedNumber);
         return intval($convertedNumber);
     }
@@ -3996,6 +3993,17 @@ class Exchange {
         return $result;
     }
 
+    public function markets_for_symbols(?array $symbols = null) {
+        if ($symbols === null) {
+            return $symbols;
+        }
+        $result = array();
+        for ($i = 0; $i < count($symbols); $i++) {
+            $result[] = $this->market ($symbols[$i]);
+        }
+        return $result;
+    }
+
     public function market_symbols(?array $symbols = null, ?string $type = null, $allowEmpty = true, $sameTypeOnly = false, $sameSubTypeOnly = false) {
         if ($symbols === null) {
             if (!$allowEmpty) {
@@ -4270,14 +4278,33 @@ class Exchange {
         // $marketIdKey should only be null when $response is a dictionary
         $symbols = $this->market_symbols($symbols);
         $tiers = array();
-        for ($i = 0; $i < count($response); $i++) {
-            $item = $response[$i];
-            $id = $this->safe_string($item, $marketIdKey);
-            $market = $this->safe_market($id, null, null, 'swap');
-            $symbol = $market['symbol'];
-            $contract = $this->safe_bool($market, 'contract', false);
-            if ($contract && (($symbols === null) || $this->in_array($symbol, $symbols))) {
-                $tiers[$symbol] = $this->parse_market_leverage_tiers($item, $market);
+        $symbolsLength = 0;
+        if ($symbols !== null) {
+            $symbolsLength = count($symbols);
+        }
+        $noSymbols = ($symbols === null) || ($symbolsLength === 0);
+        if (gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response))) {
+            for ($i = 0; $i < count($response); $i++) {
+                $item = $response[$i];
+                $id = $this->safe_string($item, $marketIdKey);
+                $market = $this->safe_market($id, null, null, 'swap');
+                $symbol = $market['symbol'];
+                $contract = $this->safe_bool($market, 'contract', false);
+                if ($contract && ($noSymbols || $this->in_array($symbol, $symbols))) {
+                    $tiers[$symbol] = $this->parse_market_leverage_tiers($item, $market);
+                }
+            }
+        } else {
+            $keys = is_array($response) ? array_keys($response) : array();
+            for ($i = 0; $i < count($keys); $i++) {
+                $marketId = $keys[$i];
+                $item = $response[$marketId];
+                $market = $this->safe_market($marketId, null, null, 'swap');
+                $symbol = $market['symbol'];
+                $contract = $this->safe_bool($market, 'contract', false);
+                if ($contract && ($noSymbols || $this->in_array($symbol, $symbols))) {
+                    $tiers[$symbol] = $this->parse_market_leverage_tiers($item, $market);
+                }
             }
         }
         return $tiers;
@@ -4902,11 +4929,24 @@ class Exchange {
         return $result;
     }
 
-    public function handle_market_type_and_params(string $methodName, ?array $market = null, $params = array ()) {
+    public function handle_market_type_and_params(string $methodName, ?array $market = null, $params = array (), $defaultValue = null) {
+        /**
+         * @ignore
+         * @param $methodName the method calling handleMarketTypeAndParams
+         * @param {Market} $market
+         * @param {array} $params
+         * @param {string} [$params->type] $type assigned by user
+         * @param {string} [$params->defaultType] same.type
+         * @param {string} [$defaultValue] assigned programatically in the method calling handleMarketTypeAndParams
+         * @return array([string, object]) the $market $type and $params with $type and $defaultType omitted
+         */
         $defaultType = $this->safe_string_2($this->options, 'defaultType', 'type', 'spot');
+        if ($defaultValue === null) {  // $defaultValue takes precendence over exchange wide $defaultType
+            $defaultValue = $defaultType;
+        }
         $methodOptions = $this->safe_dict($this->options, $methodName);
-        $methodType = $defaultType;
-        if ($methodOptions !== null) {
+        $methodType = $defaultValue;
+        if ($methodOptions !== null) {  // user defined $methodType takes precedence over $defaultValue
             if (gettype($methodOptions) === 'string') {
                 $methodType = $methodOptions;
             } else {
@@ -5407,6 +5447,10 @@ class Exchange {
         throw new NotSupported($this->id . ' fetchOption() is not supported yet');
     }
 
+    public function fetch_convert_quote(string $fromCode, string $toCode, ?float $amount = null, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchConvertQuote() is not supported yet');
+    }
+
     public function fetch_deposits_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch history of deposits and withdrawals
@@ -5494,13 +5538,6 @@ class Exchange {
 
     public function common_currency_code(string $code) {
         if (!$this->substituteCommonCurrencyCodes) {
-            return $code;
-        }
-        // if the provided $code already $exists value in $commonCurrencies dict, then we should not again transform it
-        // more details at => https://github.com/ccxt/ccxt/issues/21112#issuecomment-2031293691
-        $commonCurrencies = is_array($this->commonCurrencies) ? array_values($this->commonCurrencies) : array();
-        $exists = $this->in_array($code, $commonCurrencies);
-        if ($exists) {
             return $code;
         }
         return $this->safe_string($this->commonCurrencies, $code, $code);
@@ -6003,6 +6040,10 @@ class Exchange {
         return $this->safe_dict($fees, $symbol);
     }
 
+    public function fetch_convert_currencies($params = array ()) {
+        throw new NotSupported($this->id . ' fetchConvertCurrencies() is not supported yet');
+    }
+
     public function parse_open_interest($interest, ?array $market = null) {
         throw new NotSupported($this->id . ' parseOpenInterest () is not supported yet');
     }
@@ -6178,7 +6219,6 @@ class Exchange {
          * @return {array} objects with withdraw and deposit fees, indexed by $currency $codes
          */
         $depositWithdrawFees = array();
-        $codes = $this->marketCodes ($codes);
         $isArray = gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response));
         $responseKeys = $response;
         if (!$isArray) {
@@ -6706,7 +6746,11 @@ class Exchange {
     }
 
     public function parse_leverage($leverage, ?array $market = null) {
-        throw new NotSupported($this->id . ' parseLeverage() is not supported yet');
+        throw new NotSupported($this->id . ' parseLeverage () is not supported yet');
+    }
+
+    public function parse_conversion($conversion, ?array $fromCurrency = null, ?array $toCurrency = null) {
+        throw new NotSupported($this->id . ' parseConversion () is not supported yet');
     }
 
     public function convert_expire_date(string $date) {
@@ -6754,7 +6798,7 @@ class Exchange {
     }
 
     public function convert_market_id_expire_date(string $date) {
-        // parse 19JAN24 to 240119
+        // parse 03JAN24 to 240103
         $monthMappping = array(
             'JAN' => '01',
             'FEB' => '02',
@@ -6769,6 +6813,10 @@ class Exchange {
             'NOV' => '11',
             'DEC' => '12',
         );
+        // if exchange omits first zero and provides i.e. '3JAN24' instead of '03JAN24'
+        if (strlen($date) === 6) {
+            $date = '0' . $date;
+        }
         $year = mb_substr($date, 0, 2 - 0);
         $monthName = mb_substr($date, 2, 5 - 2);
         $month = $this->safe_string($monthMappping, $monthName);

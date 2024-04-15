@@ -416,6 +416,11 @@ public partial class coinbase : Exchange
         return await this.callAsync ("v3PrivatePostBrokerageIntxAllocate",parameters);
     }
 
+    public async Task<object> v3PrivatePostBrokerageOrdersClosePosition (object parameters = null)
+    {
+        return await this.callAsync ("v3PrivatePostBrokerageOrdersClosePosition",parameters);
+    }
+
     public async Task<object> v3PrivatePutBrokeragePortfoliosPortfolioUuid (object parameters = null)
     {
         return await this.callAsync ("v3PrivatePutBrokeragePortfoliosPortfolioUuid",parameters);

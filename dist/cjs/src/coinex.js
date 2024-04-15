@@ -1088,8 +1088,8 @@ class coinex extends coinex$1 {
          * @method
          * @name coinex#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot001_market004_market_depth
-         * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http010_market_depth
+         * @see https://docs.coinex.com/api/v2/spot/market/http/list-market-depth
+         * @see https://docs.coinex.com/api/v2/futures/market/http/list-market-depth
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1101,65 +1101,71 @@ class coinex extends coinex$1 {
             limit = 20; // default
         }
         const request = {
-            'market': this.marketId(symbol),
-            'merge': '0',
-            'limit': limit.toString(),
+            'market': market['id'],
+            'limit': limit,
+            'interval': '0',
         };
         let response = undefined;
         if (market['swap']) {
-            response = await this.v1PerpetualPublicGetMarketDepth(this.extend(request, params));
+            response = await this.v2PublicGetFuturesDepth(this.extend(request, params));
+            //
+            //     {
+            //         "code": 0,
+            //         "data": {
+            //             "depth": {
+            //                 "asks": [
+            //                     ["70851.94", "0.2119"],
+            //                     ["70851.95", "0.0004"],
+            //                     ["70851.96", "0.0004"]
+            //                 ],
+            //                 "bids": [
+            //                     ["70851.93", "1.0314"],
+            //                     ["70850.93", "0.0021"],
+            //                     ["70850.42", "0.0306"]
+            //                 ],
+            //                 "checksum": 2956436260,
+            //                 "last": "70851.94",
+            //                 "updated_at": 1712824003252
+            //             },
+            //             "is_full": true,
+            //             "market": "BTCUSDT"
+            //         },
+            //         "message": "OK"
+            //     }
+            //
         }
         else {
-            response = await this.v1PublicGetMarketDepth(this.extend(request, params));
+            response = await this.v2PublicGetSpotDepth(this.extend(request, params));
+            //
+            //     {
+            //         "code": 0,
+            //         "data": {
+            //             "depth": {
+            //                 "asks": [
+            //                     ["70875.31", "0.28670282"],
+            //                     ["70875.32", "0.31008114"],
+            //                     ["70875.42", "0.05876653"]
+            //                 ],
+            //                 "bids": [
+            //                     ["70855.3", "0.00632222"],
+            //                     ["70855.29", "0.36216834"],
+            //                     ["70855.17", "0.10166802"]
+            //                 ],
+            //                 "checksum": 2313816665,
+            //                 "last": "70857.19",
+            //                 "updated_at": 1712823790987
+            //             },
+            //             "is_full": true,
+            //             "market": "BTCUSDT"
+            //         },
+            //         "message": "OK"
+            //     }
+            //
         }
-        //
-        // Spot
-        //
-        //     {
-        //         "code": 0,
-        //         "data": {
-        //             "asks": [
-        //                 ["41056.33", "0.31727613"],
-        //                 ["41056.34", "1.05657294"],
-        //                 ["41056.35", "0.02346648"]
-        //             ],
-        //             "bids": [
-        //                 ["41050.61", "0.40618608"],
-        //                 ["41046.98", "0.13800000"],
-        //                 ["41046.56", "0.22579234"]
-        //             ],
-        //             "last": "41050.61",
-        //             "time": 1650573220346
-        //         },
-        //         "message": "OK"
-        //     }
-        //
-        // Swap
-        //
-        //     {
-        //         "code": 0,
-        //         "data": {
-        //             "asks": [
-        //                 ["40620.90", "0.0384"],
-        //                 ["40625.50", "0.0219"],
-        //                 ["40625.90", "0.3506"]
-        //             ],
-        //             "bids": [
-        //                 ["40620.89", "19.6861"],
-        //                 ["40620.80", "0.0012"],
-        //                 ["40619.87", "0.0365"]
-        //             ],
-        //             "last": "40620.89",
-        //             "time": 1650587672406,
-        //             "sign_price": "40619.32",
-        //             "index_price": "40609.93"
-        //         },
-        //         "message": "OK"
-        //     }
-        //
-        const result = this.safeValue(response, 'data', {});
-        const timestamp = this.safeInteger(result, 'time');
-        return this.parseOrderBook(result, symbol, timestamp);
+        const data = this.safeDict(response, 'data', {});
+        const depth = this.safeDict(data, 'depth', {});
+        const timestamp = this.safeInteger(depth, 'updated_at');
+        return this.parseOrderBook(depth, symbol, timestamp);
     }
     parseTrade(trade, market = undefined) {
         //
@@ -4124,36 +4130,6 @@ class coinex extends coinex$1 {
         //
         const data = this.safeValue(response, 'data', {});
         return this.parseLeverageTiers(data, symbols, undefined);
-    }
-    parseLeverageTiers(response, symbols = undefined, marketIdKey = undefined) {
-        //
-        //     {
-        //         "BTCUSD": [
-        //             ["500001", "100", "0.005"],
-        //             ["1000001", "50", "0.01"],
-        //             ["2000001", "30", "0.015"],
-        //             ["5000001", "20", "0.02"],
-        //             ["10000001", "15", "0.025"],
-        //             ["20000001", "10", "0.03"]
-        //         ],
-        //         ...
-        //     }
-        //
-        const tiers = {};
-        const marketIds = Object.keys(response);
-        for (let i = 0; i < marketIds.length; i++) {
-            const marketId = marketIds[i];
-            const market = this.safeMarket(marketId, undefined, undefined, 'spot');
-            const symbol = this.safeString(market, 'symbol');
-            let symbolsLength = 0;
-            if (symbols !== undefined) {
-                symbolsLength = symbols.length;
-            }
-            if (symbol !== undefined && (symbolsLength === 0 || this.inArray(symbols, symbol))) {
-                tiers[symbol] = this.parseMarketLeverageTiers(response[marketId], market);
-            }
-        }
-        return tiers;
     }
     parseMarketLeverageTiers(item, market = undefined) {
         const tiers = [];

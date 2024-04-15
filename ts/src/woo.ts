@@ -6,7 +6,7 @@ import { AuthenticationError, RateLimitExceeded, BadRequest, ExchangeError, Inva
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { TransferEntry, Balances, Bool, Currency, FundingRateHistory, Int, Market, MarketType, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Trade, Transaction, Leverage, Account, Currencies, TradingFees } from './base/types.js';
+import type { TransferEntry, Balances, Bool, Currency, FundingRateHistory, Int, Market, MarketType, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Trade, Transaction, Leverage, Account, Currencies, TradingFees, Conversion } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -59,6 +59,8 @@ export default class woo extends Exchange {
                 'fetchCanceledOrders': false,
                 'fetchClosedOrder': false,
                 'fetchClosedOrders': true,
+                'fetchConvertCurrencies': true,
+                'fetchConvertQuote': true,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
@@ -3016,6 +3018,146 @@ export default class woo extends Exchange {
             'stopLossPrice': undefined,
             'takeProfitPrice': undefined,
         });
+    }
+
+    async fetchConvertQuote (fromCode: string, toCode: string, amount: Num = undefined, params = {}): Promise<Conversion> {
+        /**
+         * @method
+         * @name woo#fetchConvertQuote
+         * @description fetch a quote for converting from one currency to another
+         * @see https://docs.woo.org/#get-quote-rfq
+         * @param {string} fromCode the currency that you want to sell and convert from
+         * @param {string} toCode the currency that you want to buy and convert into
+         * @param {float} [amount] how much you want to trade in units of the from currency
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+         */
+        await this.loadMarkets ();
+        const request = {
+            'sellToken': fromCode.toUpperCase (),
+            'buyToken': toCode.toUpperCase (),
+            'sellQuantity': this.numberToString (amount),
+        };
+        const response = await this.v3PrivateGetConvertRfq (this.extend (request, params));
+        //
+        //     {
+        //         "success": true,
+        //         "data": {
+        //             "quoteId": 123123123,
+        //             "counterPartyId": "",
+        //             "sellToken": "ETH",
+        //             "sellQuantity": "0.0445",
+        //             "buyToken": "USDT",
+        //             "buyQuantity": "33.45",
+        //             "buyPrice": "6.77",
+        //             "expireTimestamp": 1659084466000,
+        //             "message": 1659084466000
+        //         }
+        //     }
+        //
+        const data = this.safeDict (response, 'data', {});
+        const fromCurrencyId = this.safeString (data, 'sellToken', fromCode);
+        const fromCurrency = this.currency (fromCurrencyId);
+        const toCurrencyId = this.safeString (data, 'buyToken', toCode);
+        const toCurrency = this.currency (toCurrencyId);
+        return this.parseConversion (data, fromCurrency, toCurrency);
+    }
+
+    parseConversion (conversion, fromCurrency: Currency = undefined, toCurrency: Currency = undefined): Conversion {
+        //
+        // fetchConvertQuote
+        //
+        //     {
+        //         "quoteId": 123123123,
+        //         "counterPartyId": "",
+        //         "sellToken": "ETH",
+        //         "sellQuantity": "0.0445",
+        //         "buyToken": "USDT",
+        //         "buyQuantity": "33.45",
+        //         "buyPrice": "6.77",
+        //         "expireTimestamp": 1659084466000,
+        //         "message": 1659084466000
+        //     }
+        //
+        const timestamp = this.safeInteger (conversion, 'expireTimestamp');
+        const fromCoin = this.safeString (conversion, 'sellToken');
+        const fromCode = this.safeCurrencyCode (fromCoin, fromCurrency);
+        const to = this.safeString (conversion, 'buyToken');
+        const toCode = this.safeCurrencyCode (to, toCurrency);
+        return {
+            'info': conversion,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'id': this.safeString (conversion, 'quoteId'),
+            'fromCurrency': fromCode,
+            'fromAmount': this.safeNumber (conversion, 'sellQuantity'),
+            'toCurrency': toCode,
+            'toAmount': this.safeNumber (conversion, 'buyQuantity'),
+            'price': this.safeNumber (conversion, 'buyPrice'),
+            'fee': undefined,
+        } as Conversion;
+    }
+
+    async fetchConvertCurrencies (params = {}): Promise<Currencies> {
+        /**
+         * @method
+         * @name woo#fetchConvertCurrencies
+         * @description fetches all available currencies that can be converted
+         * @see https://docs.woo.org/#get-quote-asset-info
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an associative dictionary of currencies
+         */
+        await this.loadMarkets ();
+        const response = await this.v3PrivateGetConvertAssetInfo (params);
+        //
+        //     {
+        //         "success": true,
+        //         "rows": [
+        //             {
+        //                 "token": "BTC",
+        //                 "tick": 0.0001,
+        //                 "createdTime": "1575014248.99", // Unix epoch time in seconds
+        //                 "updatedTime": "1575014248.99"  // Unix epoch time in seconds
+        //             },
+        //         ]
+        //     }
+        //
+        const result = {};
+        const data = this.safeList (response, 'rows', []);
+        for (let i = 0; i < data.length; i++) {
+            const entry = data[i];
+            const id = this.safeString (entry, 'token');
+            const code = this.safeCurrencyCode (id);
+            result[code] = {
+                'info': entry,
+                'id': id,
+                'code': code,
+                'networks': undefined,
+                'type': undefined,
+                'name': undefined,
+                'active': undefined,
+                'deposit': undefined,
+                'withdraw': undefined,
+                'fee': undefined,
+                'precision': this.safeNumber (entry, 'tick'),
+                'limits': {
+                    'amount': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'withdraw': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'deposit': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
+                'created': this.safeTimestamp (entry, 'createdTime'),
+            };
+        }
+        return result;
     }
 
     defaultNetworkCodeForCurrency (code) { // TODO: can be moved into base as an unified method

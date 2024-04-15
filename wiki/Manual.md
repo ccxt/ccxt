@@ -1722,6 +1722,7 @@ The unified ccxt API is a subset of methods common among the exchanges. It curre
 - `fetchIsolatedBorrowRates (params)`
 - `fetchOption (symbol, params)`
 - `fetchOptionChain (code, params)`
+- `fetchConvertQuote (fromCode, toCode, amount, params)`
 - ...
 
 ```text
@@ -3399,6 +3400,7 @@ Returns
 - [Leverage](#leverage)
 - [Positions](#positions)
 - [Funding History](#funding-history)
+- [Conversion](#conversion)
 
 In order to be able to access your user account, perform algorithmic trading by placing market and limit orders, query balances, deposit and withdraw funds and so on, you need to obtain your API keys for authentication from each exchange you want to trade with. They usually have it available on a separate tab or page within your user account settings. API keys are exchange-specific and cannnot be interchanged under any circumstances.
 
@@ -6297,6 +6299,44 @@ Returns
     datetime: "2022-03-08T16:00:00.000Z",
     id: "1520286109858180",
     amount: -0.027722
+}
+```
+
+
+### Conversion
+
+The `fetchConvertQuote` method can be used to retrieve a quote that can be used for a conversion trade.
+The quote usually needs to be used within a certain timeframe specified by the exchange for the convert trade to execute successfully.
+
+```javascript
+fetchConvertQuote (fromCode, toCode, amount = undefined, params = {})
+```
+
+Parameters
+
+- **fromCode** (String) *required* The unified currency code for the currency to convert from (e.g. `"USDT"`)
+- **toCode** (String) *required* The unified currency code for the currency to be converted into (e.g. `"USDC"`)
+- **amount** (Float) Amount to convert in units of the from currency (e.g. `20.0`)
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"toAmount": 2.9722}`)
+
+Returns
+
+- A [conversion structure](#conversion-structure)
+
+#### Conversion Structure
+
+```javascript
+{
+    info: { ... },
+    timestamp: 1646954920000,
+    datetime: "2022-03-08T16:00:00.000Z",
+    id: "1520286109858180",
+    fromCurrency: "USDT",
+    fromAmount: 3.0,
+    toCurrency: "USDC",
+    toAmount: 2.9722,
+    price: 0.97,
+    fee: 0.0
 }
 ```
 

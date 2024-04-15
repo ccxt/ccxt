@@ -552,8 +552,8 @@ export default class bitmex extends bitmexRest {
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
             const market = this.safeMarket (marketId);
-            const messageHash = table + ':' + marketId;
             const symbol = market['symbol'];
+            const messageHash = table + ':' + symbol;
             const trades = this.parseTrades (dataByMarketIds[marketId], market);
             let stored = this.safeValue (this.trades, symbol);
             if (stored === undefined) {
@@ -579,23 +579,7 @@ export default class bitmex extends bitmexRest {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        symbol = market['symbol'];
-        const table = 'trade';
-        const messageHash = table + ':' + market['id'];
-        const url = this.urls['api']['ws'];
-        const request = {
-            'op': 'subscribe',
-            'args': [
-                messageHash,
-            ],
-        };
-        const trades = await this.watch (url, messageHash, this.extend (request, params), messageHash);
-        if (this.newUpdates) {
-            limit = trades.getLimit (symbol, limit);
-        }
-        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+        return await this.watchTradesForSymbols ([ symbol ], since, limit, params);
     }
 
     async authenticate (params = {}) {
@@ -1233,6 +1217,44 @@ export default class bitmex extends bitmexRest {
         };
         const orderbook = await this.watchMultiple (url, messageHashes, this.deepExtend (request, params), topics);
         return orderbook.limit ();
+    }
+
+    async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        /**
+         * @method
+         * @name bitmex#watchTradesForSymbols
+         * @description get the list of most recent trades for a list of symbols
+         * @param {string[]} symbols unified symbol of the market to fetch trades for
+         * @param {int} [since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [limit] the maximum amount of trades to fetch
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+         */
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols, undefined, false);
+        const table = 'trade';
+        const topics = [];
+        const messageHashes = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            const market = this.market (symbol);
+            const topic = table + ':' + market['id'];
+            topics.push (topic);
+            const messageHash = table + ':' + symbol;
+            messageHashes.push (messageHash);
+        }
+        const url = this.urls['api']['ws'];
+        const request = {
+            'op': 'subscribe',
+            'args': topics,
+        };
+        const trades = await this.watchMultiple (url, messageHashes, this.deepExtend (request, params), topics);
+        if (this.newUpdates) {
+            const first = this.safeValue (trades, 0);
+            const tradeSymbol = this.safeString (first, 'symbol');
+            limit = trades.getLimit (tradeSymbol, limit);
+        }
+        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
     async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
