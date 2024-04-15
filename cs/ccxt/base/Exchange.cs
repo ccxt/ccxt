@@ -27,6 +27,11 @@ public partial class Exchange
         this.afterConstruct();
     }
 
+    ThreadLocal<HttpClient> clientPerThread = new ThreadLocal<HttpClient>(() =>
+    {
+        var client = new HttpClient();
+        return client;
+    });
     private void initHttpClient()
     {
         if (this.httpProxy != null && this.httpProxy.ToString().Length > 0)
@@ -41,7 +46,7 @@ public partial class Exchange
         }
         else
         {
-            this.httpClient = new HttpClient();
+            this.httpClient = clientPerThread.Value;
         }
     }
 
@@ -134,8 +139,8 @@ public partial class Exchange
             throw Exception;
         }
     }
-
-    private static object httpDefaultHeaderLock = new object();
+   
+    private static readonly object httpDefaultHeaderLock = new object();
     public async virtual Task<object> fetch(object url2, object method2 = null, object headers2 = null, object body2 = null)
     {
 
@@ -156,6 +161,7 @@ public partial class Exchange
         // to do: add all proxies support
         this.checkProxySettings();
         // add headers
+        var httpClient = this.httpClient; // new HttpClient(); // clientPerThread.Value;
         lock (httpDefaultHeaderLock)
         {
             httpClient.DefaultRequestHeaders.Accept.Clear();
@@ -201,7 +207,7 @@ public partial class Exchange
 
             if (method == "GET")
             {
-                response = await this.httpClient.GetAsync(url);
+                response = await httpClient.GetAsync(url);
                 result = await response.Content.ReadAsStringAsync();
             }
             else
@@ -215,15 +221,15 @@ public partial class Exchange
                 var stringContent = body != null ? new StringContent(body, Encoding.UTF8, contentTypeHeader) : null;
                 if (method == "POST")
                 {
-                    response = await this.httpClient.PostAsync(url, stringContent);
+                    response = await httpClient.PostAsync(url, stringContent);
                 }
                 else if (method == "DELETE")
                 {
-                    response = await this.httpClient.DeleteAsync(url);
+                    response = await httpClient.DeleteAsync(url);
                 }
                 else if (method == "PUT")
                 {
-                    response = await this.httpClient.PutAsync(url, stringContent);
+                    response = await httpClient.PutAsync(url, stringContent);
                 }
                 else if (method == "PATCH")
                 {
@@ -253,7 +259,7 @@ public partial class Exchange
         }
         lock (httpDefaultHeaderLock)
         {
-            this.httpClient.DefaultRequestHeaders.Clear();
+            httpClient.DefaultRequestHeaders.Clear();
         }          
 
         var responseHeaders = response?.Headers.ToDictionary(x => x, y => y.Value.First());
