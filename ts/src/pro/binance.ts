@@ -315,7 +315,7 @@ export default class binance extends binanceRest {
         }
         const marketType = this.getMarketType ('fetchOrderBookWs', market, params);
         if (marketType !== 'future') {
-            throw new BadRequest (this.id + ' fetchOrderBookWs only supports future markets');
+            throw new BadRequest (this.id + ' fetchOrderBookWs only supports swap markets');
         }
         const url = this.urls['api']['ws']['ws-api'][marketType];
         const requestId = this.requestId (url);
@@ -968,7 +968,7 @@ export default class binance extends binanceRest {
         };
         const type = this.getMarketType ('fetchTickerWs', market, params);
         if (type !== 'future') {
-            throw new BadRequest (this.id + ' fetchTickerWs only supports future markets');
+            throw new BadRequest (this.id + ' fetchTickerWs only supports swap markets');
         }
         const url = this.urls['api']['ws']['ws-api'][type];
         const requestId = this.requestId (url);
@@ -1012,7 +1012,7 @@ export default class binance extends binanceRest {
         const market = this.market (symbol);
         const marketType = this.getMarketType ('fetchOHLCVWs', market, params);
         if (marketType !== 'spot' && marketType !== 'future') {
-            throw new BadRequest (this.id + ' fetchOHLCVWs only supports spot or future markets');
+            throw new BadRequest (this.id + ' fetchOHLCVWs only supports spot or swap markets');
         }
         const url = this.urls['api']['ws']['ws-api'][marketType];
         const requestId = this.requestId (url);
@@ -1650,7 +1650,7 @@ export default class binance extends binanceRest {
         await this.loadMarkets ();
         const type = this.getMarketType ('fetchBalanceWs', undefined, params);
         if (type !== 'spot' && type !== 'future') {
-            throw new BadRequest (this.id + ' fetchBalanceWs only supports spot or future markets');
+            throw new BadRequest (this.id + ' fetchBalanceWs only supports spot or swap markets');
         }
         const url = this.urls['api']['ws']['ws-api'][type];
         const requestId = this.requestId (url);
@@ -2011,7 +2011,7 @@ export default class binance extends binanceRest {
         const market = this.market (symbol);
         const marketType = this.getMarketType ('createOrderWs', market, params);
         if (marketType !== 'spot' && marketType !== 'future') {
-            throw new BadRequest (this.id + ' createOrderWs only supports spot or future markets');
+            throw new BadRequest (this.id + ' createOrderWs only supports spot or swap markets');
         }
         const url = this.urls['api']['ws']['ws-api'][marketType];
         const requestId = this.requestId (url);
@@ -2160,7 +2160,7 @@ export default class binance extends binanceRest {
         const market = this.market (symbol);
         const marketType = this.getMarketType ('editOrderWs', market, params);
         if (marketType !== 'spot' && marketType !== 'future') {
-            throw new BadRequest (this.id + ' editOrderWs only supports spot or future markets');
+            throw new BadRequest (this.id + ' editOrderWs only supports spot or swap markets');
         }
         const url = this.urls['api']['ws']['ws-api'][marketType];
         const requestId = this.requestId (url);
@@ -2356,7 +2356,7 @@ export default class binance extends binanceRest {
         const market = this.market (symbol);
         const type = this.getMarketType ('cancelAllOrdersWs', market, params);
         if (type !== 'spot' && type !== 'future') {
-            throw new BadRequest (this.id + ' cancelAllOrdersWs only supports spot or future markets');
+            throw new BadRequest (this.id + ' cancelAllOrdersWs only supports spot or swap markets');
         }
         const url = this.urls['api']['ws']['ws-api'][type];
         const requestId = this.requestId (url);
@@ -2396,7 +2396,7 @@ export default class binance extends binanceRest {
         const market = this.market (symbol);
         const type = this.getMarketType ('fetchOrderWs', market, params);
         if (type !== 'spot' && type !== 'future') {
-            throw new BadRequest (this.id + ' fetchOrderWs only supports spot or future markets');
+            throw new BadRequest (this.id + ' fetchOrderWs only supports spot or swap markets');
         }
         const url = this.urls['api']['ws']['ws-api'][type];
         const requestId = this.requestId (url);
@@ -2509,7 +2509,7 @@ export default class binance extends binanceRest {
         const market = this.market (symbol);
         const type = this.getMarketType ('fetchOpenOrdersWs', market, params);
         if (type !== 'spot' && type !== 'future') {
-            throw new BadRequest (this.id + ' fetchOpenOrdersWs only supports spot or future markets');
+            throw new BadRequest (this.id + ' fetchOpenOrdersWs only supports spot or swap markets');
         }
         const url = this.urls['api']['ws']['ws-api'][type];
         const requestId = this.requestId (url);
