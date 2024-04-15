@@ -2485,7 +2485,7 @@ export default class Exchange {
         this.createNetworksByIdObject ();
     }
 
-    invalidOrderBookSequenceMessage (symbol:Str, storedNonceOrChecksum, incomingNonceOrChecksum) {
+    invalidOrderBookSequenceMessage (symbol:Str, storedNonceOrChecksum, incomingNonceOrChecksum): string {
         let msg = this.id + ' incoming orderbook data checksum/nonce validation failed. You should either implement your reconnection logic or for temporary cases, set .options["validateOrderBookSequences"] = false';
         const safeSymbol = (symbol === undefined) ? '' : symbol;
         const storedString = (storedNonceOrChecksum === undefined) ? '' : storedNonceOrChecksum.toString ();
