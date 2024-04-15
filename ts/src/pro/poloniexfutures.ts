@@ -881,7 +881,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
             const validate = this.safeBool2 (this.options, 'validateOrderBookSequences', 'checksum', true);
             if (validate) {
                 // todo: client.reject from handleOrderBookMessage properly
-                throw new InvalidNonce (this.id + this.commonStrings['invalidOrderBookSequence']);
+                throw new InvalidNonce (this.invalidOrderBookSequenceMessage (orderbook['symbol'], nonce, sequence));
             }
         }
         const change = this.safeString (delta, 'change');
