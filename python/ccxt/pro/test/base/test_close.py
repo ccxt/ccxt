@@ -57,7 +57,7 @@ async def test_close():
         assert True
     # --------------------------------------------
         await sleep(4)
-    print('Test exchange.close(): Call watch_multiple unhandled futures are canceled')
+    print('Testing exchange.close(): Call watch_multiple unhandled futures are canceled')
     try:
         await gather(close_after(exchange, 4), watch_order_book_for_symbols_loop(exchange))
         assert False, "Expected ExchangeClosedByUser error"
