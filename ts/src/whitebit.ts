@@ -30,7 +30,7 @@ export default class whitebit extends Exchange {
                 'swap': false,
                 'future': false,
                 'option': false,
-                'cancelAllOrders': false,
+                'cancelAllOrders': true,
                 'cancelOrder': true,
                 'cancelOrders': false,
                 'createOrder': true,
@@ -1311,6 +1311,41 @@ export default class whitebit extends Exchange {
             'orderId': parseInt (id),
         };
         return await this.v4PrivatePostOrderCancel (this.extend (request, params));
+    }
+
+    async cancelAllOrders (symbol: Str = undefined, params = {}) {
+        /**
+         * @method
+         * @name whitebit#cancelAllOrders
+         * @description cancel all open orders
+         * @see https://docs.whitebit.com/private/http-trade-v4/#cancel-all-orders
+         * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.type] market type, ['swap', 'spot']
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        let market = undefined;
+        const request = {};
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['market'] = market['id'];
+        }
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('cancelAllOrders', market, params);
+        if ((type === 'spot')) {
+            request['type'] = [
+                'spot'
+            ];
+        } else if ((type === 'swap')) {
+            request['type'] = [
+                'futures'
+            ];
+        } else {
+            throw new NotSupported (this.id + ' cancelAllOrders() does not support ' + type + ' type');
+        }
+        const response = await this.v4PrivatePostOrderCancelAll (this.extend (request, params));
+        return response;
     }
 
     parseBalance (response): Balances {
