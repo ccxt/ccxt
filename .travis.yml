@@ -1,11 +1,44 @@
 jobs:
   include:
     - stage: first_stage
-      env: RUNSTEP=PY_JS_PHP
+      script: ./build.sh 2>&1
+      script: ./build.sh 2>&1
 
-    - stage: second_stage
-      env: RUNSTEP=C_SHARP
-
+    - stage: final_stage
+      script:
+        - git checkout master composer.json
+        - if [ "$RUNSTEP" == "PY_JS_PHP" ] && [ "$TRAVIS_PULL_REQUEST" = "false" ] && [ "$TRAVIS_BRANCH" = "master" ]; then
+            export SHOULD_DEPLOY=false;
+            DEPLOY_OUTPUT=$(env DEPLOY_CACHE=.cache/deploy SECONDS_BEFORE_NEXT_DEPLOY=43200 TRAVIS_COMMIT_MESSAGE="${TRAVIS_COMMIT_MESSAGE}" ./build/deploy.sh) && SHOULD_DEPLOY=true;
+            echo "----------------";
+            echo "${DEPLOY_OUTPUT}";
+            echo "${SHOULD_DEPLOY}";
+            echo "----------------";
+            if $SHOULD_DEPLOY; then
+              echo "Publishing";
+              npm config set git-tag-version=false && NPM_VERSION=$(npm version patch);
+              npm run vss && npm run copy-python-files && npm run buildCSRelease;
+              env COMMIT_MESSAGE=${NPM_VERSION:1} GITHUB_TOKEN=${GITHUB_TOKEN} SHOULD_TAG=${SHOULD_DEPLOY} ./build/push.sh;
+              ./cs/deploy.sh;
+              cd python && env PYPI_TOKEN=${PYPI_TOKEN} ./deploy.sh && cd ..;
+            else
+              echo "Not publishing";
+              env COMMIT_MESSAGE="${TRAVIS_COMMIT_MESSAGE}" GITHUB_TOKEN=${GITHUB_TOKEN} SHOULD_TAG=${SHOULD_DEPLOY} ./build/push.sh;
+            fi;
+          fi
+      after_failure:
+      - sleep 10
+      before_deploy:
+      - echo $SHOULD_DEPLOY
+      deploy:
+      - provider: npm
+        email: igor.kroitor@gmail.com
+        api_key:
+          secure: euGp3OIlxbY+ZqgJYOAE1MH4EyCVIRLxMksHcj+w/V6MEkRchLIUDE68kLdK5ZUFGHnoFQtR1N65i428gvcjy8P/0K0p9maVpZaHuk0Q2GrnIAAe0D6jZu2s2D0JPhWCZ5U4Aiek5ExhTblEYWTwOtpG/JwAa+2/IT+2DvtNf37HBM0tEvI3FLRexTv74vMDH172681UFHz2h0dvfgOzBwCiydsp6eihnV90AetsYT4Y9VpZDjAdmATO1ydLw8SnH2skWssmH8snyDDVOPkdu6mRBHZB6ckSZzyQLiIbn4dlzAt6Zi1/NjSJg4z/+vIK8o8SOHPu3AkCab+E6kBeuCBnphquIa/i3bToxJSa1AScisg+5rQZCsY/L7ey8El/nOvVn7B6xATk7w4Cm/dy5gTyriNqgFoJvDLhlntfPp+7w9GGc7Hi6UL9RWw0CCW9c2I1cyDmNpSv95gspMJAI847ykaHgXl01Cxo2yWGqwxpCR/suqdTySvo3NgqFQrM2aRkPQT+yQlL2hrrqX2l2w7gU+2y9W89WB/75x674RR3fpSID6HGrt52frZDk1mgi6ggHv0ta+hOHQCIhLM7tB/pR9ehF4RGcVjRTEBa0CG2XeXDWDFDjLEzZPmvf6vCL+PDMk91sR6YB+djsaPEwLV6pjWngYSrNdYVe1djdl8=
+        on:
+          condition: $SHOULD_DEPLOY = true
+      after_deploy:
+      - cat ~/.npm/_logs/*-debug.log
 env:
   global:
   # PYPI_TOKEN
@@ -54,5 +87,3 @@ before_install:
 - type -p curl >/dev/null || ( apt update &&  apt install curl -y)
 - curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg && sudo chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null && sudo apt update && sudo apt install gh -y
 
-script:
-- ./build.sh 2>&1
