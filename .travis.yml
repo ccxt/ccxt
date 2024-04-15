@@ -1,7 +1,9 @@
 jobs:
   include:
     - stage: final_stage
-      script:
+      - env:
+        - RUNSTEP=ABC
+      - script:
         - ./build.sh 2>&1
         - git checkout master composer.json
         - if [ "$TRAVIS_PULL_REQUEST" = "false" ] && [ "$TRAVIS_BRANCH" = "master" ]; then
