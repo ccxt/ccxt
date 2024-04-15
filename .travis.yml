@@ -92,3 +92,7 @@ before_install:
 
 script: 
 - ./build.sh 2>&1
+
+# multi-job references:
+# - simpler:  https://docs.travis-ci.com/user/build-stages/; https://docs.travis-ci.com/user/build-stages/define-steps/ ;
+# - complex : https://github.com/travis-ci/travis-build/blob/f3daad7afa95db3005464db42331372cda28d607/.travis.yml + https://app.travis-ci.com/github/travis-ci/travis-build/builds/240296640
