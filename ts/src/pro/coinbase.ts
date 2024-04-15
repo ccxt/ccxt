@@ -101,6 +101,7 @@ export default class coinbase extends coinbaseRest {
                 // we should generate new token
                 const token = this.createAuthToken (seconds);
                 this.options['wsToken'] = token;
+                this.options['wsTokenTimestamp'] = seconds;
             }
             subscribe['jwt'] = this.safeString (this.options, 'wsToken');
         }
