@@ -690,117 +690,129 @@ class deribit extends Exchange {
         /**
          * retrieves data on all markets for deribit
          * @see https://docs.deribit.com/#public-get_currencies
+         * @see https://docs.deribit.com/#public-get_instruments
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing $market data
          */
-        $currenciesResponse = $this->publicGetGetCurrencies ($params);
-        //
-        //     {
-        //         "jsonrpc" => "2.0",
-        //         "result" => array(
-        //             {
-        //                 "withdrawal_priorities" => array(
-        //                     array( value => 0.15, name => "very_low" ),
-        //                     array( value => 1.5, name => "very_high" ),
-        //                 ),
-        //                 "withdrawal_fee" => 0.0005,
-        //                 "min_withdrawal_fee" => 0.0005,
-        //                 "min_confirmations" => 1,
-        //                 "fee_precision" => 4,
-        //                 "currency_long" => "Bitcoin",
-        //                 "currency" => "BTC",
-        //                 "coin_type" => "BITCOIN"
-        //             }
-        //         ),
-        //         "usIn" => 1583761588590479,
-        //         "usOut" => 1583761588590544,
-        //         "usDiff" => 65,
-        //         "testnet" => false
-        //     }
-        //
-        $parsedMarkets = array();
-        $currenciesResult = $this->safe_value($currenciesResponse, 'result', array());
+        $instrumentsResponses = array();
         $result = array();
-        for ($i = 0; $i < count($currenciesResult); $i++) {
-            $currencyId = $this->safe_string($currenciesResult[$i], 'currency');
-            $request = array(
-                'currency' => $currencyId,
-            );
-            $instrumentsResponse = $this->publicGetGetInstruments (array_merge($request, $params));
+        $parsedMarkets = array();
+        $fetchAllMarkets = null;
+        list($fetchAllMarkets, $params) = $this->handle_option_and_params($params, 'fetchMarkets', 'fetchAllMarkets', true);
+        if ($fetchAllMarkets) {
+            $instrumentsResponse = $this->publicGetGetInstruments ($params);
+            $instrumentsResponses[] = $instrumentsResponse;
+        } else {
+            $currenciesResponse = $this->publicGetGetCurrencies ($params);
             //
             //     {
-            //         "jsonrpc":"2.0",
-            //         "result":array(
-            //             array(
-            //                 "tick_size":0.0005,
-            //                 "taker_commission":0.0003,
-            //                 "strike":52000.0,
-            //                 "settlement_period":"month",
-            //                 "settlement_currency":"BTC",
-            //                 "quote_currency":"BTC",
-            //                 "option_type":"put", // put, call
-            //                 "min_trade_amount":0.1,
-            //                 "maker_commission":0.0003,
-            //                 "kind":"option",
-            //                 "is_active":true,
-            //                 "instrument_name":"BTC-24JUN22-52000-P",
-            //                 "expiration_timestamp":1656057600000,
-            //                 "creation_timestamp":1648199543000,
-            //                 "counter_currency":"USD",
-            //                 "contract_size":1.0,
-            //                 "block_trade_commission":0.0003,
-            //                 "base_currency":"BTC"
-            //             ),
-            //             array(
-            //                 "tick_size":0.5,
-            //                 "taker_commission":0.0005,
-            //                 "settlement_period":"month", // month, week
-            //                 "settlement_currency":"BTC",
-            //                 "quote_currency":"USD",
-            //                 "min_trade_amount":10.0,
-            //                 "max_liquidation_commission":0.0075,
-            //                 "max_leverage":50,
-            //                 "maker_commission":0.0,
-            //                 "kind":"future",
-            //                 "is_active":true,
-            //                 "instrument_name":"BTC-27MAY22",
-            //                 "future_type":"reversed",
-            //                 "expiration_timestamp":1653638400000,
-            //                 "creation_timestamp":1648195209000,
-            //                 "counter_currency":"USD",
-            //                 "contract_size":10.0,
-            //                 "block_trade_commission":0.0001,
-            //                 "base_currency":"BTC"
-            //             ),
-            //             array(
-            //                 "tick_size":0.5,
-            //                 "taker_commission":0.0005,
-            //                 "settlement_period":"perpetual",
-            //                 "settlement_currency":"BTC",
-            //                 "quote_currency":"USD",
-            //                 "min_trade_amount":10.0,
-            //                 "max_liquidation_commission":0.0075,
-            //                 "max_leverage":50,
-            //                 "maker_commission":0.0,
-            //                 "kind":"future",
-            //                 "is_active":true,
-            //                 "instrument_name":"BTC-PERPETUAL",
-            //                 "future_type":"reversed",
-            //                 "expiration_timestamp":32503708800000,
-            //                 "creation_timestamp":1534242287000,
-            //                 "counter_currency":"USD",
-            //                 "contract_size":10.0,
-            //                 "block_trade_commission":0.0001,
-            //                 "base_currency":"BTC"
-            //             ),
+            //         "jsonrpc" => "2.0",
+            //         "result" => array(
+            //             {
+            //                 "withdrawal_priorities" => array(
+            //                     array( value => 0.15, name => "very_low" ),
+            //                     array( value => 1.5, name => "very_high" ),
+            //                 ),
+            //                 "withdrawal_fee" => 0.0005,
+            //                 "min_withdrawal_fee" => 0.0005,
+            //                 "min_confirmations" => 1,
+            //                 "fee_precision" => 4,
+            //                 "currency_long" => "Bitcoin",
+            //                 "currency" => "BTC",
+            //                 "coin_type" => "BITCOIN"
+            //             }
             //         ),
-            //         "usIn":1648691472831791,
-            //         "usOut":1648691472831896,
-            //         "usDiff":105,
-            //         "testnet":false
+            //         "usIn" => 1583761588590479,
+            //         "usOut" => 1583761588590544,
+            //         "usDiff" => 65,
+            //         "testnet" => false
             //     }
             //
-            $instrumentsResult = $this->safe_value($instrumentsResponse, 'result', array());
+            $currenciesResult = $this->safe_value($currenciesResponse, 'result', array());
+            for ($i = 0; $i < count($currenciesResult); $i++) {
+                $currencyId = $this->safe_string($currenciesResult[$i], 'currency');
+                $request = array(
+                    'currency' => $currencyId,
+                );
+                $instrumentsResponse = $this->publicGetGetInstruments (array_merge($request, $params));
+                //
+                //     {
+                //         "jsonrpc":"2.0",
+                //         "result":array(
+                //             array(
+                //                 "tick_size":0.0005,
+                //                 "taker_commission":0.0003,
+                //                 "strike":52000.0,
+                //                 "settlement_period":"month",
+                //                 "settlement_currency":"BTC",
+                //                 "quote_currency":"BTC",
+                //                 "option_type":"put", // put, call
+                //                 "min_trade_amount":0.1,
+                //                 "maker_commission":0.0003,
+                //                 "kind":"option",
+                //                 "is_active":true,
+                //                 "instrument_name":"BTC-24JUN22-52000-P",
+                //                 "expiration_timestamp":1656057600000,
+                //                 "creation_timestamp":1648199543000,
+                //                 "counter_currency":"USD",
+                //                 "contract_size":1.0,
+                //                 "block_trade_commission":0.0003,
+                //                 "base_currency":"BTC"
+                //             ),
+                //             array(
+                //                 "tick_size":0.5,
+                //                 "taker_commission":0.0005,
+                //                 "settlement_period":"month", // month, week
+                //                 "settlement_currency":"BTC",
+                //                 "quote_currency":"USD",
+                //                 "min_trade_amount":10.0,
+                //                 "max_liquidation_commission":0.0075,
+                //                 "max_leverage":50,
+                //                 "maker_commission":0.0,
+                //                 "kind":"future",
+                //                 "is_active":true,
+                //                 "instrument_name":"BTC-27MAY22",
+                //                 "future_type":"reversed",
+                //                 "expiration_timestamp":1653638400000,
+                //                 "creation_timestamp":1648195209000,
+                //                 "counter_currency":"USD",
+                //                 "contract_size":10.0,
+                //                 "block_trade_commission":0.0001,
+                //                 "base_currency":"BTC"
+                //             ),
+                //             array(
+                //                 "tick_size":0.5,
+                //                 "taker_commission":0.0005,
+                //                 "settlement_period":"perpetual",
+                //                 "settlement_currency":"BTC",
+                //                 "quote_currency":"USD",
+                //                 "min_trade_amount":10.0,
+                //                 "max_liquidation_commission":0.0075,
+                //                 "max_leverage":50,
+                //                 "maker_commission":0.0,
+                //                 "kind":"future",
+                //                 "is_active":true,
+                //                 "instrument_name":"BTC-PERPETUAL",
+                //                 "future_type":"reversed",
+                //                 "expiration_timestamp":32503708800000,
+                //                 "creation_timestamp":1534242287000,
+                //                 "counter_currency":"USD",
+                //                 "contract_size":10.0,
+                //                 "block_trade_commission":0.0001,
+                //                 "base_currency":"BTC"
+                //             ),
+                //         ),
+                //         "usIn":1648691472831791,
+                //         "usOut":1648691472831896,
+                //         "usDiff":105,
+                //         "testnet":false
+                //     }
+                //
+                $instrumentsResponses[] = $instrumentsResponse;
+            }
+        }
+        for ($i = 0; $i < count($instrumentsResponses); $i++) {
+            $instrumentsResult = $this->safe_value($instrumentsResponses[$i], 'result', array());
             for ($k = 0; $k < count($instrumentsResult); $k++) {
                 $market = $instrumentsResult[$k];
                 $kind = $this->safe_string($market, 'kind');
@@ -1186,13 +1198,18 @@ class deribit extends Exchange {
         /**
          * fetches price $tickers for multiple markets, statistical information calculated over the past 24 hours for each market
          * @see https://docs.deribit.com/#public-get_book_summary_by_currency
-         * @param {string[]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all market $tickers are returned if not assigned
+         * @param {string[]} [$symbols] unified $symbols of the markets to fetch the $ticker for, all market $tickers are returned if not assigned
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->code] *required* the $currency $code to fetch the $tickers for, eg. 'BTC', 'ETH'
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structures~
          */
         $this->load_markets();
         $symbols = $this->market_symbols($symbols);
-        $code = $this->code_from_options('fetchTickers', $params);
+        $code = $this->safe_string_2($params, 'code', 'currency');
+        $params = $this->omit($params, array( 'code' ));
+        if ($code === null) {
+            throw new ArgumentsRequired($this->id . ' fetchTickers requires a currency/code (eg => BTC/ETH/USDT) parameter to fetch $tickers for');
+        }
         $currency = $this->currency($code);
         $request = array(
             'currency' => $currency['id'],
@@ -1228,7 +1245,7 @@ class deribit extends Exchange {
         //         "testnet" => false
         //     }
         //
-        $result = $this->safe_value($response, 'result', array());
+        $result = $this->safe_list($response, 'result', array());
         $tickers = array();
         for ($i = 0; $i < count($result); $i++) {
             $ticker = $this->parse_ticker($result[$i]);

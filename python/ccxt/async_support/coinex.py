@@ -9,6 +9,7 @@ import asyncio
 from ccxt.base.types import Balances, Currencies, Currency, Int, Leverage, Leverages, MarginModification, Market, Num, Order, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
@@ -20,7 +21,6 @@ from ccxt.base.errors import NotSupported
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import RequestTimeout
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -1076,8 +1076,8 @@ class coinex(Exchange, ImplicitAPI):
     async def fetch_order_book(self, symbol: str, limit: Int = 20, params={}):
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
-        :see: https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot001_market004_market_depth
-        :see: https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http010_market_depth
+        :see: https://docs.coinex.com/api/v2/spot/market/http/list-market-depth
+        :see: https://docs.coinex.com/api/v2/futures/market/http/list-market-depth
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -1088,63 +1088,69 @@ class coinex(Exchange, ImplicitAPI):
         if limit is None:
             limit = 20  # default
         request = {
-            'market': self.market_id(symbol),
-            'merge': '0',
-            'limit': str(limit),
+            'market': market['id'],
+            'limit': limit,
+            'interval': '0',
         }
         response = None
         if market['swap']:
-            response = await self.v1PerpetualPublicGetMarketDepth(self.extend(request, params))
+            response = await self.v2PublicGetFuturesDepth(self.extend(request, params))
+            #
+            #     {
+            #         "code": 0,
+            #         "data": {
+            #             "depth": {
+            #                 "asks": [
+            #                     ["70851.94", "0.2119"],
+            #                     ["70851.95", "0.0004"],
+            #                     ["70851.96", "0.0004"]
+            #                 ],
+            #                 "bids": [
+            #                     ["70851.93", "1.0314"],
+            #                     ["70850.93", "0.0021"],
+            #                     ["70850.42", "0.0306"]
+            #                 ],
+            #                 "checksum": 2956436260,
+            #                 "last": "70851.94",
+            #                 "updated_at": 1712824003252
+            #             },
+            #             "is_full": True,
+            #             "market": "BTCUSDT"
+            #         },
+            #         "message": "OK"
+            #     }
+            #
         else:
-            response = await self.v1PublicGetMarketDepth(self.extend(request, params))
-        #
-        # Spot
-        #
-        #     {
-        #         "code": 0,
-        #         "data": {
-        #             "asks": [
-        #                 ["41056.33", "0.31727613"],
-        #                 ["41056.34", "1.05657294"],
-        #                 ["41056.35", "0.02346648"]
-        #             ],
-        #             "bids": [
-        #                 ["41050.61", "0.40618608"],
-        #                 ["41046.98", "0.13800000"],
-        #                 ["41046.56", "0.22579234"]
-        #             ],
-        #             "last": "41050.61",
-        #             "time": 1650573220346
-        #         },
-        #         "message": "OK"
-        #     }
-        #
-        # Swap
-        #
-        #     {
-        #         "code": 0,
-        #         "data": {
-        #             "asks": [
-        #                 ["40620.90", "0.0384"],
-        #                 ["40625.50", "0.0219"],
-        #                 ["40625.90", "0.3506"]
-        #             ],
-        #             "bids": [
-        #                 ["40620.89", "19.6861"],
-        #                 ["40620.80", "0.0012"],
-        #                 ["40619.87", "0.0365"]
-        #             ],
-        #             "last": "40620.89",
-        #             "time": 1650587672406,
-        #             "sign_price": "40619.32",
-        #             "index_price": "40609.93"
-        #         },
-        #         "message": "OK"
-        #     }
-        #
-        result = self.safe_value(response, 'data', {})
-        timestamp = self.safe_integer(result, 'time')
-        return self.parse_order_book(result, symbol, timestamp)
+            response = await self.v2PublicGetSpotDepth(self.extend(request, params))
+            #
+            #     {
+            #         "code": 0,
+            #         "data": {
+            #             "depth": {
+            #                 "asks": [
+            #                     ["70875.31", "0.28670282"],
+            #                     ["70875.32", "0.31008114"],
+            #                     ["70875.42", "0.05876653"]
+            #                 ],
+            #                 "bids": [
+            #                     ["70855.3", "0.00632222"],
+            #                     ["70855.29", "0.36216834"],
+            #                     ["70855.17", "0.10166802"]
+            #                 ],
+            #                 "checksum": 2313816665,
+            #                 "last": "70857.19",
+            #                 "updated_at": 1712823790987
+            #             },
+            #             "is_full": True,
+            #             "market": "BTCUSDT"
+            #         },
+            #         "message": "OK"
+            #     }
+            #
+        data = self.safe_dict(response, 'data', {})
+        depth = self.safe_dict(data, 'depth', {})
+        timestamp = self.safe_integer(depth, 'updated_at')
+        return self.parse_order_book(depth, symbol, timestamp)
 
     def parse_trade(self, trade, market: Market = None) -> Trade:
         #
@@ -3856,33 +3862,6 @@ class coinex(Exchange, ImplicitAPI):
         #
         data = self.safe_value(response, 'data', {})
         return self.parse_leverage_tiers(data, symbols, None)
-
-    def parse_leverage_tiers(self, response, symbols: Strings = None, marketIdKey=None):
-        #
-        #     {
-        #         "BTCUSD": [
-        #             ["500001", "100", "0.005"],
-        #             ["1000001", "50", "0.01"],
-        #             ["2000001", "30", "0.015"],
-        #             ["5000001", "20", "0.02"],
-        #             ["10000001", "15", "0.025"],
-        #             ["20000001", "10", "0.03"]
-        #         ],
-        #         ...
-        #     }
-        #
-        tiers = {}
-        marketIds = list(response.keys())
-        for i in range(0, len(marketIds)):
-            marketId = marketIds[i]
-            market = self.safe_market(marketId, None, None, 'spot')
-            symbol = self.safe_string(market, 'symbol')
-            symbolsLength = 0
-            if symbols is not None:
-                symbolsLength = len(symbols)
-            if symbol is not None and (symbolsLength == 0 or self.in_array(symbols, symbol)):
-                tiers[symbol] = self.parse_market_leverage_tiers(response[marketId], market)
-        return tiers
 
     def parse_market_leverage_tiers(self, item, market: Market = None):
         tiers = []

@@ -311,6 +311,19 @@ class Greeks(TypedDict):
     info: Dict[str, Any]
 
 
+class Conversion(TypedDict):
+    info: Dict[str, Any]
+    timestamp: Int
+    datetime: Str
+    id: Str
+    fromCurrency: Str
+    fromAmount: Num
+    toCurrency: Str
+    toAmount: Num
+    price: Num
+    fee: Num
+
+
 class Option(TypedDict):
     info: Dict[str, Any]
     currency: Str

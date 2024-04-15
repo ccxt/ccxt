@@ -8,6 +8,7 @@ var base64 = require('../../static_dependencies/jsencrypt/lib/asn1js/base64.js')
 var asn1 = require('../../static_dependencies/jsencrypt/lib/asn1js/asn1.js');
 var secp256k1 = require('../../static_dependencies/noble-curves/secp256k1.js');
 var p256 = require('../../static_dependencies/noble-curves/p256.js');
+var utils = require('../../static_dependencies/noble-curves/abstract/utils.js');
 
 /*  ------------------------------------------------------------------------ */
 /*  ------------------------------------------------------------------------ */
@@ -31,7 +32,7 @@ const hmac = (request, secret, hash, digest = 'hex') => {
     return encoders[digest](binary);
 };
 /*  .............................................   */
-function ecdsa(request, secret, curve, prehash = null) {
+function ecdsa(request, secret, curve, prehash = null, fixedLength = false) {
     if (prehash) {
         request = hash(request, prehash, 'hex');
     }
@@ -65,7 +66,19 @@ function ecdsa(request, secret, curve, prehash = null) {
             throw new Error('Unsupported key format');
         }
     }
-    const signature = curve.sign(request, secret);
+    let signature = curve.sign(request, secret, {
+        lowS: true,
+    });
+    const minimumSize = (BigInt(1) << (BigInt(8) * BigInt(31))) - BigInt(1);
+    const halfOrder = curve.CURVE.n / BigInt(2);
+    let counter = 0;
+    while (fixedLength && (signature.r > halfOrder || signature.r <= minimumSize || signature.s <= minimumSize)) {
+        signature = curve.sign(request, secret, {
+            lowS: true,
+            extraEntropy: utils.numberToBytesLE(BigInt(counter), 32)
+        });
+        counter += 1;
+    }
     return {
         'r': signature.r.toString(16),
         's': signature.s.toString(16),

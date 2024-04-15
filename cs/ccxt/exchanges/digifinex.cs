@@ -4043,61 +4043,7 @@ public partial class digifinex : Exchange
         //
         object data = this.safeValue(response, "data", new List<object>() {});
         symbols = this.marketSymbols(symbols);
-        return this.parseLeverageTiers(data, symbols, "symbol");
-    }
-
-    public override object parseLeverageTiers(object response, object symbols = null, object marketIdKey = null)
-    {
-        //
-        //     [
-        //         {
-        //             "instrument_id": "BTCUSDTPERP",
-        //             "type": "REAL",
-        //             "contract_type": "PERPETUAL",
-        //             "base_currency": "BTC",
-        //             "quote_currency": "USDT",
-        //             "clear_currency": "USDT",
-        //             "contract_value": "0.001",
-        //             "contract_value_currency": "BTC",
-        //             "is_inverse": false,
-        //             "is_trading": true,
-        //             "status": "ONLINE",
-        //             "price_precision": 1,
-        //             "tick_size": "0.1",
-        //             "min_order_amount": 1,
-        //             "open_max_limits": [
-        //                 {
-        //                     "leverage": "50",
-        //                     "max_limit": "1000000"
-        //                 }
-        //             ]
-        //         },
-        //     ]
-        //
-        object tiers = new Dictionary<string, object>() {};
-        object result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
-        {
-            object entry = getValue(response, i);
-            object marketId = this.safeString(entry, "instrument_id");
-            object market = this.safeMarket(marketId);
-            object symbol = this.safeSymbol(marketId, market);
-            object symbolsLength = 0;
-            ((IDictionary<string,object>)tiers)[(string)symbol] = this.parseMarketLeverageTiers(getValue(response, i), market);
-            if (isTrue(!isEqual(symbols, null)))
-            {
-                symbolsLength = getArrayLength(symbols);
-                if (isTrue(this.inArray(symbol, symbols)))
-                {
-                    ((IDictionary<string,object>)result)[(string)symbol] = this.parseMarketLeverageTiers(getValue(response, i), market);
-                }
-            }
-            if (isTrue(isTrue(!isEqual(symbol, null)) && isTrue((isTrue(isEqual(symbolsLength, 0)) || isTrue(this.inArray(symbols, symbol))))))
-            {
-                ((IDictionary<string,object>)result)[(string)symbol] = this.parseMarketLeverageTiers(getValue(response, i), market);
-            }
-        }
-        return result;
+        return this.parseLeverageTiers(data, symbols, "instrument_id");
     }
 
     public async override Task<object> fetchMarketLeverageTiers(object symbol, object parameters = null)

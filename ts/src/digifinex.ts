@@ -3783,56 +3783,7 @@ export default class digifinex extends Exchange {
         //
         const data = this.safeValue (response, 'data', []);
         symbols = this.marketSymbols (symbols);
-        return this.parseLeverageTiers (data, symbols, 'symbol');
-    }
-
-    parseLeverageTiers (response, symbols: Strings = undefined, marketIdKey = undefined) {
-        //
-        //     [
-        //         {
-        //             "instrument_id": "BTCUSDTPERP",
-        //             "type": "REAL",
-        //             "contract_type": "PERPETUAL",
-        //             "base_currency": "BTC",
-        //             "quote_currency": "USDT",
-        //             "clear_currency": "USDT",
-        //             "contract_value": "0.001",
-        //             "contract_value_currency": "BTC",
-        //             "is_inverse": false,
-        //             "is_trading": true,
-        //             "status": "ONLINE",
-        //             "price_precision": 1,
-        //             "tick_size": "0.1",
-        //             "min_order_amount": 1,
-        //             "open_max_limits": [
-        //                 {
-        //                     "leverage": "50",
-        //                     "max_limit": "1000000"
-        //                 }
-        //             ]
-        //         },
-        //     ]
-        //
-        const tiers = {};
-        const result = {};
-        for (let i = 0; i < response.length; i++) {
-            const entry = response[i];
-            const marketId = this.safeString (entry, 'instrument_id');
-            const market = this.safeMarket (marketId);
-            const symbol = this.safeSymbol (marketId, market);
-            let symbolsLength = 0;
-            tiers[symbol] = this.parseMarketLeverageTiers (response[i], market);
-            if (symbols !== undefined) {
-                symbolsLength = symbols.length;
-                if (this.inArray (symbol, symbols)) {
-                    result[symbol] = this.parseMarketLeverageTiers (response[i], market);
-                }
-            }
-            if (symbol !== undefined && (symbolsLength === 0 || this.inArray (symbol, symbols))) {
-                result[symbol] = this.parseMarketLeverageTiers (response[i], market);
-            }
-        }
-        return result;
+        return this.parseLeverageTiers (data, symbols, 'instrument_id');
     }
 
     async fetchMarketLeverageTiers (symbol: string, params = {}) {

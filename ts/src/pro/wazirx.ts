@@ -774,7 +774,7 @@ export default class wazirx extends wazirxRest {
         };
         const streams = Object.keys (streamHandlers);
         for (let i = 0; i < streams.length; i++) {
-            if (this.inArray (streams[i], stream)) {
+            if (stream.includes (streams[i])) {
                 const handler = streamHandlers[streams[i]];
                 handler.call (this, client, message);
                 return;
