@@ -61,7 +61,7 @@
                   "reduceOnly": null
                 }
             }
-        ]
+        ],
         "fetchOrder": [
             {
                 "description": "fetch spot limit order",
