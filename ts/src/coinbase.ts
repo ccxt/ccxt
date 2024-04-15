@@ -4323,7 +4323,7 @@ export default class coinbase extends Exchange {
         });
     }
 
-    createJWT (seconds: Int, method: Str = undefined, url: Str = undefined) {
+    createAuthToken (seconds: Int, method: Str = undefined, url: Str = undefined) {
         // it may not work for v2
         let uri = undefined;
         if (url !== undefined) {
@@ -4415,7 +4415,7 @@ export default class coinbase extends Exchange {
                     //     'uri': uri,
                     //     'iat': seconds,
                     // };
-                    const token = this.createJWT (seconds, method, url);
+                    const token = this.createAuthToken (seconds, method, url);
                     // const token = jwt (request, this.encode (this.secret), sha256, false, { 'kid': this.apiKey, 'nonce': nonce, 'alg': 'ES256' });
                     authorizationString = 'Bearer ' + token;
                 } else {
