@@ -129,7 +129,7 @@ export default class bitflex extends Exchange {
                     },
                 },
             },
-            'fees': { // todo
+            'fees': {
                 'trading': {
                     // todo
                 },
