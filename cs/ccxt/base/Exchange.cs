@@ -531,7 +531,6 @@ public partial class Exchange
 
     public async Task throttle(object cost)
     {
-        Console.WriteLine("throttle cost: " + cost);
         await this.throttler.throttle(cost);
     }
 
