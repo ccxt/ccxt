@@ -161,7 +161,7 @@ public partial class Exchange
         // to do: add all proxies support
         this.checkProxySettings();
         // add headers
-        var httpClient = this.httpClient; // new HttpClient(); // clientPerThread.Value;
+        var httpClient = new HttpClient(); // this.httpClient; // new HttpClient(); // clientPerThread.Value;
         lock (httpDefaultHeaderLock)
         {
             httpClient.DefaultRequestHeaders.Accept.Clear();
