@@ -94,17 +94,11 @@ public partial class Exchange
                         {
                             try
                             {
-                                if (cost != null)
+                                if (config != null)
                                 {
-                                    cost = Convert.ToInt32(cost);
-                                } else
-                                {
-                                    cost = 1;
+                                    cost = Convert.ToInt32(config);
                                 }
-                            } catch
-                            {
-                                cost = 1;
-                            }
+                            } catch { }
                         }
                     }
 
