@@ -287,6 +287,7 @@ export default class Exchange {
 
     markets: Dictionary<any> = undefined
     has: Dictionary<boolean | 'emulated'>
+
     status = undefined
 
     requiredCredentials: {
