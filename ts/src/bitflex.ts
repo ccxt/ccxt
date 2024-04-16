@@ -131,8 +131,10 @@ export default class bitflex extends Exchange {
             },
             'fees': { // todo
                 'trading': {
+                    // todo
                 },
                 'funding': {
+                    // todo
                 },
             },
             'exceptions': {
