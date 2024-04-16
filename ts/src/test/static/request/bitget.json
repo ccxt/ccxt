@@ -1583,7 +1583,7 @@
                 "method": "createConvertTrade",
                 "url": "https://api.bitget.com/api/v2/convert/trade",
                 "input": [
-                  1164014202462613512,
+                  "1164014202462613512",
                   "USDC",
                   "USDT",
                   5,
