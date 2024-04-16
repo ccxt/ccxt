@@ -5677,7 +5677,6 @@ To cancel an existing use
  * ``cancelOrder ()`` for a single order
  * ``cancelOrders ()`` for multiple orders
  * ``cancelAllOrders ()`` for all open orders
- * ``cancelAllOrdersAfter ()`` for all open orders after the given timeout
 
 .. code-block:: JavaScript
 
@@ -5725,22 +5724,6 @@ Returns
 
 
  * An array of :ref:`order structures <order structure>`
-
-.. code-block:: JavaScript
-
-   async cancelAllOrdersAfter (timeout, activated = undefined, params = {})
-
-Parameters
-
-
- * **timeout** (number) countdown time in seconds **required** on some exchanges (e.g. ``10``\ )
- * **activated** (boolean) activated countdown **required** on some exchanges (e.g. ``true``\ )
- * **params** (Dictionary) Extra parameters specific to the exchange API endpoint (e.g. ``{"type": "spot"}``\ )
-
-Returns
-
-
- * An object
 
 Exceptions on order canceling
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
