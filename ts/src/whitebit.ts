@@ -1290,6 +1290,68 @@ export default class whitebit extends Exchange {
         return this.parseOrder (response);
     }
 
+    async editOrder (id: string, symbol: string, type:OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) {
+        /**
+         * @method
+         * @name whitebit#editOrder
+         * @description edit a trade order
+         * @see https://docs.whitebit.com/private/http-trade-v4/#modify-order
+         * @param {string} id cancel order id
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float} price the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        if (id === undefined) {
+            throw new ArgumentsRequired (this.id + ' editOrder() requires a id argument');
+        }
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' editOrder() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'orderId': id,
+            'market': market['id'],
+        };
+        const clientOrderId = this.safeString2 (params, 'clOrdId', 'clientOrderId');
+        if (clientOrderId !== undefined) {
+            // Update clientOrderId of the order
+            request['clientOrderId'] = clientOrderId;
+        }
+        const isLimitOrder = type === 'limit';
+        const stopPrice = this.safeNumberN (params, [ 'triggerPrice', 'stopPrice', 'activation_price' ]);
+        const isStopOrder = (stopPrice !== undefined);
+        params = this.omit (params, [ 'clOrdId', 'clientOrderId', 'triggerPrice', 'stopPrice' ]);
+        if (isStopOrder) {
+            request['activation_price'] = this.priceToPrecision (symbol, stopPrice);
+            if (isLimitOrder) {
+                // stop limit order
+                request['amount'] = this.amountToPrecision (symbol, amount);
+                request['price'] = this.priceToPrecision (symbol, price);
+            } else {
+                // stop market order
+                if (side === 'buy') {
+                    // Use total parameter instead of amount for modify buy stop market order
+                    request['total'] = this.amountToPrecision (symbol, amount);
+                } else {
+                    request['amount'] = this.amountToPrecision (symbol, amount);
+                }
+            }
+        } else {
+            request['amount'] = this.amountToPrecision (symbol, amount);
+            if (isLimitOrder) {
+                // limit order
+                request['price'] = this.priceToPrecision (symbol, price);
+            }
+        }
+        const response = await this.v4PrivatePostOrderModify (this.extend (request, params));
+        return this.parseOrder (response);
+    }
+
     async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
