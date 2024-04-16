@@ -416,7 +416,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
         const fetchPositionsSnapshot = this.handleOptionAndParams (params, 'watchPositions', 'fetchPositionsSnapshot', true);
         const awaitPositionsSnapshot = this.handleOptionAndParams (params, 'watchPositions', 'awaitPositionsSnapshot', true);
         const hasReturnedPositionsSnapshot = this.safeBool (this.options, 'hasReturnedPositionsSnapshot', false);
-        if (fetchPositionsSnapshot && awaitPositionsSnapshot && hasReturnedPositionsSnapshot === false) {
+        if (fetchPositionsSnapshot && awaitPositionsSnapshot && !hasReturnedPositionsSnapshot) {
             const snapshot = await client.future ('fetchPositionsSnapshot');
             this.options['hasReturnedPositionsSnapshot'] = true;
             return this.filterBySymbolsSinceLimit (snapshot, symbols, since, limit, true);
