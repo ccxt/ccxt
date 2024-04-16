@@ -177,8 +177,7 @@
                 "method": "cancelAllOrdersAfter",
                 "url": "https://futures.kraken.com/derivatives/api/v3/cancelallordersafter?timeout=10",
                 "input": [
-                    10,
-                    true
+                    10000
                 ]
             },
             {
@@ -186,8 +185,7 @@
                 "method": "cancelAllOrdersAfter",
                 "url": "https://futures.kraken.com/derivatives/api/v3/cancelallordersafter?timeout=0",
                 "input": [
-                    10,
-                    false
+                    0
                 ]
             }
         ],
