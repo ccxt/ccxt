@@ -96,11 +96,19 @@ export default class bitflex extends Exchange {
                         'openapi/v1/time': 1,
                         'openapi/v1/pairs': 1,
                         'openapi/v1/brokerInfo': 1,
+                        'openapi/v1/contracts': 1,
+                        'openapi/contract/v1/insurance': 1,
+                        'openapi/contract/v1/fundingRate': 1,
+                        'openapi/quote/v1/contract/index': 1,
                         'openapi/quote/v1/depth': 1,
                         'openapi/quote/v1/depth/merged': 1,
+                        'openapi/quote/v1/contract/depth': 1,
+                        'openapi/quote/v1/contract/depth/merged': 1,
                         'openapi/quote/v1/trades': 1,
+                        'openapi/quote/v1/contract/trades': 1,
                         'openapi/quote/v1/klines': 1,
                         'openapi/quote/v1/ticker/24hr': 1,
+                        'openapi/quote/v1/contract/ticker/24hr': 1,
                         'openapi/quote/v1/ticker/price': 1,
                         'openapi/quote/v1/ticker/bookTicker': 1,
                     },
@@ -116,6 +124,12 @@ export default class bitflex extends Exchange {
                         'openapi/withdrawalOrders': 1,
                         'openapi/withdraw/detail': 1,
                         'openapi/balance_flow': 1,
+                        'openapi/quote/contract/v1/getOrder': 1,
+                        'openapi/quote/contract/v1/openOrders': 1,
+                        'openapi/quote/contract/v1/historyOrders': 1,
+                        'openapi/quote/contract/v1/myTrades': 1,
+                        'openapi/quote/contract/v1/positions': 1,
+                        'openapi/quote/contract/v1/account': 1,
                     },
                     'post': {
                         'openapi/subAccount/query': 1,
@@ -123,9 +137,14 @@ export default class bitflex extends Exchange {
                         'openapi/withdraw': 1,
                         'openapi/order': 1,
                         'openapi/test': 1,
+                        'openapi/contract/v1/order': 1,
+                        'openapi/contract/v1/modifyMargin': 1,
+                        'openapi/contract/v1/modifyLeverage': 1,
                     },
                     'delete': {
                         'openapi/order': 1,
+                        'openapi/contract/v1/order/cancel': 1,
+                        'openapi/contract/v1/order/batchCancel': 1,
                     },
                 },
             },
@@ -140,6 +159,7 @@ export default class bitflex extends Exchange {
             'exceptions': {
                 'exact': {
                     // 400  {"code":-1130,"msg":"Data sent for paramter \u0027type\u0027 is not valid."}
+                    // 400 {"code":-100012,"msg":"Parameter symbol [String] missing!"}
                 },
                 'broad': {
                 },
