@@ -1286,20 +1286,20 @@ export default class woo extends Exchange {
         return response;
     }
 
-    async cancelAllOrdersAfter (timeout: Int, activated: Bool = undefined, params = {}) {
+    async cancelAllOrdersAfter (timeout: Int, params = {}) {
         /**
          * @method
          * @name woo#cancelAllOrdersAfter
          * @description dead man's switch, cancel all orders after the given timeout
          * @see https://docs.woo.org/#cancel-all-after
-         * @param {number} countdown time in seconds
+         * @param {number} countdown time in milliseconds, 0 represents cancel the timer
          * @param {boolean} activated countdown
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} the api result
          */
         await this.loadMarkets ();
         const request: Dict = {
-            'trigger_after': (activated) ? timeout * 1000 : 0,
+            'trigger_after': (timeout > 0) ? timeout : 0,
         };
         const response = await this.v1PrivatePostOrderCancelAllAfter (this.extend (request, params));
         //

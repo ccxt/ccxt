@@ -198,8 +198,7 @@
                 "method": "cancelAllOrdersAfter",
                 "url": "https://api.woo.org/v1/order/cancel_all_after",
                 "input": [
-                    10,
-                    true
+                    10000
                 ],
                 "output": "trigger_after=10000"
             },
@@ -208,8 +207,7 @@
                 "method": "cancelAllOrdersAfter",
                 "url": "https://api.woo.org/v1/order/cancel_all_after",
                 "input": [
-                    10,
-                    false
+                    0
                 ],
                 "output": "trigger_after=0"
             }
