@@ -1396,7 +1396,7 @@ export default class whitebit extends Exchange {
         }
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('cancelAllOrders', market, params);
-        let requestType = [];
+        const requestType = [];
         if (type === 'spot') {
             let isMargin = undefined;
             [ isMargin, params ] = this.handleOptionAndParams (params, 'cancelAllOrders', 'isMargin', false);
