@@ -13,11 +13,19 @@ interface Exchange {
     publicGetOpenapiV1Time (params?: {}): Promise<implicitReturnType>;
     publicGetOpenapiV1Pairs (params?: {}): Promise<implicitReturnType>;
     publicGetOpenapiV1BrokerInfo (params?: {}): Promise<implicitReturnType>;
+    publicGetOpenapiV1Contracts (params?: {}): Promise<implicitReturnType>;
+    publicGetOpenapiContractV1Insurance (params?: {}): Promise<implicitReturnType>;
+    publicGetOpenapiContractV1FundingRate (params?: {}): Promise<implicitReturnType>;
+    publicGetOpenapiQuoteV1ContractIndex (params?: {}): Promise<implicitReturnType>;
     publicGetOpenapiQuoteV1Depth (params?: {}): Promise<implicitReturnType>;
     publicGetOpenapiQuoteV1DepthMerged (params?: {}): Promise<implicitReturnType>;
+    publicGetOpenapiQuoteV1ContractDepth (params?: {}): Promise<implicitReturnType>;
+    publicGetOpenapiQuoteV1ContractDepthMerged (params?: {}): Promise<implicitReturnType>;
     publicGetOpenapiQuoteV1Trades (params?: {}): Promise<implicitReturnType>;
+    publicGetOpenapiQuoteV1ContractTrades (params?: {}): Promise<implicitReturnType>;
     publicGetOpenapiQuoteV1Klines (params?: {}): Promise<implicitReturnType>;
     publicGetOpenapiQuoteV1Ticker24hr (params?: {}): Promise<implicitReturnType>;
+    publicGetOpenapiQuoteV1ContractTicker24hr (params?: {}): Promise<implicitReturnType>;
     publicGetOpenapiQuoteV1TickerPrice (params?: {}): Promise<implicitReturnType>;
     publicGetOpenapiQuoteV1TickerBookTicker (params?: {}): Promise<implicitReturnType>;
     privateGetOpenapiOrder (params?: {}): Promise<implicitReturnType>;
@@ -29,12 +37,23 @@ interface Exchange {
     privateGetOpenapiWithdrawalOrders (params?: {}): Promise<implicitReturnType>;
     privateGetOpenapiWithdrawDetail (params?: {}): Promise<implicitReturnType>;
     privateGetOpenapiBalanceFlow (params?: {}): Promise<implicitReturnType>;
+    privateGetOpenapiQuoteContractV1GetOrder (params?: {}): Promise<implicitReturnType>;
+    privateGetOpenapiQuoteContractV1OpenOrders (params?: {}): Promise<implicitReturnType>;
+    privateGetOpenapiQuoteContractV1HistoryOrders (params?: {}): Promise<implicitReturnType>;
+    privateGetOpenapiQuoteContractV1MyTrades (params?: {}): Promise<implicitReturnType>;
+    privateGetOpenapiQuoteContractV1Positions (params?: {}): Promise<implicitReturnType>;
+    privateGetOpenapiQuoteContractV1Account (params?: {}): Promise<implicitReturnType>;
     privatePostOpenapiSubAccountQuery (params?: {}): Promise<implicitReturnType>;
     privatePostOpenapiTransfer (params?: {}): Promise<implicitReturnType>;
     privatePostOpenapiWithdraw (params?: {}): Promise<implicitReturnType>;
     privatePostOpenapiOrder (params?: {}): Promise<implicitReturnType>;
     privatePostOpenapiTest (params?: {}): Promise<implicitReturnType>;
+    privatePostOpenapiContractV1Order (params?: {}): Promise<implicitReturnType>;
+    privatePostOpenapiContractV1ModifyMargin (params?: {}): Promise<implicitReturnType>;
+    privatePostOpenapiContractV1ModifyLeverage (params?: {}): Promise<implicitReturnType>;
     privateDeleteOpenapiOrder (params?: {}): Promise<implicitReturnType>;
+    privateDeleteOpenapiContractV1OrderCancel (params?: {}): Promise<implicitReturnType>;
+    privateDeleteOpenapiContractV1OrderBatchCancel (params?: {}): Promise<implicitReturnType>;
 }
 abstract class Exchange extends _Exchange {}
 
