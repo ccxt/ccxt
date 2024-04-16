@@ -71,6 +71,10 @@ interface Exchange {
     v4PrivatePostOrderStopLimit (params?: {}): Promise<implicitReturnType>;
     v4PrivatePostOrderStopMarket (params?: {}): Promise<implicitReturnType>;
     v4PrivatePostOrderCancel (params?: {}): Promise<implicitReturnType>;
+    v4PrivatePostOrderKillSwitch (params?: {}): Promise<implicitReturnType>;
+    v4PrivatePostOrderKillSwitchStatus (params?: {}): Promise<implicitReturnType>;
+    v4PrivatePostOrderBulk (params?: {}): Promise<implicitReturnType>;
+    v4PrivatePostOrderModify (params?: {}): Promise<implicitReturnType>;
     v4PrivatePostOrders (params?: {}): Promise<implicitReturnType>;
     v4PrivatePostProfileWebsocketToken (params?: {}): Promise<implicitReturnType>;
 }
