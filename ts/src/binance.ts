@@ -12494,8 +12494,8 @@ export default class binance extends Exchange {
         await this.loadMarkets ();
         const request = {
             'clientTranId': id,
-            'asset': fromCode.toUpperCase (),
-            'targetAsset': toCode.toUpperCase (),
+            'asset': fromCode,
+            'targetAsset': toCode,
             'amount': amount,
         };
         const response = await this.sapiPostAssetConvertTransfer (this.extend (request, params));
