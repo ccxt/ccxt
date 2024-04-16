@@ -6,7 +6,7 @@ import { AuthenticationError, PermissionDenied, AccountSuspended, ExchangeError,
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { DECIMAL_PLACES } from './base/functions/number.js';
-import type { TransferEntry, Int, OrderSide, OHLCV, FundingRateHistory, Order, OrderType, OrderRequest, Str, Trade, Balances, Transaction, Ticker, OrderBook, Tickers, Market, Strings, Currency, Position, Dict, Leverage, MarginMode, Num, MarginModification, Currencies, Bool } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OHLCV, FundingRateHistory, Order, OrderType, OrderRequest, Str, Trade, Balances, Transaction, Ticker, OrderBook, Tickers, Market, Strings, Currency, Position, Dict, Leverage, MarginMode, Num, MarginModification, Currencies } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -2755,23 +2755,23 @@ export default class bingx extends Exchange {
         return response;
     }
 
-    async cancelAllOrdersAfter (timeout: Int, activated: Bool = undefined, params = {}) {
+    async cancelAllOrdersAfter (timeout: Int, params = {}) {
         /**
          * @method
          * @name bingx#cancelAllOrdersAfter
          * @description dead man's switch, cancel all orders after the given timeout
          * @see https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Cancel%20all%20orders%20in%20countdown
          * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Cancel%20all%20orders%20in%20countdown
-         * @param {number} countdown time in seconds
-         * @param {boolean} activated countdown
+         * @param {number} countdown time in milliseconds, 0 represents cancel the timer
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.type] spot or swap market
          * @returns {object} the api result
          */
         await this.loadMarkets ();
+        const isActive = (timeout !== 0);
         const request: Dict = {
-            'type': (activated) ? 'ACTIVATE' : 'CLOSE',
-            'timeOut': timeout,
+            'type': (isActive) ? 'ACTIVATE' : 'CLOSE',
+            'timeOut': (isActive) ? (timeout / 1000) : 0,
         };
         let response = undefined;
         let type = undefined;
