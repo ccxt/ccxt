@@ -2768,7 +2768,7 @@ export default class bingx extends Exchange {
          * @returns {object} the api result
          */
         await this.loadMarkets ();
-        const isActive = (timeout !== 0);
+        const isActive = (timeout > 0);
         const request: Dict = {
             'type': (isActive) ? 'ACTIVATE' : 'CLOSE',
             'timeOut': (isActive) ? (timeout / 1000) : 0,
