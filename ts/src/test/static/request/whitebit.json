@@ -112,8 +112,7 @@
                 "method": "cancelAllOrdersAfter",
                 "url": "https://whitebit.com/api/v4/order/kill-switch",
                 "input": [
-                    10,
-                    true,
+                    10000,
                     {
                         "symbol": "BTC/USDT"
                     }
@@ -125,8 +124,7 @@
                 "method": "cancelAllOrdersAfter",
                 "url": "https://whitebit.com/api/v4/order/kill-switch",
                 "input": [
-                    10,
-                    false,
+                    0,
                     {
                         "symbol": "BTC/USDT"
                     }
