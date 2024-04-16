@@ -1206,10 +1206,10 @@ class kucoin(Exchange, ImplicitAPI):
         #    }
         #
         responses = promises
-        currenciesResponse = self.safe_value(responses, 0, {})
-        currenciesData = self.safe_value(currenciesResponse, 'data', [])
-        additionalResponse = self.safe_value(responses, 1, {})
-        additionalData = self.safe_value(additionalResponse, 'data', [])
+        currenciesResponse = self.safe_dict(responses, 0, {})
+        currenciesData = self.safe_list(currenciesResponse, 'data', [])
+        additionalResponse = self.safe_dict(responses, 1, {})
+        additionalData = self.safe_list(additionalResponse, 'data', [])
         additionalDataGrouped = self.group_by(additionalData, 'currency')
         result = {}
         for i in range(0, len(currenciesData)):
@@ -1221,7 +1221,7 @@ class kucoin(Exchange, ImplicitAPI):
             isDepositEnabled = None
             networks = {}
             chains = self.safe_list(entry, 'chains', [])
-            extraChainsData = self.index_by(self.safe_value(additionalDataGrouped, id, []), 'chain')
+            extraChainsData = self.index_by(self.safe_list(additionalDataGrouped, id, []), 'chain')
             rawPrecision = self.safe_string(entry, 'precision')
             precision = self.parse_number(self.parse_precision(rawPrecision))
             chainsLength = len(chains)
@@ -1349,7 +1349,7 @@ class kucoin(Exchange, ImplicitAPI):
         if networkCode is not None:
             request['chain'] = self.network_code_to_id(networkCode).lower()
         response = self.privateGetWithdrawalsQuotas(self.extend(request, params))
-        data = self.safe_value(response, 'data')
+        data = self.safe_dict(response, 'data', {})
         withdrawFees = {}
         withdrawFees[code] = self.safe_number(data, 'withdrawMinFee')
         return {
