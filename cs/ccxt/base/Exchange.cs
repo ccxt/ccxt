@@ -79,7 +79,7 @@ public partial class Exchange
                 // var endpoints = new List<string>(dictValue.Keys);
                 foreach (string endpoint in endpoints)
                 {
-                    var cost = 1;
+                    double cost = 1;
                     if (dictValue != null)
                     {
                         var config = dictValue[endpoint];
@@ -88,7 +88,7 @@ public partial class Exchange
                         {
                             var dictConfig = config as dict;
                             var success = dictConfig.TryGetValue("cost", out var rl);
-                            cost = success ? Convert.ToInt32(rl) : 1;
+                            cost = success ? Convert.ToDouble(rl) : 1;
                         }
                         else
                         {
@@ -96,9 +96,10 @@ public partial class Exchange
                             {
                                 if (config != null)
                                 {
-                                    cost = Convert.ToInt32(config);
+                                    cost = Convert.ToDouble(config);
                                 }
-                            } catch { }
+                            }
+                            catch { }
                         }
                     }
 
@@ -433,7 +434,7 @@ public partial class Exchange
         return this.currencies;
     }
 
-        public async Task<Currencies> FetchCurrenciesWs(object parameters = null)
+    public async Task<Currencies> FetchCurrenciesWs(object parameters = null)
     {
         var res = await this.fetchCurrenciesWs(parameters);
         return new Currencies(res);
