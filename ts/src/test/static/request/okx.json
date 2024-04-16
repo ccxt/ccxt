@@ -805,8 +805,7 @@
                 "method": "cancelAllOrdersAfter",
                 "url": "https://www.okx.com/api/v5/trade/cancel-all-after",
                 "input": [
-                    10,
-                    true
+                    10000
                 ],
                 "output": "{\"timeOut\":10}"
             },
@@ -815,8 +814,7 @@
                 "method": "cancelAllOrdersAfter",
                 "url": "https://www.okx.com/api/v5/trade/cancel-all-after",
                 "input": [
-                    10,
-                    false
+                    0
                 ],
                 "output": "{\"timeOut\":0}"
             }
