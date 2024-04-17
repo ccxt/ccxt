@@ -3,7 +3,7 @@
 
 import Exchange from './abstract/bitflex.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { Int, Market, OrderBook, Trade } from './base/types.js';
+import { Currencies, Int, Market, OrderBook, Trade } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -34,6 +34,7 @@ export default class bitflex extends Exchange {
                 'editOrder': false,
                 'fetchBalance': false,
                 'fetchClosedOrders': false,
+                'fetchCurrencies': true,
                 'fetchDepositAddress': false,
                 'fetchDeposits': false,
                 'fetchDepositsWithdrawals': false,
@@ -187,6 +188,18 @@ export default class bitflex extends Exchange {
             },
             'precisionMode': TICK_SIZE,
             'options': {
+                'networks': {
+                    'ERC20': 'ERC20',
+                    'TRC20': 'TRC20',
+                    'BEP20': 'BEP20',
+                    'OMNI': 'OMNI',
+                },
+                'networksById': {
+                    'ERC20': 'ERC20',
+                    'TRC20': 'TRC20',
+                    'BEP20': 'BEP20',
+                    'OMNI': 'OMNI',
+                },
             },
         });
     }
@@ -209,6 +222,121 @@ export default class bitflex extends Exchange {
         return this.safeInteger (response, 'serverTime');
     }
 
+    async fetchCurrencies (params = {}): Promise<Currencies> {
+        /**
+         * @method
+         * @name bitflex#fetchCurrencies
+         * @description fetches all available currencies on an exchange
+         * @see https://docs.bitflex.com/spot#broker-token-information
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an associative dictionary of currencies
+         */
+        const response = await this.publicGetOpenapiV1BrokerInfo (params);
+        //
+        //     {
+        //         "timezone": "UTC",
+        //         "serverTime": "1713282998181",
+        //         "brokerFilters": [],
+        //         "symbols": [
+        //             ...
+        //         ],
+        //         "rateLimits": [
+        //             ...
+        //         ],
+        //         "options": [],
+        //         "contracts": [
+        //             ...
+        //         ],
+        //         "tokens": [
+        //             {
+        //                 "orgId": "9001",
+        //                 "tokenId": "ETH",
+        //                 "tokenName": "ETH",
+        //                 "tokenFullName": "Ethereum",
+        //                 "allowWithdraw": true,
+        //                 "allowDeposit": true,
+        //                 "chainTypes": []
+        //             },
+        //             {
+        //                 "orgId": "9001",
+        //                 "tokenId": "USDT",
+        //                 "tokenName": "USDT",
+        //                 "tokenFullName": "TetherUS",
+        //                 "allowWithdraw": true,
+        //                 "allowDeposit": true,
+        //                 "chainTypes": [
+        //                     { "chainType": "ERC20", "allowDeposit": true, "allowWithdraw": true },
+        //                     { "chainType": "TRC20", "allowDeposit": true, "allowWithdraw": true },
+        //                     { "chainType": "BEP20", "allowDeposit": false, "allowWithdraw": false },
+        //                     { "chainType": "OMNI", "allowDeposit": false, "allowWithdraw": false }
+        //                 ]
+        //             },
+        //             ...
+        //         ]
+        //     }
+        //
+        const result = {};
+        const tokens = this.safeList (response, 'tokens', []);
+        for (let i = 0; i < tokens.length; i++) {
+            const currency = tokens[i];
+            const id = this.safeString (currency, 'tokenId');
+            const code = this.safeCurrencyCode (id);
+            const name = this.safeString (currency, 'tokenFullName');
+            const depositEnabled = this.safeBool (currency, 'allowDeposit');
+            const withdrawEnabled = this.safeBool (currency, 'allowWithdraw');
+            const currencyActive = (withdrawEnabled && depositEnabled);
+            const networks = {};
+            const chains = this.safeList (currency, 'chainTypes', []);
+            for (let j = 0; j < chains.length; j++) {
+                const chain = chains[j];
+                const networkId = this.safeString (chain, 'chainType');
+                const network = this.networkIdToCode (networkId);
+                const isDepositEnabled = this.safeBool (chain, 'allowDeposit');
+                const isWithdrawEnabled = this.safeBool (chain, 'allowWithdraw');
+                const active = (isDepositEnabled && isWithdrawEnabled);
+                networks[network] = {
+                    'info': chain,
+                    'id': networkId,
+                    'network': network,
+                    'active': active,
+                    'deposit': isDepositEnabled,
+                    'withdraw': isWithdrawEnabled,
+                    'fee': undefined,
+                    'precision': undefined,
+                    'limits': {
+                        'withdraw': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                    },
+                };
+            }
+            result[code] = {
+                'info': currency,
+                'id': id,
+                'code': code,
+                'name': name,
+                'active': currencyActive,
+                'deposit': depositEnabled,
+                'withdraw': withdrawEnabled,
+                'fee': undefined,
+                'precision': undefined,
+                'limits': {
+                    'amount': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'withdraw': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
+                'networks': networks,
+            };
+        }
+        return result;
+    }
+
     async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
@@ -227,22 +355,9 @@ export default class bitflex extends Exchange {
         //         "symbols": [
         //             {
         //                 "filters": [
-        //                     {
-        //                         "minPrice": "0.01",
-        //                         "maxPrice": "100000.00000000",
-        //                         "tickSize": "0.01",
-        //                         "filterType": "PRICE_FILTER"
-        //                     },
-        //                     {
-        //                         "minQty": "0.001",
-        //                         "maxQty": "100000.00000000",
-        //                         "stepSize": "0.0001",
-        //                         "filterType": "LOT_SIZE"
-        //                     },
-        //                     {
-        //                         "minNotional": "10",
-        //                         "filterType": "MIN_NOTIONAL"
-        //                     }
+        //                     { "minPrice": "0.01", "maxPrice": "100000.00000000", "tickSize": "0.01", "filterType": "PRICE_FILTER" },
+        //                     { "minQty": "0.001", "maxQty": "100000.00000000", "stepSize": "0.0001", "filterType": "LOT_SIZE" },
+        //                     { "minNotional": "10", "filterType": "MIN_NOTIONAL" }
         //                 ],
         //                 "exchangeId": "301",
         //                 "symbol": "ETHUSDT",
@@ -261,39 +376,16 @@ export default class bitflex extends Exchange {
         //             ...
         //         ],
         //         "rateLimits": [
-        //             {
-        //                 "rateLimitType": "REQUEST_WEIGHT",
-        //                 "interval": "MINUTE",
-        //                 "intervalUnit": 1,
-        //                 "limit": 3000
-        //             },
-        //             {
-        //                 "rateLimitType": "ORDERS",
-        //                 "interval": "SECOND",
-        //                 "intervalUnit": 60,
-        //                 "limit": 60
-        //             }
+        //             { "rateLimitType": "REQUEST_WEIGHT", "interval": "MINUTE", "intervalUnit": 1, "limit": 3000 },
+        //             { "rateLimitType": "ORDERS", "interval": "SECOND", "intervalUnit": 60, "limit": 60 }
         //         ],
         //         "options": [],
         //         "contracts": [
         //             {
         //                 "filters": [
-        //                     {
-        //                         "minPrice": "0.01",
-        //                         "maxPrice": "100000.00000000",
-        //                         "tickSize": "0.01",
-        //                         "filterType": "PRICE_FILTER"
-        //                     },
-        //                     {
-        //                         "minQty": "0.01",
-        //                         "maxQty": "100000.00000000",
-        //                         "stepSize": "0.01",
-        //                         "filterType": "LOT_SIZE"
-        //                     },
-        //                     {
-        //                         "minNotional": "0.000000001",
-        //                         "filterType": "MIN_NOTIONAL"
-        //                     }
+        //                     { "minPrice": "0.01", "maxPrice": "100000.00000000", "tickSize": "0.01", "filterType": "PRICE_FILTER" },
+        //                     { "minQty": "0.01", "maxQty": "100000.00000000", "stepSize": "0.01", "filterType": "LOT_SIZE" },
+        //                     { "minNotional": "0.000000001", "filterType": "MIN_NOTIONAL" }
         //                 ],
         //                 "exchangeId": "301",
         //                 "symbol": "ETH-SWAP-USDT",
@@ -311,24 +403,9 @@ export default class bitflex extends Exchange {
         //                 "contractMultiplier": "1.0",
         //                 "underlying": "ETH",
         //                 "riskLimits": [
-        //                     {
-        //                         "riskLimitId": "200000150",
-        //                         "quantity": "200.0",
-        //                         "initialMargin": "0.01",
-        //                         "maintMargin": "0.005"
-        //                     },
-        //                     {
-        //                         "riskLimitId": "200000151",
-        //                         "quantity": "600.0",
-        //                         "initialMargin": "0.02",
-        //                         "maintMargin": "0.015"
-        //                     },
-        //                     {
-        //                         "riskLimitId": "200000152",
-        //                         "quantity": "2100.0",
-        //                         "initialMargin": "0.04",
-        //                         "maintMargin": "0.035"
-        //                     }
+        //                     { "riskLimitId": "200000150", "quantity": "200.0", "initialMargin": "0.01", "maintMargin": "0.005" },
+        //                     { "riskLimitId": "200000151", "quantity": "600.0", "initialMargin": "0.02", "maintMargin": "0.015" },
+        //                     { "riskLimitId": "200000152", "quantity": "2100.0", "initialMargin": "0.04","maintMargin": "0.035" }
         //                 ]
         //             },
         //             ...
@@ -351,26 +428,10 @@ export default class bitflex extends Exchange {
         //                 "allowWithdraw": true,
         //                 "allowDeposit": true,
         //                 "chainTypes": [
-        //                     {
-        //                         "chainType": "ERC20",
-        //                         "allowDeposit": true,
-        //                         "allowWithdraw": true
-        //                     },
-        //                     {
-        //                         "chainType": "TRC20",
-        //                         "allowDeposit": true,
-        //                         "allowWithdraw": true
-        //                     },
-        //                     {
-        //                         "chainType": "BEP20",
-        //                         "allowDeposit": false,
-        //                         "allowWithdraw": false
-        //                     },
-        //                     {
-        //                         "chainType": "OMNI",
-        //                         "allowDeposit": false,
-        //                         "allowWithdraw": false
-        //                     }
+        //                     { "chainType": "ERC20", "allowDeposit": true, "allowWithdraw": true },
+        //                     { "chainType": "TRC20", "allowDeposit": true, "allowWithdraw": true },
+        //                     { "chainType": "BEP20", "allowDeposit": false, "allowWithdraw": false },
+        //                     { "chainType": "OMNI", "allowDeposit": false, "allowWithdraw": false }
         //                 ]
         //             },
         //             ...
@@ -390,25 +451,12 @@ export default class bitflex extends Exchange {
 
     parseMarket (market): Market {
         //
-        //  spot markets
+        // spot market
         //     {
         //         "filters": [
-        //             {
-        //                 "minPrice": "0.01",
-        //                 "maxPrice": "100000.00000000",
-        //                 "tickSize": "0.01",
-        //                 "filterType": "PRICE_FILTER"
-        //             },
-        //             {
-        //                 "minQty": "0.001",
-        //                 "maxQty": "100000.00000000",
-        //                 "stepSize": "0.0001",
-        //                 "filterType": "LOT_SIZE"
-        //             },
-        //             {
-        //                 "minNotional": "10",
-        //                 "filterType": "MIN_NOTIONAL"
-        //             }
+        //             { "minPrice": "0.01", "maxPrice": "100000.00000000", "tickSize": "0.01", "filterType": "PRICE_FILTER" },
+        //             { "minQty": "0.001", "maxQty": "100000.00000000", "stepSize": "0.0001", "filterType": "LOT_SIZE" },
+        //             { "minNotional": "10", "filterType": "MIN_NOTIONAL" }
         //         ],
         //         "exchangeId": "301",
         //         "symbol": "ETHUSDT",
@@ -425,25 +473,12 @@ export default class bitflex extends Exchange {
         //         "allowMargin": false
         //     }
         //
-        //  contract markets
+        // contract market
         //     {
         //         "filters": [
-        //             {
-        //                 "minPrice": "0.01",
-        //                 "maxPrice": "100000.00000000",
-        //                 "tickSize": "0.01",
-        //                 "filterType": "PRICE_FILTER"
-        //             },
-        //             {
-        //                 "minQty": "0.01",
-        //                 "maxQty": "100000.00000000",
-        //                 "stepSize": "0.01",
-        //                 "filterType": "LOT_SIZE"
-        //             },
-        //             {
-        //                 "minNotional": "0.000000001",
-        //                 "filterType": "MIN_NOTIONAL"
-        //             }
+        //             { "minPrice": "0.01", "maxPrice": "100000.00000000", "tickSize": "0.01", "filterType": "PRICE_FILTER" },
+        //             { "minQty": "0.01", "maxQty": "100000.00000000", "stepSize": "0.01", "filterType": "LOT_SIZE" },
+        //             { "minNotional": "0.000000001", "filterType": "MIN_NOTIONAL" }
         //         ],
         //         "exchangeId": "301",
         //         "symbol": "ETH-SWAP-USDT",
@@ -461,24 +496,9 @@ export default class bitflex extends Exchange {
         //         "contractMultiplier": "1.0",
         //         "underlying": "ETH",
         //         "riskLimits": [
-        //             {
-        //                 "riskLimitId": "200000150",
-        //                 "quantity": "200.0",
-        //                 "initialMargin": "0.01",
-        //                 "maintMargin": "0.005"
-        //             },
-        //             {
-        //                 "riskLimitId": "200000151",
-        //                 "quantity": "600.0",
-        //                 "initialMargin": "0.02",
-        //                 "maintMargin": "0.015"
-        //             },
-        //             {
-        //                 "riskLimitId": "200000152",
-        //                 "quantity": "2100.0",
-        //                 "initialMargin": "0.04",
-        //                 "maintMargin": "0.035"
-        //             }
+        //             { "riskLimitId": "200000150", "quantity": "200.0", "initialMargin": "0.01", "maintMargin": "0.005" },
+        //             { "riskLimitId": "200000151", "quantity": "600.0", "initialMargin": "0.02", "maintMargin": "0.015" },
+        //             { "riskLimitId": "200000152", "quantity": "2100.0", "initialMargin": "0.04","maintMargin": "0.035" }
         //         ]
         //     }
         //
@@ -640,6 +660,71 @@ export default class bitflex extends Exchange {
         return this.parseOrderBook (response, symbol, timestamp);
     }
 
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        /**
+         * @method
+         * @name bitflex#fetchTrades
+         * @see https://docs.bitflex.com/spot#recent-trades-list
+         * @see https://docs.bitflex.com/contract#recent-trades-list
+         * @description get the list of most recent trades for a particular symbol
+         * @param {string} symbol unified symbol of the market to fetch trades for
+         * @param {int} [since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [limit] the maximum amount of trades to fetch
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {int} [params.until] *spot only* *since must be defined* the latest time in ms to fetch entries for
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        let response = undefined;
+        if (market['spot']) {
+            response = await this.publicGetOpenapiQuoteV1Trades (this.extend (request, params));
+            //
+            //     [
+            //         {
+            //             "price":"63385.91",
+            //             "time":1713343387094,
+            //             "qty":"0.022238",
+            //             "isBuyerMaker":true
+            //         },
+            //         {
+            //             "price":"63385.94",
+            //             "time":1713343390091,
+            //             "qty":"0.009984",
+            //             "isBuyerMaker":true
+            //         },
+            //         ...
+            //     ]
+            //
+        } else if (market['contract']) {
+            response = await this.publicGetOpenapiQuoteV1ContractTrades (this.extend (request, params));
+            //
+            //     [
+            //         {
+            //             "price":"63277.43",
+            //             "time":1713343654079,
+            //             "qty":"0.044525",
+            //             "isBuyerMaker":false
+            //         },
+            //         {
+            //             "price":"63277.47",
+            //             "time":1713343655085,
+            //             "qty":"0.019592",
+            //             "isBuyerMaker":true
+            //         },
+            //         ...
+            //     ]
+            //
+        }
+        return this.parseTrades (response, market, since, limit);
+    }
+    
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api];
         let query = this.omit (params, this.extractParams (path));
