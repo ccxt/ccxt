@@ -34,7 +34,7 @@ function run_tests {
   if [ -z "$rest_pid" ]; then
     if [ -z "$rest_args" ] || { [ -n "$rest_args" ] && [ "$rest_args" != "skip" ]; }; then
       # shellcheck disable=SC2086
-      node test-commonjs.cjs && node run-tests --js --python-async --php-async --csharp --useProxy $rest_args &
+      node test-commonjs.cjs && ./package-test.sh && && node run-tests --js --python-async --php-async --csharp --useProxy $rest_args &
       local rest_pid=$!
     fi
   fi
