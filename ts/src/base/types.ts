@@ -144,6 +144,7 @@ export interface OrderBook {
     datetime: Str;
     timestamp: Int;
     nonce: Int;
+    symbol: Str;
 }
 
 export interface Ticker {
@@ -469,6 +470,19 @@ export interface Greeks {
     lastPrice: number;
     underlyingPrice: number;
     info: any;
+}
+
+export interface Conversion {
+    info: any;
+    timestamp?: number
+    datetime?: string;
+    id: string;
+    fromCurrency: string;
+    fromAmount: number;
+    toCurrency: string;
+    toAmount: number;
+    price: number;
+    fee: number;
 }
 
 export interface Option {

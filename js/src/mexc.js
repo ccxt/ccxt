@@ -78,6 +78,7 @@ export default class mexc extends Exchange {
                 'fetchLeverage': true,
                 'fetchLeverages': false,
                 'fetchLeverageTiers': true,
+                'fetchMarginAdjustmentHistory': false,
                 'fetchMarginMode': false,
                 'fetchMarketLeverageTiers': undefined,
                 'fetchMarkets': true,

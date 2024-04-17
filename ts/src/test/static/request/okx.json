@@ -883,6 +883,33 @@
                 ]
             }
         ],
+        "fetchStatus": [
+            {
+                "description": "Fetch status",
+                "method": "fetchStatus",
+                "url": "https://www.okx.com/api/v5/system/status",
+                "input": []
+            }
+        ],
+        "fetchCurrencies": [
+            {
+                "description": "Fetch currencies",
+                "method": "fetchCurrencies",
+                "url": "https://www.okx.com/api/v5/asset/currencies",
+                "input": []
+            }
+        ],
+        "fetchTransfer": [
+            {
+                "description": "Fetch transfer",
+                "method": "fetchTransfer",
+                "url": "https://www.okx.com/api/v5/asset/transfer-state?transId=0",
+                "input": [
+                    0,
+                    "USDC"
+                ]
+            }
+        ],
         "addMargin": [
             {
                 "description": "Add margin to an inverse swap long position",
@@ -1139,6 +1166,18 @@
                 ]
             }
         ],
+        "setLeverage": [
+            {
+                "description": "set leverage",
+                "method": "setLeverage",
+                "url": "https://www.okx.com/api/v5/account/set-leverage",
+                "input": [
+                  5,
+                  "LTC/USDT:USDT"
+                ],
+                "output": "{\"lever\":5,\"mgnMode\":\"cross\",\"instId\":\"LTC-USDT-SWAP\"}"
+            }
+        ],
         "transfer": [
             {
                 "description": "transfer from spot to funding",
@@ -1282,7 +1321,7 @@
                 "method": "fetchTicker",
                 "url": "https://www.okx.com/api/v5/market/ticker?instId=BTC-USDT-SWAP",
                 "input": [
-                  "BTC/USDT:USDT"
+                    "BTC/USDT:USDT"
                 ]
             },
             {
@@ -1290,7 +1329,7 @@
                 "method": "fetchTicker",
                 "url": "https://www.okx.com/api/v5/market/ticker?instId=BTC-USDT",
                 "input": [
-                  "BTC/USDT"
+                    "BTC/USDT"
                 ]
             }
         ],
@@ -1363,6 +1402,28 @@
                   1709251200000,
                   3
                 ]
+            }
+        ],
+        "fetchConvertCurrencies": [
+            {
+                "description": "Fetch currencies that can be converted",
+                "method": "fetchConvertCurrencies",
+                "url": "https://www.okx.com/api/v5/asset/convert/currencies",
+                "input": []
+            }
+        ],
+        "createConvertTrade": [
+            {
+                "description": "from usdc to usdt",
+                "method": "createConvertTrade",
+                "url": "https://www.okx.com/api/v5/asset/convert/trade",
+                "input": [
+                  "quoternextUSDC-USDT17133439642216046",
+                  "USDC",
+                  "USDT",
+                  3
+                ],
+                "output": "{\"quoteId\":\"quoternextUSDC-USDT17133439642216046\",\"baseCcy\":\"USDC\",\"quoteCcy\":\"USDT\",\"szCcy\":\"USDC\",\"sz\":\"3\",\"side\":\"sell\"}"
             }
         ]
     }

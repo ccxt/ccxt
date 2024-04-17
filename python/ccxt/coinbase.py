@@ -6,9 +6,11 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.coinbase import ImplicitAPI
 import hashlib
-from ccxt.base.types import Account, Balances, Currencies, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Account, Balances, Currencies, Currency, Int, Market, MarketInterface, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InvalidOrder
@@ -16,7 +18,6 @@ from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import InvalidNonce
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -51,7 +52,7 @@ class coinbase(Exchange, ImplicitAPI):
                 'cancelOrder': True,
                 'cancelOrders': True,
                 'closeAllPositions': False,
-                'closePosition': False,
+                'closePosition': True,
                 'createDepositAddress': True,
                 'createLimitBuyOrder': True,
                 'createLimitSellOrder': True,
@@ -106,9 +107,9 @@ class coinbase(Exchange, ImplicitAPI):
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrders': True,
-                'fetchPosition': False,
+                'fetchPosition': True,
                 'fetchPositionMode': False,
-                'fetchPositions': False,
+                'fetchPositions': True,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
@@ -251,6 +252,8 @@ class coinbase(Exchange, ImplicitAPI):
                             'brokerage/convert/trade/{trade_id}': 1,
                             'brokerage/cfm/sweeps/schedule': 1,
                             'brokerage/intx/allocate': 1,
+                            # futures
+                            'brokerage/orders/close_position': 1,
                         },
                         'put': {
                             'brokerage/portfolios/{portfolio_uuid}': 1,
@@ -317,6 +320,8 @@ class coinbase(Exchange, ImplicitAPI):
                     'internal_server_error': ExchangeError,  # 500 Internal server error
                     'UNSUPPORTED_ORDER_CONFIGURATION': BadRequest,
                     'INSUFFICIENT_FUND': BadRequest,
+                    'PERMISSION_DENIED': PermissionDenied,
+                    'INVALID_ARGUMENT': BadRequest,
                 },
                 'broad': {
                     'request timestamp expired': InvalidNonce,  # {"errors":[{"id":"authentication_error","message":"request timestamp expired"}]}
@@ -337,6 +342,7 @@ class coinbase(Exchange, ImplicitAPI):
                 'CGLD': 'CELO',
             },
             'options': {
+                'brokerId': 'ccxt',
                 'stablePairs': ['BUSD-USD', 'CBETH-ETH', 'DAI-USD', 'GUSD-USD', 'GYEN-USD', 'PAX-USD', 'PAX-USDT', 'USDC-EUR', 'USDC-GBP', 'USDT-EUR', 'USDT-GBP', 'USDT-USD', 'USDT-USDC', 'WBTC-BTC'],
                 'fetchCurrencies': {
                     'expires': 5000,
@@ -529,6 +535,26 @@ class coinbase(Exchange, ImplicitAPI):
             last['cursor'] = cursor
             accounts[lastIndex] = last
         return self.parse_accounts(accounts, params)
+
+    def fetch_portfolios(self, params={}) -> List[Account]:
+        """
+        fetch all the portfolios
+        :see: https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getportfolios
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a dictionary of `account structures <https://docs.ccxt.com/#/?id=account-structure>` indexed by the account type
+        """
+        response = self.v3PrivateGetBrokeragePortfolios(params)
+        portfolios = self.safe_list(response, 'portfolios', [])
+        result = []
+        for i in range(0, len(portfolios)):
+            portfolio = portfolios[i]
+            result.append({
+                'id': self.safe_string(portfolio, 'uuid'),
+                'type': self.safe_string(portfolio, 'type'),
+                'code': None,
+                'info': portfolio,
+            })
+        return result
 
     def parse_account(self, account):
         #
@@ -1114,15 +1140,68 @@ class coinbase(Exchange, ImplicitAPI):
         return result
 
     def fetch_markets_v3(self, params={}):
-        promisesUnresolved = [
+        spotUnresolvedPromises = [
             self.v3PrivateGetBrokerageProducts(params),
             self.v3PrivateGetBrokerageTransactionSummary(params),
         ]
-        # response = self.v3PrivateGetBrokerageProducts(params)
-        promises = promisesUnresolved
-        response = self.safe_dict(promises, 0, {})
+        unresolvedContractPromises = []
+        try:
+            unresolvedContractPromises = [
+                self.v3PrivateGetBrokerageProducts(self.extend(params, {'product_type': 'FUTURE'})),
+                self.v3PrivateGetBrokerageProducts(self.extend(params, {'product_type': 'FUTURE', 'contract_expiry_type': 'PERPETUAL'})),
+                self.v3PrivateGetBrokerageTransactionSummary(self.extend(params, {'product_type': 'FUTURE'})),
+                self.v3PrivateGetBrokerageTransactionSummary(self.extend(params, {'product_type': 'FUTURE', 'contract_expiry_type': 'PERPETUAL'})),
+            ]
+        except Exception as e:
+            unresolvedContractPromises = []  # the sync version of ccxt won't have the promise.all line so the request is made here
+        promises = spotUnresolvedPromises
+        contractPromises = None
+        try:
+            contractPromises = unresolvedContractPromises  # some users don't have access to contracts
+        except Exception as e:
+            contractPromises = []
+        spot = self.safe_dict(promises, 0, {})
+        fees = self.safe_dict(promises, 1, {})
+        expiringFutures = self.safe_dict(contractPromises, 0, {})
+        perpetualFutures = self.safe_dict(contractPromises, 1, {})
+        expiringFees = self.safe_dict(contractPromises, 2, {})
+        perpetualFees = self.safe_dict(contractPromises, 3, {})
         #
-        #     [
+        #     {
+        #         "total_volume": 0,
+        #         "total_fees": 0,
+        #         "fee_tier": {
+        #             "pricing_tier": "",
+        #             "usd_from": "0",
+        #             "usd_to": "10000",
+        #             "taker_fee_rate": "0.006",
+        #             "maker_fee_rate": "0.004"
+        #         },
+        #         "margin_rate": null,
+        #         "goods_and_services_tax": null,
+        #         "advanced_trade_only_volume": 0,
+        #         "advanced_trade_only_fees": 0,
+        #         "coinbase_pro_volume": 0,
+        #         "coinbase_pro_fees": 0
+        #     }
+        #
+        feeTier = self.safe_dict(fees, 'fee_tier', {})
+        expiringFeeTier = self.safe_dict(expiringFees, 'fee_tier', {})  # fee tier null?
+        perpetualFeeTier = self.safe_dict(perpetualFees, 'fee_tier', {})  # fee tier null?
+        data = self.safe_list(spot, 'products', [])
+        result = []
+        for i in range(0, len(data)):
+            result.append(self.parse_spot_market(data[i], feeTier))
+        futureData = self.safe_list(expiringFutures, 'products', [])
+        for i in range(0, len(futureData)):
+            result.append(self.parse_contract_market(futureData[i], expiringFeeTier))
+        perpetualData = self.safe_list(perpetualFutures, 'products', [])
+        for i in range(0, len(perpetualData)):
+            result.append(self.parse_contract_market(perpetualData[i], perpetualFeeTier))
+        return result
+
+    def parse_spot_market(self, market, feeTier) -> MarketInterface:
+        #
         #         {
         #             "product_id": "TONE-USD",
         #             "price": "0.01523",
@@ -1151,96 +1230,261 @@ class coinbase(Exchange, ImplicitAPI):
         #             "base_currency_id": "TONE",
         #             "fcm_trading_session_details": null,
         #             "mid_market_price": ""
-        #         },
-        #         ...
-        #     ]
+        #         }
         #
-        # fees = self.v3PrivateGetBrokerageTransactionSummary(params)
-        fees = self.safe_dict(promises, 1, {})
-        #
-        #     {
-        #         "total_volume": 0,
-        #         "total_fees": 0,
-        #         "fee_tier": {
-        #             "pricing_tier": "",
-        #             "usd_from": "0",
-        #             "usd_to": "10000",
-        #             "taker_fee_rate": "0.006",
-        #             "maker_fee_rate": "0.004"
-        #         },
-        #         "margin_rate": null,
-        #         "goods_and_services_tax": null,
-        #         "advanced_trade_only_volume": 0,
-        #         "advanced_trade_only_fees": 0,
-        #         "coinbase_pro_volume": 0,
-        #         "coinbase_pro_fees": 0
-        #     }
-        #
-        feeTier = self.safe_dict(fees, 'fee_tier', {})
-        data = self.safe_list(response, 'products', [])
-        result = []
-        for i in range(0, len(data)):
-            market = data[i]
-            id = self.safe_string(market, 'product_id')
-            baseId = self.safe_string(market, 'base_currency_id')
-            quoteId = self.safe_string(market, 'quote_currency_id')
-            base = self.safe_currency_code(baseId)
-            quote = self.safe_currency_code(quoteId)
-            marketType = self.safe_string_lower(market, 'product_type')
-            tradingDisabled = self.safe_bool(market, 'trading_disabled')
-            stablePairs = self.safe_list(self.options, 'stablePairs', [])
-            result.append({
-                'id': id,
-                'symbol': base + '/' + quote,
-                'base': base,
-                'quote': quote,
-                'settle': None,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'settleId': None,
-                'type': marketType,
-                'spot': (marketType == 'spot'),
-                'margin': None,
-                'swap': False,
-                'future': False,
-                'option': False,
-                'active': not tradingDisabled,
-                'contract': False,
-                'linear': None,
-                'inverse': None,
-                'taker': 0.00001 if self.in_array(id, stablePairs) else self.safe_number(feeTier, 'taker_fee_rate'),
-                'maker': 0.0 if self.in_array(id, stablePairs) else self.safe_number(feeTier, 'maker_fee_rate'),
-                'contractSize': None,
-                'expiry': None,
-                'expiryDatetime': None,
-                'strike': None,
-                'optionType': None,
-                'precision': {
-                    'amount': self.safe_number(market, 'base_increment'),
-                    'price': self.safe_number_2(market, 'price_increment', 'quote_increment'),
+        id = self.safe_string(market, 'product_id')
+        baseId = self.safe_string(market, 'base_currency_id')
+        quoteId = self.safe_string(market, 'quote_currency_id')
+        base = self.safe_currency_code(baseId)
+        quote = self.safe_currency_code(quoteId)
+        marketType = self.safe_string_lower(market, 'product_type')
+        tradingDisabled = self.safe_bool(market, 'trading_disabled')
+        stablePairs = self.safe_list(self.options, 'stablePairs', [])
+        return self.safe_market_structure({
+            'id': id,
+            'symbol': base + '/' + quote,
+            'base': base,
+            'quote': quote,
+            'settle': None,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': None,
+            'type': marketType,
+            'spot': (marketType == 'spot'),
+            'margin': None,
+            'swap': False,
+            'future': False,
+            'option': False,
+            'active': not tradingDisabled,
+            'contract': False,
+            'linear': None,
+            'inverse': None,
+            'taker': 0.00001 if self.in_array(id, stablePairs) else self.safe_number(feeTier, 'taker_fee_rate'),
+            'maker': 0.0 if self.in_array(id, stablePairs) else self.safe_number(feeTier, 'maker_fee_rate'),
+            'contractSize': None,
+            'expiry': None,
+            'expiryDatetime': None,
+            'strike': None,
+            'optionType': None,
+            'precision': {
+                'amount': self.safe_number(market, 'base_increment'),
+                'price': self.safe_number_2(market, 'price_increment', 'quote_increment'),
+            },
+            'limits': {
+                'leverage': {
+                    'min': None,
+                    'max': None,
                 },
-                'limits': {
-                    'leverage': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'amount': {
-                        'min': self.safe_number(market, 'base_min_size'),
-                        'max': self.safe_number(market, 'base_max_size'),
-                    },
-                    'price': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'cost': {
-                        'min': self.safe_number(market, 'quote_min_size'),
-                        'max': self.safe_number(market, 'quote_max_size'),
-                    },
+                'amount': {
+                    'min': self.safe_number(market, 'base_min_size'),
+                    'max': self.safe_number(market, 'base_max_size'),
                 },
-                'created': None,
-                'info': market,
-            })
-        return result
+                'price': {
+                    'min': None,
+                    'max': None,
+                },
+                'cost': {
+                    'min': self.safe_number(market, 'quote_min_size'),
+                    'max': self.safe_number(market, 'quote_max_size'),
+                },
+            },
+            'created': None,
+            'info': market,
+        })
+
+    def parse_contract_market(self, market, feeTier) -> MarketInterface:
+        # expiring
+        #
+        #        {
+        #           "product_id":"BIT-26APR24-CDE",
+        #           "price":"71145",
+        #           "price_percentage_change_24h":"-2.36722931247427",
+        #           "volume_24h":"108549",
+        #           "volume_percentage_change_24h":"155.78255337197794",
+        #           "base_increment":"1",
+        #           "quote_increment":"0.01",
+        #           "quote_min_size":"0",
+        #           "quote_max_size":"100000000",
+        #           "base_min_size":"1",
+        #           "base_max_size":"100000000",
+        #           "base_name":"",
+        #           "quote_name":"US Dollar",
+        #           "watched":false,
+        #           "is_disabled":false,
+        #           "new":false,
+        #           "status":"",
+        #           "cancel_only":false,
+        #           "limit_only":false,
+        #           "post_only":false,
+        #           "trading_disabled":false,
+        #           "auction_mode":false,
+        #           "product_type":"FUTURE",
+        #           "quote_currency_id":"USD",
+        #           "base_currency_id":"",
+        #           "fcm_trading_session_details":{
+        #              "is_session_open":true,
+        #              "open_time":"2024-04-08T22:00:00Z",
+        #              "close_time":"2024-04-09T21:00:00Z"
+        #           },
+        #           "mid_market_price":"71105",
+        #           "alias":"",
+        #           "alias_to":[
+        #           ],
+        #           "base_display_symbol":"",
+        #           "quote_display_symbol":"USD",
+        #           "view_only":false,
+        #           "price_increment":"5",
+        #           "display_name":"BTC 26 APR 24",
+        #           "product_venue":"FCM",
+        #           "future_product_details":{
+        #              "venue":"cde",
+        #              "contract_code":"BIT",
+        #              "contract_expiry":"2024-04-26T15:00:00Z",
+        #              "contract_size":"0.01",
+        #              "contract_root_unit":"BTC",
+        #              "group_description":"Nano Bitcoin Futures",
+        #              "contract_expiry_timezone":"Europe/London",
+        #              "group_short_description":"Nano BTC",
+        #              "risk_managed_by":"MANAGED_BY_FCM",
+        #              "contract_expiry_type":"EXPIRING",
+        #              "contract_display_name":"BTC 26 APR 24"
+        #           }
+        #        }
+        #
+        # perpetual
+        #
+        #        {
+        #           "product_id":"ETH-PERP-INTX",
+        #           "price":"3630.98",
+        #           "price_percentage_change_24h":"0.65142426292038",
+        #           "volume_24h":"114020.1501",
+        #           "volume_percentage_change_24h":"63.33650787154869",
+        #           "base_increment":"0.0001",
+        #           "quote_increment":"0.01",
+        #           "quote_min_size":"10",
+        #           "quote_max_size":"50000000",
+        #           "base_min_size":"0.0001",
+        #           "base_max_size":"50000",
+        #           "base_name":"",
+        #           "quote_name":"USDC",
+        #           "watched":false,
+        #           "is_disabled":false,
+        #           "new":false,
+        #           "status":"",
+        #           "cancel_only":false,
+        #           "limit_only":false,
+        #           "post_only":false,
+        #           "trading_disabled":false,
+        #           "auction_mode":false,
+        #           "product_type":"FUTURE",
+        #           "quote_currency_id":"USDC",
+        #           "base_currency_id":"",
+        #           "fcm_trading_session_details":null,
+        #           "mid_market_price":"3630.975",
+        #           "alias":"",
+        #           "alias_to":[],
+        #           "base_display_symbol":"",
+        #           "quote_display_symbol":"USDC",
+        #           "view_only":false,
+        #           "price_increment":"0.01",
+        #           "display_name":"ETH PERP",
+        #           "product_venue":"INTX",
+        #           "future_product_details":{
+        #              "venue":"",
+        #              "contract_code":"ETH",
+        #              "contract_expiry":null,
+        #              "contract_size":"1",
+        #              "contract_root_unit":"ETH",
+        #              "group_description":"",
+        #              "contract_expiry_timezone":"",
+        #              "group_short_description":"",
+        #              "risk_managed_by":"MANAGED_BY_VENUE",
+        #              "contract_expiry_type":"PERPETUAL",
+        #              "perpetual_details":{
+        #                 "open_interest":"0",
+        #                 "funding_rate":"0.000016",
+        #                 "funding_time":"2024-04-09T09:00:00.000008Z",
+        #                 "max_leverage":"10"
+        #              },
+        #              "contract_display_name":"ETH PERPETUAL"
+        #           }
+        #        }
+        #
+        id = self.safe_string(market, 'product_id')
+        futureProductDetails = self.safe_dict(market, 'future_product_details', {})
+        contractExpiryType = self.safe_string(futureProductDetails, 'contract_expiry_type')
+        contractSize = self.safe_number(futureProductDetails, 'contract_size')
+        contractExpire = self.safe_string(futureProductDetails, 'contract_expiry')
+        expireTimestamp = self.parse8601(contractExpire)
+        isSwap = (contractExpiryType == 'PERPETUAL')
+        baseId = self.safe_string(futureProductDetails, 'contract_root_unit')
+        quoteId = self.safe_string(market, 'quote_currency_id')
+        base = self.safe_currency_code(baseId)
+        quote = self.safe_currency_code(quoteId)
+        tradingDisabled = self.safe_bool(market, 'is_disabled')
+        symbol = base + '/' + quote
+        type = None
+        if isSwap:
+            type = 'swap'
+            symbol = symbol + ':' + quote
+        else:
+            type = 'future'
+            symbol = symbol + ':' + quote + '-' + self.yymmdd(expireTimestamp)
+        takerFeeRate = self.safe_number(feeTier, 'taker_fee_rate')
+        makerFeeRate = self.safe_number(feeTier, 'maker_fee_rate')
+        taker = takerFeeRate if takerFeeRate else self.parse_number('0.06')
+        maker = makerFeeRate if makerFeeRate else self.parse_number('0.04')
+        return self.safe_market_structure({
+            'id': id,
+            'symbol': symbol,
+            'base': base,
+            'quote': quote,
+            'settle': quote,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': quoteId,
+            'type': type,
+            'spot': False,
+            'margin': False,
+            'swap': isSwap,
+            'future': not isSwap,
+            'option': False,
+            'active': not tradingDisabled,
+            'contract': True,
+            'linear': True,
+            'inverse': False,
+            'taker': taker,
+            'maker': maker,
+            'contractSize': contractSize,
+            'expiry': expireTimestamp,
+            'expiryDatetime': contractExpire,
+            'strike': None,
+            'optionType': None,
+            'precision': {
+                'amount': self.safe_number(market, 'base_increment'),
+                'price': self.safe_number_2(market, 'price_increment', 'quote_increment'),
+            },
+            'limits': {
+                'leverage': {
+                    'min': None,
+                    'max': None,
+                },
+                'amount': {
+                    'min': self.safe_number(market, 'base_min_size'),
+                    'max': self.safe_number(market, 'base_max_size'),
+                },
+                'price': {
+                    'min': None,
+                    'max': None,
+                },
+                'cost': {
+                    'min': self.safe_number(market, 'quote_min_size'),
+                    'max': self.safe_number(market, 'quote_max_size'),
+                },
+            },
+            'created': None,
+            'info': market,
+        })
 
     def fetch_currencies_from_cache(self, params={}):
         options = self.safe_dict(self.options, 'fetchCurrencies', {})
@@ -1721,19 +1965,23 @@ class coinbase(Exchange, ImplicitAPI):
         query for balance and get the amount of funds available for trading or funds locked in orders
         :see: https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getaccounts
         :see: https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-accounts#list-accounts
+        :see: https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getfcmbalancesummary
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.v3]: default False, set True to use v3 api endpoint
-        :param dict [params.type]: "spot"(default) or "swap"
+        :param dict [params.type]: "spot"(default) or "swap" or "future"
         :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
         self.load_markets()
         request = {}
         response = None
         isV3 = self.safe_bool(params, 'v3', False)
-        type = self.safe_string(params, 'type')
-        params = self.omit(params, ['v3', 'type'])
+        params = self.omit(params, ['v3'])
+        marketType = None
+        marketType, params = self.handle_market_type_and_params('fetchBalance', None, params)
         method = self.safe_string(self.options, 'fetchBalance', 'v3PrivateGetBrokerageAccounts')
-        if (isV3) or (method == 'v3PrivateGetBrokerageAccounts'):
+        if marketType == 'future':
+            response = self.v3PrivateGetBrokerageCfmBalanceSummary(self.extend(request, params))
+        elif (isV3) or (method == 'v3PrivateGetBrokerageAccounts'):
             request['limit'] = 250
             response = self.v3PrivateGetBrokerageAccounts(self.extend(request, params))
         else:
@@ -1810,7 +2058,7 @@ class coinbase(Exchange, ImplicitAPI):
         #         "size": 9
         #     }
         #
-        params['type'] = type
+        params['type'] = marketType
         return self.parse_custom_balance(response, params)
 
     def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
@@ -2247,12 +2495,18 @@ class coinbase(Exchange, ImplicitAPI):
         :param str [params.end_time]: '2023-05-25T17:01:05.092Z' for 'GTD' orders
         :param float [params.cost]: *spot market buy only* the quote quantity that can be used alternative for the amount
         :param boolean [params.preview]: default to False, wether to use the test/preview endpoint or not
+        :param float [params.leverage]: default to 1, the leverage to use for the order
+        :param str [params.marginMode]: 'cross' or 'isolated'
+        :param str [params.retail_portfolio_id]: portfolio uid
+        :param boolean [params.is_max]: Used in conjunction with tradable_balance to indicate the user wants to use their entire tradable balance
+        :param str [params.tradable_balance]: amount of tradable balance
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
+        id = self.safe_string(self.options, 'brokerId', 'ccxt')
         request = {
-            'client_order_id': self.uuid(),
+            'client_order_id': id + '-' + self.uuid(),
             'product_id': market['id'],
             'side': side.upper(),
         }
@@ -2339,7 +2593,7 @@ class coinbase(Exchange, ImplicitAPI):
         else:
             if isStop or isStopLoss or isTakeProfit:
                 raise NotSupported(self.id + ' createOrder() only stop limit orders are supported')
-            if side == 'buy':
+            if market['spot'] and (side == 'buy'):
                 total = None
                 createMarketBuyOrderRequiresPrice = True
                 createMarketBuyOrderRequiresPrice, params = self.handle_option_and_params(params, 'createOrder', 'createMarketBuyOrderRequiresPrice', True)
@@ -2368,7 +2622,13 @@ class coinbase(Exchange, ImplicitAPI):
                         'base_size': self.amount_to_precision(symbol, amount),
                     },
                 }
-        params = self.omit(params, ['timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'stopPrice', 'stop_price', 'stopDirection', 'stop_direction', 'clientOrderId', 'postOnly', 'post_only', 'end_time'])
+        marginMode = self.safe_string(params, 'marginMode')
+        if marginMode is not None:
+            if marginMode == 'isolated':
+                request['margin_type'] = 'ISOLATED'
+            elif marginMode == 'cross':
+                request['margin_type'] = 'CROSS'
+        params = self.omit(params, ['timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'stopPrice', 'stop_price', 'stopDirection', 'stop_direction', 'clientOrderId', 'postOnly', 'post_only', 'end_time', 'marginMode'])
         preview = self.safe_bool_2(params, 'preview', 'test', False)
         response = None
         if preview:
@@ -3559,6 +3819,259 @@ class coinbase(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_transaction(data)
 
+    def close_position(self, symbol: str, side: OrderSide = None, params={}) -> Order:
+        """
+        *futures only* closes open positions for a market
+        :see: https://coinbase-api.github.io/docs/#/en-us/swapV2/trade-api.html#One-Click%20Close%20All%20Positions
+        :param str symbol: Unified CCXT market symbol
+        :param str [side]: not used by coinbase
+        :param dict [params]: extra parameters specific to the coinbase api endpoint
+         * @param {str}  params.clientOrderId *mandatory* the client order id of the position to close
+        :param float [params.size]: the size of the position to close, optional
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        self.load_markets()
+        market = self.market(symbol)
+        if not market['future']:
+            raise NotSupported(self.id + ' closePosition() only supported for futures markets')
+        clientOrderId = self.safe_string_2(params, 'client_order_id', 'clientOrderId')
+        params = self.omit(params, 'clientOrderId')
+        request = {
+            'product_id': market['id'],
+        }
+        if clientOrderId is None:
+            raise ArgumentsRequired(self.id + ' closePosition() requires a clientOrderId parameter')
+        request['client_order_id'] = clientOrderId
+        response = self.v3PrivatePostBrokerageOrdersClosePosition(self.extend(request, params))
+        order = self.safe_dict(response, 'success_response', {})
+        return self.parse_order(order)
+
+    def fetch_positions(self, symbols: Strings = None, params={}):
+        """
+        fetch all open positions
+        :see: https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getfcmpositions
+        :see: https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getintxpositions
+        :param str[] [symbols]: list of unified market symbols
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.portfolio]: the portfolio UUID to fetch positions for
+        :returns dict[]: a list of `position structure <https://docs.ccxt.com/#/?id=position-structure>`
+        """
+        self.load_markets()
+        symbols = self.market_symbols(symbols)
+        market = None
+        if symbols is not None:
+            market = self.market(symbols[0])
+        type = None
+        type, params = self.handle_market_type_and_params('fetchPositions', market, params)
+        response = None
+        if type == 'future':
+            response = self.v3PrivateGetBrokerageCfmPositions(params)
+        else:
+            portfolio = None
+            portfolio, params = self.handle_option_and_params(params, 'fetchPositions', 'portfolio')
+            if portfolio is None:
+                raise ArgumentsRequired(self.id + ' fetchPositions() requires a "portfolio" value in params(eg: dbcb91e7-2bc9-515), or set.options["portfolio"]. You can get a list of portfolios with fetchPortfolios()')
+            request = {
+                'portfolio_uuid': portfolio,
+            }
+            response = self.v3PrivateGetBrokerageIntxPositionsPortfolioUuid(self.extend(request, params))
+        positions = self.safe_list(response, 'positions', [])
+        return self.parse_positions(positions, symbols)
+
+    def fetch_position(self, symbol: str, params={}):
+        """
+        fetch data on a single open contract trade position
+        :see: https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getintxposition
+        :see: https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getfcmposition
+        :param str symbol: unified market symbol of the market the position is held in, default is None
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.product_id]: *futures only* the product id of the position to fetch, required for futures markets only
+        :param str [params.portfolio]: *perpetual/swaps only* the portfolio UUID to fetch the position for, required for perpetual/swaps markets only
+        :returns dict: a `position structure <https://docs.ccxt.com/#/?id=position-structure>`
+        """
+        self.load_markets()
+        market = self.market(symbol)
+        response = None
+        if market['future']:
+            productId = self.safe_string(market, 'product_id')
+            if productId is None:
+                raise ArgumentsRequired(self.id + ' fetchPosition() requires a "product_id" in params')
+            futureRequest = {
+                'product_id': productId,
+            }
+            response = self.v3PrivateGetBrokerageCfmPositionsProductId(self.extend(futureRequest, params))
+        else:
+            portfolio = None
+            portfolio, params = self.handle_option_and_params(params, 'fetchPositions', 'portfolio')
+            if portfolio is None:
+                raise ArgumentsRequired(self.id + ' fetchPosition() requires a "portfolio" value in params(eg: dbcb91e7-2bc9-515), or set.options["portfolio"]. You can get a list of portfolios with fetchPortfolios()')
+            request = {
+                'symbol': market['id'],
+                'portfolio_uuid': portfolio,
+            }
+            response = self.v3PrivateGetBrokerageIntxPositionsPortfolioUuidSymbol(self.extend(request, params))
+        position = self.safe_dict(response, 'position', {})
+        return self.parse_position(position, market)
+
+    def parse_position(self, position, market: Market = None):
+        #
+        # {
+        #     "product_id": "1r4njf84-0-0",
+        #     "product_uuid": "cd34c18b-3665-4ed8-9305-3db277c49fc5",
+        #     "symbol": "ADA-PERP-INTX",
+        #     "vwap": {
+        #        "value": "0.6171",
+        #        "currency": "USDC"
+        #     },
+        #     "position_side": "POSITION_SIDE_LONG",
+        #     "net_size": "20",
+        #     "buy_order_size": "0",
+        #     "sell_order_size": "0",
+        #     "im_contribution": "0.1",
+        #     "unrealized_pnl": {
+        #        "value": "0.074",
+        #        "currency": "USDC"
+        #     },
+        #     "mark_price": {
+        #        "value": "0.6208",
+        #        "currency": "USDC"
+        #     },
+        #     "liquidation_price": {
+        #        "value": "0",
+        #        "currency": "USDC"
+        #     },
+        #     "leverage": "1",
+        #     "im_notional": {
+        #        "value": "12.342",
+        #        "currency": "USDC"
+        #     },
+        #     "mm_notional": {
+        #        "value": "0.814572",
+        #        "currency": "USDC"
+        #     },
+        #     "position_notional": {
+        #        "value": "12.342",
+        #        "currency": "USDC"
+        #     },
+        #     "margin_type": "MARGIN_TYPE_CROSS",
+        #     "liquidation_buffer": "19.677828",
+        #     "liquidation_percentage": "4689.3506",
+        #     "portfolio_summary": {
+        #        "portfolio_uuid": "018ebd63-1f6d-7c8e-ada9-0761c5a2235f",
+        #        "collateral": "20.4184",
+        #        "position_notional": "12.342",
+        #        "open_position_notional": "12.342",
+        #        "pending_fees": "0",
+        #        "borrow": "0",
+        #        "accrued_interest": "0",
+        #        "rolling_debt": "0",
+        #        "portfolio_initial_margin": "0.1",
+        #        "portfolio_im_notional": {
+        #           "value": "12.342",
+        #           "currency": "USDC"
+        #        },
+        #        "portfolio_maintenance_margin": "0.066",
+        #        "portfolio_mm_notional": {
+        #           "value": "0.814572",
+        #           "currency": "USDC"
+        #        },
+        #        "liquidation_percentage": "4689.3506",
+        #        "liquidation_buffer": "19.677828",
+        #        "margin_type": "MARGIN_TYPE_CROSS",
+        #        "margin_flags": "PORTFOLIO_MARGIN_FLAGS_UNSPECIFIED",
+        #        "liquidation_status": "PORTFOLIO_LIQUIDATION_STATUS_NOT_LIQUIDATING",
+        #        "unrealized_pnl": {
+        #           "value": "0.074",
+        #           "currency": "USDC"
+        #        },
+        #        "buying_power": {
+        #           "value": "8.1504",
+        #           "currency": "USDC"
+        #        },
+        #        "total_balance": {
+        #           "value": "20.4924",
+        #           "currency": "USDC"
+        #        },
+        #        "max_withdrawal": {
+        #           "value": "8.0764",
+        #           "currency": "USDC"
+        #        }
+        #     },
+        #     "entry_vwap": {
+        #        "value": "0.6091",
+        #        "currency": "USDC"
+        #     }
+        # }
+        #
+        marketId = self.safe_string(position, 'symbol', '')
+        market = self.safe_market(marketId, market)
+        rawMargin = self.safe_string(position, 'margin_type')
+        marginMode = None
+        if rawMargin is not None:
+            marginMode = 'cross' if (rawMargin == 'MARGIN_TYPE_CROSS') else 'isolated'
+        notionalObject = self.safe_dict(position, 'position_notional', {})
+        positionSide = self.safe_string(position, 'position_side')
+        side = 'long' if (positionSide == 'POSITION_SIDE_LONG') else 'short'
+        unrealizedPNLObject = self.safe_dict(position, 'unrealized_pnl', {})
+        liquidationPriceObject = self.safe_dict(position, 'liquidation_price', {})
+        liquidationPrice = self.safe_number(liquidationPriceObject, 'value')
+        vwapObject = self.safe_dict(position, 'vwap', {})
+        summaryObject = self.safe_dict(position, 'portfolio_summary', {})
+        return self.safe_position({
+            'info': position,
+            'id': self.safe_string(position, 'product_id'),
+            'symbol': self.safe_symbol(marketId, market),
+            'notional': self.safe_number(notionalObject, 'value'),
+            'marginMode': marginMode,
+            'liquidationPrice': liquidationPrice,
+            'entryPrice': self.safe_number(vwapObject, 'value'),
+            'unrealizedPnl': self.safe_number(unrealizedPNLObject, 'value'),
+            'realizedPnl': None,
+            'percentage': None,
+            'contracts': self.safe_number(position, 'net_size'),
+            'contractSize': market['contractSize'],
+            'markPrice': None,
+            'lastPrice': None,
+            'side': side,
+            'hedged': None,
+            'timestamp': None,
+            'datetime': None,
+            'lastUpdateTimestamp': None,
+            'maintenanceMargin': None,
+            'maintenanceMarginPercentage': None,
+            'collateral': self.safe_number(summaryObject, 'collateral'),
+            'initialMargin': None,
+            'initialMarginPercentage': None,
+            'leverage': self.safe_number(position, 'leverage'),
+            'marginRatio': None,
+            'stopLossPrice': None,
+            'takeProfitPrice': None,
+        })
+
+    def create_auth_token(self, seconds: Int, method: Str = None, url: Str = None):
+        # it may not work for v2
+        uri = None
+        if url is not None:
+            uri = method + ' ' + url.replace('https://', '')
+            quesPos = uri.find('?')
+            # Due to we use mb_strpos, quesPos could be False in php. In that case, the quesPos >= 0 is True
+            # Also it's not possible that the question mark is first character, only check > 0 here.
+            if quesPos > 0:
+                uri = uri[0:quesPos]
+        nonce = self.random_bytes(16)
+        request = {
+            'aud': ['retail_rest_api_proxy'],
+            'iss': 'coinbase-cloud',
+            'nbf': seconds,
+            'exp': seconds + 120,
+            'sub': self.apiKey,
+            'iat': seconds,
+        }
+        if uri is not None:
+            request['uri'] = uri
+        token = self.jwt(request, self.encode(self.secret), 'sha256', False, {'kid': self.apiKey, 'nonce': nonce, 'alg': 'ES256'})
+        return token
+
     def sign(self, path, api=[], method='GET', params={}, headers=None, body=None):
         version = api[0]
         signed = api[1] == 'private'
@@ -3573,25 +4086,14 @@ class coinbase(Exchange, ImplicitAPI):
         url = self.urls['api']['rest'] + fullPath
         if signed:
             authorization = self.safe_string(self.headers, 'Authorization')
+            authorizationString = None
             if authorization is not None:
-                headers = {
-                    'Authorization': authorization,
-                    'Content-Type': 'application/json',
-                }
-                if method != 'GET':
-                    if query:
-                        body = self.json(query)
+                authorizationString = authorization
             elif self.token and not self.check_required_credentials(False):
-                headers = {
-                    'Authorization': 'Bearer ' + self.token,
-                    'Content-Type': 'application/json',
-                }
-                if method != 'GET':
-                    if query:
-                        body = self.json(query)
+                authorizationString = 'Bearer ' + self.token
             else:
                 self.check_required_credentials()
-                timestampString = str(self.seconds())
+                seconds = self.seconds()
                 payload = ''
                 if method != 'GET':
                     if query:
@@ -3605,14 +4107,49 @@ class coinbase(Exchange, ImplicitAPI):
                 # https://docs.cloud.coinbase.com/advanced-trade-api/docs/auth#example-request
                 # v2: 'GET' require payload in the signature
                 # https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-key-authentication
-                auth = timestampString + method + savedPath + payload
-                signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)
+                isCloudAPiKey = (self.apiKey.find('organizations/') >= 0) or (self.secret.startswith('-----BEGIN'))
+                if isCloudAPiKey:
+                    if self.apiKey.startswith('-----BEGIN'):
+                        raise ArgumentsRequired(self.id + ' apiKey should contain the name(eg: organizations/3b910e93....) and not the public key')
+                    #  # it may not work for v2
+                    # uri = method + ' ' + url.replace('https://', '')
+                    # quesPos = uri.find('?')
+                    #  # Due to we use mb_strpos, quesPos could be False in php. In that case, the quesPos >= 0 is True
+                    #  # Also it's not possible that the question mark is first character, only check > 0 here.
+                    # if quesPos > 0:
+                    #     uri = uri[0:quesPos]
+                    # }
+                    # nonce = self.random_bytes(16)
+                    # request = {
+                    #     'aud': ['retail_rest_api_proxy'],
+                    #     'iss': 'coinbase-cloud',
+                    #     'nbf': seconds,
+                    #     'exp': seconds + 120,
+                    #     'sub': self.apiKey,
+                    #     'uri': uri,
+                    #     'iat': seconds,
+                    # }
+                    token = self.create_auth_token(seconds, method, url)
+                    # token = self.jwt(request, self.encode(self.secret), 'sha256', False, {'kid': self.apiKey, 'nonce': nonce, 'alg': 'ES256'})
+                    authorizationString = 'Bearer ' + token
+                else:
+                    timestampString = str(self.seconds())
+                    auth = timestampString + method + savedPath + payload
+                    signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)
+                    headers = {
+                        'CB-ACCESS-KEY': self.apiKey,
+                        'CB-ACCESS-SIGN': signature,
+                        'CB-ACCESS-TIMESTAMP': timestampString,
+                        'Content-Type': 'application/json',
+                    }
+            if authorizationString is not None:
                 headers = {
-                    'CB-ACCESS-KEY': self.apiKey,
-                    'CB-ACCESS-SIGN': signature,
-                    'CB-ACCESS-TIMESTAMP': timestampString,
+                    'Authorization': authorizationString,
                     'Content-Type': 'application/json',
                 }
+                if method != 'GET':
+                    if query:
+                        body = self.json(query)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):

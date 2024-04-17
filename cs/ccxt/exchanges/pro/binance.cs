@@ -460,7 +460,11 @@ public partial class binance : ccxt.binance
                             }
                         } else
                         {
-                            throw new ExchangeError ((string)add(this.id, " handleOrderBook received an out-of-order nonce")) ;
+                            object checksum = this.safeBool(this.options, "checksum", true);
+                            if (isTrue(checksum))
+                            {
+                                throw new InvalidNonce ((string)add(this.id, " handleOrderBook received an out-of-order nonce")) ;
+                            }
                         }
                     }
                 } else
@@ -480,7 +484,11 @@ public partial class binance : ccxt.binance
                             }
                         } else
                         {
-                            throw new ExchangeError ((string)add(this.id, " handleOrderBook received an out-of-order nonce")) ;
+                            object checksum = this.safeBool(this.options, "checksum", true);
+                            if (isTrue(checksum))
+                            {
+                                throw new InvalidNonce ((string)add(this.id, " handleOrderBook received an out-of-order nonce")) ;
+                            }
                         }
                     }
                 }

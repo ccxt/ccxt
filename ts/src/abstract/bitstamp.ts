@@ -241,6 +241,12 @@ interface Exchange {
     privatePostBlurAddress (params?: {}): Promise<implicitReturnType>;
     privatePostVextWithdrawal (params?: {}): Promise<implicitReturnType>;
     privatePostVextAddress (params?: {}): Promise<implicitReturnType>;
+    privatePostCsprWithdrawal (params?: {}): Promise<implicitReturnType>;
+    privatePostCsprAddress (params?: {}): Promise<implicitReturnType>;
+    privatePostVchfWithdrawal (params?: {}): Promise<implicitReturnType>;
+    privatePostVchfAddress (params?: {}): Promise<implicitReturnType>;
+    privatePostVeurWithdrawal (params?: {}): Promise<implicitReturnType>;
+    privatePostVeurAddress (params?: {}): Promise<implicitReturnType>;
 }
 abstract class Exchange extends _Exchange {}
 

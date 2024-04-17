@@ -63,6 +63,7 @@ class bitmex extends bitmex$1 {
                 'fetchLeverages': true,
                 'fetchLeverageTiers': false,
                 'fetchLiquidations': true,
+                'fetchMarginAdjustmentHistory': false,
                 'fetchMarketLeverageTiers': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,

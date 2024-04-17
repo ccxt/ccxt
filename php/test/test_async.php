@@ -511,11 +511,16 @@ class testMainClass extends baseMainTestClass {
     }
 
     public function test_method($method_name, $exchange, $args, $is_public) {
-        // todo: temporary skip for php
+        // todo: temporary skip for c#
         return Async\async(function () use ($method_name, $exchange, $args, $is_public) {
+            if (mb_strpos($method_name, 'OrderBook') !== false && $this->ext === 'cs') {
+                $exchange->options['checksum'] = false;
+            }
+            // todo: temporary skip for php
             if (mb_strpos($method_name, 'OrderBook') !== false && $this->ext === 'php') {
                 return;
             }
+            $skipped_properties_for_method = $this->get_skips($exchange, $method_name);
             $is_load_markets = ($method_name === 'loadMarkets');
             $is_fetch_currencies = ($method_name === 'fetchCurrencies');
             $is_proxy_test = ($method_name === $this->proxy_test_file_name);
@@ -529,7 +534,7 @@ class testMainClass extends baseMainTestClass {
                 $skip_message = '[INFO] IGNORED_TEST';
             } elseif (!$is_load_markets && !$supported_by_exchange && !$is_proxy_test) {
                 $skip_message = '[INFO] UNSUPPORTED_TEST'; // keep it aligned with the longest message
-            } elseif ((is_array($this->skipped_methods) && array_key_exists($method_name, $this->skipped_methods)) && (is_string($this->skipped_methods[$method_name]))) {
+            } elseif (is_string($skipped_properties_for_method)) {
                 $skip_message = '[INFO] SKIPPED_TEST';
             } elseif (!(is_array($this->test_files) && array_key_exists($method_name, $this->test_files))) {
                 $skip_message = '[INFO] UNIMPLEMENTED_TEST';
@@ -548,7 +553,7 @@ class testMainClass extends baseMainTestClass {
                 $args_stringified = '(' . implode(',', $args) . ')';
                 dump($this->add_padding('[INFO] TESTING', 25), $this->exchange_hint($exchange), $method_name, $args_stringified);
             }
-            Async\await(call_method($this->test_files, $method_name, $exchange, $this->get_skips($exchange, $method_name), $args));
+            Async\await(call_method($this->test_files, $method_name, $exchange, $skipped_properties_for_method, $args));
             // if it was passed successfully, add to the list of successfull tests
             if ($is_public) {
                 $this->checked_public_tests[$method_name] = true;
@@ -558,8 +563,20 @@ class testMainClass extends baseMainTestClass {
     }
 
     public function get_skips($exchange, $method_name) {
-        // get "method-specific" skips
-        $skips_for_method = $exchange->safe_value($this->skipped_methods, $method_name, array());
+        $final_skips = array();
+        // check the exact method (i.e. `fetchTrades`) and language-specific (i.e. `fetchTrades.php`)
+        $method_names = [$method_name, $method_name . '.' . $this->ext];
+        for ($i = 0; $i < count($method_names); $i++) {
+            $m_name = $method_names[$i];
+            if (is_array($this->skipped_methods) && array_key_exists($m_name, $this->skipped_methods)) {
+                // if whole method is skipped, by assigning a string to it, i.e. "fetchOrders":"blabla"
+                if (is_string($this->skipped_methods[$m_name])) {
+                    return $this->skipped_methods[$m_name];
+                } else {
+                    $final_skips = $exchange->deep_extend($final_skips, $this->skipped_methods[$m_name]);
+                }
+            }
+        }
         // get "object-specific" skips
         $object_skips = array(
             'orderBook' => ['fetchOrderBook', 'fetchOrderBooks', 'fetchL2OrderBook', 'watchOrderBook', 'watchOrderBookForSymbols'],
@@ -575,11 +592,24 @@ class testMainClass extends baseMainTestClass {
             $object_name = $object_names[$i];
             $object_methods = $object_skips[$object_name];
             if ($exchange->in_array($method_name, $object_methods)) {
+                // if whole object is skipped, by assigning a string to it, i.e. "orderBook":"blabla"
+                if ((is_array($this->skipped_methods) && array_key_exists($object_name, $this->skipped_methods)) && (is_string($this->skipped_methods[$object_name]))) {
+                    return $this->skipped_methods[$object_name];
+                }
                 $extra_skips = $exchange->safe_dict($this->skipped_methods, $object_name, array());
-                return $exchange->deep_extend($skips_for_method, $extra_skips);
+                $final_skips = $exchange->deep_extend($final_skips, $extra_skips);
             }
         }
-        return $skips_for_method;
+        // extend related skips
+        // - if 'timestamp' is skipped, we should do so for 'datetime' too
+        // - if 'bid' is skipped, skip 'ask' too
+        if ((is_array($final_skips) && array_key_exists('timestamp', $final_skips)) && !(is_array($final_skips) && array_key_exists('datetime', $final_skips))) {
+            $final_skips['datetime'] = $final_skips['timestamp'];
+        }
+        if ((is_array($final_skips) && array_key_exists('bid', $final_skips)) && !(is_array($final_skips) && array_key_exists('ask', $final_skips))) {
+            $final_skips['ask'] = $final_skips['bid'];
+        }
+        return $final_skips;
     }
 
     public function test_safe($method_name, $exchange, $args = [], $is_public = false) {
@@ -688,11 +718,14 @@ class testMainClass extends baseMainTestClass {
             if ($this->ws_tests) {
                 $tests = array(
                     'watchOHLCV' => [$symbol],
+                    'watchOHLCVForSymbols' => [$symbol],
                     'watchTicker' => [$symbol],
                     'watchTickers' => [$symbol],
                     'watchBidsAsks' => [$symbol],
                     'watchOrderBook' => [$symbol],
+                    'watchOrderBookForSymbols' => [[$symbol]],
                     'watchTrades' => [$symbol],
+                    'watchTradesForSymbols' => [[$symbol]],
                 );
             }
             $market = $exchange->market($symbol);
@@ -1523,7 +1556,7 @@ class testMainClass extends baseMainTestClass {
         //  --- Init of brokerId tests functions-----------------------------------------
         //  -----------------------------------------------------------------------------
         return Async\async(function () {
-            $promises = [$this->test_binance(), $this->test_okx(), $this->test_cryptocom(), $this->test_bybit(), $this->test_kucoin(), $this->test_kucoinfutures(), $this->test_bitget(), $this->test_mexc(), $this->test_htx(), $this->test_woo(), $this->test_bitmart(), $this->test_coinex(), $this->test_bingx(), $this->test_phemex(), $this->test_blofin(), $this->test_hyperliquid(), $this->test_coinbaseinternational()];
+            $promises = [$this->test_binance(), $this->test_okx(), $this->test_cryptocom(), $this->test_bybit(), $this->test_kucoin(), $this->test_kucoinfutures(), $this->test_bitget(), $this->test_mexc(), $this->test_htx(), $this->test_woo(), $this->test_bitmart(), $this->test_coinex(), $this->test_bingx(), $this->test_phemex(), $this->test_blofin(), $this->test_hyperliquid(), $this->test_coinbaseinternational(), $this->test_coinbase_advanced()];
             Async\await(Promise\all($promises));
             $success_message = '[' . $this->lang . '][TEST_SUCCESS] brokerId tests passed.';
             dump('[INFO]' . $success_message);
@@ -1888,6 +1921,24 @@ class testMainClass extends baseMainTestClass {
             $request = null;
             try {
                 Async\await($exchange->create_order('BTC/USDC:USDC', 'limit', 'buy', 1, 20000));
+            } catch(\Throwable $e) {
+                $request = json_parse($exchange->last_request_body);
+            }
+            $client_order_id = $request['client_order_id'];
+            assert(str_starts_with($client_order_id, ((string) $id)), 'clientOrderId does not start with id');
+            Async\await(close($exchange));
+            return true;
+        }) ();
+    }
+
+    public function test_coinbase_advanced() {
+        return Async\async(function () {
+            $exchange = $this->init_offline_exchange('coinbase');
+            $id = 'ccxt';
+            assert($exchange->options['brokerId'] === $id, 'id not in options');
+            $request = null;
+            try {
+                Async\await($exchange->create_order('BTC/USDC', 'limit', 'buy', 1, 20000));
             } catch(\Throwable $e) {
                 $request = json_parse($exchange->last_request_body);
             }

@@ -66,6 +66,7 @@ public partial class kucoin : Exchange
                 { "fetchL3OrderBook", true },
                 { "fetchLedger", true },
                 { "fetchLeverageTiers", false },
+                { "fetchMarginAdjustmentHistory", false },
                 { "fetchMarginMode", false },
                 { "fetchMarketLeverageTiers", false },
                 { "fetchMarkets", true },
@@ -1057,10 +1058,10 @@ public partial class kucoin : Exchange
         //    }
         //
         object responses = await promiseAll(promises);
-        object currenciesResponse = this.safeValue(responses, 0, new Dictionary<string, object>() {});
-        object currenciesData = this.safeValue(currenciesResponse, "data", new List<object>() {});
-        object additionalResponse = this.safeValue(responses, 1, new Dictionary<string, object>() {});
-        object additionalData = this.safeValue(additionalResponse, "data", new List<object>() {});
+        object currenciesResponse = this.safeDict(responses, 0, new Dictionary<string, object>() {});
+        object currenciesData = this.safeList(currenciesResponse, "data", new List<object>() {});
+        object additionalResponse = this.safeDict(responses, 1, new Dictionary<string, object>() {});
+        object additionalData = this.safeList(additionalResponse, "data", new List<object>() {});
         object additionalDataGrouped = this.groupBy(additionalData, "currency");
         object result = new Dictionary<string, object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(currenciesData)); postFixIncrement(ref i))
@@ -1073,7 +1074,7 @@ public partial class kucoin : Exchange
             object isDepositEnabled = null;
             object networks = new Dictionary<string, object>() {};
             object chains = this.safeList(entry, "chains", new List<object>() {});
-            object extraChainsData = this.indexBy(this.safeValue(additionalDataGrouped, id, new List<object>() {}), "chain");
+            object extraChainsData = this.indexBy(this.safeList(additionalDataGrouped, id, new List<object>() {}), "chain");
             object rawPrecision = this.safeString(entry, "precision");
             object precision = this.parseNumber(this.parsePrecision(rawPrecision));
             object chainsLength = getArrayLength(chains);
@@ -1228,7 +1229,7 @@ public partial class kucoin : Exchange
             ((IDictionary<string,object>)request)["chain"] = ((string)this.networkCodeToId(networkCode)).ToLower();
         }
         object response = await this.privateGetWithdrawalsQuotas(this.extend(request, parameters));
-        object data = this.safeValue(response, "data");
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         object withdrawFees = new Dictionary<string, object>() {};
         ((IDictionary<string,object>)withdrawFees)[(string)code] = this.safeNumber(data, "withdrawMinFee");
         return new Dictionary<string, object>() {

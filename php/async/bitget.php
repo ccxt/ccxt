@@ -44,6 +44,7 @@ class bitget extends Exchange {
                 'cancelOrders' => true,
                 'closeAllPositions' => true,
                 'closePosition' => true,
+                'createConvertTrade' => true,
                 'createDepositAddress' => false,
                 'createMarketBuyOrderWithCost' => true,
                 'createMarketOrderWithCost' => false,
@@ -70,6 +71,8 @@ class bitget extends Exchange {
                 'fetchCanceledAndClosedOrders' => true,
                 'fetchCanceledOrders' => true,
                 'fetchClosedOrders' => true,
+                'fetchConvertCurrencies' => true,
+                'fetchConvertQuote' => true,
                 'fetchCrossBorrowRate' => true,
                 'fetchCrossBorrowRates' => false,
                 'fetchCurrencies' => true,
@@ -91,6 +94,7 @@ class bitget extends Exchange {
                 'fetchLeverage' => true,
                 'fetchLeverageTiers' => false,
                 'fetchLiquidations' => false,
+                'fetchMarginAdjustmentHistory' => false,
                 'fetchMarginMode' => true,
                 'fetchMarketLeverageTiers' => true,
                 'fetchMarkets' => true,
@@ -6895,6 +6899,7 @@ class bitget extends Exchange {
             'info' => $data,
             'symbol' => $market['symbol'],
             'type' => null,
+            'marginMode' => 'isolated',
             'amount' => null,
             'total' => null,
             'code' => $market['settle'],
@@ -8371,6 +8376,208 @@ class bitget extends Exchange {
             'symbol' => $market['symbol'],
             'marginMode' => $marginType,
         );
+    }
+
+    public function fetch_convert_quote(string $fromCode, string $toCode, ?float $amount = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($fromCode, $toCode, $amount, $params) {
+            /**
+             * fetch a quote for converting from one currency to another
+             * @see https://www.bitget.com/api-doc/common/convert/Get-Quoted-Price
+             * @param {string} $fromCode the currency that you want to sell and convert from
+             * @param {string} $toCode the currency that you want to buy and convert into
+             * @param {float} [$amount] how much you want to trade in units of the from currency
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=conversion-structure conversion structure~
+             */
+            Async\await($this->load_markets());
+            $request = array(
+                'fromCoin' => $fromCode,
+                'toCoin' => $toCode,
+                'fromCoinSize' => $this->number_to_string($amount),
+            );
+            $response = Async\await($this->privateConvertGetV2ConvertQuotedPrice (array_merge($request, $params)));
+            //
+            //     {
+            //         "code" => "00000",
+            //         "msg" => "success",
+            //         "requestTime" => 1712121940158,
+            //         "data" => {
+            //             "fromCoin" => "USDT",
+            //             "fromCoinSize" => "5",
+            //             "cnvtPrice" => "0.9993007892377704",
+            //             "toCoin" => "USDC",
+            //             "toCoinSize" => "4.99650394",
+            //             "traceId" => "1159288930228187140",
+            //             "fee" => "0"
+            //         }
+            //     }
+            //
+            $data = $this->safe_dict($response, 'data', array());
+            $fromCurrencyId = $this->safe_string($data, 'fromCoin', $fromCode);
+            $fromCurrency = $this->currency($fromCurrencyId);
+            $toCurrencyId = $this->safe_string($data, 'toCoin', $toCode);
+            $toCurrency = $this->currency($toCurrencyId);
+            return $this->parse_conversion($data, $fromCurrency, $toCurrency);
+        }) ();
+    }
+
+    public function create_convert_trade(string $id, string $fromCode, string $toCode, ?float $amount = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($id, $fromCode, $toCode, $amount, $params) {
+            /**
+             * convert from one currency to another
+             * @see https://www.bitget.com/api-doc/common/convert/Trade
+             * @param {string} $id the $id of the trade that you want to make
+             * @param {string} $fromCode the currency that you want to sell and convert from
+             * @param {string} $toCode the currency that you want to buy and convert into
+             * @param {float} $amount how much you want to trade in units of the from currency
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} $params->price the $price of the conversion, obtained from fetchConvertQuote()
+             * @param {string} $params->toAmount the $amount you want to trade in units of the $toCurrency, obtained from fetchConvertQuote()
+             * @return {array} a ~@link https://docs.ccxt.com/#/?$id=conversion-structure conversion structure~
+             */
+            Async\await($this->load_markets());
+            $price = $this->safe_string_2($params, 'price', 'cnvtPrice');
+            if ($price === null) {
+                throw new ArgumentsRequired($this->id . ' createConvertTrade() requires a $price parameter');
+            }
+            $toAmount = $this->safe_string_2($params, 'toAmount', 'toCoinSize');
+            if ($toAmount === null) {
+                throw new ArgumentsRequired($this->id . ' createConvertTrade() requires a $toAmount parameter');
+            }
+            $params = $this->omit($params, array( 'price', 'toAmount' ));
+            $request = array(
+                'traceId' => $id,
+                'fromCoin' => $fromCode,
+                'toCoin' => $toCode,
+                'fromCoinSize' => $this->number_to_string($amount),
+                'toCoinSize' => $toAmount,
+                'cnvtPrice' => $price,
+            );
+            $response = Async\await($this->privateConvertPostV2ConvertTrade (array_merge($request, $params)));
+            //
+            //     {
+            //         "code" => "00000",
+            //         "msg" => "success",
+            //         "requestTime" => 1712123746203,
+            //         "data" => {
+            //             "cnvtPrice" => "0.99940076",
+            //             "toCoin" => "USDC",
+            //             "toCoinSize" => "4.99700379",
+            //             "ts" => "1712123746217"
+            //         }
+            //     }
+            //
+            $data = $this->safe_dict($response, 'data', array());
+            $toCurrencyId = $this->safe_string($data, 'toCoin', $toCode);
+            $toCurrency = $this->currency($toCurrencyId);
+            return $this->parse_conversion($data, null, $toCurrency);
+        }) ();
+    }
+
+    public function parse_conversion($conversion, ?array $fromCurrency = null, ?array $toCurrency = null): Conversion {
+        //
+        // fetchConvertQuote
+        //
+        //     {
+        //         "fromCoin" => "USDT",
+        //         "fromCoinSize" => "5",
+        //         "cnvtPrice" => "0.9993007892377704",
+        //         "toCoin" => "USDC",
+        //         "toCoinSize" => "4.99650394",
+        //         "traceId" => "1159288930228187140",
+        //         "fee" => "0"
+        //     }
+        //
+        // createConvertTrade
+        //
+        //     {
+        //         "cnvtPrice" => "0.99940076",
+        //         "toCoin" => "USDC",
+        //         "toCoinSize" => "4.99700379",
+        //         "ts" => "1712123746217"
+        //     }
+        //
+        $timestamp = $this->safe_integer($conversion, 'ts');
+        $fromCoin = $this->safe_string($conversion, 'fromCoin');
+        $fromCode = $this->safe_currency_code($fromCoin, $fromCurrency);
+        $to = $this->safe_string($conversion, 'toCoin');
+        $toCode = $this->safe_currency_code($to, $toCurrency);
+        return array(
+            'info' => $conversion,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'id' => $this->safe_string($conversion, 'traceId'),
+            'fromCurrency' => $fromCode,
+            'fromAmount' => $this->safe_number($conversion, 'fromCoinSize'),
+            'toCurrency' => $toCode,
+            'toAmount' => $this->safe_number($conversion, 'toCoinSize'),
+            'price' => $this->safe_number($conversion, 'cnvtPrice'),
+            'fee' => $this->safe_number($conversion, 'fee'),
+        );
+    }
+
+    public function fetch_convert_currencies($params = array ()): PromiseInterface {
+        return Async\async(function () use ($params) {
+            /**
+             * fetches all available currencies that can be converted
+             * @see https://www.bitget.com/api-doc/common/convert/Get-Convert-Currencies
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} an associative dictionary of currencies
+             */
+            Async\await($this->load_markets());
+            $response = Async\await($this->privateConvertGetV2ConvertCurrencies ($params));
+            //
+            //     {
+            //         "code" => "00000",
+            //         "msg" => "success",
+            //         "requestTime" => 1712121755897,
+            //         "data" => array(
+            //             array(
+            //                 "coin" => "BTC",
+            //                 "available" => "0.00009850",
+            //                 "maxAmount" => "0.756266",
+            //                 "minAmount" => "0.00001"
+            //             ),
+            //         )
+            //     }
+            //
+            $result = array();
+            $data = $this->safe_list($response, 'data', array());
+            for ($i = 0; $i < count($data); $i++) {
+                $entry = $data[$i];
+                $id = $this->safe_string($entry, 'coin');
+                $code = $this->safe_currency_code($id);
+                $result[$code] = array(
+                    'info' => $entry,
+                    'id' => $id,
+                    'code' => $code,
+                    'networks' => null,
+                    'type' => null,
+                    'name' => null,
+                    'active' => null,
+                    'deposit' => null,
+                    'withdraw' => $this->safe_number($entry, 'available'),
+                    'fee' => null,
+                    'precision' => null,
+                    'limits' => array(
+                        'amount' => array(
+                            'min' => $this->safe_number($entry, 'minAmount'),
+                            'max' => $this->safe_number($entry, 'maxAmount'),
+                        ),
+                        'withdraw' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
+                        'deposit' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
+                    ),
+                    'created' => null,
+                );
+            }
+            return $result;
+        }) ();
     }
 
     public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {

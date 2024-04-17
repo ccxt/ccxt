@@ -344,7 +344,7 @@ public partial class ascendex : Exchange
                     { "300013", typeof(InvalidOrder) },
                     { "300014", typeof(InvalidOrder) },
                     { "300020", typeof(InvalidOrder) },
-                    { "300021", typeof(InvalidOrder) },
+                    { "300021", typeof(AccountSuspended) },
                     { "300031", typeof(InvalidOrder) },
                     { "310001", typeof(InsufficientFunds) },
                     { "310002", typeof(InvalidOrder) },
@@ -3037,7 +3037,7 @@ public partial class ascendex : Exchange
         });
     }
 
-    public virtual object parseMarginModification(object data, object market = null)
+    public override object parseMarginModification(object data, object market = null)
     {
         //
         // addMargin/reduceMargin
@@ -3052,6 +3052,7 @@ public partial class ascendex : Exchange
             { "info", data },
             { "symbol", getValue(market, "symbol") },
             { "type", null },
+            { "marginMode", "isolated" },
             { "amount", null },
             { "total", null },
             { "code", getValue(market, "quote") },

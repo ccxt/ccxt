@@ -40,6 +40,7 @@ class woo extends Exchange {
                 'cancelWithdraw' => false, // exchange have that endpoint disabled atm, but was once implemented in ccxt per old docs => https://kronosresearch.github.io/wootrade-documents/#cancel-withdraw-request
                 'closeAllPositions' => false,
                 'closePosition' => false,
+                'createConvertTrade' => true,
                 'createDepositAddress' => false,
                 'createMarketBuyOrderWithCost' => true,
                 'createMarketOrder' => false,
@@ -61,6 +62,8 @@ class woo extends Exchange {
                 'fetchCanceledOrders' => false,
                 'fetchClosedOrder' => false,
                 'fetchClosedOrders' => true,
+                'fetchConvertCurrencies' => true,
+                'fetchConvertQuote' => true,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => true,
@@ -72,6 +75,7 @@ class woo extends Exchange {
                 'fetchIndexOHLCV' => false,
                 'fetchLedger' => true,
                 'fetchLeverage' => true,
+                'fetchMarginAdjustmentHistory' => false,
                 'fetchMarginMode' => false,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
@@ -3028,6 +3032,186 @@ class woo extends Exchange {
             'stopLossPrice' => null,
             'takeProfitPrice' => null,
         ));
+    }
+
+    public function fetch_convert_quote(string $fromCode, string $toCode, ?float $amount = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($fromCode, $toCode, $amount, $params) {
+            /**
+             * fetch a quote for converting from one currency to another
+             * @see https://docs.woo.org/#get-quote-rfq
+             * @param {string} $fromCode the currency that you want to sell and convert from
+             * @param {string} $toCode the currency that you want to buy and convert into
+             * @param {float} [$amount] how much you want to trade in units of the from currency
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=conversion-structure conversion structure~
+             */
+            Async\await($this->load_markets());
+            $request = array(
+                'sellToken' => strtoupper($fromCode),
+                'buyToken' => strtoupper($toCode),
+                'sellQuantity' => $this->number_to_string($amount),
+            );
+            $response = Async\await($this->v3PrivateGetConvertRfq (array_merge($request, $params)));
+            //
+            //     {
+            //         "success" => true,
+            //         "data" => {
+            //             "quoteId" => 123123123,
+            //             "counterPartyId" => "",
+            //             "sellToken" => "ETH",
+            //             "sellQuantity" => "0.0445",
+            //             "buyToken" => "USDT",
+            //             "buyQuantity" => "33.45",
+            //             "buyPrice" => "6.77",
+            //             "expireTimestamp" => 1659084466000,
+            //             "message" => 1659084466000
+            //         }
+            //     }
+            //
+            $data = $this->safe_dict($response, 'data', array());
+            $fromCurrencyId = $this->safe_string($data, 'sellToken', $fromCode);
+            $fromCurrency = $this->currency($fromCurrencyId);
+            $toCurrencyId = $this->safe_string($data, 'buyToken', $toCode);
+            $toCurrency = $this->currency($toCurrencyId);
+            return $this->parse_conversion($data, $fromCurrency, $toCurrency);
+        }) ();
+    }
+
+    public function create_convert_trade(string $id, string $fromCode, string $toCode, ?float $amount = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($id, $fromCode, $toCode, $amount, $params) {
+            /**
+             * convert from one currency to another
+             * @see https://docs.woo.org/#send-quote-rft
+             * @param {string} $id the $id of the trade that you want to make
+             * @param {string} $fromCode the currency that you want to sell and convert from
+             * @param {string} $toCode the currency that you want to buy and convert into
+             * @param {float} [$amount] how much you want to trade in units of the from currency
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?$id=conversion-structure conversion structure~
+             */
+            Async\await($this->load_markets());
+            $request = array(
+                'quoteId' => $id,
+            );
+            $response = Async\await($this->v3PrivatePostConvertRft (array_merge($request, $params)));
+            //
+            //     {
+            //         "success" => true,
+            //         "data" => {
+            //             "quoteId" => 123123123,
+            //             "counterPartyId" => "",
+            //             "rftAccepted" => 1 // 1 -> success; 2 -> processing; 3 -> fail
+            //         }
+            //     }
+            //
+            $data = $this->safe_dict($response, 'data', array());
+            return $this->parse_conversion($data);
+        }) ();
+    }
+
+    public function parse_conversion($conversion, ?array $fromCurrency = null, ?array $toCurrency = null): Conversion {
+        //
+        // fetchConvertQuote
+        //
+        //     {
+        //         "quoteId" => 123123123,
+        //         "counterPartyId" => "",
+        //         "sellToken" => "ETH",
+        //         "sellQuantity" => "0.0445",
+        //         "buyToken" => "USDT",
+        //         "buyQuantity" => "33.45",
+        //         "buyPrice" => "6.77",
+        //         "expireTimestamp" => 1659084466000,
+        //         "message" => 1659084466000
+        //     }
+        //
+        // createConvertTrade
+        //
+        //     {
+        //         "quoteId" => 123123123,
+        //         "counterPartyId" => "",
+        //         "rftAccepted" => 1 // 1 -> success; 2 -> processing; 3 -> fail
+        //     }
+        //
+        $timestamp = $this->safe_integer($conversion, 'expireTimestamp');
+        $fromCoin = $this->safe_string($conversion, 'sellToken');
+        $fromCode = $this->safe_currency_code($fromCoin, $fromCurrency);
+        $to = $this->safe_string($conversion, 'buyToken');
+        $toCode = $this->safe_currency_code($to, $toCurrency);
+        return array(
+            'info' => $conversion,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'id' => $this->safe_string($conversion, 'quoteId'),
+            'fromCurrency' => $fromCode,
+            'fromAmount' => $this->safe_number($conversion, 'sellQuantity'),
+            'toCurrency' => $toCode,
+            'toAmount' => $this->safe_number($conversion, 'buyQuantity'),
+            'price' => $this->safe_number($conversion, 'buyPrice'),
+            'fee' => null,
+        );
+    }
+
+    public function fetch_convert_currencies($params = array ()): PromiseInterface {
+        return Async\async(function () use ($params) {
+            /**
+             * fetches all available currencies that can be converted
+             * @see https://docs.woo.org/#get-quote-asset-info
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} an associative dictionary of currencies
+             */
+            Async\await($this->load_markets());
+            $response = Async\await($this->v3PrivateGetConvertAssetInfo ($params));
+            //
+            //     {
+            //         "success" => true,
+            //         "rows" => array(
+            //             array(
+            //                 "token" => "BTC",
+            //                 "tick" => 0.0001,
+            //                 "createdTime" => "1575014248.99", // Unix epoch time in seconds
+            //                 "updatedTime" => "1575014248.99"  // Unix epoch time in seconds
+            //             ),
+            //         )
+            //     }
+            //
+            $result = array();
+            $data = $this->safe_list($response, 'rows', array());
+            for ($i = 0; $i < count($data); $i++) {
+                $entry = $data[$i];
+                $id = $this->safe_string($entry, 'token');
+                $code = $this->safe_currency_code($id);
+                $result[$code] = array(
+                    'info' => $entry,
+                    'id' => $id,
+                    'code' => $code,
+                    'networks' => null,
+                    'type' => null,
+                    'name' => null,
+                    'active' => null,
+                    'deposit' => null,
+                    'withdraw' => null,
+                    'fee' => null,
+                    'precision' => $this->safe_number($entry, 'tick'),
+                    'limits' => array(
+                        'amount' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
+                        'withdraw' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
+                        'deposit' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
+                    ),
+                    'created' => $this->safe_timestamp($entry, 'createdTime'),
+                );
+            }
+            return $result;
+        }) ();
     }
 
     public function default_network_code_for_currency($code) {
