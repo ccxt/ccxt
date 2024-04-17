@@ -3,7 +3,7 @@
 
 import Exchange from './abstract/bitflex.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { Currencies, Int, Market, OrderBook, Trade } from './base/types.js';
+import { Currencies, Int, Market, OHLCV, OrderBook, Trade } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -19,7 +19,7 @@ export default class bitflex extends Exchange {
             'countries': [ 'SC' ], // Seychelles
             'version': 'v1', // todo
             'rateLimit': 300, // todo: find out the real ratelimit
-            'pro': true,
+            'pro': false,
             'has': {
                 'CORS': undefined,
                 'spot': true,
@@ -182,6 +182,7 @@ export default class bitflex extends Exchange {
                 'exact': {
                     // 400  {"code":-1130,"msg":"Data sent for paramter \u0027type\u0027 is not valid."}
                     // 400 {"code":-100012,"msg":"Parameter symbol [String] missing!"}
+                    // 400 {"code":-100012,"msg":"Parameter interval [String] missing!"}
                 },
                 'broad': {
                 },
@@ -513,10 +514,6 @@ export default class bitflex extends Exchange {
         if (settle !== undefined) {
             symbol += ':' + settle;
         }
-        let margin = false;
-        if (settleId !== undefined) {
-            margin = true;
-        }
         const status = this.safeString (market, 'status');
         const active = (status === 'TRADING');
         const riskLimits = this.safeList (market, 'riskLimits');
@@ -524,6 +521,7 @@ export default class bitflex extends Exchange {
         if (riskLimits === undefined) {
             isSpot = true;
         }
+        const margin = this.safeBool (market, 'allowMargin', false);
         const type = isSpot ? 'spot' : 'swap';
         const isSwap = (type === 'swap');
         const isInverse = this.safeBool (market, 'inverse');
@@ -755,6 +753,70 @@ export default class bitflex extends Exchange {
             'fee': undefined,
             'info': trade,
         }, market);
+    }
+
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+        /**
+         * @method
+         * @name bitflex#fetchOHLCV
+         * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @see https://docs.bitflex.com/spot#kline-candlestick-data
+         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {string} timeframe the length of time each candle represents
+         * @param {int} [since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [limit] the maximum amount of candles to fetch, default 500, max 1000
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {int} [params.until] the latest time in ms to fetch entries for
+         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+            'interval': this.safeString (this.timeframes, timeframe, timeframe),
+        };
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const until = this.safeInteger2 (params, 'till', 'until');
+        if (until !== undefined) {
+            params = this.omit (params, [ 'till', 'until' ]);
+            request['endTime'] = until;
+        }
+        const response = await this.publicGetOpenapiQuoteV1Klines (this.extend (request, params));
+        //
+        //     [
+        //         [
+        //             1713389460000,   // Open time
+        //             "61456.94",      // Open
+        //             "61541.82",      // High
+        //             "61456.93",      // Low
+        //             "61519.98",      // Close
+        //             "0.126378",      // Volume
+        //             0,               // Close time
+        //             "7770.35199721", // Quote asset volume
+        //             9,               // Number of trades
+        //             "0",             // Taker buy base asset volume
+        //             "0"              // Taker buy quote asset volume
+        //         ],
+        //         ...
+        //     ]
+        //
+        return this.parseOHLCVs (response, market, timeframe, since, limit);
+    }
+
+    parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
+        return [
+            this.safeInteger (ohlcv, 0),
+            this.safeNumber (ohlcv, 1),
+            this.safeNumber (ohlcv, 2),
+            this.safeNumber (ohlcv, 3),
+            this.safeNumber (ohlcv, 4),
+            this.safeNumber (ohlcv, 5),
+        ];
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
