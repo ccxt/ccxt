@@ -3717,7 +3717,7 @@ class bingx(Exchange, ImplicitAPI):
         market = None
         if symbol is not None:
             market = self.market(symbol)
-            request['symbol'] = symbol
+            request['symbol'] = market['id']
         if since is not None:
             request['startTime'] = since
         if limit is not None:
