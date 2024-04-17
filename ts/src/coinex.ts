@@ -616,8 +616,8 @@ export default class coinex extends Exchange {
          * @method
          * @name coinex#fetchMarkets
          * @description retrieves data on all markets for coinex
-         * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot001_market002_all_market_info
-         * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http006_market_list
+         * @see https://docs.coinex.com/api/v2/spot/market/http/list-market
+         * @see https://docs.coinex.com/api/v2/futures/market/http/list-market
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} an array of objects representing market data
          */
@@ -632,40 +632,39 @@ export default class coinex extends Exchange {
     }
 
     async fetchSpotMarkets (params) {
-        const response = await this.v1PublicGetMarketInfo (params);
+        const response = await this.v2PublicGetSpotMarket (params);
         //
         //     {
         //         "code": 0,
-        //         "data": {
-        //             "WAVESBTC": {
-        //                 "name": "WAVESBTC",
-        //                 "min_amount": "1",
-        //                 "maker_fee_rate": "0.001",
-        //                 "taker_fee_rate": "0.001",
-        //                 "pricing_name": "BTC",
-        //                 "pricing_decimal": 8,
-        //                 "trading_name": "WAVES",
-        //                 "trading_decimal": 8
-        //             }
-        //         }
+        //         "data": [
+        //             {
+        //                 "base_ccy": "SORA",
+        //                 "base_ccy_precision": 8,
+        //                 "is_amm_available": true,
+        //                 "is_margin_available": false,
+        //                 "maker_fee_rate": "0.003",
+        //                 "market": "SORAUSDT",
+        //                 "min_amount": "500",
+        //                 "quote_ccy": "USDT",
+        //                 "quote_ccy_precision": 6,
+        //                 "taker_fee_rate": "0.003"
+        //             },
+        //         ],
+        //         "message": "OK"
         //     }
         //
-        const markets = this.safeValue (response, 'data', {});
+        const markets = this.safeList (response, 'data', []);
         const result = [];
         const keys = Object.keys (markets);
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
             const market = markets[key];
-            const id = this.safeString (market, 'name');
-            const tradingName = this.safeString (market, 'trading_name');
-            const baseId = tradingName;
-            const quoteId = this.safeString (market, 'pricing_name');
+            const id = this.safeString (market, 'market');
+            const baseId = this.safeString (market, 'base_ccy');
+            const quoteId = this.safeString (market, 'quote_ccy');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            let symbol = base + '/' + quote;
-            if (tradingName === id) {
-                symbol = id;
-            }
+            const symbol = base + '/' + quote;
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -693,8 +692,8 @@ export default class coinex extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'trading_decimal'))),
-                    'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'pricing_decimal'))),
+                    'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'base_ccy_precision'))),
+                    'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'quote_ccy_precision'))),
                 },
                 'limits': {
                     'leverage': {
@@ -722,45 +721,43 @@ export default class coinex extends Exchange {
     }
 
     async fetchContractMarkets (params) {
-        const response = await this.v1PerpetualPublicGetMarketList (params);
+        const response = await this.v2PublicGetFuturesMarket (params);
         //
         //     {
         //         "code": 0,
         //         "data": [
         //             {
-        //                 "name": "BTCUSD",
-        //                 "type": 2, // 1: USDT-M Contracts, 2: Coin-M Contracts
-        //                 "leverages": ["3", "5", "8", "10", "15", "20", "30", "50", "100"],
-        //                 "stock": "BTC",
-        //                 "money": "USD",
-        //                 "fee_prec": 5,
-        //                 "stock_prec": 8,
-        //                 "money_prec": 1,
-        //                 "amount_prec": 0,
-        //                 "amount_min": "10",
-        //                 "multiplier": "1",
-        //                 "tick_size": "0.1", // Min. Price Increment
-        //                 "available": true
+        //                 "base_ccy": "BTC",
+        //                 "base_ccy_precision": 8,
+        //                 "contract_type": "inverse",
+        //                 "leverage": ["1","2","3","5","8","10","15","20","30","50","100"],
+        //                 "maker_fee_rate": "0",
+        //                 "market": "BTCUSD",
+        //                 "min_amount": "10",
+        //                 "open_interest_volume": "2566879",
+        //                 "quote_ccy": "USD",
+        //                 "quote_ccy_precision": 2,
+        //                 "taker_fee_rate": "0"
         //             },
         //         ],
         //         "message": "OK"
         //     }
         //
-        const markets = this.safeValue (response, 'data', []);
+        const markets = this.safeList (response, 'data', []);
         const result = [];
         for (let i = 0; i < markets.length; i++) {
             const entry = markets[i];
             const fees = this.fees;
-            const leverages = this.safeValue (entry, 'leverages', []);
-            const subType = this.safeInteger (entry, 'type');
-            const linear = (subType === 1);
-            const inverse = (subType === 2);
-            const id = this.safeString (entry, 'name');
-            const baseId = this.safeString (entry, 'stock');
-            const quoteId = this.safeString (entry, 'money');
+            const leverages = this.safeList (entry, 'leverage', []);
+            const subType = this.safeString (entry, 'contract_type');
+            const linear = (subType === 'linear');
+            const inverse = (subType === 'inverse');
+            const id = this.safeString (entry, 'market');
+            const baseId = this.safeString (entry, 'base_ccy');
+            const quoteId = this.safeString (entry, 'quote_ccy');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            const settleId = (subType === 1) ? 'USDT' : baseId;
+            const settleId = (subType === 'linear') ? 'USDT' : baseId;
             const settle = this.safeCurrencyCode (settleId);
             const symbol = base + '/' + quote + ':' + settle;
             const leveragesLength = leverages.length;
@@ -779,20 +776,20 @@ export default class coinex extends Exchange {
                 'swap': true,
                 'future': false,
                 'option': false,
-                'active': this.safeValue (entry, 'available'),
+                'active': undefined,
                 'contract': true,
                 'linear': linear,
                 'inverse': inverse,
                 'taker': fees['trading']['taker'],
                 'maker': fees['trading']['maker'],
-                'contractSize': this.safeNumber (entry, 'multiplier'),
+                'contractSize': this.parseNumber ('1'),
                 'expiry': undefined,
                 'expiryDatetime': undefined,
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': this.parseNumber (this.parsePrecision (this.safeString (entry, 'amount_prec'))),
-                    'price': this.parseNumber (this.parsePrecision (this.safeString (entry, 'money_prec'))),
+                    'amount': this.parseNumber (this.parsePrecision (this.safeString (entry, 'base_ccy_precision'))),
+                    'price': this.parseNumber (this.parsePrecision (this.safeString (entry, 'quote_ccy_precision'))),
                 },
                 'limits': {
                     'leverage': {
@@ -800,7 +797,7 @@ export default class coinex extends Exchange {
                         'max': this.safeNumber (leverages, leveragesLength - 1),
                     },
                     'amount': {
-                        'min': this.safeNumber (entry, 'amount_min'),
+                        'min': this.safeNumber (entry, 'min_amount'),
                         'max': undefined,
                     },
                     'price': {
