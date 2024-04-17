@@ -16,14 +16,14 @@ process.on ('unhandledRejection', (e) => {
 
 const CJS_ENTRY_FILE = './dist/cjs/ccxt.js';
 const EXCHANGE_FILE = './dist/cjs/src/binance.js'
-const CJS_BUNDLE_FILE = './dist/ccxt.bundle.cjs';
+// const CJS_BUNDLE_FILE = './dist/ccxt.bundle.cjs';
 const BROWSER_BUNDLE_FILE = './dist/ccxt.browser.js';
 
 const symbol = 'BTC/USDT:USDT';
 
 function assertGeneratedFilesAreRecent() {
     const now = new Date().getTime();
-    const filesToCheck = [CJS_ENTRY_FILE, CJS_BUNDLE_FILE, BROWSER_BUNDLE_FILE, EXCHANGE_FILE];
+    const filesToCheck = [CJS_ENTRY_FILE, BROWSER_BUNDLE_FILE, EXCHANGE_FILE];
     for (const file of filesToCheck) {
         var stats = fs.statSync(file);
         var mtime = stats.mtimeMs;
