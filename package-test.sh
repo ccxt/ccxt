@@ -10,6 +10,7 @@ return_code=$?
 node test-cjs.cjs
 cjs_return_code=$?
 rm -rf node_modules ccxt-*.tgz package-lock.json
+npm init -y > /dev/null
 if [ $return_code -eq 0 ] && [ $cjs_return_code -eq 0 ]; then
   echo "Package test successful"
   exit 0
