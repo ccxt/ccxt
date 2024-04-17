@@ -7777,7 +7777,7 @@ export default class okx extends Exchange {
             'info': conversion,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'id': this.safeString2 (conversion, 'clQReqId', 'tradeId'),
+            'id': this.safeStringN (conversion, [ 'clQReqId', 'tradeId', 'quoteId' ]),
             'fromCurrency': fromCode,
             'fromAmount': this.safeNumber2 (conversion, 'baseSz', 'fillBaseSz'),
             'toCurrency': toCode,
