@@ -1398,7 +1398,7 @@ export default class kraken extends Exchange {
             'ordertype': type,
             'volume': this.amountToPrecision (symbol, amount),
         };
-        const orderRequest = this.orderRequest ('createOrder()', symbol, type, request, price, params);
+        const orderRequest = this.orderRequest ('createOrder', symbol, type, request, price, params);
         const response = await this.privatePostAddOrder (this.extend (orderRequest[0], orderRequest[1]));
         //
         //     {
@@ -1756,7 +1756,11 @@ export default class kraken extends Exchange {
             }
         }
         if (reduceOnly) {
-            request['reduce_only'] = 'true'; // not using boolean in this case, because the urlencodedNested transforms it into 'True' string
+            if (method === 'createOrderWs') {
+                request['reduceOnly'] = true; // ws request can't have stringified bool
+            } else {
+                request['reduce_only'] = 'true'; // not using boolean in this case, because the urlencodedNested transforms it into 'True' string
+            }
         }
         let close = this.safeValue (params, 'close');
         if (close !== undefined) {
@@ -1818,7 +1822,7 @@ export default class kraken extends Exchange {
         if (amount !== undefined) {
             request['volume'] = this.amountToPrecision (symbol, amount);
         }
-        const orderRequest = this.orderRequest ('editOrder()', symbol, type, request, price, params);
+        const orderRequest = this.orderRequest ('editOrder', symbol, type, request, price, params);
         const response = await this.privatePostEditOrder (this.extend (orderRequest[0], orderRequest[1]));
         //
         //     {
