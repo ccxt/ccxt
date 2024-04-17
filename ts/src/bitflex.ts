@@ -150,10 +150,31 @@ export default class bitflex extends Exchange {
             },
             'fees': {
                 'trading': {
-                    // todo
-                },
-                'funding': {
-                    // todo
+                    'feeSide': 'get',
+                    'tierBased': true,
+                    'percentage': true,
+                    'maker': this.parseNumber ('0.00015'),
+                    'taker': this.parseNumber ('0.00060'),
+                    'tiers': {
+                        'taker': [
+                            [ this.parseNumber ('0'), this.parseNumber ('0.00060') ],
+                            [ this.parseNumber ('25'), this.parseNumber ('0.00050') ],
+                            [ this.parseNumber ('150'), this.parseNumber ('0.000450') ],
+                            [ this.parseNumber ('750'), this.parseNumber ('0.000425') ],
+                            [ this.parseNumber ('3000'), this.parseNumber ('0.000400') ],
+                            [ this.parseNumber ('9000'), this.parseNumber ('0.000350') ],
+                            [ this.parseNumber ('25000'), this.parseNumber ('0.000300') ],
+                        ],
+                        'maker': [
+                            [ this.parseNumber ('0'), this.parseNumber ('0.00015') ],
+                            [ this.parseNumber ('25'), this.parseNumber ('0.000120') ],
+                            [ this.parseNumber ('150'), this.parseNumber ('0.000090') ],
+                            [ this.parseNumber ('750'), this.parseNumber ('0.000060') ],
+                            [ this.parseNumber ('3000'), this.parseNumber ('0.000030') ],
+                            [ this.parseNumber ('9000'), this.parseNumber ('0') ],
+                            [ this.parseNumber ('25000'), this.parseNumber ('0') ],
+                        ],
+                    },
                 },
             },
             'exceptions': {
@@ -518,6 +539,8 @@ export default class bitflex extends Exchange {
             'expiryDatetime': undefined,
             'strike': undefined,
             'optionType': undefined,
+            'maker': this.safeFloat (this.fees['trading'], 'maker'),
+            'taker': this.safeFloat (this.fees['trading'], 'taker'),
             'precision': {
                 'amount': this.safeFloat (amountPrecisionAndLimits, 'stepSize'),
                 'price': this.safeFloat (pricePrecisionAndLimits, 'tickSize'),
