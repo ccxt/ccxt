@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Asserts the npm package works as expected, using ESM and CJS.
-npm pack ccxt
+npm pack .
 mv ccxt-*.tgz package-test/
 cd package-test
 npm install ccxt-*.tgz
