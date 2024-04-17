@@ -1757,7 +1757,7 @@ export default class kraken extends Exchange {
         }
         if (reduceOnly) {
             if (method === 'createOrderWs') {
-                request['reduceOnly'] = true; // ws request can't have stringified bool
+                request['reduce_only'] = true; // ws request can't have stringified bool
             } else {
                 request['reduce_only'] = 'true'; // not using boolean in this case, because the urlencodedNested transforms it into 'True' string
             }
