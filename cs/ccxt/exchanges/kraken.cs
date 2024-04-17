@@ -1632,10 +1632,11 @@ public partial class kraken : Exchange
         //  }
         //
         object description = this.safeDict(order, "descr", new Dictionary<string, object>() {});
+        object orderDescriptionObj = this.safeDict(order, "descr"); // can be null
         object orderDescription = null;
-        if (isTrue(!isEqual(description, null)))
+        if (isTrue(!isEqual(orderDescriptionObj, null)))
         {
-            orderDescription = this.safeString(description, "order");
+            orderDescription = this.safeString(orderDescriptionObj, "order");
         } else
         {
             orderDescription = this.safeString(order, "descr");
@@ -1719,9 +1720,9 @@ public partial class kraken : Exchange
         }
         object status = this.parseOrderStatus(this.safeString(order, "status"));
         object id = this.safeString2(order, "id", "txid");
-        if (isTrue(isTrue((isEqual(id, null))) || isTrue((isEqual(slice(id, 0, 1), "[")))))
+        if (isTrue(isTrue((isEqual(id, null))) || isTrue((((string)id).StartsWith(((string)"["))))))
         {
-            object txid = this.safeValue(order, "txid");
+            object txid = this.safeList(order, "txid");
             id = this.safeString(txid, 0);
         }
         object clientOrderId = this.safeString(order, "userref");

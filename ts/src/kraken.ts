@@ -1575,9 +1575,10 @@ export default class kraken extends Exchange {
         //  }
         //
         const description = this.safeDict (order, 'descr', {});
+        const orderDescriptionObj = this.safeDict (order, 'descr'); // can be null
         let orderDescription = undefined;
-        if (description !== undefined) {
-            orderDescription = this.safeString (description, 'order');
+        if (orderDescriptionObj !== undefined) {
+            orderDescription = this.safeString (orderDescriptionObj, 'order');
         } else {
             orderDescription = this.safeString (order, 'descr');
         }
@@ -1648,8 +1649,8 @@ export default class kraken extends Exchange {
         }
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         let id = this.safeString2 (order, 'id', 'txid');
-        if ((id === undefined) || (id.slice (0, 1) === '[')) {
-            const txid = this.safeValue (order, 'txid');
+        if ((id === undefined) || (id.startsWith ('['))) {
+            const txid = this.safeList (order, 'txid');
             id = this.safeString (txid, 0);
         }
         const clientOrderId = this.safeString (order, 'userref');

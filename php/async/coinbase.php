@@ -1486,6 +1486,7 @@ class coinbase extends Exchange {
         $contractExpiryType = $this->safe_string($futureProductDetails, 'contract_expiry_type');
         $contractSize = $this->safe_number($futureProductDetails, 'contract_size');
         $contractExpire = $this->safe_string($futureProductDetails, 'contract_expiry');
+        $expireTimestamp = $this->parse8601($contractExpire);
         $isSwap = ($contractExpiryType === 'PERPETUAL');
         $baseId = $this->safe_string($futureProductDetails, 'contract_root_unit');
         $quoteId = $this->safe_string($market, 'quote_currency_id');
@@ -1499,7 +1500,7 @@ class coinbase extends Exchange {
             $symbol = $symbol . ':' . $quote;
         } else {
             $type = 'future';
-            $symbol = $symbol . ':' . $quote . '-' . $this->yymmdd($contractExpire);
+            $symbol = $symbol . ':' . $quote . '-' . $this->yymmdd($expireTimestamp);
         }
         $takerFeeRate = $this->safe_number($feeTier, 'taker_fee_rate');
         $makerFeeRate = $this->safe_number($feeTier, 'maker_fee_rate');
@@ -1527,7 +1528,7 @@ class coinbase extends Exchange {
             'taker' => $taker,
             'maker' => $maker,
             'contractSize' => $contractSize,
-            'expiry' => $this->parse8601($contractExpire),
+            'expiry' => $expireTimestamp,
             'expiryDatetime' => $contractExpire,
             'strike' => null,
             'optionType' => null,
@@ -4351,6 +4352,34 @@ class coinbase extends Exchange {
         ));
     }
 
+    public function create_auth_token(?int $seconds, ?string $method = null, ?string $url = null) {
+        // it may not work for v2
+        $uri = null;
+        if ($url !== null) {
+            $uri = $method . ' ' . str_replace('https://', '', $url);
+            $quesPos = mb_strpos($uri, '?');
+            // Due to we use mb_strpos, $quesPos could be false in php. In that case, the $quesPos >= 0 is true
+            // Also it's not possible that the question mark is first character, only check > 0 here.
+            if ($quesPos > 0) {
+                $uri = mb_substr($uri, 0, $quesPos - 0);
+            }
+        }
+        $nonce = $this->random_bytes(16);
+        $request = array(
+            'aud' => array( 'retail_rest_api_proxy' ),
+            'iss' => 'coinbase-cloud',
+            'nbf' => $seconds,
+            'exp' => $seconds + 120,
+            'sub' => $this->apiKey,
+            'iat' => $seconds,
+        );
+        if ($uri !== null) {
+            $request['uri'] = $uri;
+        }
+        $token = $this->jwt($request, $this->encode($this->secret), 'sha256', false, array( 'kid' => $this->apiKey, 'nonce' => $nonce, 'alg' => 'ES256' ));
+        return $token;
+    }
+
     public function sign($path, $api = [], $method = 'GET', $params = array (), $headers = null, $body = null) {
         $version = $api[0];
         $signed = $api[1] === 'private';
@@ -4397,25 +4426,26 @@ class coinbase extends Exchange {
                     if (str_starts_with($this->apiKey, '-----BEGIN')) {
                         throw new ArgumentsRequired($this->id . ' apiKey should contain the name (eg => organizations/3b910e93....) and not the public key');
                     }
-                    // it may not work for v2
-                    $uri = $method . ' ' . str_replace('https://', '', $url);
-                    $quesPos = mb_strpos($uri, '?');
-                    // Due to we use mb_strpos, $quesPos could be false in php. In that case, the $quesPos >= 0 is true
-                    // Also it's not possible that the question mark is first character, only check > 0 here.
-                    if ($quesPos > 0) {
-                        $uri = mb_substr($uri, 0, $quesPos - 0);
-                    }
-                    $nonce = $this->random_bytes(16);
-                    $request = array(
-                        'aud' => array( 'retail_rest_api_proxy' ),
-                        'iss' => 'coinbase-cloud',
-                        'nbf' => $seconds,
-                        'exp' => $seconds + 120,
-                        'sub' => $this->apiKey,
-                        'uri' => $uri,
-                        'iat' => $seconds,
-                    );
-                    $token = $this->jwt($request, $this->encode($this->secret), 'sha256', false, array( 'kid' => $this->apiKey, 'nonce' => $nonce, 'alg' => 'ES256' ));
+                    // // it may not work for v2
+                    // $uri = $method . ' ' . str_replace('https://', '', $url);
+                    // $quesPos = mb_strpos($uri, '?');
+                    // // Due to we use mb_strpos, $quesPos could be false in php. In that case, the $quesPos >= 0 is true
+                    // // Also it's not possible that the question mark is first character, only check > 0 here.
+                    // if ($quesPos > 0) {
+                    //     $uri = mb_substr($uri, 0, $quesPos - 0);
+                    // }
+                    // $nonce = $this->random_bytes(16);
+                    // $request = array(
+                    //     'aud' => array( 'retail_rest_api_proxy' ),
+                    //     'iss' => 'coinbase-cloud',
+                    //     'nbf' => $seconds,
+                    //     'exp' => $seconds + 120,
+                    //     'sub' => $this->apiKey,
+                    //     'uri' => $uri,
+                    //     'iat' => $seconds,
+                    // );
+                    $token = $this->create_auth_token($seconds, $method, $url);
+                    // $token = $this->jwt($request, $this->encode($this->secret), 'sha256', false, array( 'kid' => $this->apiKey, 'nonce' => $nonce, 'alg' => 'ES256' ));
                     $authorizationString = 'Bearer ' . $token;
                 } else {
                     $timestampString = (string) $this->seconds();
