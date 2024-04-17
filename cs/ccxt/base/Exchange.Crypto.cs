@@ -460,8 +460,8 @@ public partial class Exchange
 
     public object eddsa(object request, object secret, object alg = null)
     {
-        alg ??= "EdDSA";
-        var msg = System.Text.Encoding.UTF8.GetBytes((string)request);
+        alg ??= "ed25519";
+        var msg = Hex.HexToBytes((string)request);
         var signer = new Ed25519Signer();
         var privateKey = ReadEDDSAPrivateKeyFromPem(secret as string);
         signer.Init(true, privateKey);
