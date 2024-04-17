@@ -1,3 +1,3 @@
 const ccxt = require('ccxt');
-console.log('Version', ccxt.version);
-console.log('number of exchanges:', Object.keys(ccxt.exchanges).length)
+console.log('[CJS] Version', ccxt.version);
+console.log('[CJS] Number of exchanges:', Object.keys(ccxt.exchanges).length)

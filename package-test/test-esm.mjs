@@ -1,3 +1,3 @@
 import ccxt from 'ccxt';
-console.log('Version', ccxt.version);
-console.log('number of exchanges:', Object.keys(ccxt.exchanges).length)
+console.log('[ESM] Version', ccxt.version);
+console.log('[ESM] number of exchanges:', Object.keys(ccxt.exchanges).length)
