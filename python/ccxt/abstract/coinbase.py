@@ -83,6 +83,7 @@ class ImplicitAPI:
     v3_private_post_brokerage_convert_trade_trade_id = v3PrivatePostBrokerageConvertTradeTradeId = Entry('brokerage/convert/trade/{trade_id}', ['v3', 'private'], 'POST', {'cost': 1})
     v3_private_post_brokerage_cfm_sweeps_schedule = v3PrivatePostBrokerageCfmSweepsSchedule = Entry('brokerage/cfm/sweeps/schedule', ['v3', 'private'], 'POST', {'cost': 1})
     v3_private_post_brokerage_intx_allocate = v3PrivatePostBrokerageIntxAllocate = Entry('brokerage/intx/allocate', ['v3', 'private'], 'POST', {'cost': 1})
+    v3_private_post_brokerage_orders_close_position = v3PrivatePostBrokerageOrdersClosePosition = Entry('brokerage/orders/close_position', ['v3', 'private'], 'POST', {'cost': 1})
     v3_private_put_brokerage_portfolios_portfolio_uuid = v3PrivatePutBrokeragePortfoliosPortfolioUuid = Entry('brokerage/portfolios/{portfolio_uuid}', ['v3', 'private'], 'PUT', {'cost': 1})
     v3_private_delete_brokerage_portfolios_portfolio_uuid = v3PrivateDeleteBrokeragePortfoliosPortfolioUuid = Entry('brokerage/portfolios/{portfolio_uuid}', ['v3', 'private'], 'DELETE', {'cost': 1})
     v3_private_delete_brokerage_cfm_sweeps = v3PrivateDeleteBrokerageCfmSweeps = Entry('brokerage/cfm/sweeps', ['v3', 'private'], 'DELETE', {'cost': 1})

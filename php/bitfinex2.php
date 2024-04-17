@@ -3481,6 +3481,7 @@ class bitfinex2 extends Exchange {
             'info' => $data,
             'symbol' => $market['symbol'],
             'type' => null,
+            'marginMode' => 'isolated',
             'amount' => null,
             'total' => null,
             'code' => null,

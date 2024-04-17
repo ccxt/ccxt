@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.2.89'
+__version__ = '4.2.99'
 
 # -----------------------------------------------------------------------------
 
@@ -39,6 +39,7 @@ from ccxt.base.types import BalanceAccount, Currency, IndexType, OrderSide, Orde
 from cryptography.hazmat import backends
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import padding
+# from cryptography.hazmat.primitives.asymmetric.utils import decode_dss_signature
 from cryptography.hazmat.primitives.serialization import load_pem_private_key
 
 # -----------------------------------------------------------------------------
@@ -1314,22 +1315,33 @@ class Exchange(object):
         return Exchange.decode(base64.b64decode(s))
 
     @staticmethod
-    def jwt(request, secret, algorithm='sha256', is_rsa=False):
+    def jwt(request, secret, algorithm='sha256', is_rsa=False, opts={}):
         algos = {
             'sha256': hashlib.sha256,
             'sha384': hashlib.sha384,
             'sha512': hashlib.sha512,
         }
         alg = ('RS' if is_rsa else 'HS') + algorithm[3:]
-        header = Exchange.encode(Exchange.json({
+        if 'alg' in opts and opts['alg'] is not None:
+            alg = opts['alg']
+        header_opts = {
             'alg': alg,
             'typ': 'JWT',
-        }))
+        }
+        if 'kid' in opts and opts['kid'] is not None:
+            header_opts['kid'] = opts['kid']
+        if 'nonce' in opts and opts['nonce'] is not None:
+            header_opts['nonce'] = opts['nonce']
+        header = Exchange.encode(Exchange.json(header_opts))
         encoded_header = Exchange.base64urlencode(header)
         encoded_data = Exchange.base64urlencode(Exchange.encode(Exchange.json(request)))
         token = encoded_header + '.' + encoded_data
-        if is_rsa:
+        algoType = alg[0:2]
+        if is_rsa or algoType == 'RS':
             signature = Exchange.base64_to_binary(Exchange.rsa(token, Exchange.decode(secret), algorithm))
+        elif algoType == 'ES':
+            rawSignature = Exchange.ecdsa(token, secret, 'p256', algorithm)
+            signature = Exchange.base16_to_binary(rawSignature['r'].rjust(64, "0") + rawSignature['s'].rjust(64, "0"))
         else:
             signature = Exchange.hmac(Exchange.encode(token), secret, algos[algorithm], 'binary')
         return token + '.' + Exchange.base64urlencode(signature)
@@ -1363,6 +1375,10 @@ class Exchange(object):
         return "%0.2X" % num
 
     @staticmethod
+    def random_bytes(length):
+        return format(random.getrandbits(length * 8), 'x')
+
+    @staticmethod
     def ecdsa(request, secret, algorithm='p256', hash=None, fixed_length=False):
         # your welcome - frosty00
         algorithms = {
@@ -1382,7 +1398,12 @@ class Exchange(object):
             digest = Exchange.hash(encoded_request, hash, 'binary')
         else:
             digest = base64.b16decode(encoded_request, casefold=True)
-        key = ecdsa.SigningKey.from_string(base64.b16decode(Exchange.encode(secret),
+        if isinstance(secret, str):
+            secret = Exchange.encode(secret)
+        if secret.find(b'-----BEGIN EC PRIVATE KEY-----') > -1:
+            key = ecdsa.SigningKey.from_pem(secret, hash_function)
+        else:
+            key = ecdsa.SigningKey.from_string(base64.b16decode(secret,
                                                             casefold=True), curve=curve_info[0])
         r_binary, s_binary, v = key.sign_digest_deterministic(digest, hashfunc=hash_function,
                                                               sigencode=ecdsa.util.sigencode_strings_canonize)
@@ -2249,6 +2270,18 @@ class Exchange(object):
     def set_margin(self, symbol: str, amount: float, params={}):
         raise NotSupported(self.id + ' setMargin() is not supported yet')
 
+    def fetch_margin_adjustment_history(self, symbol: Str = None, type: Str = None, since: Num = None, limit: Num = None, params={}):
+        """
+        fetches the history of margin added or reduced from contract isolated positions
+        :param str [symbol]: unified market symbol
+        :param str [type]: "add" or "reduce"
+        :param int [since]: timestamp in ms of the earliest change to fetch
+        :param int [limit]: the maximum amount of changes to fetch
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns dict[]: a list of `margin structures <https://docs.ccxt.com/#/?id=margin-loan-structure>`
+        """
+        raise NotSupported(self.id + ' fetchMarginAdjustmentHistory() is not supported yet')
+
     def set_margin_mode(self, marginMode: str, symbol: Str = None, params={}):
         raise NotSupported(self.id + ' setMarginMode() is not supported yet')
 
@@ -2270,7 +2303,7 @@ class Exchange(object):
     def parse_to_int(self, number):
         # Solve Common intmisuse ex: int((since / str(1000)))
         # using a number which is not valid in ts
-        stringifiedNumber = str(number)
+        stringifiedNumber = self.number_to_string(number)
         convertedNumber = float(stringifiedNumber)
         return int(convertedNumber)
 
@@ -3192,6 +3225,14 @@ class Exchange(object):
             result.append(self.market_id(symbols[i]))
         return result
 
+    def markets_for_symbols(self, symbols: Strings = None):
+        if symbols is None:
+            return symbols
+        result = []
+        for i in range(0, len(symbols)):
+            result.append(self.market(symbols[i]))
+        return result
+
     def market_symbols(self, symbols: Strings = None, type: Str = None, allowEmpty=True, sameTypeOnly=False, sameSubTypeOnly=False):
         if symbols is None:
             if not allowEmpty:
@@ -3408,18 +3449,33 @@ class Exchange(object):
         sorted = self.sort_by(results, 0)
         return self.filter_by_since_limit(sorted, since, limit, 0)
 
-    def parse_leverage_tiers(self, response: List[object], symbols: List[str] = None, marketIdKey=None):
+    def parse_leverage_tiers(self, response: Any, symbols: List[str] = None, marketIdKey=None):
         # marketIdKey should only be None when response is a dictionary
         symbols = self.market_symbols(symbols)
         tiers = {}
-        for i in range(0, len(response)):
-            item = response[i]
-            id = self.safe_string(item, marketIdKey)
-            market = self.safe_market(id, None, None, 'swap')
-            symbol = market['symbol']
-            contract = self.safe_bool(market, 'contract', False)
-            if contract and ((symbols is None) or self.in_array(symbol, symbols)):
-                tiers[symbol] = self.parse_market_leverage_tiers(item, market)
+        symbolsLength = 0
+        if symbols is not None:
+            symbolsLength = len(symbols)
+        noSymbols = (symbols is None) or (symbolsLength == 0)
+        if isinstance(response, list):
+            for i in range(0, len(response)):
+                item = response[i]
+                id = self.safe_string(item, marketIdKey)
+                market = self.safe_market(id, None, None, 'swap')
+                symbol = market['symbol']
+                contract = self.safe_bool(market, 'contract', False)
+                if contract and (noSymbols or self.in_array(symbol, symbols)):
+                    tiers[symbol] = self.parse_market_leverage_tiers(item, market)
+        else:
+            keys = list(response.keys())
+            for i in range(0, len(keys)):
+                marketId = keys[i]
+                item = response[marketId]
+                market = self.safe_market(marketId, None, None, 'swap')
+                symbol = market['symbol']
+                contract = self.safe_bool(market, 'contract', False)
+                if contract and (noSymbols or self.in_array(symbol, symbols)):
+                    tiers[symbol] = self.parse_market_leverage_tiers(item, market)
         return tiers
 
     def load_trading_limits(self, symbols: List[str] = None, reload=False, params={}):
@@ -3915,11 +3971,23 @@ class Exchange(object):
         result, empty = self.handle_option_and_params({}, methodName, optionName, defaultValue)
         return result
 
-    def handle_market_type_and_params(self, methodName: str, market: Market = None, params={}):
+    def handle_market_type_and_params(self, methodName: str, market: Market = None, params={}, defaultValue=None):
+        """
+         * @ignore
+         * @param methodName the method calling handleMarketTypeAndParams
+        :param Market market:
+        :param dict params:
+        :param str [params.type]: type assigned by user
+        :param str [params.defaultType]: same.type
+        :param str [defaultValue]: assigned programatically in the method calling handleMarketTypeAndParams
+        :returns [str, dict]: the market type and params with type and defaultType omitted
+        """
         defaultType = self.safe_string_2(self.options, 'defaultType', 'type', 'spot')
+        if defaultValue is None:  # defaultValue takes precendence over exchange wide defaultType
+            defaultValue = defaultType
         methodOptions = self.safe_dict(self.options, methodName)
-        methodType = defaultType
-        if methodOptions is not None:
+        methodType = defaultValue
+        if methodOptions is not None:  # user defined methodType takes precedence over defaultValue
             if isinstance(methodOptions, str):
                 methodType = methodOptions
             else:
@@ -4321,6 +4389,9 @@ class Exchange(object):
     def fetch_option(self, symbol: str, params={}):
         raise NotSupported(self.id + ' fetchOption() is not supported yet')
 
+    def fetch_convert_quote(self, fromCode: str, toCode: str, amount: Num = None, params={}):
+        raise NotSupported(self.id + ' fetchConvertQuote() is not supported yet')
+
     def fetch_deposits_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch history of deposits and withdrawals
@@ -4392,12 +4463,6 @@ class Exchange(object):
 
     def common_currency_code(self, code: str):
         if not self.substituteCommonCurrencyCodes:
-            return code
-        # if the provided code already exists value in commonCurrencies dict, then we should not again transform it
-        # more details at: https://github.com/ccxt/ccxt/issues/21112#issuecomment-2031293691
-        commonCurrencies = list(self.commonCurrencies.values())
-        exists = self.in_array(code, commonCurrencies)
-        if exists:
             return code
         return self.safe_string(self.commonCurrencies, code, code)
 
@@ -4800,6 +4865,9 @@ class Exchange(object):
         fees = self.fetch_trading_fees(params)
         return self.safe_dict(fees, symbol)
 
+    def fetch_convert_currencies(self, params={}):
+        raise NotSupported(self.id + ' fetchConvertCurrencies() is not supported yet')
+
     def parse_open_interest(self, interest, market: Market = None):
         raise NotSupported(self.id + ' parseOpenInterest() is not supported yet')
 
@@ -4952,7 +5020,6 @@ class Exchange(object):
         :returns dict: objects with withdraw and deposit fees, indexed by currency codes
         """
         depositWithdrawFees = {}
-        codes = self.marketCodes(codes)
         isArray = isinstance(response, list)
         responseKeys = response
         if not isArray:
@@ -5384,6 +5451,9 @@ class Exchange(object):
     def parse_leverage(self, leverage, market: Market = None):
         raise NotSupported(self.id + ' parseLeverage() is not supported yet')
 
+    def parse_conversion(self, conversion, fromCurrency: Currency = None, toCurrency: Currency = None):
+        raise NotSupported(self.id + ' parseConversion() is not supported yet')
+
     def convert_expire_date(self, date: str):
         # parse YYMMDD to datetime string
         year = date[0:2]
@@ -5426,7 +5496,7 @@ class Exchange(object):
         return reconstructedDate
 
     def convert_market_id_expire_date(self, date: str):
-        # parse 19JAN24 to 240119
+        # parse 03JAN24 to 240103
         monthMappping = {
             'JAN': '01',
             'FEB': '02',
@@ -5441,9 +5511,25 @@ class Exchange(object):
             'NOV': '11',
             'DEC': '12',
         }
+        # if exchange omits first zero and provides i.e. '3JAN24' instead of '03JAN24'
+        if len(date) == 6:
+            date = '0' + date
         year = date[0:2]
         monthName = date[2:5]
         month = self.safe_string(monthMappping, monthName)
         day = date[5:7]
         reconstructedDate = day + month + year
         return reconstructedDate
+
+    def parse_margin_modification(self, data, market: Market = None):
+        raise NotSupported(self.id + ' parseMarginModification() is not supported yet')
+
+    def parse_margin_modifications(self, response: List[object], symbols: List[str] = None, symbolKey: Str = None, marketType: MarketType = None):
+        marginModifications = []
+        for i in range(0, len(response)):
+            info = response[i]
+            marketId = self.safe_string(info, symbolKey)
+            market = self.safe_market(marketId, None, None, marketType)
+            if (symbols is None) or self.in_array(market['symbol'], symbols):
+                marginModifications.append(self.parse_margin_modification(info, market))
+        return marginModifications

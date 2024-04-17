@@ -9,6 +9,7 @@ import hashlib
 from ccxt.base.types import Balances, Currencies, Currency, Greeks, Int, Leverage, MarginMode, MarginModification, Market, MarketInterface, Num, Option, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade
 from typing import List
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
@@ -16,7 +17,6 @@ from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import ExchangeNotAvailable
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -2566,6 +2566,7 @@ class delta(Exchange, ImplicitAPI):
             'info': data,
             'symbol': market['symbol'],
             'type': None,
+            'marginMode': 'isolated',
             'amount': None,
             'total': self.safe_number(data, 'margin'),
             'code': None,

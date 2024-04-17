@@ -466,6 +466,9 @@ abstract class bybit extends \ccxt\async\Exchange {
     public function private_get_v5_user_del_submember($params = array()) {
         return $this->request('v5/user/del-submember', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
+    public function private_get_v5_user_submembers($params = array()) {
+        return $this->request('v5/user/submembers', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
     public function private_get_v5_spot_lever_token_order_record($params = array()) {
         return $this->request('v5/spot-lever-token/order-record', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -516,6 +519,9 @@ abstract class bybit extends \ccxt\async\Exchange {
     }
     public function private_get_v5_broker_account_info($params = array()) {
         return $this->request('v5/broker/account-info', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function private_get_v5_broker_asset_query_sub_member_deposit_record($params = array()) {
+        return $this->request('v5/broker/asset/query-sub-member-deposit-record', 'private', 'GET', $params, null, null, array("cost" => 10));
     }
     public function private_post_option_usdc_openapi_private_v1_place_order($params = array()) {
         return $this->request('option/usdc/openapi/private/v1/place-order', 'private', 'POST', $params, null, null, array("cost" => 2.5));
@@ -873,6 +879,9 @@ abstract class bybit extends \ccxt\async\Exchange {
     }
     public function private_post_v5_account_set_collateral_switch_batch($params = array()) {
         return $this->request('v5/account/set-collateral-switch-batch', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
+    public function private_post_v5_account_demo_apply_money($params = array()) {
+        return $this->request('v5/account/demo-apply-money', 'private', 'POST', $params, null, null, array("cost" => 5));
     }
     public function publicGetSpotV3PublicSymbols($params = array()) {
         return $this->request('spot/v3/public/symbols', 'public', 'GET', $params, null, null, array("cost" => 1));
@@ -1333,6 +1342,9 @@ abstract class bybit extends \ccxt\async\Exchange {
     public function privateGetV5UserDelSubmember($params = array()) {
         return $this->request('v5/user/del-submember', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
+    public function privateGetV5UserSubmembers($params = array()) {
+        return $this->request('v5/user/submembers', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
     public function privateGetV5SpotLeverTokenOrderRecord($params = array()) {
         return $this->request('v5/spot-lever-token/order-record', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -1383,6 +1395,9 @@ abstract class bybit extends \ccxt\async\Exchange {
     }
     public function privateGetV5BrokerAccountInfo($params = array()) {
         return $this->request('v5/broker/account-info', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function privateGetV5BrokerAssetQuerySubMemberDepositRecord($params = array()) {
+        return $this->request('v5/broker/asset/query-sub-member-deposit-record', 'private', 'GET', $params, null, null, array("cost" => 10));
     }
     public function privatePostOptionUsdcOpenapiPrivateV1PlaceOrder($params = array()) {
         return $this->request('option/usdc/openapi/private/v1/place-order', 'private', 'POST', $params, null, null, array("cost" => 2.5));
@@ -1740,5 +1755,8 @@ abstract class bybit extends \ccxt\async\Exchange {
     }
     public function privatePostV5AccountSetCollateralSwitchBatch($params = array()) {
         return $this->request('v5/account/set-collateral-switch-batch', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
+    public function privatePostV5AccountDemoApplyMoney($params = array()) {
+        return $this->request('v5/account/demo-apply-money', 'private', 'POST', $params, null, null, array("cost" => 5));
     }
 }

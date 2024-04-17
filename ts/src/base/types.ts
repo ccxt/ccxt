@@ -145,6 +145,7 @@ export interface OrderBook {
     datetime: Str;
     timestamp: Int;
     nonce: Int;
+    symbol: Str;
 }
 
 export interface Ticker {
@@ -472,6 +473,19 @@ export interface Greeks {
     info: any;
 }
 
+export interface Conversion {
+    info: any;
+    timestamp?: number
+    datetime?: string;
+    id: string;
+    fromCurrency: string;
+    fromAmount: number;
+    toCurrency: string;
+    toAmount: number;
+    price: number;
+    fee: number;
+}
+
 export interface Option {
     info: any;
     currency: string;
@@ -513,6 +527,7 @@ export interface MarginModification {
     'info': any,
     'symbol': string,
     'type': 'add' | 'reduce' | 'set' | undefined,
+    'marginMode': 'cross' | 'isolated' | undefined,
     'amount': Num,
     'total': Num,
     'code': Str,

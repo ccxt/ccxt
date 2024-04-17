@@ -252,6 +252,10 @@ public partial class Exchange
         if (result == null)
             return defaultValue;
         string returnResult = null;
+        if (result is IList || result is IDictionary)
+        {
+            return defaultValue;
+        }
         if (result.GetType() == typeof(float))
         {
             returnResult = ((float)result).ToString(CultureInfo.InvariantCulture);

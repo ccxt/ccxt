@@ -3519,6 +3519,7 @@ class bitfinex2 extends bitfinex2$1 {
             'info': data,
             'symbol': market['symbol'],
             'type': undefined,
+            'marginMode': 'isolated',
             'amount': undefined,
             'total': undefined,
             'code': undefined,
