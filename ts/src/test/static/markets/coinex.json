@@ -589,5 +589,68 @@
             "quote_ccy_precision": "6",
             "taker_fee_rate": "0"
         }
+    },
+    "ETH/USDT:USDT": {
+        "id": "ETHUSDT",
+        "symbol": "ETH/USDT:USDT",
+        "base": "ETH",
+        "quote": "USDT",
+        "settle": "USDT",
+        "baseId": "ETH",
+        "quoteId": "USDT",
+        "settleId": "USDT",
+        "type": "swap",
+        "spot": false,
+        "margin": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0.001,
+        "maker": 0.001,
+        "contractSize": 1,
+        "precision": {
+            "amount": 1e-8,
+            "price": 0.01
+        },
+        "limits": {
+            "leverage": {
+                "min": 1,
+                "max": 100
+            },
+            "amount": {
+                "min": 0.005
+            },
+            "price": {},
+            "cost": {}
+        },
+        "info": {
+            "base_ccy": "ETH",
+            "base_ccy_precision": "8",
+            "contract_type": "linear",
+            "leverage": [
+                "1",
+                "2",
+                "3",
+                "5",
+                "8",
+                "10",
+                "15",
+                "20",
+                "30",
+                "50",
+                "100"
+            ],
+            "maker_fee_rate": "0",
+            "market": "ETHUSDT",
+            "min_amount": "0.005",
+            "open_interest_volume": "2011.734",
+            "quote_ccy": "USDT",
+            "quote_ccy_precision": "2",
+            "taker_fee_rate": "0"
+        }
     }
 }
