@@ -757,41 +757,6 @@ export default class bitflex extends Exchange {
         }, market);
     }
 
-    // async fetchBalance (params = {}) {
-    //     /**
-    //      * @method
-    //      * @name bitflex#fetchBalance
-    //      * @description fetches the balance of the user's account
-    //      * @see https://docs.bitflex.com/spot#account-information
-    //      * @param {object} [params] extra parameters specific to the exchange API endpoint
-    //      * @returns {object} a dictionary of the user's balances
-    //      */
-    //     await this.loadMarkets ();
-    //     const response = await this.privateGetOpenapiAccount (params);
-    //     //
-    //     //     {
-    //     //         "time":1713343654079,
-    //     //         "balances": [
-    //     //             {
-    //     //                 "asset":"USDT",
-    //     //                 "free":"0.00000000",
-    //     //                 "locked":"0.00000000"
-    //     //             },
-    //     //             {
-    //     //                 "asset":"BTC",
-    //     //                 "free":"0.00000000",
-    //     //                 "locked":"0.00000000"
-    //     //             },
-    //     //             ...
-    //     //         ]
-    //     //     }
-    //     //
-    //     const result = { 'info': response };
-    //     const balances = this.safeValue (response, 'balances', []);
-    //     for (let i = 0; i < balances.length; i++) {
-    //         const balance = balances[i];
-    //         const currencyId = this.safe
-
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api];
         let query = this.omit (params, this.extractParams (path));
