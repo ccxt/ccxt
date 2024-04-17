@@ -329,6 +329,32 @@
                     }
                 ],
                 "output": "access_id=86AC33D5904F432C9C9DDD4708233F38&amount=0.0005&client_id=x-167673045-bcae965354bfaf26&market=BTCUSDT&price=27000&side=2&stop_price=28000&stop_type=1&timestamp=1701232792670"
+            },
+            {
+                "description": "spot order with weird amount and price",
+                "method": "createOrder",
+                "url": "https://api.coinex.com/v1/order/limit",
+                "input": [
+                  "LTC/USDT",
+                  "limit",
+                  "buy",
+                  0.1212312323,
+                  50.423423432
+                ],
+                "output": "{\"access_id\":\"ABF06010264B4E8D9FECAB0662055214\",\"amount\":\"0.12123123\",\"client_id\":\"x-167673045-afa939bf242fa57f\",\"market\":\"LTCUSDT\",\"price\":\"50.42\",\"tonce\":\"1713366825994\",\"type\":\"buy\"}"
+            },
+            {
+                "description": "spot order with weird amount/price",
+                "method": "createOrder",
+                "url": "https://api.coinex.com/perpetual/v1/order/put_limit",
+                "input": [
+                  "LTC/USDT:USDT",
+                  "limit",
+                  "buy",
+                  0.1234234234324,
+                  50.4234234234
+                ],
+                "output": "access_id=ABF06010264B4E8D9FECAB0662055214&amount=0.12342342&client_id=x-167673045-d921124c84529944&market=LTCUSDT&price=50.42&side=2&timestamp=1713366884329"
             }
         ],
         "createOrders": [
