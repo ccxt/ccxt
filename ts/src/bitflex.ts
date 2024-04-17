@@ -3,7 +3,7 @@
 
 import Exchange from './abstract/bitflex.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { Market } from './base/types.js';
+import { Int, Market, OrderBook } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -539,6 +539,69 @@ export default class bitflex extends Exchange {
             'created': undefined,
             'info': market,
         });
+    }
+
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+        /**
+         * @method
+         * @name bitflex#fetchOrderBook
+         * @see https://docs.bitflex.com/spot#depth
+         * @see https://docs.bitflex.com/contract#depth
+         * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {string} symbol unified symbol of the market to fetch the order book for
+         * @param {int} [limit] the maximum amount of order book entries to return
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        let orderbook = undefined;
+        if (market['spot']) {
+            const response = await this.publicGetOpenapiQuoteV1Depth (this.extend (request, params));
+            //
+            //     {
+            //         "time":1713306685811,
+            //         "bids": [
+            //             ["63756.93", "0.0234"],
+            //             ["63756.45", "0.023175"],
+            //             ...
+            //         ],
+            //         "asks": [
+            //             ["63766.74", "0.022275"],
+            //             ["63768.57", "0.022275"],
+            //             ...
+            //         ]
+            //     }
+            //
+            const timestamp = this.safeInteger (response, 'time');
+            orderbook = this.parseOrderBook (response, symbol, timestamp);
+        } else {
+            const response = await this.publicGetOpenapiQuoteV1ContractDepth (this.extend (request, params));
+            //
+            //     {
+            //         "time":1713309417854,
+            //         "bids": [
+            //             ["63694.28","0.047475"],
+            //             ["63693.96","0.023625"],
+            //             ...
+            //         ],
+            //         "asks": [
+            //             ["63703.98","0.023175"],
+            //             ["63706.07","0.0207"],
+            //             ...
+            //         ]
+            //     }
+            //
+            const timestamp = this.safeInteger (response, 'time');
+            orderbook = this.parseOrderBook (response, symbol, timestamp);
+        }
+        return orderbook as OrderBook;
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
