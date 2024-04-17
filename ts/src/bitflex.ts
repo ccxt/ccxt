@@ -48,7 +48,7 @@ export default class bitflex extends Exchange {
                 'fetchOHLCV': false,
                 'fetchOpenOrders': false,
                 'fetchOrder': false,
-                'fetchOrderBook': false,
+                'fetchOrderBook': true,
                 'fetchPositionMode': false,
                 'fetchPositions': false,
                 'fetchPremiumIndexOHLCV': false,
