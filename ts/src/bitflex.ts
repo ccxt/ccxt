@@ -3,7 +3,7 @@
 
 import Exchange from './abstract/bitflex.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { Int, Market, OrderBook } from './base/types.js';
+import { Int, Market, OrderBook, Trade } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -462,12 +462,16 @@ export default class bitflex extends Exchange {
         //     }
         //
         const id = this.safeString (market, 'symbol');
-        const baseId = this.safeString (market, 'baseAsset');
+        const baseId = this.safeString2 (market, 'underlying', 'baseAsset');
         const quoteId = this.safeString (market, 'quoteAsset');
         const settleId = this.safeString (market, 'marginToken');
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
         const settle = this.safeCurrencyCode (settleId);
+        let symbol = base + '/' + quote;
+        if (settle !== undefined) {
+            symbol += ':' + settle;
+        }
         let margin = false;
         if (settleId !== undefined) {
             margin = true;
@@ -479,8 +483,8 @@ export default class bitflex extends Exchange {
         if (riskLimits === undefined) {
             isSpot = true;
         }
-        const type = isSpot ? 'spot' : 'future';
-        const isFuture = (type === 'future');
+        const type = isSpot ? 'spot' : 'swap';
+        const isSwap = (type === 'swap');
         const isInverse = this.safeBool (market, 'inverse');
         const isLinear = !isInverse;
         const contractSize = this.safeFloat (market, 'contractMultiplier');
@@ -492,7 +496,7 @@ export default class bitflex extends Exchange {
         return this.safeMarketStructure ({
             'id': id,
             'numericId': undefined,
-            'symbol': base + '/' + quote,
+            'symbol': symbol,
             'base': base,
             'quote': quote,
             'settle': settle,
@@ -502,11 +506,11 @@ export default class bitflex extends Exchange {
             'type': type,
             'spot': isSpot,
             'margin': margin,
-            'swap': false,
-            'future': isFuture,
+            'swap': isSwap,
+            'future': false,
             'option': false,
             'active': active,
-            'contract': isFuture,
+            'contract': isSwap,
             'linear': isLinear,
             'inverse': isInverse,
             'contractSize': contractSize,
@@ -545,7 +549,9 @@ export default class bitflex extends Exchange {
         /**
          * @method
          * @name bitflex#fetchOrderBook
+         * @see https://docs.bitflex.com/spot#merged-depth-recommended
          * @see https://docs.bitflex.com/spot#depth
+         * @see https://docs.bitflex.com/contract#merged-depth-recommended
          * @see https://docs.bitflex.com/contract#depth
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
@@ -561,9 +567,15 @@ export default class bitflex extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        let orderbook = undefined;
+        let response = undefined;
         if (market['spot']) {
-            const response = await this.publicGetOpenapiQuoteV1Depth (this.extend (request, params));
+            // this exchange recomends to use the merged depth endpoint for spot and swap markets with a limit up to 40 levels of depth
+            // and we use the regular depth endpoint for limit over 40 levels of depth
+            if ((limit !== undefined) && (limit > 40)) {
+                response = await this.publicGetOpenapiQuoteV1Depth (this.extend (request, params));
+            } else {
+                response = await this.publicGetOpenapiQuoteV1DepthMerged (this.extend (request, params));
+            }
             //
             //     {
             //         "time":1713306685811,
@@ -579,10 +591,12 @@ export default class bitflex extends Exchange {
             //         ]
             //     }
             //
-            const timestamp = this.safeInteger (response, 'time');
-            orderbook = this.parseOrderBook (response, symbol, timestamp);
         } else {
-            const response = await this.publicGetOpenapiQuoteV1ContractDepth (this.extend (request, params));
+            if ((limit !== undefined) && (limit > 40)) {
+                response = await this.publicGetOpenapiQuoteV1ContractDepth (this.extend (request, params));
+            } else {
+                response = await this.publicGetOpenapiQuoteV1ContractDepthMerged (this.extend (request, params));
+            }
             //
             //     {
             //         "time":1713309417854,
@@ -598,10 +612,9 @@ export default class bitflex extends Exchange {
             //         ]
             //     }
             //
-            const timestamp = this.safeInteger (response, 'time');
-            orderbook = this.parseOrderBook (response, symbol, timestamp);
         }
-        return orderbook as OrderBook;
+        const timestamp = this.safeInteger (response, 'time');
+        return this.parseOrderBook (response, symbol, timestamp);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
