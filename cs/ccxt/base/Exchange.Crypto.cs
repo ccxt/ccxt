@@ -7,6 +7,9 @@ using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.OpenSsl;
 using Org.BouncyCastle.Asn1.Nist;
 using Org.BouncyCastle.Crypto.Signers;
+using Org.BouncyCastle.Crypto.Generators;
+using Org.BouncyCastle.Crypto;
+using Org.BouncyCastle.Security;
 
 namespace ccxt;
 
@@ -457,10 +460,15 @@ public partial class Exchange
 
     public object eddsa(object request, object secret, object alg = null)
     {
-        // ECDsa key = ECDsa.Create(ECCurve.NamedCurves.nistP256);
         alg ??= "EdDSA";
-        return null;
-        // stub
+        var msg = System.Text.Encoding.UTF8.GetBytes((string)request);
+        var signer = new Ed25519Signer();
+        var privateKey = ReadEDDSAPrivateKeyFromPem(secret as string);
+        signer.Init(true, privateKey);
+        signer.BlockUpdate(msg, 0, msg.Length);
+        byte[] signature = signer.GenerateSignature();
+        var base64Sig = Convert.ToBase64String(signature);
+        return base64Sig;
     }
 
     public Int64 crc32(object str, object signed2 = null) => Crc32(str, signed2);
@@ -689,6 +697,32 @@ public partial class Exchange
             }
         }
     }
+
+    private static Ed25519PrivateKeyParameters ReadEDDSAPrivateKeyFromPem(string pemString)
+    {
+        if (!pemString.StartsWith("-----BEGIN"))
+        {
+            pemString = "-----BEGIN PRIVATE KEY-----\n" + pemString + "\n-----END PRIVATE KEY-----";
+        }
+        using (TextReader reader = new StringReader(pemString))
+        {
+            PemReader pemReader = new PemReader(reader);
+            object pemObject = pemReader.ReadObject();
+            if (pemObject is Org.BouncyCastle.Crypto.AsymmetricCipherKeyPair)
+            {
+                return ((Org.BouncyCastle.Crypto.AsymmetricCipherKeyPair)pemObject).Private as Ed25519PrivateKeyParameters;
+            }
+            else if (pemObject is Ed25519PrivateKeyParameters)
+            {
+                return (Ed25519PrivateKeyParameters)pemObject;
+            }
+            else
+            {
+                throw new InvalidCastException("The PEM does not contain a valid Ed25519 private key.");
+            }
+        }
+    }
+
 
     private static ECDsa ConvertToECDsa(ECPrivateKeyParameters privateKeyParameters)
     {
