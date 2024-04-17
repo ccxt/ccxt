@@ -531,7 +531,7 @@ public partial class Exchange
 
     public async Task throttle(object cost)
     {
-        await this.throttler.throttle(cost);
+        await (await this.throttler.throttle(cost));
     }
 
     public void initRestLimiter()
