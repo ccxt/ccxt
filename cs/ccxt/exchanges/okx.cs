@@ -28,6 +28,7 @@ public partial class okx : Exchange
                 { "cancelOrders", true },
                 { "closeAllPositions", false },
                 { "closePosition", true },
+                { "createConvertTrade", true },
                 { "createDepositAddress", false },
                 { "createMarketBuyOrderWithCost", true },
                 { "createMarketSellOrderWithCost", true },
@@ -8064,6 +8065,62 @@ public partial class okx : Exchange
         return this.parseConversion(result, fromCurrency, toCurrency);
     }
 
+    public async virtual Task<object> createConvertTrade(object id, object fromCode, object toCode, object amount = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name okx#createConvertTrade
+        * @description convert from one currency to another
+        * @see https://www.okx.com/docs-v5/en/#funding-account-rest-api-convert-trade
+        * @param {string} id the id of the trade that you want to make
+        * @param {string} fromCode the currency that you want to sell and convert from
+        * @param {string} toCode the currency that you want to buy and convert into
+        * @param {float} [amount] how much you want to trade in units of the from currency
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object request = new Dictionary<string, object>() {
+            { "quoteId", id },
+            { "baseCcy", fromCode },
+            { "quoteCcy", toCode },
+            { "szCcy", fromCode },
+            { "sz", this.numberToString(amount) },
+            { "side", "sell" },
+        };
+        object response = await this.privatePostAssetConvertTrade(this.extend(request, parameters));
+        //
+        //     {
+        //         "code": "0",
+        //         "data": [
+        //             {
+        //                 "baseCcy": "ETH",
+        //                 "clTReqId": "",
+        //                 "fillBaseSz": "0.01023052",
+        //                 "fillPx": "2932.40104429",
+        //                 "fillQuoteSz": "30",
+        //                 "instId": "ETH-USDT",
+        //                 "quoteCcy": "USDT",
+        //                 "quoteId": "quoterETH-USDT16461885104612381",
+        //                 "side": "buy",
+        //                 "state": "fullyFilled",
+        //                 "tradeId": "trader16461885203381437",
+        //                 "ts": "1646188520338"
+        //             }
+        //         ],
+        //         "msg": ""
+        //     }
+        //
+        object data = this.safeList(response, "data", new List<object>() {});
+        object result = this.safeDict(data, 0, new Dictionary<string, object>() {});
+        object fromCurrencyId = this.safeString(result, "baseCcy", fromCode);
+        object fromCurrency = this.currency(fromCurrencyId);
+        object toCurrencyId = this.safeString(result, "quoteCcy", toCode);
+        object toCurrency = this.currency(toCurrencyId);
+        return this.parseConversion(result, fromCurrency, toCurrency);
+    }
+
     public override object parseConversion(object conversion, object fromCurrency = null, object toCurrency = null)
     {
         //
@@ -8085,7 +8142,24 @@ public partial class okx : Exchange
         //         "ttlMs": "10000"
         //     }
         //
-        object timestamp = this.safeInteger(conversion, "quoteTime");
+        // createConvertTrade
+        //
+        //     {
+        //         "baseCcy": "ETH",
+        //         "clTReqId": "",
+        //         "fillBaseSz": "0.01023052",
+        //         "fillPx": "2932.40104429",
+        //         "fillQuoteSz": "30",
+        //         "instId": "ETH-USDT",
+        //         "quoteCcy": "USDT",
+        //         "quoteId": "quoterETH-USDT16461885104612381",
+        //         "side": "buy",
+        //         "state": "fullyFilled",
+        //         "tradeId": "trader16461885203381437",
+        //         "ts": "1646188520338"
+        //     }
+        //
+        object timestamp = this.safeInteger2(conversion, "quoteTime", "ts");
         object fromCoin = this.safeString(conversion, "baseCcy");
         object fromCode = this.safeCurrencyCode(fromCoin, fromCurrency);
         object to = this.safeString(conversion, "quoteCcy");
@@ -8094,12 +8168,12 @@ public partial class okx : Exchange
             { "info", conversion },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "id", this.safeString(conversion, "clQReqId") },
+            { "id", this.safeStringN(conversion, new List<object>() {"clQReqId", "tradeId", "quoteId"}) },
             { "fromCurrency", fromCode },
-            { "fromAmount", this.safeNumber(conversion, "baseSz") },
+            { "fromAmount", this.safeNumber2(conversion, "baseSz", "fillBaseSz") },
             { "toCurrency", toCode },
-            { "toAmount", this.safeNumber(conversion, "quoteSz") },
-            { "price", this.safeNumber(conversion, "cnvtPx") },
+            { "toAmount", this.safeNumber2(conversion, "quoteSz", "fillQuoteSz") },
+            { "price", this.safeNumber2(conversion, "cnvtPx", "fillPx") },
             { "fee", null },
         };
     }
