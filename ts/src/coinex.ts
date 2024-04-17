@@ -621,11 +621,11 @@ export default class coinex extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} an array of objects representing market data
          */
-        let promises = [
+        const promisesUnresolved = [
             this.fetchSpotMarkets (params),
             this.fetchContractMarkets (params),
-        ] as any;
-        promises = await Promise.all (promises) as any;
+        ];
+        const promises = await Promise.all (promisesUnresolved);
         const spotMarkets = promises[0];
         const swapMarkets = promises[1];
         return this.arrayConcat (spotMarkets, swapMarkets);
