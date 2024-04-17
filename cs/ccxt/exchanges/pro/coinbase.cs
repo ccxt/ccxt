@@ -79,15 +79,36 @@ public partial class coinbase : ccxt.coinbase
         }
         object url = getValue(getValue(this.urls, "api"), "ws");
         object timestamp = this.numberToString(this.seconds());
+        object isCloudAPiKey = isTrue((isGreaterThanOrEqual(getIndexOf(this.apiKey, "organizations/"), 0))) || isTrue((((string)this.secret).StartsWith(((string)"-----BEGIN"))));
         object auth = add(add(timestamp, name), String.Join(",", ((IList<object>)productIds).ToArray()));
         object subscribe = new Dictionary<string, object>() {
             { "type", "subscribe" },
             { "product_ids", productIds },
             { "channel", name },
-            { "api_key", this.apiKey },
-            { "timestamp", timestamp },
-            { "signature", this.hmac(this.encode(auth), this.encode(this.secret), sha256) },
         };
+        if (!isTrue(isCloudAPiKey))
+        {
+            ((IDictionary<string,object>)subscribe)["api_key"] = this.apiKey;
+            ((IDictionary<string,object>)subscribe)["timestamp"] = timestamp;
+            ((IDictionary<string,object>)subscribe)["signature"] = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
+        } else
+        {
+            if (isTrue(((string)this.apiKey).StartsWith(((string)"-----BEGIN"))))
+            {
+                throw new ArgumentsRequired ((string)add(this.id, " apiKey should contain the name (eg: organizations/3b910e93....) and not the public key")) ;
+            }
+            object currentToken = this.safeString(this.options, "wsToken");
+            object tokenTimestamp = this.safeInteger(this.options, "wsTokenTimestamp", 0);
+            object seconds = this.seconds();
+            if (isTrue(isTrue(isEqual(currentToken, null)) || isTrue(isLessThan(add(tokenTimestamp, 120), seconds))))
+            {
+                // we should generate new token
+                object token = this.createAuthToken(seconds);
+                ((IDictionary<string,object>)this.options)["wsToken"] = token;
+                ((IDictionary<string,object>)this.options)["wsTokenTimestamp"] = seconds;
+            }
+            ((IDictionary<string,object>)subscribe)["jwt"] = this.safeString(this.options, "wsToken");
+        }
         return await this.watch(url, messageHash, subscribe, messageHash);
     }
 
