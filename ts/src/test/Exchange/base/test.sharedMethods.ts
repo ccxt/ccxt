@@ -8,7 +8,7 @@ function logTemplate (exchange: Exchange, method: string, entry: object) {
     return ' <<< ' + exchange.id + ' ' + method + ' ::: ' + exchange.json (entry) + ' >>> ';
 }
 
-function isTemporaryFailure (e: Error) {
+function isTemporaryFailure (e: any) {
     return (e instanceof OperationFailed) && (!(e instanceof OnMaintenance));
 }
 
