@@ -190,28 +190,31 @@ export default class kucoin extends kucoinRest {
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
-        let messageHash = 'tickers';
+        const messageHash = 'tickers';
+        let method = undefined;
+        [ method, params ] = this.handleOptionAndParams (params, 'watchTickers', 'method', '/market/ticker');
         const messageHashes = [];
         const topics = [];
         if (symbols !== undefined) {
-            messageHash = 'tickers::' + symbols.join (',');
             for (let i = 0; i < symbols.length; i++) {
                 const symbol = symbols[i];
                 messageHashes.push ('ticker:' + symbol);
                 const market = this.market (symbol);
-                topics.push ('/market/ticker:' + market['id']);
+                topics.push (method + ':' + market['id']);
             }
         }
         const url = await this.negotiate (false);
-        const topic = '/market/ticker:all';
         let tickers = undefined;
         if (symbols === undefined) {
-            tickers = await this.subscribe (url, messageHash, topic, params);
+            const allTopic = method + ':all';
+            tickers = await this.subscribe (url, messageHash, allTopic, params);
             if (this.newUpdates) {
                 return tickers;
             }
         } else {
-            tickers = await this.subscribeMultiple (url, messageHashes, topic, topics, params);
+            const marketIds = this.marketIds (symbols);
+            const symbolsTopic = method + ':' + marketIds.join (',');
+            tickers = await this.subscribeMultiple (url, messageHashes, symbolsTopic, topics, params);
             if (this.newUpdates) {
                 const newDict = {};
                 newDict[tickers['symbol']] = tickers;
