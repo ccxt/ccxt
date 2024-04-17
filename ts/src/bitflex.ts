@@ -56,7 +56,7 @@ export default class bitflex extends Exchange {
                 'fetchTicker': false,
                 'fetchTickers': false,
                 'fetchTime': true,
-                'fetchTrades': false,
+                'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': false,
                 'fetchTransactionFees': false,
@@ -527,7 +527,10 @@ export default class bitflex extends Exchange {
         const type = isSpot ? 'spot' : 'swap';
         const isSwap = (type === 'swap');
         const isInverse = this.safeBool (market, 'inverse');
-        const isLinear = !isInverse;
+        let isLinear = undefined;
+        if (isInverse !== undefined) {
+            isLinear = !isInverse;
+        }
         const contractSize = this.safeFloat (market, 'contractMultiplier');
         const limits = this.safeList (market, 'filters', []);
         const limitsIndexed = this.indexBy (limits, 'filterType');
@@ -598,7 +601,7 @@ export default class bitflex extends Exchange {
          * @see https://docs.bitflex.com/contract#depth
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int} [limit] the maximum amount of order book entries to return
+         * @param {int} [limit] the maximum amount of order book entries to return, default 40, max 100
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
@@ -669,7 +672,7 @@ export default class bitflex extends Exchange {
          * @description get the list of most recent trades for a particular symbol
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
-         * @param {int} [limit] the maximum amount of trades to fetch
+         * @param {int} [limit] the maximum amount of trades to fetch, default 500, max 1000
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {int} [params.until] *spot only* *since must be defined* the latest time in ms to fetch entries for
          * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
@@ -724,6 +727,70 @@ export default class bitflex extends Exchange {
         }
         return this.parseTrades (response, market, since, limit);
     }
+
+    parseTrade (trade, market: Market = undefined): Trade {
+        const symbol = this.safeString (market, 'symbol');
+        const timestamp = this.safeInteger (trade, 'time');
+        const price = this.safeString (trade, 'price');
+        const amount = this.safeString (trade, 'qty');
+        const isBuyerMaker = this.safeBool (trade, 'isBuyerMaker');
+        let takerOrMaker = undefined;
+        if ((isBuyerMaker !== undefined) && (isBuyerMaker)) {
+            takerOrMaker = 'maker';
+        } else if ((isBuyerMaker !== undefined) && (!isBuyerMaker)) {
+            takerOrMaker = 'taker';
+        }
+        return this.safeTrade ({
+            'id': undefined,
+            'order': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': symbol,
+            'type': undefined,
+            'side': undefined, // todo check
+            'takerOrMaker': takerOrMaker, // todo check
+            'price': price,
+            'amount': amount,
+            'cost': undefined,
+            'fee': undefined,
+            'info': trade,
+        }, market);
+    }
+
+    // async fetchBalance (params = {}) {
+    //     /**
+    //      * @method
+    //      * @name bitflex#fetchBalance
+    //      * @description fetches the balance of the user's account
+    //      * @see https://docs.bitflex.com/spot#account-information
+    //      * @param {object} [params] extra parameters specific to the exchange API endpoint
+    //      * @returns {object} a dictionary of the user's balances
+    //      */
+    //     await this.loadMarkets ();
+    //     const response = await this.privateGetOpenapiAccount (params);
+    //     //
+    //     //     {
+    //     //         "time":1713343654079,
+    //     //         "balances": [
+    //     //             {
+    //     //                 "asset":"USDT",
+    //     //                 "free":"0.00000000",
+    //     //                 "locked":"0.00000000"
+    //     //             },
+    //     //             {
+    //     //                 "asset":"BTC",
+    //     //                 "free":"0.00000000",
+    //     //                 "locked":"0.00000000"
+    //     //             },
+    //     //             ...
+    //     //         ]
+    //     //     }
+    //     //
+    //     const result = { 'info': response };
+    //     const balances = this.safeValue (response, 'balances', []);
+    //     for (let i = 0; i < balances.length; i++) {
+    //         const balance = balances[i];
+    //         const currencyId = this.safe
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api];
