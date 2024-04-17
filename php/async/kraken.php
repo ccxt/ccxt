@@ -1587,9 +1587,10 @@ class kraken extends Exchange {
         //  }
         //
         $description = $this->safe_dict($order, 'descr', array());
+        $orderDescriptionObj = $this->safe_dict($order, 'descr'); // can be null
         $orderDescription = null;
-        if ($description !== null) {
-            $orderDescription = $this->safe_string($description, 'order');
+        if ($orderDescriptionObj !== null) {
+            $orderDescription = $this->safe_string($orderDescriptionObj, 'order');
         } else {
             $orderDescription = $this->safe_string($order, 'descr');
         }
@@ -1660,8 +1661,8 @@ class kraken extends Exchange {
         }
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $id = $this->safe_string_2($order, 'id', 'txid');
-        if (($id === null) || (mb_substr($id, 0, 1 - 0) === '[')) {
-            $txid = $this->safe_value($order, 'txid');
+        if (($id === null) || (str_starts_with($id, '['))) {
+            $txid = $this->safe_list($order, 'txid');
             $id = $this->safe_string($txid, 0);
         }
         $clientOrderId = $this->safe_string($order, 'userref');

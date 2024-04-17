@@ -1132,4 +1132,9 @@ public partial class coinbase
         var res = await this.fetchPosition(symbol, parameters);
         return new Position(res);
     }
+    public string CreateAuthToken(Int64 seconds, string method = null, string url = null)
+    {
+        var res = this.createAuthToken(seconds, method, url);
+        return ((string)res);
+    }
 }
