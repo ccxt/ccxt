@@ -2110,7 +2110,7 @@ export default class kraken extends Exchange {
         return response;
     }
 
-    async cancelOrders (ids: string[], symbol: Str = undefined, params = {}): Promise<Order[]> 
+    async cancelOrders (ids: string[], symbol: Str = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name kraken#cancelOrders

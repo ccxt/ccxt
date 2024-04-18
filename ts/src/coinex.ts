@@ -2586,7 +2586,7 @@ export default class coinex extends Exchange {
         return results;
     }
 
-    async cancelOrders (ids: string[], symbol: Str = undefined, params = {}): Promise<Order[]> 
+    async cancelOrders (ids: string[], symbol: Str = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name coinex#cancelOrders

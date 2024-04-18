@@ -1674,7 +1674,7 @@ export default class okcoin extends Exchange {
         }
     }
 
-    async cancelOrders (ids: string[], symbol: Str = undefined, params = {}): Promise<Order[]> 
+    async cancelOrders (ids: string[], symbol: Str = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name okcoin#cancelOrders

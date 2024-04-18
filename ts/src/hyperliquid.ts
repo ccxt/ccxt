@@ -1168,7 +1168,7 @@ export default class hyperliquid extends Exchange {
         return await this.cancelOrders ([ id ], symbol, params);
     }
 
-    async cancelOrders (ids: string[], symbol: Str = undefined, params = {}): Promise<Order[]> 
+    async cancelOrders (ids: string[], symbol: Str = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name hyperliquid#cancelOrders
