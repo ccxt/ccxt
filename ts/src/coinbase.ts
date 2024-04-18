@@ -22,6 +22,7 @@ export default class coinbase extends Exchange {
             'name': 'Coinbase',
             'countries': [ 'US' ],
             'pro': true,
+            'certified': true,
             // rate-limits:
             // ADVANCED API: https://docs.cloud.coinbase.com/advanced-trade-api/docs/rest-api-rate-limits
             // - max 30 req/second for private data, 10 req/s for public data
