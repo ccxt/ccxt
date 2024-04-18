@@ -655,10 +655,8 @@ export default class coinex extends Exchange {
         //
         const markets = this.safeList (response, 'data', []);
         const result = [];
-        const keys = Object.keys (markets);
-        for (let i = 0; i < keys.length; i++) {
-            const key = keys[i];
-            const market = markets[key];
+        for (let i = 0; i < markets.length; i++) {
+            const market = markets[i];
             const id = this.safeString (market, 'market');
             const baseId = this.safeString (market, 'base_ccy');
             const quoteId = this.safeString (market, 'quote_ccy');
