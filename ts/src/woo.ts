@@ -3225,8 +3225,8 @@ export default class woo extends Exchange {
         //     }
         //
         const timestamp = this.safeInteger2 (conversion, 'expireTimestamp', 'createdTime');
-        const from = this.safeString2 (conversion, 'sellToken', 'buyAsset');
-        const fromCode = this.safeCurrencyCode (from, fromCurrency);
+        const fromCurr = this.safeString2 (conversion, 'sellToken', 'buyAsset');
+        const fromCode = this.safeCurrencyCode (fromCurr, fromCurrency);
         const to = this.safeString2 (conversion, 'buyToken', 'sellAsset');
         const toCode = this.safeCurrencyCode (to, toCurrency);
         return {

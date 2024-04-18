@@ -12652,8 +12652,8 @@ export default class binance extends Exchange {
         //     }
         //
         const timestamp = this.safeInteger (conversion, 'time');
-        const from = this.safeString (conversion, 'deductedAsset');
-        const fromCode = this.safeCurrencyCode (from, fromCurrency);
+        const fromCur = this.safeString (conversion, 'deductedAsset');
+        const fromCode = this.safeCurrencyCode (fromCur, fromCurrency);
         const to = this.safeString (conversion, 'targetAsset');
         const toCode = this.safeCurrencyCode (to, toCurrency);
         return {
