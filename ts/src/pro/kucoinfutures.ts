@@ -555,7 +555,10 @@ export default class kucoinfutures extends kucoinfuturesRest {
         const marketId = this.safeString (data, 'symbol', marketIdFromTopic);
         const symbol = this.safeSymbol (marketId, undefined, '');
         const market = this.safeMarket (marketId);
-        const currentPosition = this.getCurrentPosition (symbol);
+        let currentPosition = this.getCurrentPosition (symbol);
+        if (currentPosition === undefined) {
+            currentPosition = {};
+        }
         const newPosition = this.parsePosition (data, market);
         const keys = Object.keys (newPosition);
         for (let i = 0; i < keys.length; i++) {
