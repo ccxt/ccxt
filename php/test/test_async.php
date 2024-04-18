@@ -86,7 +86,6 @@ class baseMainTestClass {
     public $env_vars = envVars;
     public $root_dir_for_skips = rootDirForSkips;
     public $only_specific_tests = [];
-    public $LOG_CHARS_LENGTH = LOG_CHARS_LENGTH;
     public $proxy_test_file_name = proxyTestFileName;
     public $ext = ext;
 }
