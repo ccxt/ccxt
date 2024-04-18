@@ -1856,11 +1856,12 @@ export default class bitfinex2 extends Exchange {
          * @returns {object} an array of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
+        const idsRequest = [];
         for (let i = 0; i < ids.length; i++) {
-            ids[i] = this.parseToNumeric (ids[i]);
+            idsRequest[i] = this.parseToNumeric (ids[i]);
         }
         const request = {
-            'id': ids,
+            'id': idsRequest,
         };
         let market = undefined;
         if (symbol !== undefined) {

@@ -906,11 +906,12 @@ export default class btcmarkets extends Exchange {
          * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
+        const idsRequest = [];
         for (let i = 0; i < ids.length; i++) {
-            ids[i] = parseInt (ids[i]);
+            idsRequest[i] = parseInt (ids[i]);
         }
         const request = {
-            'ids': ids,
+            'ids': idsRequest,
         };
         return await this.privateDeleteBatchordersIds (this.extend (request, params));
     }
