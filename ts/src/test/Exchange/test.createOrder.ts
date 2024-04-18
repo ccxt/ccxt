@@ -191,13 +191,16 @@ async function testCreateOrderCancelOrder (exchange, symbol, orderId = undefined
     } else if (exchange.has['cancelAllOrders']) {
         usedMethod = 'cancelAllOrders';
         cancelResult = await exchange.cancelAllOrders (symbol);
-    } else if (exchange.has['cancelOrders']) {
-        usedMethod = 'cancelOrders';
-        if (orderId === undefined) {
-            cancelResult = await exchange.cancelOrders ([], symbol);
-        } else {
-            cancelResult = await exchange.cancelOrders ([ orderId ], symbol);
-        }
+    }
+    else if (exchange.has['cancelOrders']) {
+        // todo: uncomment after cancelOrders unification
+        debugOutput (exchange, symbol, 'cancelOrders method is not unified yet, coming soon...');
+        // usedMethod = 'cancelOrders';
+        // if (orderId === undefined) {
+        //     cancelResult = await exchange.cancelOrders ([], symbol);
+        // } else {
+        //     cancelResult = await exchange.cancelOrders ([ orderId ], symbol);
+        // }
     }
     debugOutput (exchange, symbol, 'canceled order using ' + usedMethod);
     // todo: assert canceled & closed status
