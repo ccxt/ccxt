@@ -3,7 +3,8 @@
 
 import Exchange from './abstract/bitflex.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { Currencies, Int, Market, OHLCV, OrderBook, Trade } from './base/types.js';
+import { NotSupported } from './base/errors.js';
+import { Currencies, Int, Market, OHLCV, OrderBook, Ticker, Tickers, Trade, Strings } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -817,6 +818,199 @@ export default class bitflex extends Exchange {
             this.safeNumber (ohlcv, 4),
             this.safeNumber (ohlcv, 5),
         ];
+    }
+
+    async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
+        /**
+         * @method
+         * @name bitflex#fetchTicker
+         * @see https://docs.bitflex.com/spot#24hr-ticker-price-change-statistics
+         * @see https://docs.bitflex.com/contract#id-24hrs-ticker-price-change-statistics
+         * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @param {string} symbol unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        let response = undefined;
+        if (market['spot']) {
+            response = await this.publicGetOpenapiQuoteV1Ticker24hr (this.extend (request, params));
+        } else if (market['contract']) {
+            response = await this.publicGetOpenapiQuoteV1ContractTicker24hr (this.extend (request, params));
+        }
+        //
+        // spot
+        //     {
+        //         "time": 1713430460947,
+        //         "symbol": "BTCUSDT",
+        //         "bestBidPrice": "61346.47",
+        //         "bestAskPrice": "61353.53",
+        //         "volume": "288.494146",
+        //         "quoteVolume": "17738881.75813519",
+        //         "lastPrice": "61353.94",
+        //         "highPrice": "63533.64",
+        //         "lowPrice": "59727.66",
+        //         "openPrice": "63364.98"
+        //     }
+        //
+        // contract
+        //     {
+        //         "time": 1713430608992,
+        //         "symbol": "BTC-SWAP-USDT",
+        //         "bestBidPrice": "61328",
+        //         "bestAskPrice": "61344.4",
+        //         "volume": "11886.164",
+        //         "quoteVolume": "728879686.9843",
+        //         "openInterest": "94.348",
+        //         "lastPrice": "61339.5",
+        //         "highPrice": "63573.8",
+        //         "lowPrice": "59672.6",
+        //         "openPrice": "63359.8"
+        //     }
+        //
+        return this.parseTicker (response, market);
+    }
+
+    async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        /**
+         * @method
+         * @name bitflex#fetchTickers
+         * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+         * @see https://docs.bitflex.com/spot#24hr-ticker-price-change-statistics
+         * @see https://docs.bitflex.com/contract#id-24hrs-ticker-price-change-statistics
+         * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        await this.loadMarkets ();
+        let hasSpot = true;
+        let hasContract = true;
+        if (symbols !== undefined) {
+            hasSpot = false;
+            hasContract = false;
+            for (let i = 0; i < symbols.length; i++) {
+                const symbol = symbols[i];
+                const market = this.market (symbol);
+                if (market['spot']) {
+                    hasSpot = true;
+                } else if (market['contract']) {
+                    hasContract = true;
+                }
+            }
+        }
+        let responseSpot = [];
+        let responseContract = []; // todo check is it good to use 2 endpoints
+        if (hasSpot) {
+            responseSpot = await this.publicGetOpenapiQuoteV1Ticker24hr (params);
+        }
+        //
+        //     [
+        //         {
+        //             "time": 1713433035363,
+        //             "symbol": "TRXUSDT",
+        //             "volume": "5324149.27",
+        //             "quoteVolume": "586707.79503338",
+        //             "lastPrice": "0.109537",
+        //             "highPrice": "0.112817",
+        //             "lowPrice": "0.108604",
+        //             "openPrice": "0.112816"
+        //         },
+        //         ...
+        //     ]
+        //
+        if (hasContract) {
+            responseContract = await this.publicGetOpenapiQuoteV1ContractTicker24hr (params);
+        }
+        //
+        //     [
+        //         {
+        //             "time" :1713433029225,
+        //             "symbol" :"AVAX-SWAP-USDT",
+        //             "volume" :"768502.5",
+        //             "quoteVolume" :"25936222.33476",
+        //             "openInterest" :"1983.6",
+        //             "lastPrice" :"33.9029",
+        //             "highPrice" :"35.167",
+        //             "lowPrice" :"32.2528",
+        //             "openPrice" :"35.0013"
+        //         },
+        //         ...
+        //     ]
+        //
+        const response = this.arrayConcat (responseSpot, responseContract);
+        return this.parseTickers (response, symbols);
+    }
+
+    parseTicker (ticker, market: Market = undefined): Ticker {
+        //
+        // spot (fetchTicker)
+        //     {
+        //         "time": 1713430460947,
+        //         "symbol": "BTCUSDT",
+        //         "bestBidPrice": "61346.47",
+        //         "bestAskPrice": "61353.53",
+        //         "volume": "288.494146",
+        //         "quoteVolume": "17738881.75813519",
+        //         "lastPrice": "61353.94",
+        //         "highPrice": "63533.64",
+        //         "lowPrice": "59727.66",
+        //         "openPrice": "63364.98"
+        //     }
+        //
+        // contract (fetchTicker)
+        //     {
+        //         "time": 1713430608992,
+        //         "symbol": "BTC-SWAP-USDT",
+        //         "bestBidPrice": "61328",
+        //         "bestAskPrice": "61344.4",
+        //         "volume": "11886.164",
+        //         "quoteVolume": "728879686.9843",
+        //         "openInterest": "94.348",
+        //         "lastPrice": "61339.5",
+        //         "highPrice": "63573.8",
+        //         "lowPrice": "59672.6",
+        //         "openPrice": "63359.8"
+        //     }
+        //
+        const marketId = this.safeString (ticker, 'symbol');
+        market = this.safeMarket (marketId, market);
+        const symbol = market['symbol'];
+        const timestamp = this.safeInteger (ticker, 'time');
+        const high = this.safeString (ticker, 'highPrice');
+        const low = this.safeString (ticker, 'lowPrice');
+        const bid = this.safeString (ticker, 'bestBidPrice');
+        const ask = this.safeString (ticker, 'bestAskPrice');
+        const open = this.safeString (ticker, 'openPrice');
+        const last = this.safeString (ticker, 'lastPrice');
+        const baseVolume = this.safeString (ticker, 'volume');
+        const quoteVolume = this.safeString (ticker, 'quoteVolume');
+        const average = this.safeString2 (ticker, 'avg_price', 'index_price');
+        return this.safeTicker ({
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': high,
+            'low': low,
+            'bid': bid,
+            'bidVolume': undefined,
+            'ask': ask,
+            'askVolume': undefined,
+            'vwap': undefined,
+            'open': open,
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
+            'change': undefined,
+            'percentage': undefined,
+            'average': average,
+            'baseVolume': baseVolume,
+            'quoteVolume': quoteVolume,
+            'info': ticker,
+        }, market);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
