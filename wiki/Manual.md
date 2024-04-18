@@ -6327,6 +6327,39 @@ Returns
 
 - A [conversion structure](#conversion-structure)
 
+The `fetchConvertTrade` method can be used to fetch a specific conversion trade using the trades id.
+
+```javascript
+fetchConvertTrade (id, code = undefined, params = {})
+```
+
+Parameters
+
+- **id** (String) *required* Conversion trade id (e.g. `"80794187SDHJ25"`)
+- **code** (String) The unified currency code of the conversion trade (e.g. `"USDT"`)
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"toAmount": 2.9722}`)
+
+Returns
+
+- A [conversion structure](#conversion-structure)
+
+The `fetchConvertTradeHistory` method can be used to fetch the conversion history for a specified currency code.
+
+```javascript
+fetchConvertTradeHistory (code = undefined, since = undefined, limit = undefined, params = {})
+```
+
+Parameters
+
+- **code** (String) The unified currency code to fetch conversion trade history for (e.g. `"USDT"`)
+- **since** (Integer) Timestamp of the earliest conversion (e.g. `1645807945000`)
+- **limit** (Integer) The maximum number of conversion structures to retrieve (e.g. `10`)
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"toAmount": 2.9722}`)
+
+Returns
+
+- An array of [conversion structures](#conversion-structure)
+
 #### Conversion Structure
 
 ```javascript
