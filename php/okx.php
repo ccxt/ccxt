@@ -32,6 +32,7 @@ class okx extends Exchange {
                 'cancelOrders' => true,
                 'closeAllPositions' => false,
                 'closePosition' => true,
+                'createConvertTrade' => true,
                 'createDepositAddress' => false,
                 'createMarketBuyOrderWithCost' => true,
                 'createMarketSellOrderWithCost' => true,
@@ -7539,6 +7540,58 @@ class okx extends Exchange {
         return $this->parse_conversion($result, $fromCurrency, $toCurrency);
     }
 
+    public function create_convert_trade(string $id, string $fromCode, string $toCode, ?float $amount = null, $params = array ()): Conversion {
+        /**
+         * convert from one currency to another
+         * @see https://www.okx.com/docs-v5/en/#funding-account-rest-api-convert-trade
+         * @param {string} $id the $id of the trade that you want to make
+         * @param {string} $fromCode the currency that you want to sell and convert from
+         * @param {string} $toCode the currency that you want to buy and convert into
+         * @param {float} [$amount] how much you want to trade in units of the from currency
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/#/?$id=conversion-structure conversion structure~
+         */
+        $this->load_markets();
+        $request = array(
+            'quoteId' => $id,
+            'baseCcy' => $fromCode,
+            'quoteCcy' => $toCode,
+            'szCcy' => $fromCode,
+            'sz' => $this->number_to_string($amount),
+            'side' => 'sell',
+        );
+        $response = $this->privatePostAssetConvertTrade (array_merge($request, $params));
+        //
+        //     {
+        //         "code" => "0",
+        //         "data" => array(
+        //             {
+        //                 "baseCcy" => "ETH",
+        //                 "clTReqId" => "",
+        //                 "fillBaseSz" => "0.01023052",
+        //                 "fillPx" => "2932.40104429",
+        //                 "fillQuoteSz" => "30",
+        //                 "instId" => "ETH-USDT",
+        //                 "quoteCcy" => "USDT",
+        //                 "quoteId" => "quoterETH-USDT16461885104612381",
+        //                 "side" => "buy",
+        //                 "state" => "fullyFilled",
+        //                 "tradeId" => "trader16461885203381437",
+        //                 "ts" => "1646188520338"
+        //             }
+        //         ),
+        //         "msg" => ""
+        //     }
+        //
+        $data = $this->safe_list($response, 'data', array());
+        $result = $this->safe_dict($data, 0, array());
+        $fromCurrencyId = $this->safe_string($result, 'baseCcy', $fromCode);
+        $fromCurrency = $this->currency($fromCurrencyId);
+        $toCurrencyId = $this->safe_string($result, 'quoteCcy', $toCode);
+        $toCurrency = $this->currency($toCurrencyId);
+        return $this->parse_conversion($result, $fromCurrency, $toCurrency);
+    }
+
     public function parse_conversion($conversion, ?array $fromCurrency = null, ?array $toCurrency = null): Conversion {
         //
         // fetchConvertQuote
@@ -7559,7 +7612,24 @@ class okx extends Exchange {
         //         "ttlMs" => "10000"
         //     }
         //
-        $timestamp = $this->safe_integer($conversion, 'quoteTime');
+        // createConvertTrade
+        //
+        //     {
+        //         "baseCcy" => "ETH",
+        //         "clTReqId" => "",
+        //         "fillBaseSz" => "0.01023052",
+        //         "fillPx" => "2932.40104429",
+        //         "fillQuoteSz" => "30",
+        //         "instId" => "ETH-USDT",
+        //         "quoteCcy" => "USDT",
+        //         "quoteId" => "quoterETH-USDT16461885104612381",
+        //         "side" => "buy",
+        //         "state" => "fullyFilled",
+        //         "tradeId" => "trader16461885203381437",
+        //         "ts" => "1646188520338"
+        //     }
+        //
+        $timestamp = $this->safe_integer_2($conversion, 'quoteTime', 'ts');
         $fromCoin = $this->safe_string($conversion, 'baseCcy');
         $fromCode = $this->safe_currency_code($fromCoin, $fromCurrency);
         $to = $this->safe_string($conversion, 'quoteCcy');
@@ -7568,12 +7638,12 @@ class okx extends Exchange {
             'info' => $conversion,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'id' => $this->safe_string($conversion, 'clQReqId'),
+            'id' => $this->safe_string_n($conversion, array( 'clQReqId', 'tradeId', 'quoteId' )),
             'fromCurrency' => $fromCode,
-            'fromAmount' => $this->safe_number($conversion, 'baseSz'),
+            'fromAmount' => $this->safe_number_2($conversion, 'baseSz', 'fillBaseSz'),
             'toCurrency' => $toCode,
-            'toAmount' => $this->safe_number($conversion, 'quoteSz'),
-            'price' => $this->safe_number($conversion, 'cnvtPx'),
+            'toAmount' => $this->safe_number_2($conversion, 'quoteSz', 'fillQuoteSz'),
+            'price' => $this->safe_number_2($conversion, 'cnvtPx', 'fillPx'),
             'fee' => null,
         );
     }

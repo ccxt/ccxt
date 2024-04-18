@@ -1723,6 +1723,7 @@ The unified ccxt API is a subset of methods common among the exchanges. It curre
 - `fetchOption (symbol, params)`
 - `fetchOptionChain (code, params)`
 - `fetchConvertQuote (fromCode, toCode, amount, params)`
+- `createConvertTrade (id, fromCode, toCode, amount, params)`
 - ...
 
 ```text
@@ -6298,6 +6299,25 @@ fetchConvertQuote (fromCode, toCode, amount = undefined, params = {})
 
 Parameters
 
+- **fromCode** (String) *required* The unified currency code for the currency to convert from (e.g. `"USDT"`)
+- **toCode** (String) *required* The unified currency code for the currency to be converted into (e.g. `"USDC"`)
+- **amount** (Float) Amount to convert in units of the from currency (e.g. `20.0`)
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"toAmount": 2.9722}`)
+
+Returns
+
+- A [conversion structure](#conversion-structure)
+
+The `createConvertTrade` method can be used to create a conversion trade order using the id retrieved from fetchConvertQuote.
+The quote usually needs to be used within a certain timeframe specified by the exchange for the convert trade to execute successfully.
+
+```javascript
+createConvertTrade (id, fromCode, toCode, amount = undefined, params = {})
+```
+
+Parameters
+
+- **id** (String) *required* Conversion quote id (e.g. `1645807945000`)
 - **fromCode** (String) *required* The unified currency code for the currency to convert from (e.g. `"USDT"`)
 - **toCode** (String) *required* The unified currency code for the currency to be converted into (e.g. `"USDC"`)
 - **amount** (Float) Amount to convert in units of the from currency (e.g. `20.0`)

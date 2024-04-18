@@ -34,6 +34,7 @@ class bitget extends Exchange {
                 'cancelOrders' => true,
                 'closeAllPositions' => true,
                 'closePosition' => true,
+                'createConvertTrade' => true,
                 'createDepositAddress' => false,
                 'createMarketBuyOrderWithCost' => true,
                 'createMarketOrderWithCost' => false,
@@ -8263,8 +8264,8 @@ class bitget extends Exchange {
          */
         $this->load_markets();
         $request = array(
-            'fromCoin' => strtoupper($fromCode),
-            'toCoin' => strtoupper($toCode),
+            'fromCoin' => $fromCode,
+            'toCoin' => $toCode,
             'fromCoinSize' => $this->number_to_string($amount),
         );
         $response = $this->privateConvertGetV2ConvertQuotedPrice (array_merge($request, $params));
@@ -8292,6 +8293,57 @@ class bitget extends Exchange {
         return $this->parse_conversion($data, $fromCurrency, $toCurrency);
     }
 
+    public function create_convert_trade(string $id, string $fromCode, string $toCode, ?float $amount = null, $params = array ()): Conversion {
+        /**
+         * convert from one currency to another
+         * @see https://www.bitget.com/api-doc/common/convert/Trade
+         * @param {string} $id the $id of the trade that you want to make
+         * @param {string} $fromCode the currency that you want to sell and convert from
+         * @param {string} $toCode the currency that you want to buy and convert into
+         * @param {float} $amount how much you want to trade in units of the from currency
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} $params->price the $price of the conversion, obtained from fetchConvertQuote()
+         * @param {string} $params->toAmount the $amount you want to trade in units of the $toCurrency, obtained from fetchConvertQuote()
+         * @return {array} a ~@link https://docs.ccxt.com/#/?$id=conversion-structure conversion structure~
+         */
+        $this->load_markets();
+        $price = $this->safe_string_2($params, 'price', 'cnvtPrice');
+        if ($price === null) {
+            throw new ArgumentsRequired($this->id . ' createConvertTrade() requires a $price parameter');
+        }
+        $toAmount = $this->safe_string_2($params, 'toAmount', 'toCoinSize');
+        if ($toAmount === null) {
+            throw new ArgumentsRequired($this->id . ' createConvertTrade() requires a $toAmount parameter');
+        }
+        $params = $this->omit($params, array( 'price', 'toAmount' ));
+        $request = array(
+            'traceId' => $id,
+            'fromCoin' => $fromCode,
+            'toCoin' => $toCode,
+            'fromCoinSize' => $this->number_to_string($amount),
+            'toCoinSize' => $toAmount,
+            'cnvtPrice' => $price,
+        );
+        $response = $this->privateConvertPostV2ConvertTrade (array_merge($request, $params));
+        //
+        //     {
+        //         "code" => "00000",
+        //         "msg" => "success",
+        //         "requestTime" => 1712123746203,
+        //         "data" => {
+        //             "cnvtPrice" => "0.99940076",
+        //             "toCoin" => "USDC",
+        //             "toCoinSize" => "4.99700379",
+        //             "ts" => "1712123746217"
+        //         }
+        //     }
+        //
+        $data = $this->safe_dict($response, 'data', array());
+        $toCurrencyId = $this->safe_string($data, 'toCoin', $toCode);
+        $toCurrency = $this->currency($toCurrencyId);
+        return $this->parse_conversion($data, null, $toCurrency);
+    }
+
     public function parse_conversion($conversion, ?array $fromCurrency = null, ?array $toCurrency = null): Conversion {
         //
         // fetchConvertQuote
@@ -8304,6 +8356,15 @@ class bitget extends Exchange {
         //         "toCoinSize" => "4.99650394",
         //         "traceId" => "1159288930228187140",
         //         "fee" => "0"
+        //     }
+        //
+        // createConvertTrade
+        //
+        //     {
+        //         "cnvtPrice" => "0.99940076",
+        //         "toCoin" => "USDC",
+        //         "toCoinSize" => "4.99700379",
+        //         "ts" => "1712123746217"
         //     }
         //
         $timestamp = $this->safe_integer($conversion, 'ts');
