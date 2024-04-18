@@ -85,7 +85,8 @@ public class Throttler
         if (!this.running)
         {
             this.running = true;
-            await this.loop();
+            // Task.Run(() => { this.loop(); });
+            this.loop();
         }
         return t;
     }
