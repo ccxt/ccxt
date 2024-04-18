@@ -382,7 +382,10 @@ class poloniexfutures(Exchange, ImplicitAPI):
         #
         marketId = self.safe_string(ticker, 'symbol')
         symbol = self.safe_symbol(marketId, market)
-        timestamp = self.safe_integer_product(ticker, 'ts', 0.000001)
+        timestampString = self.safe_string(ticker, 'ts')
+        # check timestamp bcz bug: https://app.travis-ci.com/github/ccxt/ccxt/builds/269959181#L4011
+        multiplier = 0.00001 if (len(timestampString) == 18) else 0.000001
+        timestamp = self.safe_integer_product(ticker, 'ts', multiplier)
         last = self.safe_string_2(ticker, 'price', 'lastPrice')
         percentage = Precise.string_mul(self.safe_string(ticker, 'priceChgPct'), '100')
         return self.safe_ticker({

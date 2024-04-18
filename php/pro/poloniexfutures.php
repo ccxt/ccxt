@@ -6,9 +6,9 @@ namespace ccxt\pro;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use ccxt\ExchangeError;
 use ccxt\AuthenticationError;
 use ccxt\BadRequest;
+use ccxt\InvalidNonce;
 use React\Async;
 use React\Promise\PromiseInterface;
 
@@ -888,7 +888,11 @@ class poloniexfutures extends \ccxt\async\poloniexfutures {
         $sequence = $this->safe_integer($delta, 'sequence');
         $nonce = $this->safe_integer($orderbook, 'nonce');
         if ($nonce !== $sequence - 1) {
-            throw new ExchangeError($this->id . ' watchOrderBook received an out-of-order nonce');
+            $checksum = $this->safe_bool($this->options, 'checksum', true);
+            if ($checksum) {
+                // todo => client.reject from handleOrderBookMessage properly
+                throw new InvalidNonce($this->id . ' watchOrderBook received an out-of-order nonce');
+            }
         }
         $change = $this->safe_string($delta, 'change');
         $splitChange = explode(',', $change);

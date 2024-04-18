@@ -9,6 +9,7 @@ import asyncio
 import hashlib
 from ccxt.base.types import Account, Balances, Conversion, Currencies, Currency, Greeks, Int, Leverage, MarginModification, Market, MarketInterface, Num, Option, OptionChain, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry
 from typing import List
+from typing import Any
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -58,6 +59,7 @@ class okx(Exchange, ImplicitAPI):
                 'cancelOrders': True,
                 'closeAllPositions': False,
                 'closePosition': True,
+                'createConvertTrade': True,
                 'createDepositAddress': False,
                 'createMarketBuyOrderWithCost': True,
                 'createMarketSellOrderWithCost': True,
@@ -1130,13 +1132,13 @@ class okx(Exchange, ImplicitAPI):
             },
         })
 
-    def handle_market_type_and_params(self, methodName, market=None, params={}):
+    def handle_market_type_and_params(self, methodName: str, market: Market = None, params={}, defaultValue=None) -> Any:
         instType = self.safe_string(params, 'instType')
         params = self.omit(params, 'instType')
         type = self.safe_string(params, 'type')
         if (type is None) and (instType is not None):
             params['type'] = instType
-        return super(okx, self).handle_market_type_and_params(methodName, market, params)
+        return super(okx, self).handle_market_type_and_params(methodName, market, params, defaultValue)
 
     def convert_to_instrument_type(self, type):
         exchangeTypes = self.safe_dict(self.options, 'exchangeType', {})
@@ -7150,6 +7152,57 @@ class okx(Exchange, ImplicitAPI):
         toCurrency = self.currency(toCurrencyId)
         return self.parse_conversion(result, fromCurrency, toCurrency)
 
+    async def create_convert_trade(self, id: str, fromCode: str, toCode: str, amount: Num = None, params={}) -> Conversion:
+        """
+        convert from one currency to another
+        :see: https://www.okx.com/docs-v5/en/#funding-account-rest-api-convert-trade
+        :param str id: the id of the trade that you want to make
+        :param str fromCode: the currency that you want to sell and convert from
+        :param str toCode: the currency that you want to buy and convert into
+        :param float [amount]: how much you want to trade in units of the from currency
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `conversion structure <https://docs.ccxt.com/#/?id=conversion-structure>`
+        """
+        await self.load_markets()
+        request = {
+            'quoteId': id,
+            'baseCcy': fromCode,
+            'quoteCcy': toCode,
+            'szCcy': fromCode,
+            'sz': self.number_to_string(amount),
+            'side': 'sell',
+        }
+        response = await self.privatePostAssetConvertTrade(self.extend(request, params))
+        #
+        #     {
+        #         "code": "0",
+        #         "data": [
+        #             {
+        #                 "baseCcy": "ETH",
+        #                 "clTReqId": "",
+        #                 "fillBaseSz": "0.01023052",
+        #                 "fillPx": "2932.40104429",
+        #                 "fillQuoteSz": "30",
+        #                 "instId": "ETH-USDT",
+        #                 "quoteCcy": "USDT",
+        #                 "quoteId": "quoterETH-USDT16461885104612381",
+        #                 "side": "buy",
+        #                 "state": "fullyFilled",
+        #                 "tradeId": "trader16461885203381437",
+        #                 "ts": "1646188520338"
+        #             }
+        #         ],
+        #         "msg": ""
+        #     }
+        #
+        data = self.safe_list(response, 'data', [])
+        result = self.safe_dict(data, 0, {})
+        fromCurrencyId = self.safe_string(result, 'baseCcy', fromCode)
+        fromCurrency = self.currency(fromCurrencyId)
+        toCurrencyId = self.safe_string(result, 'quoteCcy', toCode)
+        toCurrency = self.currency(toCurrencyId)
+        return self.parse_conversion(result, fromCurrency, toCurrency)
+
     def parse_conversion(self, conversion, fromCurrency: Currency = None, toCurrency: Currency = None) -> Conversion:
         #
         # fetchConvertQuote
@@ -7170,7 +7223,24 @@ class okx(Exchange, ImplicitAPI):
         #         "ttlMs": "10000"
         #     }
         #
-        timestamp = self.safe_integer(conversion, 'quoteTime')
+        # createConvertTrade
+        #
+        #     {
+        #         "baseCcy": "ETH",
+        #         "clTReqId": "",
+        #         "fillBaseSz": "0.01023052",
+        #         "fillPx": "2932.40104429",
+        #         "fillQuoteSz": "30",
+        #         "instId": "ETH-USDT",
+        #         "quoteCcy": "USDT",
+        #         "quoteId": "quoterETH-USDT16461885104612381",
+        #         "side": "buy",
+        #         "state": "fullyFilled",
+        #         "tradeId": "trader16461885203381437",
+        #         "ts": "1646188520338"
+        #     }
+        #
+        timestamp = self.safe_integer_2(conversion, 'quoteTime', 'ts')
         fromCoin = self.safe_string(conversion, 'baseCcy')
         fromCode = self.safe_currency_code(fromCoin, fromCurrency)
         to = self.safe_string(conversion, 'quoteCcy')
@@ -7179,12 +7249,12 @@ class okx(Exchange, ImplicitAPI):
             'info': conversion,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'id': self.safe_string(conversion, 'clQReqId'),
+            'id': self.safe_string_n(conversion, ['clQReqId', 'tradeId', 'quoteId']),
             'fromCurrency': fromCode,
-            'fromAmount': self.safe_number(conversion, 'baseSz'),
+            'fromAmount': self.safe_number_2(conversion, 'baseSz', 'fillBaseSz'),
             'toCurrency': toCode,
-            'toAmount': self.safe_number(conversion, 'quoteSz'),
-            'price': self.safe_number(conversion, 'cnvtPx'),
+            'toAmount': self.safe_number_2(conversion, 'quoteSz', 'fillQuoteSz'),
+            'price': self.safe_number_2(conversion, 'cnvtPx', 'fillPx'),
             'fee': None,
         }
 

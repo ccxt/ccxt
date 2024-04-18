@@ -150,7 +150,7 @@ class kraken(ccxt.async_support.kraken):
             'pair': market['wsId'],
             'volume': self.amount_to_precision(symbol, amount),
         }
-        request, params = self.orderRequest('createOrderWs()', symbol, type, request, price, params)
+        request, params = self.orderRequest('createOrderWs', symbol, type, request, price, params)
         return await self.watch(url, messageHash, self.extend(request, params), messageHash)
 
     def handle_create_edit_order(self, client, message):
@@ -204,7 +204,7 @@ class kraken(ccxt.async_support.kraken):
             'pair': market['wsId'],
             'volume': self.amount_to_precision(symbol, amount),
         }
-        request, params = self.orderRequest('editOrderWs()', symbol, type, request, price, params)
+        request, params = self.orderRequest('editOrderWs', symbol, type, request, price, params)
         return await self.watch(url, messageHash, self.extend(request, params), messageHash)
 
     async def cancel_orders_ws(self, ids: List[str], symbol: Str = None, params={}):

@@ -1501,9 +1501,10 @@ class kraken(Exchange, ImplicitAPI):
         #  }
         #
         description = self.safe_dict(order, 'descr', {})
+        orderDescriptionObj = self.safe_dict(order, 'descr')  # can be null
         orderDescription = None
-        if description is not None:
-            orderDescription = self.safe_string(description, 'order')
+        if orderDescriptionObj is not None:
+            orderDescription = self.safe_string(orderDescriptionObj, 'order')
         else:
             orderDescription = self.safe_string(order, 'descr')
         side = None
@@ -1564,8 +1565,8 @@ class kraken(Exchange, ImplicitAPI):
                     fee['currency'] = market['base']
         status = self.parse_order_status(self.safe_string(order, 'status'))
         id = self.safe_string_2(order, 'id', 'txid')
-        if (id is None) or (id[0:1] == '['):
-            txid = self.safe_value(order, 'txid')
+        if (id is None) or (id.startswith('[')):
+            txid = self.safe_list(order, 'txid')
             id = self.safe_string(txid, 0)
         clientOrderId = self.safe_string(order, 'userref')
         rawTrades = self.safe_value(order, 'trades', [])

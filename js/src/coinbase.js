@@ -1183,12 +1183,18 @@ export default class coinbase extends Exchange {
             this.v3PrivateGetBrokerageProducts(params),
             this.v3PrivateGetBrokerageTransactionSummary(params),
         ];
-        const unresolvedContractPromises = [
-            this.v3PrivateGetBrokerageProducts(this.extend(params, { 'product_type': 'FUTURE' })),
-            this.v3PrivateGetBrokerageProducts(this.extend(params, { 'product_type': 'FUTURE', 'contract_expiry_type': 'PERPETUAL' })),
-            this.v3PrivateGetBrokerageTransactionSummary(this.extend(params, { 'product_type': 'FUTURE' })),
-            this.v3PrivateGetBrokerageTransactionSummary(this.extend(params, { 'product_type': 'FUTURE', 'contract_expiry_type': 'PERPETUAL' })),
-        ];
+        let unresolvedContractPromises = [];
+        try {
+            unresolvedContractPromises = [
+                this.v3PrivateGetBrokerageProducts(this.extend(params, { 'product_type': 'FUTURE' })),
+                this.v3PrivateGetBrokerageProducts(this.extend(params, { 'product_type': 'FUTURE', 'contract_expiry_type': 'PERPETUAL' })),
+                this.v3PrivateGetBrokerageTransactionSummary(this.extend(params, { 'product_type': 'FUTURE' })),
+                this.v3PrivateGetBrokerageTransactionSummary(this.extend(params, { 'product_type': 'FUTURE', 'contract_expiry_type': 'PERPETUAL' })),
+            ];
+        }
+        catch (e) {
+            unresolvedContractPromises = []; // the sync version of ccxt won't have the promise.all line so the request is made here
+        }
         const promises = await Promise.all(spotUnresolvedPromises);
         let contractPromises = undefined;
         try {
@@ -1455,6 +1461,7 @@ export default class coinbase extends Exchange {
         const contractExpiryType = this.safeString(futureProductDetails, 'contract_expiry_type');
         const contractSize = this.safeNumber(futureProductDetails, 'contract_size');
         const contractExpire = this.safeString(futureProductDetails, 'contract_expiry');
+        const expireTimestamp = this.parse8601(contractExpire);
         const isSwap = (contractExpiryType === 'PERPETUAL');
         const baseId = this.safeString(futureProductDetails, 'contract_root_unit');
         const quoteId = this.safeString(market, 'quote_currency_id');
@@ -1469,7 +1476,7 @@ export default class coinbase extends Exchange {
         }
         else {
             type = 'future';
-            symbol = symbol + ':' + quote + '-' + this.yymmdd(contractExpire);
+            symbol = symbol + ':' + quote + '-' + this.yymmdd(expireTimestamp);
         }
         const takerFeeRate = this.safeNumber(feeTier, 'taker_fee_rate');
         const makerFeeRate = this.safeNumber(feeTier, 'maker_fee_rate');
@@ -1497,7 +1504,7 @@ export default class coinbase extends Exchange {
             'taker': taker,
             'maker': maker,
             'contractSize': contractSize,
-            'expiry': this.parse8601(contractExpire),
+            'expiry': expireTimestamp,
             'expiryDatetime': contractExpire,
             'strike': undefined,
             'optionType': undefined,
@@ -4284,6 +4291,33 @@ export default class coinbase extends Exchange {
             'takeProfitPrice': undefined,
         });
     }
+    createAuthToken(seconds, method = undefined, url = undefined) {
+        // it may not work for v2
+        let uri = undefined;
+        if (url !== undefined) {
+            uri = method + ' ' + url.replace('https://', '');
+            const quesPos = uri.indexOf('?');
+            // Due to we use mb_strpos, quesPos could be false in php. In that case, the quesPos >= 0 is true
+            // Also it's not possible that the question mark is first character, only check > 0 here.
+            if (quesPos > 0) {
+                uri = uri.slice(0, quesPos);
+            }
+        }
+        const nonce = this.randomBytes(16);
+        const request = {
+            'aud': ['retail_rest_api_proxy'],
+            'iss': 'coinbase-cloud',
+            'nbf': seconds,
+            'exp': seconds + 120,
+            'sub': this.apiKey,
+            'iat': seconds,
+        };
+        if (uri !== undefined) {
+            request['uri'] = uri;
+        }
+        const token = jwt(request, this.encode(this.secret), sha256, false, { 'kid': this.apiKey, 'nonce': nonce, 'alg': 'ES256' });
+        return token;
+    }
     sign(path, api = [], method = 'GET', params = {}, headers = undefined, body = undefined) {
         const version = api[0];
         const signed = api[1] === 'private';
@@ -4333,25 +4367,26 @@ export default class coinbase extends Exchange {
                     if (this.apiKey.startsWith('-----BEGIN')) {
                         throw new ArgumentsRequired(this.id + ' apiKey should contain the name (eg: organizations/3b910e93....) and not the public key');
                     }
-                    // it may not work for v2
-                    let uri = method + ' ' + url.replace('https://', '');
-                    const quesPos = uri.indexOf('?');
-                    // Due to we use mb_strpos, quesPos could be false in php. In that case, the quesPos >= 0 is true
-                    // Also it's not possible that the question mark is first character, only check > 0 here.
-                    if (quesPos > 0) {
-                        uri = uri.slice(0, quesPos);
-                    }
-                    const nonce = this.randomBytes(16);
-                    const request = {
-                        'aud': ['retail_rest_api_proxy'],
-                        'iss': 'coinbase-cloud',
-                        'nbf': seconds,
-                        'exp': seconds + 120,
-                        'sub': this.apiKey,
-                        'uri': uri,
-                        'iat': seconds,
-                    };
-                    const token = jwt(request, this.encode(this.secret), sha256, false, { 'kid': this.apiKey, 'nonce': nonce, 'alg': 'ES256' });
+                    // // it may not work for v2
+                    // let uri = method + ' ' + url.replace ('https://', '');
+                    // const quesPos = uri.indexOf ('?');
+                    // // Due to we use mb_strpos, quesPos could be false in php. In that case, the quesPos >= 0 is true
+                    // // Also it's not possible that the question mark is first character, only check > 0 here.
+                    // if (quesPos > 0) {
+                    //     uri = uri.slice (0, quesPos);
+                    // }
+                    // const nonce = this.randomBytes (16);
+                    // const request = {
+                    //     'aud': [ 'retail_rest_api_proxy' ],
+                    //     'iss': 'coinbase-cloud',
+                    //     'nbf': seconds,
+                    //     'exp': seconds + 120,
+                    //     'sub': this.apiKey,
+                    //     'uri': uri,
+                    //     'iat': seconds,
+                    // };
+                    const token = this.createAuthToken(seconds, method, url);
+                    // const token = jwt (request, this.encode (this.secret), sha256, false, { 'kid': this.apiKey, 'nonce': nonce, 'alg': 'ES256' });
                     authorizationString = 'Bearer ' + token;
                 }
                 else {

@@ -8,7 +8,7 @@ from ccxt.abstract.binance import ImplicitAPI
 import asyncio
 import hashlib
 import json
-from ccxt.base.types import Balances, Currencies, Currency, Greeks, Int, Leverage, Leverages, MarginMode, MarginModes, MarginModification, Market, MarketInterface, Num, Option, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
+from ccxt.base.types import Balances, Conversion, Currencies, Currency, Greeks, Int, Leverage, Leverages, MarginMode, MarginModes, MarginModification, Market, MarketInterface, Num, Option, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -63,6 +63,7 @@ class binance(Exchange, ImplicitAPI):
                 'cancelOrders': True,  # contract only
                 'closeAllPositions': False,
                 'closePosition': False,  # exchange specific closePosition parameter for binance createOrder is not synonymous with how CCXT uses closePositions
+                'createConvertTrade': True,
                 'createDepositAddress': False,
                 'createLimitBuyOrder': True,
                 'createLimitSellOrder': True,
@@ -5549,7 +5550,7 @@ class binance(Exchange, ImplicitAPI):
                     response = await self.papiPostCmOrder(request)
             else:
                 response = await self.dapiPrivatePostOrder(request)
-        elif marketType == 'margin' or marginMode is not None:
+        elif marketType == 'margin' or marginMode is not None or isPortfolioMargin:
             if isPortfolioMargin:
                 response = await self.papiPostMarginOrder(request)
             else:
@@ -5631,12 +5632,6 @@ class binance(Exchange, ImplicitAPI):
                 uppercaseType = 'TAKE_PROFIT_MARKET' if market['contract'] else 'TAKE_PROFIT'
             elif isLimitOrder:
                 uppercaseType = 'TAKE_PROFIT' if market['contract'] else 'TAKE_PROFIT_LIMIT'
-        if (marketType == 'spot') or (marketType == 'margin'):
-            request['newOrderRespType'] = self.safe_string(self.options['newOrderRespType'], type, 'RESULT')  # 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
-        else:
-            # swap, futures and options
-            if not isPortfolioMargin:
-                request['newOrderRespType'] = 'RESULT'  # "ACK", "RESULT", default "ACK"
         if market['option']:
             if type == 'market':
                 raise InvalidOrder(self.id + ' ' + type + ' is not a valid order type for the ' + symbol + ' market')
@@ -5664,6 +5659,12 @@ class binance(Exchange, ImplicitAPI):
                     uppercaseType = 'LIMIT_MAKER'
                 if marginMode == 'isolated':
                     request['isIsolated'] = True
+        # handle newOrderRespType response type
+        if ((marketType == 'spot') or (marketType == 'margin')) and not isPortfolioMargin:
+            request['newOrderRespType'] = self.safe_string(self.options['newOrderRespType'], type, 'FULL')  # 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
+        else:
+            # swap, futures and options
+            request['newOrderRespType'] = 'RESULT'  # "ACK", "RESULT", default "ACK"
         typeRequest = 'strategyType' if isPortfolioMarginConditional else 'type'
         request[typeRequest] = uppercaseType
         # additional required fields depending on the order type
@@ -6217,7 +6218,7 @@ class binance(Exchange, ImplicitAPI):
                     response = await self.papiGetCmOpenOrders(self.extend(request, params))
             else:
                 response = await self.dapiPrivateGetOpenOrders(self.extend(request, params))
-        elif type == 'margin' or marginMode is not None:
+        elif type == 'margin' or marginMode is not None or isPortfolioMargin:
             if isPortfolioMargin:
                 response = await self.papiGetMarginOpenOrders(self.extend(request, params))
             else:
@@ -6646,7 +6647,7 @@ class binance(Exchange, ImplicitAPI):
                     response = await self.papiDeleteCmAllOpenOrders(self.extend(request, params))
             else:
                 response = await self.dapiPrivateDeleteAllOpenOrders(self.extend(request, params))
-        elif (type == 'margin') or (marginMode is not None):
+        elif (type == 'margin') or (marginMode is not None) or isPortfolioMargin:
             if isPortfolioMargin:
                 response = await self.papiDeleteMarginAllOpenOrders(self.extend(request, params))
             else:
@@ -11636,3 +11637,56 @@ class binance(Exchange, ImplicitAPI):
                 'created': None,
             }
         return result
+
+    async def create_convert_trade(self, id: str, fromCode: str, toCode: str, amount: Num = None, params={}) -> Conversion:
+        """
+        convert from one currency to another
+        :see: https://binance-docs.github.io/apidocs/spot/en/#busd-convert-trade
+        :param str id: the id of the trade that you want to make
+        :param str fromCode: the currency that you want to sell and convert from
+        :param str toCode: the currency that you want to buy and convert into
+        :param float [amount]: how much you want to trade in units of the from currency
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `conversion structure <https://docs.ccxt.com/#/?id=conversion-structure>`
+        """
+        await self.load_markets()
+        request = {
+            'clientTranId': id,
+            'asset': fromCode,
+            'targetAsset': toCode,
+            'amount': amount,
+        }
+        response = await self.sapiPostAssetConvertTransfer(self.extend(request, params))
+        #
+        #     {
+        #         "tranId": 118263407119,
+        #         "status": "S"
+        #     }
+        #
+        fromCurrency = self.currency(fromCode)
+        toCurrency = self.currency(toCode)
+        return self.parse_conversion(response, fromCurrency, toCurrency)
+
+    def parse_conversion(self, conversion, fromCurrency: Currency = None, toCurrency: Currency = None) -> Conversion:
+        #
+        # createConvertTrade
+        #
+        #     {
+        #         "tranId": 118263407119,
+        #         "status": "S"
+        #     }
+        #
+        fromCode = self.safe_currency_code(None, fromCurrency)
+        toCode = self.safe_currency_code(None, toCurrency)
+        return {
+            'info': conversion,
+            'timestamp': None,
+            'datetime': None,
+            'id': self.safe_string(conversion, 'tranId'),
+            'fromCurrency': fromCode,
+            'fromAmount': None,
+            'toCurrency': toCode,
+            'toAmount': None,
+            'price': None,
+            'fee': None,
+        }

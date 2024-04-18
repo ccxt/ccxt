@@ -184,6 +184,12 @@ public partial class deribit
     /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.code</term>
+    /// <description>
+    /// string : *required* the currency code to fetch the tickers for, eg. 'BTC', 'ETH'
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}.</returns>
