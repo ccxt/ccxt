@@ -453,6 +453,8 @@ class Transpiler {
             [ /this\./g, 'self.' ],
             [ /([^a-zA-Z\'])this([^a-zA-Z])/g, '$1self$2' ],
             [ /\[\s*([^\]]+)\s\]\s=/g, '$1 =' ],
+            [ /((?:let|const|var) \w+\: )([0-9a-zA-Z]+)\[\]/, '$1List[$2]' ],  // typed variable with list type
+            [ /((?:let|const|var) \w+\: )([0-9a-zA-Z]+)\[\]\[\]/, '$1List[List[$2]]' ],  // typed variables with double list type
             [ /(^|[^a-zA-Z0-9_])(?:let|const|var)\s\[\s*([^\]]+)\s\]/g, '$1$2' ],
             [ /(^|[^a-zA-Z0-9_])(?:let|const|var)\s\{\s*([^\}]+)\s\}\s\=\s([^\;]+)/g, '$1$2 = (lambda $2: ($2))(**$3)' ],
             [ /(^|[^a-zA-Z0-9_])(?:let|const|var)\s/g, '$1' ],
@@ -604,8 +606,8 @@ class Transpiler {
             [ /Number\.isInteger\s*\(([^\)]+)\)/g, "is_int($1)" ],
             [ /([^\(\s]+)\s+instanceof\s+String/g, 'is_string($1)' ],
             // we want to remove type hinting variable lines
-            [ /^\s+(?:let|const|var)\s+\w+:\s+(?:Str|Int|Num|SubType|MarketType|string|number|Dict|any);\n/mg, '' ],
-            [ /(^|[^a-zA-Z0-9_])(let|const|var)(\s+\w+):\s+(?:Str|Int|Num|Bool|Market|Currency|string|number|Dict|any)(\s+=\s+[\w+\{}])/g, '$1$2$3$4' ],
+            [ /^\s+(?:let|const|var)\s+\w+:\s+(?:Str|Int|Num|SubType|MarketType|string|number|Dict|any(?:\[\])*);\n/mg, '' ],
+            [ /(^|[^a-zA-Z0-9_])(let|const|var)(\s+\w+):\s+(?:Str|Int|Num|Bool|Market|Currency|string|number|Dict|any(?:\[\])*)(\s+=\s+[\w+\{}])/g, '$1$2$3$4' ],
 
             [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\=\=\=?\s+\'undefined\'/g, '$1[$2] === null' ],
             [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\!\=\=?\s+\'undefined\'/g, '$1[$2] !== null' ],
