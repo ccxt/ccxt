@@ -4,7 +4,7 @@
 import Exchange from './abstract/bitflex.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Balances, Currencies, Int, Market, OHLCV, OrderBook, Ticker, Tickers, Trade, Strings } from './base/types.js';
+import { Account, Balances, Currencies, Int, Market, OHLCV, OrderBook, Ticker, Tickers, Trade, Strings } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -33,7 +33,8 @@ export default class bitflex extends Exchange {
                 'createDepositAddress': false,
                 'createOrder': false,
                 'editOrder': false,
-                'fetchBalance': false,
+                'fetchAccounts': true,
+                'fetchBalance': true,
                 'fetchBidsAsks': true,
                 'fetchClosedOrders': false,
                 'fetchCurrencies': true,
@@ -202,6 +203,11 @@ export default class bitflex extends Exchange {
                     'TRC20': 'TRC20',
                     'BEP20': 'BEP20',
                     'OMNI': 'OMNI',
+                },
+                'accountsByType': {
+                    '1': 'spot',
+                    '2': 'option',
+                    '3': 'contract',
                 },
             },
         });
@@ -1076,6 +1082,57 @@ export default class bitflex extends Exchange {
         //     ]
         //
         return this.parseTickers (response, symbols);
+    }
+
+    async fetchAccounts (params = {}): Promise<Account[]> {
+        /**
+         * @method
+         * @name bitflex#fetchAccounts
+         * @description fetch all the accounts associated with a profile
+         * @see https://docs.bitflex.com/spot#get-sub-account-list
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type
+         */
+        await this.loadMarkets ();
+        const response = await this.privatePostOpenapiSubAccountQuery (params);
+        //
+        //     [
+        //         {
+        //             "accountId": "1662502620223296001",
+        //             "accountName": "",
+        //             "accountType": 1,
+        //             "accountIndex": 0
+        //         },
+        //         {
+        //             "accountId": "1662502620223296003",
+        //             "accountName": "",
+        //             "accountType": 3,
+        //             "accountIndex": 0
+        //         }
+        //     ]
+        //
+        return this.parseAccounts (response, params);
+    }
+
+    parseAccount (account) {
+        //
+        //     {
+        //         "accountId": "1662502620223296001",
+        //         "accountName": "",
+        //         "accountType": 1,
+        //         "accountIndex": 0
+        //     },
+        //
+        const requestedType = this.safeString(account, 'accountType').toString();
+        const accountsByType = this.safeDict (this.options, 'accountsByType');
+        const type = this.safeString (accountsByType, requestedType);
+        return {
+            'id': this.safeString(account, 'accountId'),
+            'name': this.safeString(account, 'accountName'),
+            'type': type,
+            'code': undefined,
+            'info': account,
+        };
     }
 
     async fetchBalance (params = {}): Promise<Balances> {
