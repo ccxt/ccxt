@@ -40,7 +40,7 @@ import { YAHOO } from "./yahoo.js";
  * @name KJUR
  * @namespace kjur's class library name space
  */
-export var KJUR = {};
+export var KJUR = {} as any;
 
 /**
  * kjur's ASN.1 class library name space
