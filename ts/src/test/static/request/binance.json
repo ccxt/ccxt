@@ -3022,7 +3022,8 @@
                 "url": "https://api.binance.com/sapi/v1/asset/convert-transfer/queryByPage?timestamp=1713422758560&tranId=118263615991&startTime=1713336358514&endTime=1713422758514&asset=BUSD&recvWindow=10000&signature=d00a936e5d2e76c0bc4463429dc0023c09bd49d71c28962bf19737a56fc78323",
                 "input": [
                   "118263615991",
-                  "BUSD"
+                  "BUSD",
+                  {"startTime": 1713336358514, "endTime": 1713422758514}
                 ]
             }
         ],
@@ -3031,7 +3032,12 @@
                 "description": "Fetch the conversion trade history",
                 "method": "fetchConvertTradeHistory",
                 "url": "https://api.binance.com/sapi/v1/asset/convert-transfer/queryByPage?timestamp=1713422937740&startTime=1713336537740&endTime=1713422937740&recvWindow=10000&signature=bd3e24f024acad2c21865076467fdd2809f53a58f2655ea36d5ccb6f0a772202",
-                "input": []
+                "input": [
+                    null,
+                    1713336537740,
+                    null,
+                    {"endTime":1713422937740}
+                ]
             }
         ]
     }
