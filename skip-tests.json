@@ -232,7 +232,7 @@
             },
 	    "ticker": {
                 "baseVolume": "quoteVolume >= baseVolume * low is failing, https://app.travis-ci.com/github/ccxt/ccxt/builds/270053001#L3338"
-            },
+            }
         }
     },
     "bitflyer": {
