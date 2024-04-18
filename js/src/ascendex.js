@@ -6,7 +6,7 @@
 
 //  ---------------------------------------------------------------------------
 import Exchange from './abstract/ascendex.js';
-import { ArgumentsRequired, AuthenticationError, ExchangeError, InsufficientFunds, InvalidOrder, BadSymbol, PermissionDenied, BadRequest, NotSupported } from './base/errors.js';
+import { ArgumentsRequired, AuthenticationError, ExchangeError, AccountSuspended, InsufficientFunds, InvalidOrder, BadSymbol, PermissionDenied, BadRequest, NotSupported } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
@@ -361,7 +361,7 @@ export default class ascendex extends Exchange {
                     '300013': InvalidOrder,
                     '300014': InvalidOrder,
                     '300020': InvalidOrder,
-                    '300021': InvalidOrder,
+                    '300021': AccountSuspended,
                     '300031': InvalidOrder,
                     '310001': InsufficientFunds,
                     '310002': InvalidOrder,

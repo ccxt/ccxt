@@ -616,56 +616,53 @@ export default class coinex extends Exchange {
          * @method
          * @name coinex#fetchMarkets
          * @description retrieves data on all markets for coinex
-         * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot001_market002_all_market_info
-         * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http006_market_list
+         * @see https://docs.coinex.com/api/v2/spot/market/http/list-market
+         * @see https://docs.coinex.com/api/v2/futures/market/http/list-market
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} an array of objects representing market data
          */
-        let promises = [
+        const promisesUnresolved = [
             this.fetchSpotMarkets (params),
             this.fetchContractMarkets (params),
-        ] as any;
-        promises = await Promise.all (promises) as any;
+        ];
+        const promises = await Promise.all (promisesUnresolved);
         const spotMarkets = promises[0];
         const swapMarkets = promises[1];
         return this.arrayConcat (spotMarkets, swapMarkets);
     }
 
     async fetchSpotMarkets (params) {
-        const response = await this.v1PublicGetMarketInfo (params);
+        const response = await this.v2PublicGetSpotMarket (params);
         //
         //     {
         //         "code": 0,
-        //         "data": {
-        //             "WAVESBTC": {
-        //                 "name": "WAVESBTC",
-        //                 "min_amount": "1",
-        //                 "maker_fee_rate": "0.001",
-        //                 "taker_fee_rate": "0.001",
-        //                 "pricing_name": "BTC",
-        //                 "pricing_decimal": 8,
-        //                 "trading_name": "WAVES",
-        //                 "trading_decimal": 8
-        //             }
-        //         }
+        //         "data": [
+        //             {
+        //                 "base_ccy": "SORA",
+        //                 "base_ccy_precision": 8,
+        //                 "is_amm_available": true,
+        //                 "is_margin_available": false,
+        //                 "maker_fee_rate": "0.003",
+        //                 "market": "SORAUSDT",
+        //                 "min_amount": "500",
+        //                 "quote_ccy": "USDT",
+        //                 "quote_ccy_precision": 6,
+        //                 "taker_fee_rate": "0.003"
+        //             },
+        //         ],
+        //         "message": "OK"
         //     }
         //
-        const markets = this.safeValue (response, 'data', {});
+        const markets = this.safeList (response, 'data', []);
         const result = [];
-        const keys = Object.keys (markets);
-        for (let i = 0; i < keys.length; i++) {
-            const key = keys[i];
-            const market = markets[key];
-            const id = this.safeString (market, 'name');
-            const tradingName = this.safeString (market, 'trading_name');
-            const baseId = tradingName;
-            const quoteId = this.safeString (market, 'pricing_name');
+        for (let i = 0; i < markets.length; i++) {
+            const market = markets[i];
+            const id = this.safeString (market, 'market');
+            const baseId = this.safeString (market, 'base_ccy');
+            const quoteId = this.safeString (market, 'quote_ccy');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            let symbol = base + '/' + quote;
-            if (tradingName === id) {
-                symbol = id;
-            }
+            const symbol = base + '/' + quote;
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -693,8 +690,8 @@ export default class coinex extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'trading_decimal'))),
-                    'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'pricing_decimal'))),
+                    'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'base_ccy_precision'))),
+                    'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'quote_ccy_precision'))),
                 },
                 'limits': {
                     'leverage': {
@@ -722,45 +719,43 @@ export default class coinex extends Exchange {
     }
 
     async fetchContractMarkets (params) {
-        const response = await this.v1PerpetualPublicGetMarketList (params);
+        const response = await this.v2PublicGetFuturesMarket (params);
         //
         //     {
         //         "code": 0,
         //         "data": [
         //             {
-        //                 "name": "BTCUSD",
-        //                 "type": 2, // 1: USDT-M Contracts, 2: Coin-M Contracts
-        //                 "leverages": ["3", "5", "8", "10", "15", "20", "30", "50", "100"],
-        //                 "stock": "BTC",
-        //                 "money": "USD",
-        //                 "fee_prec": 5,
-        //                 "stock_prec": 8,
-        //                 "money_prec": 1,
-        //                 "amount_prec": 0,
-        //                 "amount_min": "10",
-        //                 "multiplier": "1",
-        //                 "tick_size": "0.1", // Min. Price Increment
-        //                 "available": true
+        //                 "base_ccy": "BTC",
+        //                 "base_ccy_precision": 8,
+        //                 "contract_type": "inverse",
+        //                 "leverage": ["1","2","3","5","8","10","15","20","30","50","100"],
+        //                 "maker_fee_rate": "0",
+        //                 "market": "BTCUSD",
+        //                 "min_amount": "10",
+        //                 "open_interest_volume": "2566879",
+        //                 "quote_ccy": "USD",
+        //                 "quote_ccy_precision": 2,
+        //                 "taker_fee_rate": "0"
         //             },
         //         ],
         //         "message": "OK"
         //     }
         //
-        const markets = this.safeValue (response, 'data', []);
+        const markets = this.safeList (response, 'data', []);
         const result = [];
         for (let i = 0; i < markets.length; i++) {
             const entry = markets[i];
             const fees = this.fees;
-            const leverages = this.safeValue (entry, 'leverages', []);
-            const subType = this.safeInteger (entry, 'type');
-            const linear = (subType === 1);
-            const inverse = (subType === 2);
-            const id = this.safeString (entry, 'name');
-            const baseId = this.safeString (entry, 'stock');
-            const quoteId = this.safeString (entry, 'money');
+            const leverages = this.safeList (entry, 'leverage', []);
+            const subType = this.safeString (entry, 'contract_type');
+            const linear = (subType === 'linear');
+            const inverse = (subType === 'inverse');
+            const id = this.safeString (entry, 'market');
+            const baseId = this.safeString (entry, 'base_ccy');
+            const quoteId = this.safeString (entry, 'quote_ccy');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            const settleId = (subType === 1) ? 'USDT' : baseId;
+            const settleId = (subType === 'linear') ? 'USDT' : baseId;
             const settle = this.safeCurrencyCode (settleId);
             const symbol = base + '/' + quote + ':' + settle;
             const leveragesLength = leverages.length;
@@ -779,20 +774,20 @@ export default class coinex extends Exchange {
                 'swap': true,
                 'future': false,
                 'option': false,
-                'active': this.safeValue (entry, 'available'),
+                'active': undefined,
                 'contract': true,
                 'linear': linear,
                 'inverse': inverse,
                 'taker': fees['trading']['taker'],
                 'maker': fees['trading']['maker'],
-                'contractSize': this.safeNumber (entry, 'multiplier'),
+                'contractSize': this.parseNumber ('1'),
                 'expiry': undefined,
                 'expiryDatetime': undefined,
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': this.parseNumber (this.parsePrecision (this.safeString (entry, 'amount_prec'))),
-                    'price': this.parseNumber (this.parsePrecision (this.safeString (entry, 'money_prec'))),
+                    'amount': this.parseNumber (this.parsePrecision (this.safeString (entry, 'base_ccy_precision'))),
+                    'price': this.parseNumber (this.parsePrecision (this.safeString (entry, 'quote_ccy_precision'))),
                 },
                 'limits': {
                     'leverage': {
@@ -800,7 +795,7 @@ export default class coinex extends Exchange {
                         'max': this.safeNumber (leverages, leveragesLength - 1),
                     },
                     'amount': {
-                        'min': this.safeNumber (entry, 'amount_min'),
+                        'min': this.safeNumber (entry, 'min_amount'),
                         'max': undefined,
                     },
                     'price': {
@@ -1097,8 +1092,8 @@ export default class coinex extends Exchange {
          * @method
          * @name coinex#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot001_market004_market_depth
-         * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http010_market_depth
+         * @see https://docs.coinex.com/api/v2/spot/market/http/list-market-depth
+         * @see https://docs.coinex.com/api/v2/futures/market/http/list-market-depth
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1110,64 +1105,70 @@ export default class coinex extends Exchange {
             limit = 20; // default
         }
         const request = {
-            'market': this.marketId (symbol),
-            'merge': '0',
-            'limit': limit.toString (),
+            'market': market['id'],
+            'limit': limit,
+            'interval': '0',
         };
         let response = undefined;
         if (market['swap']) {
-            response = await this.v1PerpetualPublicGetMarketDepth (this.extend (request, params));
+            response = await this.v2PublicGetFuturesDepth (this.extend (request, params));
+            //
+            //     {
+            //         "code": 0,
+            //         "data": {
+            //             "depth": {
+            //                 "asks": [
+            //                     ["70851.94", "0.2119"],
+            //                     ["70851.95", "0.0004"],
+            //                     ["70851.96", "0.0004"]
+            //                 ],
+            //                 "bids": [
+            //                     ["70851.93", "1.0314"],
+            //                     ["70850.93", "0.0021"],
+            //                     ["70850.42", "0.0306"]
+            //                 ],
+            //                 "checksum": 2956436260,
+            //                 "last": "70851.94",
+            //                 "updated_at": 1712824003252
+            //             },
+            //             "is_full": true,
+            //             "market": "BTCUSDT"
+            //         },
+            //         "message": "OK"
+            //     }
+            //
         } else {
-            response = await this.v1PublicGetMarketDepth (this.extend (request, params));
+            response = await this.v2PublicGetSpotDepth (this.extend (request, params));
+            //
+            //     {
+            //         "code": 0,
+            //         "data": {
+            //             "depth": {
+            //                 "asks": [
+            //                     ["70875.31", "0.28670282"],
+            //                     ["70875.32", "0.31008114"],
+            //                     ["70875.42", "0.05876653"]
+            //                 ],
+            //                 "bids": [
+            //                     ["70855.3", "0.00632222"],
+            //                     ["70855.29", "0.36216834"],
+            //                     ["70855.17", "0.10166802"]
+            //                 ],
+            //                 "checksum": 2313816665,
+            //                 "last": "70857.19",
+            //                 "updated_at": 1712823790987
+            //             },
+            //             "is_full": true,
+            //             "market": "BTCUSDT"
+            //         },
+            //         "message": "OK"
+            //     }
+            //
         }
-        //
-        // Spot
-        //
-        //     {
-        //         "code": 0,
-        //         "data": {
-        //             "asks": [
-        //                 ["41056.33", "0.31727613"],
-        //                 ["41056.34", "1.05657294"],
-        //                 ["41056.35", "0.02346648"]
-        //             ],
-        //             "bids": [
-        //                 ["41050.61", "0.40618608"],
-        //                 ["41046.98", "0.13800000"],
-        //                 ["41046.56", "0.22579234"]
-        //             ],
-        //             "last": "41050.61",
-        //             "time": 1650573220346
-        //         },
-        //         "message": "OK"
-        //     }
-        //
-        // Swap
-        //
-        //     {
-        //         "code": 0,
-        //         "data": {
-        //             "asks": [
-        //                 ["40620.90", "0.0384"],
-        //                 ["40625.50", "0.0219"],
-        //                 ["40625.90", "0.3506"]
-        //             ],
-        //             "bids": [
-        //                 ["40620.89", "19.6861"],
-        //                 ["40620.80", "0.0012"],
-        //                 ["40619.87", "0.0365"]
-        //             ],
-        //             "last": "40620.89",
-        //             "time": 1650587672406,
-        //             "sign_price": "40619.32",
-        //             "index_price": "40609.93"
-        //         },
-        //         "message": "OK"
-        //     }
-        //
-        const result = this.safeValue (response, 'data', {});
-        const timestamp = this.safeInteger (result, 'time');
-        return this.parseOrderBook (result, symbol, timestamp);
+        const data = this.safeDict (response, 'data', {});
+        const depth = this.safeDict (data, 'depth', {});
+        const timestamp = this.safeInteger (depth, 'updated_at');
+        return this.parseOrderBook (depth, symbol, timestamp);
     }
 
     parseTrade (trade, market: Market = undefined): Trade {

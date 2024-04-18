@@ -930,7 +930,11 @@ public partial class poloniexfutures : ccxt.poloniexfutures
         object nonce = this.safeInteger(orderbook, "nonce");
         if (isTrue(!isEqual(nonce, subtract(sequence, 1))))
         {
-            throw new ExchangeError ((string)add(this.id, " watchOrderBook received an out-of-order nonce")) ;
+            object checksum = this.safeBool(this.options, "checksum", true);
+            if (isTrue(checksum))
+            {
+                throw new InvalidNonce ((string)add(this.id, " watchOrderBook received an out-of-order nonce")) ;
+            }
         }
         object change = this.safeString(delta, "change");
         object splitChange = ((string)change).Split(new [] {((string)",")}, StringSplitOptions.None).ToList<object>();

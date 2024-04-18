@@ -376,7 +376,7 @@ public partial class bingx : Exchange
                     { "100400", typeof(BadRequest) },
                     { "100421", typeof(BadSymbol) },
                     { "100440", typeof(ExchangeError) },
-                    { "100500", typeof(ExchangeError) },
+                    { "100500", typeof(ExchangeNotAvailable) },
                     { "100503", typeof(ExchangeError) },
                     { "80001", typeof(BadRequest) },
                     { "80012", typeof(InsufficientFunds) },
@@ -4225,7 +4225,7 @@ public partial class bingx : Exchange
         if (isTrue(!isEqual(symbol, null)))
         {
             market = this.market(symbol);
-            ((IDictionary<string,object>)request)["symbol"] = symbol;
+            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
         }
         if (isTrue(!isEqual(since, null)))
         {

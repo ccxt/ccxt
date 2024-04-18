@@ -1191,10 +1191,10 @@ class kucoin extends Exchange {
         //    }
         //
         $responses = $promises;
-        $currenciesResponse = $this->safe_value($responses, 0, array());
-        $currenciesData = $this->safe_value($currenciesResponse, 'data', array());
-        $additionalResponse = $this->safe_value($responses, 1, array());
-        $additionalData = $this->safe_value($additionalResponse, 'data', array());
+        $currenciesResponse = $this->safe_dict($responses, 0, array());
+        $currenciesData = $this->safe_list($currenciesResponse, 'data', array());
+        $additionalResponse = $this->safe_dict($responses, 1, array());
+        $additionalData = $this->safe_list($additionalResponse, 'data', array());
         $additionalDataGrouped = $this->group_by($additionalData, 'currency');
         $result = array();
         for ($i = 0; $i < count($currenciesData); $i++) {
@@ -1206,7 +1206,7 @@ class kucoin extends Exchange {
             $isDepositEnabled = null;
             $networks = array();
             $chains = $this->safe_list($entry, 'chains', array());
-            $extraChainsData = $this->index_by($this->safe_value($additionalDataGrouped, $id, array()), 'chain');
+            $extraChainsData = $this->index_by($this->safe_list($additionalDataGrouped, $id, array()), 'chain');
             $rawPrecision = $this->safe_string($entry, 'precision');
             $precision = $this->parse_number($this->parse_precision($rawPrecision));
             $chainsLength = count($chains);
@@ -1343,7 +1343,7 @@ class kucoin extends Exchange {
             $request['chain'] = strtolower($this->network_code_to_id($networkCode));
         }
         $response = $this->privateGetWithdrawalsQuotas (array_merge($request, $params));
-        $data = $this->safe_value($response, 'data');
+        $data = $this->safe_dict($response, 'data', array());
         $withdrawFees = array();
         $withdrawFees[$code] = $this->safe_number($data, 'withdrawMinFee');
         return array(

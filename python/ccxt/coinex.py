@@ -8,6 +8,7 @@ from ccxt.abstract.coinex import ImplicitAPI
 from ccxt.base.types import Balances, Currencies, Currency, Int, Leverage, Leverages, MarginModification, Market, Num, Order, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
@@ -19,7 +20,6 @@ from ccxt.base.errors import NotSupported
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import RequestTimeout
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -616,54 +616,52 @@ class coinex(Exchange, ImplicitAPI):
     def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for coinex
-        :see: https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot001_market002_all_market_info
-        :see: https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http006_market_list
+        :see: https://docs.coinex.com/api/v2/spot/market/http/list-market
+        :see: https://docs.coinex.com/api/v2/futures/market/http/list-market
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
-        promises = [
+        promisesUnresolved = [
             self.fetch_spot_markets(params),
             self.fetch_contract_markets(params),
         ]
-        promises = promises
+        promises = promisesUnresolved
         spotMarkets = promises[0]
         swapMarkets = promises[1]
         return self.array_concat(spotMarkets, swapMarkets)
 
     def fetch_spot_markets(self, params):
-        response = self.v1PublicGetMarketInfo(params)
+        response = self.v2PublicGetSpotMarket(params)
         #
         #     {
         #         "code": 0,
-        #         "data": {
-        #             "WAVESBTC": {
-        #                 "name": "WAVESBTC",
-        #                 "min_amount": "1",
-        #                 "maker_fee_rate": "0.001",
-        #                 "taker_fee_rate": "0.001",
-        #                 "pricing_name": "BTC",
-        #                 "pricing_decimal": 8,
-        #                 "trading_name": "WAVES",
-        #                 "trading_decimal": 8
-        #             }
-        #         }
+        #         "data": [
+        #             {
+        #                 "base_ccy": "SORA",
+        #                 "base_ccy_precision": 8,
+        #                 "is_amm_available": True,
+        #                 "is_margin_available": False,
+        #                 "maker_fee_rate": "0.003",
+        #                 "market": "SORAUSDT",
+        #                 "min_amount": "500",
+        #                 "quote_ccy": "USDT",
+        #                 "quote_ccy_precision": 6,
+        #                 "taker_fee_rate": "0.003"
+        #             },
+        #         ],
+        #         "message": "OK"
         #     }
         #
-        markets = self.safe_value(response, 'data', {})
+        markets = self.safe_list(response, 'data', [])
         result = []
-        keys = list(markets.keys())
-        for i in range(0, len(keys)):
-            key = keys[i]
-            market = markets[key]
-            id = self.safe_string(market, 'name')
-            tradingName = self.safe_string(market, 'trading_name')
-            baseId = tradingName
-            quoteId = self.safe_string(market, 'pricing_name')
+        for i in range(0, len(markets)):
+            market = markets[i]
+            id = self.safe_string(market, 'market')
+            baseId = self.safe_string(market, 'base_ccy')
+            quoteId = self.safe_string(market, 'quote_ccy')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
-            if tradingName == id:
-                symbol = id
             result.append({
                 'id': id,
                 'symbol': symbol,
@@ -691,8 +689,8 @@ class coinex(Exchange, ImplicitAPI):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'trading_decimal'))),
-                    'price': self.parse_number(self.parse_precision(self.safe_string(market, 'pricing_decimal'))),
+                    'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'base_ccy_precision'))),
+                    'price': self.parse_number(self.parse_precision(self.safe_string(market, 'quote_ccy_precision'))),
                 },
                 'limits': {
                     'leverage': {
@@ -718,45 +716,43 @@ class coinex(Exchange, ImplicitAPI):
         return result
 
     def fetch_contract_markets(self, params):
-        response = self.v1PerpetualPublicGetMarketList(params)
+        response = self.v2PublicGetFuturesMarket(params)
         #
         #     {
         #         "code": 0,
         #         "data": [
         #             {
-        #                 "name": "BTCUSD",
-        #                 "type": 2,  # 1: USDT-M Contracts, 2: Coin-M Contracts
-        #                 "leverages": ["3", "5", "8", "10", "15", "20", "30", "50", "100"],
-        #                 "stock": "BTC",
-        #                 "money": "USD",
-        #                 "fee_prec": 5,
-        #                 "stock_prec": 8,
-        #                 "money_prec": 1,
-        #                 "amount_prec": 0,
-        #                 "amount_min": "10",
-        #                 "multiplier": "1",
-        #                 "tick_size": "0.1",  # Min. Price Increment
-        #                 "available": True
+        #                 "base_ccy": "BTC",
+        #                 "base_ccy_precision": 8,
+        #                 "contract_type": "inverse",
+        #                 "leverage": ["1","2","3","5","8","10","15","20","30","50","100"],
+        #                 "maker_fee_rate": "0",
+        #                 "market": "BTCUSD",
+        #                 "min_amount": "10",
+        #                 "open_interest_volume": "2566879",
+        #                 "quote_ccy": "USD",
+        #                 "quote_ccy_precision": 2,
+        #                 "taker_fee_rate": "0"
         #             },
         #         ],
         #         "message": "OK"
         #     }
         #
-        markets = self.safe_value(response, 'data', [])
+        markets = self.safe_list(response, 'data', [])
         result = []
         for i in range(0, len(markets)):
             entry = markets[i]
             fees = self.fees
-            leverages = self.safe_value(entry, 'leverages', [])
-            subType = self.safe_integer(entry, 'type')
-            linear = (subType == 1)
-            inverse = (subType == 2)
-            id = self.safe_string(entry, 'name')
-            baseId = self.safe_string(entry, 'stock')
-            quoteId = self.safe_string(entry, 'money')
+            leverages = self.safe_list(entry, 'leverage', [])
+            subType = self.safe_string(entry, 'contract_type')
+            linear = (subType == 'linear')
+            inverse = (subType == 'inverse')
+            id = self.safe_string(entry, 'market')
+            baseId = self.safe_string(entry, 'base_ccy')
+            quoteId = self.safe_string(entry, 'quote_ccy')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
-            settleId = 'USDT' if (subType == 1) else baseId
+            settleId = 'USDT' if (subType == 'linear') else baseId
             settle = self.safe_currency_code(settleId)
             symbol = base + '/' + quote + ':' + settle
             leveragesLength = len(leverages)
@@ -775,20 +771,20 @@ class coinex(Exchange, ImplicitAPI):
                 'swap': True,
                 'future': False,
                 'option': False,
-                'active': self.safe_value(entry, 'available'),
+                'active': None,
                 'contract': True,
                 'linear': linear,
                 'inverse': inverse,
                 'taker': fees['trading']['taker'],
                 'maker': fees['trading']['maker'],
-                'contractSize': self.safe_number(entry, 'multiplier'),
+                'contractSize': self.parse_number('1'),
                 'expiry': None,
                 'expiryDatetime': None,
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': self.parse_number(self.parse_precision(self.safe_string(entry, 'amount_prec'))),
-                    'price': self.parse_number(self.parse_precision(self.safe_string(entry, 'money_prec'))),
+                    'amount': self.parse_number(self.parse_precision(self.safe_string(entry, 'base_ccy_precision'))),
+                    'price': self.parse_number(self.parse_precision(self.safe_string(entry, 'quote_ccy_precision'))),
                 },
                 'limits': {
                     'leverage': {
@@ -796,7 +792,7 @@ class coinex(Exchange, ImplicitAPI):
                         'max': self.safe_number(leverages, leveragesLength - 1),
                     },
                     'amount': {
-                        'min': self.safe_number(entry, 'amount_min'),
+                        'min': self.safe_number(entry, 'min_amount'),
                         'max': None,
                     },
                     'price': {
@@ -1075,8 +1071,8 @@ class coinex(Exchange, ImplicitAPI):
     def fetch_order_book(self, symbol: str, limit: Int = 20, params={}):
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
-        :see: https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot001_market004_market_depth
-        :see: https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http010_market_depth
+        :see: https://docs.coinex.com/api/v2/spot/market/http/list-market-depth
+        :see: https://docs.coinex.com/api/v2/futures/market/http/list-market-depth
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -1087,63 +1083,69 @@ class coinex(Exchange, ImplicitAPI):
         if limit is None:
             limit = 20  # default
         request = {
-            'market': self.market_id(symbol),
-            'merge': '0',
-            'limit': str(limit),
+            'market': market['id'],
+            'limit': limit,
+            'interval': '0',
         }
         response = None
         if market['swap']:
-            response = self.v1PerpetualPublicGetMarketDepth(self.extend(request, params))
+            response = self.v2PublicGetFuturesDepth(self.extend(request, params))
+            #
+            #     {
+            #         "code": 0,
+            #         "data": {
+            #             "depth": {
+            #                 "asks": [
+            #                     ["70851.94", "0.2119"],
+            #                     ["70851.95", "0.0004"],
+            #                     ["70851.96", "0.0004"]
+            #                 ],
+            #                 "bids": [
+            #                     ["70851.93", "1.0314"],
+            #                     ["70850.93", "0.0021"],
+            #                     ["70850.42", "0.0306"]
+            #                 ],
+            #                 "checksum": 2956436260,
+            #                 "last": "70851.94",
+            #                 "updated_at": 1712824003252
+            #             },
+            #             "is_full": True,
+            #             "market": "BTCUSDT"
+            #         },
+            #         "message": "OK"
+            #     }
+            #
         else:
-            response = self.v1PublicGetMarketDepth(self.extend(request, params))
-        #
-        # Spot
-        #
-        #     {
-        #         "code": 0,
-        #         "data": {
-        #             "asks": [
-        #                 ["41056.33", "0.31727613"],
-        #                 ["41056.34", "1.05657294"],
-        #                 ["41056.35", "0.02346648"]
-        #             ],
-        #             "bids": [
-        #                 ["41050.61", "0.40618608"],
-        #                 ["41046.98", "0.13800000"],
-        #                 ["41046.56", "0.22579234"]
-        #             ],
-        #             "last": "41050.61",
-        #             "time": 1650573220346
-        #         },
-        #         "message": "OK"
-        #     }
-        #
-        # Swap
-        #
-        #     {
-        #         "code": 0,
-        #         "data": {
-        #             "asks": [
-        #                 ["40620.90", "0.0384"],
-        #                 ["40625.50", "0.0219"],
-        #                 ["40625.90", "0.3506"]
-        #             ],
-        #             "bids": [
-        #                 ["40620.89", "19.6861"],
-        #                 ["40620.80", "0.0012"],
-        #                 ["40619.87", "0.0365"]
-        #             ],
-        #             "last": "40620.89",
-        #             "time": 1650587672406,
-        #             "sign_price": "40619.32",
-        #             "index_price": "40609.93"
-        #         },
-        #         "message": "OK"
-        #     }
-        #
-        result = self.safe_value(response, 'data', {})
-        timestamp = self.safe_integer(result, 'time')
-        return self.parse_order_book(result, symbol, timestamp)
+            response = self.v2PublicGetSpotDepth(self.extend(request, params))
+            #
+            #     {
+            #         "code": 0,
+            #         "data": {
+            #             "depth": {
+            #                 "asks": [
+            #                     ["70875.31", "0.28670282"],
+            #                     ["70875.32", "0.31008114"],
+            #                     ["70875.42", "0.05876653"]
+            #                 ],
+            #                 "bids": [
+            #                     ["70855.3", "0.00632222"],
+            #                     ["70855.29", "0.36216834"],
+            #                     ["70855.17", "0.10166802"]
+            #                 ],
+            #                 "checksum": 2313816665,
+            #                 "last": "70857.19",
+            #                 "updated_at": 1712823790987
+            #             },
+            #             "is_full": True,
+            #             "market": "BTCUSDT"
+            #         },
+            #         "message": "OK"
+            #     }
+            #
+        data = self.safe_dict(response, 'data', {})
+        depth = self.safe_dict(data, 'depth', {})
+        timestamp = self.safe_integer(depth, 'updated_at')
+        return self.parse_order_book(depth, symbol, timestamp)
 
     def parse_trade(self, trade, market: Market = None) -> Trade:
         #

@@ -10,6 +10,11 @@ Object.defineProperty(exports, '__esModule', { value: true });
 // Author: github.com/frosty00
 // Email: carlo.revelli@berkeley.edu
 //
+/**
+ *
+ * @param array
+ * @param x
+ */
 function bisectLeft(array, x) {
     let low = 0;
     let high = array.length - 1;

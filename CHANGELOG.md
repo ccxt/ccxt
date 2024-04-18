@@ -1,3 +1,54 @@
+## 4.2.95 (2024-04-11)
+
+*  coinex: fetchOrderBook v2 (#22116) [c4ba8f0e6e](https://github.com/ccxt/ccxt/commits/c4ba8f0e6e71560ed18d9b34ac1fa5e162703f0e)
+*  fix(coinbasePro): handle alias (#22120) [c564ea56bb](https://github.com/ccxt/ccxt/commits/c564ea56bb18d3f3be1d539fe1ab0ee58180634d)
+*  Added support for CSPR, VCHF, VEUR (#22119) [52a2024186](https://github.com/ccxt/ccxt/commits/52a20241861297cd1181a0510633c1f3b486cde3)
+*  fix(gemini): parseMarket was parsing 'USDCUSD' as CUSD/USD. (#22112) [3b70b13513](https://github.com/ccxt/ccxt/commits/3b70b135132f404382fed546eb7ceb6cfda68b5d)
+*  fix(OrderBook.ts): add asks/bids/datetime/nonce/timestamp prop (#22122) [b9666e7f9a](https://github.com/ccxt/ccxt/commits/b9666e7f9ada6765038df422ea845cf066b1b3a0)
+*  errors autogeneration (#22013) [47adb25b9e](https://github.com/ccxt/ccxt/commits/47adb25b9ef7c5b82afe68481aba8565a27dfc51)
+*  Okx replacing safeValue (#22078) [6c39b84f1c](https://github.com/ccxt/ccxt/commits/6c39b84f1c676583e1e09fe4fc87b4df6d93d65d)
+*  4.2.95 [b9a93b236d](https://github.com/ccxt/ccxt/commits/b9a93b236decd8a0562cf34652693554f5101036)
+
+
+## 4.2.94 (2024-04-10)
+
+*  new method: fetchConvertQuote (#22055) [2af4fb101f](https://github.com/ccxt/ccxt/commits/2af4fb101f37fe493002c86c340663b09ff4c5c0)
+*  fix(Kucoin): watchTickers topic should not be all if symbols passed (#22106) [a1beeed2cc](https://github.com/ccxt/ccxt/commits/a1beeed2ccd24ba20bdf637fdc3ea00d99539d4d)
+*  fix(cli): read pem secrets properly (#22108) [99928fb124](https://github.com/ccxt/ccxt/commits/99928fb124aa946a17d959fb1a737d156a7b60f1)
+*  binance: fix fetchIndexOHLCV inverse pair parameter (#22107) [aea845c5ba](https://github.com/ccxt/ccxt/commits/aea845c5ba0997bc06781be0e1a250de4840367b)
+*  binance: add POST /api/v3/orderList/oco (#22035) [e854ba4def](https://github.com/ccxt/ccxt/commits/e854ba4defeb9343390bef360869531433c42be9)
+*  new method: fetchConvertCurrencies (#22047) [3749d70367](https://github.com/ccxt/ccxt/commits/3749d70367abc898d5bb5f771280c6f0bfd71a83)
+*  fix(Kucoin): read watchTicker's method from config (#22109) [ae043f2e4e](https://github.com/ccxt/ccxt/commits/ae043f2e4e39591ab057492cae7f1f9b1debfa92)
+*  4.2.94 [bc924c9772](https://github.com/ccxt/ccxt/commits/bc924c97729954d31c639f9da6806c9f1587e000)
+
+
+## 4.2.93 (2024-04-09)
+
+*  feat(probit): fetchDepositsWithdrawals (#22096) [e04ea38a75](https://github.com/ccxt/ccxt/commits/e04ea38a75dc9fc2f8b8b938f763f3493582268b)
+*  encode types (#22097) [473789a53e](https://github.com/ccxt/ccxt/commits/473789a53e08e379d4b93b5770a51204b1f1a2cc)
+*  refactor(exchange): parseLeverageTiers accepts either a dictionary or an array (#22099) [440bc4e2ad](https://github.com/ccxt/ccxt/commits/440bc4e2ad4f343e55484f5f1164b859b13b2e3a)
+*  4.2.93 [d14da7def7](https://github.com/ccxt/ccxt/commits/d14da7def776ce180976a67d98a0e59e17bfd9a9)
+
+
+## 4.2.92 (2024-04-08)
+
+*  fix(php): remove define_rest_api (#22089) [805e7dc2ff](https://github.com/ccxt/ccxt/commits/805e7dc2ff78132f256e2bc56d10caa448934fae)
+*  bybit: add broker api (#22090) [756d124cfe](https://github.com/ccxt/ccxt/commits/756d124cfe96ffcd49574a5e8aaf8fd61584f89c)
+*  fix(kraken): parse fetchPositions (#22091) [6d3dbd2543](https://github.com/ccxt/ccxt/commits/6d3dbd25435022c3bc040e550959849f5a5969d7)
+*  4.2.92 [e371291066](https://github.com/ccxt/ccxt/commits/e37129106693682cf012fac6bf8e2c58a1a25ff7)
+
+
+## 4.2.91 (2024-04-07)
+
+*  fix(gemini): replace * when fetch market from web (#22068) [d65f0dbabc](https://github.com/ccxt/ccxt/commits/d65f0dbabc4467fd6738767380e1bb7d6306884d)
+*  feat(coinbase): add clientorderid prefix (#22071) [530b32845f](https://github.com/ccxt/ccxt/commits/530b32845f39013287d5871a0b9ce305a78fe51f)
+*  Okx replacing safeValue to safeBool/Dict/List (#22052) [6628f54c1c](https://github.com/ccxt/ccxt/commits/6628f54c1c3abee7965d2ae2ac9aa5b408eb0f59)
+*  fix(Exchange): parseToInt string conversion and Crc32 fix (#22082) [2ed6dc9dfb](https://github.com/ccxt/ccxt/commits/2ed6dc9dfbc7bfcb3da7fee9fbf4f4c33de93e41)
+*  feat(bimex): add watchTradesForSymbols (#22080) [6c411a82cd](https://github.com/ccxt/ccxt/commits/6c411a82cd4c63524a60519c0ff8940a9c4e313f)
+*  revert commonCurrencyCode & fix fDWF currencies  (#22079) [0586480358](https://github.com/ccxt/ccxt/commits/0586480358699f9311ed6752d79b183d8e894c22)
+*  4.2.91 [ea4cff3544](https://github.com/ccxt/ccxt/commits/ea4cff3544ddc9167ef35d3ab4753e89e5b137c2)
+
+
 ## 4.2.90 (2024-04-05)
 
 *  bingx: update apis (#22049) [2add1e7c23](https://github.com/ccxt/ccxt/commits/2add1e7c23c48cf920de6ca2c05883b72d19eabb)

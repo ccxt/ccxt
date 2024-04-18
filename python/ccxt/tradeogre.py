@@ -8,9 +8,9 @@ from ccxt.abstract.tradeogre import ImplicitAPI
 from ccxt.base.types import IndexType, Int, Market, Num, Order, OrderSide, OrderType, Str, Ticker
 from typing import List
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InsufficientFunds
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 
 

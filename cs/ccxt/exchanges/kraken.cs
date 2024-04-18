@@ -1444,7 +1444,7 @@ public partial class kraken : Exchange
             { "ordertype", type },
             { "volume", this.amountToPrecision(symbol, amount) },
         };
-        object orderRequest = this.orderRequest("createOrder()", symbol, type, request, price, parameters);
+        object orderRequest = this.orderRequest("createOrder", symbol, type, request, price, parameters);
         object response = await this.privatePostAddOrder(this.extend(getValue(orderRequest, 0), getValue(orderRequest, 1)));
         //
         //     {
@@ -1632,10 +1632,11 @@ public partial class kraken : Exchange
         //  }
         //
         object description = this.safeDict(order, "descr", new Dictionary<string, object>() {});
+        object orderDescriptionObj = this.safeDict(order, "descr"); // can be null
         object orderDescription = null;
-        if (isTrue(!isEqual(description, null)))
+        if (isTrue(!isEqual(orderDescriptionObj, null)))
         {
-            orderDescription = this.safeString(description, "order");
+            orderDescription = this.safeString(orderDescriptionObj, "order");
         } else
         {
             orderDescription = this.safeString(order, "descr");
@@ -1719,9 +1720,9 @@ public partial class kraken : Exchange
         }
         object status = this.parseOrderStatus(this.safeString(order, "status"));
         object id = this.safeString2(order, "id", "txid");
-        if (isTrue(isTrue((isEqual(id, null))) || isTrue((isEqual(slice(id, 0, 1), "[")))))
+        if (isTrue(isTrue((isEqual(id, null))) || isTrue((((string)id).StartsWith(((string)"["))))))
         {
-            object txid = this.safeValue(order, "txid");
+            object txid = this.safeList(order, "txid");
             id = this.safeString(txid, 0);
         }
         object clientOrderId = this.safeString(order, "userref");
@@ -1853,7 +1854,13 @@ public partial class kraken : Exchange
         }
         if (isTrue(reduceOnly))
         {
-            ((IDictionary<string,object>)request)["reduce_only"] = "true"; // not using boolean in this case, because the urlencodedNested transforms it into 'True' string
+            if (isTrue(isEqual(method, "createOrderWs")))
+            {
+                ((IDictionary<string,object>)request)["reduce_only"] = true; // ws request can't have stringified bool
+            } else
+            {
+                ((IDictionary<string,object>)request)["reduce_only"] = "true"; // not using boolean in this case, because the urlencodedNested transforms it into 'True' string
+            }
         }
         object close = this.safeValue(parameters, "close");
         if (isTrue(!isEqual(close, null)))
@@ -1926,7 +1933,7 @@ public partial class kraken : Exchange
         {
             ((IDictionary<string,object>)request)["volume"] = this.amountToPrecision(symbol, amount);
         }
-        object orderRequest = this.orderRequest("editOrder()", symbol, type, request, price, parameters);
+        object orderRequest = this.orderRequest("editOrder", symbol, type, request, price, parameters);
         object response = await this.privatePostEditOrder(this.extend(getValue(orderRequest, 0), getValue(orderRequest, 1)));
         //
         //     {
