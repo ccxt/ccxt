@@ -1,3 +1,4 @@
+// @ts-nocheck
 /* asn1-1.0.13.js (c) 2013-2017 Kenji Urushima | kjur.github.com/jsrsasign/license
  */
 /*
