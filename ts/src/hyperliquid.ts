@@ -1290,7 +1290,7 @@ export default class hyperliquid extends Exchange {
             const idKey = cancelByCloid ? 'cloid' : 'o';
             const market = this.market (symbol);
             const cancelObj = {};
-            cancelObj[assetKey] = market['baseId'];
+            cancelObj[assetKey] = this.parseToNumeric (market['baseId']);
             cancelObj[idKey] = this.parseToNumeric (id);
             cancelReq.push (cancelObj);
         }
