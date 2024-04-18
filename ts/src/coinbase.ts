@@ -72,6 +72,7 @@ export default class coinbase extends Exchange {
                 'fetchClosedOrders': true,
                 'fetchConvertQuote': true,
                 'fetchConvertTrade': true,
+                'fetchConvertTradeHistory': false,
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
@@ -4092,12 +4093,12 @@ export default class coinbase extends Exchange {
          * @param {object} [params.trade_incentive_metadata] an object to fill in user incentive data
          * @param {string} [params.trade_incentive_metadata.user_incentive_id] the id of the incentive
          * @param {string} [params.trade_incentive_metadata.code_val] the code value of the incentive
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}
          */
         await this.loadMarkets ();
         const request = {
-            'from_account': fromCode.toUpperCase (),
-            'to_account': toCode.toUpperCase (),
+            'from_account': fromCode,
+            'to_account': toCode,
             'amount': this.numberToString (amount),
         };
         const response = await this.v3PrivatePostBrokerageConvertQuote (this.extend (request, params));
@@ -4116,36 +4117,44 @@ export default class coinbase extends Exchange {
          * @param {string} toCode the currency that you want to buy and convert into
          * @param {float} [amount] how much you want to trade in units of the from currency
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}
          */
         await this.loadMarkets ();
         const request = {
             'trade_id': id,
-            'from_account': fromCode.toUpperCase (),
-            'to_account': toCode.toUpperCase (),
+            'from_account': fromCode,
+            'to_account': toCode,
         };
         const response = await this.v3PrivatePostBrokerageConvertTradeTradeId (this.extend (request, params));
         const data = this.safeDict (response, 'trade', {});
         return this.parseConversion (data);
     }
 
-    async fetchConvertTrade (id: string, fromCode: string, toCode: string, params = {}): Promise<Conversion> {
+    async fetchConvertTrade (id: string, code: Str = undefined, params = {}): Promise<Conversion> {
         /**
          * @method
          * @name coinbase#fetchConvertTrade
          * @description fetch the data for a conversion trade
          * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getconverttrade
          * @param {string} id the id of the trade that you want to commit
-         * @param {string} fromCode the currency that you want to sell and convert from
-         * @param {string} toCode the currency that you want to buy and convert into
+         * @param {string} code the unified currency code that was converted from
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @param {strng} params.toCode the unified currency code that was converted into
+         * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}
          */
         await this.loadMarkets ();
+        if (code === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchConvertTrade() requires a code argument');
+        }
+        const toCode = this.safeString (params, 'toCode');
+        if (toCode === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchConvertTrade() requires a toCode parameter');
+        }
+        params = this.omit (params, 'toCode');
         const request = {
             'trade_id': id,
-            'from_account': fromCode.toUpperCase (),
-            'to_account': toCode.toUpperCase (),
+            'from_account': code,
+            'to_account': toCode,
         };
         const response = await this.v3PrivateGetBrokerageConvertTradeTradeId (this.extend (request, params));
         const data = this.safeDict (response, 'trade', {});
