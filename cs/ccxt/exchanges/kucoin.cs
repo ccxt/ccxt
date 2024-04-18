@@ -66,6 +66,7 @@ public partial class kucoin : Exchange
                 { "fetchL3OrderBook", true },
                 { "fetchLedger", true },
                 { "fetchLeverageTiers", false },
+                { "fetchMarginAdjustmentHistory", false },
                 { "fetchMarginMode", false },
                 { "fetchMarketLeverageTiers", false },
                 { "fetchMarkets", true },
@@ -1057,10 +1058,10 @@ public partial class kucoin : Exchange
         //    }
         //
         object responses = await promiseAll(promises);
-        object currenciesResponse = this.safeValue(responses, 0, new Dictionary<string, object>() {});
-        object currenciesData = this.safeValue(currenciesResponse, "data", new List<object>() {});
-        object additionalResponse = this.safeValue(responses, 1, new Dictionary<string, object>() {});
-        object additionalData = this.safeValue(additionalResponse, "data", new List<object>() {});
+        object currenciesResponse = this.safeDict(responses, 0, new Dictionary<string, object>() {});
+        object currenciesData = this.safeList(currenciesResponse, "data", new List<object>() {});
+        object additionalResponse = this.safeDict(responses, 1, new Dictionary<string, object>() {});
+        object additionalData = this.safeList(additionalResponse, "data", new List<object>() {});
         object additionalDataGrouped = this.groupBy(additionalData, "currency");
         object result = new Dictionary<string, object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(currenciesData)); postFixIncrement(ref i))
@@ -1073,7 +1074,7 @@ public partial class kucoin : Exchange
             object isDepositEnabled = null;
             object networks = new Dictionary<string, object>() {};
             object chains = this.safeList(entry, "chains", new List<object>() {});
-            object extraChainsData = this.indexBy(this.safeValue(additionalDataGrouped, id, new List<object>() {}), "chain");
+            object extraChainsData = this.indexBy(this.safeList(additionalDataGrouped, id, new List<object>() {}), "chain");
             object rawPrecision = this.safeString(entry, "precision");
             object precision = this.parseNumber(this.parsePrecision(rawPrecision));
             object chainsLength = getArrayLength(chains);
@@ -1228,7 +1229,7 @@ public partial class kucoin : Exchange
             ((IDictionary<string,object>)request)["chain"] = ((string)this.networkCodeToId(networkCode)).ToLower();
         }
         object response = await this.privateGetWithdrawalsQuotas(this.extend(request, parameters));
-        object data = this.safeValue(response, "data");
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         object withdrawFees = new Dictionary<string, object>() {};
         ((IDictionary<string,object>)withdrawFees)[(string)code] = this.safeNumber(data, "withdrawMinFee");
         return new Dictionary<string, object>() {
@@ -3654,9 +3655,9 @@ public partial class kucoin : Exchange
     public virtual object parseBalanceHelper(object entry)
     {
         object account = this.account();
-        ((IDictionary<string,object>)account)["used"] = this.safeString(entry, "holdBalance");
-        ((IDictionary<string,object>)account)["free"] = this.safeString(entry, "availableBalance");
-        ((IDictionary<string,object>)account)["total"] = this.safeString(entry, "totalBalance");
+        ((IDictionary<string,object>)account)["used"] = this.safeString2(entry, "holdBalance", "hold");
+        ((IDictionary<string,object>)account)["free"] = this.safeString2(entry, "availableBalance", "available");
+        ((IDictionary<string,object>)account)["total"] = this.safeString2(entry, "totalBalance", "total");
         object debt = this.safeString(entry, "liability");
         object interest = this.safeString(entry, "interest");
         ((IDictionary<string,object>)account)["debt"] = Precise.stringAdd(debt, interest);
@@ -3669,9 +3670,9 @@ public partial class kucoin : Exchange
         * @method
         * @name kucoin#fetchBalance
         * @description query for balance and get the amount of funds available for trading or funds locked in orders
-        * @see https://docs.kucoin.com/#list-accounts
         * @see https://www.kucoin.com/docs/rest/account/basic-info/get-account-list-spot-margin-trade_hf
-        * @see https://docs.kucoin.com/#query-isolated-margin-account-info
+        * @see https://www.kucoin.com/docs/rest/funding/funding-overview/get-account-detail-margin
+        * @see https://www.kucoin.com/docs/rest/funding/funding-overview/get-account-detail-isolated-margin
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {object} [params.marginMode] 'cross' or 'isolated', margin type for fetching margin balance
         * @param {object} [params.type] extra parameters specific to the exchange API endpoint
@@ -3703,7 +3704,7 @@ public partial class kucoin : Exchange
         object response = null;
         object request = new Dictionary<string, object>() {};
         object isolated = isTrue((isEqual(marginMode, "isolated"))) || isTrue((isEqual(type, "isolated")));
-        object cross = isTrue((isEqual(marginMode, "cross"))) || isTrue((isEqual(type, "cross")));
+        object cross = isTrue((isEqual(marginMode, "cross"))) || isTrue((isEqual(type, "margin")));
         if (isTrue(isolated))
         {
             if (isTrue(!isEqual(currency, null)))
@@ -3724,7 +3725,7 @@ public partial class kucoin : Exchange
             response = await this.privateGetAccounts(this.extend(request, query));
         }
         //
-        // Spot and Cross
+        // Spot
         //
         //    {
         //        "code": "200000",
@@ -3740,35 +3741,59 @@ public partial class kucoin : Exchange
         //        ]
         //    }
         //
+        // Cross
+        //
+        //     {
+        //         "code": "200000",
+        //         "data": {
+        //             "debtRatio": "0",
+        //             "accounts": [
+        //                 {
+        //                     "currency": "USDT",
+        //                     "totalBalance": "5",
+        //                     "availableBalance": "5",
+        //                     "holdBalance": "0",
+        //                     "liability": "0",
+        //                     "maxBorrowSize": "20"
+        //                 },
+        //             ]
+        //         }
+        //     }
+        //
         // Isolated
         //
         //    {
         //        "code": "200000",
         //        "data": {
-        //            "totalConversionBalance": "0",
-        //            "liabilityConversionBalance": "0",
+        //            "totalAssetOfQuoteCurrency": "0",
+        //            "totalLiabilityOfQuoteCurrency": "0",
+        //            "timestamp": 1712085661155,
         //            "assets": [
         //                {
         //                    "symbol": "MANA-USDT",
-        //                    "status": "CLEAR",
+        //                    "status": "EFFECTIVE",
         //                    "debtRatio": "0",
         //                    "baseAsset": {
         //                        "currency": "MANA",
-        //                        "totalBalance": "0",
-        //                        "holdBalance": "0",
-        //                        "availableBalance": "0",
+        //                        "borrowEnabled": true,
+        //                        "transferInEnabled": true,
+        //                        "total": "0",
+        //                        "hold": "0",
+        //                        "available": "0",
         //                        "liability": "0",
         //                        "interest": "0",
-        //                        "borrowableAmount": "0"
+        //                        "maxBorrowSize": "0"
         //                    },
         //                    "quoteAsset": {
         //                        "currency": "USDT",
-        //                        "totalBalance": "0",
-        //                        "holdBalance": "0",
-        //                        "availableBalance": "0",
+        //                        "borrowEnabled": true,
+        //                        "transferInEnabled": true,
+        //                        "total": "0",
+        //                        "hold": "0",
+        //                        "available": "0",
         //                        "liability": "0",
         //                        "interest": "0",
-        //                        "borrowableAmount": "0"
+        //                        "maxBorrowSize": "0"
         //                    }
         //                },
         //                ...
@@ -3776,7 +3801,7 @@ public partial class kucoin : Exchange
         //        }
         //    }
         //
-        object data = this.safeList(response, "data", new List<object>() {});
+        object data = null;
         object result = new Dictionary<string, object>() {
             { "info", response },
             { "timestamp", null },
@@ -3784,6 +3809,7 @@ public partial class kucoin : Exchange
         };
         if (isTrue(isolated))
         {
+            data = this.safeDict(response, "data", new Dictionary<string, object>() {});
             object assets = this.safeValue(data, "assets", data);
             for (object i = 0; isLessThan(i, getArrayLength(assets)); postFixIncrement(ref i))
             {
@@ -3801,6 +3827,7 @@ public partial class kucoin : Exchange
             }
         } else if (isTrue(cross))
         {
+            data = this.safeDict(response, "data", new Dictionary<string, object>() {});
             object accounts = this.safeList(data, "accounts", new List<object>() {});
             for (object i = 0; isLessThan(i, getArrayLength(accounts)); postFixIncrement(ref i))
             {
@@ -3811,6 +3838,7 @@ public partial class kucoin : Exchange
             }
         } else
         {
+            data = this.safeList(response, "data", new List<object>() {});
             for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
             {
                 object balance = getValue(data, i);

@@ -78,6 +78,7 @@ class kucoin extends Exchange {
                 'fetchL3OrderBook' => true,
                 'fetchLedger' => true,
                 'fetchLeverageTiers' => false,
+                'fetchMarginAdjustmentHistory' => false,
                 'fetchMarginMode' => false,
                 'fetchMarketLeverageTiers' => false,
                 'fetchMarkets' => true,
@@ -1129,7 +1130,7 @@ class kucoin extends Exchange {
         }) ();
     }
 
-    public function fetch_currencies($params = array ()) {
+    public function fetch_currencies($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches all available currencies on an exchange
@@ -1205,10 +1206,10 @@ class kucoin extends Exchange {
             //    }
             //
             $responses = Async\await(Promise\all($promises));
-            $currenciesResponse = $this->safe_value($responses, 0, array());
-            $currenciesData = $this->safe_value($currenciesResponse, 'data', array());
-            $additionalResponse = $this->safe_value($responses, 1, array());
-            $additionalData = $this->safe_value($additionalResponse, 'data', array());
+            $currenciesResponse = $this->safe_dict($responses, 0, array());
+            $currenciesData = $this->safe_list($currenciesResponse, 'data', array());
+            $additionalResponse = $this->safe_dict($responses, 1, array());
+            $additionalData = $this->safe_list($additionalResponse, 'data', array());
             $additionalDataGrouped = $this->group_by($additionalData, 'currency');
             $result = array();
             for ($i = 0; $i < count($currenciesData); $i++) {
@@ -1220,7 +1221,7 @@ class kucoin extends Exchange {
                 $isDepositEnabled = null;
                 $networks = array();
                 $chains = $this->safe_list($entry, 'chains', array());
-                $extraChainsData = $this->index_by($this->safe_value($additionalDataGrouped, $id, array()), 'chain');
+                $extraChainsData = $this->index_by($this->safe_list($additionalDataGrouped, $id, array()), 'chain');
                 $rawPrecision = $this->safe_string($entry, 'precision');
                 $precision = $this->parse_number($this->parse_precision($rawPrecision));
                 $chainsLength = count($chains);
@@ -1361,7 +1362,7 @@ class kucoin extends Exchange {
                 $request['chain'] = strtolower($this->network_code_to_id($networkCode));
             }
             $response = Async\await($this->privateGetWithdrawalsQuotas (array_merge($request, $params)));
-            $data = $this->safe_value($response, 'data');
+            $data = $this->safe_dict($response, 'data', array());
             $withdrawFees = array();
             $withdrawFees[$code] = $this->safe_number($data, 'withdrawMinFee');
             return array(
@@ -3141,7 +3142,7 @@ class kucoin extends Exchange {
         ), $market);
     }
 
-    public function fetch_trading_fee(string $symbol, $params = array ()) {
+    public function fetch_trading_fee(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch the trading fees for a $market
@@ -3531,9 +3532,9 @@ class kucoin extends Exchange {
 
     public function parse_balance_helper($entry) {
         $account = $this->account();
-        $account['used'] = $this->safe_string($entry, 'holdBalance');
-        $account['free'] = $this->safe_string($entry, 'availableBalance');
-        $account['total'] = $this->safe_string($entry, 'totalBalance');
+        $account['used'] = $this->safe_string_2($entry, 'holdBalance', 'hold');
+        $account['free'] = $this->safe_string_2($entry, 'availableBalance', 'available');
+        $account['total'] = $this->safe_string_2($entry, 'totalBalance', 'total');
         $debt = $this->safe_string($entry, 'liability');
         $interest = $this->safe_string($entry, 'interest');
         $account['debt'] = Precise::string_add($debt, $interest);
@@ -3544,9 +3545,9 @@ class kucoin extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * $query for $balance and get the amount of funds available for trading or funds locked in orders
-             * @see https://docs.kucoin.com/#list-$accounts
              * @see https://www.kucoin.com/docs/rest/account/basic-info/get-$account-list-spot-margin-trade_hf
-             * @see https://docs.kucoin.com/#$query-$isolated-margin-$account-info
+             * @see https://www.kucoin.com/docs/rest/funding/funding-overview/get-$account-detail-margin
+             * @see https://www.kucoin.com/docs/rest/funding/funding-overview/get-$account-detail-$isolated-margin
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {array} [$params->marginMode] 'cross' or 'isolated', margin $type for fetching margin $balance
              * @param {array} [$params->type] extra parameters specific to the exchange API endpoint
@@ -3573,7 +3574,7 @@ class kucoin extends Exchange {
             $response = null;
             $request = array();
             $isolated = ($marginMode === 'isolated') || ($type === 'isolated');
-            $cross = ($marginMode === 'cross') || ($type === 'cross');
+            $cross = ($marginMode === 'cross') || ($type === 'margin');
             if ($isolated) {
                 if ($currency !== null) {
                     $request['balanceCurrency'] = $currency['id'];
@@ -3589,7 +3590,7 @@ class kucoin extends Exchange {
                 $response = Async\await($this->privateGetAccounts (array_merge($request, $query)));
             }
             //
-            // Spot and Cross
+            // Spot
             //
             //    {
             //        "code" => "200000",
@@ -3605,35 +3606,59 @@ class kucoin extends Exchange {
             //        )
             //    }
             //
+            // Cross
+            //
+            //     {
+            //         "code" => "200000",
+            //         "data" => {
+            //             "debtRatio" => "0",
+            //             "accounts" => array(
+            //                 array(
+            //                     "currency" => "USDT",
+            //                     "totalBalance" => "5",
+            //                     "availableBalance" => "5",
+            //                     "holdBalance" => "0",
+            //                     "liability" => "0",
+            //                     "maxBorrowSize" => "20"
+            //                 ),
+            //             )
+            //         }
+            //     }
+            //
             // Isolated
             //
             //    {
             //        "code" => "200000",
             //        "data" => {
-            //            "totalConversionBalance" => "0",
-            //            "liabilityConversionBalance" => "0",
+            //            "totalAssetOfQuoteCurrency" => "0",
+            //            "totalLiabilityOfQuoteCurrency" => "0",
+            //            "timestamp" => 1712085661155,
             //            "assets" => array(
             //                {
             //                    "symbol" => "MANA-USDT",
-            //                    "status" => "CLEAR",
+            //                    "status" => "EFFECTIVE",
             //                    "debtRatio" => "0",
             //                    "baseAsset" => array(
             //                        "currency" => "MANA",
-            //                        "totalBalance" => "0",
-            //                        "holdBalance" => "0",
-            //                        "availableBalance" => "0",
+            //                        "borrowEnabled" => true,
+            //                        "transferInEnabled" => true,
+            //                        "total" => "0",
+            //                        "hold" => "0",
+            //                        "available" => "0",
             //                        "liability" => "0",
             //                        "interest" => "0",
-            //                        "borrowableAmount" => "0"
+            //                        "maxBorrowSize" => "0"
             //                    ),
             //                    "quoteAsset" => array(
             //                        "currency" => "USDT",
-            //                        "totalBalance" => "0",
-            //                        "holdBalance" => "0",
-            //                        "availableBalance" => "0",
+            //                        "borrowEnabled" => true,
+            //                        "transferInEnabled" => true,
+            //                        "total" => "0",
+            //                        "hold" => "0",
+            //                        "available" => "0",
             //                        "liability" => "0",
             //                        "interest" => "0",
-            //                        "borrowableAmount" => "0"
+            //                        "maxBorrowSize" => "0"
             //                    }
             //                ),
             //                ...
@@ -3641,13 +3666,14 @@ class kucoin extends Exchange {
             //        }
             //    }
             //
-            $data = $this->safe_list($response, 'data', array());
+            $data = null;
             $result = array(
                 'info' => $response,
                 'timestamp' => null,
                 'datetime' => null,
             );
             if ($isolated) {
+                $data = $this->safe_dict($response, 'data', array());
                 $assets = $this->safe_value($data, 'assets', $data);
                 for ($i = 0; $i < count($assets); $i++) {
                     $entry = $assets[$i];
@@ -3663,6 +3689,7 @@ class kucoin extends Exchange {
                     $result[$symbol] = $this->safe_balance($subResult);
                 }
             } elseif ($cross) {
+                $data = $this->safe_dict($response, 'data', array());
                 $accounts = $this->safe_list($data, 'accounts', array());
                 for ($i = 0; $i < count($accounts); $i++) {
                     $balance = $accounts[$i];
@@ -3671,6 +3698,7 @@ class kucoin extends Exchange {
                     $result[$codeInner] = $this->parse_balance_helper($balance);
                 }
             } else {
+                $data = $this->safe_list($response, 'data', array());
                 for ($i = 0; $i < count($data); $i++) {
                     $balance = $data[$i];
                     $balanceType = $this->safe_string($balance, 'type');
