@@ -3,7 +3,6 @@
 
 import Exchange from './abstract/bitflex.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { NotSupported } from './base/errors.js';
 import { Currencies, Int, Market, OHLCV, OrderBook, Ticker, Tickers, Trade, Strings } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
@@ -34,6 +33,7 @@ export default class bitflex extends Exchange {
                 'createOrder': false,
                 'editOrder': false,
                 'fetchBalance': false,
+                'fetchBidsAsks': true,
                 'fetchClosedOrders': false,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': false,
@@ -47,15 +47,15 @@ export default class bitflex extends Exchange {
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': false,
-                'fetchOHLCV': false,
+                'fetchOHLCV': true,
                 'fetchOpenOrders': false,
                 'fetchOrder': false,
                 'fetchOrderBook': true,
                 'fetchPositionMode': false,
                 'fetchPositions': false,
                 'fetchPremiumIndexOHLCV': false,
-                'fetchTicker': false,
-                'fetchTickers': false,
+                'fetchTicker': true,
+                'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
                 'fetchTradingFee': false,
@@ -976,14 +976,26 @@ export default class bitflex extends Exchange {
         //         "openPrice": "63359.8"
         //     }
         //
+        // fetchBidsAsks
+        //     {
+        //         "symbol": "TRXUSDT",
+        //         "bidPrice": "0.109299",
+        //         "bidQty": "448.05",
+        //         "askPrice": "0.109645",
+        //         "askQty": "835.2",
+        //         "time": 1713434723420
+        //     },
+        //
         const marketId = this.safeString (ticker, 'symbol');
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
         const timestamp = this.safeInteger (ticker, 'time');
         const high = this.safeString (ticker, 'highPrice');
         const low = this.safeString (ticker, 'lowPrice');
-        const bid = this.safeString (ticker, 'bestBidPrice');
-        const ask = this.safeString (ticker, 'bestAskPrice');
+        const bid = this.safeString2 (ticker, 'bestBidPrice', 'bidPrice');
+        const bidVolume = this.safeString (ticker, 'bidQty');
+        const ask = this.safeString2 (ticker, 'bestAskPrice', 'askPrice');
+        const askVolume = this.safeString (ticker, 'askQty');
         const open = this.safeString (ticker, 'openPrice');
         const last = this.safeString (ticker, 'lastPrice');
         const baseVolume = this.safeString (ticker, 'volume');
@@ -996,9 +1008,9 @@ export default class bitflex extends Exchange {
             'high': high,
             'low': low,
             'bid': bid,
-            'bidVolume': undefined,
+            'bidVolume': bidVolume,
             'ask': ask,
-            'askVolume': undefined,
+            'askVolume': askVolume,
             'vwap': undefined,
             'open': open,
             'close': last,
@@ -1011,6 +1023,34 @@ export default class bitflex extends Exchange {
             'quoteVolume': quoteVolume,
             'info': ticker,
         }, market);
+    }
+
+    async fetchBidsAsks (symbols: Strings = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitflex#fetchBidsAsks
+         * @description fetches the bid and ask price and volume for multiple spot markets
+         * @see https://docs.bitflex.com/spot#symbol-orderbook-ticker
+         * @param {string[]} [symbols] unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        await this.loadMarkets ();
+        const response = await this.publicGetOpenapiQuoteV1TickerBookTicker (params); // only for spot markets, does not work for contracts
+        //
+        //     [
+        //         {
+        //             "symbol": "TRXUSDT",
+        //             "bidPrice": "0.109299",
+        //             "bidQty": "448.05",
+        //             "askPrice": "0.109645",
+        //             "askQty": "835.2",
+        //             "time": 1713434723420
+        //         },
+        //         ...
+        //     ]
+        //
+        return this.parseTickers (response, symbols);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
