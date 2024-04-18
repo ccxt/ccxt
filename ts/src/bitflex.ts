@@ -3,6 +3,7 @@
 
 import Exchange from './abstract/bitflex.js';
 import { TICK_SIZE } from './base/functions/number.js';
+import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { Currencies, Int, Market, OHLCV, OrderBook, Ticker, Tickers, Trade, Strings } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
@@ -839,11 +840,7 @@ export default class bitflex extends Exchange {
         let response = undefined;
         if (market['spot']) {
             response = await this.publicGetOpenapiQuoteV1Ticker24hr (this.extend (request, params));
-        } else if (market['contract']) {
-            response = await this.publicGetOpenapiQuoteV1ContractTicker24hr (this.extend (request, params));
-        }
         //
-        // spot
         //     {
         //         "time": 1713430460947,
         //         "symbol": "BTCUSDT",
@@ -857,7 +854,10 @@ export default class bitflex extends Exchange {
         //         "openPrice": "63364.98"
         //     }
         //
-        // contract
+        } else if (market['contract']) {
+            response = await this.publicGetOpenapiQuoteV1ContractTicker24hr (this.extend (request, params));
+        }
+        //
         //     {
         //         "time": 1713430608992,
         //         "symbol": "BTC-SWAP-USDT",
@@ -976,6 +976,31 @@ export default class bitflex extends Exchange {
         //         "openPrice": "63359.8"
         //     }
         //
+        // spot (fetchTickers)
+        //     {
+        //         "time": 1713433035363,
+        //         "symbol": "TRXUSDT",
+        //         "volume": "5324149.27",
+        //         "quoteVolume": "586707.79503338",
+        //         "lastPrice": "0.109537",
+        //         "highPrice": "0.112817",
+        //         "lowPrice": "0.108604",
+        //         "openPrice": "0.112816"
+        //     }
+        //
+        // contract (fetchTickers)
+        //     {
+        //         "time" :1713433029225,
+        //         "symbol" :"AVAX-SWAP-USDT",
+        //         "volume" :"768502.5",
+        //         "quoteVolume" :"25936222.33476",
+        //         "openInterest" :"1983.6",
+        //         "lastPrice" :"33.9029",
+        //         "highPrice" :"35.167",
+        //         "lowPrice" :"32.2528",
+        //         "openPrice" :"35.0013"
+        //     },
+        //
         // fetchBidsAsks
         //     {
         //         "symbol": "TRXUSDT",
@@ -1058,9 +1083,27 @@ export default class bitflex extends Exchange {
         let query = this.omit (params, this.extractParams (path));
         const endpoint = this.implodeParams (path, params);
         url = url + '/' + endpoint;
-        query = this.urlencode (query);
-        if (query.length !== 0) {
-            url += '?' + query;
+        if (api === 'private') {
+            this.checkRequiredCredentials ();
+            query['timestamp'] = this.milliseconds ();
+            const recvWindow = this.safeInteger (query, 'recvWindow');
+            if (recvWindow === undefined) {
+                const defaultRecvWindow = this.safeInteger (this.options, 'recvWindow');
+                if (defaultRecvWindow !== undefined) {
+                    query['recvWindow'] = defaultRecvWindow;
+                }
+            }
+            query = this.urlencode (query);
+            const signature = this.hmac (this.encode (query), this.encode (this.secret), sha256);
+            url = url + '?' + query + '&signature=' + signature;
+            headers = {
+                'X-BH-APIKEY': this.apiKey,
+            };
+        } else {
+            query = this.urlencode (query);
+            if (query.length !== 0) {
+                url += '?' + query;
+            }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
