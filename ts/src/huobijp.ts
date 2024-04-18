@@ -1519,7 +1519,7 @@ export default class huobijp extends Exchange {
         });
     }
 
-    async cancelOrders (ids, symbol: Str = undefined, params = {}) {
+    async cancelOrders (ids: string[], symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name huobijp#cancelOrders

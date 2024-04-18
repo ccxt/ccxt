@@ -905,7 +905,7 @@ export default class oceanex extends Exchange {
         return this.parseOrder (data);
     }
 
-    async cancelOrders (ids, symbol: Str = undefined, params = {}) {
+    async cancelOrders (ids: string[], symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name oceanex#cancelOrders

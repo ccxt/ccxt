@@ -1461,7 +1461,7 @@ export default class coinlist extends Exchange {
         return this.parseOrder (response);
     }
 
-    async cancelOrders (ids, symbol: Str = undefined, params = {}) {
+    async cancelOrders (ids: string[], symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name coinlist#cancelOrders

@@ -3076,7 +3076,7 @@ export default class mexc extends Exchange {
         return this.parseOrder (data, market);
     }
 
-    async cancelOrders (ids, symbol: Str = undefined, params = {}) {
+    async cancelOrders (ids: string[], symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name mexc#cancelOrders

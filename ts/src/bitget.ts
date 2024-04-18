@@ -4797,7 +4797,7 @@ export default class bitget extends Exchange {
         return this.parseOrder (order, market);
     }
 
-    async cancelOrders (ids, symbol: Str = undefined, params = {}) {
+    async cancelOrders (ids: string[], symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name bitget#cancelOrders

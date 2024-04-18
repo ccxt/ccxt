@@ -888,7 +888,7 @@ export default class timex extends Exchange {
         return await this.cancelOrders ([ id ], symbol, params);
     }
 
-    async cancelOrders (ids, symbol: Str = undefined, params = {}) {
+    async cancelOrders (ids: string[], symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name timex#cancelOrders

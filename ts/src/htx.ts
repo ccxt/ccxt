@@ -5701,7 +5701,7 @@ export default class htx extends Exchange {
         });
     }
 
-    async cancelOrders (ids, symbol: Str = undefined, params = {}) {
+    async cancelOrders (ids: string[], symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name huobi#cancelOrders

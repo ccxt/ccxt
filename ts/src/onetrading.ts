@@ -1642,7 +1642,7 @@ export default class onetrading extends Exchange {
         return response;
     }
 
-    async cancelOrders (ids, symbol: Str = undefined, params = {}) {
+    async cancelOrders (ids: string[], symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name onetrading#cancelOrders
