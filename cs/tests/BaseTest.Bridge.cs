@@ -1,5 +1,4 @@
 using System.Globalization;
-using System.Reflection;
 
 namespace Tests;
 using ccxt;
@@ -96,12 +95,9 @@ public partial class BaseTest
     public static bool isGreaterThanOrEqual(object a, object b) => Exchange.isGreaterThanOrEqual(a, b);
     public static bool isLessThanOrEqual(object a, object b) => Exchange.isLessThanOrEqual(a, b);
     public static object postFixIncrement(ref object a) => Exchange.postFixIncrement(ref a);
-    public static object mathMax(object a, object b) => Exchange.mathMax(a, b);
     public static object add(object a, object b) => Exchange.add(a, b);
     public static object multiply(object a, object b) => Exchange.multiply(a, b);
     public static object subtract(object a, object b) => Exchange.subtract(a, b);
-    public static object divide(object a, object b) => Exchange.divide(a, b);
-    public static object parseFloat(object a) => Exchange.parseFloat(a);
     public static string toStringOrNull(object a) => Exchange.toStringOrNull(a);
     public static bool isEqual(object a, object b) => Exchange.isEqual(a, b);
     public static bool isTrue(object a) => Exchange.isTrue(a);
@@ -166,23 +162,5 @@ public partial class BaseTest
         return isEqual(a, b);
 
     }
-
-    public static object callDynamically(object obj, object methodName, object[] args = null)
-    {
-        args ??= new object[] { };
-        if (args.Length == 0)
-        {
-            args = new object[] { null };
-        }
-        return obj.GetType().GetMethod((string)methodName, BindingFlags.Static | BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic).Invoke(obj, args);
-    }
-
-    public static async Task<object> callDynamicallyAsync(object obj, object methodName, object[] args = null)
-    {
-        args ??= new object[] { };
-        var res = obj.GetType().GetMethod((string)methodName, BindingFlags.Static | BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic).Invoke(obj, args);
-        return await ((Task<object>)res);
-    }
-
 
 }
