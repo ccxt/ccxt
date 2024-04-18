@@ -222,6 +222,13 @@
             "watchOrderBook": "complete skip because of frequent checksum mismatches: https://app.travis-ci.com/github/ccxt/ccxt/builds/269273148#L3553 and also for this https://app.travis-ci.com/github/ccxt/ccxt/builds/269129438#L3999"
         }
     },
+    "bitflex": {
+        "skipMethods": {
+            "fetchCurrencies": {
+                "precision": "not provided"
+            }
+        }
+    },
     "bitflyer": {
         "skipMethods": {
             "loadMarkets": "contract is true, but contractSize is undefined",
