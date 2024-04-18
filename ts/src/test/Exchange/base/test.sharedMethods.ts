@@ -1,11 +1,7 @@
-/* eslint no-restricted-syntax: ["error", "FunctionExpression", "WithStatement"] */
-
 import assert from 'assert';
 import { Exchange } from "../../../../ccxt";
 import Precise from '../../../base/Precise.js';
-import { TICK_SIZE } from '../../../base/functions/number.js';
-import testOrder from './test.order.js';
-import { OperationFailed, OnMaintenance, ArgumentsRequired } from '../../../base/errors.js';
+import { OnMaintenance, OperationFailed } from '../../../base/errors.js';
 
 function logTemplate (exchange: Exchange, method: string, entry: object) {
     return ' <<< ' + exchange.id + ' ' + method + ' ::: ' + exchange.json (entry) + ' >>> ';
@@ -355,156 +351,6 @@ function checkPrecisionAccuracy (exchange: Exchange, skippedProperties: object, 
     }
 }
 
-async function tryFetchBestBidAsk (exchange, method, symbol) {
-    const logText = logTemplate (exchange, method, {});
-    // find out best bid/ask price
-    let bestBid = undefined;
-    let bestAsk = undefined;
-
-    let usedMethod = undefined;
-    if (exchange.has['fetchOrderBook']) {
-        usedMethod = 'fetchOrderBook';
-        const orderbook = await exchange.fetchOrderBook (symbol);
-        const bids = exchange.safeList (orderbook, 'bids');
-        const asks = exchange.safeList (orderbook, 'asks');
-        const bestBidArray = exchange.safeList (bids, 0);
-        const bestAskArray = exchange.safeList (asks, 0);
-        bestBid = exchange.safeNumber (bestBidArray, 0);
-        bestAsk = exchange.safeNumber (bestAskArray, 0);
-    } else if (exchange.has['fetchBidsAsks']) {
-        usedMethod = 'fetchBidsAsks';
-        const tickers = await exchange.fetchBidsAsks ([ symbol ]);
-        const ticker = exchange.safeDict (tickers, symbol);
-        bestBid = exchange.safeNumber (ticker, 'bid');
-        bestAsk = exchange.safeNumber (ticker, 'ask');
-    } else if (exchange.has['fetchTicker']) {
-        usedMethod = 'fetchTicker';
-        const ticker = await exchange.fetchTicker (symbol);
-        bestBid = exchange.safeNumber (ticker, 'bid');
-        bestAsk = exchange.safeNumber (ticker, 'ask');
-    } else if (exchange.has['fetchTickers']) {
-        usedMethod = 'fetchTickers';
-        const tickers = await exchange.fetchTickers ([ symbol ]);
-        const ticker = exchange.safeDict (tickers, symbol);
-        bestBid = exchange.safeNumber (ticker, 'bid');
-        bestAsk = exchange.safeNumber (ticker, 'ask');
-    }
-    //
-    assert (bestBid !== undefined && bestAsk !== undefined, logText + ' ' +  exchange.id + ' could not get best bid/ask for ' + symbol + ' using ' + usedMethod + ' while testing ' + method);
-    return [ bestBid, bestAsk ];
-}
-
-async function tryFetchOrder (exchange, symbol, orderId, skippedProperties) {
-    let fetchedOrder = undefined;
-    const originalId = orderId;
-    // set 'since' to 5 minute ago for optimal results
-    const sinceTime = exchange.milliseconds () - 1000 * 60 * 5;
-    // iterate
-    const methods_singular = [ 'fetchOrder', 'fetchOpenOrder', 'fetchClosedOrder', 'fetchCanceledOrder' ];
-    for (let i = 0; i < methods_singular.length; i++) {
-        const singularFetchName = methods_singular[i];
-        if (exchange.has[singularFetchName]) {
-            const currentOrder = await exchange[singularFetchName] (originalId, symbol);
-            // if there is an id inside the order, it means the order was fetched successfully
-            if (currentOrder['id'] === originalId) {
-                fetchedOrder = currentOrder;
-                break;
-            }
-        }
-    }
-    //
-    // search through plural methods
-    if (fetchedOrder === undefined) {
-        const methods_plural = [ 'fetchOrders', 'fetchOpenOrders', 'fetchClosedOrders', 'fetchCanceledOrders' ];
-        for (let i = 0; i < methods_plural.length; i++) {
-            const pluralFetchName = methods_plural[i];
-            if (exchange.has[pluralFetchName]) {
-                const orders = await exchange[pluralFetchName] (symbol, sinceTime);
-                let found = false;
-                for (let j = 0; j < orders.length; j++) {
-                    const currentOrder = orders[j];
-                    if (currentOrder['id'] === originalId) {
-                        fetchedOrder = currentOrder;
-                        found = true;
-                        break;
-                    }
-                }
-                if (found) {
-                    break;
-                }
-            }
-        }
-    }
-    // test fetched order object
-    if (fetchedOrder !== undefined) {
-        testOrder (exchange, skippedProperties, 'createOrder', fetchedOrder, symbol, exchange.milliseconds ());
-    }
-    return fetchedOrder;
-}
-
-function assertOrderState (exchange, skippedProperties, method, order, assertedStatus, strictCheck) {
-    // note, `strictCheck` is `true` only from "fetchOrder" cases
-    const logText = logTemplate (exchange, method, order);
-    const msg = 'order should be ' + assertedStatus + ', but it was not asserted' + logText;
-    const filled = exchange.safeString (order, 'filled');
-    const amount = exchange.safeString (order, 'amount');
-    // shorthand variables
-    const statusUndefined = (order['status'] === undefined);
-    const statusOpen = (order['status'] === 'open');
-    const statusClosed = (order['status'] === 'closed');
-    const statusClanceled = (order['status'] === 'canceled');
-    const filledDefined = (filled !== undefined);
-    const amountDefined = (amount !== undefined);
-    let condition = undefined;
-    //
-    // ### OPEN STATUS
-    //
-    // if strict check, then 'status' must be 'open' and filled amount should be less then whole order amount
-    const strictOpen = statusOpen && (filledDefined && amountDefined && filled < amount);
-    // if non-strict check, then accept & ignore undefined values
-    const nonstrictOpen = (statusOpen || statusUndefined) && ((!filledDefined || !amountDefined) || Precise.stringLt (filled, amount));
-    // check
-    if (assertedStatus === 'open') {
-        condition = strictCheck ? strictOpen : nonstrictOpen;
-        assert (condition, msg);
-        return;
-    }
-    //
-    // ### CLOSED STATUS
-    //
-    // if strict check, then 'status' must be 'closed' and filled amount should be equal to the whole order amount
-    const closedStrict = statusClosed && (filledDefined && amountDefined && Precise.stringEq (filled, amount));
-    // if non-strict check, then accept & ignore undefined values
-    const closedNonStrict = (statusClosed || statusUndefined) && ((!filledDefined || !amountDefined) || Precise.stringEq (filled, amount));
-    // check
-    if (assertedStatus === 'closed') {
-        condition = strictCheck ? closedStrict : closedNonStrict;
-        assert (condition, msg);
-        return;
-    }
-    //
-    // ### CANCELED STATUS
-    //
-    // if strict check, then 'status' must be 'canceled' and filled amount should be less then whole order amount
-    const canceledStrict = statusClanceled && (filledDefined && amountDefined && Precise.stringLt (filled, amount));
-    // if non-strict check, then accept & ignore undefined values
-    const canceledNonStrict = (statusClanceled || statusUndefined) && ((!filledDefined || !amountDefined) || Precise.stringLt (filled, amount));
-    // check
-    if (assertedStatus === 'canceled') {
-        condition = strictCheck ? canceledStrict : canceledNonStrict;
-        assert (condition, msg);
-        return;
-    }
-    //
-    // ### CLOSED_or_CANCELED STATUS
-    //
-    if (assertedStatus === 'closed_or_canceled') {
-        condition = strictCheck ? (closedStrict || canceledStrict) : (closedNonStrict || canceledNonStrict);
-        assert (condition, msg);
-        return;
-    }
-}
-
 function removeProxyOptions (exchange: Exchange, skippedProperties: object) {
     const proxyUrl = exchange.checkProxyUrlSettings ();
     const [ httpProxy, httpsProxy, socksProxy ] = exchange.checkProxySettings ();
@@ -568,9 +414,6 @@ export default {
     assertNonEqual,
     assertInteger,
     checkPrecisionAccuracy,
-    tryFetchBestBidAsk,
-    tryFetchOrder,
-    assertOrderState,
     assertValidCurrencyIdAndCode,
     assertType,
     removeProxyOptions,
