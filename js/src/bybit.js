@@ -5381,7 +5381,7 @@ export default class bybit extends Exchange {
         const coin = this.safeString(result, 'coin');
         currency = this.currency(coin);
         const parsed = this.parseDepositAddresses(chains, [currency['code']], false, {
-            'currency': currency['id'],
+            'currency': currency['code'],
         });
         return this.indexBy(parsed, 'network');
     }

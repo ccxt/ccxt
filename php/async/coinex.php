@@ -621,16 +621,16 @@ class coinex extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * retrieves data on all markets for coinex
-             * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot001_market002_all_market_info
-             * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http006_market_list
+             * @see https://docs.coinex.com/api/v2/spot/market/http/list-market
+             * @see https://docs.coinex.com/api/v2/futures/market/http/list-market
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} an array of objects representing market data
              */
-            $promises = array(
+            $promisesUnresolved = array(
                 $this->fetch_spot_markets($params),
                 $this->fetch_contract_markets($params),
             );
-            $promises = Async\await(Promise\all($promises));
+            $promises = Async\await(Promise\all($promisesUnresolved));
             $spotMarkets = $promises[0];
             $swapMarkets = $promises[1];
             return $this->array_concat($spotMarkets, $swapMarkets);
@@ -639,40 +639,37 @@ class coinex extends Exchange {
 
     public function fetch_spot_markets($params) {
         return Async\async(function () use ($params) {
-            $response = Async\await($this->v1PublicGetMarketInfo ($params));
+            $response = Async\await($this->v2PublicGetSpotMarket ($params));
             //
             //     {
             //         "code" => 0,
-            //         "data" => {
-            //             "WAVESBTC" => {
-            //                 "name" => "WAVESBTC",
-            //                 "min_amount" => "1",
-            //                 "maker_fee_rate" => "0.001",
-            //                 "taker_fee_rate" => "0.001",
-            //                 "pricing_name" => "BTC",
-            //                 "pricing_decimal" => 8,
-            //                 "trading_name" => "WAVES",
-            //                 "trading_decimal" => 8
-            //             }
-            //         }
+            //         "data" => array(
+            //             array(
+            //                 "base_ccy" => "SORA",
+            //                 "base_ccy_precision" => 8,
+            //                 "is_amm_available" => true,
+            //                 "is_margin_available" => false,
+            //                 "maker_fee_rate" => "0.003",
+            //                 "market" => "SORAUSDT",
+            //                 "min_amount" => "500",
+            //                 "quote_ccy" => "USDT",
+            //                 "quote_ccy_precision" => 6,
+            //                 "taker_fee_rate" => "0.003"
+            //             ),
+            //         ),
+            //         "message" => "OK"
             //     }
             //
-            $markets = $this->safe_value($response, 'data', array());
+            $markets = $this->safe_list($response, 'data', array());
             $result = array();
-            $keys = is_array($markets) ? array_keys($markets) : array();
-            for ($i = 0; $i < count($keys); $i++) {
-                $key = $keys[$i];
-                $market = $markets[$key];
-                $id = $this->safe_string($market, 'name');
-                $tradingName = $this->safe_string($market, 'trading_name');
-                $baseId = $tradingName;
-                $quoteId = $this->safe_string($market, 'pricing_name');
+            for ($i = 0; $i < count($markets); $i++) {
+                $market = $markets[$i];
+                $id = $this->safe_string($market, 'market');
+                $baseId = $this->safe_string($market, 'base_ccy');
+                $quoteId = $this->safe_string($market, 'quote_ccy');
                 $base = $this->safe_currency_code($baseId);
                 $quote = $this->safe_currency_code($quoteId);
                 $symbol = $base . '/' . $quote;
-                if ($tradingName === $id) {
-                    $symbol = $id;
-                }
                 $result[] = array(
                     'id' => $id,
                     'symbol' => $symbol,
@@ -700,8 +697,8 @@ class coinex extends Exchange {
                     'strike' => null,
                     'optionType' => null,
                     'precision' => array(
-                        'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'trading_decimal'))),
-                        'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'pricing_decimal'))),
+                        'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'base_ccy_precision'))),
+                        'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'quote_ccy_precision'))),
                     ),
                     'limits' => array(
                         'leverage' => array(
@@ -731,45 +728,43 @@ class coinex extends Exchange {
 
     public function fetch_contract_markets($params) {
         return Async\async(function () use ($params) {
-            $response = Async\await($this->v1PerpetualPublicGetMarketList ($params));
+            $response = Async\await($this->v2PublicGetFuturesMarket ($params));
             //
             //     {
             //         "code" => 0,
             //         "data" => [
             //             array(
-            //                 "name" => "BTCUSD",
-            //                 "type" => 2, // 1 => USDT-M Contracts, 2 => Coin-M Contracts
-            //                 "leverages" => ["3", "5", "8", "10", "15", "20", "30", "50", "100"],
-            //                 "stock" => "BTC",
-            //                 "money" => "USD",
-            //                 "fee_prec" => 5,
-            //                 "stock_prec" => 8,
-            //                 "money_prec" => 1,
-            //                 "amount_prec" => 0,
-            //                 "amount_min" => "10",
-            //                 "multiplier" => "1",
-            //                 "tick_size" => "0.1", // Min. Price Increment
-            //                 "available" => true
+            //                 "base_ccy" => "BTC",
+            //                 "base_ccy_precision" => 8,
+            //                 "contract_type" => "inverse",
+            //                 "leverage" => ["1","2","3","5","8","10","15","20","30","50","100"],
+            //                 "maker_fee_rate" => "0",
+            //                 "market" => "BTCUSD",
+            //                 "min_amount" => "10",
+            //                 "open_interest_volume" => "2566879",
+            //                 "quote_ccy" => "USD",
+            //                 "quote_ccy_precision" => 2,
+            //                 "taker_fee_rate" => "0"
             //             ),
             //         ],
             //         "message" => "OK"
             //     }
             //
-            $markets = $this->safe_value($response, 'data', array());
+            $markets = $this->safe_list($response, 'data', array());
             $result = array();
             for ($i = 0; $i < count($markets); $i++) {
                 $entry = $markets[$i];
                 $fees = $this->fees;
-                $leverages = $this->safe_value($entry, 'leverages', array());
-                $subType = $this->safe_integer($entry, 'type');
-                $linear = ($subType === 1);
-                $inverse = ($subType === 2);
-                $id = $this->safe_string($entry, 'name');
-                $baseId = $this->safe_string($entry, 'stock');
-                $quoteId = $this->safe_string($entry, 'money');
+                $leverages = $this->safe_list($entry, 'leverage', array());
+                $subType = $this->safe_string($entry, 'contract_type');
+                $linear = ($subType === 'linear');
+                $inverse = ($subType === 'inverse');
+                $id = $this->safe_string($entry, 'market');
+                $baseId = $this->safe_string($entry, 'base_ccy');
+                $quoteId = $this->safe_string($entry, 'quote_ccy');
                 $base = $this->safe_currency_code($baseId);
                 $quote = $this->safe_currency_code($quoteId);
-                $settleId = ($subType === 1) ? 'USDT' : $baseId;
+                $settleId = ($subType === 'linear') ? 'USDT' : $baseId;
                 $settle = $this->safe_currency_code($settleId);
                 $symbol = $base . '/' . $quote . ':' . $settle;
                 $leveragesLength = count($leverages);
@@ -788,20 +783,20 @@ class coinex extends Exchange {
                     'swap' => true,
                     'future' => false,
                     'option' => false,
-                    'active' => $this->safe_value($entry, 'available'),
+                    'active' => null,
                     'contract' => true,
                     'linear' => $linear,
                     'inverse' => $inverse,
                     'taker' => $fees['trading']['taker'],
                     'maker' => $fees['trading']['maker'],
-                    'contractSize' => $this->safe_number($entry, 'multiplier'),
+                    'contractSize' => $this->parse_number('1'),
                     'expiry' => null,
                     'expiryDatetime' => null,
                     'strike' => null,
                     'optionType' => null,
                     'precision' => array(
-                        'amount' => $this->parse_number($this->parse_precision($this->safe_string($entry, 'amount_prec'))),
-                        'price' => $this->parse_number($this->parse_precision($this->safe_string($entry, 'money_prec'))),
+                        'amount' => $this->parse_number($this->parse_precision($this->safe_string($entry, 'base_ccy_precision'))),
+                        'price' => $this->parse_number($this->parse_precision($this->safe_string($entry, 'quote_ccy_precision'))),
                     ),
                     'limits' => array(
                         'leverage' => array(
@@ -809,7 +804,7 @@ class coinex extends Exchange {
                             'max' => $this->safe_number($leverages, $leveragesLength - 1),
                         ),
                         'amount' => array(
-                            'min' => $this->safe_number($entry, 'amount_min'),
+                            'min' => $this->safe_number($entry, 'min_amount'),
                             'max' => null,
                         ),
                         'price' => array(
