@@ -1123,12 +1123,12 @@ export default class bitflex extends Exchange {
         //         "accountIndex": 0
         //     },
         //
-        const requestedType = this.safeString(account, 'accountType').toString();
+        const requestedType = this.safeString (account, 'accountType');
         const accountsByType = this.safeDict (this.options, 'accountsByType');
         const type = this.safeString (accountsByType, requestedType);
         return {
-            'id': this.safeString(account, 'accountId'),
-            'name': this.safeString(account, 'accountName'),
+            'id': this.safeString (account, 'accountId'),
+            'name': this.safeString (account, 'accountName'),
             'type': type,
             'code': undefined,
             'info': account,
