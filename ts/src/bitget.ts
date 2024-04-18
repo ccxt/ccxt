@@ -8469,7 +8469,7 @@ export default class bitget extends Exchange {
         return this.parseConversion (data, undefined, toCurrency);
     }
 
-    async fetchConvertTradeHistory (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchConvertTradeHistory (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Conversion[]> {
         /**
          * @method
          * @name bitget#fetchConvertTradeHistory
