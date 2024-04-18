@@ -1276,13 +1276,23 @@ Historically various symbolic names have been used to designate same trading pai
 
 #### Notes On Naming Consistency
 
-Each exchange has an associative array of substitutions for cryptocurrency symbolic codes in the `exchange.commonCurrencies` property. Sometimes the user may notice exotic symbol names with mixed-case words and spaces in the code. The logic behind having these names is explained by the rules for resolving conflicts in naming and currency-coding when one or more currencies have the same symbolic code with different exchanges:
+Each exchange has an associative array of substitutions for cryptocurrency symbolic codes in the `exchange.commonCurrencies` property, like:
+```
+'commonCurrencies' : {
+    'XBT': 'BTC',
+    'OPTIMISM': 'OP',
+    // ... etc
+}
+```
+where key represents actual name how exchange engine refers to that coin, and the value represents what you want to refer to it with through ccxt.
+
+Sometimes the user may notice exotic symbol names with mixed-case words and spaces in the code. The logic behind having these names is explained by the rules for resolving conflicts in naming and currency-coding when one or more currencies have the same symbolic code with different exchanges:
 
 - First, we gather all info available from the exchanges themselves about the currency codes in question. They usually have a description of their coin listings somewhere in their API or their docs, knowledgebases or elsewhere on their websites.
 - When we identify each particular cryptocurrency standing behind the currency code, we look them up on [CoinMarketCap](https://coinmarketcap.com).
 - The currency that has the greatest market capitalization of all wins the currency code and keeps it. For example, HOT often stand for either `Holo` or `Hydro Protocol`. In this case `Holo` retains the code `HOT`, and `Hydro Protocol` will have its name as its code, literally, `Hydro Protocol`. So, there may be trading pairs with symbols like `HOT/USD` (for `Holo`) and `Hydro Protocol/USD` – those are two different markets.
 - If market cap of a particular coin is unknown or is not enough to determine the winner, we also take trading volumes and other factors into consideration.
-- When the winner is determined all other competing currencies get their code names properly remapped and substituted within conflicting exchanges via `.commonCurrencies`.
+- When the winner is determined all other competing currencies get their code names properly remapped and substituted within conflicting exchanges via `.commonCurrencies`. **Note, it should be defined before '.loadMarkets()' happens!**
 - Unfortunately this is a work in progress, because new currencies get listed daily and new exchanges are added from time to time, so, in general this is a never-ending process of self-correction in a quickly changing environment, practically, in *"live mode"*. We are thankful for all reported conflicts and mismatches you may find.
 
 #### Questions On Naming Consistency
@@ -1723,6 +1733,7 @@ The unified ccxt API is a subset of methods common among the exchanges. It curre
 - `fetchOption (symbol, params)`
 - `fetchOptionChain (code, params)`
 - `fetchConvertQuote (fromCode, toCode, amount, params)`
+- `createConvertTrade (id, fromCode, toCode, amount, params)`
 - ...
 
 ```text
@@ -6298,6 +6309,25 @@ fetchConvertQuote (fromCode, toCode, amount = undefined, params = {})
 
 Parameters
 
+- **fromCode** (String) *required* The unified currency code for the currency to convert from (e.g. `"USDT"`)
+- **toCode** (String) *required* The unified currency code for the currency to be converted into (e.g. `"USDC"`)
+- **amount** (Float) Amount to convert in units of the from currency (e.g. `20.0`)
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"toAmount": 2.9722}`)
+
+Returns
+
+- A [conversion structure](#conversion-structure)
+
+The `createConvertTrade` method can be used to create a conversion trade order using the id retrieved from fetchConvertQuote.
+The quote usually needs to be used within a certain timeframe specified by the exchange for the convert trade to execute successfully.
+
+```javascript
+createConvertTrade (id, fromCode, toCode, amount = undefined, params = {})
+```
+
+Parameters
+
+- **id** (String) *required* Conversion quote id (e.g. `1645807945000`)
 - **fromCode** (String) *required* The unified currency code for the currency to convert from (e.g. `"USDT"`)
 - **toCode** (String) *required* The unified currency code for the currency to be converted into (e.g. `"USDC"`)
 - **amount** (Float) Amount to convert in units of the from currency (e.g. `20.0`)

@@ -39,10 +39,10 @@ function run_tests {
     if [ -z "$rest_args" ] || { [ -n "$rest_args" ] && [ "$rest_args" != "skip" ]; }; then
       # shellcheck disable=SC2086
       if [ "$IS_PYJSPHP" == "TRUE" ]; then
-        npm run test-pyjsphp -- $rest_args &
+        npm run commonjs-test && ./package-test.sh && npm run test-pyjsphp --useProxy -- $rest_args &
       fi
       if [ "$IS_CSHARP" == "TRUE" ]; then
-        npm run test-cs -- $rest_args &
+        npm run test-cs --useProxy -- $rest_args &
       fi
       local rest_pid=$!
     fi

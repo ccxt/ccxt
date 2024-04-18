@@ -1197,10 +1197,10 @@ class kucoin extends kucoin$1 {
         //    }
         //
         const responses = await Promise.all(promises);
-        const currenciesResponse = this.safeValue(responses, 0, {});
-        const currenciesData = this.safeValue(currenciesResponse, 'data', []);
-        const additionalResponse = this.safeValue(responses, 1, {});
-        const additionalData = this.safeValue(additionalResponse, 'data', []);
+        const currenciesResponse = this.safeDict(responses, 0, {});
+        const currenciesData = this.safeList(currenciesResponse, 'data', []);
+        const additionalResponse = this.safeDict(responses, 1, {});
+        const additionalData = this.safeList(additionalResponse, 'data', []);
         const additionalDataGrouped = this.groupBy(additionalData, 'currency');
         const result = {};
         for (let i = 0; i < currenciesData.length; i++) {
@@ -1212,7 +1212,7 @@ class kucoin extends kucoin$1 {
             let isDepositEnabled = undefined;
             const networks = {};
             const chains = this.safeList(entry, 'chains', []);
-            const extraChainsData = this.indexBy(this.safeValue(additionalDataGrouped, id, []), 'chain');
+            const extraChainsData = this.indexBy(this.safeList(additionalDataGrouped, id, []), 'chain');
             const rawPrecision = this.safeString(entry, 'precision');
             const precision = this.parseNumber(this.parsePrecision(rawPrecision));
             const chainsLength = chains.length;
@@ -1353,7 +1353,7 @@ class kucoin extends kucoin$1 {
             request['chain'] = this.networkCodeToId(networkCode).toLowerCase();
         }
         const response = await this.privateGetWithdrawalsQuotas(this.extend(request, params));
-        const data = this.safeValue(response, 'data');
+        const data = this.safeDict(response, 'data', {});
         const withdrawFees = {};
         withdrawFees[code] = this.safeNumber(data, 'withdrawMinFee');
         return {
