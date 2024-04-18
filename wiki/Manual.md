@@ -1284,7 +1284,7 @@ Each exchange has an associative array of substitutions for cryptocurrency symbo
     // ... etc
 }
 ```
-where key represent exchange's existing name and the value represents what you want to refer to it with.
+where key represents actual name how exchange engine refers to that coin, and the value represents what you want to refer to it with through ccxt.
 
 Sometimes the user may notice exotic symbol names with mixed-case words and spaces in the code. The logic behind having these names is explained by the rules for resolving conflicts in naming and currency-coding when one or more currencies have the same symbolic code with different exchanges:
 
