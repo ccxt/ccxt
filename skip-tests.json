@@ -226,6 +226,9 @@
         "skipMethods": {
             "fetchCurrencies": {
                 "precision": "not provided"
+            },
+	    "fetchTrades": {
+                "side": "side is undefined"
             }
         }
     },
