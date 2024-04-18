@@ -76,6 +76,8 @@ export default class binance extends Exchange {
                 'fetchClosedOrders': 'emulated',
                 'fetchConvertCurrencies': true,
                 'fetchConvertQuote': false,
+                'fetchConvertTrade': true,
+                'fetchConvertTradeHistory': true,
                 'fetchCrossBorrowRate': true,
                 'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
@@ -12510,6 +12512,122 @@ export default class binance extends Exchange {
         return this.parseConversion (response, fromCurrency, toCurrency);
     }
 
+    async fetchConvertTrade (id: string, code: Str = undefined, params = {}) {
+        /**
+         * @method
+         * @name binance#fetchConvertTrade
+         * @description fetch the data for a conversion trade
+         * @see https://binance-docs.github.io/apidocs/spot/en/#busd-convert-history-user_data
+         * @param {string} id the id of the trade that you want to fetch
+         * @param {string} [code] the unified currency code of the conversion trade
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+         */
+        await this.loadMarkets ();
+        const msInDay = 86400000;
+        const now = this.milliseconds ();
+        const request = {
+            'tranId': this.parseToNumeric (id),
+            'startTime': now - msInDay,
+            'endTime': now,
+        };
+        if (code !== undefined) {
+            const currency = this.currency (code);
+            request['asset'] = currency['id'];
+        }
+        const response = await this.sapiGetAssetConvertTransferQueryByPage (this.extend (request, params));
+        //
+        //     {
+        //         "total": 3,
+        //         "rows": [
+        //             {
+        //                 "tranId": 118263615991,
+        //                 "type": 244,
+        //                 "time": 1664442078000,
+        //                 "deductedAsset": "BUSD",
+        //                 "deductedAmount": "1",
+        //                 "targetAsset": "USDC",
+        //                 "targetAmount": "1",
+        //                 "status": "S",
+        //                 "accountType": "MAIN"
+        //             },
+        //         ]
+        //     }
+        //
+        const rows = this.safeList (response, 'rows', []);
+        const data = this.safeDict (rows, 0, {});
+        const fromCurrencyId = this.safeString (data, 'deductedAsset');
+        const toCurrencyId = this.safeString (data, 'targetAsset');
+        let fromCurrency = undefined;
+        let toCurrency = undefined;
+        if (fromCurrencyId !== undefined) {
+            fromCurrency = this.currency (fromCurrencyId);
+        }
+        if (toCurrencyId !== undefined) {
+            toCurrency = this.currency (toCurrencyId);
+        }
+        return this.parseConversion (data, fromCurrency, toCurrency);
+    }
+
+    async fetchConvertTradeHistory (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        /**
+         * @method
+         * @name binance#fetchConvertTradeHistory
+         * @description fetch the users history of conversion trades
+         * @see https://binance-docs.github.io/apidocs/spot/en/#busd-convert-history-user_data
+         * @param {string} [code] the unified currency code
+         * @param {int} [since] the earliest time in ms to fetch conversions for
+         * @param {int} [limit] the maximum number of conversion structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {int} [params.until] timestamp in ms of the latest conversion to fetch
+         * @returns {object[]} a list of [conversion structures]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+         */
+        await this.loadMarkets ();
+        const request = {};
+        if (code !== undefined) {
+            const currency = this.currency (code);
+            request['asset'] = currency['id'];
+        }
+        const msInDay = 86400000;
+        const now = this.milliseconds ();
+        if (since !== undefined) {
+            request['startTime'] = since;
+        } else {
+            request['startTime'] = now - msInDay;
+        }
+        const endTime = this.safeString2 (params, 'endTime', 'until');
+        if (endTime !== undefined) {
+            request['endTime'] = endTime;
+        } else {
+            request['endTime'] = now;
+        }
+        if (limit !== undefined) {
+            request['size'] = limit;
+        }
+        params = this.omit (params, 'until');
+        const response = await this.sapiGetAssetConvertTransferQueryByPage (this.extend (request, params));
+        //
+        //     {
+        //         "total": 3,
+        //         "rows": [
+        //             {
+        //                 "tranId": 118263615991,
+        //                 "type": 244,
+        //                 "time": 1664442078000,
+        //                 "deductedAsset": "BUSD",
+        //                 "deductedAmount": "1",
+        //                 "targetAsset": "USDC",
+        //                 "targetAmount": "1",
+        //                 "status": "S",
+        //                 "accountType": "MAIN"
+        //             },
+        //         ]
+        //     }
+        //
+        const rows = this.safeList (response, 'rows', []);
+        return this.parseConversions (rows, 'deductedAsset', 'targetAsset', since, limit);
+    }
+
     parseConversion (conversion, fromCurrency: Currency = undefined, toCurrency: Currency = undefined): Conversion {
         //
         // createConvertTrade
@@ -12519,17 +12637,34 @@ export default class binance extends Exchange {
         //         "status": "S"
         //     }
         //
-        const fromCode = this.safeCurrencyCode (undefined, fromCurrency);
-        const toCode = this.safeCurrencyCode (undefined, toCurrency);
+        // fetchConvertTrade, fetchConvertTradeHistory
+        //
+        //     {
+        //         "tranId": 118263615991,
+        //         "type": 244,
+        //         "time": 1664442078000,
+        //         "deductedAsset": "BUSD",
+        //         "deductedAmount": "1",
+        //         "targetAsset": "USDC",
+        //         "targetAmount": "1",
+        //         "status": "S",
+        //         "accountType": "MAIN"
+        //     }
+        //
+        const timestamp = this.safeInteger (conversion, 'time');
+        const from = this.safeString (conversion, 'deductedAsset');
+        const fromCode = this.safeCurrencyCode (from, fromCurrency);
+        const to = this.safeString (conversion, 'targetAsset');
+        const toCode = this.safeCurrencyCode (to, toCurrency);
         return {
             'info': conversion,
-            'timestamp': undefined,
-            'datetime': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
             'id': this.safeString (conversion, 'tranId'),
             'fromCurrency': fromCode,
-            'fromAmount': undefined,
+            'fromAmount': this.safeNumber (conversion, 'deductedAmount'),
             'toCurrency': toCode,
-            'toAmount': undefined,
+            'toAmount': this.safeNumber (conversion, 'targetAmount'),
             'price': undefined,
             'fee': undefined,
         } as Conversion;
