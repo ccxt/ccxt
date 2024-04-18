@@ -1014,7 +1014,7 @@ export default class bitso extends Exchange {
         return await this.privateDeleteOrdersOid (this.extend (request, params));
     }
 
-    async cancelOrders (ids: string[], symbol: Str = undefined, params = {}) {
+    async cancelOrders (ids: string[], symbol: Str = undefined, params = {}): Promise<Order[]> 
         /**
          * @method
          * @name bitso#cancelOrders

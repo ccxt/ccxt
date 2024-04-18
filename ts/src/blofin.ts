@@ -1683,7 +1683,7 @@ export default class blofin extends Exchange {
         }
     }
 
-    async cancelOrders (ids: string[], symbol: Str = undefined, params = {}) {
+    async cancelOrders (ids: string[], symbol: Str = undefined, params = {}): Promise<Order[]> 
         /**
          * @method
          * @name blofin#cancelOrders

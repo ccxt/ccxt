@@ -1916,7 +1916,7 @@ export default class digifinex extends Exchange {
         return response;
     }
 
-    async cancelOrders (ids: string[], symbol: Str = undefined, params = {}) {
+    async cancelOrders (ids: string[], symbol: Str = undefined, params = {}): Promise<Order[]> 
         /**
          * @method
          * @name digifinex#cancelOrders

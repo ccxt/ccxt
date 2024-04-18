@@ -1410,7 +1410,7 @@ export default class cryptocom extends Exchange {
         return this.parseOrder (result, market);
     }
 
-    async cancelOrders (ids: string[], symbol: Str = undefined, params = {}) {
+    async cancelOrders (ids: string[], symbol: Str = undefined, params = {}): Promise<Order[]> 
         /**
          * @method
          * @name cryptocom#cancelOrders

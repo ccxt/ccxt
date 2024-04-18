@@ -3021,7 +3021,7 @@ export default class coinbase extends Exchange {
         return this.safeDict (orders, 0, {});
     }
 
-    async cancelOrders (ids: string[], symbol: Str = undefined, params = {}) {
+    async cancelOrders (ids: string[], symbol: Str = undefined, params = {}): Promise<Order[]> 
         /**
          * @method
          * @name coinbase#cancelOrders

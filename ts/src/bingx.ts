@@ -2674,7 +2674,7 @@ export default class bingx extends Exchange {
         return response;
     }
 
-    async cancelOrders (ids: string[], symbol: Str = undefined, params = {}) {
+    async cancelOrders (ids: string[], symbol: Str = undefined, params = {}): Promise<Order[]> 
         /**
          * @method
          * @name bingx#cancelOrders

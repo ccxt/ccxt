@@ -1045,7 +1045,7 @@ export default class kuna extends Exchange {
         return order;
     }
 
-    async cancelOrders (ids: string[], symbol: Str = undefined, params = {}) {
+    async cancelOrders (ids: string[], symbol: Str = undefined, params = {}): Promise<Order[]> 
         /**
          * @method
          * @name kuna#cancelOrder
