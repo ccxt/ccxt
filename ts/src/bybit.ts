@@ -8502,8 +8502,8 @@ export default class bybit extends Exchange {
         //    }
         //
         const result = this.safeDict (response, 'result');
-        const list = this.safeList (result, 'list');
-        const positions = this.parsePositions (list, symbols, params);
+        const rawPositions = this.safeList (result, 'list');
+        const positions = this.parsePositions (rawPositions, symbols, params);
         return this.filterBySinceLimit (positions, since, limit);
     }
 
