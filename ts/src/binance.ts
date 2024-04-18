@@ -12512,7 +12512,7 @@ export default class binance extends Exchange {
         return this.parseConversion (response, fromCurrency, toCurrency);
     }
 
-    async fetchConvertTrade (id: string, code: Str = undefined, params = {}) {
+    async fetchConvertTrade (id: string, code: Str = undefined, params = {}): Promise<Conversion> {
         /**
          * @method
          * @name binance#fetchConvertTrade
@@ -12569,7 +12569,7 @@ export default class binance extends Exchange {
         return this.parseConversion (data, fromCurrency, toCurrency);
     }
 
-    async fetchConvertTradeHistory (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchConvertTradeHistory (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Conversion[]> {
         /**
          * @method
          * @name binance#fetchConvertTradeHistory
