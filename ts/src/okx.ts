@@ -65,7 +65,7 @@ export default class okx extends Exchange {
                 'fetchClosedOrders': true,
                 'fetchConvertCurrencies': true,
                 'fetchConvertQuote': true,
-                'fetchConvertTrade': false,
+                'fetchConvertTrade': true,
                 'fetchConvertTradeHistory': true,
                 'fetchCrossBorrowRate': true,
                 'fetchCrossBorrowRates': true,
