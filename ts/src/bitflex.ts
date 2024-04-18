@@ -4,7 +4,7 @@
 import Exchange from './abstract/bitflex.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Currencies, Int, Market, OHLCV, OrderBook, Ticker, Tickers, Trade, Strings } from './base/types.js';
+import { Balances, Currencies, Int, Market, OHLCV, OrderBook, Ticker, Tickers, Trade, Strings } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1076,6 +1076,54 @@ export default class bitflex extends Exchange {
         //     ]
         //
         return this.parseTickers (response, symbols);
+    }
+
+    async fetchBalance (params = {}): Promise<Balances> {
+        /**
+         * @method
+         * @name bitflex#fetchBalance
+         * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @see https://docs.bitflex.com/spot#account-information
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+         */
+        await this.loadMarkets ();
+        const response = await this.privateGetOpenapiAccount (params);
+        //
+        //     {
+        //         "balances":
+        //             [
+        //                 {
+        //                     "asset": "USDT",
+        //                     "assetId": "USDT",
+        //                     "assetName": "USDT",
+        //                     "total": "149",
+        //                     "free": "149",
+        //                     "locked": "0"
+        //                 }
+        //             ]
+        //     }
+        //
+        return this.parseBalance (response);
+    }
+
+    parseBalance (response): Balances {
+        const balances = this.safeList (response, 'balances', []);
+        const result = {
+            'info': response,
+            'timestamp': undefined,
+            'datetime': undefined,
+        };
+        for (let i = 0; i < balances.length; i++) {
+            const balance = balances[i];
+            const currencyId = this.safeString (balance, 'asset');
+            const code = this.safeCurrencyCode (currencyId);
+            const account = this.account ();
+            account['free'] = this.safeString (balance, 'free');
+            account['used'] = this.safeString (balance, 'locked');
+            result[code] = account;
+        }
+        return this.safeBalance (result);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
