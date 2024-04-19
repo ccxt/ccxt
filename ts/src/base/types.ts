@@ -387,13 +387,13 @@ export interface TransferEntry {
     status?: Str;
 }
 
-export interface BorrowRate {
+export interface CrossBorrowRate {
+    info: any;
     currency?: Str;
-    rate?: number;
+    rate: number;
     period?: number;
     timestamp?: number;
     datetime?: Str;
-    info: any;
 }
 
 export interface IsolatedBorrowRate {

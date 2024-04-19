@@ -753,7 +753,7 @@ public struct DepositAddressResponse
     }
 }
 
-public struct BorrowRate
+public struct CrossBorrowRate
 {
     public string? currency;
     public double? rate;
@@ -761,14 +761,14 @@ public struct BorrowRate
     public string? datetime;
     public Dictionary<string, object> info;
 
-    public BorrowRate(object borrowRate)
+    public CrossBorrowRate(object crossBorrowRate)
     {
-        var borrowRate2 = (Dictionary<string, object>)borrowRate;
-        currency = Exchange.SafeString(borrowRate2, "currency");
-        rate = Exchange.SafeFloat(borrowRate2, "rate");
-        timestamp = Exchange.SafeInteger(borrowRate2, "timestamp");
-        datetime = Exchange.SafeString(borrowRate2, "datetime");
-        info = borrowRate2.ContainsKey("info") ? (Dictionary<string, object>)borrowRate2["info"] : null;
+        var crossBorrowRate2 = (Dictionary<string, object>)crossBorrowRate;
+        currency = Exchange.SafeString(crossBorrowRate2, "currency");
+        rate = Exchange.SafeFloat(crossBorrowRate2, "rate");
+        timestamp = Exchange.SafeInteger(crossBorrowRate2, "timestamp");
+        datetime = Exchange.SafeString(crossBorrowRate2, "datetime");
+        info = crossBorrowRate2.ContainsKey("info") ? (Dictionary<string, object>)crossBorrowRate2["info"] : null;
     }
 }
 

@@ -431,6 +431,15 @@ class MarginModification(TypedDict):
     datetime: Str
 
 
+class CrossBorrowRate(TypedDict):
+    info: Dict[str, any]
+    currency: Str
+    rate: float
+    period: Optional[float]
+    timestamp: Int
+    datetime: Str
+
+
 class IsolatedBorrowRate(TypedDict):
     info: Dict[str, any]
     symbol: str
