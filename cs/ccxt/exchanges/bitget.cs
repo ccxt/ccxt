@@ -30,6 +30,7 @@ public partial class bitget : Exchange
                 { "cancelOrders", true },
                 { "closeAllPositions", true },
                 { "closePosition", true },
+                { "createConvertTrade", true },
                 { "createDepositAddress", false },
                 { "createMarketBuyOrderWithCost", true },
                 { "createMarketOrderWithCost", false },
@@ -9156,8 +9157,8 @@ public partial class bitget : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {
-            { "fromCoin", ((string)fromCode).ToUpper() },
-            { "toCoin", ((string)toCode).ToUpper() },
+            { "fromCoin", fromCode },
+            { "toCoin", toCode },
             { "fromCoinSize", this.numberToString(amount) },
         };
         object response = await this.privateConvertGetV2ConvertQuotedPrice(this.extend(request, parameters));
@@ -9185,6 +9186,63 @@ public partial class bitget : Exchange
         return this.parseConversion(data, fromCurrency, toCurrency);
     }
 
+    public async virtual Task<object> createConvertTrade(object id, object fromCode, object toCode, object amount = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name bitget#createConvertTrade
+        * @description convert from one currency to another
+        * @see https://www.bitget.com/api-doc/common/convert/Trade
+        * @param {string} id the id of the trade that you want to make
+        * @param {string} fromCode the currency that you want to sell and convert from
+        * @param {string} toCode the currency that you want to buy and convert into
+        * @param {float} amount how much you want to trade in units of the from currency
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string} params.price the price of the conversion, obtained from fetchConvertQuote()
+        * @param {string} params.toAmount the amount you want to trade in units of the toCurrency, obtained from fetchConvertQuote()
+        * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object price = this.safeString2(parameters, "price", "cnvtPrice");
+        if (isTrue(isEqual(price, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " createConvertTrade() requires a price parameter")) ;
+        }
+        object toAmount = this.safeString2(parameters, "toAmount", "toCoinSize");
+        if (isTrue(isEqual(toAmount, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " createConvertTrade() requires a toAmount parameter")) ;
+        }
+        parameters = this.omit(parameters, new List<object>() {"price", "toAmount"});
+        object request = new Dictionary<string, object>() {
+            { "traceId", id },
+            { "fromCoin", fromCode },
+            { "toCoin", toCode },
+            { "fromCoinSize", this.numberToString(amount) },
+            { "toCoinSize", toAmount },
+            { "cnvtPrice", price },
+        };
+        object response = await this.privateConvertPostV2ConvertTrade(this.extend(request, parameters));
+        //
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1712123746203,
+        //         "data": {
+        //             "cnvtPrice": "0.99940076",
+        //             "toCoin": "USDC",
+        //             "toCoinSize": "4.99700379",
+        //             "ts": "1712123746217"
+        //         }
+        //     }
+        //
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        object toCurrencyId = this.safeString(data, "toCoin", toCode);
+        object toCurrency = this.currency(toCurrencyId);
+        return this.parseConversion(data, null, toCurrency);
+    }
+
     public override object parseConversion(object conversion, object fromCurrency = null, object toCurrency = null)
     {
         //
@@ -9198,6 +9256,15 @@ public partial class bitget : Exchange
         //         "toCoinSize": "4.99650394",
         //         "traceId": "1159288930228187140",
         //         "fee": "0"
+        //     }
+        //
+        // createConvertTrade
+        //
+        //     {
+        //         "cnvtPrice": "0.99940076",
+        //         "toCoin": "USDC",
+        //         "toCoinSize": "4.99700379",
+        //         "ts": "1712123746217"
         //     }
         //
         object timestamp = this.safeInteger(conversion, "ts");
