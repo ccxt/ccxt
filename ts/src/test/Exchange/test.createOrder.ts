@@ -10,7 +10,8 @@ function debugOutput (exchange, symbol, message) {
     // just for debugging purposes
     const debugCreateOrder = true;
     if (debugCreateOrder) {
-        console.log (' >>>>> testCreateOrder [' + exchange['id'].toString () + ' : ', symbol, '] ', message);
+        // for c# fix, extra step to convert them to string
+        console.log (' >>>>> testCreateOrder [', (exchange['id']).toString (), ' : ', symbol, '] ', message);
     }
 }
 // ----------------------------------------------------------------------------
