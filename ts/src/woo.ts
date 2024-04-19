@@ -101,6 +101,8 @@ export default class woo extends Exchange {
                 'fetchTransfers': true,
                 'fetchWithdrawals': true,
                 'reduceMargin': false,
+                'repayCrossMargin': true,
+                'repayIsolatedMargin': false,
                 'setLeverage': true,
                 'setMargin': false,
                 'setPositionMode': true,
@@ -2437,21 +2439,32 @@ export default class woo extends Exchange {
     async repayMargin (code: string, amount, symbol: Str = undefined, params = {}) {
         /**
          * @method
-         * @name woo#repayMargin
+         * @deprecated
+         * @name woo#repayCrossMargin
+         * @description *deprecated* use repayCrossMarginInstead
+         * @see https://docs.woo.org/#repay-interest
+         * @param {string} code unified currency code of the currency to repay
+         * @param {float} amount the amount to repay
+         * @param {string} symbol not used by woo.repayCrossMargin ()
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
+         */
+        return await this.repayCrossMargin (code, amount, params);
+    }
+
+    async repayCrossMargin (code: string, amount, params = {}) {
+        /**
+         * @method
+         * @name woo#repayCrossMargin
          * @description repay borrowed margin and interest
          * @see https://docs.woo.org/#repay-interest
          * @param {string} code unified currency code of the currency to repay
          * @param {float} amount the amount to repay
-         * @param {string} symbol not used by woo.repayMargin ()
+         * @param {string} symbol not used by woo.repayCrossMargin ()
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
          */
         await this.loadMarkets ();
-        let market: Market = undefined;
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-            symbol = market['symbol'];
-        }
         const currency = this.currency (code);
         const request = {
             'token': currency['id'], // interest token that you want to repay
@@ -2463,11 +2476,7 @@ export default class woo extends Exchange {
         //         "success": true,
         //     }
         //
-        const transaction = this.parseMarginLoan (response, currency);
-        return this.extend (transaction, {
-            'amount': amount,
-            'symbol': symbol,
-        });
+        return this.parseMarginLoan (response, currency);
     }
 
     parseMarginLoan (info, currency: Currency = undefined) {
