@@ -35,7 +35,7 @@
     "buildCS": "dotnet build cs/ccxt.sln",
     "buildCSRelease": "dotnet build cs --configuration Release",
     "csharp": "npm run transpileCS && npm run transpileCSWs && npm run buildCS",
-    "force-build-all": "npm runforce-build-pyjsphp && force-build-cs",
+    "force-build-all": "npm run force-build-pyjsphp && force-build-cs",
     "force-build-pyjsphp": "npm run pre-transpile && npm run force-transpile-fast && npm run post-transpile && npm run update-badges",
     "force-build-cs": "npm run pre-transpile-cs && npm run csharp",
     "build-docs": "node jsdoc2md.js && node examples2md.js",

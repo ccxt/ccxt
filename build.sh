@@ -79,7 +79,6 @@ build_and_test_all () {
   fi
   if [ "$IS_TRAVIS" = "TRUE" ]; then
     merged_pull_request="$(git show --format="%s" -s HEAD | sed -nE 's/Merge pull request #([0-9]{5}).+$/\1/p')"
-    echo "DEBUG: $merged_pull_request" # for debugging
     if [ -n "$merged_pull_request" ]; then
       echo "Travis is building merge commit #$merged_pull_request"
       # run every 3 merged pull requests
@@ -99,9 +98,6 @@ build_and_test_all () {
       #   fi
       #   cd  ..
       # fi
-    fi
-    if [ "$STAGE_DEPLOY" == "TRUE" ]; then
-      return
     fi
     if [ "$STAGE_PYJSPHP" == "TRUE" ]; then
       npm run test-base-pyjsphp
@@ -146,7 +142,7 @@ diff=$(echo "$diff" | sed -e "s/^ts\/src\/test\/static.*json//") #remove static 
 # diff=$(echo "$diff" | sed -e "s/python\/qa\.py//")
 #echo $diff 
 
-critical_pattern='Client(Trait)?\.php|Exchange\.php|\/base|^build|travis\.yml|static_dependencies|^run-tests|package(-lock)?\.json|composer\.json|ccxt\.ts|__init__.py|test' # add \/test|
+critical_pattern='Client(Trait)?\.php|Exchange\.php|\/base|build\.sh|^build|\.travis\.yml|static_dependencies|^run-tests|package(-lock)?\.json|composer\.json|ccxt\.ts|__init__.py|test' # add \/test|
 if [[ "$diff" =~ $critical_pattern ]]; then
   echo "$msgPrefix Important changes detected - doing full build & test"
   echo "$diff"
