@@ -1934,7 +1934,7 @@ export default class gate extends Exchange {
         //        "multichain_addresses": [
         //            {
         //                "chain": "XRP",
-        //                "address": "rHcFoo6a9qT5NHiVn1THQRhsEGcxtYCV4e",
+        //                "address": "rHcFoo6a9qT5NHiVn1THQRhsEGcxtYCV4d",
         //                "payment_id": "391331007",
         //                "payment_name": "Tag",
         //                "obtain_failed": 0
