@@ -1,3 +1,4 @@
+// @ts-nocheck
 /* asn1-1.0.13.js (c) 2013-2017 Kenji Urushima | kjur.github.com/jsrsasign/license
  */
 /*
@@ -39,7 +40,34 @@ import { YAHOO } from "./yahoo.js";
  * @name KJUR
  * @namespace kjur's class library name space
  */
-export var KJUR = {};
+
+// interface kjur_interface {
+//     asn1: {
+//         ASN1Object: any;
+//         ASN1Util: any;
+//         DERAbstractString: any;
+//         DERAbstractStructured: any;
+//         DERAbstractTime: any;
+//         DERBitString: any;
+//         DERBoolean: any;
+//         DEREnumerated: any;
+//         DERGeneralizedTime: any;
+//         DERIA5String: any;
+//         DERInteger: any;
+//         DERNull: any;
+//         DERNumericString: any;
+//         DERObjectIdentifier: any;
+//         DEROctetString: any;
+//         DERPrintableString: any;
+//         DERSequence: any;
+//         DERSet: any;
+//         DERTaggedObject: any;
+//         DERTeletexString: any;
+//         DERUTCTime: any;
+//         DERUTF8String: any;
+//     } 
+// };
+export var KJUR = {} as any;
 
 /**
  * kjur's ASN.1 class library name space
