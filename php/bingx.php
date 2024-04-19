@@ -381,7 +381,7 @@ class bingx extends Exchange {
                     '100400' => '\\ccxt\\BadRequest',
                     '100421' => '\\ccxt\\BadSymbol', // array("code":100421,"msg":"This pair is currently restricted from API trading","debugMsg":"")
                     '100440' => '\\ccxt\\ExchangeError',
-                    '100500' => '\\ccxt\\ExchangeError',
+                    '100500' => '\\ccxt\\ExchangeNotAvailable', // array("code":100500,"msg":"The current system is busy, please try again later","debugMsg":"")
                     '100503' => '\\ccxt\\ExchangeError',
                     '80001' => '\\ccxt\\BadRequest',
                     '80012' => '\\ccxt\\InsufficientFunds', // bingx array("code":80012,"msg":"array(\"Code\":101253,\"Msg\":\"margin is not enough\"))
@@ -3912,7 +3912,7 @@ class bingx extends Exchange {
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $request['symbol'] = $symbol;
+            $request['symbol'] = $market['id'];
         }
         if ($since !== null) {
             $request['startTime'] = $since;
