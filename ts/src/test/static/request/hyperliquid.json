@@ -726,7 +726,7 @@
                     }
                   ]
                 ],
-                "output": "{\"nonce\":1713523049140,\"action\":{\"type\":\"cancelByCloid\",\"cancels\":[{\"asset\":0,\"cloid\":\"0x1234567890abcdef1234567890abcded\"}]},\"signature\":{\"r\":\"0xa271d3d3d5dc27f6bfa2b63770c3bcb0f8610e832d0c7b2a4b7cff7f94f5301d\",\"s\":\"0x7986c12c100b8ac2ab8f63ac4a04d36f17e2c97b9341ad7519713ac5d5cf27f\",\"v\":27}}"
+                "output": "{\"nonce\":1713523049140,\"action\":{\"type\":\"cancelByCloid\",\"cancels\":[{\"asset\":5,\"cloid\":\"0x1234567890abcdef1234567890abcded\"}]},\"signature\":{\"r\":\"0xa271d3d3d5dc27f6bfa2b63770c3bcb0f8610e832d0c7b2a4b7cff7f94f5301d\",\"s\":\"0x7986c12c100b8ac2ab8f63ac4a04d36f17e2c97b9341ad7519713ac5d5cf27f\",\"v\":27}}"
             }
         ]
     }
