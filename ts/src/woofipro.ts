@@ -598,6 +598,123 @@ export default class woofipro extends Exchange {
         return result;
     }
 
+	parseTokenAndFeeTemp (item, feeTokenKey, feeAmountKey) {
+        const feeCost = this.safeString (item, feeAmountKey);
+        let fee = undefined;
+        if (feeCost !== undefined) {
+            const feeCurrencyId = this.safeString (item, feeTokenKey);
+            const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
+            fee = {
+                'cost': feeCost,
+                'currency': feeCurrencyCode,
+            };
+        }
+        return fee;
+    }
+
+	parseTrade (trade, market: Market = undefined): Trade {
+        //
+        // public/market_trades
+        //
+        //     {
+        //         "symbol": "SPOT_BTC_USDT",
+        //         "side": "SELL",
+        //         "executed_price": 46222.35,
+        //         "executed_quantity": 0.0012,
+        //         "executed_timestamp": "1683878609166"
+        //     }
+        //
+        // fetchOrderTrades, fetchOrder
+        //
+        //     {
+        //         "id": "99119876",
+        //         "symbol": "SPOT_WOO_USDT",
+        //         "fee": "0.0024",
+        //         "side": "BUY",
+        //         "executed_timestamp": "1641481113.084",
+        //         "order_id": "87001234",
+        //         "order_tag": "default", <-- this param only in "fetchOrderTrades"
+        //         "executed_price": "1",
+        //         "executed_quantity": "12",
+        //         "fee_asset": "WOO",
+        //         "is_maker": "1"
+        //     }
+        //
+        const isFromFetchOrder = ('id' in trade);
+        const timestamp = this.safeTimestamp (trade, 'executed_timestamp');
+        const marketId = this.safeString (trade, 'symbol');
+        market = this.safeMarket (marketId, market);
+        const symbol = market['symbol'];
+        const price = this.safeString (trade, 'executed_price');
+        const amount = this.safeString (trade, 'executed_quantity');
+        const order_id = this.safeString (trade, 'order_id');
+        const fee = this.parseTokenAndFeeTemp (trade, 'fee_asset', 'fee');
+        const cost = Precise.stringMul (price, amount);
+        const side = this.safeStringLower (trade, 'side');
+        const id = this.safeString (trade, 'id');
+        let takerOrMaker: Str = undefined;
+        if (isFromFetchOrder) {
+            const isMaker = this.safeString (trade, 'is_maker') === '1';
+            takerOrMaker = isMaker ? 'maker' : 'taker';
+        }
+        return this.safeTrade ({
+            'id': id,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': symbol,
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'order': order_id,
+            'takerOrMaker': takerOrMaker,
+            'type': undefined,
+            'fee': fee,
+            'info': trade,
+        }, market);
+    }
+
+	async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        /**
+         * @method
+         * @name woofipro#fetchTrades
+         * @description get the list of most recent trades for a particular symbol
+		 * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-market-trades
+         * @param {string} symbol unified symbol of the market to fetch trades for
+         * @param {int} [since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [limit] the maximum amount of trades to fetch
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.v1PublicGetPublicMarketTrades (this.extend (request, params));
+        //
+		// 	{
+		// 		"success": true,
+		// 		"timestamp": 1702989203989,
+		// 		"data": {
+		// 		  "rows": [{
+		// 			"symbol": "PERP_ETH_USDC",
+		// 			"side": "BUY",
+		// 			"executed_price": 2050,
+		// 			"executed_quantity": 1,
+		// 			"executed_timestamp": 1683878609166
+		// 		  }]
+		// 		}
+		// 	}
+        //
+        const data = this.safeDict (response, 'data', {});
+		const rows = this.safeList (data, 'rows', []);
+        return this.parseTrades (rows, market, since, limit);
+    }
+
     nonce () {
         return this.milliseconds ();
     }
