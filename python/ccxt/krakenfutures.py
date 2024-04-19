@@ -9,6 +9,7 @@ import hashlib
 from ccxt.base.types import Balances, Currency, Int, Leverage, Leverages, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InsufficientFunds
@@ -17,12 +18,11 @@ from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import OrderImmediatelyFillable
 from ccxt.base.errors import OrderNotFillable
 from ccxt.base.errors import DuplicateOrderId
+from ccxt.base.errors import ContractUnavailable
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import InvalidNonce
-from ccxt.base.errors import AuthenticationError
-from ccxt.base.errors import ContractUnavailable
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -363,7 +363,8 @@ class krakenfutures(Exchange, ImplicitAPI):
             # swap == perpetual
             settle = None
             settleId = None
-            amountPrecision = self.parse_number(self.parse_precision(self.safe_string(market, 'contractValueTradePrecision', '0')))
+            cvtp = self.safe_string(market, 'contractValueTradePrecision')
+            amountPrecision = self.parse_number(self.integer_precision_to_amount(cvtp))
             pricePrecision = self.safe_number(market, 'tickSize')
             contract = (swap or future or index)
             swapOrFutures = (swap or future)

@@ -636,7 +636,7 @@ class blockchaincom extends Exchange {
         );
     }
 
-    public function fetch_trading_fees($params = array ()) {
+    public function fetch_trading_fees($params = array ()): array {
         /**
          * fetch the trading fees for multiple markets
          * @see https://api.blockchain.com/v3/#/trading/getFees

@@ -10,12 +10,12 @@ from ccxt.base.types import Balances, Int, Order, OrderBook, Position, Str, Stri
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import InvalidNonce
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.precise import Precise
 
 
@@ -1627,6 +1627,8 @@ class bitget(ccxt.async_support.bitget):
             'ordersAlgo': self.handle_order,
             'account': self.handle_balance,
             'positions': self.handle_positions,
+            'account-isolated': self.handle_balance,
+            'account-crossed': self.handle_balance,
         }
         arg = self.safe_value(message, 'arg', {})
         topic = self.safe_value(arg, 'channel', '')

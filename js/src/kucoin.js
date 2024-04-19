@@ -76,6 +76,7 @@ export default class kucoin extends Exchange {
                 'fetchL3OrderBook': true,
                 'fetchLedger': true,
                 'fetchLeverageTiers': false,
+                'fetchMarginAdjustmentHistory': false,
                 'fetchMarginMode': false,
                 'fetchMarketLeverageTiers': false,
                 'fetchMarkets': true,
@@ -589,6 +590,8 @@ export default class kucoin extends Exchange {
                 'BIFI': 'BIFIF',
                 'VAI': 'VAIOT',
                 'WAX': 'WAXP',
+                'ALT': 'APTOSLAUNCHTOKEN',
+                'KALT': 'ALT', // ALTLAYER
             },
             'options': {
                 'version': 'v1',
@@ -1199,10 +1202,10 @@ export default class kucoin extends Exchange {
         //    }
         //
         const responses = await Promise.all(promises);
-        const currenciesResponse = this.safeValue(responses, 0, {});
-        const currenciesData = this.safeValue(currenciesResponse, 'data', []);
-        const additionalResponse = this.safeValue(responses, 1, {});
-        const additionalData = this.safeValue(additionalResponse, 'data', []);
+        const currenciesResponse = this.safeDict(responses, 0, {});
+        const currenciesData = this.safeList(currenciesResponse, 'data', []);
+        const additionalResponse = this.safeDict(responses, 1, {});
+        const additionalData = this.safeList(additionalResponse, 'data', []);
         const additionalDataGrouped = this.groupBy(additionalData, 'currency');
         const result = {};
         for (let i = 0; i < currenciesData.length; i++) {
@@ -1214,7 +1217,7 @@ export default class kucoin extends Exchange {
             let isDepositEnabled = undefined;
             const networks = {};
             const chains = this.safeList(entry, 'chains', []);
-            const extraChainsData = this.indexBy(this.safeValue(additionalDataGrouped, id, []), 'chain');
+            const extraChainsData = this.indexBy(this.safeList(additionalDataGrouped, id, []), 'chain');
             const rawPrecision = this.safeString(entry, 'precision');
             const precision = this.parseNumber(this.parsePrecision(rawPrecision));
             const chainsLength = chains.length;
@@ -1355,7 +1358,7 @@ export default class kucoin extends Exchange {
             request['chain'] = this.networkCodeToId(networkCode).toLowerCase();
         }
         const response = await this.privateGetWithdrawalsQuotas(this.extend(request, params));
-        const data = this.safeValue(response, 'data');
+        const data = this.safeDict(response, 'data', {});
         const withdrawFees = {};
         withdrawFees[code] = this.safeNumber(data, 'withdrawMinFee');
         return {
@@ -1809,7 +1812,7 @@ export default class kucoin extends Exchange {
         }
         let code = undefined;
         if (currency !== undefined) {
-            code = currency['id'];
+            code = this.safeCurrencyCode(currency['id']);
             if (code !== 'NIM') {
                 // contains spaces
                 this.checkAddress(address);
@@ -1859,7 +1862,7 @@ export default class kucoin extends Exchange {
         this.options['versions']['private']['GET']['deposit-addresses'] = version;
         const chains = this.safeList(response, 'data', []);
         const parsed = this.parseDepositAddresses(chains, [currency['code']], false, {
-            'currency': currency['id'],
+            'currency': currency['code'],
         });
         return this.indexBy(parsed, 'network');
     }
@@ -2973,7 +2976,7 @@ export default class kucoin extends Exchange {
          * @method
          * @name kucoin#fetchTrades
          * @description get the list of most recent trades for a particular symbol
-         * @see https://docs.kucoin.com/#get-trade-histories
+         * @see https://www.kucoin.com/docs/rest/spot-trading/market-data/get-trade-histories
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
@@ -3146,7 +3149,7 @@ export default class kucoin extends Exchange {
          * @method
          * @name kucoin#fetchTradingFee
          * @description fetch the trading fees for a market
-         * @see https://docs.kucoin.com/#actual-fee-rate-of-the-trading-pair
+         * @see https://www.kucoin.com/docs/rest/funding/trade-fee/trading-pair-actual-fee-spot-margin-trade_hf
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
@@ -3186,7 +3189,7 @@ export default class kucoin extends Exchange {
          * @method
          * @name kucoin#withdraw
          * @description make a withdrawal
-         * @see https://docs.kucoin.com/#apply-withdraw-2
+         * @see https://www.kucoin.com/docs/rest/funding/withdrawals/apply-withdraw
          * @param {string} code unified currency code
          * @param {float} amount the amount to withdraw
          * @param {string} address the address to withdraw to
@@ -3361,8 +3364,8 @@ export default class kucoin extends Exchange {
          * @method
          * @name kucoin#fetchDeposits
          * @description fetch all deposits made to an account
-         * @see https://docs.kucoin.com/#get-deposit-list
-         * @see https://docs.kucoin.com/#get-v1-historical-deposits-list
+         * @see https://www.kucoin.com/docs/rest/funding/deposit/get-deposit-list
+         * @see https://www.kucoin.com/docs/rest/funding/deposit/get-v1-historical-deposits-list
          * @param {string} code unified currency code
          * @param {int} [since] the earliest time in ms to fetch deposits for
          * @param {int} [limit] the maximum number of deposits structures to retrieve
@@ -3445,8 +3448,8 @@ export default class kucoin extends Exchange {
          * @method
          * @name kucoin#fetchWithdrawals
          * @description fetch all withdrawals made from an account
-         * @see https://docs.kucoin.com/#get-withdrawals-list
-         * @see https://docs.kucoin.com/#get-v1-historical-withdrawals-list
+         * @see https://www.kucoin.com/docs/rest/funding/withdrawals/get-withdrawals-list
+         * @see https://www.kucoin.com/docs/rest/funding/withdrawals/get-v1-historical-withdrawals-list
          * @param {string} code unified currency code
          * @param {int} [since] the earliest time in ms to fetch withdrawals for
          * @param {int} [limit] the maximum number of withdrawals structures to retrieve
@@ -3527,9 +3530,9 @@ export default class kucoin extends Exchange {
     }
     parseBalanceHelper(entry) {
         const account = this.account();
-        account['used'] = this.safeString(entry, 'holdBalance');
-        account['free'] = this.safeString(entry, 'availableBalance');
-        account['total'] = this.safeString(entry, 'totalBalance');
+        account['used'] = this.safeString2(entry, 'holdBalance', 'hold');
+        account['free'] = this.safeString2(entry, 'availableBalance', 'available');
+        account['total'] = this.safeString2(entry, 'totalBalance', 'total');
         const debt = this.safeString(entry, 'liability');
         const interest = this.safeString(entry, 'interest');
         account['debt'] = Precise.stringAdd(debt, interest);
@@ -3540,9 +3543,9 @@ export default class kucoin extends Exchange {
          * @method
          * @name kucoin#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @see https://docs.kucoin.com/#list-accounts
          * @see https://www.kucoin.com/docs/rest/account/basic-info/get-account-list-spot-margin-trade_hf
-         * @see https://docs.kucoin.com/#query-isolated-margin-account-info
+         * @see https://www.kucoin.com/docs/rest/funding/funding-overview/get-account-detail-margin
+         * @see https://www.kucoin.com/docs/rest/funding/funding-overview/get-account-detail-isolated-margin
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {object} [params.marginMode] 'cross' or 'isolated', margin type for fetching margin balance
          * @param {object} [params.type] extra parameters specific to the exchange API endpoint
@@ -3569,7 +3572,7 @@ export default class kucoin extends Exchange {
         let response = undefined;
         const request = {};
         const isolated = (marginMode === 'isolated') || (type === 'isolated');
-        const cross = (marginMode === 'cross') || (type === 'cross');
+        const cross = (marginMode === 'cross') || (type === 'margin');
         if (isolated) {
             if (currency !== undefined) {
                 request['balanceCurrency'] = currency['id'];
@@ -3587,7 +3590,7 @@ export default class kucoin extends Exchange {
             response = await this.privateGetAccounts(this.extend(request, query));
         }
         //
-        // Spot and Cross
+        // Spot
         //
         //    {
         //        "code": "200000",
@@ -3603,35 +3606,59 @@ export default class kucoin extends Exchange {
         //        ]
         //    }
         //
+        // Cross
+        //
+        //     {
+        //         "code": "200000",
+        //         "data": {
+        //             "debtRatio": "0",
+        //             "accounts": [
+        //                 {
+        //                     "currency": "USDT",
+        //                     "totalBalance": "5",
+        //                     "availableBalance": "5",
+        //                     "holdBalance": "0",
+        //                     "liability": "0",
+        //                     "maxBorrowSize": "20"
+        //                 },
+        //             ]
+        //         }
+        //     }
+        //
         // Isolated
         //
         //    {
         //        "code": "200000",
         //        "data": {
-        //            "totalConversionBalance": "0",
-        //            "liabilityConversionBalance": "0",
+        //            "totalAssetOfQuoteCurrency": "0",
+        //            "totalLiabilityOfQuoteCurrency": "0",
+        //            "timestamp": 1712085661155,
         //            "assets": [
         //                {
         //                    "symbol": "MANA-USDT",
-        //                    "status": "CLEAR",
+        //                    "status": "EFFECTIVE",
         //                    "debtRatio": "0",
         //                    "baseAsset": {
         //                        "currency": "MANA",
-        //                        "totalBalance": "0",
-        //                        "holdBalance": "0",
-        //                        "availableBalance": "0",
+        //                        "borrowEnabled": true,
+        //                        "transferInEnabled": true,
+        //                        "total": "0",
+        //                        "hold": "0",
+        //                        "available": "0",
         //                        "liability": "0",
         //                        "interest": "0",
-        //                        "borrowableAmount": "0"
+        //                        "maxBorrowSize": "0"
         //                    },
         //                    "quoteAsset": {
         //                        "currency": "USDT",
-        //                        "totalBalance": "0",
-        //                        "holdBalance": "0",
-        //                        "availableBalance": "0",
+        //                        "borrowEnabled": true,
+        //                        "transferInEnabled": true,
+        //                        "total": "0",
+        //                        "hold": "0",
+        //                        "available": "0",
         //                        "liability": "0",
         //                        "interest": "0",
-        //                        "borrowableAmount": "0"
+        //                        "maxBorrowSize": "0"
         //                    }
         //                },
         //                ...
@@ -3639,13 +3666,14 @@ export default class kucoin extends Exchange {
         //        }
         //    }
         //
-        const data = this.safeList(response, 'data', []);
+        let data = undefined;
         const result = {
             'info': response,
             'timestamp': undefined,
             'datetime': undefined,
         };
         if (isolated) {
+            data = this.safeDict(response, 'data', {});
             const assets = this.safeValue(data, 'assets', data);
             for (let i = 0; i < assets.length; i++) {
                 const entry = assets[i];
@@ -3662,6 +3690,7 @@ export default class kucoin extends Exchange {
             }
         }
         else if (cross) {
+            data = this.safeDict(response, 'data', {});
             const accounts = this.safeList(data, 'accounts', []);
             for (let i = 0; i < accounts.length; i++) {
                 const balance = accounts[i];
@@ -3671,6 +3700,7 @@ export default class kucoin extends Exchange {
             }
         }
         else {
+            data = this.safeList(response, 'data', []);
             for (let i = 0; i < data.length; i++) {
                 const balance = data[i];
                 const balanceType = this.safeString(balance, 'type');
@@ -3693,7 +3723,7 @@ export default class kucoin extends Exchange {
          * @method
          * @name kucoin#transfer
          * @description transfer currency internally between wallets on the same account
-         * @see https://docs.kucoin.com/#inner-transfer
+         * @see https://www.kucoin.com/docs/rest/funding/transfer/inner-transfer
          * @see https://docs.kucoin.com/futures/#transfer-funds-to-kucoin-main-account-2
          * @see https://docs.kucoin.com/spot-hf/#internal-funds-transfers-in-high-frequency-trading-accounts
          * @param {string} code unified currency code
@@ -3976,7 +4006,7 @@ export default class kucoin extends Exchange {
         /**
          * @method
          * @name kucoin#fetchLedger
-         * @see https://docs.kucoin.com/#get-account-ledgers
+         * @see https://www.kucoin.com/docs/rest/account/basic-info/get-account-ledgers-spot-margin
          * @see https://www.kucoin.com/docs/rest/account/basic-info/get-account-ledgers-trade_hf
          * @see https://www.kucoin.com/docs/rest/account/basic-info/get-account-ledgers-margin_hf
          * @description fetch the history of changes, actions done by the user or operations that altered balance of the user

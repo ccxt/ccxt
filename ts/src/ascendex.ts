@@ -2,11 +2,11 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/ascendex.js';
-import { ArgumentsRequired, AuthenticationError, ExchangeError, InsufficientFunds, InvalidOrder, BadSymbol, PermissionDenied, BadRequest, NotSupported } from './base/errors.js';
+import { ArgumentsRequired, AuthenticationError, ExchangeError, AccountSuspended, InsufficientFunds, InvalidOrder, BadSymbol, PermissionDenied, BadRequest, NotSupported } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { TransferEntry, FundingHistory, Int, OHLCV, Order, OrderSide, OrderType, OrderRequest, Str, Trade, Balances, Transaction, Ticker, OrderBook, Tickers, Strings, Num, Currency, Market, Leverage, Leverages, Account, MarginModes, MarginMode, MarginModification } from './base/types.js';
+import type { TransferEntry, FundingHistory, Int, OHLCV, Order, OrderSide, OrderType, OrderRequest, Str, Trade, Balances, Transaction, Ticker, OrderBook, Tickers, Strings, Num, Currency, Market, Leverage, Leverages, Account, MarginModes, MarginMode, MarginModification, Currencies, TradingFees } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -360,7 +360,7 @@ export default class ascendex extends Exchange {
                     '300013': InvalidOrder, // INVALID_BATCH_ORDER Some or all orders are invalid in batch order request
                     '300014': InvalidOrder, // {"code":300014,"message":"Order price doesn't conform to the required tick size: 0.1","reason":"TICK_SIZE_VIOLATION"}
                     '300020': InvalidOrder, // TRADING_RESTRICTED There is some trading restriction on account or asset
-                    '300021': InvalidOrder, // TRADING_DISABLED Trading is disabled on account or asset
+                    '300021': AccountSuspended, // {"code":300021,"message":"Trading disabled for this account.","reason":"TRADING_DISABLED"}
                     '300031': InvalidOrder, // NO_MARKET_PRICE No market price for market type order trading
                     '310001': InsufficientFunds, // INVALID_MARGIN_BALANCE No enough margin balance
                     '310002': InvalidOrder, // INVALID_MARGIN_ACCOUNT Not a valid account for margin trading
@@ -389,7 +389,7 @@ export default class ascendex extends Exchange {
         return this.capitalize (lowercaseAccount);
     }
 
-    async fetchCurrencies (params = {}) {
+    async fetchCurrencies (params = {}): Promise<Currencies> {
         /**
          * @method
          * @name ascendex#fetchCurrencies
@@ -1453,7 +1453,7 @@ export default class ascendex extends Exchange {
         }, market);
     }
 
-    async fetchTradingFees (params = {}) {
+    async fetchTradingFees (params = {}): Promise<TradingFees> {
         /**
          * @method
          * @name ascendex#fetchTradingFees
@@ -1498,6 +1498,8 @@ export default class ascendex extends Exchange {
                 'symbol': symbol,
                 'maker': this.safeNumber (takerMaker, 'maker'),
                 'taker': this.safeNumber (takerMaker, 'taker'),
+                'percentage': undefined,
+                'tierBased': undefined,
             };
         }
         return result;
@@ -2904,6 +2906,7 @@ export default class ascendex extends Exchange {
             'info': data,
             'symbol': market['symbol'],
             'type': undefined,
+            'marginMode': 'isolated',
             'amount': undefined,
             'total': undefined,
             'code': market['quote'],

@@ -20,7 +20,6 @@ Current feature list:
 
 
 ## Sponsored Promotion
-[![bitget](https://github.com/ccxt/ccxt/assets/43336371/71359af3-c78f-4077-a64c-ac0bfe1fa01c)](https://www.bitget.com/events/competition/86c98f96df155e6bb397e866dcd86afc?channelCode=ccxt&vipCode=tg9j)
 
 ## See Also
 
@@ -213,13 +212,13 @@ console.log(version, Object.keys(exchanges));
 
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
-* jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@4.2.87/dist/ccxt.browser.js
-* unpkg: https://unpkg.com/ccxt@4.2.87/dist/ccxt.browser.js
+* jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@4.3.1/dist/ccxt.browser.js
+* unpkg: https://unpkg.com/ccxt@4.3.1/dist/ccxt.browser.js
 
 CDNs are not updated in real-time and may have delays. Defaulting to the most recent version without specifying the version number is not recommended. Please, keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 ```HTML
-<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@4.2.87/dist/ccxt.browser.js"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@4.3.1/dist/ccxt.browser.js"></script>
 ```
 
 Creates a global `ccxt` object:

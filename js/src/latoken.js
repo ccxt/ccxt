@@ -878,6 +878,8 @@ export default class latoken extends Exchange {
             'symbol': market['symbol'],
             'maker': this.safeNumber(response, 'makerFee'),
             'taker': this.safeNumber(response, 'takerFee'),
+            'percentage': undefined,
+            'tierBased': undefined,
         };
     }
     async fetchPrivateTradingFee(symbol, params = {}) {
@@ -901,6 +903,8 @@ export default class latoken extends Exchange {
             'symbol': market['symbol'],
             'maker': this.safeNumber(response, 'makerFee'),
             'taker': this.safeNumber(response, 'takerFee'),
+            'percentage': undefined,
+            'tierBased': undefined,
         };
     }
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {

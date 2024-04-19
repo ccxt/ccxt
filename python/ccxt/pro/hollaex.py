@@ -9,9 +9,9 @@ import hashlib
 from ccxt.base.types import Balances, Int, Order, OrderBook, Str, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
-from ccxt.base.errors import AuthenticationError
 
 
 class hollaex(ccxt.async_support.hollaex):

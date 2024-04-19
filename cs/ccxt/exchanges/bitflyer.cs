@@ -538,6 +538,8 @@ public partial class bitflyer : Exchange
             { "symbol", getValue(market, "symbol") },
             { "maker", fee },
             { "taker", fee },
+            { "percentage", null },
+            { "tierBased", null },
         };
     }
 

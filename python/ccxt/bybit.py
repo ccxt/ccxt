@@ -6,12 +6,14 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.bybit import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, Greeks, Int, Leverage, Market, MarketInterface, Num, Option, OptionChain, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
+from ccxt.base.types import Balances, Currencies, Currency, Greeks, Int, Leverage, Market, MarketInterface, Num, Option, OptionChain, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
+from ccxt.base.errors import NoChange
 from ccxt.base.errors import MarginModeAlreadySet
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
@@ -20,8 +22,6 @@ from ccxt.base.errors import NotSupported
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import InvalidNonce
 from ccxt.base.errors import RequestTimeout
-from ccxt.base.errors import AuthenticationError
-from ccxt.base.errors import NoChange
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -95,6 +95,7 @@ class bybit(Exchange, ImplicitAPI):
                 'fetchLedger': True,
                 'fetchLeverage': True,
                 'fetchLeverageTiers': True,
+                'fetchMarginAdjustmentHistory': False,
                 'fetchMarketLeverageTiers': True,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': True,
@@ -164,6 +165,13 @@ class bybit(Exchange, ImplicitAPI):
                     'v2': 'https://api.{hostname}',
                     'public': 'https://api.{hostname}',
                     'private': 'https://api.{hostname}',
+                },
+                'demotrading': {
+                    'spot': 'https://api-demo.{hostname}',
+                    'futures': 'https://api-demo.{hostname}',
+                    'v2': 'https://api-demo.{hostname}',
+                    'public': 'https://api-demo.{hostname}',
+                    'private': 'https://api-demo.{hostname}',
                 },
                 'www': 'https://www.bybit.com',
                 'doc': [
@@ -353,6 +361,7 @@ class bybit(Exchange, ImplicitAPI):
                         'v5/user/get-member-type': 5,
                         'v5/user/aff-customer-info': 5,
                         'v5/user/del-submember': 5,
+                        'v5/user/submembers': 5,
                         # spot leverage token
                         'v5/spot-lever-token/order-record': 1,  # 50/s => cost = 50 / 50 = 1
                         # spot margin trade
@@ -375,6 +384,7 @@ class bybit(Exchange, ImplicitAPI):
                         'v5/broker/earning-record': 5,
                         'v5/broker/earnings-info': 5,
                         'v5/broker/account-info': 5,
+                        'v5/broker/asset/query-sub-member-deposit-record': 10,
                     },
                     'post': {
                         # Legacy option USDC
@@ -513,6 +523,8 @@ class bybit(Exchange, ImplicitAPI):
                         'v5/lending/redeem-cancel': 5,
                         'v5/account/set-collateral-switch': 5,
                         'v5/account/set-collateral-switch-batch': 5,
+                        # demo trading
+                        'v5/account/demo-apply-money': 5,
                     },
                 },
             },
@@ -979,6 +991,8 @@ class bybit(Exchange, ImplicitAPI):
             },
             'precisionMode': TICK_SIZE,
             'options': {
+                'sandboxMode': False,
+                'enableDemoTrading': False,
                 'fetchMarkets': ['spot', 'linear', 'inverse', 'option'],
                 'createOrder': {
                     'method': 'privatePostV5OrderCreate',  # 'privatePostV5PositionTradingStop'
@@ -1062,6 +1076,32 @@ class bybit(Exchange, ImplicitAPI):
             },
         })
 
+    def set_sandbox_mode(self, enable: bool):
+        """
+        enables or disables sandbox mode
+        :param boolean [enable]: True if demo trading should be enabled, False otherwise
+        """
+        super(bybit, self).set_sandbox_mode(enable)
+        self.options['sandboxMode'] = enable
+
+    def enable_demo_trading(self, enable: bool):
+        """
+        enables or disables demo trading mode
+        :see: https://bybit-exchange.github.io/docs/v5/demo
+        :param boolean [enable]: True if demo trading should be enabled, False otherwise
+        """
+        if self.options['sandboxMode']:
+            raise NotSupported(self.id + ' demo trading does not support in sandbox environment')
+        # enable demo trading in bybit, see: https://bybit-exchange.github.io/docs/v5/demo
+        if enable:
+            self.urls['apiBackupDemoTrading'] = self.urls['api']
+            self.urls['api'] = self.urls['demotrading']
+        elif 'apiBackupDemoTrading' in self.urls:
+            self.urls['api'] = self.urls['apiBackupDemoTrading']
+            newUrls = self.omit(self.urls, 'apiBackupDemoTrading')
+            self.urls = newUrls
+        self.options['enableDemoTrading'] = enable
+
     def nonce(self):
         return self.milliseconds() - self.options['timeDifference']
 
@@ -1077,12 +1117,21 @@ class bybit(Exchange, ImplicitAPI):
         return data
 
     def is_unified_enabled(self, params={}):
+        """
+        returns [enableUnifiedMargin, enableUnifiedAccount] so the user can check if unified account is enabled
+        """
         # The API key of user id must own one of permissions will be allowed to call following API endpoints.
         # SUB UID: "Account Transfer"
         # MASTER UID: "Account Transfer", "Subaccount Transfer", "Withdrawal"
         enableUnifiedMargin = self.safe_value(self.options, 'enableUnifiedMargin')
         enableUnifiedAccount = self.safe_value(self.options, 'enableUnifiedAccount')
         if enableUnifiedMargin is None or enableUnifiedAccount is None:
+            if self.options['enableDemoTrading']:
+                # info endpoint is not available in demo trading
+                # so we're assuming UTA is enabled
+                self.options['enableUnifiedMargin'] = False
+                self.options['enableUnifiedAccount'] = True
+                return [self.options['enableUnifiedMargin'], self.options['enableUnifiedAccount']]
             response = self.privateGetV5UserQueryApi(params)
             #
             #     {
@@ -1233,7 +1282,7 @@ class bybit(Exchange, ImplicitAPI):
         #
         return self.safe_integer(response, 'time')
 
-    def fetch_currencies(self, params={}):
+    def fetch_currencies(self, params={}) -> Currencies:
         """
         fetches all available currencies on an exchange
         :see: https://bybit-exchange.github.io/docs/v5/asset/coin-info
@@ -1241,6 +1290,8 @@ class bybit(Exchange, ImplicitAPI):
         :returns dict: an associative dictionary of currencies
         """
         if not self.check_required_credentials(False):
+            return None
+        if self.options['enableDemoTrading']:
             return None
         response = self.privateGetV5AssetCoinQueryInfo(params)
         #
@@ -4946,7 +4997,7 @@ class bybit(Exchange, ImplicitAPI):
         coin = self.safe_string(result, 'coin')
         currency = self.currency(coin)
         parsed = self.parse_deposit_addresses(chains, [currency['code']], False, {
-            'currency': currency['id'],
+            'currency': currency['code'],
         })
         return self.index_by(parsed, 'network')
 
@@ -6736,7 +6787,7 @@ class bybit(Exchange, ImplicitAPI):
         request['symbol'] = market['id']
         return self.fetch_derivatives_market_leverage_tiers(symbol, params)
 
-    def parse_trading_fee(self, fee, market: Market = None):
+    def parse_trading_fee(self, fee, market: Market = None) -> TradingFeeInterface:
         #
         #     {
         #         "symbol": "ETHUSDT",
@@ -6752,9 +6803,11 @@ class bybit(Exchange, ImplicitAPI):
             'symbol': symbol,
             'maker': self.safe_number(fee, 'makerFeeRate'),
             'taker': self.safe_number(fee, 'takerFeeRate'),
+            'percentage': None,
+            'tierBased': None,
         }
 
-    def fetch_trading_fee(self, symbol: str, params={}):
+    def fetch_trading_fee(self, symbol: str, params={}) -> TradingFeeInterface:
         """
         fetch the trading fees for a market
         :see: https://bybit-exchange.github.io/docs/v5/account/fee-rate
@@ -6800,7 +6853,7 @@ class bybit(Exchange, ImplicitAPI):
         first = self.safe_value(fees, 0, {})
         return self.parse_trading_fee(first, market)
 
-    def fetch_trading_fees(self, params={}):
+    def fetch_trading_fees(self, params={}) -> TradingFees:
         """
         fetch the trading fees for multiple markets
         :see: https://bybit-exchange.github.io/docs/v5/account/fee-rate
