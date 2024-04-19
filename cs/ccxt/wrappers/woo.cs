@@ -1166,6 +1166,33 @@ public partial class woo
         return new Conversion(res);
     }
     /// <summary>
+    /// convert from one currency to another
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.woo.org/#send-quote-rft"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>amount</term>
+    /// <description>
+    /// float : how much you want to trade in units of the from currency
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}.</returns>
+    public async Task<Conversion> CreateConvertTrade(string id, string fromCode, string toCode, double? amount2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var amount = amount2 == 0 ? null : (object)amount2;
+        var res = await this.createConvertTrade(id, fromCode, toCode, amount, parameters);
+        return new Conversion(res);
+    }
+    /// <summary>
     /// fetches all available currencies that can be converted
     /// </summary>
     /// <remarks>

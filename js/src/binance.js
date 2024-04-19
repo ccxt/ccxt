@@ -43,6 +43,7 @@ export default class binance extends Exchange {
                 'cancelOrders': true,
                 'closeAllPositions': false,
                 'closePosition': false,
+                'createConvertTrade': true,
                 'createDepositAddress': false,
                 'createLimitBuyOrder': true,
                 'createLimitSellOrder': true,
@@ -5799,7 +5800,7 @@ export default class binance extends Exchange {
                 response = await this.dapiPrivatePostOrder(request);
             }
         }
-        else if (marketType === 'margin' || marginMode !== undefined) {
+        else if (marketType === 'margin' || marginMode !== undefined || isPortfolioMargin) {
             if (isPortfolioMargin) {
                 response = await this.papiPostMarginOrder(request);
             }
@@ -5901,15 +5902,6 @@ export default class binance extends Exchange {
                 uppercaseType = market['contract'] ? 'TAKE_PROFIT' : 'TAKE_PROFIT_LIMIT';
             }
         }
-        if ((marketType === 'spot') || (marketType === 'margin')) {
-            request['newOrderRespType'] = this.safeString(this.options['newOrderRespType'], type, 'RESULT'); // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
-        }
-        else {
-            // swap, futures and options
-            if (!isPortfolioMargin) {
-                request['newOrderRespType'] = 'RESULT'; // "ACK", "RESULT", default "ACK"
-            }
-        }
         if (market['option']) {
             if (type === 'market') {
                 throw new InvalidOrder(this.id + ' ' + type + ' is not a valid order type for the ' + symbol + ' market');
@@ -5948,6 +5940,14 @@ export default class binance extends Exchange {
                     request['isIsolated'] = true;
                 }
             }
+        }
+        // handle newOrderRespType response type
+        if (((marketType === 'spot') || (marketType === 'margin')) && !isPortfolioMargin) {
+            request['newOrderRespType'] = this.safeString(this.options['newOrderRespType'], type, 'FULL'); // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
+        }
+        else {
+            // swap, futures and options
+            request['newOrderRespType'] = 'RESULT'; // "ACK", "RESULT", default "ACK"
         }
         const typeRequest = isPortfolioMarginConditional ? 'strategyType' : 'type';
         request[typeRequest] = uppercaseType;
@@ -6602,7 +6602,7 @@ export default class binance extends Exchange {
                 response = await this.dapiPrivateGetOpenOrders(this.extend(request, params));
             }
         }
-        else if (type === 'margin' || marginMode !== undefined) {
+        else if (type === 'margin' || marginMode !== undefined || isPortfolioMargin) {
             if (isPortfolioMargin) {
                 response = await this.papiGetMarginOpenOrders(this.extend(request, params));
             }
@@ -7103,7 +7103,7 @@ export default class binance extends Exchange {
                 response = await this.dapiPrivateDeleteAllOpenOrders(this.extend(request, params));
             }
         }
-        else if ((type === 'margin') || (marginMode !== undefined)) {
+        else if ((type === 'margin') || (marginMode !== undefined) || isPortfolioMargin) {
             if (isPortfolioMargin) {
                 response = await this.papiDeleteMarginAllOpenOrders(this.extend(request, params));
             }
@@ -12649,5 +12649,60 @@ export default class binance extends Exchange {
             };
         }
         return result;
+    }
+    async createConvertTrade(id, fromCode, toCode, amount = undefined, params = {}) {
+        /**
+         * @method
+         * @name binance#createConvertTrade
+         * @description convert from one currency to another
+         * @see https://binance-docs.github.io/apidocs/spot/en/#busd-convert-trade
+         * @param {string} id the id of the trade that you want to make
+         * @param {string} fromCode the currency that you want to sell and convert from
+         * @param {string} toCode the currency that you want to buy and convert into
+         * @param {float} [amount] how much you want to trade in units of the from currency
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+         */
+        await this.loadMarkets();
+        const request = {
+            'clientTranId': id,
+            'asset': fromCode,
+            'targetAsset': toCode,
+            'amount': amount,
+        };
+        const response = await this.sapiPostAssetConvertTransfer(this.extend(request, params));
+        //
+        //     {
+        //         "tranId": 118263407119,
+        //         "status": "S"
+        //     }
+        //
+        const fromCurrency = this.currency(fromCode);
+        const toCurrency = this.currency(toCode);
+        return this.parseConversion(response, fromCurrency, toCurrency);
+    }
+    parseConversion(conversion, fromCurrency = undefined, toCurrency = undefined) {
+        //
+        // createConvertTrade
+        //
+        //     {
+        //         "tranId": 118263407119,
+        //         "status": "S"
+        //     }
+        //
+        const fromCode = this.safeCurrencyCode(undefined, fromCurrency);
+        const toCode = this.safeCurrencyCode(undefined, toCurrency);
+        return {
+            'info': conversion,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'id': this.safeString(conversion, 'tranId'),
+            'fromCurrency': fromCode,
+            'fromAmount': undefined,
+            'toCurrency': toCode,
+            'toAmount': undefined,
+            'price': undefined,
+            'fee': undefined,
+        };
     }
 }

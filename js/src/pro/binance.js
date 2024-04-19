@@ -7,7 +7,7 @@
 // ----------------------------------------------------------------------------
 import binanceRest from '../binance.js';
 import { Precise } from '../base/Precise.js';
-import { ExchangeError, ArgumentsRequired, BadRequest, NotSupported } from '../base/errors.js';
+import { InvalidNonce, ArgumentsRequired, BadRequest, NotSupported } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import { rsa } from '../base/functions/rsa.js';
@@ -425,8 +425,11 @@ export default class binance extends binanceRest {
                             }
                         }
                         else {
-                            // todo: client.reject from handleOrderBookMessage properly
-                            throw new ExchangeError(this.id + ' handleOrderBook received an out-of-order nonce');
+                            const checksum = this.safeBool(this.options, 'checksum', true);
+                            if (checksum) {
+                                // todo: client.reject from handleOrderBookMessage properly
+                                throw new InvalidNonce(this.id + ' handleOrderBook received an out-of-order nonce');
+                            }
                         }
                     }
                 }
@@ -443,8 +446,11 @@ export default class binance extends binanceRest {
                             }
                         }
                         else {
-                            // todo: client.reject from handleOrderBookMessage properly
-                            throw new ExchangeError(this.id + ' handleOrderBook received an out-of-order nonce');
+                            const checksum = this.safeBool(this.options, 'checksum', true);
+                            if (checksum) {
+                                // todo: client.reject from handleOrderBookMessage properly
+                                throw new InvalidNonce(this.id + ' handleOrderBook received an out-of-order nonce');
+                            }
                         }
                     }
                 }

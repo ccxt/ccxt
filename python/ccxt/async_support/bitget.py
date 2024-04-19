@@ -11,6 +11,7 @@ import json
 from ccxt.base.types import Balances, Conversion, Currencies, Currency, FundingHistory, Int, Liquidation, Leverage, MarginMode, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import AccountSuspended
 from ccxt.base.errors import ArgumentsRequired
@@ -28,7 +29,6 @@ from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import InvalidNonce
 from ccxt.base.errors import RequestTimeout
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -59,6 +59,7 @@ class bitget(Exchange, ImplicitAPI):
                 'cancelOrders': True,
                 'closeAllPositions': True,
                 'closePosition': True,
+                'createConvertTrade': True,
                 'createDepositAddress': False,
                 'createMarketBuyOrderWithCost': True,
                 'createMarketOrderWithCost': False,
@@ -7867,8 +7868,8 @@ class bitget(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         request = {
-            'fromCoin': fromCode.upper(),
-            'toCoin': toCode.upper(),
+            'fromCoin': fromCode,
+            'toCoin': toCode,
             'fromCoinSize': self.number_to_string(amount),
         }
         response = await self.privateConvertGetV2ConvertQuotedPrice(self.extend(request, params))
@@ -7895,6 +7896,54 @@ class bitget(Exchange, ImplicitAPI):
         toCurrency = self.currency(toCurrencyId)
         return self.parse_conversion(data, fromCurrency, toCurrency)
 
+    async def create_convert_trade(self, id: str, fromCode: str, toCode: str, amount: Num = None, params={}) -> Conversion:
+        """
+        convert from one currency to another
+        :see: https://www.bitget.com/api-doc/common/convert/Trade
+        :param str id: the id of the trade that you want to make
+        :param str fromCode: the currency that you want to sell and convert from
+        :param str toCode: the currency that you want to buy and convert into
+        :param float amount: how much you want to trade in units of the from currency
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str params['price']: the price of the conversion, obtained from fetchConvertQuote()
+        :param str params['toAmount']: the amount you want to trade in units of the toCurrency, obtained from fetchConvertQuote()
+        :returns dict: a `conversion structure <https://docs.ccxt.com/#/?id=conversion-structure>`
+        """
+        await self.load_markets()
+        price = self.safe_string_2(params, 'price', 'cnvtPrice')
+        if price is None:
+            raise ArgumentsRequired(self.id + ' createConvertTrade() requires a price parameter')
+        toAmount = self.safe_string_2(params, 'toAmount', 'toCoinSize')
+        if toAmount is None:
+            raise ArgumentsRequired(self.id + ' createConvertTrade() requires a toAmount parameter')
+        params = self.omit(params, ['price', 'toAmount'])
+        request = {
+            'traceId': id,
+            'fromCoin': fromCode,
+            'toCoin': toCode,
+            'fromCoinSize': self.number_to_string(amount),
+            'toCoinSize': toAmount,
+            'cnvtPrice': price,
+        }
+        response = await self.privateConvertPostV2ConvertTrade(self.extend(request, params))
+        #
+        #     {
+        #         "code": "00000",
+        #         "msg": "success",
+        #         "requestTime": 1712123746203,
+        #         "data": {
+        #             "cnvtPrice": "0.99940076",
+        #             "toCoin": "USDC",
+        #             "toCoinSize": "4.99700379",
+        #             "ts": "1712123746217"
+        #         }
+        #     }
+        #
+        data = self.safe_dict(response, 'data', {})
+        toCurrencyId = self.safe_string(data, 'toCoin', toCode)
+        toCurrency = self.currency(toCurrencyId)
+        return self.parse_conversion(data, None, toCurrency)
+
     def parse_conversion(self, conversion, fromCurrency: Currency = None, toCurrency: Currency = None) -> Conversion:
         #
         # fetchConvertQuote
@@ -7907,6 +7956,15 @@ class bitget(Exchange, ImplicitAPI):
         #         "toCoinSize": "4.99650394",
         #         "traceId": "1159288930228187140",
         #         "fee": "0"
+        #     }
+        #
+        # createConvertTrade
+        #
+        #     {
+        #         "cnvtPrice": "0.99940076",
+        #         "toCoin": "USDC",
+        #         "toCoinSize": "4.99700379",
+        #         "ts": "1712123746217"
         #     }
         #
         timestamp = self.safe_integer(conversion, 'ts')

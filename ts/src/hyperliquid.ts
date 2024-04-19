@@ -2,13 +2,13 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/hyperliquid.js';
-import { ExchangeError, ArgumentsRequired, NotSupported, InvalidOrder, OrderNotFound } from './base/errors.js';
+import { ExchangeError, ArgumentsRequired, NotSupported, InvalidOrder, OrderNotFound, BadRequest } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE, ROUND, SIGNIFICANT_DIGITS, DECIMAL_PLACES } from './base/functions/number.js';
 import { keccak_256 as keccak } from './static_dependencies/noble-hashes/sha3.js';
 import { secp256k1 } from './static_dependencies/noble-curves/secp256k1.js';
 import { ecdsa } from './base/functions/crypto.js';
-import type { Market, TransferEntry, Balances, Int, OrderBook, OHLCV, Str, FundingRateHistory, Order, OrderType, OrderSide, Trade, Strings, Position, OrderRequest, Dict, Num, MarginModification, Currencies } from './base/types.js';
+import type { Market, TransferEntry, Balances, Int, OrderBook, OHLCV, Str, FundingRateHistory, Order, OrderType, OrderSide, Trade, Strings, Position, OrderRequest, Dict, Num, MarginModification, Currencies, CancellationRequest } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -39,6 +39,7 @@ export default class hyperliquid extends Exchange {
                 'cancelAllOrders': false,
                 'cancelOrder': true,
                 'cancelOrders': true,
+                'cancelOrdersForSymbols': true,
                 'closeAllPositions': false,
                 'closePosition': false,
                 'createMarketBuyOrderWithCost': false,
@@ -1221,6 +1222,80 @@ export default class hyperliquid extends Exchange {
                 });
             }
         }
+        cancelAction['cancels'] = cancelReq;
+        const vaultAddress = this.formatVaultAddress (this.safeString (params, 'vaultAddress'));
+        const signature = this.signL1Action (cancelAction, nonce, vaultAddress);
+        request['action'] = cancelAction;
+        request['signature'] = signature;
+        if (vaultAddress !== undefined) {
+            params = this.omit (params, 'vaultAddress');
+            request['vaultAddress'] = vaultAddress;
+        }
+        const response = await this.privatePostExchange (this.extend (request, params));
+        //
+        //     {
+        //         "status":"ok",
+        //         "response":{
+        //             "type":"cancel",
+        //             "data":{
+        //                 "statuses":[
+        //                     "success"
+        //                 ]
+        //             }
+        //         }
+        //     }
+        //
+        return response;
+    }
+
+    async cancelOrdersForSymbols (orders: CancellationRequest[], params = {}) {
+        /**
+         * @method
+         * @name hyperliquid#cancelOrdersForSymbols
+         * @description cancel multiple orders for multiple symbols
+         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#cancel-order-s
+         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#cancel-order-s-by-cloid
+         * @param {CancellationRequest[]} orders each order should contain the parameters required by cancelOrder namely id and symbol
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.vaultAddress] the vault address
+         * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        this.checkRequiredCredentials ();
+        await this.loadMarkets ();
+        const nonce = this.milliseconds ();
+        const request = {
+            'nonce': nonce,
+            // 'vaultAddress': vaultAddress,
+        };
+        const cancelReq = [];
+        const cancelAction = {
+            'type': '',
+            'cancels': [],
+        };
+        let cancelByCloid = false;
+        for (let i = 0; i < orders.length; i++) {
+            const order = orders[i];
+            const clientOrderId = this.safeString (order, 'clientOrderId');
+            if (clientOrderId !== undefined) {
+                cancelByCloid = true;
+            }
+            const id = this.safeString (order, 'id');
+            const symbol = this.safeString (order, 'symbol');
+            if (symbol === undefined) {
+                throw new ArgumentsRequired (this.id + ' cancelOrdersForSymbols() requires a symbol argument in each order');
+            }
+            if (id !== undefined && cancelByCloid) {
+                throw new BadRequest (this.id + ' cancelOrdersForSymbols() all orders must have either id or clientOrderId');
+            }
+            const assetKey = cancelByCloid ? 'asset' : 'a';
+            const idKey = cancelByCloid ? 'cloid' : 'o';
+            const market = this.market (symbol);
+            const cancelObj = {};
+            cancelObj[assetKey] = this.parseToNumeric (market['baseId']);
+            cancelObj[idKey] = this.parseToNumeric (id);
+            cancelReq.push (cancelObj);
+        }
+        cancelAction['type'] = cancelByCloid ? 'cancelByCloid' : 'cancel';
         cancelAction['cancels'] = cancelReq;
         const vaultAddress = this.formatVaultAddress (this.safeString (params, 'vaultAddress'));
         const signature = this.signL1Action (cancelAction, nonce, vaultAddress);

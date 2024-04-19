@@ -12,6 +12,7 @@ import json
 from ccxt.base.types import Account, Balances, Currencies, Currency, Int, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import AccountSuspended
 from ccxt.base.errors import ArgumentsRequired
@@ -25,7 +26,6 @@ from ccxt.base.errors import NotSupported
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import InvalidNonce
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TRUNCATE
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
@@ -1207,10 +1207,10 @@ class kucoin(Exchange, ImplicitAPI):
         #    }
         #
         responses = await asyncio.gather(*promises)
-        currenciesResponse = self.safe_value(responses, 0, {})
-        currenciesData = self.safe_value(currenciesResponse, 'data', [])
-        additionalResponse = self.safe_value(responses, 1, {})
-        additionalData = self.safe_value(additionalResponse, 'data', [])
+        currenciesResponse = self.safe_dict(responses, 0, {})
+        currenciesData = self.safe_list(currenciesResponse, 'data', [])
+        additionalResponse = self.safe_dict(responses, 1, {})
+        additionalData = self.safe_list(additionalResponse, 'data', [])
         additionalDataGrouped = self.group_by(additionalData, 'currency')
         result = {}
         for i in range(0, len(currenciesData)):
@@ -1222,7 +1222,7 @@ class kucoin(Exchange, ImplicitAPI):
             isDepositEnabled = None
             networks = {}
             chains = self.safe_list(entry, 'chains', [])
-            extraChainsData = self.index_by(self.safe_value(additionalDataGrouped, id, []), 'chain')
+            extraChainsData = self.index_by(self.safe_list(additionalDataGrouped, id, []), 'chain')
             rawPrecision = self.safe_string(entry, 'precision')
             precision = self.parse_number(self.parse_precision(rawPrecision))
             chainsLength = len(chains)
@@ -1350,7 +1350,7 @@ class kucoin(Exchange, ImplicitAPI):
         if networkCode is not None:
             request['chain'] = self.network_code_to_id(networkCode).lower()
         response = await self.privateGetWithdrawalsQuotas(self.extend(request, params))
-        data = self.safe_value(response, 'data')
+        data = self.safe_dict(response, 'data', {})
         withdrawFees = {}
         withdrawFees[code] = self.safe_number(data, 'withdrawMinFee')
         return {

@@ -144,6 +144,7 @@ export interface OrderBook {
     datetime: Str;
     timestamp: Int;
     nonce: Int;
+    symbol: Str;
 }
 
 export interface Ticker {
@@ -431,6 +432,12 @@ export interface OrderRequest {
     amount?: number;
     price?: number | undefined;
     params?: any;
+}
+
+export interface CancellationRequest {
+    id: string;
+    clientOrderId?: string;
+    symbol: string;
 }
 
 export interface FundingHistory {

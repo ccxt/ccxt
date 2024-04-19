@@ -851,7 +851,11 @@ class poloniexfutures extends poloniexfutures$1 {
         const sequence = this.safeInteger(delta, 'sequence');
         const nonce = this.safeInteger(orderbook, 'nonce');
         if (nonce !== sequence - 1) {
-            throw new errors.ExchangeError(this.id + ' watchOrderBook received an out-of-order nonce');
+            const checksum = this.safeBool(this.options, 'checksum', true);
+            if (checksum) {
+                // todo: client.reject from handleOrderBookMessage properly
+                throw new errors.InvalidNonce(this.id + ' watchOrderBook received an out-of-order nonce');
+            }
         }
         const change = this.safeString(delta, 'change');
         const splitChange = change.split(',');

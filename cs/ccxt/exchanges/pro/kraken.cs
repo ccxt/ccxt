@@ -132,7 +132,7 @@ public partial class kraken : ccxt.kraken
             { "pair", getValue(market, "wsId") },
             { "volume", this.amountToPrecision(symbol, amount) },
         };
-        var requestparametersVariable = this.orderRequest("createOrderWs()", symbol, type, request, price, parameters);
+        var requestparametersVariable = this.orderRequest("createOrderWs", symbol, type, request, price, parameters);
         request = ((IList<object>)requestparametersVariable)[0];
         parameters = ((IList<object>)requestparametersVariable)[1];
         return await this.watch(url, messageHash, this.extend(request, parameters), messageHash);
@@ -195,7 +195,7 @@ public partial class kraken : ccxt.kraken
             { "pair", getValue(market, "wsId") },
             { "volume", this.amountToPrecision(symbol, amount) },
         };
-        var requestparametersVariable = this.orderRequest("editOrderWs()", symbol, type, request, price, parameters);
+        var requestparametersVariable = this.orderRequest("editOrderWs", symbol, type, request, price, parameters);
         request = ((IList<object>)requestparametersVariable)[0];
         parameters = ((IList<object>)requestparametersVariable)[1];
         return await this.watch(url, messageHash, this.extend(request, parameters), messageHash);

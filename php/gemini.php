@@ -282,7 +282,13 @@ class gemini extends Exchange {
                     'ATOM' => 'cosmos',
                     'DOT' => 'polkadot',
                 ),
-                'nonce' => 'milliseconds', // if getting a Network 400 error change to seconds
+                'nonce' => 'milliseconds', // if getting a Network 400 error change to seconds,
+                'conflictingMarkets' => array(
+                    'paxgusd' => array(
+                        'base' => 'PAXG',
+                        'quote' => 'USD',
+                    ),
+                ),
             ),
         ));
     }
@@ -674,16 +680,28 @@ class gemini extends Exchange {
             $marketIdUpper = strtoupper($marketId);
             $isPerp = (mb_strpos($marketIdUpper, 'PERP') !== false);
             $marketIdWithoutPerp = str_replace('PERP', '', $marketIdUpper);
-            $quoteQurrencies = $this->handle_option('fetchMarketsFromAPI', 'quoteCurrencies', array());
-            for ($i = 0; $i < count($quoteQurrencies); $i++) {
-                $quoteCurrency = $quoteQurrencies[$i];
-                if (str_ends_with($marketIdWithoutPerp, $quoteCurrency)) {
-                    $baseId = str_replace($quoteCurrency, '', $marketIdWithoutPerp);
-                    $quoteId = $quoteCurrency;
-                    if ($isPerp) {
-                        $settleId = $quoteCurrency; // always same
+            $conflictingMarkets = $this->safe_dict($this->options, 'conflictingMarkets', array());
+            $lowerCaseId = strtolower($marketIdWithoutPerp);
+            if (is_array($conflictingMarkets) && array_key_exists($lowerCaseId, $conflictingMarkets)) {
+                $conflictingMarket = $conflictingMarkets[$lowerCaseId];
+                $baseId = $conflictingMarket['base'];
+                $quoteId = $conflictingMarket['quote'];
+                if ($isPerp) {
+                    $settleId = $conflictingMarket['quote'];
+                }
+            } else {
+                $quoteCurrencies = $this->handle_option('fetchMarketsFromAPI', 'quoteCurrencies', array());
+                for ($i = 0; $i < count($quoteCurrencies); $i++) {
+                    $quoteCurrency = $quoteCurrencies[$i];
+                    if (str_ends_with($marketIdWithoutPerp, $quoteCurrency)) {
+                        $quoteLength = $this->parse_to_int(-1 * strlen($quoteCurrency));
+                        $baseId = mb_substr($marketIdWithoutPerp, 0, $quoteLength - 0);
+                        $quoteId = $quoteCurrency;
+                        if ($isPerp) {
+                            $settleId = $quoteCurrency; // always same
+                        }
+                        break;
                     }
-                    break;
                 }
             }
         }

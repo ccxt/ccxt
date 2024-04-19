@@ -39,6 +39,7 @@ export default class bitget extends Exchange {
                 'cancelOrders': true,
                 'closeAllPositions': true,
                 'closePosition': true,
+                'createConvertTrade': true,
                 'createDepositAddress': false,
                 'createMarketBuyOrderWithCost': true,
                 'createMarketOrderWithCost': false,
@@ -8384,8 +8385,8 @@ export default class bitget extends Exchange {
          */
         await this.loadMarkets ();
         const request = {
-            'fromCoin': fromCode.toUpperCase (),
-            'toCoin': toCode.toUpperCase (),
+            'fromCoin': fromCode,
+            'toCoin': toCode,
             'fromCoinSize': this.numberToString (amount),
         };
         const response = await this.privateConvertGetV2ConvertQuotedPrice (this.extend (request, params));
@@ -8413,6 +8414,59 @@ export default class bitget extends Exchange {
         return this.parseConversion (data, fromCurrency, toCurrency);
     }
 
+    async createConvertTrade (id: string, fromCode: string, toCode: string, amount: Num = undefined, params = {}): Promise<Conversion> {
+        /**
+         * @method
+         * @name bitget#createConvertTrade
+         * @description convert from one currency to another
+         * @see https://www.bitget.com/api-doc/common/convert/Trade
+         * @param {string} id the id of the trade that you want to make
+         * @param {string} fromCode the currency that you want to sell and convert from
+         * @param {string} toCode the currency that you want to buy and convert into
+         * @param {float} amount how much you want to trade in units of the from currency
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} params.price the price of the conversion, obtained from fetchConvertQuote()
+         * @param {string} params.toAmount the amount you want to trade in units of the toCurrency, obtained from fetchConvertQuote()
+         * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+         */
+        await this.loadMarkets ();
+        const price = this.safeString2 (params, 'price', 'cnvtPrice');
+        if (price === undefined) {
+            throw new ArgumentsRequired (this.id + ' createConvertTrade() requires a price parameter');
+        }
+        const toAmount = this.safeString2 (params, 'toAmount', 'toCoinSize');
+        if (toAmount === undefined) {
+            throw new ArgumentsRequired (this.id + ' createConvertTrade() requires a toAmount parameter');
+        }
+        params = this.omit (params, [ 'price', 'toAmount' ]);
+        const request = {
+            'traceId': id,
+            'fromCoin': fromCode,
+            'toCoin': toCode,
+            'fromCoinSize': this.numberToString (amount),
+            'toCoinSize': toAmount,
+            'cnvtPrice': price,
+        };
+        const response = await this.privateConvertPostV2ConvertTrade (this.extend (request, params));
+        //
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1712123746203,
+        //         "data": {
+        //             "cnvtPrice": "0.99940076",
+        //             "toCoin": "USDC",
+        //             "toCoinSize": "4.99700379",
+        //             "ts": "1712123746217"
+        //         }
+        //     }
+        //
+        const data = this.safeDict (response, 'data', {});
+        const toCurrencyId = this.safeString (data, 'toCoin', toCode);
+        const toCurrency = this.currency (toCurrencyId);
+        return this.parseConversion (data, undefined, toCurrency);
+    }
+
     parseConversion (conversion, fromCurrency: Currency = undefined, toCurrency: Currency = undefined): Conversion {
         //
         // fetchConvertQuote
@@ -8425,6 +8479,15 @@ export default class bitget extends Exchange {
         //         "toCoinSize": "4.99650394",
         //         "traceId": "1159288930228187140",
         //         "fee": "0"
+        //     }
+        //
+        // createConvertTrade
+        //
+        //     {
+        //         "cnvtPrice": "0.99940076",
+        //         "toCoin": "USDC",
+        //         "toCoinSize": "4.99700379",
+        //         "ts": "1712123746217"
         //     }
         //
         const timestamp = this.safeInteger (conversion, 'ts');
@@ -8517,6 +8580,8 @@ export default class bitget extends Exchange {
         //
         // spot
         //
+        //     {"code":"00000","msg":"success","requestTime":1713294492511,"data":[...]}"
+        //
         //     {"status":"fail","err_code":"01001","err_msg":"系统异常，请稍后重试"}
         //     {"status":"error","ts":1595594160149,"err_code":"invalid-parameter","err_msg":"invalid size, valid range: [1,2000]"}
         //     {"status":"error","ts":1595684716042,"err_code":"invalid-parameter","err_msg":"illegal sign invalid"}
@@ -8538,14 +8603,14 @@ export default class bitget extends Exchange {
         //     {"code":"40108","msg":"","requestTime":1595885064600,"data":null}
         //     {"order_id":"513468410013679613","client_oid":null,"symbol":"ethusd","result":false,"err_code":"order_no_exist_error","err_msg":"订单不存在！"}
         //
-        const message = this.safeString (response, 'err_msg');
-        const errorCode = this.safeString2 (response, 'code', 'err_code');
+        const message = this.safeString2 (response, 'err_msg', 'msg');
         const feedback = this.id + ' ' + body;
-        const nonEmptyMessage = ((message !== undefined) && (message !== ''));
+        const nonEmptyMessage = ((message !== undefined) && (message !== '') && (message !== 'success'));
         if (nonEmptyMessage) {
             this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
             this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
         }
+        const errorCode = this.safeString2 (response, 'code', 'err_code');
         const nonZeroErrorCode = (errorCode !== undefined) && (errorCode !== '00000');
         if (nonZeroErrorCode) {
             this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);

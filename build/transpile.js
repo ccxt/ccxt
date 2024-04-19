@@ -347,6 +347,7 @@ class Transpiler {
             [ /\.extendExchangeOptions\s/g, '.extend_exchange_options'],
             [ /\.createSafeDictionary\s/g, '.create_safe_dictionary'],
             [ /\.randomBytes\s/g, '.random_bytes'],
+            [ /\.createAuthToken\s/g, '.create_auth_token'],
             [ /\ssha(1|256|384|512)([,)])/g, ' \'sha$1\'$2'], // from js imports to this
             [ /\s(md5|secp256k1|ed25519|keccak)([,)])/g, ' \'$1\'$2'], // from js imports to this
 
@@ -1014,6 +1015,7 @@ class Transpiler {
             'Order': /-> (?:List\[)?Order\]?:/,
             'OrderBook': /-> OrderBook:/,
             'OrderRequest': /: (?:List\[)?OrderRequest/,
+            'CancellationRequest': /: (?:List\[)?CancellationRequest/,
             'OrderSide': /: OrderSide/,
             'OrderType': /: OrderType/,
             'Position': /-> (?:List\[)?Position/,
