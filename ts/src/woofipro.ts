@@ -641,7 +641,7 @@ export default class woofipro extends Exchange {
         //     }
         //
         const isFromFetchOrder = ('id' in trade);
-        const timestamp = this.safeTimestamp (trade, 'executed_timestamp');
+        const timestamp = this.safeInteger (trade, 'executed_timestamp');
         const marketId = this.safeString (trade, 'symbol');
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
