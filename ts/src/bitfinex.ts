@@ -6,7 +6,7 @@ import { NotSupported, RateLimitExceeded, AuthenticationError, PermissionDenied,
 import { Precise } from './base/Precise.js';
 import { SIGNIFICANT_DIGITS, DECIMAL_PLACES, TRUNCATE, ROUND } from './base/functions/number.js';
 import { sha384 } from './static_dependencies/noble-hashes/sha512.js';
-import type { TransferEntry, Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Num } from './base/types.js';
+import type { TransferEntry, Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Num, TradingFees } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -454,7 +454,7 @@ export default class bitfinex extends Exchange {
         //        }
         //    }
         //
-        const withdraw = this.safeValue (response, 'withdraw');
+        const withdraw = this.safeList (response, 'withdraw');
         return this.parseDepositWithdrawFees (withdraw, codes);
     }
 
@@ -476,7 +476,7 @@ export default class bitfinex extends Exchange {
         };
     }
 
-    async fetchTradingFees (params = {}) {
+    async fetchTradingFees (params = {}): Promise<TradingFees> {
         /**
          * @method
          * @name bitfinex#fetchTradingFees
@@ -558,7 +558,7 @@ export default class bitfinex extends Exchange {
         return result;
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name bitfinex#fetchMarkets
@@ -1346,6 +1346,8 @@ export default class bitfinex extends Exchange {
         await this.loadMarkets ();
         if (limit === undefined) {
             limit = 100;
+        } else {
+            limit = Math.min (limit, 10000);
         }
         const market = this.market (symbol);
         const v2id = 't' + market['id'];

@@ -371,7 +371,10 @@ public partial class poloniexfutures : Exchange
         //
         object marketId = this.safeString(ticker, "symbol");
         object symbol = this.safeSymbol(marketId, market);
-        object timestamp = this.safeIntegerProduct(ticker, "ts", 0.000001);
+        object timestampString = this.safeString(ticker, "ts");
+        // check timestamp bcz bug: https://app.travis-ci.com/github/ccxt/ccxt/builds/269959181#L4011
+        object multiplier = ((bool) isTrue((isEqual(((string)timestampString).Length, 18)))) ? 0.00001 : 0.000001;
+        object timestamp = this.safeIntegerProduct(ticker, "ts", multiplier);
         object last = this.safeString2(ticker, "price", "lastPrice");
         object percentage = Precise.stringMul(this.safeString(ticker, "priceChgPct"), "100");
         return this.safeTicker(new Dictionary<string, object>() {
@@ -702,7 +705,7 @@ public partial class poloniexfutures : Exchange
         //        },
         //    }
         //
-        object trades = this.safeValue(response, "data", new List<object>() {});
+        object trades = this.safeList(response, "data", new List<object>() {});
         return this.parseTrades(trades, market, since, limit);
     }
 
@@ -785,7 +788,7 @@ public partial class poloniexfutures : Exchange
         //        ]
         //    }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseOHLCVs(data, market, timeframe, since, limit);
     }
 
@@ -1069,7 +1072,7 @@ public partial class poloniexfutures : Exchange
         //        ]
         //    }
         //
-        object data = this.safeValue(response, "data");
+        object data = this.safeList(response, "data");
         return this.parsePositions(data, symbols);
     }
 
@@ -1561,7 +1564,7 @@ public partial class poloniexfutures : Exchange
         //    }
         //
         object market = ((bool) isTrue((!isEqual(symbol, null)))) ? this.market(symbol) : null;
-        object responseData = this.safeValue(response, "data");
+        object responseData = this.safeDict(response, "data");
         return this.parseOrder(responseData, market);
     }
 
@@ -1810,7 +1813,7 @@ public partial class poloniexfutures : Exchange
         //    }
         //
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object trades = this.safeValue(data, "items", new Dictionary<string, object>() {});
+        object trades = this.safeList(data, "items", new List<object>() {});
         return this.parseTrades(trades, market, since, limit);
     }
 

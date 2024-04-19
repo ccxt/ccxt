@@ -10,8 +10,8 @@ from ccxt.base.types import Balances, Int, Num, Order, OrderBook, OrderSide, Ord
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import NotSupported
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import NotSupported
 
 
 class hitbtc(ccxt.async_support.hitbtc):

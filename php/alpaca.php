@@ -288,7 +288,7 @@ class alpaca extends Exchange {
         return $iso;
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): array {
         /**
          * retrieves data on all markets for alpaca
          * @see https://docs.alpaca.markets/reference/get-v2-$assets

@@ -6,9 +6,9 @@ namespace ccxt\pro;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\AuthenticationError;
 use ccxt\NetworkError;
 use ccxt\InvalidNonce;
-use ccxt\AuthenticationError;
 use React\Async;
 use React\Promise\PromiseInterface;
 

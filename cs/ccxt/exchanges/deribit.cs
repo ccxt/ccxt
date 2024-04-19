@@ -378,89 +378,6 @@ public partial class deribit : Exchange
         });
     }
 
-    public virtual object convertExpireDate(object date)
-    {
-        // parse YYMMDD to timestamp
-        object year = slice(date, 0, 2);
-        object month = slice(date, 2, 4);
-        object day = slice(date, 4, 6);
-        object reconstructedDate = add(add(add(add(add(add("20", year), "-"), month), "-"), day), "T00:00:00Z");
-        return reconstructedDate;
-    }
-
-    public virtual object convertMarketIdExpireDate(object date)
-    {
-        // parse 19JAN24 to 240119
-        object monthMappping = new Dictionary<string, object>() {
-            { "JAN", "01" },
-            { "FEB", "02" },
-            { "MAR", "03" },
-            { "APR", "04" },
-            { "MAY", "05" },
-            { "JUN", "06" },
-            { "JUL", "07" },
-            { "AUG", "08" },
-            { "SEP", "09" },
-            { "OCT", "10" },
-            { "NOV", "11" },
-            { "DEC", "12" },
-        };
-        object year = slice(date, 0, 2);
-        object monthName = slice(date, 2, 5);
-        object month = this.safeString(monthMappping, monthName);
-        object day = slice(date, 5, 7);
-        object reconstructedDate = add(add(day, month), year);
-        return reconstructedDate;
-    }
-
-    public virtual object convertExpireDateToMarketIdDate(object date)
-    {
-        // parse 240119 to 19JAN24
-        object year = slice(date, 0, 2);
-        object monthRaw = slice(date, 2, 4);
-        object month = null;
-        object day = slice(date, 4, 6);
-        if (isTrue(isEqual(monthRaw, "01")))
-        {
-            month = "JAN";
-        } else if (isTrue(isEqual(monthRaw, "02")))
-        {
-            month = "FEB";
-        } else if (isTrue(isEqual(monthRaw, "03")))
-        {
-            month = "MAR";
-        } else if (isTrue(isEqual(monthRaw, "04")))
-        {
-            month = "APR";
-        } else if (isTrue(isEqual(monthRaw, "05")))
-        {
-            month = "MAY";
-        } else if (isTrue(isEqual(monthRaw, "06")))
-        {
-            month = "JUN";
-        } else if (isTrue(isEqual(monthRaw, "07")))
-        {
-            month = "JUL";
-        } else if (isTrue(isEqual(monthRaw, "08")))
-        {
-            month = "AUG";
-        } else if (isTrue(isEqual(monthRaw, "09")))
-        {
-            month = "SEP";
-        } else if (isTrue(isEqual(monthRaw, "10")))
-        {
-            month = "OCT";
-        } else if (isTrue(isEqual(monthRaw, "11")))
-        {
-            month = "NOV";
-        } else if (isTrue(isEqual(monthRaw, "12")))
-        {
-            month = "DEC";
-        }
-        object reconstructedDate = add(add(day, month), year);
-        return reconstructedDate;
-    }
-
     public override object createExpiredOptionMarket(object symbol)
     {
         // support expired option contracts
@@ -782,119 +699,136 @@ public partial class deribit : Exchange
         * @name deribit#fetchMarkets
         * @description retrieves data on all markets for deribit
         * @see https://docs.deribit.com/#public-get_currencies
+        * @see https://docs.deribit.com/#public-get_instruments
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object[]} an array of objects representing market data
         */
         parameters ??= new Dictionary<string, object>();
-        object currenciesResponse = await this.publicGetGetCurrencies(parameters);
-        //
-        //     {
-        //         "jsonrpc": "2.0",
-        //         "result": [
-        //             {
-        //                 "withdrawal_priorities": [
-        //                     { value: 0.15, name: "very_low" },
-        //                     { value: 1.5, name: "very_high" },
-        //                 ],
-        //                 "withdrawal_fee": 0.0005,
-        //                 "min_withdrawal_fee": 0.0005,
-        //                 "min_confirmations": 1,
-        //                 "fee_precision": 4,
-        //                 "currency_long": "Bitcoin",
-        //                 "currency": "BTC",
-        //                 "coin_type": "BITCOIN"
-        //             }
-        //         ],
-        //         "usIn": 1583761588590479,
-        //         "usOut": 1583761588590544,
-        //         "usDiff": 65,
-        //         "testnet": false
-        //     }
-        //
-        object parsedMarkets = new Dictionary<string, object>() {};
-        object currenciesResult = this.safeValue(currenciesResponse, "result", new List<object>() {});
+        object instrumentsResponses = new List<object>() {};
         object result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(currenciesResult)); postFixIncrement(ref i))
+        object parsedMarkets = new Dictionary<string, object>() {};
+        object fetchAllMarkets = null;
+        var fetchAllMarketsparametersVariable = this.handleOptionAndParams(parameters, "fetchMarkets", "fetchAllMarkets", true);
+        fetchAllMarkets = ((IList<object>)fetchAllMarketsparametersVariable)[0];
+        parameters = ((IList<object>)fetchAllMarketsparametersVariable)[1];
+        if (isTrue(fetchAllMarkets))
         {
-            object currencyId = this.safeString(getValue(currenciesResult, i), "currency");
-            object request = new Dictionary<string, object>() {
-                { "currency", currencyId },
-            };
-            object instrumentsResponse = await this.publicGetGetInstruments(this.extend(request, parameters));
+            object instrumentsResponse = await this.publicGetGetInstruments(parameters);
+            ((IList<object>)instrumentsResponses).Add(instrumentsResponse);
+        } else
+        {
+            object currenciesResponse = await this.publicGetGetCurrencies(parameters);
             //
             //     {
-            //         "jsonrpc":"2.0",
-            //         "result":[
+            //         "jsonrpc": "2.0",
+            //         "result": [
             //             {
-            //                 "tick_size":0.0005,
-            //                 "taker_commission":0.0003,
-            //                 "strike":52000.0,
-            //                 "settlement_period":"month",
-            //                 "settlement_currency":"BTC",
-            //                 "quote_currency":"BTC",
-            //                 "option_type":"put", // put, call
-            //                 "min_trade_amount":0.1,
-            //                 "maker_commission":0.0003,
-            //                 "kind":"option",
-            //                 "is_active":true,
-            //                 "instrument_name":"BTC-24JUN22-52000-P",
-            //                 "expiration_timestamp":1656057600000,
-            //                 "creation_timestamp":1648199543000,
-            //                 "counter_currency":"USD",
-            //                 "contract_size":1.0,
-            //                 "block_trade_commission":0.0003,
-            //                 "base_currency":"BTC"
-            //             },
-            //             {
-            //                 "tick_size":0.5,
-            //                 "taker_commission":0.0005,
-            //                 "settlement_period":"month", // month, week
-            //                 "settlement_currency":"BTC",
-            //                 "quote_currency":"USD",
-            //                 "min_trade_amount":10.0,
-            //                 "max_liquidation_commission":0.0075,
-            //                 "max_leverage":50,
-            //                 "maker_commission":0.0,
-            //                 "kind":"future",
-            //                 "is_active":true,
-            //                 "instrument_name":"BTC-27MAY22",
-            //                 "future_type":"reversed",
-            //                 "expiration_timestamp":1653638400000,
-            //                 "creation_timestamp":1648195209000,
-            //                 "counter_currency":"USD",
-            //                 "contract_size":10.0,
-            //                 "block_trade_commission":0.0001,
-            //                 "base_currency":"BTC"
-            //             },
-            //             {
-            //                 "tick_size":0.5,
-            //                 "taker_commission":0.0005,
-            //                 "settlement_period":"perpetual",
-            //                 "settlement_currency":"BTC",
-            //                 "quote_currency":"USD",
-            //                 "min_trade_amount":10.0,
-            //                 "max_liquidation_commission":0.0075,
-            //                 "max_leverage":50,
-            //                 "maker_commission":0.0,
-            //                 "kind":"future",
-            //                 "is_active":true,
-            //                 "instrument_name":"BTC-PERPETUAL",
-            //                 "future_type":"reversed",
-            //                 "expiration_timestamp":32503708800000,
-            //                 "creation_timestamp":1534242287000,
-            //                 "counter_currency":"USD",
-            //                 "contract_size":10.0,
-            //                 "block_trade_commission":0.0001,
-            //                 "base_currency":"BTC"
-            //             },
+            //                 "withdrawal_priorities": [
+            //                     { value: 0.15, name: "very_low" },
+            //                     { value: 1.5, name: "very_high" },
+            //                 ],
+            //                 "withdrawal_fee": 0.0005,
+            //                 "min_withdrawal_fee": 0.0005,
+            //                 "min_confirmations": 1,
+            //                 "fee_precision": 4,
+            //                 "currency_long": "Bitcoin",
+            //                 "currency": "BTC",
+            //                 "coin_type": "BITCOIN"
+            //             }
             //         ],
-            //         "usIn":1648691472831791,
-            //         "usOut":1648691472831896,
-            //         "usDiff":105,
-            //         "testnet":false
+            //         "usIn": 1583761588590479,
+            //         "usOut": 1583761588590544,
+            //         "usDiff": 65,
+            //         "testnet": false
             //     }
             //
-            object instrumentsResult = this.safeValue(instrumentsResponse, "result", new List<object>() {});
+            object currenciesResult = this.safeValue(currenciesResponse, "result", new List<object>() {});
+            for (object i = 0; isLessThan(i, getArrayLength(currenciesResult)); postFixIncrement(ref i))
+            {
+                object currencyId = this.safeString(getValue(currenciesResult, i), "currency");
+                object request = new Dictionary<string, object>() {
+                    { "currency", currencyId },
+                };
+                object instrumentsResponse = await this.publicGetGetInstruments(this.extend(request, parameters));
+                //
+                //     {
+                //         "jsonrpc":"2.0",
+                //         "result":[
+                //             {
+                //                 "tick_size":0.0005,
+                //                 "taker_commission":0.0003,
+                //                 "strike":52000.0,
+                //                 "settlement_period":"month",
+                //                 "settlement_currency":"BTC",
+                //                 "quote_currency":"BTC",
+                //                 "option_type":"put", // put, call
+                //                 "min_trade_amount":0.1,
+                //                 "maker_commission":0.0003,
+                //                 "kind":"option",
+                //                 "is_active":true,
+                //                 "instrument_name":"BTC-24JUN22-52000-P",
+                //                 "expiration_timestamp":1656057600000,
+                //                 "creation_timestamp":1648199543000,
+                //                 "counter_currency":"USD",
+                //                 "contract_size":1.0,
+                //                 "block_trade_commission":0.0003,
+                //                 "base_currency":"BTC"
+                //             },
+                //             {
+                //                 "tick_size":0.5,
+                //                 "taker_commission":0.0005,
+                //                 "settlement_period":"month", // month, week
+                //                 "settlement_currency":"BTC",
+                //                 "quote_currency":"USD",
+                //                 "min_trade_amount":10.0,
+                //                 "max_liquidation_commission":0.0075,
+                //                 "max_leverage":50,
+                //                 "maker_commission":0.0,
+                //                 "kind":"future",
+                //                 "is_active":true,
+                //                 "instrument_name":"BTC-27MAY22",
+                //                 "future_type":"reversed",
+                //                 "expiration_timestamp":1653638400000,
+                //                 "creation_timestamp":1648195209000,
+                //                 "counter_currency":"USD",
+                //                 "contract_size":10.0,
+                //                 "block_trade_commission":0.0001,
+                //                 "base_currency":"BTC"
+                //             },
+                //             {
+                //                 "tick_size":0.5,
+                //                 "taker_commission":0.0005,
+                //                 "settlement_period":"perpetual",
+                //                 "settlement_currency":"BTC",
+                //                 "quote_currency":"USD",
+                //                 "min_trade_amount":10.0,
+                //                 "max_liquidation_commission":0.0075,
+                //                 "max_leverage":50,
+                //                 "maker_commission":0.0,
+                //                 "kind":"future",
+                //                 "is_active":true,
+                //                 "instrument_name":"BTC-PERPETUAL",
+                //                 "future_type":"reversed",
+                //                 "expiration_timestamp":32503708800000,
+                //                 "creation_timestamp":1534242287000,
+                //                 "counter_currency":"USD",
+                //                 "contract_size":10.0,
+                //                 "block_trade_commission":0.0001,
+                //                 "base_currency":"BTC"
+                //             },
+                //         ],
+                //         "usIn":1648691472831791,
+                //         "usOut":1648691472831896,
+                //         "usDiff":105,
+                //         "testnet":false
+                //     }
+                //
+                ((IList<object>)instrumentsResponses).Add(instrumentsResponse);
+            }
+        }
+        for (object i = 0; isLessThan(i, getArrayLength(instrumentsResponses)); postFixIncrement(ref i))
+        {
+            object instrumentsResult = this.safeValue(getValue(instrumentsResponses, i), "result", new List<object>() {});
             for (object k = 0; isLessThan(k, getArrayLength(instrumentsResult)); postFixIncrement(ref k))
             {
                 object market = getValue(instrumentsResult, k);
@@ -1299,7 +1233,7 @@ public partial class deribit : Exchange
         //         "testnet": false
         //     }
         //
-        object result = this.safeValue(response, "result");
+        object result = this.safeDict(response, "result");
         return this.parseTicker(result, market);
     }
 
@@ -1310,14 +1244,20 @@ public partial class deribit : Exchange
         * @name deribit#fetchTickers
         * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
         * @see https://docs.deribit.com/#public-get_book_summary_by_currency
-        * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string} [params.code] *required* the currency code to fetch the tickers for, eg. 'BTC', 'ETH'
         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
-        object code = this.codeFromOptions("fetchTickers", parameters);
+        object code = this.safeString2(parameters, "code", "currency");
+        parameters = this.omit(parameters, new List<object>() {"code"});
+        if (isTrue(isEqual(code, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " fetchTickers requires a currency/code (eg: BTC/ETH/USDT) parameter to fetch tickers for")) ;
+        }
         object currency = this.currency(code);
         object request = new Dictionary<string, object>() {
             { "currency", getValue(currency, "id") },
@@ -1353,7 +1293,7 @@ public partial class deribit : Exchange
         //         "testnet": false
         //     }
         //
-        object result = this.safeValue(response, "result", new List<object>() {});
+        object result = this.safeList(response, "result", new List<object>() {});
         object tickers = new Dictionary<string, object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(result)); postFixIncrement(ref i))
         {
@@ -1376,11 +1316,21 @@ public partial class deribit : Exchange
         * @param {int} [since] timestamp in ms of the earliest candle to fetch
         * @param {int} [limit] the maximum amount of candles to fetch
         * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {boolean} [params.paginate] whether to paginate the results, set to false by default
+        * @param {int} [params.until] the latest time in ms to fetch ohlcv for
         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
         */
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
+        object paginate = false;
+        var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate");
+        paginate = ((IList<object>)paginateparametersVariable)[0];
+        parameters = ((IList<object>)paginateparametersVariable)[1];
+        if (isTrue(paginate))
+        {
+            return await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, parameters, 5000);
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "instrument_name", getValue(market, "id") },
@@ -1407,6 +1357,12 @@ public partial class deribit : Exchange
             {
                 ((IDictionary<string,object>)request)["end_timestamp"] = this.sum(since, multiply(multiply(limit, duration), 1000));
             }
+        }
+        object until = this.safeInteger(parameters, "until");
+        if (isTrue(!isEqual(until, null)))
+        {
+            parameters = this.omit(parameters, "until");
+            ((IDictionary<string,object>)request)["end_timestamp"] = until;
         }
         object response = await this.publicGetGetTradingviewChartData(this.extend(request, parameters));
         //
@@ -1539,6 +1495,7 @@ public partial class deribit : Exchange
         * @param {int} [since] timestamp in ms of the earliest trade to fetch
         * @param {int} [limit] the maximum amount of trades to fetch
         * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {int} [params.until] the latest time in ms to fetch trades for
         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
         */
         parameters ??= new Dictionary<string, object>();
@@ -1556,8 +1513,14 @@ public partial class deribit : Exchange
         {
             ((IDictionary<string,object>)request)["count"] = mathMin(limit, 1000); // default 10
         }
+        object until = this.safeInteger2(parameters, "until", "end_timestamp");
+        if (isTrue(!isEqual(until, null)))
+        {
+            parameters = this.omit(parameters, new List<object>() {"until"});
+            ((IDictionary<string,object>)request)["end_timestamp"] = until;
+        }
         object response = null;
-        if (isTrue(isEqual(since, null)))
+        if (isTrue(isTrue((isEqual(since, null))) && !isTrue((inOp(request, "end_timestamp")))))
         {
             response = await this.publicGetGetLastTradesByInstrument(this.extend(request, parameters));
         } else
@@ -1590,7 +1553,7 @@ public partial class deribit : Exchange
         //      }
         //
         object result = this.safeValue(response, "result", new Dictionary<string, object>() {});
-        object trades = this.safeValue(result, "trades", new List<object>() {});
+        object trades = this.safeList(result, "trades", new List<object>() {});
         return this.parseTrades(trades, market, since, limit);
     }
 
@@ -1981,7 +1944,7 @@ public partial class deribit : Exchange
         //         }
         //     }
         //
-        object result = this.safeValue(response, "result");
+        object result = this.safeDict(response, "result");
         return this.parseOrder(result, market);
     }
 
@@ -2233,7 +2196,7 @@ public partial class deribit : Exchange
             { "order_id", id },
         };
         object response = await this.privateGetCancel(this.extend(request, parameters));
-        object result = this.safeValue(response, "result", new Dictionary<string, object>() {});
+        object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         return this.parseOrder(result);
     }
 
@@ -2296,7 +2259,7 @@ public partial class deribit : Exchange
             ((IDictionary<string,object>)request)["instrument_name"] = getValue(market, "id");
             response = await this.privateGetGetOpenOrdersByInstrument(this.extend(request, parameters));
         }
-        object result = this.safeValue(response, "result", new List<object>() {});
+        object result = this.safeList(response, "result", new List<object>() {});
         return this.parseOrders(result, market, since, limit);
     }
 
@@ -2331,7 +2294,7 @@ public partial class deribit : Exchange
             ((IDictionary<string,object>)request)["instrument_name"] = getValue(market, "id");
             response = await this.privateGetGetOrderHistoryByInstrument(this.extend(request, parameters));
         }
-        object result = this.safeValue(response, "result", new List<object>() {});
+        object result = this.safeList(response, "result", new List<object>() {});
         return this.parseOrders(result, market, since, limit);
     }
 
@@ -2388,7 +2351,7 @@ public partial class deribit : Exchange
         //         }
         //     }
         //
-        object result = this.safeValue(response, "result", new Dictionary<string, object>() {});
+        object result = this.safeList(response, "result", new List<object>() {});
         return this.parseTrades(result, null, since, limit);
     }
 
@@ -2479,7 +2442,7 @@ public partial class deribit : Exchange
         //     }
         //
         object result = this.safeValue(response, "result", new Dictionary<string, object>() {});
-        object trades = this.safeValue(result, "trades", new List<object>() {});
+        object trades = this.safeList(result, "trades", new List<object>() {});
         return this.parseTrades(trades, market, since, limit);
     }
 
@@ -2532,7 +2495,7 @@ public partial class deribit : Exchange
         //     }
         //
         object result = this.safeValue(response, "result", new Dictionary<string, object>() {});
-        object data = this.safeValue(result, "data", new List<object>() {});
+        object data = this.safeList(result, "data", new List<object>() {});
         return this.parseTransactions(data, currency, since, limit, parameters);
     }
 
@@ -2589,7 +2552,7 @@ public partial class deribit : Exchange
         //     }
         //
         object result = this.safeValue(response, "result", new Dictionary<string, object>() {});
-        object data = this.safeValue(result, "data", new List<object>() {});
+        object data = this.safeList(result, "data", new List<object>() {});
         return this.parseTransactions(data, currency, since, limit, parameters);
     }
 
@@ -2786,7 +2749,7 @@ public partial class deribit : Exchange
         //         }
         //     }
         //
-        object result = this.safeValue(response, "result");
+        object result = this.safeDict(response, "result");
         return this.parsePosition(result);
     }
 
@@ -2866,7 +2829,7 @@ public partial class deribit : Exchange
         //         ]
         //     }
         //
-        object result = this.safeValue(response, "result");
+        object result = this.safeList(response, "result");
         return this.parsePositions(result, symbols);
     }
 
@@ -2999,7 +2962,7 @@ public partial class deribit : Exchange
         //     }
         //
         object result = this.safeValue(response, "result", new Dictionary<string, object>() {});
-        object transfers = this.safeValue(result, "data", new List<object>() {});
+        object transfers = this.safeList(result, "data", new List<object>() {});
         return this.parseTransfers(transfers, currency, since, limit, parameters);
     }
 
@@ -3058,7 +3021,7 @@ public partial class deribit : Exchange
         //         }
         //     }
         //
-        object result = this.safeValue(response, "result", new Dictionary<string, object>() {});
+        object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         return this.parseTransfer(result, currency);
     }
 
@@ -3204,7 +3167,7 @@ public partial class deribit : Exchange
         //      "testnet": true
         //    }
         //
-        object data = this.safeValue(response, "result", new Dictionary<string, object>() {});
+        object data = this.safeList(response, "result", new List<object>() {});
         return this.parseDepositWithdrawFees(data, codes, "currency");
     }
 
@@ -3503,7 +3466,7 @@ public partial class deribit : Exchange
         //     }
         //
         object result = this.safeValue(response, "result", new Dictionary<string, object>() {});
-        object settlements = this.safeValue(result, "settlements", new List<object>() {});
+        object settlements = this.safeList(result, "settlements", new List<object>() {});
         return this.parseLiquidations(settlements, market, since, limit);
     }
 

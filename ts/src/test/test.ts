@@ -111,7 +111,7 @@ function ioDirRead (path) {
     return files;
 }
 
-async function callMethod (testFiles, methodName, exchange, skippedProperties, args) {
+async function callMethod (testFiles, methodName, exchange, skippedProperties: object, args) {
     // used for calling methods from test files
     return await testFiles[methodName] (exchange, skippedProperties, ...args);
 }
@@ -386,10 +386,15 @@ export default class testMainClass extends baseMainTestClass {
     }
 
     async testMethod (methodName: string, exchange: any, args: any[], isPublic: boolean) {
+        // todo: temporary skip for c#
+        if (methodName.indexOf ('OrderBook') >= 0 && this.ext === 'cs') {
+            exchange.options['checksum'] = false;
+        }
         // todo: temporary skip for php
         if (methodName.indexOf ('OrderBook') >= 0 && this.ext === 'php') {
             return;
         }
+        const skippedPropertiesForMethod = this.getSkips (exchange, methodName);
         const isLoadMarkets = (methodName === 'loadMarkets');
         const isFetchCurrencies = (methodName === 'fetchCurrencies');
         const isProxyTest = (methodName === this.proxyTestFileName);
@@ -403,7 +408,7 @@ export default class testMainClass extends baseMainTestClass {
             skipMessage = '[INFO] IGNORED_TEST';
         } else if (!isLoadMarkets && !supportedByExchange && !isProxyTest) {
             skipMessage = '[INFO] UNSUPPORTED_TEST'; // keep it aligned with the longest message
-        } else if ((methodName in this.skippedMethods) && (typeof this.skippedMethods[methodName] === 'string')) {
+        } else if (typeof skippedPropertiesForMethod === 'string') {
             skipMessage = '[INFO] SKIPPED_TEST';
         } else if (!(methodName in this.testFiles)) {
             skipMessage = '[INFO] UNIMPLEMENTED_TEST';
@@ -422,7 +427,7 @@ export default class testMainClass extends baseMainTestClass {
             const argsStringified = '(' + args.join (',') + ')';
             dump (this.addPadding ('[INFO] TESTING', 25), this.exchangeHint (exchange), methodName, argsStringified);
         }
-        await callMethod (this.testFiles, methodName, exchange, this.getSkips (exchange, methodName), args);
+        await callMethod (this.testFiles, methodName, exchange, skippedPropertiesForMethod, args);
         // if it was passed successfully, add to the list of successfull tests
         if (isPublic) {
             this.checkedPublicTests[methodName] = true;
@@ -430,9 +435,21 @@ export default class testMainClass extends baseMainTestClass {
         return;
     }
 
-    getSkips (exchange, methodName) {
-        // get "method-specific" skips
-        const skipsForMethod = exchange.safeValue (this.skippedMethods, methodName, {});
+    getSkips (exchange: Exchange, methodName: string) {
+        let finalSkips = {};
+        // check the exact method (i.e. `fetchTrades`) and language-specific (i.e. `fetchTrades.php`)
+        const methodNames = [ methodName, methodName + '.' + this.ext ];
+        for (let i = 0; i < methodNames.length; i++) {
+            const mName = methodNames[i];
+            if (mName in this.skippedMethods) {
+                // if whole method is skipped, by assigning a string to it, i.e. "fetchOrders":"blabla"
+                if (typeof this.skippedMethods[mName] === 'string') {
+                    return this.skippedMethods[mName];
+                } else {
+                    finalSkips = exchange.deepExtend (finalSkips, this.skippedMethods[mName]);
+                }
+            }
+        }
         // get "object-specific" skips
         const objectSkips = {
             'orderBook': [ 'fetchOrderBook', 'fetchOrderBooks', 'fetchL2OrderBook', 'watchOrderBook', 'watchOrderBookForSymbols' ],
@@ -448,11 +465,24 @@ export default class testMainClass extends baseMainTestClass {
             const objectName = objectNames[i];
             const objectMethods = objectSkips[objectName];
             if (exchange.inArray (methodName, objectMethods)) {
+                // if whole object is skipped, by assigning a string to it, i.e. "orderBook":"blabla"
+                if ((objectName in this.skippedMethods) && (typeof this.skippedMethods[objectName] === 'string')) {
+                    return this.skippedMethods[objectName];
+                }
                 const extraSkips = exchange.safeDict (this.skippedMethods, objectName, {});
-                return exchange.deepExtend (skipsForMethod, extraSkips);
+                finalSkips = exchange.deepExtend (finalSkips, extraSkips);
             }
         }
-        return skipsForMethod;
+        // extend related skips
+        // - if 'timestamp' is skipped, we should do so for 'datetime' too
+        // - if 'bid' is skipped, skip 'ask' too
+        if (('timestamp' in finalSkips) && !('datetime' in finalSkips)) {
+            finalSkips['datetime'] = finalSkips['timestamp'];
+        }
+        if (('bid' in finalSkips) && !('ask' in finalSkips)) {
+            finalSkips['ask'] = finalSkips['bid'];
+        }
+        return finalSkips;
     }
 
     async testSafe (methodName, exchange, args = [], isPublic = false) {
@@ -566,11 +596,14 @@ export default class testMainClass extends baseMainTestClass {
             tests = {
                 // @ts-ignore
                 'watchOHLCV': [ symbol ],
+                'watchOHLCVForSymbols': [ symbol ], // argument type will be handled inside test
                 'watchTicker': [ symbol ],
                 'watchTickers': [ symbol ],
                 'watchBidsAsks': [ symbol ],
                 'watchOrderBook': [ symbol ],
+                'watchOrderBookForSymbols': [ [ symbol ] ],
                 'watchTrades': [ symbol ],
+                'watchTradesForSymbols': [ [ symbol ] ],
             };
         }
         const market = exchange.market (symbol);
@@ -1444,6 +1477,7 @@ export default class testMainClass extends baseMainTestClass {
             this.testBlofin (),
             this.testHyperliquid (),
             this.testCoinbaseinternational (),
+            this.testCoinbaseAdvanced ()
         ];
         await Promise.all (promises);
         const successMessage = '[' + this.lang + '][TEST_SUCCESS] brokerId tests passed.';
@@ -1773,6 +1807,22 @@ export default class testMainClass extends baseMainTestClass {
         let request = undefined;
         try {
             await exchange.createOrder ('BTC/USDC:USDC', 'limit', 'buy', 1, 20000);
+        } catch (e) {
+            request = jsonParse (exchange.last_request_body);
+        }
+        const clientOrderId = request['client_order_id'];
+        assert (clientOrderId.startsWith (id.toString ()), 'clientOrderId does not start with id');
+        await close (exchange);
+        return true;
+    }
+
+    async testCoinbaseAdvanced () {
+        const exchange = this.initOfflineExchange ('coinbase');
+        const id = 'ccxt';
+        assert (exchange.options['brokerId'] === id, 'id not in options');
+        let request = undefined;
+        try {
+            await exchange.createOrder ('BTC/USDC', 'limit', 'buy', 1, 20000);
         } catch (e) {
             request = jsonParse (exchange.last_request_body);
         }

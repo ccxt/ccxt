@@ -1409,6 +1409,9 @@ public partial class bitfinex2 : Exchange
         if (isTrue(isEqual(limit, null)))
         {
             limit = 10000;
+        } else
+        {
+            limit = mathMin(limit, 10000);
         }
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
@@ -1849,7 +1852,7 @@ public partial class bitfinex2 : Exchange
             { "all", 1 },
         };
         object response = await this.privatePostAuthWOrderCancelMulti(this.extend(request, parameters));
-        object orders = this.safeValue(response, 4, new List<object>() {});
+        object orders = this.safeList(response, 4, new List<object>() {});
         return this.parseOrders(orders);
     }
 
@@ -3747,17 +3750,30 @@ public partial class bitfinex2 : Exchange
         return this.parseMarginModification(data, market);
     }
 
-    public virtual object parseMarginModification(object data, object market = null)
+    public override object parseMarginModification(object data, object market = null)
     {
+        //
+        // setMargin
+        //
+        //     [
+        //         [
+        //             1
+        //         ]
+        //     ]
+        //
         object marginStatusRaw = getValue(data, 0);
         object marginStatus = ((bool) isTrue((isEqual(marginStatusRaw, 1)))) ? "ok" : "failed";
         return new Dictionary<string, object>() {
             { "info", data },
-            { "type", null },
-            { "amount", null },
-            { "code", null },
             { "symbol", getValue(market, "symbol") },
+            { "type", null },
+            { "marginMode", "isolated" },
+            { "amount", null },
+            { "total", null },
+            { "code", null },
             { "status", marginStatus },
+            { "timestamp", null },
+            { "datetime", null },
         };
     }
 

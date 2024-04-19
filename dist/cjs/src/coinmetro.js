@@ -541,7 +541,7 @@ class coinmetro extends coinmetro$1 {
         //         ]
         //     }
         //
-        const candleHistory = this.safeValue(response, 'candleHistory', []);
+        const candleHistory = this.safeList(response, 'candleHistory', []);
         return this.parseOHLCVs(candleHistory, market, timeframe, since, limit);
     }
     parseOHLCV(ohlcv, market = undefined) {
@@ -607,7 +607,7 @@ class coinmetro extends coinmetro$1 {
         //         ]
         //     }
         //
-        const tickHistory = this.safeValue(response, 'tickHistory', []);
+        const tickHistory = this.safeList(response, 'tickHistory', []);
         return this.parseTrades(tickHistory, market, since, limit);
     }
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -880,7 +880,7 @@ class coinmetro extends coinmetro$1 {
          */
         await this.loadMarkets();
         const response = await this.publicGetExchangePrices(params);
-        const latestPrices = this.safeValue(response, 'latestPrices', []);
+        const latestPrices = this.safeList(response, 'latestPrices', []);
         return this.parseTickers(latestPrices, symbols);
     }
     parseTicker(ticker, market = undefined) {

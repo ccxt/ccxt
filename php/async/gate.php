@@ -129,6 +129,7 @@ class gate extends Exchange {
                 'fetchLeverages' => true,
                 'fetchLeverageTiers' => true,
                 'fetchLiquidations' => true,
+                'fetchMarginAdjustmentHistory' => false,
                 'fetchMarginMode' => false,
                 'fetchMarketLeverageTiers' => true,
                 'fetchMarkets' => true,
@@ -881,15 +882,6 @@ class gate extends Exchange {
         $this->options['sandboxMode'] = $enable;
     }
 
-    public function convert_expire_date($date) {
-        // parse YYMMDD to timestamp
-        $year = mb_substr($date, 0, 2 - 0);
-        $month = mb_substr($date, 2, 4 - 2);
-        $day = mb_substr($date, 4, 6 - 4);
-        $reconstructedDate = '20' . $year . '-' . $month . '-' . $day . 'T00:00:00Z';
-        return $reconstructedDate;
-    }
-
     public function create_expired_option_market(string $symbol) {
         // support expired option contracts
         $quote = 'USDT';
@@ -964,7 +956,7 @@ class gate extends Exchange {
         return parent::safe_market($marketId, $market, $delimiter, $marketType);
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * retrieves data on all $markets for gate
@@ -1570,7 +1562,7 @@ class gate extends Exchange {
         return $this->safe_value($fetchMarketsContractOptions, 'settlementCurrencies', $defaultSettle);
     }
 
-    public function fetch_currencies($params = array ()) {
+    public function fetch_currencies($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches all available currencies on an exchange
@@ -1890,7 +1882,7 @@ class gate extends Exchange {
             Async\await($this->load_markets());
             $currency = $this->currency($code);
             $request = array(
-                'currency' => $currency['id'],
+                'currency' => $currency['id'], // todo => currencies have $network-junctions
             );
             $response = Async\await($this->privateWalletGetDepositAddress (array_merge($request, $params)));
             $addresses = $this->safe_value($response, 'multichain_addresses');
@@ -1942,7 +1934,7 @@ class gate extends Exchange {
             $rawNetwork = $this->safe_string_upper($params, 'network');
             $params = $this->omit($params, 'network');
             $request = array(
-                'currency' => $currency['id'],
+                'currency' => $currency['id'], // todo => currencies have $network-junctions
             );
             $response = Async\await($this->privateWalletGetDepositAddress (array_merge($request, $params)));
             //
@@ -2009,7 +2001,7 @@ class gate extends Exchange {
         }) ();
     }
 
-    public function fetch_trading_fee(string $symbol, $params = array ()) {
+    public function fetch_trading_fee(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch the trading fees for a $market
@@ -2042,7 +2034,7 @@ class gate extends Exchange {
         }) ();
     }
 
-    public function fetch_trading_fees($params = array ()) {
+    public function fetch_trading_fees($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetch the trading fees for multiple markets
@@ -2106,6 +2098,8 @@ class gate extends Exchange {
             'symbol' => $this->safe_string($market, 'symbol'),
             'maker' => $this->safe_number($info, $makerKey),
             'taker' => $this->safe_number($info, $takerKey),
+            'percentage' => null,
+            'tierBased' => null,
         );
     }
 
@@ -3546,7 +3540,7 @@ class gate extends Exchange {
             $currency = null;
             if ($code !== null) {
                 $currency = $this->currency($code);
-                $request['currency'] = $currency['id'];
+                $request['currency'] = $currency['id']; // todo => currencies have network-junctions
             }
             if ($limit !== null) {
                 $request['limit'] = $limit;
@@ -3585,7 +3579,7 @@ class gate extends Exchange {
             $currency = null;
             if ($code !== null) {
                 $currency = $this->currency($code);
-                $request['currency'] = $currency['id'];
+                $request['currency'] = $currency['id']; // todo => currencies have network-junctions
             }
             if ($limit !== null) {
                 $request['limit'] = $limit;
@@ -3618,7 +3612,7 @@ class gate extends Exchange {
             Async\await($this->load_markets());
             $currency = $this->currency($code);
             $request = array(
-                'currency' => $currency['id'],
+                'currency' => $currency['id'], // todo => currencies have $network-junctions
                 'address' => $address,
                 'amount' => $this->currency_to_precision($code, $amount),
             );
@@ -3632,7 +3626,7 @@ class gate extends Exchange {
                 $request['chain'] = $network;
                 $params = $this->omit($params, 'network');
             } else {
-                $request['chain'] = $currency['id'];
+                $request['chain'] = $currency['id']; // todo => currencies have $network-junctions
             }
             $response = Async\await($this->privateWithdrawalsPostWithdrawals (array_merge($request, $params)));
             //
@@ -5105,7 +5099,7 @@ class gate extends Exchange {
             $toId = $this->convert_type_to_account($toAccount);
             $truncated = $this->currency_to_precision($code, $amount);
             $request = array(
-                'currency' => $currency['id'],
+                'currency' => $currency['id'], // todo => currencies have network-junctions
                 'amount' => $truncated,
             );
             if (!(is_array($this->options['accountsByType']) && array_key_exists($fromId, $this->options['accountsByType']))) {
@@ -5130,7 +5124,7 @@ class gate extends Exchange {
                 $params = $this->omit($params, 'symbol');
             }
             if (($toId === 'futures') || ($toId === 'delivery') || ($fromId === 'futures') || ($fromId === 'delivery')) {
-                $request['settle'] = $currency['id'];
+                $request['settle'] = $currency['id']; // todo => currencies have network-junctions
             }
             $response = Async\await($this->privateWalletPostTransfers (array_merge($request, $params)));
             //
@@ -5787,7 +5781,7 @@ class gate extends Exchange {
             Async\await($this->load_markets());
             $currency = $this->currency($code);
             $request = array(
-                'currency' => strtoupper($currency['id']),
+                'currency' => strtoupper($currency['id']), // todo => currencies have network-junctions
                 'amount' => $this->currency_to_precision($code, $amount),
             );
             $market = $this->market($symbol);
@@ -5817,7 +5811,7 @@ class gate extends Exchange {
             Async\await($this->load_markets());
             $currency = $this->currency($code);
             $request = array(
-                'currency' => strtoupper($currency['id']),
+                'currency' => strtoupper($currency['id']), // todo => currencies have network-junctions
                 'amount' => $this->currency_to_precision($code, $amount),
             );
             $response = Async\await($this->privateMarginPostCrossRepayments (array_merge($request, $params)));
@@ -5857,7 +5851,7 @@ class gate extends Exchange {
             Async\await($this->load_markets());
             $currency = $this->currency($code);
             $request = array(
-                'currency' => strtoupper($currency['id']),
+                'currency' => strtoupper($currency['id']), // todo => currencies have network-junctions
                 'amount' => $this->currency_to_precision($code, $amount),
             );
             $response = null;
@@ -5903,7 +5897,7 @@ class gate extends Exchange {
             Async\await($this->load_markets());
             $currency = $this->currency($code);
             $request = array(
-                'currency' => strtoupper($currency['id']),
+                'currency' => strtoupper($currency['id']), // todo => currencies have network-junctions
                 'amount' => $this->currency_to_precision($code, $amount),
             );
             $response = Async\await($this->privateMarginPostCrossLoans (array_merge($request, $params)));
@@ -6070,7 +6064,7 @@ class gate extends Exchange {
         }) ();
     }
 
-    public function parse_margin_modification($data, ?array $market = null) {
+    public function parse_margin_modification($data, ?array $market = null): array {
         //
         //     {
         //         "value" => "11.9257",
@@ -6103,15 +6097,19 @@ class gate extends Exchange {
         $total = $this->safe_number($data, 'margin');
         return array(
             'info' => $data,
-            'amount' => null,
-            'code' => $this->safe_value($market, 'quote'),
             'symbol' => $market['symbol'],
+            'type' => null,
+            'marginMode' => 'isolated',
+            'amount' => null,
             'total' => $total,
+            'code' => $this->safe_value($market, 'quote'),
             'status' => 'ok',
+            'timestamp' => null,
+            'datetime' => null,
         );
     }
 
-    public function reduce_margin(string $symbol, $amount, $params = array ()) {
+    public function reduce_margin(string $symbol, $amount, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $amount, $params) {
             /**
              * remove margin from a position
@@ -6126,7 +6124,7 @@ class gate extends Exchange {
         }) ();
     }
 
-    public function add_margin(string $symbol, $amount, $params = array ()) {
+    public function add_margin(string $symbol, $amount, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $amount, $params) {
             /**
              * add margin
@@ -6446,7 +6444,7 @@ class gate extends Exchange {
             if (($type === 'spot') || ($type === 'margin')) {
                 if ($code !== null) {
                     $currency = $this->currency($code);
-                    $request['currency'] = $currency['id'];
+                    $request['currency'] = $currency['id']; // todo => currencies have network-junctions
                 }
             }
             if (($type === 'swap') || ($type === 'future')) {
@@ -7266,7 +7264,7 @@ class gate extends Exchange {
             Async\await($this->load_markets());
             $currency = $this->currency($code);
             $request = array(
-                'underlying' => $currency['code'] . '_USDT',
+                'underlying' => $currency['code'] . '_USDT', // todo => strtoupper($currency['id']) &  network junctions
             );
             $response = Async\await($this->publicOptionsGetContracts (array_merge($request, $params)));
             //

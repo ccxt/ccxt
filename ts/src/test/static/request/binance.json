@@ -249,7 +249,7 @@
                         "portfolioMargin": true
                     }
                 ],
-                "output": "timestamp=1707112464420&symbol=BTCUSDT&side=BUY&newClientOrderId=x-xcKtGhcu0b020e257d4943d49c0ffe&type=LIMIT&quantity=0.01&price=35000&timeInForce=GTC&recvWindow=10000&signature=6d8b1ae407634704c7d7d26cbb62f0f438a09e9863b81a8a89a24461c4997808"
+                "output": "timestamp=1707112464420&symbol=BTCUSDT&newOrderRespType=RESULT&side=BUY&newClientOrderId=x-xcKtGhcu0b020e257d4943d49c0ffe&type=LIMIT&quantity=0.01&price=35000&timeInForce=GTC&recvWindow=10000&signature=6d8b1ae407634704c7d7d26cbb62f0f438a09e9863b81a8a89a24461c4997808"
             },
             {
                 "description": "Inverse swap portfolio margin limit buy order",
@@ -265,7 +265,7 @@
                         "portfolioMargin": true
                     }
                 ],
-                "output": "timestamp=1707112388003&symbol=ETHUSD_PERP&side=BUY&newClientOrderId=x-xcKtGhcu69273341d6114bd8b800aa&type=LIMIT&quantity=1&price=2000&timeInForce=GTC&recvWindow=10000&signature=4e4f549a6358aa1731060e825069022389780706305a60eaa58fbbf0c4a7d03f"
+                "output": "timestamp=1707112388003&symbol=ETHUSD_PERP&newOrderRespType=RESULT&side=BUY&newClientOrderId=x-xcKtGhcu69273341d6114bd8b800aa&type=LIMIT&quantity=1&price=2000&timeInForce=GTC&recvWindow=10000&signature=4e4f549a6358aa1731060e825069022389780706305a60eaa58fbbf0c4a7d03f"
             },
             {
                 "description": "Linear swap portfolio margin conditional limit buy order",
@@ -282,7 +282,7 @@
                         "triggerPrice": 45000
                     }
                 ],
-                "output": "timestamp=1707112624772&symbol=BTCUSDT&side=BUY&newClientStrategyId=x-xcKtGhcu27f109953d6e4dc0974006&strategyType=STOP&quantity=0.01&price=35000&stopPrice=45000&recvWindow=10000&signature=2cacd678b9199f4f75ed8f7eb48cc35afc648346fc436c3808983baf983323ab"
+                "output": "timestamp=1707112624772&symbol=BTCUSDT&newOrderRespType=RESULT&side=BUY&newClientStrategyId=x-xcKtGhcu27f109953d6e4dc0974006&strategyType=STOP&quantity=0.01&price=35000&stopPrice=45000&recvWindow=10000&signature=2cacd678b9199f4f75ed8f7eb48cc35afc648346fc436c3808983baf983323ab"
             },
             {
                 "description": "Inverse swap portfolio margin conditional limit buy order",
@@ -299,7 +299,7 @@
                         "triggerPrice": 3000
                     }
                 ],
-                "output": "timestamp=1707113097689&symbol=ETHUSD_PERP&side=BUY&newClientStrategyId=x-xcKtGhcuc6b86f054bb34933850739&strategyType=STOP&quantity=1&price=2000&stopPrice=3000&recvWindow=10000&signature=aa5ec5fa5eb51372fa68597242bc2ddc31a32e9be5c084f00c2f6999b31cad2b"
+                "output": "timestamp=1707113097689&symbol=ETHUSD_PERP&newOrderRespType=RESULT&side=BUY&newClientStrategyId=x-xcKtGhcuc6b86f054bb34933850739&strategyType=STOP&quantity=1&price=2000&stopPrice=3000&recvWindow=10000&signature=aa5ec5fa5eb51372fa68597242bc2ddc31a32e9be5c084f00c2f6999b31cad2b"
             },
             {
                 "description": "Spot margin portfolio margin limit buy order",
@@ -316,7 +316,23 @@
                         "marginMode": "cross"
                     }
                 ],
-                "output": "timestamp=1707113537828&symbol=BTCUSDT&side=BUY&newOrderRespType=FULL&newClientOrderId=x-R4BD3S82e9ef29d8346440f0b28b86&type=LIMIT&quantity=0.001&price=35000&timeInForce=GTC&recvWindow=10000&signature=08d71bf9a60d5184cc256964f1175179c813d11e038718c0d64d5cc5b982f2f5"
+                "output": "timestamp=1707113537828&symbol=BTCUSDT&side=BUY&newOrderRespType=RESULT&newClientOrderId=x-R4BD3S82e9ef29d8346440f0b28b86&type=LIMIT&quantity=0.001&price=35000&timeInForce=GTC&recvWindow=10000&signature=08d71bf9a60d5184cc256964f1175179c813d11e038718c0d64d5cc5b982f2f5"
+            },
+            {
+                "description": "Spot margin portfolio margin limit buy order with only portfolioMargin set to true",
+                "method": "createOrder",
+                "url": "https://papi.binance.com/papi/v1/margin/order",
+                "input": [
+                  "BTC/USDT",
+                  "limit",
+                  "buy",
+                  0.0001,
+                  50000,
+                  {
+                    "portfolioMargin": true
+                  }
+                ],
+                "output": "timestamp=1712974976336&symbol=BTCUSDT&side=BUY&newOrderRespType=RESULT&newClientOrderId=x-R4BD3S828b7395b12d0846afa4643c&type=LIMIT&quantity=0.0001&price=50000&timeInForce=GTC&recvWindow=10000&signature=bf3748a7adae072d411444d031d45b17ba8c8febf47bb0b5f4236e33b963b49f"
             },
             {
                 "description": "swap order with priceMatch",
@@ -488,6 +504,18 @@
                         "portfolioMargin": true,
                         "marginMode": "cross"
                     }
+                ]
+            },
+            {
+                "description": "Spot margin portfolio margin cancel order with only portfolioMargin set to true",
+                "method": "cancelOrder",
+                "url": "https://papi.binance.com/papi/v1/margin/order?timestamp=1712975069995&symbol=BTCUSDT&orderId=26447758109&recvWindow=10000&signature=5dc7c88abd58e4adbdc8153a19e33dc189e402184f42694de7a5ce3febfac2e8",
+                "input": [
+                  "26447758109",
+                  "BTC/USDT",
+                  {
+                    "portfolioMargin": true
+                  }
                 ]
             },
             {
@@ -1894,7 +1922,7 @@
             {
                 "description": "Fetch OHLCV - inverse, price=index",
                 "method": "fetchOHLCV",
-                "url": "https://dapi.binance.com/dapi/v1/indexPriceKlines?interval=1m&limit=5&pair=BTCUSD_PERP&startTime=1699381234000&endTime=1699381533999",
+                "url": "https://dapi.binance.com/dapi/v1/indexPriceKlines?interval=1m&limit=5&pair=BTCUSD&startTime=1699381234000&endTime=1699381533999",
                 "input": [
                     "BTC/USD:BTC",
                     "1m",
@@ -2279,6 +2307,17 @@
                         "portfolioMargin": true,
                         "subType": "inverse"
                     }
+                ]
+            },
+            {
+                "description": "account positions with filterClosed option",
+                "method": "fetchAccountPositions",
+                "url": "https://testnet.binancefuture.com/fapi/v2/account?timestamp=1711968805532&filterClosed=true&recvWindow=10000&signature=d70e7146e12dff30106d51e77574cda0b75aa353c505746b1a78a5c086a7ac19",
+                "input": [
+                  null,
+                  {
+                    "filterClosed": true
+                  }
                 ]
             }
         ],
@@ -2906,6 +2945,74 @@
                 "input": [
                   "BTC/USDT:USDT-241227-80000-C"
                 ]
+            }
+        ],
+        "fetchMarginAdjustmentHistory": [
+            {
+                "description": "Fetch margin adjustment history with since, limit, until defined",
+                "method": "fetchMarginAdjustmentHistory",
+                "url": "https://testnet.binancefuture.com/fapi/v1/positionMargin/history?timestamp=1711146115814&symbol=XRPUSDT&startTime=1710460800000&limit=3&endTime=1711146090000&recvWindow=10000&signature=92bf15fd223dd6acf7e2c1b2ac116fbaf1441f54128691283ddc981b8c993b8f",
+                "input": [
+                    "XRP/USDT:USDT",
+                    null,
+                    1710460800000,
+                    3,
+                    {
+                        "until": "1711146090000"
+                    }
+                ]
+            },
+            {
+                "description": "Fetch margin adjustment history",
+                "method": "fetchMarginAdjustmentHistory",
+                "url": "https://testnet.binancefuture.com/fapi/v1/positionMargin/history?timestamp=1711146515429&symbol=XRPUSDT&recvWindow=10000&signature=2ef24563a8dd25319ed4d7269866c117e086c0104ce37d7822c5b4e05620efe0",
+                "input": [
+                  "XRP/USDT:USDT"
+                ]
+            }
+        ],
+        "addMargin": [
+            {
+                "description": "add margin",
+                "method": "addMargin",
+                "url": "https://testnet.binancefuture.com/fapi/v1/positionMargin",
+                "input": [
+                  "XRP/USDT:USDT",
+                  5.243432
+                ],
+                "output": "timestamp=1712047896974&type=1&symbol=XRPUSDT&amount=5.2&recvWindow=10000&signature=ab7e4525180db9134418a3b410029cc1a055a4542cb4ebe1d60cc6f0134a2fce"
+            },
+            {
+                "description": "add small amount of margin",
+                "method": "addMargin",
+                "url": "https://testnet.binancefuture.com/fapi/v1/positionMargin",
+                "input": [
+                  "XRP/USDT:USDT",
+                  0.2
+                ],
+                "output": "timestamp=1712047853481&type=1&symbol=XRPUSDT&amount=0.2&recvWindow=10000&signature=09954975fbbf5de734a82d26144d77d6929802345e183c212e6fc49722e34696"
+            }
+        ],
+        "reduceMargin": [
+            {
+                "description": "reduce margin",
+                "method": "reduceMargin",
+                "url": "https://testnet.binancefuture.com/fapi/v1/positionMargin",
+                "input": [
+                  "XRP/USDT:USDT",
+                  5.243432
+                ],
+                "output": "timestamp=1712047923923&type=2&symbol=XRPUSDT&amount=5.2&recvWindow=10000&signature=db336b746bf1266fbe2f3d8887e105ce714f1a8ebbab733610722ee22b9a6fe7"
+            },
+            {
+                "description": "reduce small amount of margin",
+                "method": "reduceMargin",
+                "url": "https://testnet.binancefuture.com/fapi/v1/positionMargin",
+                "input": [
+                  "XRP/USDT:USDT",
+                  0.2
+                ],
+                "output": "timestamp=1712047946547&type=2&symbol=XRPUSDT&amount=0.2&recvWindow=10000&signature=e8c53af6d974c388ca6ff5ec820a4c2ac813fcbaec55b1a50c60779da56be00b"
             }
         ]
     }

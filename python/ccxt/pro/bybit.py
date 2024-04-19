@@ -11,9 +11,9 @@ from ccxt.base.types import Balances, Int, Order, OrderBook, Position, Str, Stri
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
-from ccxt.base.errors import AuthenticationError
 
 
 class bybit(ccxt.async_support.bybit):
@@ -197,7 +197,7 @@ class bybit(ccxt.async_support.bybit):
 
     async def watch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
-        n watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+        watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
         :see: https://bybit-exchange.github.io/docs/v5/websocket/public/ticker
         :see: https://bybit-exchange.github.io/docs/v5/websocket/public/etp-ticker
         :param str[] symbols: unified symbol of the market to fetch the ticker for

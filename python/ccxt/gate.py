@@ -6,9 +6,10 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.gate import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, FundingHistory, Greeks, Int, Leverage, Leverages, Market, MarketInterface, Num, Option, OptionChain, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
+from ccxt.base.types import Balances, Currencies, Currency, FundingHistory, Greeks, Int, Leverage, Leverages, MarginModification, Market, MarketInterface, Num, Option, OptionChain, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import AccountNotEnabled
 from ccxt.base.errors import AccountSuspended
@@ -23,7 +24,6 @@ from ccxt.base.errors import OrderImmediatelyFillable
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -138,6 +138,7 @@ class gate(Exchange, ImplicitAPI):
                 'fetchLeverages': True,
                 'fetchLeverageTiers': True,
                 'fetchLiquidations': True,
+                'fetchMarginAdjustmentHistory': False,
                 'fetchMarginMode': False,
                 'fetchMarketLeverageTiers': True,
                 'fetchMarkets': True,
@@ -888,14 +889,6 @@ class gate(Exchange, ImplicitAPI):
         super(gate, self).set_sandbox_mode(enable)
         self.options['sandboxMode'] = enable
 
-    def convert_expire_date(self, date):
-        # parse YYMMDD to timestamp
-        year = date[0:2]
-        month = date[2:4]
-        day = date[4:6]
-        reconstructedDate = '20' + year + '-' + month + '-' + day + 'T00:00:00Z'
-        return reconstructedDate
-
     def create_expired_option_market(self, symbol: str):
         # support expired option contracts
         quote = 'USDT'
@@ -966,7 +959,7 @@ class gate(Exchange, ImplicitAPI):
             return self.create_expired_option_market(marketId)
         return super(gate, self).safe_market(marketId, market, delimiter, marketType)
 
-    def fetch_markets(self, params={}):
+    def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for gate
         :see: https://www.gate.io/docs/developers/apiv4/en/#list-all-currency-pairs-supported                                     # spot
@@ -1528,7 +1521,7 @@ class gate(Exchange, ImplicitAPI):
         defaultSettle = ['usdt'] if (type == 'swap') else ['btc']
         return self.safe_value(fetchMarketsContractOptions, 'settlementCurrencies', defaultSettle)
 
-    def fetch_currencies(self, params={}):
+    def fetch_currencies(self, params={}) -> Currencies:
         """
         fetches all available currencies on an exchange
         :see: https://www.gate.io/docs/developers/apiv4/en/#list-all-currencies-details
@@ -1831,7 +1824,7 @@ class gate(Exchange, ImplicitAPI):
         self.load_markets()
         currency = self.currency(code)
         request = {
-            'currency': currency['id'],
+            'currency': currency['id'],  # todo: currencies have network-junctions
         }
         response = self.privateWalletGetDepositAddress(self.extend(request, params))
         addresses = self.safe_value(response, 'multichain_addresses')
@@ -1878,7 +1871,7 @@ class gate(Exchange, ImplicitAPI):
         rawNetwork = self.safe_string_upper(params, 'network')
         params = self.omit(params, 'network')
         request = {
-            'currency': currency['id'],
+            'currency': currency['id'],  # todo: currencies have network-junctions
         }
         response = self.privateWalletGetDepositAddress(self.extend(request, params))
         #
@@ -1936,7 +1929,7 @@ class gate(Exchange, ImplicitAPI):
             'network': network,
         }
 
-    def fetch_trading_fee(self, symbol: str, params={}):
+    def fetch_trading_fee(self, symbol: str, params={}) -> TradingFeeInterface:
         """
         fetch the trading fees for a market
         :see: https://www.gate.io/docs/developers/apiv4/en/#retrieve-personal-trading-fee
@@ -1966,7 +1959,7 @@ class gate(Exchange, ImplicitAPI):
         #
         return self.parse_trading_fee(response, market)
 
-    def fetch_trading_fees(self, params={}):
+    def fetch_trading_fees(self, params={}) -> TradingFees:
         """
         fetch the trading fees for multiple markets
         :see: https://www.gate.io/docs/developers/apiv4/en/#retrieve-personal-trading-fee
@@ -2025,6 +2018,8 @@ class gate(Exchange, ImplicitAPI):
             'symbol': self.safe_string(market, 'symbol'),
             'maker': self.safe_number(info, makerKey),
             'taker': self.safe_number(info, takerKey),
+            'percentage': None,
+            'tierBased': None,
         }
 
     def fetch_transaction_fees(self, codes: List[str] = None, params={}):
@@ -3353,7 +3348,7 @@ class gate(Exchange, ImplicitAPI):
         currency = None
         if code is not None:
             currency = self.currency(code)
-            request['currency'] = currency['id']
+            request['currency'] = currency['id']  # todo: currencies have network-junctions
         if limit is not None:
             request['limit'] = limit
         if since is not None:
@@ -3385,7 +3380,7 @@ class gate(Exchange, ImplicitAPI):
         currency = None
         if code is not None:
             currency = self.currency(code)
-            request['currency'] = currency['id']
+            request['currency'] = currency['id']  # todo: currencies have network-junctions
         if limit is not None:
             request['limit'] = limit
         if since is not None:
@@ -3412,7 +3407,7 @@ class gate(Exchange, ImplicitAPI):
         self.load_markets()
         currency = self.currency(code)
         request = {
-            'currency': currency['id'],
+            'currency': currency['id'],  # todo: currencies have network-junctions
             'address': address,
             'amount': self.currency_to_precision(code, amount),
         }
@@ -3425,7 +3420,7 @@ class gate(Exchange, ImplicitAPI):
             request['chain'] = network
             params = self.omit(params, 'network')
         else:
-            request['chain'] = currency['id']
+            request['chain'] = currency['id']  # todo: currencies have network-junctions
         response = self.privateWithdrawalsPostWithdrawals(self.extend(request, params))
         #
         #    {
@@ -4769,7 +4764,7 @@ class gate(Exchange, ImplicitAPI):
         toId = self.convert_type_to_account(toAccount)
         truncated = self.currency_to_precision(code, amount)
         request = {
-            'currency': currency['id'],
+            'currency': currency['id'],  # todo: currencies have network-junctions
             'amount': truncated,
         }
         if not (fromId in self.options['accountsByType']):
@@ -4790,7 +4785,7 @@ class gate(Exchange, ImplicitAPI):
             request['currency_pair'] = market['id']
             params = self.omit(params, 'symbol')
         if (toId == 'futures') or (toId == 'delivery') or (fromId == 'futures') or (fromId == 'delivery'):
-            request['settle'] = currency['id']
+            request['settle'] = currency['id']  # todo: currencies have network-junctions
         response = self.privateWalletPostTransfers(self.extend(request, params))
         #
         # according to the docs(however actual response seems to be an empty string '')
@@ -5403,7 +5398,7 @@ class gate(Exchange, ImplicitAPI):
         self.load_markets()
         currency = self.currency(code)
         request = {
-            'currency': currency['id'].upper(),
+            'currency': currency['id'].upper(),  # todo: currencies have network-junctions
             'amount': self.currency_to_precision(code, amount),
         }
         market = self.market(symbol)
@@ -5430,7 +5425,7 @@ class gate(Exchange, ImplicitAPI):
         self.load_markets()
         currency = self.currency(code)
         request = {
-            'currency': currency['id'].upper(),
+            'currency': currency['id'].upper(),  # todo: currencies have network-junctions
             'amount': self.currency_to_precision(code, amount),
         }
         response = self.privateMarginPostCrossRepayments(self.extend(request, params))
@@ -5467,7 +5462,7 @@ class gate(Exchange, ImplicitAPI):
         self.load_markets()
         currency = self.currency(code)
         request = {
-            'currency': currency['id'].upper(),
+            'currency': currency['id'].upper(),  # todo: currencies have network-junctions
             'amount': self.currency_to_precision(code, amount),
         }
         response = None
@@ -5510,7 +5505,7 @@ class gate(Exchange, ImplicitAPI):
         self.load_markets()
         currency = self.currency(code)
         request = {
-            'currency': currency['id'].upper(),
+            'currency': currency['id'].upper(),  # todo: currencies have network-junctions
             'amount': self.currency_to_precision(code, amount),
         }
         response = self.privateMarginPostCrossLoans(self.extend(request, params))
@@ -5658,7 +5653,7 @@ class gate(Exchange, ImplicitAPI):
             raise NotSupported(self.id + ' modifyMarginHelper() not support self market type')
         return self.parse_margin_modification(response, market)
 
-    def parse_margin_modification(self, data, market: Market = None):
+    def parse_margin_modification(self, data, market: Market = None) -> MarginModification:
         #
         #     {
         #         "value": "11.9257",
@@ -5691,14 +5686,18 @@ class gate(Exchange, ImplicitAPI):
         total = self.safe_number(data, 'margin')
         return {
             'info': data,
-            'amount': None,
-            'code': self.safe_value(market, 'quote'),
             'symbol': market['symbol'],
+            'type': None,
+            'marginMode': 'isolated',
+            'amount': None,
             'total': total,
+            'code': self.safe_value(market, 'quote'),
             'status': 'ok',
+            'timestamp': None,
+            'datetime': None,
         }
 
-    def reduce_margin(self, symbol: str, amount, params={}):
+    def reduce_margin(self, symbol: str, amount, params={}) -> MarginModification:
         """
         remove margin from a position
         :see: https://www.gate.io/docs/developers/apiv4/en/#update-position-margin
@@ -5710,7 +5709,7 @@ class gate(Exchange, ImplicitAPI):
         """
         return self.modify_margin_helper(symbol, -amount, params)
 
-    def add_margin(self, symbol: str, amount, params={}):
+    def add_margin(self, symbol: str, amount, params={}) -> MarginModification:
         """
         add margin
         :see: https://www.gate.io/docs/developers/apiv4/en/#update-position-margin
@@ -6000,7 +5999,7 @@ class gate(Exchange, ImplicitAPI):
         if (type == 'spot') or (type == 'margin'):
             if code is not None:
                 currency = self.currency(code)
-                request['currency'] = currency['id']
+                request['currency'] = currency['id']  # todo: currencies have network-junctions
         if (type == 'swap') or (type == 'future'):
             defaultSettle = 'usdt' if (type == 'swap') else 'btc'
             settle = self.safe_string_lower(params, 'settle', defaultSettle)
@@ -6758,7 +6757,7 @@ class gate(Exchange, ImplicitAPI):
         self.load_markets()
         currency = self.currency(code)
         request = {
-            'underlying': currency['code'] + '_USDT',
+            'underlying': currency['code'] + '_USDT',  # todo: currency['id'].upper() &  network junctions
         }
         response = self.publicOptionsGetContracts(self.extend(request, params))
         #

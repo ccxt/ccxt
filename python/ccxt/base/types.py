@@ -65,6 +65,15 @@ class FeeInterface(TypedDict):
 Fee = Optional[FeeInterface]
 
 
+class TradingFeeInterface(TypedDict):
+    info: Dict[str, Any]
+    symbol: Str
+    maker: Num
+    taker: Num
+    percentage: Bool
+    tierBased: Bool
+
+
 class Balance(TypedDict):
     free: Num
     used: Num
@@ -139,6 +148,10 @@ class OrderRequest(TypedDict):
     price: Union[None, float]
     params: Dict[str, Any]
 
+class CancellationRequest(TypedDict):
+    id: Str
+    symbol: Str
+    clientOrderId: Str
 
 class Order(TypedDict):
     info: Dict[str, Any]
@@ -302,6 +315,19 @@ class Greeks(TypedDict):
     info: Dict[str, Any]
 
 
+class Conversion(TypedDict):
+    info: Dict[str, Any]
+    timestamp: Int
+    datetime: Str
+    id: Str
+    fromCurrency: Str
+    fromAmount: Num
+    toCurrency: Str
+    toAmount: Num
+    price: Num
+    fee: Num
+
+
 class Option(TypedDict):
     info: Dict[str, Any]
     currency: Str
@@ -323,6 +349,7 @@ class Option(TypedDict):
 
 
 OptionChain = Dict[str, Option]
+
 
 class MarketInterface(TypedDict):
     info: Dict[str, Any]
@@ -360,10 +387,31 @@ class MarketInterface(TypedDict):
     created: Int
 
 
+class Limit(TypedDict):
+    min: Num
+    max: Num
+
+
+class CurrencyLimits(TypedDict):
+    amount: Limit
+    withdraw: Limit
+
+
 class CurrencyInterface(TypedDict):
     id: Str
     code: Str
+    numericId: Int
     precision: Num
+    type: Str
+    margin: Bool
+    name: Str
+    active: Bool
+    deposit: Bool
+    withdraw: Bool
+    fee: Num
+    limits: CurrencyLimits
+    networks: Dict[str, any]
+    info: any
 
 
 class LastPrice(TypedDict):
@@ -375,7 +423,21 @@ class LastPrice(TypedDict):
     info: Dict[str, Any]
 
 
+class MarginModification(TypedDict):
+    info: Dict[str, any]
+    symbol: str
+    type: Optional[Literal['add', 'reduce', 'set']]
+    marginMode: Optional[Literal['isolated', 'cross']]
+    amount: Optional[float]
+    code: Str
+    status: Str
+    timestamp: Int
+    datetime: Str
+
+
 LastPrices = Dict[Str, LastPrice]
+Currencies = Dict[Str, CurrencyInterface]
+TradingFees = Dict[Str, TradingFeeInterface]
 
 Market = Optional[MarketInterface]
 Currency = Optional[CurrencyInterface]

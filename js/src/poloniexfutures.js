@@ -375,7 +375,10 @@ export default class poloniexfutures extends Exchange {
         //
         const marketId = this.safeString(ticker, 'symbol');
         const symbol = this.safeSymbol(marketId, market);
-        const timestamp = this.safeIntegerProduct(ticker, 'ts', 0.000001);
+        const timestampString = this.safeString(ticker, 'ts');
+        // check timestamp bcz bug: https://app.travis-ci.com/github/ccxt/ccxt/builds/269959181#L4011
+        const multiplier = (timestampString.length === 18) ? 0.00001 : 0.000001;
+        const timestamp = this.safeIntegerProduct(ticker, 'ts', multiplier);
         const last = this.safeString2(ticker, 'price', 'lastPrice');
         const percentage = Precise.stringMul(this.safeString(ticker, 'priceChgPct'), '100');
         return this.safeTicker({
@@ -679,7 +682,7 @@ export default class poloniexfutures extends Exchange {
         //        },
         //    }
         //
-        const trades = this.safeValue(response, 'data', []);
+        const trades = this.safeList(response, 'data', []);
         return this.parseTrades(trades, market, since, limit);
     }
     async fetchTime(params = {}) {
@@ -752,7 +755,7 @@ export default class poloniexfutures extends Exchange {
         //        ]
         //    }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseOHLCVs(data, market, timeframe, since, limit);
     }
     parseBalance(response) {
@@ -1012,7 +1015,7 @@ export default class poloniexfutures extends Exchange {
         //        ]
         //    }
         //
-        const data = this.safeValue(response, 'data');
+        const data = this.safeList(response, 'data');
         return this.parsePositions(data, symbols);
     }
     parsePosition(position, market = undefined) {
@@ -1466,7 +1469,7 @@ export default class poloniexfutures extends Exchange {
         //    }
         //
         const market = (symbol !== undefined) ? this.market(symbol) : undefined;
-        const responseData = this.safeValue(response, 'data');
+        const responseData = this.safeDict(response, 'data');
         return this.parseOrder(responseData, market);
     }
     parseOrder(order, market = undefined) {
@@ -1702,7 +1705,7 @@ export default class poloniexfutures extends Exchange {
         //    }
         //
         const data = this.safeValue(response, 'data', {});
-        const trades = this.safeValue(data, 'items', {});
+        const trades = this.safeList(data, 'items', []);
         return this.parseTrades(trades, market, since, limit);
     }
     async setMarginMode(marginMode, symbol = undefined, params = {}) {

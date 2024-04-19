@@ -76,6 +76,7 @@ public partial class bitget : ccxt.bitget
                         { "30015", typeof(AuthenticationError) },
                         { "30016", typeof(BadRequest) },
                     } },
+                    { "broad", new Dictionary<string, object>() {} },
                 } },
             } },
         });
@@ -1894,6 +1895,8 @@ public partial class bitget : ccxt.bitget
             { "ordersAlgo", this.handleOrder },
             { "account", this.handleBalance },
             { "positions", this.handlePositions },
+            { "account-isolated", this.handleBalance },
+            { "account-crossed", this.handleBalance },
         };
         object arg = this.safeValue(message, "arg", new Dictionary<string, object>() {});
         object topic = this.safeValue(arg, "channel", "");

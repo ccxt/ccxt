@@ -6,7 +6,7 @@ import { ExchangeError, InsufficientFunds, BadRequest, BadSymbol, InvalidOrder, 
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Balances, Currency, Greeks, Int, Market, MarketInterface, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Position, Leverage, MarginMode, Num, Option } from './base/types.js';
+import type { Balances, Currency, Greeks, Int, Market, MarketInterface, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Position, Leverage, MarginMode, Num, Option, MarginModification, Currencies } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -247,15 +247,6 @@ export default class delta extends Exchange {
         });
     }
 
-    convertExpireDate (date) {
-        // parse YYMMDD to timestamp
-        const year = date.slice (0, 2);
-        const month = date.slice (2, 4);
-        const day = date.slice (4, 6);
-        const reconstructedDate = '20' + year + '-' + month + '-' + day + 'T00:00:00Z';
-        return reconstructedDate;
-    }
-
     createExpiredOptionMarket (symbol: string) {
         // support expired option contracts
         const quote = 'USDT';
@@ -421,7 +412,7 @@ export default class delta extends Exchange {
         };
     }
 
-    async fetchCurrencies (params = {}) {
+    async fetchCurrencies (params = {}): Promise<Currencies> {
         /**
          * @method
          * @name delta#fetchCurrencies
@@ -528,7 +519,7 @@ export default class delta extends Exchange {
         return result;
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name delta#fetchMarkets
@@ -2614,7 +2605,7 @@ export default class delta extends Exchange {
         };
     }
 
-    async addMargin (symbol: string, amount, params = {}) {
+    async addMargin (symbol: string, amount, params = {}): Promise<MarginModification> {
         /**
          * @method
          * @name delta#addMargin
@@ -2628,7 +2619,7 @@ export default class delta extends Exchange {
         return await this.modifyMarginHelper (symbol, amount, 'add', params);
     }
 
-    async reduceMargin (symbol: string, amount, params = {}) {
+    async reduceMargin (symbol: string, amount, params = {}): Promise<MarginModification> {
         /**
          * @method
          * @name delta#reduceMargin
@@ -2642,7 +2633,7 @@ export default class delta extends Exchange {
         return await this.modifyMarginHelper (symbol, amount, 'reduce', params);
     }
 
-    async modifyMarginHelper (symbol: string, amount, type, params = {}) {
+    async modifyMarginHelper (symbol: string, amount, type, params = {}): Promise<MarginModification> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         amount = amount.toString ();
@@ -2681,7 +2672,7 @@ export default class delta extends Exchange {
         return this.parseMarginModification (result, market);
     }
 
-    parseMarginModification (data, market: Market = undefined) {
+    parseMarginModification (data, market: Market = undefined): MarginModification {
         //
         //     {
         //         "auto_topup": false,
@@ -2706,12 +2697,15 @@ export default class delta extends Exchange {
         market = this.safeMarket (marketId, market);
         return {
             'info': data,
+            'symbol': market['symbol'],
             'type': undefined,
+            'marginMode': 'isolated',
             'amount': undefined,
             'total': this.safeNumber (data, 'margin'),
             'code': undefined,
-            'symbol': market['symbol'],
             'status': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
         };
     }
 

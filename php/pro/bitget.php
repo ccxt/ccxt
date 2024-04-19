@@ -7,10 +7,10 @@ namespace ccxt\pro;
 
 use Exception; // a common import
 use ccxt\ExchangeError;
+use ccxt\AuthenticationError;
 use ccxt\ArgumentsRequired;
 use ccxt\NotSupported;
 use ccxt\InvalidNonce;
-use ccxt\AuthenticationError;
 use ccxt\Precise;
 use React\Async;
 use React\Promise\PromiseInterface;
@@ -86,6 +86,7 @@ class bitget extends \ccxt\async\bitget {
                         '30015' => '\\ccxt\\AuthenticationError', // array( event => 'error', code => 30015, msg => 'Invalid sign' )
                         '30016' => '\\ccxt\\BadRequest', // array( event => 'error', code => 30016, msg => 'Param error' )
                     ),
+                    'broad' => array(),
                 ),
             ),
         ));
@@ -1755,6 +1756,8 @@ class bitget extends \ccxt\async\bitget {
             'ordersAlgo' => array($this, 'handle_order'),
             'account' => array($this, 'handle_balance'),
             'positions' => array($this, 'handle_positions'),
+            'account-isolated' => array($this, 'handle_balance'),
+            'account-crossed' => array($this, 'handle_balance'),
         );
         $arg = $this->safe_value($message, 'arg', array());
         $topic = $this->safe_value($arg, 'channel', '');

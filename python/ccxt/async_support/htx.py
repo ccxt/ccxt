@@ -7,9 +7,10 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.htx import ImplicitAPI
 import asyncio
 import hashlib
-from ccxt.base.types import Account, Balances, Currency, Int, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
+from ccxt.base.types import Account, Balances, Currencies, Currency, Int, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import AccountNotEnabled
 from ccxt.base.errors import ArgumentsRequired
@@ -19,12 +20,11 @@ from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import NotSupported
-from ccxt.base.errors import NetworkError
+from ccxt.base.errors import OperationFailed
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import RequestTimeout
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TRUNCATE
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
@@ -103,6 +103,7 @@ class htx(Exchange, ImplicitAPI):
                 'fetchLeverage': False,
                 'fetchLeverageTiers': True,
                 'fetchLiquidations': True,
+                'fetchMarginAdjustmentHistory': False,
                 'fetchMarketLeverageTiers': True,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': True,
@@ -958,14 +959,8 @@ class htx(Exchange, ImplicitAPI):
                 'fetchMarkets': {
                     'types': {
                         'spot': True,
-                        'future': {
-                            'linear': True,
-                            'inverse': True,
-                        },
-                        'swap': {
-                            'linear': True,
-                            'inverse': True,
-                        },
+                        'linear': True,
+                        'inverse': True,
                     },
                 },
                 'fetchOHLCV': {
@@ -1486,7 +1481,7 @@ class htx(Exchange, ImplicitAPI):
         #
         return self.safe_integer_2(response, 'data', 'ts')
 
-    def parse_trading_fee(self, fee, market: Market = None):
+    def parse_trading_fee(self, fee, market: Market = None) -> TradingFeeInterface:
         #
         #     {
         #         "symbol":"btcusdt",
@@ -1502,9 +1497,11 @@ class htx(Exchange, ImplicitAPI):
             'symbol': self.safe_symbol(marketId, market),
             'maker': self.safe_number(fee, 'actualMakerRate'),
             'taker': self.safe_number(fee, 'actualTakerRate'),
+            'percentage': None,
+            'tierBased': None,
         }
 
-    async def fetch_trading_fee(self, symbol: str, params={}):
+    async def fetch_trading_fee(self, symbol: str, params={}) -> TradingFeeInterface:
         """
         fetch the trading fees for a market
         :param str symbol: unified market symbol
@@ -1601,58 +1598,47 @@ class htx(Exchange, ImplicitAPI):
     def cost_to_precision(self, symbol, cost):
         return self.decimal_to_precision(cost, TRUNCATE, self.markets[symbol]['precision']['cost'], self.precisionMode)
 
-    async def fetch_markets(self, params={}):
+    async def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for huobi
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
-        options = self.safe_value(self.options, 'fetchMarkets', {})
-        types = self.safe_value(options, 'types', {})
+        types = None
+        types, params = self.handle_option_and_params(params, 'fetchMarkets', 'types', {})
         allMarkets = []
         promises = []
         keys = list(types.keys())
         for i in range(0, len(keys)):
-            type = keys[i]
-            value = self.safe_value(types, type)
-            if value is True:
-                promises.append(self.fetch_markets_by_type_and_sub_type(type, None, params))
-            elif value:
-                subKeys = list(value.keys())
-                for j in range(0, len(subKeys)):
-                    subType = subKeys[j]
-                    subValue = self.safe_value(value, subType)
-                    if subValue:
-                        promises.append(self.fetch_markets_by_type_and_sub_type(type, subType, params))
+            key = keys[i]
+            if self.safe_bool(types, key):
+                if key == 'spot':
+                    promises.append(self.fetch_markets_by_type_and_sub_type('spot', None, params))
+                elif key == 'linear':
+                    promises.append(self.fetch_markets_by_type_and_sub_type(None, 'linear', params))
+                elif key == 'inverse':
+                    promises.append(self.fetch_markets_by_type_and_sub_type('swap', 'inverse', params))
+                    promises.append(self.fetch_markets_by_type_and_sub_type('future', 'inverse', params))
         promises = await asyncio.gather(*promises)
         for i in range(0, len(promises)):
             allMarkets = self.array_concat(allMarkets, promises[i])
         return allMarkets
 
     async def fetch_markets_by_type_and_sub_type(self, type, subType, params={}):
-        query = self.omit(params, ['type', 'subType'])
-        spot = (type == 'spot')
-        contract = (type != 'spot')
-        future = (type == 'future')
-        swap = (type == 'swap')
-        linear = None
-        inverse = None
+        isSpot = (type == 'spot')
         request = {}
         response = None
-        if contract:
-            linear = (subType == 'linear')
-            inverse = (subType == 'inverse')
-            if linear:
-                if future:
-                    request['business_type'] = 'futures'
-                response = await self.contractPublicGetLinearSwapApiV1SwapContractInfo(self.extend(request, query))
-            elif inverse:
-                if future:
-                    response = await self.contractPublicGetApiV1ContractContractInfo(self.extend(request, query))
-                elif swap:
-                    response = await self.contractPublicGetSwapApiV1SwapContractInfo(self.extend(request, query))
+        if not isSpot:
+            if subType == 'linear':
+                request['business_type'] = 'all'  # override default to fetch all linear markets
+                response = await self.contractPublicGetLinearSwapApiV1SwapContractInfo(self.extend(request, params))
+            elif subType == 'inverse':
+                if type == 'future':
+                    response = await self.contractPublicGetApiV1ContractContractInfo(self.extend(request, params))
+                elif type == 'swap':
+                    response = await self.contractPublicGetSwapApiV1SwapContractInfo(self.extend(request, params))
         else:
-            response = await self.spotPublicGetV1CommonSymbols(self.extend(request, query))
+            response = await self.spotPublicGetV1CommonSymbols(self.extend(request, params))
         #
         # spot
         #
@@ -1691,75 +1677,58 @@ class htx(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        # inverse future
+        # inverse(swap & future)
         #
         #     {
         #         "status":"ok",
         #         "data":[
         #             {
         #                 "symbol":"BTC",
-        #                 "contract_code":"BTC211126",
-        #                 "contract_type":"self_week",
-        #                 "contract_size":100.000000000000000000,
-        #                 "price_tick":0.010000000000000000,
-        #                 "delivery_date":"20211126",
-        #                 "delivery_time":"1637913600000",
+        #                 "contract_code":"BTC211126",  #/ BTC-USD in swap
+        #                 "contract_type":"self_week",  # only in future
+        #                 "contract_size":100,
+        #                 "price_tick":0.1,
+        #                 "delivery_date":"20211126",  # only in future
+        #                 "delivery_time":"1637913600000",  # empty in swap
         #                 "create_date":"20211112",
         #                 "contract_status":1,
-        #                 "settlement_time":"1637481600000"
+        #                 "settlement_time":"1637481600000"  # only in future
+        #                 "settlement_date":"16xxxxxxxxxxx"  # only in swap
         #             },
+        #           ...
         #         ],
         #         "ts":1637474595140
         #     }
         #
-        # linear futures
+        # linear(swap & future)
         #
         #     {
         #         "status":"ok",
         #         "data":[
         #             {
         #                 "symbol":"BTC",
-        #                 "contract_code":"BTC-USDT-211231",
-        #                 "contract_size":0.001000000000000000,
-        #                 "price_tick":0.100000000000000000,
-        #                 "delivery_date":"20211231",
-        #                 "delivery_time":"1640937600000",
+        #                 "contract_code":"BTC-USDT-211231",  # or "BTC-USDT" in swap
+        #                 "contract_size":0.001,
+        #                 "price_tick":0.1,
+        #                 "delivery_date":"20211231",  # empty in swap
+        #                 "delivery_time":"1640937600000",  # empty in swap
         #                 "create_date":"20211228",
         #                 "contract_status":1,
         #                 "settlement_date":"1640764800000",
-        #                 "support_margin_mode":"cross",
-        #                 "business_type":"futures",
+        #                 "support_margin_mode":"cross",  # "all" or "cross"
+        #                 "business_type":"futures",  # "swap" or "futures"
         #                 "pair":"BTC-USDT",
-        #                 "contract_type":"self_week"  # next_week, quarter
-        #             },
+        #                 "contract_type":"self_week",  # "swap", "self_week", "next_week", "quarter"
+        #                 "trade_partition":"USDT",
+        #             }
         #         ],
         #         "ts":1640736207263
         #     }
         #
-        # swaps
-        #
-        #     {
-        #         "status":"ok",
-        #         "data":[
-        #             {
-        #                 "symbol":"BTC",
-        #                 "contract_code":"BTC-USDT",
-        #                 "contract_size":0.001000000000000000,
-        #                 "price_tick":0.100000000000000000,
-        #                 "delivery_time":"",
-        #                 "create_date":"20201021",
-        #                 "contract_status":1,
-        #                 "settlement_date":"1637481600000",
-        #                 "support_margin_mode":"all",  # isolated
-        #             },
-        #         ],
-        #         "ts":1637474774467
-        #     }
-        #
-        markets = self.safe_value(response, 'data', [])
+        markets = self.safe_list(response, 'data', [])
         numMarkets = len(markets)
         if numMarkets < 1:
-            raise NetworkError(self.id + ' fetchMarkets() returned an empty response: ' + self.json(markets))
+            raise OperationFailed(self.id + ' fetchMarkets() returned an empty response: ' + self.json(response))
         result = []
         for i in range(0, len(markets)):
             market = markets[i]
@@ -1768,15 +1737,30 @@ class htx(Exchange, ImplicitAPI):
             settleId = None
             id = None
             lowercaseId = None
+            contract = ('contract_code' in market)
+            spot = not contract
+            swap = False
+            future = False
+            linear = None
+            inverse = None
+            # check if parsed market is contract
             if contract:
                 id = self.safe_string(market, 'contract_code')
                 lowercaseId = id.lower()
+                delivery_date = self.safe_string(market, 'delivery_date')
+                business_type = self.safe_string(market, 'business_type')
+                future = delivery_date is not None
+                swap = not future
+                linear = business_type is not None
+                inverse = not linear
                 if swap:
+                    type = 'swap'
                     parts = id.split('-')
                     baseId = self.safe_string_lower(market, 'symbol')
                     quoteId = self.safe_string_lower(parts, 1)
                     settleId = baseId if inverse else quoteId
                 elif future:
+                    type = 'future'
                     baseId = self.safe_string_lower(market, 'symbol')
                     if inverse:
                         quoteId = 'USD'
@@ -1787,6 +1771,7 @@ class htx(Exchange, ImplicitAPI):
                         quoteId = self.safe_string_lower(parts, 1)
                         settleId = quoteId
             else:
+                type = 'spot'
                 baseId = self.safe_string(market, 'base-currency')
                 quoteId = self.safe_string(market, 'quote-currency')
                 id = baseId + quoteId
@@ -1909,6 +1894,40 @@ class htx(Exchange, ImplicitAPI):
             })
         return result
 
+    def try_get_symbol_from_future_markets(self, symbolOrMarketId: str):
+        if symbolOrMarketId in self.markets:
+            return symbolOrMarketId
+        # only on "future" market type(inverse & linear), market-id differs between "fetchMarkets" and "fetchTicker"
+        # so we have to create a mapping
+        # - market-id from fetchMarkts:    `BTC-USDT-240419`(linear future) or `BTC240412`(inverse future)
+        # - market-id from fetchTciker[s]: `BTC-USDT-CW`     (linear future) or `BTC_CW`    (inverse future)
+        if not ('futureMarketIdsForSymbols' in self.options):
+            self.options['futureMarketIdsForSymbols'] = {}
+        futureMarketIdsForSymbols = self.safe_dict(self.options, 'futureMarketIdsForSymbols', {})
+        if symbolOrMarketId in futureMarketIdsForSymbols:
+            return futureMarketIdsForSymbols[symbolOrMarketId]
+        futureMarkets = self.filter_by(self.markets, 'future', True)
+        futuresCharsMaps = {
+            'this_week': 'CW',
+            'next_week': 'NW',
+            'quarter': 'CQ',
+            'next_quarter': 'NQ',
+        }
+        for i in range(0, len(futureMarkets)):
+            market = futureMarkets[i]
+            info = self.safe_value(market, 'info', {})
+            contractType = self.safe_string(info, 'contract_type')
+            contractSuffix = futuresCharsMaps[contractType]
+            # see comment on formats a bit above
+            constructedId = market['base'] + '-' + market['quote'] + '-' + contractSuffix if market['linear'] else market['base'] + '_' + contractSuffix
+            if constructedId == symbolOrMarketId:
+                symbol = market['symbol']
+                self.options['futureMarketIdsForSymbols'][symbolOrMarketId] = symbol
+                return symbol
+        # if not found, just save it to avoid unnecessary future iterations
+        self.options['futureMarketIdsForSymbols'][symbolOrMarketId] = symbolOrMarketId
+        return symbolOrMarketId
+
     def parse_ticker(self, ticker, market: Market = None) -> Ticker:
         #
         # fetchTicker
@@ -1957,6 +1976,7 @@ class htx(Exchange, ImplicitAPI):
         #
         marketId = self.safe_string_2(ticker, 'symbol', 'contract_code')
         symbol = self.safe_symbol(marketId, market)
+        symbol = self.try_get_symbol_from_future_markets(symbol)
         timestamp = self.safe_integer_2(ticker, 'ts', 'quoteTime')
         bid = None
         bidVolume = None
@@ -2084,7 +2104,7 @@ class htx(Exchange, ImplicitAPI):
         :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-get-a-batch-of-market-data-overview
         :see: https://huobiapi.github.io/docs/dm/v1/en/#get-a-batch-of-market-data-overview
         :see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-a-batch-of-market-data-overview-v2
-        :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param str[] [symbols]: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
@@ -2094,27 +2114,37 @@ class htx(Exchange, ImplicitAPI):
         market = None
         if first is not None:
             market = self.market(first)
+        isSubTypeRequested = ('subType' in params) or ('business_type' in params)
         type = None
         subType = None
         type, params = self.handle_market_type_and_params('fetchTickers', market, params)
         subType, params = self.handle_sub_type_and_params('fetchTickers', market, params)
         request = {}
+        isSpot = (type == 'spot')
         future = (type == 'future')
         swap = (type == 'swap')
         linear = (subType == 'linear')
         inverse = (subType == 'inverse')
-        params = self.omit(params, ['type', 'subType'])
         response = None
-        if future or swap:
+        if not isSpot or isSubTypeRequested:
             if linear:
+                # independently of type, supports calling all linear symbols i.e. fetchTickers(None, {subType:'linear'})
                 if future:
                     request['business_type'] = 'futures'
+                elif swap:
+                    request['business_type'] = 'swap'
+                else:
+                    request['business_type'] = 'all'
                 response = await self.contractPublicGetLinearSwapExMarketDetailBatchMerged(self.extend(request, params))
             elif inverse:
                 if future:
                     response = await self.contractPublicGetMarketDetailBatchMerged(self.extend(request, params))
                 elif swap:
                     response = await self.contractPublicGetSwapExMarketDetailBatchMerged(self.extend(request, params))
+                else:
+                    raise NotSupported(self.id + ' fetchTickers() you have to set params["type"] to either "swap" or "future" for inverse contracts')
+            else:
+                raise NotSupported(self.id + ' fetchTickers() you have to set params["subType"] to either "linear" or "inverse" for contracts')
         else:
             response = await self.spotPublicGetMarketTickers(self.extend(request, params))
         #
@@ -2141,7 +2171,7 @@ class htx(Exchange, ImplicitAPI):
         #         "ts":1639547261293
         #     }
         #
-        # inverse swaps, linear swaps, inverse futures
+        # linear swap, linear future, inverse swap, inverse future
         #
         #     {
         #         "status":"ok",
@@ -2158,66 +2188,18 @@ class htx(Exchange, ImplicitAPI):
         #                 "high":"0.10725",
         #                 "amount":"2340267.415144052378486261756692535687481566",
         #                 "count":882,
-        #                 "vol":"24706"
+        #                 "vol":"24706",
+        #                 "trade_turnover":"840726.5048",  # only in linear futures
+        #                 "business_type":"futures",  # only in linear futures
+        #                 "contract_code":"BTC-USDT-CW",  # only in linear futures, instead of 'symbol'
         #             }
         #         ],
         #         "ts":1637504679376
         #     }
         #
-        # linear futures
-        #
-        #     {
-        #         "status":"ok",
-        #         "ticks":[
-        #             {
-        #                 "id":1640745627,
-        #                 "ts":1640745627957,
-        #                 "ask":[48079.1,20],
-        #                 "bid":[47713.8,125],
-        #                 "business_type":"futures",
-        #                 "contract_code":"BTC-USDT-CW",
-        #                 "open":"49011.8",
-        #                 "close":"47934",
-        #                 "low":"47292.3",
-        #                 "high":"49011.8",
-        #                 "amount":"17.398",
-        #                 "count":1515,
-        #                 "vol":"17398",
-        #                 "trade_turnover":"840726.5048"
-        #             }
-        #         ],
-        #         "ts":1640745627988
-        #     }
-        #
-        tickers = self.safe_value_2(response, 'data', 'ticks', [])
-        timestamp = self.safe_integer(response, 'ts')
-        result = {}
-        for i in range(0, len(tickers)):
-            ticker = self.parse_ticker(tickers[i])
-            # the market ids for linear futures are non-standard and differ from all the other endpoints
-            # we are doing a linear-matching here
-            if future and linear:
-                for j in range(0, len(self.symbols)):
-                    symbolInner = self.symbols[j]
-                    marketInner = self.market(symbolInner)
-                    contractType = self.safe_string(marketInner['info'], 'contract_type')
-                    if (contractType == 'this_week') and (ticker['symbol'] == (marketInner['baseId'] + '-' + marketInner['quoteId'] + '-CW')):
-                        ticker['symbol'] = marketInner['symbol']
-                        break
-                    elif (contractType == 'next_week') and (ticker['symbol'] == (marketInner['baseId'] + '-' + marketInner['quoteId'] + '-NW')):
-                        ticker['symbol'] = marketInner['symbol']
-                        break
-                    elif (contractType == 'this_quarter') and (ticker['symbol'] == (marketInner['baseId'] + '-' + marketInner['quoteId'] + '-CQ')):
-                        ticker['symbol'] = marketInner['symbol']
-                        break
-                    elif (contractType == 'next_quarter') and (ticker['symbol'] == (marketInner['baseId'] + '-' + marketInner['quoteId'] + '-NQ')):
-                        ticker['symbol'] = marketInner['symbol']
-                        break
-            symbol = ticker['symbol']
-            ticker['timestamp'] = timestamp
-            ticker['datetime'] = self.iso8601(timestamp)
-            result[symbol] = ticker
-        return self.filter_by_array_tickers(result, 'symbol', symbols)
+        rawTickers = self.safe_list_2(response, 'data', 'ticks', [])
+        tickers = self.parse_tickers(rawTickers, symbols, params)
+        return self.filter_by_array_tickers(tickers, 'symbol', symbols)
 
     async def fetch_last_prices(self, symbols: Strings = None, params={}):
         """
@@ -2225,7 +2207,7 @@ class htx(Exchange, ImplicitAPI):
         :see: https://www.htx.com/en-us/opend/newApiPages/?id=8cb81024-77b5-11ed-9966-0242ac110003 linear swap & linear future
         :see: https://www.htx.com/en-us/opend/newApiPages/?id=28c2e8fc-77ae-11ed-9966-0242ac110003 inverse future
         :see: https://www.htx.com/en-us/opend/newApiPages/?id=5d517ef5-77b6-11ed-9966-0242ac110003 inverse swap
-        :param str[]|None symbols: unified symbols of the markets to fetch the last prices
+        :param str[] [symbols]: unified symbols of the markets to fetch the last prices
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of lastprices structures
         """
@@ -2315,7 +2297,7 @@ class htx(Exchange, ImplicitAPI):
         else:
             raise NotSupported(self.id + ' fetchLastPrices() does not support ' + type + ' markets yet')
         tick = self.safe_value(response, 'tick', {})
-        data = self.safe_value(tick, 'data', [])
+        data = self.safe_list(tick, 'data', [])
         return self.parse_last_prices(data, symbols)
 
     def parse_last_price(self, entry, market: Market = None):
@@ -2856,7 +2838,7 @@ class htx(Exchange, ImplicitAPI):
         untilSeconds = self.parse_to_int(until / 1000) if (until is not None) else None
         if market['contract']:
             if limit is not None:
-                request['size'] = limit  # when using limit: from & to are ignored
+                request['size'] = min(limit, 2000)  # when using limit: from & to are ignored
                 # https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-get-kline-data
             else:
                 limit = 2000  # only used for from/to calculation
@@ -2920,7 +2902,7 @@ class htx(Exchange, ImplicitAPI):
             useHistorical, params = self.handle_option_and_params(params, 'fetchOHLCV', 'useHistoricalEndpointForSpot', True)
             if not useHistorical:
                 if limit is not None:
-                    request['size'] = min(2000, limit)  # max 2000
+                    request['size'] = min(limit, 2000)  # max 2000
                 response = await self.spotPublicGetMarketHistoryKline(self.extend(request, params))
             else:
                 # "from & to" only available for the self endpoint
@@ -3009,7 +2991,7 @@ class htx(Exchange, ImplicitAPI):
         defaultAccount = self.safe_value(accounts, 0, {})
         return self.safe_string(defaultAccount, 'id')
 
-    async def fetch_currencies(self, params={}):
+    async def fetch_currencies(self, params={}) -> Currencies:
         """
         fetches all available currencies on an exchange
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -3735,7 +3717,7 @@ class htx(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        data = self.safe_value(response, 'data', [])
+        data = self.safe_list(response, 'data', [])
         return self.parse_orders(data, market, since, limit)
 
     async def fetch_spot_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
@@ -6735,7 +6717,7 @@ class htx(Exchange, ImplicitAPI):
         else:
             request['symbol'] = market['id']
             response = await self.contractPrivatePostApiV3ContractFinancialRecordExact(self.extend(request, query))
-        data = self.safe_value(response, 'data', [])
+        data = self.safe_list(response, 'data', [])
         return self.parse_incomes(data, market, since, limit)
 
     async def set_leverage(self, leverage: Int, symbol: Str = None, params={}):
@@ -7464,7 +7446,7 @@ class htx(Exchange, ImplicitAPI):
         #        ]
         #    }
         #
-        data = self.safe_value(response, 'data')
+        data = self.safe_list(response, 'data')
         return self.parse_leverage_tiers(data, symbols, 'contract_code')
 
     async def fetch_market_leverage_tiers(self, symbol: str, params={}):
@@ -7653,7 +7635,7 @@ class htx(Exchange, ImplicitAPI):
         #    }
         #
         data = self.safe_value(response, 'data')
-        tick = self.safe_value(data, 'tick')
+        tick = self.safe_list(data, 'tick')
         return self.parse_open_interests(tick, market, since, limit)
 
     async def fetch_open_interest(self, symbol: str, params={}):
@@ -8132,7 +8114,7 @@ class htx(Exchange, ImplicitAPI):
         #        ]
         #    }
         #
-        data = self.safe_value(response, 'data')
+        data = self.safe_list(response, 'data')
         return self.parse_deposit_withdraw_fees(data, codes, 'currency')
 
     def parse_deposit_withdraw_fee(self, fee, currency: Currency = None):
@@ -8345,7 +8327,7 @@ class htx(Exchange, ImplicitAPI):
         #         "ts": 1604312615051
         #     }
         #
-        data = self.safe_value(response, 'data', [])
+        data = self.safe_list(response, 'data', [])
         return self.parse_liquidations(data, market, since, limit)
 
     def parse_liquidation(self, liquidation, market: Market = None):

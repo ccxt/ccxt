@@ -344,7 +344,7 @@ class blofin extends Exchange {
         ));
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): array {
         /**
          * retrieves $data on all markets for blofin
          * @see https://blofin.com/docs#get-instruments
@@ -930,13 +930,15 @@ class blofin extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function parse_trading_fee($fee, ?array $market = null) {
+    public function parse_trading_fee($fee, ?array $market = null): array {
         return array(
             'info' => $fee,
             'symbol' => $this->safe_symbol(null, $market),
             // blofin returns the fees values opposed to other exchanges, so the sign needs to be flipped
             'maker' => $this->parse_number(Precise::string_neg($this->safe_string_2($fee, 'maker', 'makerU'))),
             'taker' => $this->parse_number(Precise::string_neg($this->safe_string_2($fee, 'taker', 'takerU'))),
+            'percentage' => null,
+            'tierBased' => null,
         );
     }
 

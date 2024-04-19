@@ -7,9 +7,9 @@ namespace ccxt\pro;
 
 use Exception; // a common import
 use ccxt\ExchangeError;
+use ccxt\AuthenticationError;
 use ccxt\ArgumentsRequired;
 use ccxt\NotSupported;
-use ccxt\AuthenticationError;
 use React\Async;
 use React\Promise\PromiseInterface;
 
@@ -729,10 +729,10 @@ class bitmart extends \ccxt\async\bitmart {
         //    }
         //
         $data = $this->safe_value($message, 'data', array());
-        $cache = $this->positions;
         if ($this->positions === null) {
             $this->positions = new ArrayCacheBySymbolBySide ();
         }
+        $cache = $this->positions;
         $newPositions = array();
         for ($i = 0; $i < count($data); $i++) {
             $rawPosition = $data[$i];

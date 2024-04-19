@@ -362,7 +362,7 @@ class bit2c extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function fetch_trading_fees($params = array ()) {
+    public function fetch_trading_fees($params = array ()): array {
         /**
          * fetch the trading $fees for multiple markets
          * @see https://bit2c.co.il/home/api#balance
@@ -478,7 +478,7 @@ class bit2c extends Exchange {
         $response = $this->privateGetOrderMyOrders (array_merge($request, $params));
         $orders = $this->safe_value($response, $market['id'], array());
         $asks = $this->safe_value($orders, 'ask', array());
-        $bids = $this->safe_value($orders, 'bid', array());
+        $bids = $this->safe_list($orders, 'bid', array());
         return $this->parse_orders($this->array_concat($asks, $bids), $market, $since, $limit);
     }
 

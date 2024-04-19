@@ -7,12 +7,14 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.bybit import ImplicitAPI
 import asyncio
 import hashlib
-from ccxt.base.types import Balances, Currency, Greeks, Int, Leverage, Market, MarketInterface, Num, Option, OptionChain, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
+from ccxt.base.types import Balances, Currencies, Currency, Greeks, Int, Leverage, Market, MarketInterface, Num, Option, OptionChain, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
+from ccxt.base.errors import NoChange
 from ccxt.base.errors import MarginModeAlreadySet
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
@@ -21,8 +23,6 @@ from ccxt.base.errors import NotSupported
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import InvalidNonce
 from ccxt.base.errors import RequestTimeout
-from ccxt.base.errors import AuthenticationError
-from ccxt.base.errors import NoChange
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -37,7 +37,7 @@ class bybit(Exchange, ImplicitAPI):
             'version': 'v5',
             'userAgent': None,
             'rateLimit': 20,
-            'hostname': 'bybit.com',  # bybit.com, bytick.com
+            'hostname': 'bybit.com',  # bybit.com, bytick.com, bybit.nl, bybit.com.hk
             'pro': True,
             'certified': True,
             'has': {
@@ -96,6 +96,7 @@ class bybit(Exchange, ImplicitAPI):
                 'fetchLedger': True,
                 'fetchLeverage': True,
                 'fetchLeverageTiers': True,
+                'fetchMarginAdjustmentHistory': False,
                 'fetchMarketLeverageTiers': True,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': True,
@@ -165,6 +166,13 @@ class bybit(Exchange, ImplicitAPI):
                     'v2': 'https://api.{hostname}',
                     'public': 'https://api.{hostname}',
                     'private': 'https://api.{hostname}',
+                },
+                'demotrading': {
+                    'spot': 'https://api-demo.{hostname}',
+                    'futures': 'https://api-demo.{hostname}',
+                    'v2': 'https://api-demo.{hostname}',
+                    'public': 'https://api-demo.{hostname}',
+                    'private': 'https://api-demo.{hostname}',
                 },
                 'www': 'https://www.bybit.com',
                 'doc': [
@@ -354,6 +362,7 @@ class bybit(Exchange, ImplicitAPI):
                         'v5/user/get-member-type': 5,
                         'v5/user/aff-customer-info': 5,
                         'v5/user/del-submember': 5,
+                        'v5/user/submembers': 5,
                         # spot leverage token
                         'v5/spot-lever-token/order-record': 1,  # 50/s => cost = 50 / 50 = 1
                         # spot margin trade
@@ -376,6 +385,7 @@ class bybit(Exchange, ImplicitAPI):
                         'v5/broker/earning-record': 5,
                         'v5/broker/earnings-info': 5,
                         'v5/broker/account-info': 5,
+                        'v5/broker/asset/query-sub-member-deposit-record': 10,
                     },
                     'post': {
                         # Legacy option USDC
@@ -483,7 +493,7 @@ class bybit(Exchange, ImplicitAPI):
                         'v5/account/mmp-modify': 5,
                         'v5/account/mmp-reset': 5,
                         # asset
-                        'v5/asset/transfer/inter-transfer': 150,  # 1/3/s => cost = 50 / 1/3 = 150
+                        'v5/asset/transfer/inter-transfer': 50,  # 1/s => cost = 50 / 1 = 50
                         'v5/asset/transfer/save-transfer-sub-member': 150,  # 1/3/s => cost = 50 / 1/3 = 150
                         'v5/asset/transfer/universal-transfer': 10,  # 5/s => cost = 50 / 5 = 10
                         'v5/asset/deposit/deposit-to-account': 5,
@@ -514,6 +524,8 @@ class bybit(Exchange, ImplicitAPI):
                         'v5/lending/redeem-cancel': 5,
                         'v5/account/set-collateral-switch': 5,
                         'v5/account/set-collateral-switch-batch': 5,
+                        # demo trading
+                        'v5/account/demo-apply-money': 5,
                     },
                 },
             },
@@ -980,6 +992,8 @@ class bybit(Exchange, ImplicitAPI):
             },
             'precisionMode': TICK_SIZE,
             'options': {
+                'sandboxMode': False,
+                'enableDemoTrading': False,
                 'fetchMarkets': ['spot', 'linear', 'inverse', 'option'],
                 'createOrder': {
                     'method': 'privatePostV5OrderCreate',  # 'privatePostV5PositionTradingStop'
@@ -1063,6 +1077,32 @@ class bybit(Exchange, ImplicitAPI):
             },
         })
 
+    def set_sandbox_mode(self, enable: bool):
+        """
+        enables or disables sandbox mode
+        :param boolean [enable]: True if demo trading should be enabled, False otherwise
+        """
+        super(bybit, self).set_sandbox_mode(enable)
+        self.options['sandboxMode'] = enable
+
+    def enable_demo_trading(self, enable: bool):
+        """
+        enables or disables demo trading mode
+        :see: https://bybit-exchange.github.io/docs/v5/demo
+        :param boolean [enable]: True if demo trading should be enabled, False otherwise
+        """
+        if self.options['sandboxMode']:
+            raise NotSupported(self.id + ' demo trading does not support in sandbox environment')
+        # enable demo trading in bybit, see: https://bybit-exchange.github.io/docs/v5/demo
+        if enable:
+            self.urls['apiBackupDemoTrading'] = self.urls['api']
+            self.urls['api'] = self.urls['demotrading']
+        elif 'apiBackupDemoTrading' in self.urls:
+            self.urls['api'] = self.urls['apiBackupDemoTrading']
+            newUrls = self.omit(self.urls, 'apiBackupDemoTrading')
+            self.urls = newUrls
+        self.options['enableDemoTrading'] = enable
+
     def nonce(self):
         return self.milliseconds() - self.options['timeDifference']
 
@@ -1078,12 +1118,21 @@ class bybit(Exchange, ImplicitAPI):
         return data
 
     async def is_unified_enabled(self, params={}):
+        """
+        returns [enableUnifiedMargin, enableUnifiedAccount] so the user can check if unified account is enabled
+        """
         # The API key of user id must own one of permissions will be allowed to call following API endpoints.
         # SUB UID: "Account Transfer"
         # MASTER UID: "Account Transfer", "Subaccount Transfer", "Withdrawal"
         enableUnifiedMargin = self.safe_value(self.options, 'enableUnifiedMargin')
         enableUnifiedAccount = self.safe_value(self.options, 'enableUnifiedAccount')
         if enableUnifiedMargin is None or enableUnifiedAccount is None:
+            if self.options['enableDemoTrading']:
+                # info endpoint is not available in demo trading
+                # so we're assuming UTA is enabled
+                self.options['enableUnifiedMargin'] = False
+                self.options['enableUnifiedAccount'] = True
+                return [self.options['enableUnifiedMargin'], self.options['enableUnifiedAccount']]
             response = await self.privateGetV5UserQueryApi(params)
             #
             #     {
@@ -1132,70 +1181,6 @@ class bybit(Exchange, ImplicitAPI):
 
     async def upgrade_unified_trade_account(self, params={}):
         return await self.privatePostV5AccountUpgradeToUta(params)
-
-    def convert_expire_date(self, date):
-        # parse YYMMDD to timestamp
-        year = date[0:2]
-        month = date[2:4]
-        day = date[4:6]
-        reconstructedDate = '20' + year + '-' + month + '-' + day + 'T00:00:00Z'
-        return reconstructedDate
-
-    def convert_expire_date_to_market_id_date(self, date):
-        # parse 231229 to 29DEC23
-        year = date[0:2]
-        monthRaw = date[2:4]
-        month = None
-        day = date[4:6]
-        if monthRaw == '01':
-            month = 'JAN'
-        elif monthRaw == '02':
-            month = 'FEB'
-        elif monthRaw == '03':
-            month = 'MAR'
-        elif monthRaw == '04':
-            month = 'APR'
-        elif monthRaw == '05':
-            month = 'MAY'
-        elif monthRaw == '06':
-            month = 'JUN'
-        elif monthRaw == '07':
-            month = 'JUL'
-        elif monthRaw == '08':
-            month = 'AUG'
-        elif monthRaw == '09':
-            month = 'SEP'
-        elif monthRaw == '10':
-            month = 'OCT'
-        elif monthRaw == '11':
-            month = 'NOV'
-        elif monthRaw == '12':
-            month = 'DEC'
-        reconstructedDate = day + month + year
-        return reconstructedDate
-
-    def convert_market_id_expire_date(self, date):
-        # parse 22JAN23 to 230122
-        monthMappping = {
-            'JAN': '01',
-            'FEB': '02',
-            'MAR': '03',
-            'APR': '04',
-            'MAY': '05',
-            'JUN': '06',
-            'JUL': '07',
-            'AUG': '08',
-            'SEP': '09',
-            'OCT': '10',
-            'NOV': '11',
-            'DEC': '12',
-        }
-        year = date[0:2]
-        monthName = date[2:5]
-        month = self.safe_string(monthMappping, monthName)
-        day = date[5:7]
-        reconstructedDate = day + month + year
-        return reconstructedDate
 
     def create_expired_option_market(self, symbol: str):
         # support expired option contracts
@@ -1298,7 +1283,7 @@ class bybit(Exchange, ImplicitAPI):
         #
         return self.safe_integer(response, 'time')
 
-    async def fetch_currencies(self, params={}):
+    async def fetch_currencies(self, params={}) -> Currencies:
         """
         fetches all available currencies on an exchange
         :see: https://bybit-exchange.github.io/docs/v5/asset/coin-info
@@ -1306,6 +1291,8 @@ class bybit(Exchange, ImplicitAPI):
         :returns dict: an associative dictionary of currencies
         """
         if not self.check_required_credentials(False):
+            return None
+        if self.options['enableDemoTrading']:
             return None
         response = await self.privateGetV5AssetCoinQueryInfo(params)
         #
@@ -1421,7 +1408,7 @@ class bybit(Exchange, ImplicitAPI):
             }
         return result
 
-    async def fetch_markets(self, params={}):
+    async def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for bybit
         :see: https://bybit-exchange.github.io/docs/v5/market/instrument
@@ -2041,7 +2028,7 @@ class bybit(Exchange, ImplicitAPI):
         #
         result = self.safe_value(response, 'result', [])
         tickers = self.safe_value(result, 'list', [])
-        rawTicker = self.safe_value(tickers, 0)
+        rawTicker = self.safe_dict(tickers, 0)
         return self.parse_ticker(rawTicker, market)
 
     async def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
@@ -2050,6 +2037,7 @@ class bybit(Exchange, ImplicitAPI):
         :see: https://bybit-exchange.github.io/docs/v5/market/tickers
         :param str[] symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.subType]: *contract only* 'linear', 'inverse'
         :returns dict: an array of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
@@ -2082,11 +2070,16 @@ class bybit(Exchange, ImplicitAPI):
         }
         type = None
         type, params = self.handle_market_type_and_params('fetchTickers', market, params)
-        if type == 'spot':
+        # Calls like `.fetch_tickers(None, {subType:'inverse'})` should be supported for self exchange, so
+        # as "options.defaultSubType" is also set in exchange options, we should consider `params.subType`
+        # with higher priority and only default to spot, if `subType` is not set in params
+        passedSubType = self.safe_string(params, 'subType')
+        subType = None
+        subType, params = self.handle_sub_type_and_params('fetchTickers', market, params, 'linear')
+        # only if passedSubType is None, then use spot
+        if type == 'spot' and passedSubType is None:
             request['category'] = 'spot'
-        elif type == 'swap' or type == 'future':
-            subType = None
-            subType, params = self.handle_sub_type_and_params('fetchTickers', market, params, 'linear')
+        elif type == 'swap' or type == 'future' or subType is not None:
             request['category'] = subType
         elif type == 'option':
             request['category'] = 'option'
@@ -2130,7 +2123,7 @@ class bybit(Exchange, ImplicitAPI):
         #     }
         #
         result = self.safe_value(response, 'result', {})
-        tickerList = self.safe_value(result, 'list', [])
+        tickerList = self.safe_list(result, 'list', [])
         return self.parse_tickers(tickerList, parsedSymbols)
 
     def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
@@ -2253,7 +2246,7 @@ class bybit(Exchange, ImplicitAPI):
         #     }
         #
         result = self.safe_value(response, 'result', {})
-        ohlcvs = self.safe_value(result, 'list', [])
+        ohlcvs = self.safe_list(result, 'list', [])
         return self.parse_ohlcvs(ohlcvs, market, timeframe, since, limit)
 
     def parse_funding_rate(self, ticker, market: Market = None):
@@ -2687,7 +2680,7 @@ class bybit(Exchange, ImplicitAPI):
         #     }
         #
         result = self.safe_value(response, 'result', {})
-        trades = self.safe_value(result, 'list', [])
+        trades = self.safe_list(result, 'list', [])
         return self.parse_trades(trades, market, since, limit)
 
     async def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
@@ -2716,10 +2709,10 @@ class bybit(Exchange, ImplicitAPI):
                 # limit: [1, 25]. Default: 1
                 request['category'] = 'option'
             elif market['linear']:
-                # limit: [1, 200]. Default: 25
+                # limit: [1, 500]. Default: 25
                 request['category'] = 'linear'
             elif market['inverse']:
-                # limit: [1, 200]. Default: 25
+                # limit: [1, 500]. Default: 25
                 request['category'] = 'inverse'
         request['limit'] = limit if (limit is not None) else defaultLimit
         response = await self.publicGetV5MarketOrderbook(self.extend(request, params))
@@ -3382,7 +3375,7 @@ class bybit(Exchange, ImplicitAPI):
         #         "time": 1672211918471
         #     }
         #
-        order = self.safe_value(response, 'result', {})
+        order = self.safe_dict(response, 'result', {})
         return self.parse_order(order, market)
 
     def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}, isUTA=True):
@@ -3763,7 +3756,7 @@ class bybit(Exchange, ImplicitAPI):
         #            "tpTriggerBy":"UNKNOWN"
         #     }
         #
-        order = self.safe_value(response, 'result', {})
+        order = self.safe_dict(response, 'result', {})
         return self.parse_order(order, market)
 
     async def edit_usdc_order(self, id, symbol, type, side, amount=None, price=None, params={}):
@@ -3811,7 +3804,7 @@ class bybit(Exchange, ImplicitAPI):
         #        "retExtMap": {}
         #   }
         #
-        result = self.safe_value(response, 'result', {})
+        result = self.safe_dict(response, 'result', {})
         return self.parse_order(result, market)
 
     async def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}):
@@ -3960,7 +3953,7 @@ class bybit(Exchange, ImplicitAPI):
         #         "retExtMap": {}
         #     }
         #
-        result = self.safe_value(response, 'result', {})
+        result = self.safe_dict(response, 'result', {})
         return self.parse_order(result, market)
 
     async def cancel_order(self, id: str, symbol: Str = None, params={}):
@@ -4018,7 +4011,7 @@ class bybit(Exchange, ImplicitAPI):
         #         "time": 1672217377164
         #     }
         #
-        result = self.safe_value(response, 'result', {})
+        result = self.safe_dict(response, 'result', {})
         return self.parse_order(result, market)
 
     async def cancel_orders(self, ids, symbol: Str = None, params={}):
@@ -4289,7 +4282,7 @@ class bybit(Exchange, ImplicitAPI):
         #     }
         #
         result = self.safe_value(response, 'result', {})
-        data = self.safe_value(result, 'dataList', [])
+        data = self.safe_list(result, 'dataList', [])
         return self.parse_orders(data, market, since, limit)
 
     async def fetch_order_classic(self, id: str, symbol: Str = None, params={}):
@@ -4859,7 +4852,7 @@ class bybit(Exchange, ImplicitAPI):
         #     }
         #
         result = self.safe_value(response, 'result', {})
-        dataList = self.safe_value(result, 'dataList', [])
+        dataList = self.safe_list(result, 'dataList', [])
         return self.parse_trades(dataList, market, since, limit)
 
     async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
@@ -5005,7 +4998,7 @@ class bybit(Exchange, ImplicitAPI):
         coin = self.safe_string(result, 'coin')
         currency = self.currency(coin)
         parsed = self.parse_deposit_addresses(chains, [currency['code']], False, {
-            'currency': currency['id'],
+            'currency': currency['code'],
         })
         return self.index_by(parsed, 'network')
 
@@ -5050,7 +5043,7 @@ class bybit(Exchange, ImplicitAPI):
         chains = self.safe_value(result, 'chains', [])
         chainsIndexedById = self.index_by(chains, 'chain')
         selectedNetworkId = self.select_network_id_from_raw_networks(code, networkCode, chainsIndexedById)
-        addressObject = self.safe_value(chainsIndexedById, selectedNetworkId, {})
+        addressObject = self.safe_dict(chainsIndexedById, selectedNetworkId, {})
         return self.parse_deposit_address(addressObject, currency)
 
     async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
@@ -5580,7 +5573,7 @@ class bybit(Exchange, ImplicitAPI):
         #         "time": "1666892894902"
         #     }
         #
-        result = self.safe_value(response, 'result', {})
+        result = self.safe_dict(response, 'result', {})
         return self.parse_transaction(result, currency)
 
     async def fetch_position(self, symbol: str, params={}):
@@ -5959,6 +5952,11 @@ class bybit(Exchange, ImplicitAPI):
         timestamp = self.parse8601(self.safe_string(position, 'updated_at'))
         if timestamp is None:
             timestamp = self.safe_integer_n(position, ['updatedTime', 'updatedAt'])
+        tradeMode = self.safe_integer(position, 'tradeMode', 0)
+        marginMode = None
+        if (not self.options['enableUnifiedAccount']) or (self.options['enableUnifiedAccount'] and market['inverse']):
+            # tradeMode would work for classic and UTA(inverse)
+            marginMode = 'isolated' if (tradeMode == 1) else 'cross'
         collateralString = self.safe_string(position, 'positionBalance')
         entryPrice = self.omit_zero(self.safe_string_2(position, 'entryPrice', 'avgPrice'))
         liquidationPrice = self.omit_zero(self.safe_string(position, 'liqPrice'))
@@ -6015,7 +6013,7 @@ class bybit(Exchange, ImplicitAPI):
             'markPrice': self.safe_number(position, 'markPrice'),
             'lastPrice': None,
             'collateral': self.parse_number(collateralString),
-            'marginMode': None,
+            'marginMode': marginMode,
             'side': side,
             'percentage': None,
             'stopLossPrice': self.safe_number_2(position, 'stop_loss', 'stopLoss'),
@@ -6790,7 +6788,7 @@ class bybit(Exchange, ImplicitAPI):
         request['symbol'] = market['id']
         return await self.fetch_derivatives_market_leverage_tiers(symbol, params)
 
-    def parse_trading_fee(self, fee, market: Market = None):
+    def parse_trading_fee(self, fee, market: Market = None) -> TradingFeeInterface:
         #
         #     {
         #         "symbol": "ETHUSDT",
@@ -6806,9 +6804,11 @@ class bybit(Exchange, ImplicitAPI):
             'symbol': symbol,
             'maker': self.safe_number(fee, 'makerFeeRate'),
             'taker': self.safe_number(fee, 'takerFeeRate'),
+            'percentage': None,
+            'tierBased': None,
         }
 
-    async def fetch_trading_fee(self, symbol: str, params={}):
+    async def fetch_trading_fee(self, symbol: str, params={}) -> TradingFeeInterface:
         """
         fetch the trading fees for a market
         :see: https://bybit-exchange.github.io/docs/v5/account/fee-rate
@@ -6854,7 +6854,7 @@ class bybit(Exchange, ImplicitAPI):
         first = self.safe_value(fees, 0, {})
         return self.parse_trading_fee(first, market)
 
-    async def fetch_trading_fees(self, params={}):
+    async def fetch_trading_fees(self, params={}) -> TradingFees:
         """
         fetch the trading fees for multiple markets
         :see: https://bybit-exchange.github.io/docs/v5/account/fee-rate
@@ -6986,7 +6986,7 @@ class bybit(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_value(response, 'result', {})
-        rows = self.safe_value(data, 'rows', [])
+        rows = self.safe_list(data, 'rows', [])
         return self.parse_deposit_withdraw_fees(rows, codes, 'coin')
 
     async def fetch_settlement_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
