@@ -772,6 +772,34 @@ public struct BorrowRate
     }
 }
 
+public struct IsolatedBorrowRate
+{
+    public string symbol;
+    // public string base;
+    public double? baseRate;
+    public string quote;
+    public double? quoteRate;
+    public double? rate;
+    public Int64? timestamp;
+    public string? datetime;
+    public Dictionary<string, object> info;
+
+    public IsolatedBorrowRate(object isolatedBorrowRate)
+    {
+        var isolatedBorrowRate2 = (Dictionary<string, object>)isolatedBorrowRate;
+        symbol = Exchange.SafeString (isolatedBorrowRate2, "symbol");
+        // base = Exchange.SafeString (isolatedBorrowRate2, "base");
+        baseRate = Exchange.SafeFloat (isolatedBorrowRate2, "baseRate");
+        quote = Exchange.SafeString (isolatedBorrowRate2, "quote");
+        quoteRate = Exchange.SafeFloat (isolatedBorrowRate2, "quoteRate");
+        rate = Exchange.SafeFloat(isolatedBorrowRate2, "rate");
+        timestamp = Exchange.SafeInteger(isolatedBorrowRate2, "timestamp");
+        datetime = Exchange.SafeString(isolatedBorrowRate2, "datetime");
+        info = isolatedBorrowRate2.ContainsKey("info") ? (Dictionary<string, object>)isolatedBorrowRate2["info"] : null;
+    }
+}
+
+
 public struct BorrowInterest
 {
     public string? account;

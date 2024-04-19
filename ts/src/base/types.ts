@@ -396,6 +396,18 @@ export interface BorrowRate {
     info: any;
 }
 
+export interface IsolatedBorrowRate {
+    info: any,
+    symbol: string,
+    base: string,
+    baseRate: number,
+    quote: string,
+    quoteRate: number,
+    period?: Int,
+    timestamp?: Int,
+    datetime?: Str,
+}
+
 export interface FundingRateHistory {
     info: any;
     symbol: string;

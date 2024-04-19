@@ -431,6 +431,18 @@ class MarginModification(TypedDict):
     datetime: Str
 
 
+class IsolatedBorrowRate(TypedDict):
+    info: Dict[str, any]
+    symbol: str
+    base: str
+    baseRate: float
+    quote: str
+    quoteRate: float
+    period: Int
+    timestamp: Int
+    datetime: Str
+
+
 LastPrices = Dict[Str, LastPrice]
 Currencies = Dict[Str, CurrencyInterface]
 TradingFees = Dict[Str, TradingFeeInterface]
