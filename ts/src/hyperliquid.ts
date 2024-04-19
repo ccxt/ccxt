@@ -1292,7 +1292,7 @@ export default class hyperliquid extends Exchange {
             const market = this.market (symbol);
             const cancelObj = {};
             cancelObj[assetKey] = this.parseToNumeric (market['baseId']);
-            cancelObj[idKey] = this.parseToNumeric (id);
+            cancelObj[idKey] = cancelByCloid ? clientOrderId : this.parseToNumeric (id);
             cancelReq.push (cancelObj);
         }
         cancelAction['type'] = cancelByCloid ? 'cancelByCloid' : 'cancel';
