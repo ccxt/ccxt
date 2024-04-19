@@ -204,11 +204,6 @@ export default class bitflex extends Exchange {
                     'BEP20': 'BEP20',
                     'OMNI': 'OMNI',
                 },
-                'accountsByType': {
-                    '1': 'spot',
-                    '2': 'option',
-                    '3': 'contract',
-                },
             },
         });
     }
@@ -1123,16 +1118,31 @@ export default class bitflex extends Exchange {
         //         "accountIndex": 0
         //     },
         //
-        const requestedType = this.safeString (account, 'accountType');
-        const accountsByType = this.safeDict (this.options, 'accountsByType');
-        const type = this.safeString (accountsByType, requestedType);
+        const accountIndex = this.safeString (account, 'accountIndex');
         return {
             'id': this.safeString (account, 'accountId'),
             'name': this.safeString (account, 'accountName'),
-            'type': type,
+            'type': this.parseAccountIndex (accountIndex),
             'code': undefined,
             'info': account,
         };
+    }
+
+    parseAccountType (type) {
+        const types = {
+            '1': 'spot',
+            '2': 'option',
+            '3': 'contract',
+        };
+        return this.safeString (types, type, type);
+    }
+
+    parseAccountIndex (index) {
+        const indexes = {
+            '0': 'main',
+            '1': 'sub',
+        };
+        return this.safeString (indexes, index, index);
     }
 
     async fetchBalance (params = {}): Promise<Balances> {
