@@ -19,7 +19,7 @@ export default class coinbase extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'coinbase',
-            'name': 'Coinbase',
+            'name': 'Coinbase Advanced',
             'countries': [ 'US' ],
             'pro': true,
             'certified': true,
