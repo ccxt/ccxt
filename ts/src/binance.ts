@@ -127,6 +127,7 @@ export default class binance extends Exchange {
                 'fetchPosition': true,
                 'fetchPositionMode': true,
                 'fetchPositions': true,
+                'fetchPositionsForSymbol': true,
                 'fetchPositionsRisk': true,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchSettlementHistory': true,
@@ -871,9 +872,9 @@ export default class binance extends Exchange {
                 },
                 'fapiPrivateV2': {
                     'get': {
-                        'account': 1,
+                        'account': 1, // tbd
                         'balance': 1,
-                        'positionRisk': 1,
+                        'positionRisk': 1, // even though 2021 api update says it's 5, actually it seems to be 1, as seen through 'X-Mbx-Used-Weight-1m' header
                     },
                 },
                 'eapiPublic': {
@@ -9775,7 +9776,27 @@ export default class binance extends Exchange {
         return this.filterByArrayPositions (result, 'symbol', symbols, false);
     }
 
+    async fetchPositionsForSymbol (symbol: string, params = {}) {
+        /**
+         * @method
+         * @name binance#fetchPositions
+         * @description fetch all open positions for specific symbol
+         * @param {string} symbol unified market symbol
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        params['type'] = market['type'];
+        params['subType'] = market['linear'] ? 'linear' : 'inverse';
+        return await this.fetchPositions ([ symbol ], this.extend (request, params));
+    }
+
     parsePosition (position, market: Market = undefined) {
+        // this method currently implements only options market parsing now
         //
         //     {
         //         "entryPrice": "27.70000000",

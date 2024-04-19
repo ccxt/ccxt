@@ -1376,6 +1376,24 @@
                 ]
             }
         ],
+        "fetchPositionsForSymbol": [
+          {
+            "description": "linear swap",
+            "method": "fetchPositionsForSymbol",
+            "url": "https://fapi.binance.com/fapi/v2/positionRisk?timestamp=1700648596011&symbol=BTCUSDT&recvWindow=10000&signature=336f58ca00eb6ac9754a0bc0d68fd0bdf80c78ba76c09d4625bb5ec45fad78d4",
+            "input": [
+              "BTC/USDT:USDT"
+            ]
+          },
+          {
+            "description": "inverse swap",
+            "method": "fetchPositionsForSymbol",
+            "url": "https://dapi.binance.com/dapi/v1/positionRisk?timestamp=1700649423370&symbol=BTCUSD_PERP&recvWindow=10000&signature=ddd0ac2a2fc31d1c5d8804bf0488dae492f74824428c883d1de21e534035fe0a",
+            "input": [
+              "BTC/USD:BTC"
+            ]
+          }
+        ],
         "fetchPositions": [
             {
                 "description": "fetch default positions",
