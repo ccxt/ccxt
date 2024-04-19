@@ -738,6 +738,80 @@ export default class woofipro extends Exchange {
         return this.parseTrades (rows, market, since, limit);
     }
 
+	parseFundingRate (fundingRate, market: Market = undefined) {
+        //
+        //         {
+        //             "symbol":"PERP_AAVE_USDT",
+        //             "est_funding_rate":-0.00003447,
+        //             "est_funding_rate_timestamp":1653633959001,
+        //             "last_funding_rate":-0.00002094,
+        //             "last_funding_rate_timestamp":1653631200000,
+        //             "next_funding_time":1653634800000,
+		// 			   "sum_unitary_funding": 521.367
+        //         }
+        //
+        //
+        const symbol = this.safeString (fundingRate, 'symbol');
+        market = this.market (symbol);
+        const nextFundingTimestamp = this.safeInteger (fundingRate, 'next_funding_time');
+        const estFundingRateTimestamp = this.safeInteger (fundingRate, 'est_funding_rate_timestamp');
+        const lastFundingRateTimestamp = this.safeInteger (fundingRate, 'last_funding_rate_timestamp');
+        return {
+            'info': fundingRate,
+            'symbol': market['symbol'],
+            'markPrice': undefined,
+            'indexPrice': undefined,
+            'interestRate': this.parseNumber ('0'),
+            'estimatedSettlePrice': undefined,
+            'timestamp': estFundingRateTimestamp,
+            'datetime': this.iso8601 (estFundingRateTimestamp),
+            'fundingRate': this.safeNumber (fundingRate, 'est_funding_rate'),
+            'fundingTimestamp': nextFundingTimestamp,
+            'fundingDatetime': this.iso8601 (nextFundingTimestamp),
+            'nextFundingRate': undefined,
+            'nextFundingTimestamp': undefined,
+            'nextFundingDatetime': undefined,
+            'previousFundingRate': this.safeNumber (fundingRate, 'last_funding_rate'),
+            'previousFundingTimestamp': lastFundingRateTimestamp,
+            'previousFundingDatetime': this.iso8601 (lastFundingRateTimestamp),
+        };
+    }
+
+    async fetchFundingRate (symbol: string, params = {}) {
+		/**
+         * @method
+         * @name woofipro#fetchFundingRate
+         * @description fetch the current funding rate
+         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-predicted-funding-rate-for-one-market
+         * @param {string} symbol unified market symbol
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this.v1PublicGetPublicFundingRateSymbol (this.extend (request, params));
+        //
+		// 	{
+		// 		"success": true,
+		// 		"timestamp": 1702989203989,
+		// 		"data": {
+		// 			"symbol": "PERP_ETH_USDC",
+		// 			"est_funding_rate": 123,
+		// 			"est_funding_rate_timestamp": 1683880020000,
+		// 			"last_funding_rate": 0.0001,
+		// 			"last_funding_rate_timestamp": 1683878400000,
+		// 			"next_funding_time": 1683907200000,
+		// 			"sum_unitary_funding": 521.367
+		// 		}
+		// 	}
+        //
+		const data = this.safeDict (response, 'data', {});
+        return this.parseFundingRate (data, market);
+    }
+
     nonce () {
         return this.milliseconds ();
     }
