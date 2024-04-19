@@ -3015,6 +3015,19 @@
                 "output": "timestamp=1712047946547&type=2&symbol=XRPUSDT&amount=0.2&recvWindow=10000&signature=e8c53af6d974c388ca6ff5ec820a4c2ac813fcbaec55b1a50c60779da56be00b"
             }
         ],
+        "fetchConvertQuote": [
+            {
+                "description": "fetch convert quote",
+                "method": "fetchConvertQuote",
+                "url": "https://api.binance.com/sapi/v1/convert/getQuote",
+                "input": [
+                  "USDC",
+                  "USDT",
+                  3
+                ],
+                "output": "timestamp=1713535948592&fromAsset=USDC&toAsset=USDT&fromAmount=3&recvWindow=10000&signature=e47dafb115d42ceaf14772ee0a2eac2f0a1df50419c676171e21910f46115934"
+            }
+        ],
         "fetchConvertTrade": [
             {
                 "description": "Fetch a conversion trade by the id and currency code",
@@ -3038,6 +3051,20 @@
                     null,
                     {"endTime":1713422937740}
                 ]
+            }
+        ],
+        "createConvertTrade": [
+            {
+                "description": "convert usdc to usdt",
+                "method": "createConvertTrade",
+                "url": "https://api.binance.com/sapi/v1/convert/acceptQuote",
+                "input": [
+                  "844f131de9994643a0b6ce7805d08cfb",
+                  "USDC",
+                  "USDT",
+                  4
+                ],
+                "output": "timestamp=1713536455384&quoteId=844f131de9994643a0b6ce7805d08cfb&recvWindow=10000&signature=39e6351a5061356643aa48f6e335b6d3c903710206f2543bd9443af07885948b"
             }
         ]
     }
