@@ -341,6 +341,29 @@ export default class woofipro extends Exchange {
         };
     }
 
+	async fetchTime (params = {}) {
+        /**
+         * @method
+         * @name woofipro#fetchTime
+         * @description fetches the current integer timestamp in milliseconds from the exchange server
+         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-system-maintenance-status
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {int} the current integer timestamp in milliseconds from the exchange server
+         */
+        const response = await this.v1PublicGetPublicSystemInfo (params);
+        //
+        //     {
+        //         "success": true,
+        //         "data": {
+        //             "status": 0,
+        //             "msg": "System is functioning properly."
+        //         },
+        //         "timestamp": "1709274106602"
+        //     }
+        //
+        return this.safeInteger (response, 'timestamp');
+    }
+
     parseMarket (market): Market {
         //
         //   {
