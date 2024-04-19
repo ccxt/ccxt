@@ -7,9 +7,10 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.lbank import ImplicitAPI
 import asyncio
 import hashlib
-from ccxt.base.types import Balances, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
@@ -21,7 +22,6 @@ from ccxt.base.errors import DuplicateOrderId
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import InvalidNonce
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -970,6 +970,8 @@ class lbank(Exchange, ImplicitAPI):
         market = self.market(symbol)
         if limit is None:
             limit = 100
+        else:
+            limit = min(limit, 2000)
         if since is None:
             duration = self.parse_timeframe(timeframe)
             since = self.milliseconds() - duration * 1000 * limit
@@ -1181,7 +1183,7 @@ class lbank(Exchange, ImplicitAPI):
         #
         return self.parse_balance(response)
 
-    def parse_trading_fee(self, fee, market: Market = None):
+    def parse_trading_fee(self, fee, market: Market = None) -> TradingFeeInterface:
         #
         #      {
         #          "symbol":"skt_usdt",
@@ -1196,9 +1198,11 @@ class lbank(Exchange, ImplicitAPI):
             'symbol': symbol,
             'maker': self.safe_number(fee, 'makerCommission'),
             'taker': self.safe_number(fee, 'takerCommission'),
+            'percentage': None,
+            'tierBased': None,
         }
 
-    async def fetch_trading_fee(self, symbol: str, params={}):
+    async def fetch_trading_fee(self, symbol: str, params={}) -> TradingFeeInterface:
         """
         fetch the trading fees for a market
         :see: https://www.lbank.com/en-US/docs/index.html#transaction-fee-rate-query
@@ -1208,9 +1212,9 @@ class lbank(Exchange, ImplicitAPI):
         """
         market = self.market(symbol)
         result = await self.fetch_trading_fees(self.extend(params, {'category': market['id']}))
-        return result
+        return self.safe_dict(result, symbol)
 
-    async def fetch_trading_fees(self, params={}):
+    async def fetch_trading_fees(self, params={}) -> TradingFees:
         """
         fetch the trading fees for multiple markets
         :see: https://www.lbank.com/en-US/docs/index.html#transaction-fee-rate-query

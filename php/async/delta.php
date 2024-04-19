@@ -414,7 +414,7 @@ class delta extends Exchange {
         }) ();
     }
 
-    public function fetch_currencies($params = array ()) {
+    public function fetch_currencies($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches all available $currencies on an exchange
@@ -2611,7 +2611,7 @@ class delta extends Exchange {
         );
     }
 
-    public function add_margin(string $symbol, $amount, $params = array ()) {
+    public function add_margin(string $symbol, $amount, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $amount, $params) {
             /**
              * add margin
@@ -2625,7 +2625,7 @@ class delta extends Exchange {
         }) ();
     }
 
-    public function reduce_margin(string $symbol, $amount, $params = array ()) {
+    public function reduce_margin(string $symbol, $amount, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $amount, $params) {
             /**
              * remove margin from a position
@@ -2639,7 +2639,7 @@ class delta extends Exchange {
         }) ();
     }
 
-    public function modify_margin_helper(string $symbol, $amount, $type, $params = array ()) {
+    public function modify_margin_helper(string $symbol, $amount, $type, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $amount, $type, $params) {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -2680,7 +2680,7 @@ class delta extends Exchange {
         }) ();
     }
 
-    public function parse_margin_modification($data, ?array $market = null) {
+    public function parse_margin_modification($data, ?array $market = null): array {
         //
         //     {
         //         "auto_topup" => false,
@@ -2705,12 +2705,15 @@ class delta extends Exchange {
         $market = $this->safe_market($marketId, $market);
         return array(
             'info' => $data,
+            'symbol' => $market['symbol'],
             'type' => null,
+            'marginMode' => 'isolated',
             'amount' => null,
             'total' => $this->safe_number($data, 'margin'),
             'code' => null,
-            'symbol' => $market['symbol'],
             'status' => null,
+            'timestamp' => null,
+            'datetime' => null,
         );
     }
 

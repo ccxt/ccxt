@@ -7,9 +7,9 @@ namespace ccxt\pro;
 
 use Exception; // a common import
 use ccxt\ExchangeError;
+use ccxt\AuthenticationError;
 use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
-use ccxt\AuthenticationError;
 use React\Async;
 use React\Promise;
 use React\Promise\PromiseInterface;

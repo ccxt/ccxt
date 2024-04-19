@@ -5,8 +5,9 @@
 
 from ccxt.kucoin import kucoin
 from ccxt.abstract.kucoinfutures import ImplicitAPI
-from ccxt.base.types import Balances, Currency, Int, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
+from ccxt.base.types import Balances, Currency, Int, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
 from typing import List
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import AccountSuspended
 from ccxt.base.errors import ArgumentsRequired
@@ -18,7 +19,6 @@ from ccxt.base.errors import NotSupported
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import InvalidNonce
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -80,6 +80,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
                 'fetchL3OrderBook': True,
                 'fetchLedger': True,
                 'fetchLeverageTiers': False,
+                'fetchMarginAdjustmentHistory': False,
                 'fetchMarginMode': False,
                 'fetchMarketLeverageTiers': True,
                 'fetchMarkets': True,
@@ -1424,7 +1425,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         #
         return self.safe_value(response, 'data')
 
-    def add_margin(self, symbol: str, amount, params={}):
+    def add_margin(self, symbol: str, amount, params={}) -> MarginModification:
         """
         add margin
         :see: https://www.kucoin.com/docs/rest/futures-trading/positions/add-margin-manually
@@ -1497,7 +1498,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
             'direction': 'in',
         })
 
-    def parse_margin_modification(self, info, market: Market = None):
+    def parse_margin_modification(self, info, market: Market = None) -> MarginModification:
         #
         #    {
         #        "id": "62311d26064e8f00013f2c6d",
@@ -1549,14 +1550,18 @@ class kucoinfutures(kucoin, ImplicitAPI):
         crossMode = self.safe_value(info, 'crossMode')
         mode = 'cross' if crossMode else 'isolated'
         marketId = self.safe_string(market, 'symbol')
+        timestamp = self.safe_integer(info, 'currentTimestamp')
         return {
             'info': info,
-            'direction': None,
-            'mode': mode,
-            'amount': None,
-            'code': self.safe_currency_code(currencyId),
             'symbol': self.safe_symbol(marketId, market),
+            'type': None,
+            'marginMode': mode,
+            'amount': None,
+            'total': None,
+            'code': self.safe_currency_code(currencyId),
             'status': None,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
         }
 
     def fetch_orders_by_status(self, status, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
@@ -1681,6 +1686,29 @@ class kucoinfutures(kucoin, ImplicitAPI):
         if paginate:
             return self.fetch_paginated_call_dynamic('fetchClosedOrders', symbol, since, limit, params)
         return self.fetch_orders_by_status('done', symbol, since, limit, params)
+
+    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+        """
+        fetches information on multiple open orders made by the user
+        :see: https://docs.kucoin.com/futures/#get-order-list
+        :see: https://docs.kucoin.com/futures/#get-untriggered-stop-order-list
+        :param str symbol: unified market symbol of the market orders were made in
+        :param int [since]: the earliest time in ms to fetch orders for
+        :param int [limit]: the maximum number of order structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.till]: end time in ms
+        :param str [params.side]: buy or sell
+        :param str [params.type]: limit, or market
+        :param boolean [params.trigger]: set to True to retrieve untriggered stop orders
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        self.load_markets()
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchOpenOrders', 'paginate')
+        if paginate:
+            return self.fetch_paginated_call_dynamic('fetchOpenOrders', symbol, since, limit, params)
+        return self.fetch_orders_by_status('open', symbol, since, limit, params)
 
     def fetch_order(self, id: Str = None, symbol: Str = None, params={}):
         """

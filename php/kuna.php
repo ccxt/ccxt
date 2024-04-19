@@ -415,7 +415,7 @@ class kuna extends Exchange {
         return $this->safe_integer($data, 'timestamp_miliseconds');
     }
 
-    public function fetch_currencies($params = array ()) {
+    public function fetch_currencies($params = array ()): array {
         /**
          * fetches all available currencies on an exchange
          * @see https://docs.kuna.io/docs/get-information-about-available-currencies

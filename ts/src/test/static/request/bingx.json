@@ -760,6 +760,29 @@
                 ]
             }
         ],
+        "fetchOrders": [
+            {
+                "description": "Swap orders",
+                "method": "fetchOrders",
+                "url": "https://open-api.bingx.com/openApi/swap/v1/trade/fullOrder?symbol=LTC-USDT&timestamp=1699458294373&signature=0386bcc46ee9b65c4a2b770c9eb8bbdeec387ea6230d8456d37a4c0c103979e0",
+                "input": [
+                    "LTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "Swap orders without symbol",
+                "method": "fetchOrders",
+                "url": "https://open-api.bingx.com/openApi/swap/v1/trade/fullOrder?timestamp=1699458294373&signature=0386bcc46ee9b65c4a2b770c9eb8bbdeec387ea6230d8456d37a4c0c103979e0",
+                "input": [
+                    null,
+                    null,
+                    null,
+                    {
+                        "type": "swap"
+                    }
+                ]
+            }
+        ],
         "fetchBalance": [
             {
                 "description": "Fetch spot Balance",
@@ -1117,6 +1140,17 @@
                 "input": [
                   "BTC/USDT:USDT",
                   1
+                ]
+            }
+        ],
+        "fetchMyLiquidations": [
+            {
+                "disabled": true,
+                "description": "fetch my liquidations",
+                "method": "fetchMyLiquidations",
+                "url": "https://open-api.bingx.com/openApi/swap/v2/trade/forceOrders?autoCloseType=LIQUIDATION&symbol=BTC-USDT&timestamp=1713364573101&signature=f8eb5457ce479316113f59ab7c9be200d7bd2b39e394a480143b0f2ec59a1d91",
+                "input": [
+                  "BTC/USDT:USDT"
                 ]
             }
         ]

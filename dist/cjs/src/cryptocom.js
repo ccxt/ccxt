@@ -66,6 +66,7 @@ class cryptocom extends cryptocom$1 {
                 'fetchLedger': true,
                 'fetchLeverage': false,
                 'fetchLeverageTiers': false,
+                'fetchMarginAdjustmentHistory': false,
                 'fetchMarginMode': false,
                 'fetchMarketLeverageTiers': false,
                 'fetchMarkets': true,
@@ -2755,7 +2756,7 @@ class cryptocom extends cryptocom$1 {
         //
         const result = this.safeDict(response, 'result', {});
         const data = this.safeList(result, 'data', []);
-        return this.parsePosition(data[0], market);
+        return this.parsePosition(this.safeDict(data, 0), market);
     }
     async fetchPositions(symbols = undefined, params = {}) {
         /**

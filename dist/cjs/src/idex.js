@@ -463,7 +463,7 @@ class idex extends idex$1 {
             request['start'] = since;
         }
         if (limit !== undefined) {
-            request['limit'] = limit;
+            request['limit'] = Math.min(limit, 1000);
         }
         const response = await this.publicGetCandles(this.extend(request, params));
         if (Array.isArray(response)) {

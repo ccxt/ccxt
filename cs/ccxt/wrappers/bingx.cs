@@ -663,6 +663,52 @@ public partial class bingx
         return new Order(res);
     }
     /// <summary>
+    /// fetches information on multiple orders made by the user
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#User's%20All%20Orders"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : the earliest time in ms to fetch orders for
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum number of order structures to retrieve
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.until</term>
+    /// <description>
+    /// int : the latest time in ms to fetch entries for
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.orderId</term>
+    /// <description>
+    /// int : Only return subsequent orders, and return the latest order by default
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>Order[]</term> a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
+    public async Task<List<Order>> FetchOrders(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.fetchOrders(symbol, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
+    }
+    /// <summary>
     /// fetch all unfilled currently open orders
     /// </summary>
     /// <remarks>
@@ -972,10 +1018,10 @@ public partial class bingx
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> A [margin structure]{@link https://docs.ccxt.com/#/?id=add-margin-structure}.</returns>
-    public async Task<Dictionary<string, object>> SetMargin(string symbol, double amount, Dictionary<string, object> parameters = null)
+    public async Task<MarginModification> SetMargin(string symbol, double amount, Dictionary<string, object> parameters = null)
     {
         var res = await this.setMargin(symbol, amount, parameters);
-        return ((Dictionary<string, object>)res);
+        return new MarginModification(res);
     }
     /// <summary>
     /// fetch the set leverage for a market

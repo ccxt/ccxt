@@ -313,7 +313,7 @@ class currencycom extends Exchange {
         return $this->safe_integer($response, 'serverTime');
     }
 
-    public function fetch_currencies($params = array ()) {
+    public function fetch_currencies($params = array ()): array {
         /**
          * fetches all available currencies on an exchange
          * @see https://apitradedoc.currency.com/swagger-ui.html#/rest-api/getCurrenciesUsingGET
@@ -629,7 +629,7 @@ class currencycom extends Exchange {
         return $result;
     }
 
-    public function fetch_trading_fees($params = array ()) {
+    public function fetch_trading_fees($params = array ()): array {
         /**
          * fetch the trading fees for multiple markets
          * @see https://apitradedoc.currency.com/swagger-ui.html#/rest-api/accountUsingGET
@@ -976,7 +976,7 @@ class currencycom extends Exchange {
             $request['startTime'] = $since;
         }
         if ($limit !== null) {
-            $request['limit'] = $limit; // default 500, max 1000
+            $request['limit'] = min ($limit, 1000); // default 500, max 1000
         }
         $response = $this->publicGetV2Klines (array_merge($request, $params));
         //

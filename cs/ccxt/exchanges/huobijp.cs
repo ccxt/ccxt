@@ -989,7 +989,7 @@ public partial class huobijp : Exchange
         };
         if (isTrue(!isEqual(limit, null)))
         {
-            ((IDictionary<string,object>)request)["size"] = limit;
+            ((IDictionary<string,object>)request)["size"] = mathMin(limit, 2000);
         }
         object response = await this.marketGetHistoryKline(this.extend(request, parameters));
         //

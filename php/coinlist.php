@@ -323,7 +323,7 @@ class coinlist extends Exchange {
         return $this->parse8601($string);
     }
 
-    public function fetch_currencies($params = array ()) {
+    public function fetch_currencies($params = array ()): array {
         /**
          * fetches all available $currencies on an exchange
          * @see https://trade-docs.coinlist.co/?javascript--nodejs#list-supported-assets
@@ -864,7 +864,7 @@ class coinlist extends Exchange {
         ), $market);
     }
 
-    public function fetch_trading_fees($params = array ()) {
+    public function fetch_trading_fees($params = array ()): array {
         /**
          * fetch the trading $fees for multiple markets
          * @see https://trade-docs.coinlist.co/?javascript--nodejs#list-$fees

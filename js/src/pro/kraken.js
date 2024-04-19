@@ -19,10 +19,12 @@ export default class kraken extends krakenRest {
                 'watchMyTrades': true,
                 'watchOHLCV': true,
                 'watchOrderBook': true,
+                'watchOrderBookForSymbols': true,
                 'watchOrders': true,
                 'watchTicker': true,
-                'watchTickers': false,
+                'watchTickers': true,
                 'watchTrades': true,
+                'watchTradesForSymbols': true,
                 'createOrderWs': true,
                 'editOrderWs': true,
                 'cancelOrderWs': true,
@@ -135,7 +137,7 @@ export default class kraken extends krakenRest {
             'pair': market['wsId'],
             'volume': this.amountToPrecision(symbol, amount),
         };
-        [request, params] = this.orderRequest('createOrderWs()', symbol, type, request, price, params);
+        [request, params] = this.orderRequest('createOrderWs', symbol, type, request, price, params);
         return await this.watch(url, messageHash, this.extend(request, params), messageHash);
     }
     handleCreateEditOrder(client, message) {
@@ -191,7 +193,7 @@ export default class kraken extends krakenRest {
             'pair': market['wsId'],
             'volume': this.amountToPrecision(symbol, amount),
         };
-        [request, params] = this.orderRequest('editOrderWs()', symbol, type, request, price, params);
+        [request, params] = this.orderRequest('editOrderWs', symbol, type, request, price, params);
         return await this.watch(url, messageHash, this.extend(request, params), messageHash);
     }
     async cancelOrdersWs(ids, symbol = undefined, params = {}) {
@@ -313,10 +315,9 @@ export default class kraken extends krakenRest {
         //     ]
         //
         const wsName = message[3];
-        const name = 'ticker';
-        const messageHash = name + ':' + wsName;
         const market = this.safeValue(this.options['marketsByWsName'], wsName);
         const symbol = market['symbol'];
+        const messageHash = this.getMessageHash('ticker', undefined, symbol);
         const ticker = message[1];
         const vwap = this.safeString(ticker['p'], 0);
         let quoteVolume = undefined;
@@ -347,9 +348,6 @@ export default class kraken extends krakenRest {
             'quoteVolume': quoteVolume,
             'info': ticker,
         });
-        // todo add support for multiple tickers (may be tricky)
-        // kraken confirms multi-pair subscriptions separately one by one
-        // trigger correct watchTickers calls upon receiving any of symbols
         this.tickers[symbol] = result;
         client.resolve(result, messageHash);
     }
@@ -367,9 +365,9 @@ export default class kraken extends krakenRest {
         //
         const wsName = this.safeString(message, 3);
         const name = this.safeString(message, 2);
-        const messageHash = name + ':' + wsName;
         const market = this.safeValue(this.options['marketsByWsName'], wsName);
         const symbol = market['symbol'];
+        const messageHash = this.getMessageHash(name, undefined, symbol);
         let stored = this.safeValue(this.trades, symbol);
         if (stored === undefined) {
             const limit = this.safeInteger(this.options, 'tradesLimit', 1000);
@@ -470,25 +468,61 @@ export default class kraken extends krakenRest {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
-        return await this.watchPublic('ticker', symbol, params);
+        await this.loadMarkets();
+        symbol = this.symbol(symbol);
+        const tickers = await this.watchTickers([symbol], params);
+        return tickers[symbol];
+    }
+    async watchTickers(symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name kraken#watchTickers
+         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @param {string} symbol unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols, undefined, false);
+        const ticker = await this.watchMultiHelper('ticker', 'ticker', symbols, undefined, params);
+        if (this.newUpdates) {
+            const result = {};
+            result[ticker['symbol']] = ticker;
+            return result;
+        }
+        return this.filterByArray(this.tickers, 'symbol', symbols);
     }
     async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name kraken#watchTrades
          * @description get the list of most recent trades for a particular symbol
+         * @see https://docs.kraken.com/websockets/#message-trade
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
-        await this.loadMarkets();
-        symbol = this.symbol(symbol);
-        const name = 'trade';
-        const trades = await this.watchPublic(name, symbol, params);
+        return await this.watchTradesForSymbols([symbol], since, limit, params);
+    }
+    async watchTradesForSymbols(symbols, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name kraken#watchTradesForSymbols
+         * @see https://docs.kraken.com/websockets/#message-trade
+         * @description get the list of most recent trades for a list of symbols
+         * @param {string[]} symbols unified symbol of the market to fetch trades for
+         * @param {int} [since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [limit] the maximum amount of trades to fetch
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+         */
+        const trades = await this.watchMultiHelper('trade', 'trade', symbols, undefined, params);
         if (this.newUpdates) {
-            limit = trades.getLimit(symbol, limit);
+            const first = this.safeList(trades, 0);
+            const tradeSymbol = this.safeString(first, 'symbol');
+            limit = trades.getLimit(tradeSymbol, limit);
         }
         return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
     }
@@ -497,15 +531,28 @@ export default class kraken extends krakenRest {
          * @method
          * @name kraken#watchOrderBook
          * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://docs.kraken.com/websockets/#message-book
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
-        const name = 'book';
+        return await this.watchOrderBookForSymbols([symbol], limit, params);
+    }
+    async watchOrderBookForSymbols(symbols, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name kraken#watchOrderBookForSymbols
+         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://docs.kraken.com/websockets/#message-book
+         * @param {string[]} symbols unified array of symbols
+         * @param {int} [limit] the maximum amount of order book entries to return
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+         */
         const request = {};
         if (limit !== undefined) {
-            if ((limit === 10) || (limit === 25) || (limit === 100) || (limit === 500) || (limit === 1000)) {
+            if (this.inArray(limit, [10, 25, 100, 500, 1000])) {
                 request['subscription'] = {
                     'depth': limit, // default 10, valid options 10, 25, 100, 500, 1000
                 };
@@ -514,7 +561,7 @@ export default class kraken extends krakenRest {
                 throw new NotSupported(this.id + ' watchOrderBook accepts limit values of 10, 25, 100, 500 and 1000 only');
             }
         }
-        const orderbook = await this.watchPublic(name, symbol, this.extend(request, params));
+        const orderbook = await this.watchMultiHelper('orderbook', 'book', symbols, { 'limit': limit }, this.extend(request, params));
         return orderbook.limit();
     }
     async watchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
@@ -643,7 +690,7 @@ export default class kraken extends krakenRest {
         const market = this.safeValue(this.options['marketsByWsName'], wsName);
         const symbol = market['symbol'];
         let timestamp = undefined;
-        const messageHash = 'book:' + wsName;
+        const messageHash = this.getMessageHash('orderbook', undefined, symbol);
         // if this is a snapshot
         if ('as' in message[1]) {
             // todo get depth from marketsByWsName
@@ -724,6 +771,7 @@ export default class kraken extends krakenRest {
                 if (localChecksum !== c) {
                     const error = new InvalidNonce(this.id + ' invalid checksum');
                     client.reject(error, messageHash);
+                    return;
                 }
             }
             orderbook['symbol'] = symbol;
@@ -1250,6 +1298,48 @@ export default class kraken extends krakenRest {
             'fee': fee,
             'trades': trades,
         });
+    }
+    async watchMultiHelper(unifiedName, channelName, symbols = undefined, subscriptionArgs = undefined, params = {}) {
+        await this.loadMarkets();
+        // symbols are required
+        symbols = this.marketSymbols(symbols, undefined, false, true, false);
+        const messageHashes = [];
+        for (let i = 0; i < symbols.length; i++) {
+            messageHashes.push(this.getMessageHash(unifiedName, undefined, this.symbol(symbols[i])));
+        }
+        // for WS subscriptions, we can't use .marketIds (symbols), instead a custom is field needed
+        const markets = this.marketsForSymbols(symbols);
+        const wsMarketIds = [];
+        for (let i = 0; i < markets.length; i++) {
+            const wsMarketId = this.safeString(markets[i]['info'], 'wsname');
+            wsMarketIds.push(wsMarketId);
+        }
+        const request = {
+            'event': 'subscribe',
+            'reqid': this.requestId(),
+            'pair': wsMarketIds,
+            'subscription': {
+                'name': channelName,
+            },
+        };
+        const url = this.urls['api']['ws']['public'];
+        return await this.watchMultiple(url, messageHashes, this.extend(request, params), messageHashes, subscriptionArgs);
+    }
+    getMessageHash(unifiedElementName, subChannelName = undefined, symbol = undefined) {
+        // unifiedElementName can be : orderbook, trade, ticker, bidask ...
+        // subChannelName only applies to channel that needs specific variation (i.e. depth_50, depth_100..) to be selected
+        const withSymbol = symbol !== undefined;
+        let messageHash = unifiedElementName;
+        if (!withSymbol) {
+            messageHash += 's';
+        }
+        else {
+            messageHash += '@' + symbol;
+        }
+        if (subChannelName !== undefined) {
+            messageHash += '#' + subChannelName;
+        }
+        return messageHash;
     }
     handleSubscriptionStatus(client, message) {
         //

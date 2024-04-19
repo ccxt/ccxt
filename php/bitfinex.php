@@ -467,7 +467,7 @@ class bitfinex extends Exchange {
         );
     }
 
-    public function fetch_trading_fees($params = array ()) {
+    public function fetch_trading_fees($params = array ()): array {
         /**
          * fetch the trading fees for multiple markets
          * @see https://docs.bitfinex.com/v1/reference/rest-auth-summary
@@ -1305,6 +1305,8 @@ class bitfinex extends Exchange {
         $this->load_markets();
         if ($limit === null) {
             $limit = 100;
+        } else {
+            $limit = min ($limit, 10000);
         }
         $market = $this->market($symbol);
         $v2id = 't' . $market['id'];

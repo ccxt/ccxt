@@ -585,6 +585,7 @@ class btcturk extends btcturk$1 {
             limit = 100; // default value
         }
         if (limit !== undefined) {
+            limit = Math.min(limit, 11000); // max 11000 candles diapason can be covered
             if (timeframe === '1y') { // difficult with leap years
                 throw new errors.BadRequest(this.id + ' fetchOHLCV () does not accept a limit parameter when timeframe == "1y"');
             }
@@ -595,7 +596,7 @@ class btcturk extends btcturk$1 {
                 request['to'] = Math.min(request['to'], to);
             }
             else {
-                request['from'] = this.parseToInt(until / 1000) - limitSeconds;
+                request['from'] = this.parseToInt(0 / 1000) - limitSeconds;
             }
         }
         const response = await this.graphGetKlinesHistory(this.extend(request, params));

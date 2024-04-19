@@ -63,6 +63,7 @@ public partial class coinex : Exchange
                 { "fetchLeverage", "emulated" },
                 { "fetchLeverages", true },
                 { "fetchLeverageTiers", true },
+                { "fetchMarginAdjustmentHistory", true },
                 { "fetchMarketLeverageTiers", "emulated" },
                 { "fetchMarkets", true },
                 { "fetchMarkOHLCV", false },
@@ -604,14 +605,14 @@ public partial class coinex : Exchange
         * @method
         * @name coinex#fetchMarkets
         * @description retrieves data on all markets for coinex
-        * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot001_market002_all_market_info
-        * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http006_market_list
+        * @see https://docs.coinex.com/api/v2/spot/market/http/list-market
+        * @see https://docs.coinex.com/api/v2/futures/market/http/list-market
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object[]} an array of objects representing market data
         */
         parameters ??= new Dictionary<string, object>();
-        object promises = ((object)new List<object> {this.fetchSpotMarkets(parameters), this.fetchContractMarkets(parameters)});
-        promises = ((object)await promiseAll(promises));
+        object promisesUnresolved = new List<object> {this.fetchSpotMarkets(parameters), this.fetchContractMarkets(parameters)};
+        object promises = await promiseAll(promisesUnresolved);
         object spotMarkets = getValue(promises, 0);
         object swapMarkets = getValue(promises, 1);
         return this.arrayConcat(spotMarkets, swapMarkets);
@@ -619,42 +620,38 @@ public partial class coinex : Exchange
 
     public async virtual Task<object> fetchSpotMarkets(object parameters)
     {
-        object response = await this.v1PublicGetMarketInfo(parameters);
+        object response = await this.v2PublicGetSpotMarket(parameters);
         //
         //     {
         //         "code": 0,
-        //         "data": {
-        //             "WAVESBTC": {
-        //                 "name": "WAVESBTC",
-        //                 "min_amount": "1",
-        //                 "maker_fee_rate": "0.001",
-        //                 "taker_fee_rate": "0.001",
-        //                 "pricing_name": "BTC",
-        //                 "pricing_decimal": 8,
-        //                 "trading_name": "WAVES",
-        //                 "trading_decimal": 8
-        //             }
-        //         }
+        //         "data": [
+        //             {
+        //                 "base_ccy": "SORA",
+        //                 "base_ccy_precision": 8,
+        //                 "is_amm_available": true,
+        //                 "is_margin_available": false,
+        //                 "maker_fee_rate": "0.003",
+        //                 "market": "SORAUSDT",
+        //                 "min_amount": "500",
+        //                 "quote_ccy": "USDT",
+        //                 "quote_ccy_precision": 6,
+        //                 "taker_fee_rate": "0.003"
+        //             },
+        //         ],
+        //         "message": "OK"
         //     }
         //
-        object markets = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        object markets = this.safeList(response, "data", new List<object>() {});
         object result = new List<object>() {};
-        object keys = new List<object>(((IDictionary<string,object>)markets).Keys);
-        for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
+        for (object i = 0; isLessThan(i, getArrayLength(markets)); postFixIncrement(ref i))
         {
-            object key = getValue(keys, i);
-            object market = getValue(markets, key);
-            object id = this.safeString(market, "name");
-            object tradingName = this.safeString(market, "trading_name");
-            object baseId = tradingName;
-            object quoteId = this.safeString(market, "pricing_name");
+            object market = getValue(markets, i);
+            object id = this.safeString(market, "market");
+            object baseId = this.safeString(market, "base_ccy");
+            object quoteId = this.safeString(market, "quote_ccy");
             object bs = this.safeCurrencyCode(baseId);
             object quote = this.safeCurrencyCode(quoteId);
             object symbol = add(add(bs, "/"), quote);
-            if (isTrue(isEqual(tradingName, id)))
-            {
-                symbol = id;
-            }
             ((IList<object>)result).Add(new Dictionary<string, object>() {
                 { "id", id },
                 { "symbol", symbol },
@@ -682,8 +679,8 @@ public partial class coinex : Exchange
                 { "strike", null },
                 { "optionType", null },
                 { "precision", new Dictionary<string, object>() {
-                    { "amount", this.parseNumber(this.parsePrecision(this.safeString(market, "trading_decimal"))) },
-                    { "price", this.parseNumber(this.parsePrecision(this.safeString(market, "pricing_decimal"))) },
+                    { "amount", this.parseNumber(this.parsePrecision(this.safeString(market, "base_ccy_precision"))) },
+                    { "price", this.parseNumber(this.parsePrecision(this.safeString(market, "quote_ccy_precision"))) },
                 } },
                 { "limits", new Dictionary<string, object>() {
                     { "leverage", new Dictionary<string, object>() {
@@ -712,46 +709,44 @@ public partial class coinex : Exchange
 
     public async virtual Task<object> fetchContractMarkets(object parameters)
     {
-        object response = await this.v1PerpetualPublicGetMarketList(parameters);
+        object response = await this.v2PublicGetFuturesMarket(parameters);
         //
         //     {
         //         "code": 0,
         //         "data": [
         //             {
-        //                 "name": "BTCUSD",
-        //                 "type": 2, // 1: USDT-M Contracts, 2: Coin-M Contracts
-        //                 "leverages": ["3", "5", "8", "10", "15", "20", "30", "50", "100"],
-        //                 "stock": "BTC",
-        //                 "money": "USD",
-        //                 "fee_prec": 5,
-        //                 "stock_prec": 8,
-        //                 "money_prec": 1,
-        //                 "amount_prec": 0,
-        //                 "amount_min": "10",
-        //                 "multiplier": "1",
-        //                 "tick_size": "0.1", // Min. Price Increment
-        //                 "available": true
+        //                 "base_ccy": "BTC",
+        //                 "base_ccy_precision": 8,
+        //                 "contract_type": "inverse",
+        //                 "leverage": ["1","2","3","5","8","10","15","20","30","50","100"],
+        //                 "maker_fee_rate": "0",
+        //                 "market": "BTCUSD",
+        //                 "min_amount": "10",
+        //                 "open_interest_volume": "2566879",
+        //                 "quote_ccy": "USD",
+        //                 "quote_ccy_precision": 2,
+        //                 "taker_fee_rate": "0"
         //             },
         //         ],
         //         "message": "OK"
         //     }
         //
-        object markets = this.safeValue(response, "data", new List<object>() {});
+        object markets = this.safeList(response, "data", new List<object>() {});
         object result = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(markets)); postFixIncrement(ref i))
         {
             object entry = getValue(markets, i);
             object fees = this.fees;
-            object leverages = this.safeValue(entry, "leverages", new List<object>() {});
-            object subType = this.safeInteger(entry, "type");
-            object linear = (isEqual(subType, 1));
-            object inverse = (isEqual(subType, 2));
-            object id = this.safeString(entry, "name");
-            object baseId = this.safeString(entry, "stock");
-            object quoteId = this.safeString(entry, "money");
+            object leverages = this.safeList(entry, "leverage", new List<object>() {});
+            object subType = this.safeString(entry, "contract_type");
+            object linear = (isEqual(subType, "linear"));
+            object inverse = (isEqual(subType, "inverse"));
+            object id = this.safeString(entry, "market");
+            object baseId = this.safeString(entry, "base_ccy");
+            object quoteId = this.safeString(entry, "quote_ccy");
             object bs = this.safeCurrencyCode(baseId);
             object quote = this.safeCurrencyCode(quoteId);
-            object settleId = ((bool) isTrue((isEqual(subType, 1)))) ? "USDT" : baseId;
+            object settleId = ((bool) isTrue((isEqual(subType, "linear")))) ? "USDT" : baseId;
             object settle = this.safeCurrencyCode(settleId);
             object symbol = add(add(add(add(bs, "/"), quote), ":"), settle);
             object leveragesLength = getArrayLength(leverages);
@@ -770,20 +765,20 @@ public partial class coinex : Exchange
                 { "swap", true },
                 { "future", false },
                 { "option", false },
-                { "active", this.safeValue(entry, "available") },
+                { "active", null },
                 { "contract", true },
                 { "linear", linear },
                 { "inverse", inverse },
                 { "taker", getValue(getValue(fees, "trading"), "taker") },
                 { "maker", getValue(getValue(fees, "trading"), "maker") },
-                { "contractSize", this.safeNumber(entry, "multiplier") },
+                { "contractSize", this.parseNumber("1") },
                 { "expiry", null },
                 { "expiryDatetime", null },
                 { "strike", null },
                 { "optionType", null },
                 { "precision", new Dictionary<string, object>() {
-                    { "amount", this.parseNumber(this.parsePrecision(this.safeString(entry, "amount_prec"))) },
-                    { "price", this.parseNumber(this.parsePrecision(this.safeString(entry, "money_prec"))) },
+                    { "amount", this.parseNumber(this.parsePrecision(this.safeString(entry, "base_ccy_precision"))) },
+                    { "price", this.parseNumber(this.parsePrecision(this.safeString(entry, "quote_ccy_precision"))) },
                 } },
                 { "limits", new Dictionary<string, object>() {
                     { "leverage", new Dictionary<string, object>() {
@@ -791,7 +786,7 @@ public partial class coinex : Exchange
                         { "max", this.safeNumber(leverages, subtract(leveragesLength, 1)) },
                     } },
                     { "amount", new Dictionary<string, object>() {
-                        { "min", this.safeNumber(entry, "amount_min") },
+                        { "min", this.safeNumber(entry, "min_amount") },
                         { "max", null },
                     } },
                     { "price", new Dictionary<string, object>() {
@@ -1079,20 +1074,23 @@ public partial class coinex : Exchange
         * @method
         * @name coinex#fetchTime
         * @description fetches the current integer timestamp in milliseconds from the exchange server
-        * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http005_system_time
+        * @see https://docs.coinex.com/api/v2/common/http/time
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {int} the current integer timestamp in milliseconds from the exchange server
         */
         parameters ??= new Dictionary<string, object>();
-        object response = await this.v1PerpetualPublicGetTime(parameters);
+        object response = await this.v2PublicGetTime(parameters);
         //
         //     {
-        //         "code": "0",
-        //         "data": "1653261274414",
+        //         "code": 0,
+        //         "data": {
+        //             "timestamp": 1711699867777
+        //         },
         //         "message": "OK"
         //     }
         //
-        return this.safeInteger(response, "data");
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        return this.safeInteger(data, "timestamp");
     }
 
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
@@ -1101,8 +1099,8 @@ public partial class coinex : Exchange
         * @method
         * @name coinex#fetchOrderBook
         * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-        * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot001_market004_market_depth
-        * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http010_market_depth
+        * @see https://docs.coinex.com/api/v2/spot/market/http/list-market-depth
+        * @see https://docs.coinex.com/api/v2/futures/market/http/list-market-depth
         * @param {string} symbol unified symbol of the market to fetch the order book for
         * @param {int} [limit] the maximum amount of order book entries to return
         * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1117,66 +1115,22 @@ public partial class coinex : Exchange
             limit = 20; // default
         }
         object request = new Dictionary<string, object>() {
-            { "market", this.marketId(symbol) },
-            { "merge", "0" },
-            { "limit", ((object)limit).ToString() },
+            { "market", getValue(market, "id") },
+            { "limit", limit },
+            { "interval", "0" },
         };
         object response = null;
         if (isTrue(getValue(market, "swap")))
         {
-            response = await this.v1PerpetualPublicGetMarketDepth(this.extend(request, parameters));
+            response = await this.v2PublicGetFuturesDepth(this.extend(request, parameters));
         } else
         {
-            response = await this.v1PublicGetMarketDepth(this.extend(request, parameters));
+            response = await this.v2PublicGetSpotDepth(this.extend(request, parameters));
         }
-        //
-        // Spot
-        //
-        //     {
-        //         "code": 0,
-        //         "data": {
-        //             "asks": [
-        //                 ["41056.33", "0.31727613"],
-        //                 ["41056.34", "1.05657294"],
-        //                 ["41056.35", "0.02346648"]
-        //             ],
-        //             "bids": [
-        //                 ["41050.61", "0.40618608"],
-        //                 ["41046.98", "0.13800000"],
-        //                 ["41046.56", "0.22579234"]
-        //             ],
-        //             "last": "41050.61",
-        //             "time": 1650573220346
-        //         },
-        //         "message": "OK"
-        //     }
-        //
-        // Swap
-        //
-        //     {
-        //         "code": 0,
-        //         "data": {
-        //             "asks": [
-        //                 ["40620.90", "0.0384"],
-        //                 ["40625.50", "0.0219"],
-        //                 ["40625.90", "0.3506"]
-        //             ],
-        //             "bids": [
-        //                 ["40620.89", "19.6861"],
-        //                 ["40620.80", "0.0012"],
-        //                 ["40619.87", "0.0365"]
-        //             ],
-        //             "last": "40620.89",
-        //             "time": 1650587672406,
-        //             "sign_price": "40619.32",
-        //             "index_price": "40609.93"
-        //         },
-        //         "message": "OK"
-        //     }
-        //
-        object result = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object timestamp = this.safeInteger(result, "time");
-        return this.parseOrderBook(result, symbol, timestamp);
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        object depth = this.safeDict(data, "depth", new Dictionary<string, object>() {});
+        object timestamp = this.safeInteger(depth, "updated_at");
+        return this.parseOrderBook(depth, symbol, timestamp);
     }
 
     public override object parseTrade(object trade, object market = null)
@@ -1372,7 +1326,8 @@ public partial class coinex : Exchange
         * @method
         * @name coinex#fetchTradingFee
         * @description fetch the trading fees for a market
-        * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot001_market003_single_market_info
+        * @see https://docs.coinex.com/api/v2/spot/market/http/list-market
+        * @see https://docs.coinex.com/api/v2/futures/market/http/list-market
         * @param {string} symbol unified market symbol
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
@@ -1383,25 +1338,17 @@ public partial class coinex : Exchange
         object request = new Dictionary<string, object>() {
             { "market", getValue(market, "id") },
         };
-        object response = await this.v1PublicGetMarketDetail(this.extend(request, parameters));
-        //
-        //     {
-        //         "code": 0,
-        //         "data": {
-        //           "name": "BTCUSDC",
-        //           "min_amount": "0.0005",
-        //           "maker_fee_rate": "0.002",
-        //           "taker_fee_rate": "0.002",
-        //           "pricing_name": "USDC",
-        //           "pricing_decimal": 2,
-        //           "trading_name": "BTC",
-        //           "trading_decimal": 8
-        //         },
-        //         "message": "OK"
-        //      }
-        //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        return this.parseTradingFee(data, market);
+        object response = null;
+        if (isTrue(getValue(market, "spot")))
+        {
+            response = await this.v2PublicGetSpotMarket(this.extend(request, parameters));
+        } else
+        {
+            response = await this.v2PublicGetFuturesMarket(this.extend(request, parameters));
+        }
+        object data = this.safeList(response, "data", new List<object>() {});
+        object result = this.safeDict(data, 0, new Dictionary<string, object>() {});
+        return this.parseTradingFee(result, market);
     }
 
     public async override Task<object> fetchTradingFees(object parameters = null)
@@ -1410,46 +1357,41 @@ public partial class coinex : Exchange
         * @method
         * @name coinex#fetchTradingFees
         * @description fetch the trading fees for multiple markets
-        * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot001_market002_all_market_info
+        * @see https://docs.coinex.com/api/v2/spot/market/http/list-market
+        * @see https://docs.coinex.com/api/v2/futures/market/http/list-market
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object response = await this.v1PublicGetMarketInfo(parameters);
-        //
-        //     {
-        //         "code": 0,
-        //         "data": {
-        //             "WAVESBTC": {
-        //                 "name": "WAVESBTC",
-        //                 "min_amount": "1",
-        //                 "maker_fee_rate": "0.001",
-        //                 "taker_fee_rate": "0.001",
-        //                 "pricing_name": "BTC",
-        //                 "pricing_decimal": 8,
-        //                 "trading_name": "WAVES",
-        //                 "trading_decimal": 8
-        //             }
-        //             ...
-        //         }
-        //     }
-        //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(this.symbols)); postFixIncrement(ref i))
+        object type = null;
+        var typeparametersVariable = this.handleMarketTypeAndParams("fetchTradingFees", null, parameters);
+        type = ((IList<object>)typeparametersVariable)[0];
+        parameters = ((IList<object>)typeparametersVariable)[1];
+        object response = null;
+        if (isTrue(isEqual(type, "swap")))
         {
-            object symbol = getValue(this.symbols, i);
-            object market = this.market(symbol);
-            object fee = this.safeValue(data, getValue(market, "id"), new Dictionary<string, object>() {});
-            ((IDictionary<string,object>)result)[(string)symbol] = this.parseTradingFee(fee, market);
+            response = await this.v2PublicGetFuturesMarket(parameters);
+        } else
+        {
+            response = await this.v2PublicGetSpotMarket(parameters);
+        }
+        object data = this.safeList(response, "data", new List<object>() {});
+        object result = new Dictionary<string, object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+        {
+            object entry = getValue(data, i);
+            object marketId = this.safeString(entry, "market");
+            object market = this.safeMarket(marketId, null, null, type);
+            object symbol = getValue(market, "symbol");
+            ((IDictionary<string,object>)result)[(string)symbol] = this.parseTradingFee(entry, market);
         }
         return result;
     }
 
     public virtual object parseTradingFee(object fee, object market = null)
     {
-        object marketId = this.safeValue(fee, "name");
+        object marketId = this.safeValue(fee, "market");
         object symbol = this.safeSymbol(marketId, market);
         return new Dictionary<string, object>() {
             { "info", fee },
@@ -4330,41 +4272,6 @@ public partial class coinex : Exchange
         return this.parseLeverageTiers(data, symbols, null);
     }
 
-    public override object parseLeverageTiers(object response, object symbols = null, object marketIdKey = null)
-    {
-        //
-        //     {
-        //         "BTCUSD": [
-        //             ["500001", "100", "0.005"],
-        //             ["1000001", "50", "0.01"],
-        //             ["2000001", "30", "0.015"],
-        //             ["5000001", "20", "0.02"],
-        //             ["10000001", "15", "0.025"],
-        //             ["20000001", "10", "0.03"]
-        //         ],
-        //         ...
-        //     }
-        //
-        object tiers = new Dictionary<string, object>() {};
-        object marketIds = new List<object>(((IDictionary<string,object>)response).Keys);
-        for (object i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
-        {
-            object marketId = getValue(marketIds, i);
-            object market = this.safeMarket(marketId, null, null, "spot");
-            object symbol = this.safeString(market, "symbol");
-            object symbolsLength = 0;
-            if (isTrue(!isEqual(symbols, null)))
-            {
-                symbolsLength = getArrayLength(symbols);
-            }
-            if (isTrue(isTrue(!isEqual(symbol, null)) && isTrue((isTrue(isEqual(symbolsLength, 0)) || isTrue(this.inArray(symbols, symbol))))))
-            {
-                ((IDictionary<string,object>)tiers)[(string)symbol] = this.parseMarketLeverageTiers(getValue(response, marketId), market);
-            }
-        }
-        return tiers;
-    }
-
     public override object parseMarketLeverageTiers(object item, object market = null)
     {
         object tiers = new List<object>() {};
@@ -4455,24 +4362,103 @@ public partial class coinex : Exchange
         //         "message":"OK"
         //     }
         //
+        object data = this.safeDict(response, "data");
         object status = this.safeString(response, "message");
-        object type = ((bool) isTrue((isEqual(addOrReduce, 1)))) ? "add" : "reduce";
-        return this.extend(this.parseMarginModification(response, market), new Dictionary<string, object>() {
+        return this.extend(this.parseMarginModification(data, market), new Dictionary<string, object>() {
             { "amount", this.parseNumber(amount) },
-            { "type", type },
             { "status", status },
         });
     }
 
-    public virtual object parseMarginModification(object data, object market = null)
+    public override object parseMarginModification(object data, object market = null)
     {
+        //
+        // addMargin/reduceMargin
+        //
+        //    {
+        //        "adl_sort": 1,
+        //        "adl_sort_val": "0.00004320",
+        //        "amount": "0.0005",
+        //        "amount_max": "0.0005",
+        //        "amount_max_margin": "6.57352000000000000000",
+        //        "bkr_price": "16294.08000000000000011090",
+        //        "bkr_price_imply": "0.00000000000000000000",
+        //        "close_left": "0.0005",
+        //        "create_time": 1651202571.320778,
+        //        "deal_all": "19.72000000000000000000",
+        //        "deal_asset_fee": "0.00000000000000000000",
+        //        "fee_asset": "",
+        //        "finish_type": 1,
+        //        "first_price": "39441.12",
+        //        "insurance": "0.00000000000000000000",
+        //        "latest_price": "39441.12",
+        //        "leverage": "3",
+        //        "liq_amount": "0.00000000000000000000",
+        //        "liq_order_price": "0",
+        //        "liq_order_time": 0,
+        //        "liq_price": "16491.28560000000000011090",
+        //        "liq_price_imply": "0.00000000000000000000",
+        //        "liq_profit": "0.00000000000000000000",
+        //        "liq_time": 0,
+        //        "mainten_margin": "0.005",
+        //        "mainten_margin_amount": "0.09860280000000000000",
+        //        "maker_fee": "0.00000000000000000000",
+        //        "margin_amount": "11.57352000000000000000",
+        //        "market": "BTCUSDT",
+        //        "open_margin": "0.58687582908396110455",
+        //        "open_margin_imply": "0.00000000000000000000",
+        //        "open_price": "39441.12000000000000000000",
+        //        "open_val": "19.72056000000000000000",
+        //        "open_val_max": "19.72056000000000000000",
+        //        "position_id": 65171206,
+        //        "profit_clearing": "-0.00986028000000000000",
+        //        "profit_real": "-0.00986028000000000000",
+        //        "profit_unreal": "0.00",
+        //        "side": 2,
+        //        "stop_loss_price": "0.00000000000000000000",
+        //        "stop_loss_type": 0,
+        //        "sys": 0,
+        //        "take_profit_price": "0.00000000000000000000",
+        //        "take_profit_type": 0,
+        //        "taker_fee": "0.00000000000000000000",
+        //        "total": 3464,
+        //        "type": 1,
+        //        "update_time": 1651202638.911212,
+        //        "user_id": 3620173
+        //    }
+        //
+        // fetchMarginAdjustmentHistory
+        //
+        //    {
+        //        bkr_price: '0',
+        //        leverage: '3',
+        //        liq_price: '0',
+        //        margin_amount: '5.33236666666666666666',
+        //        margin_change: '3',
+        //        market: 'XRPUSDT',
+        //        position_amount: '11',
+        //        position_id: '297155652',
+        //        position_type: '2',
+        //        settle_price: '0.6361',
+        //        time: '1711050906.382891',
+        //        type: '1',
+        //        user_id: '3685860'
+        //    }
+        //
+        object marketId = this.safeString(data, "market");
+        object type = this.safeString(data, "type");
+        object timestamp = this.safeIntegerProduct2(data, "time", "update_time", 1000);
         return new Dictionary<string, object>() {
             { "info", data },
-            { "type", null },
-            { "amount", null },
+            { "symbol", this.safeSymbol(marketId, market, null, "swap") },
+            { "type", ((bool) isTrue((isEqual(type, "1")))) ? "add" : "reduce" },
+            { "marginMode", "isolated" },
+            { "amount", this.safeNumber(data, "margin_change") },
+            { "total", this.safeNumber(data, "position_amount") },
             { "code", getValue(market, "quote") },
-            { "symbol", this.safeSymbol(null, market) },
             { "status", null },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
         };
     }
 
@@ -5177,6 +5163,7 @@ public partial class coinex : Exchange
         object currencyId = this.safeString(transfer, "asset");
         object currencyCode = this.safeCurrencyCode(currencyId, currency);
         return new Dictionary<string, object>() {
+            { "info", transfer },
             { "id", this.safeInteger(transfer, "id") },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
@@ -6103,5 +6090,84 @@ public partial class coinex : Exchange
             throw new ExchangeError ((string)feedback) ;
         }
         return null;
+    }
+
+    public async override Task<object> fetchMarginAdjustmentHistory(object symbol = null, object type = null, object since = null, object limit = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name coinex#fetchMarginAdjustmentHistory
+        * @description fetches the history of margin added or reduced from contract isolated positions
+        * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http046_position_margin_history
+        * @param {string} [symbol] unified market symbol
+        * @param {string} [type] not used by coinex fetchMarginAdjustmentHistory
+        * @param {int} [since] timestamp in ms of the earliest change to fetch
+        * @param {int} [limit] the maximum amount of changes to fetch, default=100, max=100
+        * @param {object} params extra parameters specific to the exchange api endpoint
+        * @param {int} [params.until] timestamp in ms of the latest change to fetch
+        *
+        * EXCHANGE SPECIFIC PARAMETERS
+        * @param {int} [params.offset] offset
+        * @returns {object[]} a list of [margin structures]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object until = this.safeInteger(parameters, "until");
+        parameters = this.omit(parameters, "until");
+        if (isTrue(isEqual(limit, null)))
+        {
+            limit = 100;
+        }
+        object request = new Dictionary<string, object>() {
+            { "market", "" },
+            { "position_id", 0 },
+            { "offset", 0 },
+            { "limit", limit },
+        };
+        if (isTrue(!isEqual(symbol, null)))
+        {
+            object market = this.market(symbol);
+            ((IDictionary<string,object>)request)["market"] = getValue(market, "id");
+        }
+        if (isTrue(!isEqual(since, null)))
+        {
+            ((IDictionary<string,object>)request)["start_time"] = since;
+        }
+        if (isTrue(!isEqual(until, null)))
+        {
+            ((IDictionary<string,object>)request)["end_time"] = until;
+        }
+        object response = await this.v1PerpetualPrivateGetPositionMarginHistory(this.extend(request, parameters));
+        //
+        //    {
+        //        code: '0',
+        //        data: {
+        //            limit: '100',
+        //            offset: '0',
+        //            records: [
+        //                {
+        //                    bkr_price: '0',
+        //                    leverage: '3',
+        //                    liq_price: '0',
+        //                    margin_amount: '5.33236666666666666666',
+        //                    margin_change: '3',
+        //                    market: 'XRPUSDT',
+        //                    position_amount: '11',
+        //                    position_id: '297155652',
+        //                    position_type: '2',
+        //                    settle_price: '0.6361',
+        //                    time: '1711050906.382891',
+        //                    type: '1',
+        //                    user_id: '3685860'
+        //                }
+        //            ]
+        //        },
+        //        message: 'OK'
+        //    }
+        //
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        object records = this.safeList(data, "records", new List<object>() {});
+        object modifications = this.parseMarginModifications(records, null, "market", "swap");
+        return this.filterBySymbolSinceLimit(modifications, symbol, since, limit);
     }
 }

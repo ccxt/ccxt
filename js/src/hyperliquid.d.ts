@@ -1,5 +1,5 @@
 import Exchange from './abstract/hyperliquid.js';
-import type { Market, TransferEntry, Balances, Int, OrderBook, OHLCV, Str, FundingRateHistory, Order, OrderType, OrderSide, Trade, Strings, Position, OrderRequest, Dict, Num } from './base/types.js';
+import type { Market, TransferEntry, Balances, Int, OrderBook, OHLCV, Str, FundingRateHistory, Order, OrderType, OrderSide, Trade, Strings, Position, OrderRequest, Dict, Num, MarginModification, Currencies } from './base/types.js';
 /**
  * @class hyperliquid
  * @augments Exchange
@@ -7,8 +7,10 @@ import type { Market, TransferEntry, Balances, Int, OrderBook, OHLCV, Str, Fundi
 export default class hyperliquid extends Exchange {
     describe(): any;
     setSandboxMode(enabled: any): void;
-    fetchCurrencies(params?: {}): Promise<{}>;
+    fetchCurrencies(params?: {}): Promise<Currencies>;
     fetchMarkets(params?: {}): Promise<Market[]>;
+    fetchSwapMarkets(params?: {}): Promise<Market[]>;
+    fetchSpotMarkets(params?: {}): Promise<Market[]>;
     parseMarket(market: any): Market;
     fetchBalance(params?: {}): Promise<Balances>;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
@@ -68,9 +70,10 @@ export default class hyperliquid extends Exchange {
     parsePosition(position: any, market?: Market): Position;
     setMarginMode(marginMode: string, symbol?: Str, params?: {}): Promise<any>;
     setLeverage(leverage: Int, symbol?: Str, params?: {}): Promise<any>;
-    addMargin(symbol: string, amount: any, params?: {}): Promise<any>;
-    reduceMargin(symbol: string, amount: any, params?: {}): Promise<any>;
-    modifyMarginHelper(symbol: string, amount: any, type: any, params?: {}): Promise<any>;
+    addMargin(symbol: string, amount: any, params?: {}): Promise<MarginModification>;
+    reduceMargin(symbol: string, amount: any, params?: {}): Promise<MarginModification>;
+    modifyMarginHelper(symbol: string, amount: any, type: any, params?: {}): Promise<MarginModification>;
+    parseMarginModification(data: any, market?: Market): MarginModification;
     transfer(code: string, amount: number, fromAccount: string, toAccount: string, params?: {}): Promise<TransferEntry>;
     withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<any>;
     formatVaultAddress(address?: Str): string;

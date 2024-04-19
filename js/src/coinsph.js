@@ -1577,6 +1577,8 @@ export default class coinsph extends Exchange {
             'symbol': symbol,
             'maker': this.safeNumber(fee, 'makerCommission'),
             'taker': this.safeNumber(fee, 'takerCommission'),
+            'percentage': undefined,
+            'tierBased': undefined,
         };
     }
     async withdraw(code, amount, address, tag = undefined, params = {}) {

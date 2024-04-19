@@ -11,9 +11,9 @@ from ccxt.base.types import Balances, Int, Market, Order, OrderBook, Position, S
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import NotSupported
-from ccxt.base.errors import AuthenticationError
 
 
 class bitmart(ccxt.async_support.bitmart):

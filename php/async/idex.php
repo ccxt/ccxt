@@ -469,7 +469,7 @@ class idex extends Exchange {
                 $request['start'] = $since;
             }
             if ($limit !== null) {
-                $request['limit'] = $limit;
+                $request['limit'] = min ($limit, 1000);
             }
             $response = Async\await($this->publicGetCandles (array_merge($request, $params)));
             if (gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response))) {
@@ -627,7 +627,7 @@ class idex extends Exchange {
         ), $market);
     }
 
-    public function fetch_trading_fees($params = array ()) {
+    public function fetch_trading_fees($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetch the trading fees for multiple markets
@@ -740,7 +740,7 @@ class idex extends Exchange {
         return $this->sort_by($result, 0, $descending);
     }
 
-    public function fetch_currencies($params = array ()) {
+    public function fetch_currencies($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches all available currencies on an exchange

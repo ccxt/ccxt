@@ -114,6 +114,7 @@ public partial class gate : Exchange
                 { "fetchLeverages", true },
                 { "fetchLeverageTiers", true },
                 { "fetchLiquidations", true },
+                { "fetchMarginAdjustmentHistory", false },
                 { "fetchMarginMode", false },
                 { "fetchMarketLeverageTiers", true },
                 { "fetchMarkets", true },
@@ -2098,6 +2099,8 @@ public partial class gate : Exchange
             { "symbol", this.safeString(market, "symbol") },
             { "maker", this.safeNumber(info, makerKey) },
             { "taker", this.safeNumber(info, takerKey) },
+            { "percentage", null },
+            { "tierBased", null },
         };
     }
 
@@ -3704,7 +3707,7 @@ public partial class gate : Exchange
         if (isTrue(!isEqual(code, null)))
         {
             currency = this.currency(code);
-            ((IDictionary<string,object>)request)["currency"] = getValue(currency, "id");
+            ((IDictionary<string,object>)request)["currency"] = getValue(currency, "id"); // todo: currencies have network-junctions
         }
         if (isTrue(!isEqual(limit, null)))
         {
@@ -3753,7 +3756,7 @@ public partial class gate : Exchange
         if (isTrue(!isEqual(code, null)))
         {
             currency = this.currency(code);
-            ((IDictionary<string,object>)request)["currency"] = getValue(currency, "id");
+            ((IDictionary<string,object>)request)["currency"] = getValue(currency, "id"); // todo: currencies have network-junctions
         }
         if (isTrue(!isEqual(limit, null)))
         {
@@ -3811,7 +3814,7 @@ public partial class gate : Exchange
             parameters = this.omit(parameters, "network");
         } else
         {
-            ((IDictionary<string,object>)request)["chain"] = getValue(currency, "id");
+            ((IDictionary<string,object>)request)["chain"] = getValue(currency, "id"); // todo: currencies have network-junctions
         }
         object response = await this.privateWithdrawalsPostWithdrawals(this.extend(request, parameters));
         //
@@ -5493,7 +5496,7 @@ public partial class gate : Exchange
         }
         if (isTrue(isTrue(isTrue(isTrue((isEqual(toId, "futures"))) || isTrue((isEqual(toId, "delivery")))) || isTrue((isEqual(fromId, "futures")))) || isTrue((isEqual(fromId, "delivery")))))
         {
-            ((IDictionary<string,object>)request)["settle"] = getValue(currency, "id");
+            ((IDictionary<string,object>)request)["settle"] = getValue(currency, "id"); // todo: currencies have network-junctions
         }
         object response = await this.privateWalletPostTransfers(this.extend(request, parameters));
         //
@@ -6531,7 +6534,7 @@ public partial class gate : Exchange
         return this.parseMarginModification(response, market);
     }
 
-    public virtual object parseMarginModification(object data, object market = null)
+    public override object parseMarginModification(object data, object market = null)
     {
         //
         //     {
@@ -6565,11 +6568,15 @@ public partial class gate : Exchange
         object total = this.safeNumber(data, "margin");
         return new Dictionary<string, object>() {
             { "info", data },
-            { "amount", null },
-            { "code", this.safeValue(market, "quote") },
             { "symbol", getValue(market, "symbol") },
+            { "type", null },
+            { "marginMode", "isolated" },
+            { "amount", null },
             { "total", total },
+            { "code", this.safeValue(market, "quote") },
             { "status", "ok" },
+            { "timestamp", null },
+            { "datetime", null },
         };
     }
 
@@ -6951,7 +6958,7 @@ public partial class gate : Exchange
             if (isTrue(!isEqual(code, null)))
             {
                 currency = this.currency(code);
-                ((IDictionary<string,object>)request)["currency"] = getValue(currency, "id");
+                ((IDictionary<string,object>)request)["currency"] = getValue(currency, "id"); // todo: currencies have network-junctions
             }
         }
         if (isTrue(isTrue((isEqual(type, "swap"))) || isTrue((isEqual(type, "future")))))

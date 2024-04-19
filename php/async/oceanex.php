@@ -572,7 +572,7 @@ class oceanex extends Exchange {
         }) ();
     }
 
-    public function fetch_trading_fees($params = array ()) {
+    public function fetch_trading_fees($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetch the trading fees for multiple markets
@@ -817,7 +817,7 @@ class oceanex extends Exchange {
                 $request['timestamp'] = $since;
             }
             if ($limit !== null) {
-                $request['limit'] = $limit;
+                $request['limit'] = min ($limit, 10000);
             }
             $response = Async\await($this->publicPostK (array_merge($request, $params)));
             $ohlcvs = $this->safe_list($response, 'data', array());

@@ -7,9 +7,10 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.phemex import ImplicitAPI
 import hashlib
 import numbers
-from ccxt.base.types import Balances, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
+from ccxt.base.types import Balances, Currencies, Currency, Int, MarginModification, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import AccountSuspended
 from ccxt.base.errors import ArgumentsRequired
@@ -23,7 +24,6 @@ from ccxt.base.errors import DuplicateOrderId
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import RateLimitExceeded
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -971,7 +971,7 @@ class phemex(Exchange, ImplicitAPI):
             result.append(market)
         return result
 
-    async def fetch_currencies(self, params={}):
+    async def fetch_currencies(self, params={}) -> Currencies:
         """
         fetches all available currencies on an exchange
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -3744,7 +3744,7 @@ class phemex(Exchange, ImplicitAPI):
             'previousFundingDatetime': None,
         }
 
-    async def set_margin(self, symbol: str, amount: float, params={}):
+    async def set_margin(self, symbol: str, amount: float, params={}) -> MarginModification:
         """
         Either adds or reduces margin in an isolated position in order to set the margin to a specific value
         :see: https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md#assign-position-balance-in-isolated-marign-mode
@@ -3777,7 +3777,7 @@ class phemex(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_margin_modification(self, data, market: Market = None):
+    def parse_margin_modification(self, data, market: Market = None) -> MarginModification:
         #
         #     {
         #         "code": 0,
@@ -3790,12 +3790,15 @@ class phemex(Exchange, ImplicitAPI):
         codeCurrency = 'base' if inverse else 'quote'
         return {
             'info': data,
+            'symbol': self.safe_symbol(None, market),
             'type': 'set',
+            'marginMode': 'isolated',
             'amount': None,
             'total': None,
             'code': market[codeCurrency],
-            'symbol': self.safe_symbol(None, market),
             'status': self.parse_margin_status(self.safe_string(data, 'code')),
+            'timestamp': None,
+            'datetime': None,
         }
 
     async def set_margin_mode(self, marginMode: str, symbol: Str = None, params={}):

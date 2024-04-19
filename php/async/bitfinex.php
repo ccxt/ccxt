@@ -477,7 +477,7 @@ class bitfinex extends Exchange {
         );
     }
 
-    public function fetch_trading_fees($params = array ()) {
+    public function fetch_trading_fees($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetch the trading fees for multiple markets
@@ -1348,6 +1348,8 @@ class bitfinex extends Exchange {
             Async\await($this->load_markets());
             if ($limit === null) {
                 $limit = 100;
+            } else {
+                $limit = min ($limit, 10000);
             }
             $market = $this->market($symbol);
             $v2id = 't' . $market['id'];

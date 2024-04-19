@@ -716,7 +716,7 @@ class yobit extends Exchange {
         return $this->parse_trades($result, $market, $since, $limit);
     }
 
-    public function fetch_trading_fees($params = array ()) {
+    public function fetch_trading_fees($params = array ()): array {
         /**
          * @see https://yobit.net/en/api
          * fetch the trading fees for multiple markets

@@ -1065,6 +1065,9 @@ public partial class zonda : Exchange
         if (isTrue(isEqual(limit, null)))
         {
             limit = 100;
+        } else
+        {
+            limit = mathMin(limit, 11000); // supports up to 11k candles diapason
         }
         object duration = this.parseTimeframe(timeframe);
         object timerange = multiply(multiply(limit, duration), 1000);
