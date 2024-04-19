@@ -1036,6 +1036,63 @@
                     "nonce": 11149534850
                 }
             }
+        ],
+        "fetchTransactionFee": [
+            {
+                "description": "Fetch transaction fee",
+                "method": "fetchTransactionFee",
+                "input": [
+                    "BTC"
+                ],
+                "httpResponse": {
+                    "code": "200000",
+                    "data": {
+                        "currency": "BTC",
+                        "limitBTCAmount": "15.71610959",
+                        "usedBTCAmount": "0.00000000",
+                        "quotaCurrency": "USDT",
+                        "limitQuotaCurrencyAmount": "999999.00000000",
+                        "usedQuotaCurrencyAmount": "0",
+                        "remainAmount": "15.71610959",
+                        "availableAmount": "0",
+                        "withdrawMinFee": "0.0004",
+                        "innerWithdrawMinFee": "0",
+                        "withdrawMinSize": "0.001",
+                        "isWithdrawEnabled": true,
+                        "precision": 8,
+                        "chain": "BTC",
+                        "reason": null,
+                        "lockedAmount": "0"
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "code": "200000",
+                        "data": {
+                        "currency": "BTC",
+                        "limitBTCAmount": "15.71610959",
+                        "usedBTCAmount": "0.00000000",
+                        "quotaCurrency": "USDT",
+                        "limitQuotaCurrencyAmount": "999999.00000000",
+                        "usedQuotaCurrencyAmount": "0",
+                        "remainAmount": "15.71610959",
+                        "availableAmount": "0",
+                        "withdrawMinFee": "0.0004",
+                        "innerWithdrawMinFee": "0",
+                        "withdrawMinSize": "0.001",
+                        "isWithdrawEnabled": true,
+                        "precision": 8,
+                        "chain": "BTC",
+                        "reason": null,
+                        "lockedAmount": "0"
+                        }
+                  },
+                  "withdraw": {
+                        "BTC": 0.0004
+                  },
+                  "deposit": {}
+                }
+            }
         ]
     }
 }

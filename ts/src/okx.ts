@@ -37,6 +37,7 @@ export default class okx extends Exchange {
                 'cancelOrders': true,
                 'closeAllPositions': false,
                 'closePosition': true,
+                'createConvertTrade': true,
                 'createDepositAddress': false,
                 'createMarketBuyOrderWithCost': true,
                 'createMarketSellOrderWithCost': true,
@@ -7678,6 +7679,60 @@ export default class okx extends Exchange {
         return this.parseConversion (result, fromCurrency, toCurrency);
     }
 
+    async createConvertTrade (id: string, fromCode: string, toCode: string, amount: Num = undefined, params = {}): Promise<Conversion> {
+        /**
+         * @method
+         * @name okx#createConvertTrade
+         * @description convert from one currency to another
+         * @see https://www.okx.com/docs-v5/en/#funding-account-rest-api-convert-trade
+         * @param {string} id the id of the trade that you want to make
+         * @param {string} fromCode the currency that you want to sell and convert from
+         * @param {string} toCode the currency that you want to buy and convert into
+         * @param {float} [amount] how much you want to trade in units of the from currency
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+         */
+        await this.loadMarkets ();
+        const request = {
+            'quoteId': id,
+            'baseCcy': fromCode,
+            'quoteCcy': toCode,
+            'szCcy': fromCode,
+            'sz': this.numberToString (amount),
+            'side': 'sell',
+        };
+        const response = await this.privatePostAssetConvertTrade (this.extend (request, params));
+        //
+        //     {
+        //         "code": "0",
+        //         "data": [
+        //             {
+        //                 "baseCcy": "ETH",
+        //                 "clTReqId": "",
+        //                 "fillBaseSz": "0.01023052",
+        //                 "fillPx": "2932.40104429",
+        //                 "fillQuoteSz": "30",
+        //                 "instId": "ETH-USDT",
+        //                 "quoteCcy": "USDT",
+        //                 "quoteId": "quoterETH-USDT16461885104612381",
+        //                 "side": "buy",
+        //                 "state": "fullyFilled",
+        //                 "tradeId": "trader16461885203381437",
+        //                 "ts": "1646188520338"
+        //             }
+        //         ],
+        //         "msg": ""
+        //     }
+        //
+        const data = this.safeList (response, 'data', []);
+        const result = this.safeDict (data, 0, {});
+        const fromCurrencyId = this.safeString (result, 'baseCcy', fromCode);
+        const fromCurrency = this.currency (fromCurrencyId);
+        const toCurrencyId = this.safeString (result, 'quoteCcy', toCode);
+        const toCurrency = this.currency (toCurrencyId);
+        return this.parseConversion (result, fromCurrency, toCurrency);
+    }
+
     parseConversion (conversion, fromCurrency: Currency = undefined, toCurrency: Currency = undefined): Conversion {
         //
         // fetchConvertQuote
@@ -7698,7 +7753,24 @@ export default class okx extends Exchange {
         //         "ttlMs": "10000"
         //     }
         //
-        const timestamp = this.safeInteger (conversion, 'quoteTime');
+        // createConvertTrade
+        //
+        //     {
+        //         "baseCcy": "ETH",
+        //         "clTReqId": "",
+        //         "fillBaseSz": "0.01023052",
+        //         "fillPx": "2932.40104429",
+        //         "fillQuoteSz": "30",
+        //         "instId": "ETH-USDT",
+        //         "quoteCcy": "USDT",
+        //         "quoteId": "quoterETH-USDT16461885104612381",
+        //         "side": "buy",
+        //         "state": "fullyFilled",
+        //         "tradeId": "trader16461885203381437",
+        //         "ts": "1646188520338"
+        //     }
+        //
+        const timestamp = this.safeInteger2 (conversion, 'quoteTime', 'ts');
         const fromCoin = this.safeString (conversion, 'baseCcy');
         const fromCode = this.safeCurrencyCode (fromCoin, fromCurrency);
         const to = this.safeString (conversion, 'quoteCcy');
@@ -7707,12 +7779,12 @@ export default class okx extends Exchange {
             'info': conversion,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'id': this.safeString (conversion, 'clQReqId'),
+            'id': this.safeStringN (conversion, [ 'clQReqId', 'tradeId', 'quoteId' ]),
             'fromCurrency': fromCode,
-            'fromAmount': this.safeNumber (conversion, 'baseSz'),
+            'fromAmount': this.safeNumber2 (conversion, 'baseSz', 'fillBaseSz'),
             'toCurrency': toCode,
-            'toAmount': this.safeNumber (conversion, 'quoteSz'),
-            'price': this.safeNumber (conversion, 'cnvtPx'),
+            'toAmount': this.safeNumber2 (conversion, 'quoteSz', 'fillQuoteSz'),
+            'price': this.safeNumber2 (conversion, 'cnvtPx', 'fillPx'),
             'fee': undefined,
         } as Conversion;
     }

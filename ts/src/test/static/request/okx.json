@@ -1431,6 +1431,20 @@
                 "url": "https://www.okx.com/api/v5/asset/convert/currencies",
                 "input": []
             }
+        ],
+        "createConvertTrade": [
+            {
+                "description": "from usdc to usdt",
+                "method": "createConvertTrade",
+                "url": "https://www.okx.com/api/v5/asset/convert/trade",
+                "input": [
+                  "quoternextUSDC-USDT17133439642216046",
+                  "USDC",
+                  "USDT",
+                  3
+                ],
+                "output": "{\"quoteId\":\"quoternextUSDC-USDT17133439642216046\",\"baseCcy\":\"USDC\",\"quoteCcy\":\"USDT\",\"szCcy\":\"USDC\",\"sz\":\"3\",\"side\":\"sell\"}"
+            }
         ]
     }
 }

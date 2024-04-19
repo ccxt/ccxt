@@ -17,9 +17,10 @@ class coinbase extends coinbase$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'coinbase',
-            'name': 'Coinbase',
+            'name': 'Coinbase Advanced',
             'countries': ['US'],
             'pro': true,
+            'certified': true,
             // rate-limits:
             // ADVANCED API: https://docs.cloud.coinbase.com/advanced-trade-api/docs/rest-api-rate-limits
             // - max 30 req/second for private data, 10 req/s for public data
@@ -1458,6 +1459,7 @@ class coinbase extends coinbase$1 {
         const contractExpiryType = this.safeString(futureProductDetails, 'contract_expiry_type');
         const contractSize = this.safeNumber(futureProductDetails, 'contract_size');
         const contractExpire = this.safeString(futureProductDetails, 'contract_expiry');
+        const expireTimestamp = this.parse8601(contractExpire);
         const isSwap = (contractExpiryType === 'PERPETUAL');
         const baseId = this.safeString(futureProductDetails, 'contract_root_unit');
         const quoteId = this.safeString(market, 'quote_currency_id');
@@ -1472,7 +1474,7 @@ class coinbase extends coinbase$1 {
         }
         else {
             type = 'future';
-            symbol = symbol + ':' + quote + '-' + this.yymmdd(contractExpire);
+            symbol = symbol + ':' + quote + '-' + this.yymmdd(expireTimestamp);
         }
         const takerFeeRate = this.safeNumber(feeTier, 'taker_fee_rate');
         const makerFeeRate = this.safeNumber(feeTier, 'maker_fee_rate');
@@ -1500,7 +1502,7 @@ class coinbase extends coinbase$1 {
             'taker': taker,
             'maker': maker,
             'contractSize': contractSize,
-            'expiry': this.parse8601(contractExpire),
+            'expiry': expireTimestamp,
             'expiryDatetime': contractExpire,
             'strike': undefined,
             'optionType': undefined,
@@ -4287,6 +4289,33 @@ class coinbase extends coinbase$1 {
             'takeProfitPrice': undefined,
         });
     }
+    createAuthToken(seconds, method = undefined, url = undefined) {
+        // it may not work for v2
+        let uri = undefined;
+        if (url !== undefined) {
+            uri = method + ' ' + url.replace('https://', '');
+            const quesPos = uri.indexOf('?');
+            // Due to we use mb_strpos, quesPos could be false in php. In that case, the quesPos >= 0 is true
+            // Also it's not possible that the question mark is first character, only check > 0 here.
+            if (quesPos > 0) {
+                uri = uri.slice(0, quesPos);
+            }
+        }
+        const nonce = this.randomBytes(16);
+        const request = {
+            'aud': ['retail_rest_api_proxy'],
+            'iss': 'coinbase-cloud',
+            'nbf': seconds,
+            'exp': seconds + 120,
+            'sub': this.apiKey,
+            'iat': seconds,
+        };
+        if (uri !== undefined) {
+            request['uri'] = uri;
+        }
+        const token = rsa.jwt(request, this.encode(this.secret), sha256.sha256, false, { 'kid': this.apiKey, 'nonce': nonce, 'alg': 'ES256' });
+        return token;
+    }
     sign(path, api = [], method = 'GET', params = {}, headers = undefined, body = undefined) {
         const version = api[0];
         const signed = api[1] === 'private';
@@ -4336,25 +4365,26 @@ class coinbase extends coinbase$1 {
                     if (this.apiKey.startsWith('-----BEGIN')) {
                         throw new errors.ArgumentsRequired(this.id + ' apiKey should contain the name (eg: organizations/3b910e93....) and not the public key');
                     }
-                    // it may not work for v2
-                    let uri = method + ' ' + url.replace('https://', '');
-                    const quesPos = uri.indexOf('?');
-                    // Due to we use mb_strpos, quesPos could be false in php. In that case, the quesPos >= 0 is true
-                    // Also it's not possible that the question mark is first character, only check > 0 here.
-                    if (quesPos > 0) {
-                        uri = uri.slice(0, quesPos);
-                    }
-                    const nonce = this.randomBytes(16);
-                    const request = {
-                        'aud': ['retail_rest_api_proxy'],
-                        'iss': 'coinbase-cloud',
-                        'nbf': seconds,
-                        'exp': seconds + 120,
-                        'sub': this.apiKey,
-                        'uri': uri,
-                        'iat': seconds,
-                    };
-                    const token = rsa.jwt(request, this.encode(this.secret), sha256.sha256, false, { 'kid': this.apiKey, 'nonce': nonce, 'alg': 'ES256' });
+                    // // it may not work for v2
+                    // let uri = method + ' ' + url.replace ('https://', '');
+                    // const quesPos = uri.indexOf ('?');
+                    // // Due to we use mb_strpos, quesPos could be false in php. In that case, the quesPos >= 0 is true
+                    // // Also it's not possible that the question mark is first character, only check > 0 here.
+                    // if (quesPos > 0) {
+                    //     uri = uri.slice (0, quesPos);
+                    // }
+                    // const nonce = this.randomBytes (16);
+                    // const request = {
+                    //     'aud': [ 'retail_rest_api_proxy' ],
+                    //     'iss': 'coinbase-cloud',
+                    //     'nbf': seconds,
+                    //     'exp': seconds + 120,
+                    //     'sub': this.apiKey,
+                    //     'uri': uri,
+                    //     'iat': seconds,
+                    // };
+                    const token = this.createAuthToken(seconds, method, url);
+                    // const token = jwt (request, this.encode (this.secret), sha256, false, { 'kid': this.apiKey, 'nonce': nonce, 'alg': 'ES256' });
                     authorizationString = 'Bearer ' + token;
                 }
                 else {

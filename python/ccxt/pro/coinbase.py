@@ -9,6 +9,7 @@ import hashlib
 from ccxt.base.types import Int, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade
 from typing import List
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import ArgumentsRequired
 
 
 class coinbase(ccxt.async_support.coinbase):
@@ -77,15 +78,32 @@ class coinbase(ccxt.async_support.coinbase):
             productIds = [market['id']]
         url = self.urls['api']['ws']
         timestamp = self.number_to_string(self.seconds())
+        isCloudAPiKey = (self.apiKey.find('organizations/') >= 0) or (self.secret.startswith('-----BEGIN'))
         auth = timestamp + name + ','.join(productIds)
         subscribe = {
             'type': 'subscribe',
             'product_ids': productIds,
             'channel': name,
-            'api_key': self.apiKey,
-            'timestamp': timestamp,
-            'signature': self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256),
+            # 'api_key': self.apiKey,
+            # 'timestamp': timestamp,
+            # 'signature': self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256),
         }
+        if not isCloudAPiKey:
+            subscribe['api_key'] = self.apiKey
+            subscribe['timestamp'] = timestamp
+            subscribe['signature'] = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)
+        else:
+            if self.apiKey.startswith('-----BEGIN'):
+                raise ArgumentsRequired(self.id + ' apiKey should contain the name(eg: organizations/3b910e93....) and not the public key')
+            currentToken = self.safe_string(self.options, 'wsToken')
+            tokenTimestamp = self.safe_integer(self.options, 'wsTokenTimestamp', 0)
+            seconds = self.seconds()
+            if currentToken is None or tokenTimestamp + 120 < seconds:
+                # we should generate new token
+                token = self.create_auth_token(seconds)
+                self.options['wsToken'] = token
+                self.options['wsTokenTimestamp'] = seconds
+            subscribe['jwt'] = self.safe_string(self.options, 'wsToken')
         return await self.watch(url, messageHash, subscribe, messageHash)
 
     async def watch_ticker(self, symbol: str, params={}) -> Ticker:

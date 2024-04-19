@@ -27,9 +27,10 @@ class coinbase(Exchange, ImplicitAPI):
     def describe(self):
         return self.deep_extend(super(coinbase, self).describe(), {
             'id': 'coinbase',
-            'name': 'Coinbase',
+            'name': 'Coinbase Advanced',
             'countries': ['US'],
             'pro': True,
+            'certified': True,
             # rate-limits:
             # ADVANCED API: https://docs.cloud.coinbase.com/advanced-trade-api/docs/rest-api-rate-limits
             # - max 30 req/second for private data, 10 req/s for public data
@@ -1415,6 +1416,7 @@ class coinbase(Exchange, ImplicitAPI):
         contractExpiryType = self.safe_string(futureProductDetails, 'contract_expiry_type')
         contractSize = self.safe_number(futureProductDetails, 'contract_size')
         contractExpire = self.safe_string(futureProductDetails, 'contract_expiry')
+        expireTimestamp = self.parse8601(contractExpire)
         isSwap = (contractExpiryType == 'PERPETUAL')
         baseId = self.safe_string(futureProductDetails, 'contract_root_unit')
         quoteId = self.safe_string(market, 'quote_currency_id')
@@ -1428,7 +1430,7 @@ class coinbase(Exchange, ImplicitAPI):
             symbol = symbol + ':' + quote
         else:
             type = 'future'
-            symbol = symbol + ':' + quote + '-' + self.yymmdd(contractExpire)
+            symbol = symbol + ':' + quote + '-' + self.yymmdd(expireTimestamp)
         takerFeeRate = self.safe_number(feeTier, 'taker_fee_rate')
         makerFeeRate = self.safe_number(feeTier, 'maker_fee_rate')
         taker = takerFeeRate if takerFeeRate else self.parse_number('0.06')
@@ -1455,7 +1457,7 @@ class coinbase(Exchange, ImplicitAPI):
             'taker': taker,
             'maker': maker,
             'contractSize': contractSize,
-            'expiry': self.parse8601(contractExpire),
+            'expiry': expireTimestamp,
             'expiryDatetime': contractExpire,
             'strike': None,
             'optionType': None,
@@ -4047,6 +4049,30 @@ class coinbase(Exchange, ImplicitAPI):
             'takeProfitPrice': None,
         })
 
+    def create_auth_token(self, seconds: Int, method: Str = None, url: Str = None):
+        # it may not work for v2
+        uri = None
+        if url is not None:
+            uri = method + ' ' + url.replace('https://', '')
+            quesPos = uri.find('?')
+            # Due to we use mb_strpos, quesPos could be False in php. In that case, the quesPos >= 0 is True
+            # Also it's not possible that the question mark is first character, only check > 0 here.
+            if quesPos > 0:
+                uri = uri[0:quesPos]
+        nonce = self.random_bytes(16)
+        request = {
+            'aud': ['retail_rest_api_proxy'],
+            'iss': 'coinbase-cloud',
+            'nbf': seconds,
+            'exp': seconds + 120,
+            'sub': self.apiKey,
+            'iat': seconds,
+        }
+        if uri is not None:
+            request['uri'] = uri
+        token = self.jwt(request, self.encode(self.secret), 'sha256', False, {'kid': self.apiKey, 'nonce': nonce, 'alg': 'ES256'})
+        return token
+
     def sign(self, path, api=[], method='GET', params={}, headers=None, body=None):
         version = api[0]
         signed = api[1] == 'private'
@@ -4086,24 +4112,26 @@ class coinbase(Exchange, ImplicitAPI):
                 if isCloudAPiKey:
                     if self.apiKey.startswith('-----BEGIN'):
                         raise ArgumentsRequired(self.id + ' apiKey should contain the name(eg: organizations/3b910e93....) and not the public key')
-                    # it may not work for v2
-                    uri = method + ' ' + url.replace('https://', '')
-                    quesPos = uri.find('?')
-                    # Due to we use mb_strpos, quesPos could be False in php. In that case, the quesPos >= 0 is True
-                    # Also it's not possible that the question mark is first character, only check > 0 here.
-                    if quesPos > 0:
-                        uri = uri[0:quesPos]
-                    nonce = self.random_bytes(16)
-                    request = {
-                        'aud': ['retail_rest_api_proxy'],
-                        'iss': 'coinbase-cloud',
-                        'nbf': seconds,
-                        'exp': seconds + 120,
-                        'sub': self.apiKey,
-                        'uri': uri,
-                        'iat': seconds,
-                    }
-                    token = self.jwt(request, self.encode(self.secret), 'sha256', False, {'kid': self.apiKey, 'nonce': nonce, 'alg': 'ES256'})
+                    #  # it may not work for v2
+                    # uri = method + ' ' + url.replace('https://', '')
+                    # quesPos = uri.find('?')
+                    #  # Due to we use mb_strpos, quesPos could be False in php. In that case, the quesPos >= 0 is True
+                    #  # Also it's not possible that the question mark is first character, only check > 0 here.
+                    # if quesPos > 0:
+                    #     uri = uri[0:quesPos]
+                    # }
+                    # nonce = self.random_bytes(16)
+                    # request = {
+                    #     'aud': ['retail_rest_api_proxy'],
+                    #     'iss': 'coinbase-cloud',
+                    #     'nbf': seconds,
+                    #     'exp': seconds + 120,
+                    #     'sub': self.apiKey,
+                    #     'uri': uri,
+                    #     'iat': seconds,
+                    # }
+                    token = self.create_auth_token(seconds, method, url)
+                    # token = self.jwt(request, self.encode(self.secret), 'sha256', False, {'kid': self.apiKey, 'nonce': nonce, 'alg': 'ES256'})
                     authorizationString = 'Bearer ' + token
                 else:
                     timestampString = str(self.seconds())

@@ -58,6 +58,7 @@ class bitget(Exchange, ImplicitAPI):
                 'cancelOrders': True,
                 'closeAllPositions': True,
                 'closePosition': True,
+                'createConvertTrade': True,
                 'createDepositAddress': False,
                 'createMarketBuyOrderWithCost': True,
                 'createMarketOrderWithCost': False,
@@ -7866,8 +7867,8 @@ class bitget(Exchange, ImplicitAPI):
         """
         self.load_markets()
         request = {
-            'fromCoin': fromCode.upper(),
-            'toCoin': toCode.upper(),
+            'fromCoin': fromCode,
+            'toCoin': toCode,
             'fromCoinSize': self.number_to_string(amount),
         }
         response = self.privateConvertGetV2ConvertQuotedPrice(self.extend(request, params))
@@ -7894,6 +7895,54 @@ class bitget(Exchange, ImplicitAPI):
         toCurrency = self.currency(toCurrencyId)
         return self.parse_conversion(data, fromCurrency, toCurrency)
 
+    def create_convert_trade(self, id: str, fromCode: str, toCode: str, amount: Num = None, params={}) -> Conversion:
+        """
+        convert from one currency to another
+        :see: https://www.bitget.com/api-doc/common/convert/Trade
+        :param str id: the id of the trade that you want to make
+        :param str fromCode: the currency that you want to sell and convert from
+        :param str toCode: the currency that you want to buy and convert into
+        :param float amount: how much you want to trade in units of the from currency
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str params['price']: the price of the conversion, obtained from fetchConvertQuote()
+        :param str params['toAmount']: the amount you want to trade in units of the toCurrency, obtained from fetchConvertQuote()
+        :returns dict: a `conversion structure <https://docs.ccxt.com/#/?id=conversion-structure>`
+        """
+        self.load_markets()
+        price = self.safe_string_2(params, 'price', 'cnvtPrice')
+        if price is None:
+            raise ArgumentsRequired(self.id + ' createConvertTrade() requires a price parameter')
+        toAmount = self.safe_string_2(params, 'toAmount', 'toCoinSize')
+        if toAmount is None:
+            raise ArgumentsRequired(self.id + ' createConvertTrade() requires a toAmount parameter')
+        params = self.omit(params, ['price', 'toAmount'])
+        request = {
+            'traceId': id,
+            'fromCoin': fromCode,
+            'toCoin': toCode,
+            'fromCoinSize': self.number_to_string(amount),
+            'toCoinSize': toAmount,
+            'cnvtPrice': price,
+        }
+        response = self.privateConvertPostV2ConvertTrade(self.extend(request, params))
+        #
+        #     {
+        #         "code": "00000",
+        #         "msg": "success",
+        #         "requestTime": 1712123746203,
+        #         "data": {
+        #             "cnvtPrice": "0.99940076",
+        #             "toCoin": "USDC",
+        #             "toCoinSize": "4.99700379",
+        #             "ts": "1712123746217"
+        #         }
+        #     }
+        #
+        data = self.safe_dict(response, 'data', {})
+        toCurrencyId = self.safe_string(data, 'toCoin', toCode)
+        toCurrency = self.currency(toCurrencyId)
+        return self.parse_conversion(data, None, toCurrency)
+
     def parse_conversion(self, conversion, fromCurrency: Currency = None, toCurrency: Currency = None) -> Conversion:
         #
         # fetchConvertQuote
@@ -7906,6 +7955,15 @@ class bitget(Exchange, ImplicitAPI):
         #         "toCoinSize": "4.99650394",
         #         "traceId": "1159288930228187140",
         #         "fee": "0"
+        #     }
+        #
+        # createConvertTrade
+        #
+        #     {
+        #         "cnvtPrice": "0.99940076",
+        #         "toCoin": "USDC",
+        #         "toCoinSize": "4.99700379",
+        #         "ts": "1712123746217"
         #     }
         #
         timestamp = self.safe_integer(conversion, 'ts')
@@ -7992,6 +8050,8 @@ class bitget(Exchange, ImplicitAPI):
         #
         # spot
         #
+        #     {"code":"00000","msg":"success","requestTime":1713294492511,"data":[...]}"
+        #
         #     {"status":"fail","err_code":"01001","err_msg":"系统异常，请稍后重试"}
         #     {"status":"error","ts":1595594160149,"err_code":"invalid-parameter","err_msg":"invalid size, valid range: [1,2000]"}
         #     {"status":"error","ts":1595684716042,"err_code":"invalid-parameter","err_msg":"illegal sign invalid"}
@@ -8013,13 +8073,13 @@ class bitget(Exchange, ImplicitAPI):
         #     {"code":"40108","msg":"","requestTime":1595885064600,"data":null}
         #     {"order_id":"513468410013679613","client_oid":null,"symbol":"ethusd","result":false,"err_code":"order_no_exist_error","err_msg":"订单不存在！"}
         #
-        message = self.safe_string(response, 'err_msg')
-        errorCode = self.safe_string_2(response, 'code', 'err_code')
+        message = self.safe_string_2(response, 'err_msg', 'msg')
         feedback = self.id + ' ' + body
-        nonEmptyMessage = ((message is not None) and (message != ''))
+        nonEmptyMessage = ((message is not None) and (message != '') and (message != 'success'))
         if nonEmptyMessage:
             self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
             self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
+        errorCode = self.safe_string_2(response, 'code', 'err_code')
         nonZeroErrorCode = (errorCode is not None) and (errorCode != '00000')
         if nonZeroErrorCode:
             self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)

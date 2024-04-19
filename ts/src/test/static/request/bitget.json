@@ -1599,6 +1599,24 @@
                 "url": "https://api.bitget.com/api/v2/convert/currencies",
                 "input": []
             }
+        ],
+        "createConvertTrade": [
+            {
+                "description": "Convert from one currency to another",
+                "method": "createConvertTrade",
+                "url": "https://api.bitget.com/api/v2/convert/trade",
+                "input": [
+                  "1164014202462613512",
+                  "USDC",
+                  "USDT",
+                  5,
+                  {
+                    "toAmount": "4.9915035",
+                    "price": "0.9983007"
+                  }
+                ],
+                "output": "{\"traceId\":\"1164014202462613512\",\"fromCoin\":\"USDC\",\"toCoin\":\"USDT\",\"fromCoinSize\":\"5\",\"toCoinSize\":\"4.9915035\",\"cnvtPrice\":\"0.9983007\"}"
+            }
         ]
     }
 }

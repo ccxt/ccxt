@@ -32,6 +32,7 @@ class hyperliquid extends Exchange {
                 'cancelAllOrders' => false,
                 'cancelOrder' => true,
                 'cancelOrders' => true,
+                'cancelOrdersForSymbols' => true,
                 'closeAllPositions' => false,
                 'closePosition' => false,
                 'createMarketBuyOrderWithCost' => false,
@@ -1190,6 +1191,78 @@ class hyperliquid extends Exchange {
                 );
             }
         }
+        $cancelAction['cancels'] = $cancelReq;
+        $vaultAddress = $this->format_vault_address($this->safe_string($params, 'vaultAddress'));
+        $signature = $this->sign_l1_action($cancelAction, $nonce, $vaultAddress);
+        $request['action'] = $cancelAction;
+        $request['signature'] = $signature;
+        if ($vaultAddress !== null) {
+            $params = $this->omit($params, 'vaultAddress');
+            $request['vaultAddress'] = $vaultAddress;
+        }
+        $response = $this->privatePostExchange (array_merge($request, $params));
+        //
+        //     {
+        //         "status":"ok",
+        //         "response":{
+        //             "type":"cancel",
+        //             "data":{
+        //                 "statuses":array(
+        //                     "success"
+        //                 )
+        //             }
+        //         }
+        //     }
+        //
+        return $response;
+    }
+
+    public function cancel_orders_for_symbols(array $orders, $params = array ()) {
+        /**
+         * cancel multiple $orders for multiple symbols
+         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#cancel-$order-s
+         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#cancel-$order-s-by-cloid
+         * @param {CancellationRequest[]} $orders each $order should contain the parameters required by cancelOrder namely $id and $symbol
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->vaultAddress] the vault address
+         * @return {array} an list of ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structures~
+         */
+        $this->check_required_credentials();
+        $this->load_markets();
+        $nonce = $this->milliseconds();
+        $request = array(
+            'nonce' => $nonce,
+            // 'vaultAddress' => $vaultAddress,
+        );
+        $cancelReq = array();
+        $cancelAction = array(
+            'type' => '',
+            'cancels' => array(),
+        );
+        $cancelByCloid = false;
+        for ($i = 0; $i < count($orders); $i++) {
+            $order = $orders[$i];
+            $clientOrderId = $this->safe_string($order, 'clientOrderId');
+            if ($clientOrderId !== null) {
+                $cancelByCloid = true;
+            }
+            $id = $this->safe_string($order, 'id');
+            $symbol = $this->safe_string($order, 'symbol');
+            if ($symbol === null) {
+                throw new ArgumentsRequired($this->id . ' cancelOrdersForSymbols() requires a $symbol argument in each order');
+            }
+            if ($id !== null && $cancelByCloid) {
+                throw new BadRequest($this->id . ' cancelOrdersForSymbols() all $orders must have either $id or clientOrderId');
+            }
+            $assetKey = $cancelByCloid ? 'asset' : 'a';
+            $idKey = $cancelByCloid ? 'cloid' : 'o';
+            $market = $this->market($symbol);
+            $cancelObj = array();
+            $cancelObj[$assetKey] = $this->parse_to_numeric($market['baseId']);
+            $cancelObj[$idKey] = $cancelByCloid ? $clientOrderId : $this->parse_to_numeric($id);
+            $cancelReq[] = $cancelObj;
+        }
+        $cancelAction['type'] = $cancelByCloid ? 'cancelByCloid' : 'cancel';
         $cancelAction['cancels'] = $cancelReq;
         $vaultAddress = $this->format_vault_address($this->safe_string($params, 'vaultAddress'));
         $signature = $this->sign_l1_action($cancelAction, $nonce, $vaultAddress);

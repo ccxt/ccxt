@@ -34,6 +34,7 @@ class bitget extends Exchange {
                 'cancelOrders' => true,
                 'closeAllPositions' => true,
                 'closePosition' => true,
+                'createConvertTrade' => true,
                 'createDepositAddress' => false,
                 'createMarketBuyOrderWithCost' => true,
                 'createMarketOrderWithCost' => false,
@@ -8263,8 +8264,8 @@ class bitget extends Exchange {
          */
         $this->load_markets();
         $request = array(
-            'fromCoin' => strtoupper($fromCode),
-            'toCoin' => strtoupper($toCode),
+            'fromCoin' => $fromCode,
+            'toCoin' => $toCode,
             'fromCoinSize' => $this->number_to_string($amount),
         );
         $response = $this->privateConvertGetV2ConvertQuotedPrice (array_merge($request, $params));
@@ -8292,6 +8293,57 @@ class bitget extends Exchange {
         return $this->parse_conversion($data, $fromCurrency, $toCurrency);
     }
 
+    public function create_convert_trade(string $id, string $fromCode, string $toCode, ?float $amount = null, $params = array ()): Conversion {
+        /**
+         * convert from one currency to another
+         * @see https://www.bitget.com/api-doc/common/convert/Trade
+         * @param {string} $id the $id of the trade that you want to make
+         * @param {string} $fromCode the currency that you want to sell and convert from
+         * @param {string} $toCode the currency that you want to buy and convert into
+         * @param {float} $amount how much you want to trade in units of the from currency
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} $params->price the $price of the conversion, obtained from fetchConvertQuote()
+         * @param {string} $params->toAmount the $amount you want to trade in units of the $toCurrency, obtained from fetchConvertQuote()
+         * @return {array} a ~@link https://docs.ccxt.com/#/?$id=conversion-structure conversion structure~
+         */
+        $this->load_markets();
+        $price = $this->safe_string_2($params, 'price', 'cnvtPrice');
+        if ($price === null) {
+            throw new ArgumentsRequired($this->id . ' createConvertTrade() requires a $price parameter');
+        }
+        $toAmount = $this->safe_string_2($params, 'toAmount', 'toCoinSize');
+        if ($toAmount === null) {
+            throw new ArgumentsRequired($this->id . ' createConvertTrade() requires a $toAmount parameter');
+        }
+        $params = $this->omit($params, array( 'price', 'toAmount' ));
+        $request = array(
+            'traceId' => $id,
+            'fromCoin' => $fromCode,
+            'toCoin' => $toCode,
+            'fromCoinSize' => $this->number_to_string($amount),
+            'toCoinSize' => $toAmount,
+            'cnvtPrice' => $price,
+        );
+        $response = $this->privateConvertPostV2ConvertTrade (array_merge($request, $params));
+        //
+        //     {
+        //         "code" => "00000",
+        //         "msg" => "success",
+        //         "requestTime" => 1712123746203,
+        //         "data" => {
+        //             "cnvtPrice" => "0.99940076",
+        //             "toCoin" => "USDC",
+        //             "toCoinSize" => "4.99700379",
+        //             "ts" => "1712123746217"
+        //         }
+        //     }
+        //
+        $data = $this->safe_dict($response, 'data', array());
+        $toCurrencyId = $this->safe_string($data, 'toCoin', $toCode);
+        $toCurrency = $this->currency($toCurrencyId);
+        return $this->parse_conversion($data, null, $toCurrency);
+    }
+
     public function parse_conversion($conversion, ?array $fromCurrency = null, ?array $toCurrency = null): Conversion {
         //
         // fetchConvertQuote
@@ -8304,6 +8356,15 @@ class bitget extends Exchange {
         //         "toCoinSize" => "4.99650394",
         //         "traceId" => "1159288930228187140",
         //         "fee" => "0"
+        //     }
+        //
+        // createConvertTrade
+        //
+        //     {
+        //         "cnvtPrice" => "0.99940076",
+        //         "toCoin" => "USDC",
+        //         "toCoinSize" => "4.99700379",
+        //         "ts" => "1712123746217"
         //     }
         //
         $timestamp = $this->safe_integer($conversion, 'ts');
@@ -8394,6 +8455,8 @@ class bitget extends Exchange {
         //
         // spot
         //
+        //     array("code":"00000","msg":"success","requestTime":1713294492511,"data":[...])"
+        //
         //     array("status":"fail","err_code":"01001","err_msg":"系统异常，请稍后重试")
         //     array("status":"error","ts":1595594160149,"err_code":"invalid-parameter","err_msg":"invalid size, valid range => [1,2000]")
         //     array("status":"error","ts":1595684716042,"err_code":"invalid-parameter","err_msg":"illegal sign invalid")
@@ -8415,14 +8478,14 @@ class bitget extends Exchange {
         //     array("code":"40108","msg":"","requestTime":1595885064600,"data":null)
         //     array("order_id":"513468410013679613","client_oid":null,"symbol":"ethusd","result":false,"err_code":"order_no_exist_error","err_msg":"订单不存在！")
         //
-        $message = $this->safe_string($response, 'err_msg');
-        $errorCode = $this->safe_string_2($response, 'code', 'err_code');
+        $message = $this->safe_string_2($response, 'err_msg', 'msg');
         $feedback = $this->id . ' ' . $body;
-        $nonEmptyMessage = (($message !== null) && ($message !== ''));
+        $nonEmptyMessage = (($message !== null) && ($message !== '') && ($message !== 'success'));
         if ($nonEmptyMessage) {
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
         }
+        $errorCode = $this->safe_string_2($response, 'code', 'err_code');
         $nonZeroErrorCode = ($errorCode !== null) && ($errorCode !== '00000');
         if ($nonZeroErrorCode) {
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $feedback);
