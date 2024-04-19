@@ -1,25 +1,77 @@
-/**
- * @fileOverview
- * @name asn1-1.0.js
- * @author Kenji Urushima kenji.urushima@gmail.com
- * @version asn1 1.0.13 (2017-Jun-02)
- * @since jsrsasign 2.1
- * @license <a href="https://kjur.github.io/jsrsasign/license/">MIT License</a>
- */
-/**
- * kjur's class library name space
- * <p>
- * This name space provides following name spaces:
- * <ul>
- * <li>{@link KJUR.asn1} - ASN.1 primitive hexadecimal encoder</li>
- * <li>{@link KJUR.asn1.x509} - ASN.1 structure for X.509 certificate and CRL</li>
- * <li>{@link KJUR.crypto} - Java Cryptographic Extension(JCE) style MessageDigest/Signature
- * class and utilities</li>
- * </ul>
- * </p>
- * NOTE: Please ignore method summary and document of this namespace. This caused by a bug of jsdoc2.
- * @name KJUR
- * @namespace kjur's class library name space
- */
-export declare var KJUR: {};
-//# sourceMappingURL=asn1-1.0.d.ts.map
+
+
+declare interface IDERIntegerParams {
+    bigint?:any;
+    int?:number;
+    hex?:number;
+}
+
+declare class DERInteger {
+    /**/
+}
+
+declare interface IDERIntegerConstructor {
+    new(params:IDERIntegerParams):DERInteger;
+}
+
+declare class DERSequence {
+    /**/
+    public getEncodedHex():string;
+}
+declare interface IDERSequenceConstructor {
+    new(params:{
+        array:DERInteger[];
+    }):DERSequence;
+}
+
+
+declare class DERObjectIdentifier {
+    /**/
+}
+declare interface IDERObjectIdentifierConstructor {
+    new(params:{
+        oid?:string;
+        hex?:string;
+        name?:string;
+    }|string):DERObjectIdentifier;
+}
+
+
+declare class DERNull {
+    /**/
+}
+declare interface IDERNullConstructor {
+    new():DERNull;
+}
+
+
+declare class DERBitString {
+    /**/
+}
+declare interface IDERBitStringConstructor {
+    new(params:{
+        hex?:string;
+        array?:boolean[];
+        bin?:string;
+    }|string):DERBitString;
+}
+
+
+declare interface Iasn1 {
+    readonly DERInteger:IDERIntegerConstructor;
+
+    readonly DERSequence:IDERSequenceConstructor;
+
+    readonly DERObjectIdentifier:IDERObjectIdentifierConstructor;
+
+    readonly DERNull:IDERNullConstructor;
+
+    readonly DERBitString:IDERBitStringConstructor;
+}
+
+declare interface IKJUR {
+    readonly asn1:Iasn1;
+}
+
+
+export const KJUR:IKJUR;
