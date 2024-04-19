@@ -6,10 +6,11 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.hyperliquid import ImplicitAPI
 import asyncio
-from ccxt.base.types import Balances, Currencies, Int, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Trade, TransferEntry
+from ccxt.base.types import Balances, Currencies, Int, MarginModification, Market, Num, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Str, Strings, Trade, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
+from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import NotSupported
@@ -44,6 +45,7 @@ class hyperliquid(Exchange, ImplicitAPI):
                 'cancelAllOrders': False,
                 'cancelOrder': True,
                 'cancelOrders': True,
+                'cancelOrdersForSymbols': True,
                 'closeAllPositions': False,
                 'closePosition': False,
                 'createMarketBuyOrderWithCost': False,
@@ -1144,6 +1146,72 @@ class hyperliquid(Exchange, ImplicitAPI):
                     'a': baseId,
                     'o': self.parse_to_numeric(ids[i]),
                 })
+        cancelAction['cancels'] = cancelReq
+        vaultAddress = self.format_vault_address(self.safe_string(params, 'vaultAddress'))
+        signature = self.sign_l1_action(cancelAction, nonce, vaultAddress)
+        request['action'] = cancelAction
+        request['signature'] = signature
+        if vaultAddress is not None:
+            params = self.omit(params, 'vaultAddress')
+            request['vaultAddress'] = vaultAddress
+        response = await self.privatePostExchange(self.extend(request, params))
+        #
+        #     {
+        #         "status":"ok",
+        #         "response":{
+        #             "type":"cancel",
+        #             "data":{
+        #                 "statuses":[
+        #                     "success"
+        #                 ]
+        #             }
+        #         }
+        #     }
+        #
+        return response
+
+    async def cancel_orders_for_symbols(self, orders: List[CancellationRequest], params={}):
+        """
+        cancel multiple orders for multiple symbols
+        :see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#cancel-order-s
+        :see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#cancel-order-s-by-cloid
+        :param CancellationRequest[] orders: each order should contain the parameters required by cancelOrder namely id and symbol
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.vaultAddress]: the vault address
+        :returns dict: an list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        self.check_required_credentials()
+        await self.load_markets()
+        nonce = self.milliseconds()
+        request = {
+            'nonce': nonce,
+            # 'vaultAddress': vaultAddress,
+        }
+        cancelReq = []
+        cancelAction = {
+            'type': '',
+            'cancels': [],
+        }
+        cancelByCloid = False
+        for i in range(0, len(orders)):
+            order = orders[i]
+            clientOrderId = self.safe_string(order, 'clientOrderId')
+            if clientOrderId is not None:
+                cancelByCloid = True
+            id = self.safe_string(order, 'id')
+            symbol = self.safe_string(order, 'symbol')
+            if symbol is None:
+                raise ArgumentsRequired(self.id + ' cancelOrdersForSymbols() requires a symbol argument in each order')
+            if id is not None and cancelByCloid:
+                raise BadRequest(self.id + ' cancelOrdersForSymbols() all orders must have either id or clientOrderId')
+            assetKey = 'asset' if cancelByCloid else 'a'
+            idKey = 'cloid' if cancelByCloid else 'o'
+            market = self.market(symbol)
+            cancelObj = {}
+            cancelObj[assetKey] = self.parse_to_numeric(market['baseId'])
+            cancelObj[idKey] = clientOrderId if cancelByCloid else self.parse_to_numeric(id)
+            cancelReq.append(cancelObj)
+        cancelAction['type'] = 'cancelByCloid' if cancelByCloid else 'cancel'
         cancelAction['cancels'] = cancelReq
         vaultAddress = self.format_vault_address(self.safe_string(params, 'vaultAddress'))
         signature = self.sign_l1_action(cancelAction, nonce, vaultAddress)

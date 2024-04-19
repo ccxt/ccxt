@@ -43,6 +43,7 @@ import type {
     Balances,
     BorrowInterest,
     BorrowRate,
+    CancellationRequest,
     Conversion,
     Currencies,
     Currency,
@@ -5015,6 +5016,10 @@ export default class Exchange {
 
     async cancelAllOrders (symbol: Str = undefined, params = {}): Promise<{}> {
         throw new NotSupported (this.id + ' cancelAllOrders() is not supported yet');
+    }
+
+    async cancelOrdersForSymbols (orders: CancellationRequest[], params = {}): Promise<{}> {
+        throw new NotSupported (this.id + ' cancelOrdersForSymbols() is not supported yet');
     }
 
     async cancelAllOrdersWs (symbol: Str = undefined, params = {}): Promise<{}> {

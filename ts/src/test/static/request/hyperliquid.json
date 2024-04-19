@@ -694,6 +694,40 @@
                 ],
                 "output": "{\"action\":{\"type\":\"spotUser\",\"classTransfer\":{\"usdc\":100,\"toPerp\":false}},\"nonce\":1711801415155,\"signature\":{\"r\":\"0x22acd4b8767652694c314361f83496cfbed25bb1297c6dd63e257a4106c9d715\",\"s\":\"0x28df849bd7b8604df860a8c78a353898cbcf670184df430deeeb1baec78902b3\",\"v\":27}}"
             }
+        ],
+        "cancelOrdersForSymbols": [
+            {
+                "description": "cancel swap orders with different symbols",
+                "method": "cancelOrdersForSymbols",
+                "url": "https://api.hyperliquid-testnet.xyz/exchange",
+                "input": [
+                  [
+                    {
+                      "id": "7556739260",
+                      "symbol": "SOL/USDC:USDC"
+                    },
+                    {
+                      "id": "7556435631",
+                      "symbol": "ADA/USDC:USDC"
+                    }
+                  ]
+                ],
+                "output": "{\"nonce\":1713463292519,\"action\":{\"type\":\"cancel\",\"cancels\":[{\"a\":5,\"o\":7556739260},{\"a\":65,\"o\":7556435631}]},\"signature\":{\"r\":\"0x82614f598ccba0a59c0468990a7041c7ff72c0daf33d3398873c60e31234fb94\",\"s\":\"0x3a6084b754bc2d9967511f8c6286c0f86e3625c8e4c43ee9d6932ec011ae159a\",\"v\":28}}"
+            },
+            {
+                "description": "cancelOrders by clientOrderId",
+                "method": "cancelOrdersForSymbols",
+                "url": "https://api.hyperliquid-testnet.xyz/exchange",
+                "input": [
+                  [
+                    {
+                      "clientOrderId": "0x1234567890abcdef1234567890abcded",
+                      "symbol": "SOL/USDC:USDC"
+                    }
+                  ]
+                ],
+                "output": "{\"nonce\":1713523049140,\"action\":{\"type\":\"cancelByCloid\",\"cancels\":[{\"asset\":5,\"cloid\":\"0x1234567890abcdef1234567890abcded\"}]},\"signature\":{\"r\":\"0xa271d3d3d5dc27f6bfa2b63770c3bcb0f8610e832d0c7b2a4b7cff7f94f5301d\",\"s\":\"0x7986c12c100b8ac2ab8f63ac4a04d36f17e2c97b9341ad7519713ac5d5cf27f\",\"v\":27}}"
+            }
         ]
     }
 }
