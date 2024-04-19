@@ -3044,12 +3044,20 @@
             {
                 "description": "Fetch the conversion trade history",
                 "method": "fetchConvertTradeHistory",
-                "url": "https://api.binance.com/sapi/v1/asset/convert-transfer/queryByPage?timestamp=1713422937740&startTime=1713336537740&endTime=1713422937740&recvWindow=10000&signature=bd3e24f024acad2c21865076467fdd2809f53a58f2655ea36d5ccb6f0a772202",
+                "url": "https://api.binance.com/sapi/v1/convert/tradeFlow?timestamp=1713569838825&startTime=1713336537740&endTime=1713422937740&recvWindow=10000&signature=09af452a10ecf4a9eb0499682df79d4c1a86a2397effda8339a3ff542265ceb2",
                 "input": [
                     null,
                     1713336537740,
                     null,
                     {"endTime":1713422937740}
+                ]
+            },
+            {
+                "description": "Fetch the conversion trade history for BUSD conversions",
+                "method": "fetchConvertTradeHistory",
+                "url": "https://api.binance.com/sapi/v1/asset/convert-transfer/queryByPage?timestamp=1713569909204&startTime=1713483509188&endTime=1713569909188&asset=BUSD&recvWindow=10000&signature=ee6908b431a1da834ae717ec872ea3f3c6a557e8adeb8a0266fa470aecfbfe99",
+                "input": [
+                  "BUSD"
                 ]
             }
         ],
