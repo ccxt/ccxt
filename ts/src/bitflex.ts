@@ -26,14 +26,14 @@ export default class bitflex extends Exchange {
             'has': {
                 'CORS': undefined,
                 'spot': true,
-                'margin': true,
-                'swap': false, // todo: check
-                'future': true,
+                'margin': false,
+                'swap': true,
+                'future': false,
                 'option': true, // todo: check
                 'cancelAllOrders': false,
-                'cancelOrder': false,
+                'cancelOrder': true,
                 'createDepositAddress': false,
-                'createOrder': false,
+                'createOrder': true,
                 'editOrder': false,
                 'fetchAccounts': true,
                 'fetchBalance': true,
@@ -53,7 +53,7 @@ export default class bitflex extends Exchange {
                 'fetchMyTrades': false,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': false,
-                'fetchOrder': false,
+                'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchPositionMode': false,
                 'fetchPositions': false,
@@ -141,14 +141,14 @@ export default class bitflex extends Exchange {
                         'openapi/v1/subAccount/query': 1, // implemented
                         'openapi/v1/transfer': 1,
                         'openapi/v1/withdraw': 1,
-                        'openapi/v1/order': 1,
+                        'openapi/v1/order': 1, // implemented
                         'openapi/v1/test': 1,
                         'openapi/contract/v1/order': 1,
                         'openapi/contract/v1/modifyMargin': 1,
                         'openapi/contract/v1/modifyLeverage': 1,
                     },
                     'delete': {
-                        'openapi/v1/order': 1,
+                        'openapi/v1/order': 1, // implemented
                         'openapi/contract/v1/order/cancel': 1,
                         'openapi/contract/v1/order/batchCancel': 1,
                     },
