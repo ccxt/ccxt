@@ -12661,12 +12661,12 @@ export default class binance extends Exchange {
          */
         await this.loadMarkets ();
         const request = {};
-        const msInDay = 86400000;
+        const msInThirtyDays = 2592000000;
         const now = this.milliseconds ();
         if (since !== undefined) {
             request['startTime'] = since;
         } else {
-            request['startTime'] = now - msInDay;
+            request['startTime'] = now - msInThirtyDays;
         }
         const endTime = this.safeString2 (params, 'endTime', 'until');
         if (endTime !== undefined) {
