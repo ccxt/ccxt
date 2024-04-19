@@ -152,6 +152,15 @@
                 "url": "https://api.crypto.com/exchange/v1/private/get-deposit-history",
                 "input": [],
                 "output": "{\"id\":\"1699458296454\",\"method\":\"private/get-deposit-history\",\"params\":{},\"api_key\":\"vqk5FrbZiiV9bEbF76qBSc\",\"sig\":\"e38ac3b85e7ad6e4c4657a95e70f0d464e2655a9ebd087c69a8dc5e5b27ae75b\",\"nonce\":\"1699458296454\"}"
+            },
+            {
+                "description": "fetch USDC deposits",
+                "method": "fetchDeposits",
+                "url": "https://api.crypto.com/exchange/v1/private/get-deposit-history",
+                "input": [
+                  "USDC"
+                ],
+                "output": "{\"id\":\"1713525419306\",\"method\":\"private/get-deposit-history\",\"params\":{\"currency\":\"USDC\"},\"api_key\":\"vqk5FrbZiiV9bEbF76qBSc\",\"sig\":\"fca37d53c3eaa302b88121c87ce4146916061a968488a3d2da304196f3f93ea6\",\"nonce\":\"1713525419306\"}"
             }
         ],
         "fetchWithdrawals": [
