@@ -1417,7 +1417,7 @@ export default class bitflex extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: Str = undefined, params = {}) { // todo fetchOrder for swap
         /**
          * @method
          * @name bitflex#fetchOrder
@@ -1437,6 +1437,70 @@ export default class bitflex extends Exchange {
             'orderId': id,
         };
         const response = await this.privateGetOpenapiV1Order (this.extend (request, params));
+        //
+        //     {
+        //         "accountId": "1662502620223296001",
+        //         "exchangeId": "301",
+        //         "symbol": "ETHUSDT",
+        //         "symbolName": "ETHUSDT",
+        //         "clientOrderId": "1713528894473521",
+        //         "orderId": "1667595665113501696",
+        //         "price": "2000",
+        //         "origQty": "0.01",
+        //         "executedQty": "0",
+        //         "cummulativeQuoteQty": "0",
+        //         "avgPrice": "0",
+        //         "status": "NEW",
+        //         "timeInForce": "GTC",
+        //         "type": "LIMIT_MAKER",
+        //         "side": "BUY",
+        //         "stopPrice": "0.0",
+        //         "icebergQty": "0.0",
+        //         "time": "1713528894498",
+        //         "updateTime": "1713528894508",
+        //         "isWorking": true
+        //     }
+        //
+        return this.parseOrder (response, market);
+    }
+
+    async cancelOrder (id: string, symbol: Str = undefined, params = {}) { // todo cancelOrder for swap
+        /**
+         * @method
+         * @name bitflex#cancelOrder
+         * @description cancels an open order
+         * @see https://docs.bitflex.com/spot#cancel-order
+         * @see https://docs.bitflex.com/contract#cancel-order
+         * @param {string} id order id
+         * @param {string} symbol unified symbol of the market the order was made in
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        const request = {
+            'orderId': id,
+        };
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        const response = await this.privateDeleteOpenapiV1Order (this.extend (request, params));
+        //
+        //     {
+        //         "accountId": "1662502620223296001",
+        //         "symbol": "ETHUSDT",
+        //         "clientOrderId": "1713528894473521",
+        //         "orderId": "1667595665113501696",
+        //         "transactTime": "1713528894498",
+        //         "price": "2000",
+        //         "origQty": "0.01",
+        //         "executedQty": "0",
+        //         "status": "CANCELED",
+        //         "timeInForce": "GTC",
+        //         "type": "LIMIT_MAKER",
+        //         "side": "BUY"
+        //     }
+        //
         return this.parseOrder (response, market);
     }
 
