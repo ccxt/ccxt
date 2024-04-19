@@ -3,6 +3,7 @@
 
 import Exchange from './abstract/woofipro.js';
 import { TICK_SIZE } from './base/functions/number.js';
+import type { TransferEntry, Balances, Bool, Currency, FundingRateHistory, Int, Market, MarketType, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Trade, Transaction, Leverage, Account, Currencies, TradingFees, Conversion } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -337,6 +338,166 @@ export default class woofipro extends Exchange {
             'url': undefined,
             'info': response,
         };
+    }
+
+    parseMarket (market): Market {
+        //
+        //   {
+        //     "symbol": "PERP_BTC_USDC",
+        //     "quote_min": 123,
+        //     "quote_max": 100000,
+        //     "quote_tick": 0.1,
+        //     "base_min": 0.00001,
+        //     "base_max": 20,
+        //     "base_tick": 0.00001,
+        //     "min_notional": 1,
+        //     "price_range": 0.02,
+        //     "price_scope": 0.4,
+        //     "std_liquidation_fee": 0.03,
+        //     "liquidator_fee": 0.015,
+        //     "claim_insurance_fund_discount": 0.0075,
+        //     "funding_period": 8,
+        //     "cap_funding": 0.000375,
+        //     "floor_funding": -0.000375,
+        //     "interest_rate": 0.0001,
+        //     "created_time": 1684140107326,
+        //     "updated_time": 1685345968053,
+        //     "base_mmr": 0.05,
+        //     "base_imr": 0.1,
+        //     "imr_factor": 0.0002512,
+        //     "liquidation_tier": "1"
+        //   }
+        //
+        const marketId = this.safeString (market, 'symbol');
+        const parts = marketId.split ('_');
+        const first = this.safeString (parts, 0);
+        let marketType: MarketType;
+        let spot = false;
+        let swap = false;
+        if (first === 'SPOT') {
+            spot = true;
+            marketType = 'spot';
+        } else if (first === 'PERP') {
+            swap = true;
+            marketType = 'swap';
+        }
+        const baseId = this.safeString (parts, 1);
+        const quoteId = this.safeString (parts, 2);
+        const base = this.safeCurrencyCode (baseId);
+        const quote = this.safeCurrencyCode (quoteId);
+        let settleId: Str = undefined;
+        let settle: Str = undefined;
+        let symbol = base + '/' + quote;
+        let contractSize: Num = undefined;
+        let linear: Bool = undefined;
+        let margin = true;
+        if (swap) {
+            margin = false;
+            settleId = this.safeString (parts, 2);
+            settle = this.safeCurrencyCode (settleId);
+            symbol = base + '/' + quote + ':' + settle;
+            contractSize = this.parseNumber ('1');
+            linear = true;
+        }
+        return {
+            'id': marketId,
+            'symbol': symbol,
+            'base': base,
+            'quote': quote,
+            'settle': settle,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': settleId,
+            'type': marketType,
+            'spot': spot,
+            'margin': margin,
+            'swap': swap,
+            'future': false,
+            'option': false,
+            'active': undefined,
+            'contract': swap,
+            'linear': linear,
+            'inverse': undefined,
+            'contractSize': contractSize,
+            'expiry': undefined,
+            'expiryDatetime': undefined,
+            'strike': undefined,
+            'optionType': undefined,
+            'precision': {
+                'amount': this.safeNumber (market, 'base_tick'),
+                'price': this.safeNumber (market, 'quote_tick'),
+            },
+            'limits': {
+                'leverage': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'amount': {
+                    'min': this.safeNumber (market, 'base_min'),
+                    'max': this.safeNumber (market, 'base_max'),
+                },
+                'price': {
+                    'min': this.safeNumber (market, 'quote_min'),
+                    'max': this.safeNumber (market, 'quote_max'),
+                },
+                'cost': {
+                    'min': this.safeNumber (market, 'min_notional'),
+                    'max': undefined,
+                },
+            },
+            'created': this.safeTimestamp (market, 'created_time'),
+            'info': market,
+        };
+    }
+
+    async fetchMarkets (params = {}): Promise<Market[]> {
+        /**
+         * @method
+         * @name woofipro#fetchMarkets
+         * @description retrieves data on all markets for woofipro
+         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-available-symbols
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} an array of objects representing market data
+         */
+        const response = await this.v1PublicGetPublicInfo (params);
+        //
+        //   {
+        //     "success": true,
+        //     "timestamp": 1702989203989,
+        //     "data": {
+        //       "rows": [
+        //         {
+        //           "symbol": "PERP_BTC_USDC",
+        //           "quote_min": 123,
+        //           "quote_max": 100000,
+        //           "quote_tick": 0.1,
+        //           "base_min": 0.00001,
+        //           "base_max": 20,
+        //           "base_tick": 0.00001,
+        //           "min_notional": 1,
+        //           "price_range": 0.02,
+        //           "price_scope": 0.4,
+        //           "std_liquidation_fee": 0.03,
+        //           "liquidator_fee": 0.015,
+        //           "claim_insurance_fund_discount": 0.0075,
+        //           "funding_period": 8,
+        //           "cap_funding": 0.000375,
+        //           "floor_funding": -0.000375,
+        //           "interest_rate": 0.0001,
+        //           "created_time": 1684140107326,
+        //           "updated_time": 1685345968053,
+        //           "base_mmr": 0.05,
+        //           "base_imr": 0.1,
+        //           "imr_factor": 0.0002512,
+        //           "liquidation_tier": "1"
+        //         }
+        //       ]
+        //     }
+        //   }
+        //
+        const data = this.safeDict (response, 'data', {});
+        const rows = this.safeList (data, 'rows', []);
+        return this.parseMarkets (rows);
     }
 
     nonce () {
