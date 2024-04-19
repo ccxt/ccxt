@@ -3,8 +3,10 @@
 
 import Exchange from './abstract/bitflex.js';
 import { TICK_SIZE } from './base/functions/number.js';
+import { InvalidOrder } from './base/errors.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Account, Balances, Currencies, Int, Market, OHLCV, OrderBook, Ticker, Tickers, Trade, Strings } from './base/types.js';
+import { Precise } from './base/Precise.js';
+import { Account, Balances, Currencies, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Ticker, Tickers, Trade, Strings } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -97,37 +99,37 @@ export default class bitflex extends Exchange {
                 'public': {
                     'get': {
                         'openapi/v1/ping': 1,
-                        'openapi/v1/time': 1,
+                        'openapi/v1/time': 1, // implemented
                         'openapi/v1/pairs': 1,
-                        'openapi/v1/brokerInfo': 1,
+                        'openapi/v1/brokerInfo': 1, // implemented
                         'openapi/v1/contracts': 1,
                         'openapi/contract/v1/insurance': 1,
                         'openapi/contract/v1/fundingRate': 1,
                         'openapi/quote/v1/contract/index': 1,
-                        'openapi/quote/v1/depth': 1,
-                        'openapi/quote/v1/depth/merged': 1,
-                        'openapi/quote/v1/contract/depth': 1,
-                        'openapi/quote/v1/contract/depth/merged': 1,
-                        'openapi/quote/v1/trades': 1,
-                        'openapi/quote/v1/contract/trades': 1,
-                        'openapi/quote/v1/klines': 1,
-                        'openapi/quote/v1/ticker/24hr': 1,
-                        'openapi/quote/v1/contract/ticker/24hr': 1,
+                        'openapi/quote/v1/depth': 1, // implemented
+                        'openapi/quote/v1/depth/merged': 1, // implemented
+                        'openapi/quote/v1/contract/depth': 1, // implemented
+                        'openapi/quote/v1/contract/depth/merged': 1, // implemented
+                        'openapi/quote/v1/trades': 1, // implemented
+                        'openapi/quote/v1/contract/trades': 1, // implemented
+                        'openapi/quote/v1/klines': 1, // implemented
+                        'openapi/quote/v1/ticker/24hr': 1, // implemented
+                        'openapi/quote/v1/contract/ticker/24hr': 1, // implemented
                         'openapi/quote/v1/ticker/price': 1,
-                        'openapi/quote/v1/ticker/bookTicker': 1,
+                        'openapi/quote/v1/ticker/bookTicker': 1, // implemented
                     },
                 },
                 'private': {
                     'get': {
-                        'openapi/order': 1,
-                        'openapi/openOrders': 1,
-                        'openapi/historyOrders': 1,
-                        'openapi/myTrades': 1,
-                        'openapi/account': 1,
-                        'openapi/depositOrders': 1,
-                        'openapi/withdrawalOrders': 1,
-                        'openapi/withdraw/detail': 1,
-                        'openapi/balance_flow': 1,
+                        'openapi/v1/order': 1, // implemented
+                        'openapi/v1/openOrders': 1,
+                        'openapi/v1/historyOrders': 1,
+                        'openapi/v1/myTrades': 1,
+                        'openapi/v1/account': 1, // implemented
+                        'openapi/v1/depositOrders': 1,
+                        'openapi/v1/withdrawalOrders': 1,
+                        'openapi/v1/withdraw/detail': 1,
+                        'openapi/v1/balance_flow': 1,
                         'openapi/quote/contract/v1/getOrder': 1,
                         'openapi/quote/contract/v1/openOrders': 1,
                         'openapi/quote/contract/v1/historyOrders': 1,
@@ -136,17 +138,17 @@ export default class bitflex extends Exchange {
                         'openapi/quote/contract/v1/account': 1,
                     },
                     'post': {
-                        'openapi/subAccount/query': 1,
-                        'openapi/transfer': 1,
-                        'openapi/withdraw': 1,
-                        'openapi/order': 1,
-                        'openapi/test': 1,
+                        'openapi/v1/subAccount/query': 1, // implemented
+                        'openapi/v1/transfer': 1,
+                        'openapi/v1/withdraw': 1,
+                        'openapi/v1/order': 1,
+                        'openapi/v1/test': 1,
                         'openapi/contract/v1/order': 1,
                         'openapi/contract/v1/modifyMargin': 1,
                         'openapi/contract/v1/modifyLeverage': 1,
                     },
                     'delete': {
-                        'openapi/order': 1,
+                        'openapi/v1/order': 1,
                         'openapi/contract/v1/order/cancel': 1,
                         'openapi/contract/v1/order/batchCancel': 1,
                     },
@@ -186,12 +188,14 @@ export default class bitflex extends Exchange {
                     // 400  {"code":-1130,"msg":"Data sent for paramter \u0027type\u0027 is not valid."}
                     // 400 {"code":-100012,"msg":"Parameter symbol [String] missing!"}
                     // 400 {"code":-100012,"msg":"Parameter interval [String] missing!"}
+                    // 400 {"code":-1140,"msg":"Transaction amount lower than the minimum."}
                 },
                 'broad': {
                 },
             },
             'precisionMode': TICK_SIZE,
             'options': {
+                'createMarketBuyOrderRequiresPrice': true,
                 'networks': {
                     'ERC20': 'ERC20',
                     'TRC20': 'TRC20',
@@ -1089,7 +1093,7 @@ export default class bitflex extends Exchange {
          * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type
          */
         await this.loadMarkets ();
-        const response = await this.privatePostOpenapiSubAccountQuery (params);
+        const response = await this.privatePostOpenapiV1SubAccountQuery (params);
         //
         //     [
         //         {
@@ -1118,11 +1122,11 @@ export default class bitflex extends Exchange {
         //         "accountIndex": 0
         //     },
         //
-        const accountIndex = this.safeString (account, 'accountIndex');
+        const accountType = this.safeString (account, 'accountType'); // todo check
         return {
             'id': this.safeString (account, 'accountId'),
             'name': this.safeString (account, 'accountName'),
-            'type': this.parseAccountIndex (accountIndex),
+            'type': this.parseAccountType (accountType),
             'code': undefined,
             'info': account,
         };
@@ -1132,7 +1136,7 @@ export default class bitflex extends Exchange {
         const types = {
             '1': 'spot',
             '2': 'option',
-            '3': 'contract',
+            '3': 'swap',
         };
         return this.safeString (types, type, type);
     }
@@ -1140,7 +1144,7 @@ export default class bitflex extends Exchange {
     parseAccountIndex (index) {
         const indexes = {
             '0': 'main',
-            '1': 'sub',
+            '1': 'subaccount',
         };
         return this.safeString (indexes, index, index);
     }
@@ -1155,7 +1159,7 @@ export default class bitflex extends Exchange {
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.loadMarkets ();
-        const response = await this.privateGetOpenapiAccount (params);
+        const response = await this.privateGetOpenapiV1Account (params);
         //
         //     {
         //         "balances":
@@ -1191,6 +1195,226 @@ export default class bitflex extends Exchange {
             result[code] = account;
         }
         return this.safeBalance (result);
+    }
+
+    async createMarketBuyOrderWithCost (symbol: string, cost: number, params = {}) {
+        /**
+         * @method
+         * @name bitflex#createMarketBuyOrderWithCost
+         * @description create a market buy order by providing the symbol and cost
+         * @see https://docs.bitflex.com/spot#new-order
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {float} cost how much you want to trade in units of the quote currency
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        params['createMarketBuyOrderRequiresPrice'] = false;
+        return await this.createOrder (symbol, 'market', 'buy', cost, undefined, params);
+    }
+
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitflex#createOrder
+         * @description create a trade order
+         * @see https://docs.bitflex.com/spot#new-order
+         * @see https://docs.bitflex.com/contract#new-order
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {float} [params.cost] the cost of the order in units of the quote currency, required for market orders
+         * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
+         * @param {bool} [params.postOnly] if true, the order will only be posted if it will be a maker order
+         * @param {string} [params.timeInForce] "GTC", "IOC", "FOK", or "PO", default: "GTC"
+         * @param {string} [params.clientOrderId] a unique id for the order
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (market['spot']) {
+            return await this.createSpotOrder (market, type, side, amount, price, params);
+        }
+        // else {
+        //     return await this.createSwapOrder (market, type, side, amount, price, marginMode, query);
+        // }
+    }
+
+    createSpotOrderRequest (market, type, side, amount, price = undefined, params = {}) {
+        const symbol = market['symbol'];
+        const orderSide = side.toUpperCase ();
+        const request = {
+            'symbol': market['id'],
+            'side': orderSide,
+            'type': type.toUpperCase (),
+        };
+        if ((orderSide === 'BUY') && (type === 'market')) {
+            let createMarketBuyOrderRequiresPrice = true;
+            [ createMarketBuyOrderRequiresPrice, params ] = this.handleOptionAndParams (params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+            const cost = this.safeNumber (params, 'cost');
+            params = this.omit (params, 'cost');
+            if (cost !== undefined) {
+                amount = cost;
+            } else if (createMarketBuyOrderRequiresPrice) {
+                if (price === undefined) {
+                    throw new InvalidOrder (this.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument');
+                } else {
+                    const amountString = this.numberToString (amount);
+                    const priceString = this.numberToString (price);
+                    const quoteAmount = Precise.stringMul (amountString, priceString);
+                    amount = quoteAmount;
+                }
+            }
+            request['quantity'] = this.costToPrecision (symbol, amount);
+        } else {
+            request['quantity'] = this.amountToPrecision (symbol, amount);
+        }
+        if ((price !== undefined) && (type !== 'market')) {
+            request['price'] = this.priceToPrecision (symbol, price);
+        }
+        const clientOrderId = this.safeString (params, 'clientOrderId');
+        if (clientOrderId !== undefined) {
+            request['newClientOrderId'] = clientOrderId;
+            params = this.omit (params, 'clientOrderId');
+        }
+        let postOnly = undefined;
+        [ postOnly, params ] = this.handlePostOnly (type === 'market', type === 'LIMIT_MAKER', params);
+        if (postOnly) {
+            request['type'] = 'LIMIT_MAKER';
+        }
+        return this.extend (request, params);
+    }
+
+    async createSpotOrder (market, type, side, amount, price = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = this.createSpotOrderRequest (market, type, side, amount, price, params);
+        const response = await this.privatePostOpenapiV1Order (this.extend (request, params));
+        //
+        //     {
+        //         "accountId": "1662502620223296001",
+        //         "symbol": "ETHUSDT",
+        //         "symbolName": "ETHUSDT",
+        //         "clientOrderId": "FIRST_ORDER",
+        //         "orderId": "1667566351835747072",
+        //         "transactTime": "1713525400082",
+        //         "price": "0",
+        //         "origQty": "10",
+        //         "executedQty": "0",
+        //         "status": "FILLED",
+        //         "timeInForce": "GTC",
+        //         "type": "MARKET",
+        //         "side": "BUY"
+        //     }
+        //
+        return this.parseOrder (response, market);
+    }
+
+    parseOrder (order, market: Market = undefined): Order {
+        //
+        // spot: createOrder
+        //
+        //     {
+        //         "accountId": "1662502620223296001",
+        //         "symbol": "ETHUSDT",
+        //         "symbolName": "ETHUSDT",
+        //         "clientOrderId": "FIRST_ORDER",
+        //         "orderId": "1667566351835747072",
+        //         "transactTime": "1713525400082",
+        //         "price": "0",
+        //         "origQty": "10",
+        //         "executedQty": "0",
+        //         "status": "FILLED",
+        //         "timeInForce": "GTC",
+        //         "type": "MARKET",
+        //         "side": "BUY"
+        //     }
+        //
+        const id = this.safeString (order, 'orderId');
+        const clientOrderId = this.safeString (order, 'clientOrderId');
+        const timestamp = this.safeInteger (order, 'transactTime');
+        const status = this.safeString (order, 'status');
+        const marketId = this.safeString (order, 'symbol');
+        const type = this.parseOrderType (this.safeString (order, 'type'));
+        const timeInForce = this.safeString (order, 'timeInForce');
+        const side = this.parseOrderSide (this.safeString (order, 'side'));
+        let price = this.safeString (order, 'price');
+        if (price === '0') { // todo tell ecxhange to fix it
+            price = undefined;
+        }
+        const triggerPrice = this.safeString (order, 'triggerPrice'); // todo check for swap
+        const average = this.safeString (order, 'avgPrice'); // todo check for swap
+        let amount = undefined; // todo check
+        let cost = undefined;
+        if ((type === 'market') && (side === 'buy')) {
+            cost = this.safeString (order, 'origQty');
+        } else {
+            amount = this.safeString (order, 'origQty');
+        }
+        const filled = this.safeString (order, 'executedQty'); // todo check
+        market = this.safeMarket (marketId, market);
+        return this.safeOrder ({
+            'id': id,
+            'clientOrderId': clientOrderId,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined, // TODO: this might be 'updateTime' if order-status is filled, otherwise cancellation time. needs to be checked
+            'status': this.parseOrderStatus (status),
+            'symbol': market['symbol'],
+            'type': type,
+            'timeInForce': this.parseOrderTimeInForce (timeInForce),
+            'side': side,
+            'price': price,
+            'stopPrice': triggerPrice,
+            'triggerPrice': triggerPrice,
+            'average': average,
+            'amount': amount,
+            'cost': cost,
+            'filled': filled,
+            'remaining': undefined,
+            'fee': undefined, // todo check for different types of orders
+            'trades': undefined,
+            'info': order,
+        }, market);
+    }
+
+    parseOrderStatus (status) {
+        const statuses = {
+            'NEW': 'open',
+            'FILLED': 'closed',
+            'CANCELED': 'canceled',
+            'PARTIALLY_FILLED': 'open',
+            'REJECTED': 'rejected',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    parseOrderType (status) {
+        const statuses = {
+            'MARKET': 'market',
+            'LIMIT': 'limit',
+            'LIMIT_MAKER': 'limit',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    parseOrderTimeInForce (status) {
+        const statuses = {
+            'GTC': 'GTC',
+            'FOK': 'FOK',
+            'IOC': 'IOC',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    parseOrderSide (status) {
+        const statuses = {
+            'BUY': 'buy',
+            'SELL': 'sell',
+        };
+        return this.safeString (statuses, status, status);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
