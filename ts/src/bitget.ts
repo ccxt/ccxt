@@ -108,6 +108,7 @@ export default class bitget extends Exchange {
                 'fetchPosition': true,
                 'fetchPositionMode': false,
                 'fetchPositions': true,
+                'fetchPositionsForSymbol': true,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchStatus': false,
@@ -6397,6 +6398,59 @@ export default class bitget extends Exchange {
         }
         symbols = this.marketSymbols (symbols);
         return this.filterByArrayPositions (result, 'symbol', symbols, false);
+    }
+
+    async fetchPositionsForSymbol (symbol, params = {}) {
+        /**
+         * @method
+         * @name bitget#fetchPositions
+         * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-symbol-position-v2
+         * @description fetch all open positions for specific symbol
+         * @param {string} symbol unified market symbol
+         * @param {object} [params] extra parameters specific to the okx api endpoint
+         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+            'marginCoin': market['settleId'],
+        };
+        const response = await this.privateMixGetMixV1PositionSinglePosition (this.extend (request, params));
+        //
+        // both one-way and two-way mode has a response of similar structure
+        //
+        //    {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": "0",
+        //         "data": [
+        //             {
+        //                 "marginCoin": "USDT",
+        //                 "symbol": "BTCUSDT_UMCBL",
+        //                 "holdSide": "long", // long, short
+        //                 "openDelegateCount": "0",
+        //                 "margin": "4.0019",
+        //                 "available": "0.001",
+        //                 "locked": "0",
+        //                 "total": "0.001",
+        //                 "leverage": "5",
+        //                 "achievedProfits": "0",
+        //                 "averageOpenPrice": "20009.5",
+        //                 "marginMode": "crossed", // crossed, fixed
+        //                 "holdMode": "double_hold", // single_hold, double_hold
+        //                 "unrealizedPL": "0.00039",
+        //                 "liquidationPrice": "0",
+        //                 "keepMarginRate": "0.004",
+        //                 "marketPrice": "20009.89",
+        //                 "cTime": "1678467511525"
+        //             },
+        //             ... second object is same, only "holdSide:short" is different
+        //         ]
+        //     }
+        //
+        const data = this.safeValue (response, 'data', []);
+        return this.parsePositions (data, [ market['symbol'] ], params);
     }
 
     parsePosition (position, market: Market = undefined) {
