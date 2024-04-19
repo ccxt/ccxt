@@ -3,6 +3,7 @@
 
 import Exchange from './abstract/woofipro.js';
 import { TICK_SIZE } from './base/functions/number.js';
+import { Precise } from './base/Precise.js';
 import type { TransferEntry, Balances, Bool, Currency, FundingRateHistory, Int, Market, MarketType, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Trade, Transaction, Leverage, Account, Currencies, TradingFees, Conversion } from './base/types.js';
 
 // ---------------------------------------------------------------------------
@@ -498,6 +499,103 @@ export default class woofipro extends Exchange {
         const data = this.safeDict (response, 'data', {});
         const rows = this.safeList (data, 'rows', []);
         return this.parseMarkets (rows);
+    }
+
+	async fetchCurrencies (params = {}): Promise<Currencies> {
+        /**
+         * @method
+         * @name woofipro#fetchCurrencies
+         * @description fetches all available currencies on an exchange
+		 * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-token-info
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an associative dictionary of currencies
+         */
+        const result = {};
+        const response = await this.v1PublicGetPublicToken (params);
+        //
+		// 	{
+		// 		"success": true,
+		// 		"timestamp": 1702989203989,
+		// 		"data": {
+		// 		  "rows": [{
+		// 			"token": "USDC",
+		// 			"decimals": 6,
+		// 			"minimum_withdraw_amount": 0.000001,
+		// 			"token_hash": "0xd6aca1be9729c13d677335161321649cccae6a591554772516700f986f942eaa",
+		// 			"chain_details": [{
+		// 				"chain_id": 43113,
+		// 				"contract_address": "0x5d64c9cfb0197775b4b3ad9be4d3c7976e0d8dc3",
+		// 				"cross_chain_withdrawal_fee": 123,
+		// 				"decimals": 6,
+		// 				"withdraw_fee": 2
+		// 				}]
+		// 			}
+		// 		  ]
+		// 		}
+		// 	}
+        //
+		const data = this.safeDict (response, 'data', {});
+        const tokenRows = this.safeList (data, 'rows', []);
+        for (let i = 0; i < tokenRows.length; i++) {
+			const token = tokenRows[i];
+            const currencyId = this.safeString (token, 'token');
+            const networks = this.safeList (token, 'chain_details');
+            const code = this.safeCurrencyCode (currencyId);
+            let minPrecision = undefined;
+            const resultingNetworks = {};
+            for (let j = 0; j < networks.length; j++) {
+                const network = networks[j];
+				// TODO: transform chain id to human readable name
+                const networkId = this.safeString (network, 'chain_id');
+                const precision = this.parsePrecision (this.safeString (network, 'decimals'));
+                if (precision !== undefined) {
+                    minPrecision = (minPrecision === undefined) ? precision : Precise.stringMin (precision, minPrecision);
+                }
+                resultingNetworks[networkId] = {
+                    'id': networkId,
+                    'network': networkId,
+                    'limits': {
+                        'withdraw': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'deposit': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                    },
+                    'active': undefined,
+                    'deposit': undefined,
+                    'withdraw': undefined,
+                    'fee': this.safeNumber (network, 'withdrawal_fee'),
+                    'precision': this.parseNumber (precision),
+                    'info': network,
+                };
+            }
+            result[code] = {
+                'id': currencyId,
+                'name': currencyId,
+                'code': code,
+                'precision': this.parseNumber (minPrecision),
+                'active': undefined,
+                'fee': undefined,
+                'networks': resultingNetworks,
+                'deposit': undefined,
+                'withdraw': undefined,
+                'limits': {
+                    'deposit': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'withdraw': {
+                        'min': this.safeNumber (token, 'minimum_withdraw_amount'),
+                        'max': undefined,
+                    },
+                },
+                'info': token,
+            };
+        }
+        return result;
     }
 
     nonce () {
