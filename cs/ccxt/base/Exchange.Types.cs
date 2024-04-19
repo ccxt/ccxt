@@ -772,6 +772,45 @@ public struct CrossBorrowRate
     }
 }
 
+public struct CrossBorrowRates
+{
+    public Dictionary<string, object> info;
+    public Dictionary<string, CrossBorrowRate> crossBorrowRates;
+
+    public CrossBorrowRates(object crossBorrowRates2)
+    {
+        var crossBorrowRates = (Dictionary<string, object>)crossBorrowRates2;
+
+        info = crossBorrowRates.ContainsKey("info") ? (Dictionary<string, object>)crossBorrowRates["info"] : null;
+        this.crossBorrowRates = new Dictionary<string, CrossBorrowRate>();
+        foreach (var crossBorrowRate in crossBorrowRates)
+        {
+            if (crossBorrowRate.Key != "info")
+                this.crossBorrowRates.Add(crossBorrowRate.Key, new CrossBorrowRate(crossBorrowRate.Value));
+        }
+    }
+
+    // Indexer
+    public CrossBorrowRate this[string key]
+    {
+        get
+        {
+            if (crossBorrowRates.ContainsKey(key))
+            {
+                return crossBorrowRates[key];
+            }
+            else
+            {
+                throw new KeyNotFoundException($"The key '{key}' was not found in the isolatedBorrowRates.");
+            }
+        }
+        set
+        {
+            crossBorrowRates[key] = value;
+        }
+    }
+}
+
 public struct IsolatedBorrowRate
 {
     public string symbol;
@@ -796,6 +835,45 @@ public struct IsolatedBorrowRate
         timestamp = Exchange.SafeInteger(isolatedBorrowRate2, "timestamp");
         datetime = Exchange.SafeString(isolatedBorrowRate2, "datetime");
         info = isolatedBorrowRate2.ContainsKey("info") ? (Dictionary<string, object>)isolatedBorrowRate2["info"] : null;
+    }
+}
+
+public struct IsolatedBorrowRates
+{
+    public Dictionary<string, object> info;
+    public Dictionary<string, IsolatedBorrowRate> isolatedBorrowRates;
+
+    public IsolatedBorrowRates(object isolatedBorrowRates2)
+    {
+        var isolatedBorrowRates = (Dictionary<string, object>)isolatedBorrowRates2;
+
+        info = isolatedBorrowRates.ContainsKey("info") ? (Dictionary<string, object>)isolatedBorrowRates["info"] : null;
+        this.isolatedBorrowRates = new Dictionary<string, IsolatedBorrowRate>();
+        foreach (var isolatedBorrowRate in isolatedBorrowRates)
+        {
+            if (isolatedBorrowRate.Key != "info")
+                this.isolatedBorrowRates.Add(isolatedBorrowRate.Key, new IsolatedBorrowRate(isolatedBorrowRate.Value));
+        }
+    }
+
+    // Indexer
+    public IsolatedBorrowRate this[string key]
+    {
+        get
+        {
+            if (isolatedBorrowRates.ContainsKey(key))
+            {
+                return isolatedBorrowRates[key];
+            }
+            else
+            {
+                throw new KeyNotFoundException($"The key '{key}' was not found in the isolatedBorrowRates.");
+            }
+        }
+        set
+        {
+            isolatedBorrowRates[key] = value;
+        }
     }
 }
 

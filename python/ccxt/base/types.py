@@ -455,6 +455,8 @@ class IsolatedBorrowRate(TypedDict):
 LastPrices = Dict[Str, LastPrice]
 Currencies = Dict[Str, CurrencyInterface]
 TradingFees = Dict[Str, TradingFeeInterface]
+IsolatedBorrowRates = Dict[Str, IsolatedBorrowRate]
+CrossBorrowRates = Dict[Str, CrossBorrowRate]
 
 Market = Optional[MarketInterface]
 Currency = Optional[CurrencyInterface]

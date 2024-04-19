@@ -564,6 +564,12 @@ export interface MarginModes extends Dictionary<MarginMode> {
 export interface OptionChain extends Dictionary<Option> {
 }
 
+export interface IsolatedBorrowRates extends Dictionary<IsolatedBorrowRates> {
+}
+
+export interface CrossBorrowRates extends Dictionary<CrossBorrowRates> {
+}
+
 /** [ timestamp, open, high, low, close, volume ] */
 export type OHLCV = [Num, Num, Num, Num, Num, Num];
 
