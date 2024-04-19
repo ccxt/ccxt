@@ -1464,6 +1464,62 @@ export default class bitflex extends Exchange {
         return this.parseOrder (response, market);
     }
 
+    async fetchOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) { // todo fetchOrders for swap
+        /**
+         * @method
+         * @name bitflex#fetchOrders
+         * @description fetches all orders made by the user
+         * @see https://docs.bitflex.com/spot#all-orders
+         * @see https://docs.bitflex.com/contract#all-orders
+         * @param {string} symbol unified symbol of the market the order was made in
+         * @param {int} [since] timestamp in ms of the earliest order to fetch
+         * @param {int} [limit] the maximum amount of orders to fetch, default 100, max 1000
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        const request = {};
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        const response = await this.privateGetOpenapiV1HistoryOrders (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "accountId": "1662502620223296001",
+        //             "exchangeId": "301",
+        //             "symbol": "ETHUSDT",
+        //             "symbolName": "ETHUSDT",
+        //             "clientOrderId": "1713531483905247",
+        //             "orderId": "1667617386700800256",
+        //             "price": "0",
+        //             "origQty": "0.001",
+        //             "executedQty": "0.001",
+        //             "cummulativeQuoteQty": "3.09928",
+        //             "avgPrice": "3099.28",
+        //             "status": "FILLED",
+        //             "timeInForce": "GTC",
+        //             "type": "MARKET",
+        //             "side": "SELL",
+        //             "stopPrice": "0.0",
+        //             "icebergQty": "0.0",
+        //             "time": "1713531483914",
+        //             "updateTime": "1713531483961",
+        //             "isWorking": true
+        //         },
+        //         ...
+        //     ]
+        //
+        return this.parseOrders (response, market, since, limit);
+    }
+
     async cancelOrder (id: string, symbol: Str = undefined, params = {}) { // todo cancelOrder for swap
         /**
          * @method
