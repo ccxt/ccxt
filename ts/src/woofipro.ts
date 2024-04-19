@@ -125,8 +125,8 @@ export default class woofipro extends Exchange {
                     'private': 'https://api-evm.orderly.org',
                 },
                 'test': {
-                    'public': 'https://testnet-operator-evm.orderly.org',
-                    'private': 'https://testnet-operator-evm.orderly.org',
+                    'public': 'https://testnet-api-evm.orderly.org',
+                    'private': 'https://testnet-api-evm.orderly.org',
                 },
                 'www': 'https://dex.woo.org',
                 'doc': [
