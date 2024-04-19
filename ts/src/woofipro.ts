@@ -812,6 +812,44 @@ export default class woofipro extends Exchange {
         return this.parseFundingRate (data, market);
     }
 
+	async fetchFundingRates (symbols: Strings = undefined, params = {}) {
+		/**
+         * @method
+         * @name woofipro#fetchFundingRates
+         * @description fetch the current funding rates
+         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-predicted-funding-rates-for-all-markets
+         * @param {string[]} symbols unified market symbols
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} an array of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+         */
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
+        const response = await this.v1PublicGetPublicFundingRates (params);
+        //
+		// 	{
+		// 		"success": true,
+		// 		"timestamp": 1702989203989,
+		// 		"data": {
+		// 		  "rows": [
+		// 			{
+		// 			"symbol": "PERP_ETH_USDC",
+		// 			"est_funding_rate": 123,
+		// 			"est_funding_rate_timestamp": 1683880020000,
+		// 			"last_funding_rate": 0.0001,
+		// 			"last_funding_rate_timestamp": 1683878400000,
+		// 			"next_funding_time": 1683907200000,
+		// 			"sum_unitary_funding": 521.367
+		// 			}
+		// 		  ]
+		// 		}
+		// 	}
+        //
+		const data = this.safeDict (response, 'data', {});
+        const rows = this.safeList (data, 'rows', []);
+        const result = this.parseFundingRates (rows);
+        return this.filterByArray (result, 'symbol', symbols);
+    }
+
     nonce () {
         return this.milliseconds ();
     }
