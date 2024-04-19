@@ -6,7 +6,7 @@ import { TICK_SIZE } from './base/functions/number.js';
 import { InvalidOrder } from './base/errors.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { Precise } from './base/Precise.js';
-import { Account, Balances, Currencies, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Ticker, Tickers, Trade, Strings } from './base/types.js';
+import { Account, Balances, Currencies, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Tickers, Trade, Strings } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1415,6 +1415,29 @@ export default class bitflex extends Exchange {
             'SELL': 'sell',
         };
         return this.safeString (statuses, status, status);
+    }
+
+    async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitflex#fetchOrder
+         * @description fetches information on an order made by the user
+         * @see https://docs.bitflex.com/spot#query-order
+         * @see https://docs.bitflex.com/contract#query-order
+         * @param {string} symbol unified symbol of the market the order was made in
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        const request = {
+            'orderId': id,
+        };
+        const response = await this.privateGetOpenapiV1Order (this.extend (request, params));
+        return this.parseOrder (response, market);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
