@@ -1333,7 +1333,7 @@ class kraken(Exchange, ImplicitAPI):
             'ordertype': type,
             'volume': self.amount_to_precision(symbol, amount),
         }
-        orderRequest = self.order_request('createOrder()', symbol, type, request, price, params)
+        orderRequest = self.order_request('createOrder', symbol, type, request, price, params)
         response = self.privatePostAddOrder(self.extend(orderRequest[0], orderRequest[1]))
         #
         #     {
@@ -1659,7 +1659,10 @@ class kraken(Exchange, ImplicitAPI):
                 request['price'] = trailingAmountString
                 request['ordertype'] = 'trailing-stop'
         if reduceOnly:
-            request['reduce_only'] = 'true'  # not using hasattr(self, boolean) case, because the urlencodedNested transforms it into 'True' string
+            if method == 'createOrderWs':
+                request['reduce_only'] = True  # ws request can't have stringified bool
+            else:
+                request['reduce_only'] = 'true'  # not using hasattr(self, boolean) case, because the urlencodedNested transforms it into 'True' string
         close = self.safe_value(params, 'close')
         if close is not None:
             close = self.extend({}, close)
@@ -1710,7 +1713,7 @@ class kraken(Exchange, ImplicitAPI):
         }
         if amount is not None:
             request['volume'] = self.amount_to_precision(symbol, amount)
-        orderRequest = self.order_request('editOrder()', symbol, type, request, price, params)
+        orderRequest = self.order_request('editOrder', symbol, type, request, price, params)
         response = self.privatePostEditOrder(self.extend(orderRequest[0], orderRequest[1]))
         #
         #     {

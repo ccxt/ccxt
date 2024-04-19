@@ -5729,7 +5729,7 @@ public partial class bybit : Exchange
         object coin = this.safeString(result, "coin");
         currency = this.currency(coin);
         object parsed = this.parseDepositAddresses(chains, new List<object>() {getValue(currency, "code")}, false, new Dictionary<string, object>() {
-            { "currency", getValue(currency, "id") },
+            { "currency", getValue(currency, "code") },
         });
         return this.indexBy(parsed, "network");
     }

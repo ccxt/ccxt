@@ -8455,6 +8455,8 @@ class bitget extends Exchange {
         //
         // spot
         //
+        //     array("code":"00000","msg":"success","requestTime":1713294492511,"data":[...])"
+        //
         //     array("status":"fail","err_code":"01001","err_msg":"系统异常，请稍后重试")
         //     array("status":"error","ts":1595594160149,"err_code":"invalid-parameter","err_msg":"invalid size, valid range => [1,2000]")
         //     array("status":"error","ts":1595684716042,"err_code":"invalid-parameter","err_msg":"illegal sign invalid")
@@ -8476,14 +8478,14 @@ class bitget extends Exchange {
         //     array("code":"40108","msg":"","requestTime":1595885064600,"data":null)
         //     array("order_id":"513468410013679613","client_oid":null,"symbol":"ethusd","result":false,"err_code":"order_no_exist_error","err_msg":"订单不存在！")
         //
-        $message = $this->safe_string($response, 'err_msg');
-        $errorCode = $this->safe_string_2($response, 'code', 'err_code');
+        $message = $this->safe_string_2($response, 'err_msg', 'msg');
         $feedback = $this->id . ' ' . $body;
-        $nonEmptyMessage = (($message !== null) && ($message !== ''));
+        $nonEmptyMessage = (($message !== null) && ($message !== '') && ($message !== 'success'));
         if ($nonEmptyMessage) {
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
         }
+        $errorCode = $this->safe_string_2($response, 'code', 'err_code');
         $nonZeroErrorCode = ($errorCode !== null) && ($errorCode !== '00000');
         if ($nonZeroErrorCode) {
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $feedback);

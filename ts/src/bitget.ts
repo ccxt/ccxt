@@ -8580,6 +8580,8 @@ export default class bitget extends Exchange {
         //
         // spot
         //
+        //     {"code":"00000","msg":"success","requestTime":1713294492511,"data":[...]}"
+        //
         //     {"status":"fail","err_code":"01001","err_msg":"系统异常，请稍后重试"}
         //     {"status":"error","ts":1595594160149,"err_code":"invalid-parameter","err_msg":"invalid size, valid range: [1,2000]"}
         //     {"status":"error","ts":1595684716042,"err_code":"invalid-parameter","err_msg":"illegal sign invalid"}
@@ -8601,14 +8603,14 @@ export default class bitget extends Exchange {
         //     {"code":"40108","msg":"","requestTime":1595885064600,"data":null}
         //     {"order_id":"513468410013679613","client_oid":null,"symbol":"ethusd","result":false,"err_code":"order_no_exist_error","err_msg":"订单不存在！"}
         //
-        const message = this.safeString (response, 'err_msg');
-        const errorCode = this.safeString2 (response, 'code', 'err_code');
+        const message = this.safeString2 (response, 'err_msg', 'msg');
         const feedback = this.id + ' ' + body;
-        const nonEmptyMessage = ((message !== undefined) && (message !== ''));
+        const nonEmptyMessage = ((message !== undefined) && (message !== '') && (message !== 'success'));
         if (nonEmptyMessage) {
             this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
             this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
         }
+        const errorCode = this.safeString2 (response, 'code', 'err_code');
         const nonZeroErrorCode = (errorCode !== undefined) && (errorCode !== '00000');
         if (nonZeroErrorCode) {
             this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);

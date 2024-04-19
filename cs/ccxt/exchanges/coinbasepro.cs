@@ -9,7 +9,7 @@ public partial class coinbasepro : Exchange
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "id", "coinbasepro" },
-            { "name", "Coinbase Pro" },
+            { "name", "Coinbase Pro(Deprecated)" },
             { "countries", new List<object>() {"US"} },
             { "rateLimit", 100 },
             { "userAgent", getValue(this.userAgents, "chrome") },

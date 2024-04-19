@@ -5379,7 +5379,7 @@ class bybit extends Exchange {
             $coin = $this->safe_string($result, 'coin');
             $currency = $this->currency($coin);
             $parsed = $this->parse_deposit_addresses($chains, [ $currency['code'] ], false, array(
-                'currency' => $currency['id'],
+                'currency' => $currency['code'],
             ));
             return $this->index_by($parsed, 'network');
         }) ();

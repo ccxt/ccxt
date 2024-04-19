@@ -4464,6 +4464,9 @@ export default class Exchange {
     async cancelAllOrders(symbol = undefined, params = {}) {
         throw new NotSupported(this.id + ' cancelAllOrders() is not supported yet');
     }
+    async cancelOrdersForSymbols(orders, params = {}) {
+        throw new NotSupported(this.id + ' cancelOrdersForSymbols() is not supported yet');
+    }
     async cancelAllOrdersWs(symbol = undefined, params = {}) {
         throw new NotSupported(this.id + ' cancelAllOrdersWs() is not supported yet');
     }

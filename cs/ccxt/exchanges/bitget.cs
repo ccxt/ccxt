@@ -9362,6 +9362,8 @@ public partial class bitget : Exchange
         //
         // spot
         //
+        //     {"code":"00000","msg":"success","requestTime":1713294492511,"data":[...]}"
+        //
         //     {"status":"fail","err_code":"01001","err_msg":"系统异常，请稍后重试"}
         //     {"status":"error","ts":1595594160149,"err_code":"invalid-parameter","err_msg":"invalid size, valid range: [1,2000]"}
         //     {"status":"error","ts":1595684716042,"err_code":"invalid-parameter","err_msg":"illegal sign invalid"}
@@ -9383,15 +9385,15 @@ public partial class bitget : Exchange
         //     {"code":"40108","msg":"","requestTime":1595885064600,"data":null}
         //     {"order_id":"513468410013679613","client_oid":null,"symbol":"ethusd","result":false,"err_code":"order_no_exist_error","err_msg":"订单不存在！"}
         //
-        object message = this.safeString(response, "err_msg");
-        object errorCode = this.safeString2(response, "code", "err_code");
+        object message = this.safeString2(response, "err_msg", "msg");
         object feedback = add(add(this.id, " "), body);
-        object nonEmptyMessage = (isTrue((!isEqual(message, null))) && isTrue((!isEqual(message, ""))));
+        object nonEmptyMessage = (isTrue(isTrue((!isEqual(message, null))) && isTrue((!isEqual(message, "")))) && isTrue((!isEqual(message, "success"))));
         if (isTrue(nonEmptyMessage))
         {
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), message, feedback);
             this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), message, feedback);
         }
+        object errorCode = this.safeString2(response, "code", "err_code");
         object nonZeroErrorCode = isTrue((!isEqual(errorCode, null))) && isTrue((!isEqual(errorCode, "00000")));
         if (isTrue(nonZeroErrorCode))
         {

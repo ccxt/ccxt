@@ -28,6 +28,7 @@ public partial class hyperliquid : Exchange
                 { "cancelAllOrders", false },
                 { "cancelOrder", true },
                 { "cancelOrders", true },
+                { "cancelOrdersForSymbols", true },
                 { "closeAllPositions", false },
                 { "closePosition", false },
                 { "createMarketBuyOrderWithCost", false },
@@ -1289,6 +1290,86 @@ public partial class hyperliquid : Exchange
                 });
             }
         }
+        ((IDictionary<string,object>)cancelAction)["cancels"] = cancelReq;
+        object vaultAddress = this.formatVaultAddress(this.safeString(parameters, "vaultAddress"));
+        object signature = this.signL1Action(cancelAction, nonce, vaultAddress);
+        ((IDictionary<string,object>)request)["action"] = cancelAction;
+        ((IDictionary<string,object>)request)["signature"] = signature;
+        if (isTrue(!isEqual(vaultAddress, null)))
+        {
+            parameters = this.omit(parameters, "vaultAddress");
+            ((IDictionary<string,object>)request)["vaultAddress"] = vaultAddress;
+        }
+        object response = await this.privatePostExchange(this.extend(request, parameters));
+        //
+        //     {
+        //         "status":"ok",
+        //         "response":{
+        //             "type":"cancel",
+        //             "data":{
+        //                 "statuses":[
+        //                     "success"
+        //                 ]
+        //             }
+        //         }
+        //     }
+        //
+        return response;
+    }
+
+    public async override Task<object> cancelOrdersForSymbols(object orders, object parameters = null)
+    {
+        /**
+        * @method
+        * @name hyperliquid#cancelOrdersForSymbols
+        * @description cancel multiple orders for multiple symbols
+        * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#cancel-order-s
+        * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#cancel-order-s-by-cloid
+        * @param {CancellationRequest[]} orders each order should contain the parameters required by cancelOrder namely id and symbol
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string} [params.vaultAddress] the vault address
+        * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        this.checkRequiredCredentials();
+        await this.loadMarkets();
+        object nonce = this.milliseconds();
+        object request = new Dictionary<string, object>() {
+            { "nonce", nonce },
+        };
+        object cancelReq = new List<object>() {};
+        object cancelAction = new Dictionary<string, object>() {
+            { "type", "" },
+            { "cancels", new List<object>() {} },
+        };
+        object cancelByCloid = false;
+        for (object i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
+        {
+            object order = getValue(orders, i);
+            object clientOrderId = this.safeString(order, "clientOrderId");
+            if (isTrue(!isEqual(clientOrderId, null)))
+            {
+                cancelByCloid = true;
+            }
+            object id = this.safeString(order, "id");
+            object symbol = this.safeString(order, "symbol");
+            if (isTrue(isEqual(symbol, null)))
+            {
+                throw new ArgumentsRequired ((string)add(this.id, " cancelOrdersForSymbols() requires a symbol argument in each order")) ;
+            }
+            if (isTrue(isTrue(!isEqual(id, null)) && isTrue(cancelByCloid)))
+            {
+                throw new BadRequest ((string)add(this.id, " cancelOrdersForSymbols() all orders must have either id or clientOrderId")) ;
+            }
+            object assetKey = ((bool) isTrue(cancelByCloid)) ? "asset" : "a";
+            object idKey = ((bool) isTrue(cancelByCloid)) ? "cloid" : "o";
+            object market = this.market(symbol);
+            object cancelObj = new Dictionary<string, object>() {};
+            ((IDictionary<string,object>)cancelObj)[(string)assetKey] = this.parseToNumeric(getValue(market, "baseId"));
+            ((IDictionary<string,object>)cancelObj)[(string)idKey] = ((bool) isTrue(cancelByCloid)) ? clientOrderId : this.parseToNumeric(id);
+            ((IList<object>)cancelReq).Add(cancelObj);
+        }
+        ((IDictionary<string,object>)cancelAction)["type"] = ((bool) isTrue(cancelByCloid)) ? "cancelByCloid" : "cancel";
         ((IDictionary<string,object>)cancelAction)["cancels"] = cancelReq;
         object vaultAddress = this.formatVaultAddress(this.safeString(parameters, "vaultAddress"));
         object signature = this.signL1Action(cancelAction, nonce, vaultAddress);
