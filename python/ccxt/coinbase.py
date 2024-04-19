@@ -27,9 +27,10 @@ class coinbase(Exchange, ImplicitAPI):
     def describe(self):
         return self.deep_extend(super(coinbase, self).describe(), {
             'id': 'coinbase',
-            'name': 'Coinbase',
+            'name': 'Coinbase Advanced',
             'countries': ['US'],
             'pro': True,
+            'certified': True,
             # rate-limits:
             # ADVANCED API: https://docs.cloud.coinbase.com/advanced-trade-api/docs/rest-api-rate-limits
             # - max 30 req/second for private data, 10 req/s for public data

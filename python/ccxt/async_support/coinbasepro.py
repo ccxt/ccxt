@@ -27,7 +27,7 @@ class coinbasepro(Exchange, ImplicitAPI):
     def describe(self):
         return self.deep_extend(super(coinbasepro, self).describe(), {
             'id': 'coinbasepro',
-            'name': 'Coinbase Pro',
+            'name': 'Coinbase Pro(Deprecated)',
             'countries': ['US'],
             'rateLimit': 100,
             'userAgent': self.userAgents['chrome'],
