@@ -6,7 +6,7 @@ import { ExchangeError, ExchangeNotAvailable, OnMaintenance, ArgumentsRequired, 
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { TransferEntry, Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Str, Transaction, Ticker, OrderBook, Balances, Tickers, Market, Greeks, Strings, MarketInterface, Currency, Leverage, Num, Account, OptionChain, Option, MarginModification, TradingFeeInterface, Currencies, Conversion } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Str, Transaction, Ticker, OrderBook, Balances, Tickers, Market, Greeks, Strings, MarketInterface, Currency, Leverage, Num, Account, OptionChain, Option, MarginModification, TradingFeeInterface, Currencies, Conversion, CrossBorrowRate, CrossBorrowRates } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -6220,7 +6220,7 @@ export default class okx extends Exchange {
         return response;
     }
 
-    async fetchCrossBorrowRates (params = {}) {
+    async fetchCrossBorrowRates (params = {}): Promise<CrossBorrowRates> {
         /**
          * @method
          * @name okx#fetchCrossBorrowRates
@@ -6251,7 +6251,7 @@ export default class okx extends Exchange {
         return rates as any;
     }
 
-    async fetchCrossBorrowRate (code: string, params = {}) {
+    async fetchCrossBorrowRate (code: string, params = {}): Promise<CrossBorrowRate> {
         /**
          * @method
          * @name okx#fetchCrossBorrowRate
