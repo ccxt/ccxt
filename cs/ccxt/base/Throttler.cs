@@ -46,7 +46,13 @@ public class Throttler
             {
                 this.config["tokens"] = floatTokens - cost;
                 await Task.Delay(0);
-                task.Start();
+                if (task != null)
+                {
+                    if (task.Status == TaskStatus.Created)
+                    {
+                        task.Start();
+                    }
+                }
                 this.queue.Dequeue();
 
                 if (this.queue.Count == 0)
@@ -79,7 +85,8 @@ public class Throttler
         if (!this.running)
         {
             this.running = true;
-            await this.loop();
+            // Task.Run(() => { this.loop(); });
+            this.loop();
         }
         return t;
     }

@@ -7,7 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.abstract.binance import ImplicitAPI
 import hashlib
 import json
-from ccxt.base.types import Balances, Currencies, Currency, Greeks, Int, Leverage, Leverages, MarginMode, MarginModes, MarginModification, Market, MarketInterface, Num, Option, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
+from ccxt.base.types import Balances, Conversion, Currencies, Currency, Greeks, Int, Leverage, Leverages, MarginMode, MarginModes, MarginModification, Market, MarketInterface, Num, Option, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -62,6 +62,7 @@ class binance(Exchange, ImplicitAPI):
                 'cancelOrders': True,  # contract only
                 'closeAllPositions': False,
                 'closePosition': False,  # exchange specific closePosition parameter for binance createOrder is not synonymous with how CCXT uses closePositions
+                'createConvertTrade': True,
                 'createDepositAddress': False,
                 'createLimitBuyOrder': True,
                 'createLimitSellOrder': True,
@@ -11635,3 +11636,56 @@ class binance(Exchange, ImplicitAPI):
                 'created': None,
             }
         return result
+
+    def create_convert_trade(self, id: str, fromCode: str, toCode: str, amount: Num = None, params={}) -> Conversion:
+        """
+        convert from one currency to another
+        :see: https://binance-docs.github.io/apidocs/spot/en/#busd-convert-trade
+        :param str id: the id of the trade that you want to make
+        :param str fromCode: the currency that you want to sell and convert from
+        :param str toCode: the currency that you want to buy and convert into
+        :param float [amount]: how much you want to trade in units of the from currency
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `conversion structure <https://docs.ccxt.com/#/?id=conversion-structure>`
+        """
+        self.load_markets()
+        request = {
+            'clientTranId': id,
+            'asset': fromCode,
+            'targetAsset': toCode,
+            'amount': amount,
+        }
+        response = self.sapiPostAssetConvertTransfer(self.extend(request, params))
+        #
+        #     {
+        #         "tranId": 118263407119,
+        #         "status": "S"
+        #     }
+        #
+        fromCurrency = self.currency(fromCode)
+        toCurrency = self.currency(toCode)
+        return self.parse_conversion(response, fromCurrency, toCurrency)
+
+    def parse_conversion(self, conversion, fromCurrency: Currency = None, toCurrency: Currency = None) -> Conversion:
+        #
+        # createConvertTrade
+        #
+        #     {
+        #         "tranId": 118263407119,
+        #         "status": "S"
+        #     }
+        #
+        fromCode = self.safe_currency_code(None, fromCurrency)
+        toCode = self.safe_currency_code(None, toCurrency)
+        return {
+            'info': conversion,
+            'timestamp': None,
+            'datetime': None,
+            'id': self.safe_string(conversion, 'tranId'),
+            'fromCurrency': fromCode,
+            'fromAmount': None,
+            'toCurrency': toCode,
+            'toAmount': None,
+            'price': None,
+            'fee': None,
+        }
