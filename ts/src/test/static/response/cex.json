@@ -1,0 +1,108 @@
+{
+    "exchange": "cex",
+    "skipKeys": [],
+    "methods": {
+        "fetchTrades": [
+            {
+                "description": "public spot trades",
+                "method": "fetchTrades",
+                "input": [
+                    "BTC/USDT",
+                    null,
+                    1
+                ],
+                "httpResponse": [
+                    {
+                        "type": "sell",
+                        "date": "1710295070",
+                        "amount": "0.00220777",
+                        "price": "72050",
+                        "tid": "1262837"
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "type": "sell",
+                            "date": "1710295070",
+                            "amount": "0.00220777",
+                            "price": "72050",
+                            "tid": "1262837"
+                        },
+                        "id": "1262837",
+                        "timestamp": 1710295070000,
+                        "datetime": "2024-03-13T01:57:50.000Z",
+                        "symbol": "BTC/USDT",
+                        "type": null,
+                        "side": "sell",
+                        "order": null,
+                        "takerOrMaker": null,
+                        "price": 72050,
+                        "amount": 0.00220777,
+                        "cost": 159.0698285,
+                        "fee": null,
+                        "fees": []
+                    }
+                ]
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "public spot ticker",
+                "method": "fetchTicker",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "httpResponse": {
+                    "timestamp": "1710328246",
+                    "low": "70500",
+                    "high": "72600",
+                    "last": "72050",
+                    "volume": "0.03106127",
+                    "volume30d": "20.25389786",
+                    "bid": "72800.1",
+                    "ask": "73500.6",
+                    "priceChange": "-450.0",
+                    "priceChangePercentage": "-0.62",
+                    "pair": "BTC:USDT"
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/USDT",
+                    "timestamp": 1710328246000,
+                    "datetime": "2024-03-13T11:10:46.000Z",
+                    "high": 72600,
+                    "low": 70500,
+                    "bid": 72800.1,
+                    "bidVolume": null,
+                    "ask": 73500.6,
+                    "askVolume": null,
+                    "vwap": null,
+                    "open": null,
+                    "close": 72050,
+                    "last": 72050,
+                    "previousClose": null,
+                    "change": null,
+                    "percentage": null,
+                    "average": null,
+                    "baseVolume": 0.03106127,
+                    "quoteVolume": null,
+                    "info": {
+                        "timestamp": "1710328246",
+                        "low": "70500",
+                        "high": "72600",
+                        "last": "72050",
+                        "volume": "0.03106127",
+                        "volume30d": "20.25389786",
+                        "bid": "72800.1",
+                        "ask": "73500.6",
+                        "priceChange": "-450.0",
+                        "priceChangePercentage": "-0.62",
+                        "pair": "BTC:USDT"
+                    }
+                }
+            }
+        ],
+        "fetchOHLCV": [
+        ]
+    }
+}

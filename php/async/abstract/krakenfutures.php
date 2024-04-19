@@ -7,6 +7,9 @@ namespace ccxt\async\abstract;
 
 
 abstract class krakenfutures extends \ccxt\async\Exchange {
+    public function public_get_feeschedules($params = array()) {
+        return $this->request('feeschedules', 'public', 'GET', $params, null, null, array());
+    }
     public function public_get_instruments($params = array()) {
         return $this->request('instruments', 'public', 'GET', $params, null, null, array());
     }
@@ -21,6 +24,9 @@ abstract class krakenfutures extends \ccxt\async\Exchange {
     }
     public function public_get_historicalfundingrates($params = array()) {
         return $this->request('historicalfundingrates', 'public', 'GET', $params, null, null, array());
+    }
+    public function private_get_feeschedules_volumes($params = array()) {
+        return $this->request('feeschedules/volumes', 'private', 'GET', $params, null, null, array());
     }
     public function private_get_openpositions($params = array()) {
         return $this->request('openpositions', 'private', 'GET', $params, null, null, array());
@@ -42,6 +48,12 @@ abstract class krakenfutures extends \ccxt\async\Exchange {
     }
     public function private_get_transfers($params = array()) {
         return $this->request('transfers', 'private', 'GET', $params, null, null, array());
+    }
+    public function private_get_leveragepreferences($params = array()) {
+        return $this->request('leveragepreferences', 'private', 'GET', $params, null, null, array());
+    }
+    public function private_get_pnlpreferences($params = array()) {
+        return $this->request('pnlpreferences', 'private', 'GET', $params, null, null, array());
     }
     public function private_post_sendorder($params = array()) {
         return $this->request('sendorder', 'private', 'POST', $params, null, null, array());
@@ -67,6 +79,12 @@ abstract class krakenfutures extends \ccxt\async\Exchange {
     public function private_post_withdrawal($params = array()) {
         return $this->request('withdrawal', 'private', 'POST', $params, null, null, array());
     }
+    public function private_put_leveragepreferences($params = array()) {
+        return $this->request('leveragepreferences', 'private', 'PUT', $params, null, null, array());
+    }
+    public function private_put_pnlpreferences($params = array()) {
+        return $this->request('pnlpreferences', 'private', 'PUT', $params, null, null, array());
+    }
     public function charts_get_price_type_symbol_interval($params = array()) {
         return $this->request('{price_type}/{symbol}/{interval}', 'charts', 'GET', $params, null, null, array());
     }
@@ -82,14 +100,17 @@ abstract class krakenfutures extends \ccxt\async\Exchange {
     public function history_get_accountlogcsv($params = array()) {
         return $this->request('accountlogcsv', 'history', 'GET', $params, null, null, array());
     }
+    public function history_get_account_log($params = array()) {
+        return $this->request('account-log', 'history', 'GET', $params, null, null, array());
+    }
     public function history_get_market_symbol_orders($params = array()) {
         return $this->request('market/{symbol}/orders', 'history', 'GET', $params, null, null, array());
     }
     public function history_get_market_symbol_executions($params = array()) {
         return $this->request('market/{symbol}/executions', 'history', 'GET', $params, null, null, array());
     }
-    public function feeschedules_get_volumes($params = array()) {
-        return $this->request('volumes', 'feeschedules', 'GET', $params, null, null, array());
+    public function publicGetFeeschedules($params = array()) {
+        return $this->request('feeschedules', 'public', 'GET', $params, null, null, array());
     }
     public function publicGetInstruments($params = array()) {
         return $this->request('instruments', 'public', 'GET', $params, null, null, array());
@@ -105,6 +126,9 @@ abstract class krakenfutures extends \ccxt\async\Exchange {
     }
     public function publicGetHistoricalfundingrates($params = array()) {
         return $this->request('historicalfundingrates', 'public', 'GET', $params, null, null, array());
+    }
+    public function privateGetFeeschedulesVolumes($params = array()) {
+        return $this->request('feeschedules/volumes', 'private', 'GET', $params, null, null, array());
     }
     public function privateGetOpenpositions($params = array()) {
         return $this->request('openpositions', 'private', 'GET', $params, null, null, array());
@@ -126,6 +150,12 @@ abstract class krakenfutures extends \ccxt\async\Exchange {
     }
     public function privateGetTransfers($params = array()) {
         return $this->request('transfers', 'private', 'GET', $params, null, null, array());
+    }
+    public function privateGetLeveragepreferences($params = array()) {
+        return $this->request('leveragepreferences', 'private', 'GET', $params, null, null, array());
+    }
+    public function privateGetPnlpreferences($params = array()) {
+        return $this->request('pnlpreferences', 'private', 'GET', $params, null, null, array());
     }
     public function privatePostSendorder($params = array()) {
         return $this->request('sendorder', 'private', 'POST', $params, null, null, array());
@@ -151,6 +181,12 @@ abstract class krakenfutures extends \ccxt\async\Exchange {
     public function privatePostWithdrawal($params = array()) {
         return $this->request('withdrawal', 'private', 'POST', $params, null, null, array());
     }
+    public function privatePutLeveragepreferences($params = array()) {
+        return $this->request('leveragepreferences', 'private', 'PUT', $params, null, null, array());
+    }
+    public function privatePutPnlpreferences($params = array()) {
+        return $this->request('pnlpreferences', 'private', 'PUT', $params, null, null, array());
+    }
     public function chartsGetPriceTypeSymbolInterval($params = array()) {
         return $this->request('{price_type}/{symbol}/{interval}', 'charts', 'GET', $params, null, null, array());
     }
@@ -166,13 +202,13 @@ abstract class krakenfutures extends \ccxt\async\Exchange {
     public function historyGetAccountlogcsv($params = array()) {
         return $this->request('accountlogcsv', 'history', 'GET', $params, null, null, array());
     }
+    public function historyGetAccountLog($params = array()) {
+        return $this->request('account-log', 'history', 'GET', $params, null, null, array());
+    }
     public function historyGetMarketSymbolOrders($params = array()) {
         return $this->request('market/{symbol}/orders', 'history', 'GET', $params, null, null, array());
     }
     public function historyGetMarketSymbolExecutions($params = array()) {
         return $this->request('market/{symbol}/executions', 'history', 'GET', $params, null, null, array());
-    }
-    public function feeschedulesGetVolumes($params = array()) {
-        return $this->request('volumes', 'feeschedules', 'GET', $params, null, null, array());
     }
 }

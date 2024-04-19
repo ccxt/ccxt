@@ -1,0 +1,959 @@
+{
+    "exchange": "coinbase",
+    "options": {},
+    "methods": {
+      "fetchMyTrades": [
+        {
+          "description": "Spot trade",
+          "method": "fetchMyTrades",
+          "input": [
+            "ADA/USDT",
+            null,
+            1
+          ],
+          "httpResponse": {
+            "fills": [
+              {
+                "entry_id": "dc7424ac5193601ae273cf704ece1667987d8c0b1077faa5fe3213e8e9efbd30",
+                "trade_id": "19fc7eee-f4b4-40a7-8104-033da1db5311",
+                "order_id": "01b6e467-b659-432f-9490-c7cefe949564",
+                "trade_time": "2023-11-26T10:19:47.504Z",
+                "trade_type": "FILL",
+                "price": "0.392",
+                "size": "10",
+                "commission": "0.03136",
+                "product_id": "ADA-USDT",
+                "sequence_timestamp": "2023-11-26T10:19:47.507001Z",
+                "liquidity_indicator": "TAKER",
+                "size_in_quote": false,
+                "user_id": "dbcb91e7-2bc9-5152-bb6f-72d6677e6727",
+                "side": "SELL",
+                "cursor": "114994851"
+              }
+            ],
+            "cursor": "114994851"
+          },
+          "parsedResponse": [
+            {
+              "info": {
+                "entry_id": "dc7424ac5193601ae273cf704ece1667987d8c0b1077faa5fe3213e8e9efbd30",
+                "trade_id": "19fc7eee-f4b4-40a7-8104-033da1db5311",
+                "order_id": "01b6e467-b659-432f-9490-c7cefe949564",
+                "trade_time": "2023-11-26T10:19:47.504Z",
+                "trade_type": "FILL",
+                "price": "0.392",
+                "size": "10",
+                "commission": "0.03136",
+                "product_id": "ADA-USDT",
+                "sequence_timestamp": "2023-11-26T10:19:47.507001Z",
+                "liquidity_indicator": "TAKER",
+                "size_in_quote": false,
+                "user_id": "dbcb91e7-2bc9-5152-bb6f-72d6677e6727",
+                "side": "SELL",
+                "cursor": "114994851"
+              },
+              "id": "19fc7eee-f4b4-40a7-8104-033da1db5311",
+              "order": "01b6e467-b659-432f-9490-c7cefe949564",
+              "timestamp": 1700993987504,
+              "datetime": "2023-11-26T10:19:47.504Z",
+              "symbol": "ADA/USDT",
+              "type": null,
+              "side": "sell",
+              "takerOrMaker": "taker",
+              "price": 0.392,
+              "amount": 10,
+              "cost": 3.92,
+              "fee": {
+                "cost": 0.03136,
+                "currency": "USDT"
+              },
+              "fees": [
+                {
+                  "cost": 0.03136,
+                  "currency": "USDT"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "description": "swap trade",
+          "method": "fetchMyTrades",
+          "input": [
+            "ADA/USDC:USDC",
+            null,
+            1
+          ],
+          "httpResponse": {
+            "fills": [
+              {
+                "entry_id": "88d1e03f8fa6fc46ba8e1fc99545edd7e07f430cfffa2f95d59ce4ff4442f5f7",
+                "trade_id": "f8e23d3d-29a4-44f9-804d-1c74e4908055",
+                "order_id": "efed4cba-7395-4b02-b927-0c1dce00e0d8",
+                "trade_time": "2024-04-09T11:45:50.552204Z",
+                "trade_type": "FILL",
+                "price": "0.6091",
+                "size": "20",
+                "commission": "0.0036",
+                "product_id": "ADA-PERP-INTX",
+                "sequence_timestamp": "2024-04-09T11:45:50.653257Z",
+                "liquidity_indicator": "TAKER",
+                "size_in_quote": false,
+                "user_id": "dbcb91e7-2bc9-5152-bb6f-72d6677e6727",
+                "side": "BUY",
+                "cursor": "244975901"
+              }
+            ],
+            "cursor": "244975901"
+          },
+          "parsedResponse": [
+            {
+              "info": {
+                "entry_id": "88d1e03f8fa6fc46ba8e1fc99545edd7e07f430cfffa2f95d59ce4ff4442f5f7",
+                "trade_id": "f8e23d3d-29a4-44f9-804d-1c74e4908055",
+                "order_id": "efed4cba-7395-4b02-b927-0c1dce00e0d8",
+                "trade_time": "2024-04-09T11:45:50.552204Z",
+                "trade_type": "FILL",
+                "price": "0.6091",
+                "size": "20",
+                "commission": "0.0036",
+                "product_id": "ADA-PERP-INTX",
+                "sequence_timestamp": "2024-04-09T11:45:50.653257Z",
+                "liquidity_indicator": "TAKER",
+                "size_in_quote": false,
+                "user_id": "dbcb91e7-2bc9-5152-bb6f-72d6677e6727",
+                "side": "BUY",
+                "cursor": "244975901"
+              },
+              "id": "f8e23d3d-29a4-44f9-804d-1c74e4908055",
+              "order": "efed4cba-7395-4b02-b927-0c1dce00e0d8",
+              "timestamp": 1712663150552,
+              "datetime": "2024-04-09T11:45:50.552204Z",
+              "symbol": "ADA/USDC:USDC",
+              "type": null,
+              "side": "buy",
+              "takerOrMaker": "taker",
+              "price": 0.6091,
+              "amount": 20,
+              "cost": 12.182,
+              "fee": {
+                "cost": 0.0036,
+                "currency": "USDC"
+              },
+              "fees": [
+                {
+                  "cost": 0.0036,
+                  "currency": "USDC"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "fetchClosedOrders": [
+        {
+          "description": "Spot closed order",
+          "method": "fetchClosedOrders",
+          "input": [
+            "ADA/USDT",
+            null,
+            1
+          ],
+          "httpResponse": {
+            "orders": [
+              {
+                "order_id": "01b6e467-b659-432f-9490-c7cefe949564",
+                "product_id": "ADA-USDT",
+                "user_id": "dbcb91e7-2bc9-5152-bb6f-72d6677e6727",
+                "order_configuration": {
+                  "market_market_ioc": {
+                    "base_size": "10"
+                  }
+                },
+                "side": "SELL",
+                "client_order_id": "a0f970a2-05fa-4e1f-9517-f6702c33cfd1",
+                "status": "FILLED",
+                "time_in_force": "IMMEDIATE_OR_CANCEL",
+                "created_time": "2023-11-26T10:19:47.423220Z",
+                "completion_percentage": "100.00",
+                "filled_size": "10",
+                "average_filled_price": "0.392",
+                "fee": "",
+                "number_of_fills": "1",
+                "filled_value": "3.92",
+                "pending_cancel": false,
+                "size_in_quote": false,
+                "total_fees": "0.03136",
+                "size_inclusive_of_fees": false,
+                "total_value_after_fees": "3.88864",
+                "trigger_status": "INVALID_ORDER_TYPE",
+                "order_type": "MARKET",
+                "reject_reason": "REJECT_REASON_UNSPECIFIED",
+                "settled": true,
+                "product_type": "SPOT",
+                "reject_message": "",
+                "cancel_message": "",
+                "order_placement_source": "RETAIL_ADVANCED",
+                "outstanding_hold_amount": "0",
+                "is_liquidation": false,
+                "last_fill_time": "2023-11-26T10:19:47.504Z",
+                "edit_history": [],
+                "leverage": "",
+                "margin_type": "UNKNOWN_MARGIN_TYPE",
+                "cursor": "748478308"
+              }
+            ],
+            "sequence": "0",
+            "has_next": true,
+            "cursor": "748478308"
+          },
+          "parsedResponse": [
+            {
+              "info": {
+                "order_id": "01b6e467-b659-432f-9490-c7cefe949564",
+                "product_id": "ADA-USDT",
+                "user_id": "dbcb91e7-2bc9-5152-bb6f-72d6677e6727",
+                "order_configuration": {
+                  "market_market_ioc": {
+                    "base_size": "10"
+                  }
+                },
+                "side": "SELL",
+                "client_order_id": "a0f970a2-05fa-4e1f-9517-f6702c33cfd1",
+                "status": "FILLED",
+                "time_in_force": "IMMEDIATE_OR_CANCEL",
+                "created_time": "2023-11-26T10:19:47.423220Z",
+                "completion_percentage": "100.00",
+                "filled_size": "10",
+                "average_filled_price": "0.392",
+                "fee": "",
+                "number_of_fills": "1",
+                "filled_value": "3.92",
+                "pending_cancel": false,
+                "size_in_quote": false,
+                "total_fees": "0.03136",
+                "size_inclusive_of_fees": false,
+                "total_value_after_fees": "3.88864",
+                "trigger_status": "INVALID_ORDER_TYPE",
+                "order_type": "MARKET",
+                "reject_reason": "REJECT_REASON_UNSPECIFIED",
+                "settled": true,
+                "product_type": "SPOT",
+                "reject_message": "",
+                "cancel_message": "",
+                "order_placement_source": "RETAIL_ADVANCED",
+                "outstanding_hold_amount": "0",
+                "is_liquidation": false,
+                "last_fill_time": "2023-11-26T10:19:47.504Z",
+                "edit_history": [],
+                "leverage": "",
+                "margin_type": "UNKNOWN_MARGIN_TYPE",
+                "cursor": "748478308"
+              },
+              "id": "01b6e467-b659-432f-9490-c7cefe949564",
+              "clientOrderId": "a0f970a2-05fa-4e1f-9517-f6702c33cfd1",
+              "timestamp": 1700993987423,
+              "datetime": "2023-11-26T10:19:47.423220Z",
+              "lastTradeTimestamp": null,
+              "symbol": "ADA/USDT",
+              "type": "market",
+              "timeInForce": "IOC",
+              "postOnly": false,
+              "side": "sell",
+              "price": 0.392,
+              "stopPrice": null,
+              "triggerPrice": null,
+              "amount": 10,
+              "filled": 10,
+              "remaining": 0,
+              "cost": 3.92,
+              "average": 0.392,
+              "status": "closed",
+              "fee": {
+                "cost": "0.03136",
+                "currency": "USDT"
+              },
+              "trades": [],
+              "fees": [
+                {
+                  "cost": 0.03136,
+                  "currency": "USDT"
+                }
+              ],
+              "lastUpdateTimestamp": null,
+              "reduceOnly": null,
+              "takeProfitPrice": null,
+              "stopLossPrice": null
+            }
+          ]
+        }
+      ],
+      "fetchPositions": [
+        {
+          "description": "ada position",
+          "method": "fetchPositions",
+          "input": [
+            [
+              "ADA/USDC:USDC"
+            ],
+            {
+              "portfolio": "018ebd63-1f6d-7c8e-ada9-0761c5a2235f"
+            }
+          ],
+          "httpResponse": {
+            "positions": [
+              {
+                "product_id": "1r4njf84-0-0",
+                "product_uuid": "cd34c18b-3665-4ed8-9305-3db277c49fc5",
+                "symbol": "ADA-PERP-INTX",
+                "vwap": {
+                  "value": "0.5648",
+                  "currency": "USDC"
+                },
+                "position_side": "POSITION_SIDE_LONG",
+                "net_size": "20",
+                "buy_order_size": "0",
+                "sell_order_size": "0",
+                "im_contribution": "0.1",
+                "unrealized_pnl": {
+                  "value": "0.018",
+                  "currency": "USDC"
+                },
+                "mark_price": {
+                  "value": "0.5657",
+                  "currency": "USDC"
+                },
+                "liquidation_price": {
+                  "value": "0",
+                  "currency": "USDC"
+                },
+                "leverage": "1",
+                "im_notional": {
+                  "value": "11.296",
+                  "currency": "USDC"
+                },
+                "mm_notional": {
+                  "value": "0.745536",
+                  "currency": "USDC"
+                },
+                "position_notional": {
+                  "value": "11.296",
+                  "currency": "USDC"
+                },
+                "margin_type": "MARGIN_TYPE_CROSS",
+                "liquidation_buffer": "18.621364",
+                "liquidation_percentage": "4848.5055",
+                "portfolio_summary": {
+                  "portfolio_uuid": "018ebd63-1f6d-7c8e-ada9-0761c5a2235f",
+                  "collateral": "19.3489",
+                  "position_notional": "11.296",
+                  "open_position_notional": "11.296",
+                  "pending_fees": "0",
+                  "borrow": "0",
+                  "accrued_interest": "0",
+                  "rolling_debt": "0",
+                  "portfolio_initial_margin": "0.1",
+                  "portfolio_im_notional": {
+                    "value": "11.296",
+                    "currency": "USDC"
+                  },
+                  "portfolio_maintenance_margin": "0.066",
+                  "portfolio_mm_notional": {
+                    "value": "0.745536",
+                    "currency": "USDC"
+                  },
+                  "liquidation_percentage": "4848.5055",
+                  "liquidation_buffer": "18.621364",
+                  "margin_type": "MARGIN_TYPE_CROSS",
+                  "margin_flags": "PORTFOLIO_MARGIN_FLAGS_UNSPECIFIED",
+                  "liquidation_status": "PORTFOLIO_LIQUIDATION_STATUS_NOT_LIQUIDATING",
+                  "unrealized_pnl": {
+                    "value": "0.018",
+                    "currency": "USDC"
+                  },
+                  "buying_power": {
+                    "value": "8.0709",
+                    "currency": "USDC"
+                  },
+                  "total_balance": {
+                    "value": "19.3669",
+                    "currency": "USDC"
+                  },
+                  "max_withdrawal": {
+                    "value": "8.0529",
+                    "currency": "USDC"
+                  }
+                },
+                "entry_vwap": {
+                  "value": "0.6091",
+                  "currency": "USDC"
+                }
+              }
+            ],
+            "portfolio_summary": {
+              "portfolio_uuid": "018ebd63-1f6d-7c8e-ada9-0761c5a2235f",
+              "collateral": "",
+              "position_notional": "",
+              "open_position_notional": "",
+              "pending_fees": "",
+              "borrow": "",
+              "accrued_interest": "",
+              "rolling_debt": "",
+              "portfolio_initial_margin": "",
+              "portfolio_im_notional": null,
+              "portfolio_maintenance_margin": "",
+              "portfolio_mm_notional": null,
+              "liquidation_percentage": "",
+              "liquidation_buffer": "",
+              "margin_type": "MARGIN_TYPE_UNSPECIFIED",
+              "margin_flags": "PORTFOLIO_MARGIN_FLAGS_UNSPECIFIED",
+              "liquidation_status": "PORTFOLIO_LIQUIDATION_STATUS_UNSPECIFIED",
+              "unrealized_pnl": {
+                "value": "0",
+                "currency": "USDC"
+              },
+              "buying_power": {
+                "value": "8.0709",
+                "currency": "USDC"
+              },
+              "total_balance": {
+                "value": "0",
+                "currency": "USDC"
+              },
+              "max_withdrawal": {
+                "value": "8.0529",
+                "currency": "USDC"
+              }
+            }
+          },
+          "parsedResponse": [
+            {
+              "info": {
+                "product_id": "1r4njf84-0-0",
+                "product_uuid": "cd34c18b-3665-4ed8-9305-3db277c49fc5",
+                "symbol": "ADA-PERP-INTX",
+                "vwap": {
+                  "value": "0.5648",
+                  "currency": "USDC"
+                },
+                "position_side": "POSITION_SIDE_LONG",
+                "net_size": "20",
+                "buy_order_size": "0",
+                "sell_order_size": "0",
+                "im_contribution": "0.1",
+                "unrealized_pnl": {
+                  "value": "0.018",
+                  "currency": "USDC"
+                },
+                "mark_price": {
+                  "value": "0.5657",
+                  "currency": "USDC"
+                },
+                "liquidation_price": {
+                  "value": "0",
+                  "currency": "USDC"
+                },
+                "leverage": "1",
+                "im_notional": {
+                  "value": "11.296",
+                  "currency": "USDC"
+                },
+                "mm_notional": {
+                  "value": "0.745536",
+                  "currency": "USDC"
+                },
+                "position_notional": {
+                  "value": "11.296",
+                  "currency": "USDC"
+                },
+                "margin_type": "MARGIN_TYPE_CROSS",
+                "liquidation_buffer": "18.621364",
+                "liquidation_percentage": "4848.5055",
+                "portfolio_summary": {
+                  "portfolio_uuid": "018ebd63-1f6d-7c8e-ada9-0761c5a2235f",
+                  "collateral": "19.3489",
+                  "position_notional": "11.296",
+                  "open_position_notional": "11.296",
+                  "pending_fees": "0",
+                  "borrow": "0",
+                  "accrued_interest": "0",
+                  "rolling_debt": "0",
+                  "portfolio_initial_margin": "0.1",
+                  "portfolio_im_notional": {
+                    "value": "11.296",
+                    "currency": "USDC"
+                  },
+                  "portfolio_maintenance_margin": "0.066",
+                  "portfolio_mm_notional": {
+                    "value": "0.745536",
+                    "currency": "USDC"
+                  },
+                  "liquidation_percentage": "4848.5055",
+                  "liquidation_buffer": "18.621364",
+                  "margin_type": "MARGIN_TYPE_CROSS",
+                  "margin_flags": "PORTFOLIO_MARGIN_FLAGS_UNSPECIFIED",
+                  "liquidation_status": "PORTFOLIO_LIQUIDATION_STATUS_NOT_LIQUIDATING",
+                  "unrealized_pnl": {
+                    "value": "0.018",
+                    "currency": "USDC"
+                  },
+                  "buying_power": {
+                    "value": "8.0709",
+                    "currency": "USDC"
+                  },
+                  "total_balance": {
+                    "value": "19.3669",
+                    "currency": "USDC"
+                  },
+                  "max_withdrawal": {
+                    "value": "8.0529",
+                    "currency": "USDC"
+                  }
+                },
+                "entry_vwap": {
+                  "value": "0.6091",
+                  "currency": "USDC"
+                }
+              },
+              "id": "1r4njf84-0-0",
+              "symbol": "ADA/USDC:USDC",
+              "notional": 11.296,
+              "marginMode": "cross",
+              "liquidationPrice": 0,
+              "entryPrice": 0.5648,
+              "unrealizedPnl": 0.018,
+              "realizedPnl": null,
+              "percentage": null,
+              "contracts": 20,
+              "contractSize": 1,
+              "markPrice": null,
+              "lastPrice": null,
+              "side": "long",
+              "hedged": null,
+              "timestamp": null,
+              "datetime": null,
+              "lastUpdateTimestamp": null,
+              "maintenanceMargin": null,
+              "maintenanceMarginPercentage": null,
+              "collateral": 19.3489,
+              "initialMargin": null,
+              "initialMarginPercentage": null,
+              "leverage": 1,
+              "marginRatio": null,
+              "stopLossPrice": null,
+              "takeProfitPrice": null
+            }
+          ]
+        }
+      ],
+      "fetchBalance": [
+        {
+          "description": "v3 balance",
+          "method": "fetchBalance",
+          "input": [
+            {
+              "limit": 3
+            }
+          ],
+          "httpResponse": {
+            "data": [
+              {
+                "id": "e43047d8-3c24-56bf-bbd7-84dc284ab018",
+                "name": "MASK Wallet",
+                "primary": true,
+                "type": "wallet",
+                "balance": {
+                  "amount": "0.00000000",
+                  "currency": "MASK"
+                },
+                "created_at": "2023-08-28T23:49:17Z",
+                "updated_at": "2023-08-28T23:49:17Z",
+                "resource": "account",
+                "resource_path": "/v2/accounts/e43047d8-3c24-56bf-bbd7-84dc284ab018",
+                "currency": {
+                  "asset_id": "45ce7f01-2962-5576-8dfd-449e4a49b75d",
+                  "code": "MASK",
+                  "color": "#1C68F3",
+                  "exponent": "8",
+                  "name": "Mask Network",
+                  "slug": "mask-network",
+                  "type": "crypto",
+                  "rewards": null
+                },
+                "allow_deposits": true,
+                "allow_withdrawals": true
+              },
+              {
+                "id": "ee4ccb01-e922-5472-a6f7-947d97970ad3",
+                "name": "Staked ADA",
+                "primary": false,
+                "type": "wallet",
+                "balance": {
+                  "amount": "5.047160",
+                  "currency": "ADA"
+                },
+                "created_at": "2023-03-21T00:24:47Z",
+                "updated_at": "2024-04-10T22:01:12Z",
+                "resource": "account",
+                "resource_path": "/v2/accounts/ee4ccb01-e922-5472-a6f7-947d97970ad3",
+                "currency": {
+                  "asset_id": "63062039-7afb-56ff-8e19-5e3215dc404a",
+                  "code": "ADA",
+                  "color": "#0033AD",
+                  "exponent": "6",
+                  "name": "Cardano",
+                  "slug": "cardano",
+                  "type": "crypto",
+                  "rewards": {
+                    "apy": "0.02",
+                    "formatted_apy": "2.00%",
+                    "label": "2.00% APY"
+                  }
+                },
+                "allow_deposits": true,
+                "allow_withdrawals": true
+              },
+              {
+                "id": "9347d538-945b-53d0-a7f3-3ebae4a2f8d5",
+                "name": "ADA Wallet",
+                "primary": true,
+                "type": "wallet",
+                "balance": {
+                  "amount": "22.314018",
+                  "currency": "ADA"
+                },
+                "created_at": "2023-01-19T14:58:29Z",
+                "updated_at": "2024-04-08T13:15:33Z",
+                "resource": "account",
+                "resource_path": "/v2/accounts/9347d538-945b-53d0-a7f3-3ebae4a2f8d5",
+                "currency": {
+                  "asset_id": "63062039-7afb-56ff-8e19-5e3215dc404a",
+                  "code": "ADA",
+                  "color": "#0033AD",
+                  "exponent": "6",
+                  "name": "Cardano",
+                  "slug": "cardano",
+                  "type": "crypto",
+                  "rewards": {
+                    "apy": "0.02",
+                    "formatted_apy": "2.00%",
+                    "label": "2.00% APY"
+                  }
+                },
+                "allow_deposits": true,
+                "allow_withdrawals": true
+              }
+            ],
+            "pagination": {
+              "ending_before": null,
+              "limit": "3",
+              "next_starting_after": "9347d538-945b-53d0-a7f3-3ebae4a2f8d5",
+              "next_uri": "/v2/accounts?limit=3&starting_after=9347d538-945b-53d0-a7f3-3ebae4a2f8d5",
+              "order": "desc",
+              "previous_ending_before": null,
+              "previous_uri": null,
+              "starting_after": null
+            }
+          },
+          "parsedResponse": {
+            "info": {
+              "data": [
+                {
+                  "id": "e43047d8-3c24-56bf-bbd7-84dc284ab018",
+                  "name": "MASK Wallet",
+                  "primary": true,
+                  "type": "wallet",
+                  "balance": {
+                    "amount": "0.00000000",
+                    "currency": "MASK"
+                  },
+                  "created_at": "2023-08-28T23:49:17Z",
+                  "updated_at": "2023-08-28T23:49:17Z",
+                  "resource": "account",
+                  "resource_path": "/v2/accounts/e43047d8-3c24-56bf-bbd7-84dc284ab018",
+                  "currency": {
+                    "asset_id": "45ce7f01-2962-5576-8dfd-449e4a49b75d",
+                    "code": "MASK",
+                    "color": "#1C68F3",
+                    "exponent": "8",
+                    "name": "Mask Network",
+                    "slug": "mask-network",
+                    "type": "crypto",
+                    "rewards": null
+                  },
+                  "allow_deposits": true,
+                  "allow_withdrawals": true
+                },
+                {
+                  "id": "ee4ccb01-e922-5472-a6f7-947d97970ad3",
+                  "name": "Staked ADA",
+                  "primary": false,
+                  "type": "wallet",
+                  "balance": {
+                    "amount": "5.047160",
+                    "currency": "ADA"
+                  },
+                  "created_at": "2023-03-21T00:24:47Z",
+                  "updated_at": "2024-04-10T22:01:12Z",
+                  "resource": "account",
+                  "resource_path": "/v2/accounts/ee4ccb01-e922-5472-a6f7-947d97970ad3",
+                  "currency": {
+                    "asset_id": "63062039-7afb-56ff-8e19-5e3215dc404a",
+                    "code": "ADA",
+                    "color": "#0033AD",
+                    "exponent": "6",
+                    "name": "Cardano",
+                    "slug": "cardano",
+                    "type": "crypto",
+                    "rewards": {
+                      "apy": "0.02",
+                      "formatted_apy": "2.00%",
+                      "label": "2.00% APY"
+                    }
+                  },
+                  "allow_deposits": true,
+                  "allow_withdrawals": true
+                },
+                {
+                  "id": "9347d538-945b-53d0-a7f3-3ebae4a2f8d5",
+                  "name": "ADA Wallet",
+                  "primary": true,
+                  "type": "wallet",
+                  "balance": {
+                    "amount": "22.314018",
+                    "currency": "ADA"
+                  },
+                  "created_at": "2023-01-19T14:58:29Z",
+                  "updated_at": "2024-04-08T13:15:33Z",
+                  "resource": "account",
+                  "resource_path": "/v2/accounts/9347d538-945b-53d0-a7f3-3ebae4a2f8d5",
+                  "currency": {
+                    "asset_id": "63062039-7afb-56ff-8e19-5e3215dc404a",
+                    "code": "ADA",
+                    "color": "#0033AD",
+                    "exponent": "6",
+                    "name": "Cardano",
+                    "slug": "cardano",
+                    "type": "crypto",
+                    "rewards": {
+                      "apy": "0.02",
+                      "formatted_apy": "2.00%",
+                      "label": "2.00% APY"
+                    }
+                  },
+                  "allow_deposits": true,
+                  "allow_withdrawals": true
+                }
+              ],
+              "pagination": {
+                "ending_before": null,
+                "limit": "3",
+                "next_starting_after": "9347d538-945b-53d0-a7f3-3ebae4a2f8d5",
+                "next_uri": "/v2/accounts?limit=3&starting_after=9347d538-945b-53d0-a7f3-3ebae4a2f8d5",
+                "order": "desc",
+                "previous_ending_before": null,
+                "previous_uri": null,
+                "starting_after": null
+              }
+            },
+            "MASK": {
+              "free": 0,
+              "used": 0,
+              "total": 0
+            },
+            "ADA": {
+              "free": 27.361178,
+              "used": 0,
+              "total": 27.361178
+            },
+            "free": {
+              "MASK": 0,
+              "ADA": 27.361178
+            },
+            "used": {
+              "MASK": 0,
+              "ADA": 0
+            },
+            "total": {
+              "MASK": 0,
+              "ADA": 27.361178
+            }
+          }
+        },
+        {
+          "description": "v2 balance",
+          "method": "fetchBalance",
+          "input": [
+            {
+              "limit": 2,
+              "method": "v2PrivateGetAccounts"
+            }
+          ],
+          "httpResponse": {
+            "data": [
+              {
+                "id": "e43047d8-3c24-56bf-bbd7-84dc284ab018",
+                "name": "MASK Wallet",
+                "primary": true,
+                "type": "wallet",
+                "balance": {
+                  "amount": "0.00000000",
+                  "currency": "MASK"
+                },
+                "created_at": "2023-08-28T23:49:17Z",
+                "updated_at": "2023-08-28T23:49:17Z",
+                "resource": "account",
+                "resource_path": "/v2/accounts/e43047d8-3c24-56bf-bbd7-84dc284ab018",
+                "currency": {
+                  "asset_id": "45ce7f01-2962-5576-8dfd-449e4a49b75d",
+                  "code": "MASK",
+                  "color": "#1C68F3",
+                  "exponent": "8",
+                  "name": "Mask Network",
+                  "slug": "mask-network",
+                  "type": "crypto",
+                  "rewards": null
+                },
+                "allow_deposits": true,
+                "allow_withdrawals": true
+              },
+              {
+                "id": "ee4ccb01-e922-5472-a6f7-947d97970ad3",
+                "name": "Staked ADA",
+                "primary": false,
+                "type": "wallet",
+                "balance": {
+                  "amount": "5.047160",
+                  "currency": "ADA"
+                },
+                "created_at": "2023-03-21T00:24:47Z",
+                "updated_at": "2024-04-10T22:01:12Z",
+                "resource": "account",
+                "resource_path": "/v2/accounts/ee4ccb01-e922-5472-a6f7-947d97970ad3",
+                "currency": {
+                  "asset_id": "63062039-7afb-56ff-8e19-5e3215dc404a",
+                  "code": "ADA",
+                  "color": "#0033AD",
+                  "exponent": "6",
+                  "name": "Cardano",
+                  "slug": "cardano",
+                  "type": "crypto",
+                  "rewards": {
+                    "apy": "0.02",
+                    "formatted_apy": "2.00%",
+                    "label": "2.00% APY"
+                  }
+                },
+                "allow_deposits": true,
+                "allow_withdrawals": true
+              }
+            ],
+            "pagination": {
+              "ending_before": null,
+              "limit": "2",
+              "next_starting_after": "ee4ccb01-e922-5472-a6f7-947d97970ad3",
+              "next_uri": "/v2/accounts?limit=2&starting_after=ee4ccb01-e922-5472-a6f7-947d97970ad3",
+              "order": "desc",
+              "previous_ending_before": null,
+              "previous_uri": null,
+              "starting_after": null
+            }
+          },
+          "parsedResponse": {
+            "info": {
+              "data": [
+                {
+                  "id": "e43047d8-3c24-56bf-bbd7-84dc284ab018",
+                  "name": "MASK Wallet",
+                  "primary": true,
+                  "type": "wallet",
+                  "balance": {
+                    "amount": "0.00000000",
+                    "currency": "MASK"
+                  },
+                  "created_at": "2023-08-28T23:49:17Z",
+                  "updated_at": "2023-08-28T23:49:17Z",
+                  "resource": "account",
+                  "resource_path": "/v2/accounts/e43047d8-3c24-56bf-bbd7-84dc284ab018",
+                  "currency": {
+                    "asset_id": "45ce7f01-2962-5576-8dfd-449e4a49b75d",
+                    "code": "MASK",
+                    "color": "#1C68F3",
+                    "exponent": "8",
+                    "name": "Mask Network",
+                    "slug": "mask-network",
+                    "type": "crypto",
+                    "rewards": null
+                  },
+                  "allow_deposits": true,
+                  "allow_withdrawals": true
+                },
+                {
+                  "id": "ee4ccb01-e922-5472-a6f7-947d97970ad3",
+                  "name": "Staked ADA",
+                  "primary": false,
+                  "type": "wallet",
+                  "balance": {
+                    "amount": "5.047160",
+                    "currency": "ADA"
+                  },
+                  "created_at": "2023-03-21T00:24:47Z",
+                  "updated_at": "2024-04-10T22:01:12Z",
+                  "resource": "account",
+                  "resource_path": "/v2/accounts/ee4ccb01-e922-5472-a6f7-947d97970ad3",
+                  "currency": {
+                    "asset_id": "63062039-7afb-56ff-8e19-5e3215dc404a",
+                    "code": "ADA",
+                    "color": "#0033AD",
+                    "exponent": "6",
+                    "name": "Cardano",
+                    "slug": "cardano",
+                    "type": "crypto",
+                    "rewards": {
+                      "apy": "0.02",
+                      "formatted_apy": "2.00%",
+                      "label": "2.00% APY"
+                    }
+                  },
+                  "allow_deposits": true,
+                  "allow_withdrawals": true
+                }
+              ],
+              "pagination": {
+                "ending_before": null,
+                "limit": "2",
+                "next_starting_after": "ee4ccb01-e922-5472-a6f7-947d97970ad3",
+                "next_uri": "/v2/accounts?limit=2&starting_after=ee4ccb01-e922-5472-a6f7-947d97970ad3",
+                "order": "desc",
+                "previous_ending_before": null,
+                "previous_uri": null,
+                "starting_after": null
+              }
+            },
+            "MASK": {
+              "free": 0,
+              "used": 0,
+              "total": 0
+            },
+            "ADA": {
+              "free": 5.04716,
+              "used": 0,
+              "total": 5.04716
+            },
+            "free": {
+              "MASK": 0,
+              "ADA": 5.04716
+            },
+            "used": {
+              "MASK": 0,
+              "ADA": 0
+            },
+            "total": {
+              "MASK": 0,
+              "ADA": 5.04716
+            }
+          }
+        }
+      ]
+    }
+}

@@ -6,10 +6,10 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.exmo import ImplicitAPI
 import hashlib
-from ccxt.base.types import OrderSide
-from typing import Optional
+from ccxt.base.types import Balances, Currencies, Currency, Int, MarginModification, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
@@ -19,7 +19,6 @@ from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import InvalidNonce
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -48,6 +47,7 @@ class exmo(Exchange, ImplicitAPI):
                 'createStopLimitOrder': True,
                 'createStopMarketOrder': True,
                 'createStopOrder': True,
+                'editOrder': True,  # margin only
                 'fetchAccounts': False,
                 'fetchBalance': True,
                 'fetchCanceledOrders': True,
@@ -55,6 +55,7 @@ class exmo(Exchange, ImplicitAPI):
                 'fetchDeposit': True,
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
+                'fetchDepositsWithdrawals': True,
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': True,
                 'fetchFundingHistory': False,
@@ -81,7 +82,7 @@ class exmo(Exchange, ImplicitAPI):
                 'fetchTradingFee': False,
                 'fetchTradingFees': True,
                 'fetchTransactionFees': True,
-                'fetchTransactions': True,
+                'fetchTransactions': 'emulated',
                 'fetchTransfer': False,
                 'fetchTransfers': False,
                 'fetchWithdrawal': True,
@@ -215,6 +216,7 @@ class exmo(Exchange, ImplicitAPI):
             'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
+                    '140434': BadRequest,
                     '40005': AuthenticationError,  # Authorization error, incorrect signature
                     '40009': InvalidNonce,  #
                     '40015': ExchangeError,  # API function do not exist
@@ -247,97 +249,105 @@ class exmo(Exchange, ImplicitAPI):
             'position_id': market['id'],
             'quantity': amount,
         }
-        method = None
+        response = None
         if type == 'add':
-            method = 'privatePostMarginUserPositionMarginAdd'
+            response = self.privatePostMarginUserPositionMarginAdd(self.extend(request, params))
         elif type == 'reduce':
-            method = 'privatePostMarginUserPositionMarginReduce'
-        response = getattr(self, method)(self.extend(request, params))
+            response = self.privatePostMarginUserPositionMarginRemove(self.extend(request, params))
         #
         #      {}
         #
         margin = self.parse_margin_modification(response, market)
         options = self.safe_value(self.options, 'margin', {})
-        fillResponseFromRequest = self.safe_value(options, 'fillResponseFromRequest', True)
+        fillResponseFromRequest = self.safe_bool(options, 'fillResponseFromRequest', True)
         if fillResponseFromRequest:
             margin['type'] = type
             margin['amount'] = amount
         return margin
 
-    def parse_margin_modification(self, data, market=None):
+    def parse_margin_modification(self, data, market: Market = None) -> MarginModification:
         #
         #      {}
         #
         return {
             'info': data,
-            'type': None,
-            'amount': None,
-            'code': self.safe_value(market, 'quote'),
             'symbol': self.safe_symbol(None, market),
+            'type': None,
+            'marginMode': 'isolated',
+            'amount': None,
             'total': None,
+            'code': self.safe_value(market, 'quote'),
             'status': 'ok',
+            'timestamp': None,
+            'datetime': None,
         }
 
-    def reduce_margin(self, symbol: str, amount, params={}):
+    def reduce_margin(self, symbol: str, amount, params={}) -> MarginModification:
         """
         remove margin from a position
+        :see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#eebf9f25-0289-4946-9482-89872c738449
         :param str symbol: unified market symbol
         :param float amount: the amount of margin to remove
-        :param dict params: extra parameters specific to the exmo api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `margin structure <https://docs.ccxt.com/#/?id=reduce-margin-structure>`
         """
         return self.modify_margin_helper(symbol, amount, 'reduce', params)
 
-    def add_margin(self, symbol: str, amount, params={}):
+    def add_margin(self, symbol: str, amount, params={}) -> MarginModification:
         """
         add margin
+        :see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#143ef808-79ca-4e49-9e79-a60ea4d8c0e3
         :param str symbol: unified market symbol
         :param float amount: amount of margin to add
-        :param dict params: extra parameters specific to the exmo api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `margin structure <https://docs.ccxt.com/#/?id=add-margin-structure>`
         """
         return self.modify_margin_helper(symbol, amount, 'add', params)
 
-    def fetch_trading_fees(self, params={}):
+    def fetch_trading_fees(self, params={}) -> TradingFees:
         """
         fetch the trading fees for multiple markets
-        :param dict params: extra parameters specific to the exmo api endpoint
+        :see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#90927062-256c-4b03-900f-2b99131f9a54
+        :see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#7de7e75c-5833-45a8-b937-c2276d235aaa
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>` indexed by market symbols
         """
-        method = self.safe_string(params, 'method')
+        options = self.safe_value(self.options, 'fetchTradingFees', {})
+        defaultMethod = self.safe_string(options, 'method', 'fetchPrivateTradingFees')
+        method = self.safe_string(params, 'method', defaultMethod)
         params = self.omit(params, 'method')
-        if method is None:
-            options = self.safe_value(self.options, 'fetchTradingFees', {})
-            method = self.safe_string(options, 'method', 'fetchPrivateTradingFees')
-        return getattr(self, method)(params)
+        if method == 'fetchPrivateTradingFees':
+            return self.fetch_private_trading_fees(params)
+        else:
+            return self.fetch_public_trading_fees(params)
 
     def fetch_private_trading_fees(self, params={}):
         self.load_markets()
         response = self.privatePostMarginPairList(params)
         #
         #     {
-        #         pairs: [{
-        #             name: 'EXM_USD',
-        #             buy_price: '0.02728391',
-        #             sell_price: '0.0276',
-        #             last_trade_price: '0.0276',
-        #             ticker_updated: '1646956050056696046',
-        #             is_fair_price: True,
-        #             max_price_precision: '8',
-        #             min_order_quantity: '1',
-        #             max_order_quantity: '50000',
-        #             min_order_price: '0.00000001',
-        #             max_order_price: '1000',
-        #             max_position_quantity: '50000',
-        #             trade_taker_fee: '0.05',
-        #             trade_maker_fee: '0',
-        #             liquidation_fee: '0.5',
-        #             max_leverage: '3',
-        #             default_leverage: '3',
-        #             liquidation_level: '5',
-        #             margin_call_level: '7.5',
-        #             position: '1',
-        #             updated: '1638976144797807397'
+        #         "pairs": [{
+        #             "name": "EXM_USD",
+        #             "buy_price": "0.02728391",
+        #             "sell_price": "0.0276",
+        #             "last_trade_price": "0.0276",
+        #             "ticker_updated": "1646956050056696046",
+        #             "is_fair_price": True,
+        #             "max_price_precision": "8",
+        #             "min_order_quantity": "1",
+        #             "max_order_quantity": "50000",
+        #             "min_order_price": "0.00000001",
+        #             "max_order_price": "1000",
+        #             "max_position_quantity": "50000",
+        #             "trade_taker_fee": "0.05",
+        #             "trade_maker_fee": "0",
+        #             "liquidation_fee": "0.5",
+        #             "max_leverage": "3",
+        #             "default_leverage": "3",
+        #             "liquidation_level": "5",
+        #             "margin_call_level": "7.5",
+        #             "position": "1",
+        #             "updated": "1638976144797807397"
         #         }
         #         ...
         #         ]
@@ -368,16 +378,16 @@ class exmo(Exchange, ImplicitAPI):
         response = self.publicGetPairSettings(params)
         #
         #     {
-        #         BTC_USD: {
-        #             min_quantity: '0.00002',
-        #             max_quantity: '1000',
-        #             min_price: '1',
-        #             max_price: '150000',
-        #             max_amount: '500000',
-        #             min_amount: '1',
-        #             price_precision: '2',
-        #             commission_taker_percent: '0.3',
-        #             commission_maker_percent: '0.3'
+        #         "BTC_USD": {
+        #             "min_quantity": "0.00002",
+        #             "max_quantity": "1000",
+        #             "min_price": "1",
+        #             "max_price": "150000",
+        #             "max_amount": "500000",
+        #             "min_amount": "1",
+        #             "price_precision": "2",
+        #             "commission_taker_percent": "0.3",
+        #             "commission_maker_percent": "0.3"
         #         },
         #     }
         #
@@ -413,12 +423,13 @@ class exmo(Exchange, ImplicitAPI):
             raise ExchangeError(self.id + ' parseFixedFloatValue() detected an unsupported non-zero percentage-based fee ' + input)
         return result
 
-    def fetch_transaction_fees(self, codes=None, params={}):
+    def fetch_transaction_fees(self, codes: List[str] = None, params={}):
         """
-        *DEPRECATED* please use fetchDepositWithdrawFees instead
-        see https://documenter.getpostman.com/view/10287440/SzYXWKPi#4190035d-24b1-453d-833b-37e0a52f88e2
-        :param [str]|None codes: list of unified currency codes
-        :param dict params: extra parameters specific to the exmo api endpoint
+         * @deprecated
+        please use fetchDepositWithdrawFees instead
+        :see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#4190035d-24b1-453d-833b-37e0a52f88e2
+        :param str[]|None codes: list of unified currency codes
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a list of `transaction fees structures <https://docs.ccxt.com/#/?id=fees-structure>`
         """
         self.load_markets()
@@ -481,12 +492,12 @@ class exmo(Exchange, ImplicitAPI):
         self.options['transactionFees'] = result
         return result
 
-    def fetch_deposit_withdraw_fees(self, codes=None, params={}):
+    def fetch_deposit_withdraw_fees(self, codes: Strings = None, params={}):
         """
         fetch deposit and withdraw fees
-        see https://documenter.getpostman.com/view/10287440/SzYXWKPi#4190035d-24b1-453d-833b-37e0a52f88e2
-        :param [str]|None codes: list of unified currency codes
-        :param dict params: extra parameters specific to the exmo api endpoint
+        :see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#4190035d-24b1-453d-833b-37e0a52f88e2
+        :param str[]|None codes: list of unified currency codes
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a list of `transaction fees structures <https://docs.ccxt.com/#/?id=fees-structure>`
         """
         self.load_markets()
@@ -515,7 +526,7 @@ class exmo(Exchange, ImplicitAPI):
         self.options['transactionFees'] = result
         return result
 
-    def parse_deposit_withdraw_fee(self, fee, currency=None):
+    def parse_deposit_withdraw_fee(self, fee, currency: Currency = None):
         #
         #    [
         #        {
@@ -563,10 +574,12 @@ class exmo(Exchange, ImplicitAPI):
             }
         return self.assign_default_deposit_withdraw_fees(result)
 
-    def fetch_currencies(self, params={}):
+    def fetch_currencies(self, params={}) -> Currencies:
         """
         fetches all available currencies on an exchange
-        :param dict params: extra parameters specific to the exmo api endpoint
+        :see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#7cdf0ca8-9ff6-4cf3-aa33-bcec83155c49
+        :see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#4190035d-24b1-453d-833b-37e0a52f88e2
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an associative dictionary of currencies
         """
         #
@@ -632,9 +645,9 @@ class exmo(Exchange, ImplicitAPI):
                 for j in range(0, len(providers)):
                     provider = providers[j]
                     typeInner = self.safe_string(provider, 'type')
-                    minValue = self.safe_number(provider, 'min')
-                    maxValue = self.safe_number(provider, 'max')
-                    if maxValue == 0.0:
+                    minValue = self.safe_string(provider, 'min')
+                    maxValue = self.safe_string(provider, 'max')
+                    if Precise.string_eq(maxValue, '0.0'):
                         maxValue = None
                     activeProvider = self.safe_value(provider, 'enabled')
                     if typeInner == 'deposit':
@@ -649,7 +662,8 @@ class exmo(Exchange, ImplicitAPI):
                             withdrawEnabled = False
                     if activeProvider:
                         active = True
-                        if (limits[typeInner]['min'] is None) or (minValue < limits[typeInner]['min']):
+                        limitMin = self.number_to_string(limits[typeInner]['min'])
+                        if (limits[typeInner]['min'] is None) or (Precise.string_lt(minValue, limitMin)):
                             limits[typeInner]['min'] = minValue
                             limits[typeInner]['max'] = maxValue
                             if typeInner == 'withdraw':
@@ -672,11 +686,12 @@ class exmo(Exchange, ImplicitAPI):
             }
         return result
 
-    def fetch_markets(self, params={}):
+    def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for exmo
-        :param dict params: extra parameters specific to the exchange api endpoint
-        :returns [dict]: an array of objects representing market data
+        :see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#7de7e75c-5833-45a8-b937-c2276d235aaa
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: an array of objects representing market data
         """
         response = self.publicGetPairSettings(params)
         #
@@ -694,17 +709,54 @@ class exmo(Exchange, ImplicitAPI):
         #         },
         #     }
         #
+        marginPairsDict = {}
+        if self.check_required_credentials(False):
+            marginPairs = self.privatePostMarginPairList(params)
+            #
+            #    {
+            #        "pairs": [
+            #            {
+            #                "buy_price": "55978.85",
+            #                "default_leverage": "3",
+            #                "is_fair_price": True,
+            #                "last_trade_price": "55999.23",
+            #                "liquidation_fee": "2",
+            #                "liquidation_level": "10",
+            #                "margin_call_level": "15",
+            #                "max_leverage": "3",
+            #                "max_order_price": "150000",
+            #                "max_order_quantity": "1",
+            #                "max_position_quantity": "1",
+            #                "max_price_precision": 2,
+            #                "min_order_price": "1",
+            #                "min_order_quantity": "0.00002",
+            #                "name": "BTC_USD",
+            #                "position": 1,
+            #                "sell_price": "55985.51",
+            #                "ticker_updated": "1619019818936107989",
+            #                "trade_maker_fee": "0",
+            #                "trade_taker_fee": "0.05",
+            #                "updated": "1619008608955599013"
+            #            }
+            #        ]
+            #    }
+            #
+            pairs = self.safe_value(marginPairs, 'pairs')
+            marginPairsDict = self.index_by(pairs, 'name')
         keys = list(response.keys())
         result = []
         for i in range(0, len(keys)):
             id = keys[i]
             market = response[id]
+            marginMarket = self.safe_value(marginPairsDict, id)
             symbol = id.replace('_', '/')
             baseId, quoteId = symbol.split('/')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
             takerString = self.safe_string(market, 'commission_taker_percent')
             makerString = self.safe_string(market, 'commission_maker_percent')
+            maxQuantity = self.safe_string(market, 'max_quantity')
+            marginMaxQuantity = self.safe_string(marginMarket, 'max_order_quantity')
             result.append({
                 'id': id,
                 'symbol': symbol,
@@ -716,7 +768,7 @@ class exmo(Exchange, ImplicitAPI):
                 'settleId': None,
                 'type': 'spot',
                 'spot': True,
-                'margin': True,
+                'margin': marginMarket is not None,
                 'swap': False,
                 'future': False,
                 'option': False,
@@ -738,11 +790,11 @@ class exmo(Exchange, ImplicitAPI):
                 'limits': {
                     'leverage': {
                         'min': None,
-                        'max': None,
+                        'max': self.safe_number(market, 'leverage'),
                     },
                     'amount': {
                         'min': self.safe_number(market, 'min_quantity'),
-                        'max': self.safe_number(market, 'max_quantity'),
+                        'max': self.parse_number(Precise.string_max(maxQuantity, marginMaxQuantity)),
                     },
                     'price': {
                         'min': self.safe_number(market, 'min_price'),
@@ -753,19 +805,21 @@ class exmo(Exchange, ImplicitAPI):
                         'max': self.safe_number(market, 'max_amount'),
                     },
                 },
+                'created': None,
                 'info': market,
             })
         return result
 
-    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        :see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#65eeb949-74e5-4631-9184-c38387fe53e8
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
-        :param int|None since: timestamp in ms of the earliest candle to fetch
-        :param int|None limit: the maximum amount of candles to fetch
-        :param dict params: extra parameters specific to the exmo api endpoint
-        :returns [[int]]: A list of candles ordered, open, high, low, close, volume
+        :param int [since]: timestamp in ms of the earliest candle to fetch
+        :param int [limit]: the maximum amount of candles to fetch
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         self.load_markets()
         market = self.market(symbol)
@@ -773,26 +827,24 @@ class exmo(Exchange, ImplicitAPI):
             'symbol': market['id'],
             'resolution': self.safe_string(self.timeframes, timeframe, timeframe),
         }
-        options = self.safe_value(self.options, 'fetchOHLCV')
-        maxLimit = self.safe_integer(options, 'maxLimit', 3000)
+        maxLimit = 3000
         duration = self.parse_timeframe(timeframe)
         now = self.milliseconds()
         if since is None:
             if limit is None:
                 limit = 1000  # cap default at generous amount
-            if limit > maxLimit:
-                limit = maxLimit  # avoid exception
+            else:
+                limit = min(limit, maxLimit)
             request['from'] = self.parse_to_int(now / 1000) - limit * duration - 1
             request['to'] = self.parse_to_int(now / 1000)
         else:
             request['from'] = self.parse_to_int(since / 1000) - 1
             if limit is None:
-                request['to'] = self.parse_to_int(now / 1000)
+                limit = maxLimit
             else:
-                if limit > maxLimit:
-                    raise BadRequest(self.id + ' fetchOHLCV() will serve ' + str(maxLimit) + ' candles at most')
-                to = self.sum(since, limit * duration * 1000)
-                request['to'] = self.parse_to_int(to / 1000)
+                limit = min(limit, maxLimit)
+            to = self.sum(since, limit * duration * 1000)
+            request['to'] = self.parse_to_int(to / 1000)
         response = self.publicGetCandlesHistory(self.extend(request, params))
         #
         #     {
@@ -803,10 +855,10 @@ class exmo(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        candles = self.safe_value(response, 'candles', [])
+        candles = self.safe_list(response, 'candles', [])
         return self.parse_ohlcvs(candles, market, timeframe, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market=None):
+    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
         #
         #     {
         #         "t":1584057600000,
@@ -826,50 +878,86 @@ class exmo(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 'v'),
         ]
 
-    def parse_balance(self, response):
+    def parse_balance(self, response) -> Balances:
         result = {'info': response}
-        free = self.safe_value(response, 'balances', {})
-        used = self.safe_value(response, 'reserved', {})
-        currencyIds = list(free.keys())
-        for i in range(0, len(currencyIds)):
-            currencyId = currencyIds[i]
-            code = self.safe_currency_code(currencyId)
-            account = self.account()
-            if currencyId in free:
-                account['free'] = self.safe_string(free, currencyId)
-            if currencyId in used:
-                account['used'] = self.safe_string(used, currencyId)
-            result[code] = account
+        wallets = self.safe_value(response, 'wallets')
+        if wallets is not None:
+            currencyIds = list(wallets.keys())
+            for i in range(0, len(currencyIds)):
+                currencyId = currencyIds[i]
+                item = wallets[currencyId]
+                currency = self.safe_currency_code(currencyId)
+                account = self.account()
+                account['used'] = self.safe_string(item, 'used')
+                account['free'] = self.safe_string(item, 'free')
+                account['total'] = self.safe_string(item, 'balance')
+                result[currency] = account
+        else:
+            free = self.safe_value(response, 'balances', {})
+            used = self.safe_value(response, 'reserved', {})
+            currencyIds = list(free.keys())
+            for i in range(0, len(currencyIds)):
+                currencyId = currencyIds[i]
+                code = self.safe_currency_code(currencyId)
+                account = self.account()
+                if currencyId in free:
+                    account['free'] = self.safe_string(free, currencyId)
+                if currencyId in used:
+                    account['used'] = self.safe_string(used, currencyId)
+                result[code] = account
         return self.safe_balance(result)
 
-    def fetch_balance(self, params={}):
+    def fetch_balance(self, params={}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
-        :param dict params: extra parameters specific to the exmo api endpoint
-        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        :see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#59c5160f-27a1-4d9a-8cfb-7979c7ffaac6
+        :see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#c8388df7-1f9f-4d41-81c4-5a387d171dc6
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.marginMode]: *isolated* fetches the isolated margin balance
+        :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
         self.load_markets()
-        response = self.privatePostUserInfo(params)
-        #
-        #     {
-        #         "uid":131685,
-        #         "server_date":1628999600,
-        #         "balances":{
-        #             "EXM":"0",
-        #             "USD":"0",
-        #             "EUR":"0",
-        #             "GBP":"0",
-        #         },
-        #     }
-        #
+        marginMode = None
+        marginMode, params = self.handle_margin_mode_and_params('fetchBalance', params)
+        if marginMode == 'cross':
+            raise BadRequest(self.id + ' does not support cross margin')
+        response = None
+        if marginMode == 'isolated':
+            response = self.privatePostMarginUserWalletList(params)
+            #
+            #    {
+            #        "wallets": {
+            #            "USD": {
+            #                "balance": "1000",
+            #                "free": "600",
+            #                "used": "400"
+            #            }
+            #        }
+            #    }
+            #
+        else:
+            response = self.privatePostUserInfo(params)
+            #
+            #     {
+            #         "uid":131685,
+            #         "server_date":1628999600,
+            #         "balances":{
+            #             "EXM":"0",
+            #             "USD":"0",
+            #             "EUR":"0",
+            #             "GBP":"0",
+            #         },
+            #     }
+            #
         return self.parse_balance(response)
 
-    def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        :see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#c60c51a8-e683-4f45-a000-820723d37871
         :param str symbol: unified symbol of the market to fetch the order book for
-        :param int|None limit: the maximum amount of order book entries to return
-        :param dict params: extra parameters specific to the exmo api endpoint
+        :param int [limit]: the maximum amount of order book entries to return
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         self.load_markets()
@@ -880,15 +968,16 @@ class exmo(Exchange, ImplicitAPI):
         if limit is not None:
             request['limit'] = limit
         response = self.publicGetOrderBook(self.extend(request, params))
-        result = self.safe_value(response, market['id'])
+        result = self.safe_dict(response, market['id'])
         return self.parse_order_book(result, market['symbol'], None, 'bid', 'ask')
 
-    def fetch_order_books(self, symbols: Optional[List[str]] = None, limit: Optional[int] = None, params={}):
+    def fetch_order_books(self, symbols: Strings = None, limit: Int = None, params={}):
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data for multiple markets
-        :param [str]|None symbols: list of unified market symbols, all symbols fetched if None, default is None
-        :param int|None limit: max number of entries per orderbook to return, default is None
-        :param dict params: extra parameters specific to the exmo api endpoint
+        :see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#c60c51a8-e683-4f45-a000-820723d37871
+        :param str[]|None symbols: list of unified market symbols, all symbols fetched if None, default is None
+        :param int [limit]: max number of entries per orderbook to return, default is None
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbol
         """
         self.load_markets()
@@ -916,7 +1005,7 @@ class exmo(Exchange, ImplicitAPI):
             result[symbol] = self.parse_order_book(response[marketId], symbol, None, 'bid', 'ask')
         return result
 
-    def parse_ticker(self, ticker, market=None):
+    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
         #
         #     {
         #         "buy_price":"0.00002996",
@@ -956,11 +1045,12 @@ class exmo(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
+    def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
-        fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-        :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-        :param dict params: extra parameters specific to the exmo api endpoint
+        fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+        :see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#4c8e6459-3503-4361-b012-c34bb9f7e385
+        :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         self.load_markets()
@@ -989,13 +1079,14 @@ class exmo(Exchange, ImplicitAPI):
             symbol = market['symbol']
             ticker = self.safe_value(response, marketId)
             result[symbol] = self.parse_ticker(ticker, market)
-        return self.filter_by_array(result, 'symbol', symbols)
+        return self.filter_by_array_tickers(result, 'symbol', symbols)
 
-    def fetch_ticker(self, symbol: str, params={}):
+    def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        :see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#4c8e6459-3503-4361-b012-c34bb9f7e385
         :param str symbol: unified symbol of the market to fetch the ticker for
-        :param dict params: extra parameters specific to the exmo api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         self.load_markets()
@@ -1003,7 +1094,7 @@ class exmo(Exchange, ImplicitAPI):
         market = self.market(symbol)
         return self.parse_ticker(response[market['id']], market)
 
-    def parse_trade(self, trade, market=None):
+    def parse_trade(self, trade, market: Market = None) -> Trade:
         #
         # fetchTrades(public)
         #
@@ -1033,18 +1124,34 @@ class exmo(Exchange, ImplicitAPI):
         #         "commission_percent": "0.2"
         #     }
         #
+        # fetchMyTrades(margin)
+        #
+        #    {
+        #        "trade_id": "692861757015952517",
+        #        "trade_dt": "1693951853197811824",
+        #        "trade_type": "buy",
+        #        "pair": "ADA_USDT",
+        #        "quantity": "1.96607879",
+        #        "price": "0.2568",
+        #        "amount": "0.50488903"
+        #    }
+        #
         timestamp = self.safe_timestamp(trade, 'date')
         id = self.safe_string(trade, 'trade_id')
         orderId = self.safe_string(trade, 'order_id')
         priceString = self.safe_string(trade, 'price')
         amountString = self.safe_string(trade, 'quantity')
         costString = self.safe_string(trade, 'amount')
-        side = self.safe_string(trade, 'type')
+        side = self.safe_string_2(trade, 'type', 'trade_type')
         type = None
         marketId = self.safe_string(trade, 'pair')
         market = self.safe_market(marketId, market, '_')
         symbol = market['symbol']
-        takerOrMaker = self.safe_string(trade, 'exec_type')
+        isMaker = self.safe_value(trade, 'is_maker')
+        takerOrMakerDefault = None
+        if isMaker is not None:
+            takerOrMakerDefault = 'maker' if isMaker else 'taker'
+        takerOrMaker = self.safe_string(trade, 'exec_type', takerOrMakerDefault)
         fee = None
         feeCostString = self.safe_string(trade, 'commission_amount')
         if feeCostString is not None:
@@ -1074,14 +1181,15 @@ class exmo(Exchange, ImplicitAPI):
             'fee': fee,
         }, market)
 
-    def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
+        :see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#5a5a9c0d-cf17-47f6-9d62-6d4404ebd5ac
         :param str symbol: unified symbol of the market to fetch trades for
-        :param int|None since: timestamp in ms of the earliest trade to fetch
-        :param int|None limit: the maximum amount of trades to fetch
-        :param dict params: extra parameters specific to the exmo api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :param int [since]: timestamp in ms of the earliest trade to fetch
+        :param int [limit]: the maximum amount of trades to fetch
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -1111,39 +1219,91 @@ class exmo(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        data = self.safe_value(response, market['id'], [])
+        data = self.safe_list(response, market['id'], [])
         return self.parse_trades(data, market, since, limit)
 
-    def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all trades made by the user
-        :param str symbol: unified market symbol
-        :param int|None since: the earliest time in ms to fetch trades for
-        :param int|None limit: the maximum number of trades structures to retrieve
-        :param dict params: extra parameters specific to the exmo api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        :see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#b8d8d9af-4f46-46a1-939b-ad261d79f452  # spot
+        :see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#f4b1aaf8-399f-403b-ab5e-4926d967a106  # margin
+        :param str symbol: a symbol is required but it can be a single string, or a non-empty array
+        :param int [since]: the earliest time in ms to fetch trades for
+        :param int [limit]: *required for margin orders* the maximum number of trades structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+        :param int [params.offset]: last deal offset, default = 0
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
-        # a symbol is required but it can be a single string, or a non-empty array
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument(a single symbol or an array)')
+            raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
+        marginMode = None
+        marginMode, params = self.handle_margin_mode_and_params('fetchMyTrades', params)
+        if marginMode == 'cross':
+            raise BadRequest(self.id + 'only isolated margin is supported')
         self.load_markets()
-        pair = None
-        market = None
-        if isinstance(symbol, list):
-            numSymbols = len(symbol)
-            if numSymbols < 1:
-                raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a non-empty symbol array')
-            marketIds = self.market_ids(symbol)
-            pair = ','.join(marketIds)
+        market = self.market(symbol)
+        pair = market['id']
+        isSpot = marginMode != 'isolated'
+        if limit is None:
+            limit = 100
+        request = {}
+        if isSpot:
+            request['pair'] = pair
         else:
-            market = self.market(symbol)
-            pair = market['id']
-        request = {
-            'pair': pair,
-        }
+            request['pair_name'] = pair
         if limit is not None:
             request['limit'] = limit
-        response = self.privatePostUserTrades(self.extend(request, params))
+        offset = self.safe_integer(params, 'offset', 0)
+        request['offset'] = offset
+        response = None
+        if isSpot:
+            response = self.privatePostUserTrades(self.extend(request, params))
+            #
+            #    {
+            #        "BTC_USD": [
+            #            {
+            #                "trade_id": 20056872,
+            #                "client_id": 100500,
+            #                "date": 1435488248,
+            #                "type": "buy",
+            #                "pair": "BTC_USD",
+            #                "quantity": "1",
+            #                "price": "100",
+            #                "amount": "100",
+            #                "order_id": 7,
+            #                "parent_order_id": 117684023830293,
+            #                "exec_type": "taker",
+            #                "commission_amount": "0.02",
+            #                "commission_currency": "BTC",
+            #                "commission_percent": "0.2"
+            #            }
+            #        ],
+            #        ...
+            #    }
+            #
+        else:
+            responseFromExchange = self.privatePostMarginTrades(self.extend(request, params))
+            #
+            #    {
+            #        "trades": {
+            #            "ADA_USDT": [
+            #                {
+            #                    "trade_id": "692861757015952517",
+            #                    "trade_dt": "1693951853197811824",
+            #                    "trade_type": "buy",
+            #                    "pair": "ADA_USDT",
+            #                    "quantity": "1.96607879",
+            #                    "price": "0.2568",
+            #                    "amount": "0.50488903"
+            #                },
+            #            ]
+            #            ...
+            #        }
+            #    }
+            #
+            response = self.safe_value(responseFromExchange, 'trades')
         result = []
         marketIdsInner = list(response.keys())
         for i in range(0, len(marketIdsInner)):
@@ -1154,39 +1314,44 @@ class exmo(Exchange, ImplicitAPI):
             result = self.array_concat(result, trades)
         return self.filter_by_since_limit(result, since, limit)
 
-    def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create a trade order
+        :see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#80daa469-ec59-4d0a-b229-6a311d8dd1cd
+        :see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#de6f4321-eeac-468c-87f7-c4ad7062e265  # stop market
+        :see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#3561b86c-9ff1-436e-8e68-ac926b7eb523  # margin
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-        :param dict params: extra parameters specific to the exmo api endpoint
+        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param float [params.stopPrice]: the price at which a trigger order is triggered at
+        :param str [params.timeInForce]: *spot only* 'fok', 'ioc' or 'post_only'
+        :param boolean [params.postOnly]: *spot only* True for post only orders
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
-        prefix = (type + '_') if (type == 'market') else ''
-        orderType = prefix + side
-        orderPrice = price
-        if (type == 'market') and (price is None):
-            orderPrice = 0
+        isMarket = (type == 'market') and (price is None)
+        marginMode = None
+        marginMode, params = self.handle_margin_mode_and_params('createOrder', params)
+        if marginMode == 'cross':
+            raise BadRequest(self.id + ' only supports isolated margin')
+        isSpot = (marginMode != 'isolated')
+        triggerPrice = self.safe_number_n(params, ['triggerPrice', 'stopPrice', 'stop_price'])
         request = {
             'pair': market['id'],
             # 'leverage': 2,
             'quantity': self.amount_to_precision(market['symbol'], amount),
             # spot - buy, sell, market_buy, market_sell, market_buy_total, market_sell_total
             # margin - limit_buy, limit_sell, market_buy, market_sell, stop_buy, stop_sell, stop_limit_buy, stop_limit_sell, trailing_stop_buy, trailing_stop_sell
-            'type': orderType,
-            'price': self.price_to_precision(market['symbol'], orderPrice),
             # 'stop_price': self.price_to_precision(symbol, stopPrice),
             # 'distance': 0,  # distance for trailing stop orders
             # 'expire': 0,  # expiration timestamp in UTC timezone for the order, unless expire is 0
             # 'client_id': 123,  # optional, must be a positive integer
             # 'comment': '',  # up to 50 latin symbols, whitespaces, underscores
         }
-        method = 'privatePostOrderCreate'
         clientOrderId = self.safe_value_2(params, 'client_id', 'clientOrderId')
         if clientOrderId is not None:
             clientOrderId = self.safe_integer_2(params, 'client_id', 'clientOrderId')
@@ -1194,57 +1359,105 @@ class exmo(Exchange, ImplicitAPI):
                 raise BadRequest(self.id + ' createOrder() client order id must be an integer / numeric literal')
             else:
                 request['client_id'] = clientOrderId
-            params = self.omit(params, ['client_id', 'clientOrderId'])
-        if (type == 'stop') or (type == 'stop_limit') or (type == 'trailing_stop'):
-            stopPrice = self.safe_number_2(params, 'stop_price', 'stopPrice')
-            if stopPrice is None:
-                raise InvalidOrder(self.id + ' createOrder() requires a stopPrice extra param for a ' + type + ' order')
+        leverage = self.safe_number(params, 'leverage')
+        if not isSpot and (leverage is None):
+            raise ArgumentsRequired(self.id + ' createOrder requires an extra param params["leverage"] for margin orders')
+        params = self.omit(params, ['stopPrice', 'stop_price', 'triggerPrice', 'timeInForce', 'client_id', 'clientOrderId'])
+        if price is not None:
+            request['price'] = self.price_to_precision(market['symbol'], price)
+        response = None
+        if isSpot:
+            if triggerPrice is not None:
+                if type == 'limit':
+                    raise BadRequest(self.id + ' createOrder() cannot create stop limit orders for spot, only stop market')
+                else:
+                    request['type'] = side
+                    request['trigger_price'] = self.price_to_precision(symbol, triggerPrice)
+                response = self.privatePostStopMarketOrderCreate(self.extend(request, params))
             else:
-                params = self.omit(params, ['stopPrice', 'stop_price'])
-                request['stop_price'] = self.price_to_precision(symbol, stopPrice)
-                method = 'privatePostMarginUserOrderCreate'
-        response = getattr(self, method)(self.extend(request, params))
-        id = self.safe_string(response, 'order_id')
-        timestamp = self.milliseconds()
-        status = 'open'
-        return {
-            'id': id,
-            'info': response,
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
-            'lastTradeTimestamp': None,
-            'status': status,
-            'symbol': market['symbol'],
-            'type': type,
-            'side': side,
-            'price': price,
-            'cost': None,
-            'amount': amount,
-            'remaining': amount,
-            'filled': 0.0,
-            'fee': None,
-            'trades': None,
-            'clientOrderId': clientOrderId,
-            'average': None,
-        }
+                execType = self.safe_string(params, 'exec_type')
+                isPostOnly = None
+                isPostOnly, params = self.handle_post_only(type == 'market', execType == 'post_only', params)
+                timeInForce = self.safe_string(params, 'timeInForce')
+                request['price'] = 0 if isMarket else self.price_to_precision(market['symbol'], price)
+                if type == 'limit':
+                    request['type'] = side
+                elif type == 'market':
+                    request['type'] = 'market_' + side
+                if isPostOnly:
+                    request['exec_type'] = 'post_only'
+                elif timeInForce is not None:
+                    request['exec_type'] = timeInForce
+                response = self.privatePostOrderCreate(self.extend(request, params))
+        else:
+            if triggerPrice is not None:
+                request['stop_price'] = self.price_to_precision(symbol, triggerPrice)
+                if type == 'limit':
+                    request['type'] = 'stop_limit_' + side
+                elif type == 'market':
+                    request['type'] = 'stop_' + side
+                else:
+                    request['type'] = type
+            else:
+                if type == 'limit' or type == 'market':
+                    request['type'] = type + '_' + side
+                else:
+                    request['type'] = type
+            response = self.privatePostMarginUserOrderCreate(self.extend(request, params))
+        return self.parse_order(response, market)
 
-    def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
+    def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
         cancels an open order
+        :see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#1f710d4b-75bc-4b65-ad68-006f863a3f26
+        :see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#a4d0aae8-28f7-41ac-94fd-c4030130453d  # stop market
+        :see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#705dfec5-2b35-4667-862b-faf54eca6209  # margin
         :param str id: order id
-        :param str|None symbol: not used by exmo cancelOrder()
-        :param dict params: extra parameters specific to the exmo api endpoint
+        :param str symbol: not used by exmo cancelOrder()
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param boolean [params.trigger]: True to cancel a trigger order
+        :param str [params.marginMode]: set to 'cross' or 'isolated' to cancel a margin order
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
-        request = {'order_id': id}
-        return self.privatePostOrderCancel(self.extend(request, params))
+        request = {}
+        stop = self.safe_value_2(params, 'trigger', 'stop')
+        params = self.omit(params, ['trigger', 'stop'])
+        marginMode = None
+        marginMode, params = self.handle_margin_mode_and_params('cancelOrder', params)
+        if marginMode == 'cross':
+            raise BadRequest(self.id + ' only supports isolated margin')
+        response = None
+        if (marginMode == 'isolated'):
+            request['order_id'] = id
+            response = self.privatePostMarginUserOrderCancel(self.extend(request, params))
+            #
+            #    {}
+            #
+        else:
+            if stop:
+                request['parent_order_id'] = id
+                response = self.privatePostStopMarketOrderCancel(self.extend(request, params))
+                #
+                #    {}
+                #
+            else:
+                request['order_id'] = id
+                response = self.privatePostOrderCancel(self.extend(request, params))
+                #
+                #    {
+                #        "error": '',
+                #        "result": True
+                #    }
+                #
+        return self.parse_order(response)
 
-    def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
+    def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
-        fetches information on an order made by the user
-        :param str|None symbol: not used by exmo fetchOrder
-        :param dict params: extra parameters specific to the exmo api endpoint
+        *spot only* fetches information on an order made by the user
+        :see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#cf27781e-28e5-4b39-a52d-3110f5d22459  # spot
+        :param str symbol: not used by exmo fetchOrder
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
@@ -1274,82 +1487,197 @@ class exmo(Exchange, ImplicitAPI):
         #     }
         #
         order = self.parse_order(response)
-        return self.extend(order, {
-            'id': str(id),
-        })
+        order['id'] = str(id)
+        return order
 
-    def fetch_order_trades(self, id: str, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_order_trades(self, id: str, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all the trades made from a single order
+        :see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#cf27781e-28e5-4b39-a52d-3110f5d22459  # spot
+        :see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#00810661-9119-46c5-aec5-55abe9cb42c7  # margin
         :param str id: order id
-        :param str|None symbol: unified market symbol
-        :param int|None since: the earliest time in ms to fetch trades for
-        :param int|None limit: the maximum number of trades to retrieve
-        :param dict params: extra parameters specific to the exmo api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        :param str symbol: unified market symbol
+        :param int [since]: the earliest time in ms to fetch trades for
+        :param int [limit]: the maximum number of trades to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.marginMode]: set to "isolated" to fetch trades for a margin order
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
+        marginMode = None
+        marginMode, params = self.handle_margin_mode_and_params('fetchOrderTrades', params)
+        if marginMode == 'cross':
+            raise BadRequest(self.id + ' only supports isolated margin')
         market = None
         if symbol is not None:
             market = self.market(symbol)
         request = {
             'order_id': str(id),
         }
-        response = self.privatePostOrderTrades(self.extend(request, params))
-        #
-        #     {
-        #         "type": "buy",
-        #         "in_currency": "BTC",
-        #         "in_amount": "1",
-        #         "out_currency": "USD",
-        #         "out_amount": "100",
-        #         "trades": [
-        #             {
-        #                 "trade_id": 3,
-        #                 "date": 1435488248,
-        #                 "type": "buy",
-        #                 "pair": "BTC_USD",
-        #                 "order_id": 12345,
-        #                 "quantity": 1,
-        #                 "price": 100,
-        #                 "amount": 100,
-        #                 "exec_type": "taker",
-        #                 "commission_amount": "0.02",
-        #                 "commission_currency": "BTC",
-        #                 "commission_percent": "0.2"
-        #             }
-        #         ]
-        #     }
-        #
-        trades = self.safe_value(response, 'trades')
+        response = None
+        if marginMode == 'isolated':
+            response = self.privatePostMarginUserOrderTrades(self.extend(request, params))
+            #
+            #    {
+            #        "trades": [
+            #            {
+            #                "is_maker": False,
+            #                "order_id": "123",
+            #                "pair": "BTC_USD",
+            #                "price": "54122.25",
+            #                "quantity": "0.00069994",
+            #                "trade_dt": "1619069561718824428",
+            #                "trade_id": "692842802860135010",
+            #                "type": "sell"
+            #            }
+            #        ]
+            #    }
+            #
+        else:
+            response = self.privatePostOrderTrades(self.extend(request, params))
+            #
+            #     {
+            #         "type": "buy",
+            #         "in_currency": "BTC",
+            #         "in_amount": "1",
+            #         "out_currency": "USD",
+            #         "out_amount": "100",
+            #         "trades": [
+            #             {
+            #                 "trade_id": 3,
+            #                 "date": 1435488248,
+            #                 "type": "buy",
+            #                 "pair": "BTC_USD",
+            #                 "order_id": 12345,
+            #                 "quantity": 1,
+            #                 "price": 100,
+            #                 "amount": 100,
+            #                 "exec_type": "taker",
+            #                 "commission_amount": "0.02",
+            #                 "commission_currency": "BTC",
+            #                 "commission_percent": "0.2"
+            #             }
+            #         ]
+            #     }
+            #
+        trades = self.safe_list(response, 'trades')
         return self.parse_trades(trades, market, since, limit)
 
-    def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
-        :param str|None symbol: unified market symbol
-        :param int|None since: the earliest time in ms to fetch open orders for
-        :param int|None limit: the maximum number of  open orders structures to retrieve
-        :param dict params: extra parameters specific to the exmo api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#0e135370-daa4-4689-8acd-b6876dee9ba1  # spot open orders
+        :see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#a7cfd4f0-476e-4675-b33f-22a46902f245  # margin
+        :param str symbol: unified market symbol
+        :param int [since]: the earliest time in ms to fetch open orders for
+        :param int [limit]: the maximum number of  open orders structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.marginMode]: set to "isolated" for margin orders
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
+        market = None
         if symbol is not None:
             market = self.market(symbol)
             symbol = market['symbol']
-        response = self.privatePostUserOpenOrders(params)
-        marketIds = list(response.keys())
+        marginMode = None
+        marginMode, params = self.handle_margin_mode_and_params('fetchOpenOrders', params)
+        isMargin = ((marginMode == 'cross') or (marginMode == 'isolated'))
+        response = None
         orders = []
-        for i in range(0, len(marketIds)):
-            marketId = marketIds[i]
-            market = self.safe_market(marketId)
+        if isMargin:
+            response = self.privatePostMarginUserOrderList(params)
+            #
+            #    {
+            #        "orders": [
+            #            {
+            #                "client_id": "0",
+            #                "comment": "",
+            #                "created": "1619068707985325495",
+            #                "distance": "0",
+            #                "expire": 0,
+            #                "funding_currency": "BTC",
+            #                "funding_quantity": "0.01",
+            #                "funding_rate": "0.02",
+            #                "leverage": "2",
+            #                "order_id": "123",
+            #                "pair": "BTC_USD",
+            #                "previous_type": "limit_sell",
+            #                "price": "58000",
+            #                "quantity": "0.01",
+            #                "src": 0,
+            #                "stop_price": "0",
+            #                "trigger_price": "58000",
+            #                "type": "limit_sell",
+            #                "updated": 1619068707989411800
+            #            }
+            #        ]
+            #    }
+            #
             params = self.extend(params, {
                 'status': 'open',
             })
-            parsedOrders = self.parse_orders(response[marketId], market, since, limit, params)
-            orders = self.array_concat(orders, parsedOrders)
-        return self.filter_by_symbol_since_limit(orders, symbol, since, limit)
+            responseOrders = self.safe_value(response, 'orders')
+            orders = self.parse_orders(responseOrders, market, since, limit, params)
+        else:
+            response = self.privatePostUserOpenOrders(params)
+            #
+            #    {
+            #        "USDT_USD": [
+            #            {
+            #                "parent_order_id": "507061384740151010",
+            #                "client_id": "100500",
+            #                "created": "1589547391",
+            #                "type": "stop_market_buy",
+            #                "pair": "USDT_USD",
+            #                "quantity": "1",
+            #                "trigger_price": "5",
+            #                "amount": "5"
+            #            }
+            #        ],
+            #        ...
+            #    }
+            #
+            marketIds = list(response.keys())
+            for i in range(0, len(marketIds)):
+                marketId = marketIds[i]
+                marketInner = self.safe_market(marketId)
+                params = self.extend(params, {
+                    'status': 'open',
+                })
+                parsedOrders = self.parse_orders(response[marketId], marketInner, since, limit, params)
+                orders = self.array_concat(orders, parsedOrders)
+        return orders
 
-    def parse_order(self, order, market=None):
+    def parse_status(self, status):
+        if status is None:
+            return None
+        statuses = {
+            'cancel_started': 'canceled',
+        }
+        if status.find('cancel') >= 0:
+            status = 'canceled'
+        return self.safe_string(statuses, status, status)
+
+    def parse_side(self, orderType):
+        side = {
+            'limit_buy': 'buy',
+            'limit_sell': 'sell',
+            'market_buy': 'buy',
+            'market_sell': 'sell',
+            'stop_buy': 'buy',
+            'stop_sell': 'sell',
+            'stop_limit_buy': 'buy',
+            'stop_limit_sell': 'sell',
+            'trailing_stop_buy': 'buy',
+            'trailing_stop_sell': 'sell',
+            'stop_market_sell': 'sell',
+            'stop_market_buy': 'buy',
+            'buy': 'buy',
+            'sell': 'sell',
+        }
+        return self.safe_string(side, orderType, orderType)
+
+    def parse_order(self, order, market: Market = None) -> Order:
         #
         # fetchOrders, fetchOpenOrders, fetchClosedOrders, fetchCanceledOrders
         #
@@ -1385,9 +1713,55 @@ class exmo(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        id = self.safe_string(order, 'order_id')
-        timestamp = self.safe_timestamp(order, 'created')
-        side = self.safe_string(order, 'type')
+        # Margin fetchOpenOrders
+        #
+        #    {
+        #        "client_id": "0",
+        #        "comment": "",
+        #        "created": "1619068707985325495",
+        #        "distance": "0",
+        #        "expire": 0,
+        #        "funding_currency": "BTC",
+        #        "funding_quantity": "0.01",
+        #        "funding_rate": "0.02",
+        #        "leverage": "2",
+        #        "order_id": "123",
+        #        "pair": "BTC_USD",
+        #        "previous_type": "limit_sell",
+        #        "price": "58000",
+        #        "quantity": "0.01",
+        #        "src": 0,
+        #        "stop_price": "0",
+        #        "trigger_price": "58000",
+        #        "type": "limit_sell",
+        #        "updated": 1619068707989411800
+        #    }
+        #
+        # Margin fetchClosedOrders
+        #
+        #    {
+        #        "distance": "0",
+        #        "event_id": "692842802860022508",
+        #        "event_time": "1619069531190173720",
+        #        "event_type": "OrderCancelStarted",
+        #        "order_id": "123",
+        #        "order_status": "cancel_started",
+        #        "order_type": "limit_sell",
+        #        "pair": "BTC_USD",
+        #        "price": "54115",
+        #        "quantity": "0.001",
+        #        "stop_price": "0",
+        #        "trade_id": "0",
+        #        "trade_price": "0",
+        #        "trade_quantity": "0",
+        #        "trade_type": ""
+        #    },
+        #
+        id = self.safe_string_2(order, 'order_id', 'parent_order_id')
+        eventTime = self.safe_integer_product_2(order, 'event_time', 'created', 0.000001)
+        timestamp = self.safe_timestamp(order, 'created', eventTime)
+        orderType = self.safe_string_2(order, 'type', 'order_type')
+        side = self.parse_side(orderType)
         marketId = None
         if 'pair' in order:
             marketId = order['pair']
@@ -1406,21 +1780,27 @@ class exmo(Exchange, ImplicitAPI):
         cost = self.safe_string(order, 'amount')
         transactions = self.safe_value(order, 'trades', [])
         clientOrderId = self.safe_integer(order, 'client_id')
+        triggerPrice = self.safe_string(order, 'stop_price')
+        if triggerPrice == '0':
+            triggerPrice = None
+        type = None
+        if (orderType != 'buy') and (orderType != 'sell'):
+            type = orderType
         return self.safe_order({
             'id': id,
             'clientOrderId': clientOrderId,
             'datetime': self.iso8601(timestamp),
             'timestamp': timestamp,
-            'lastTradeTimestamp': None,
-            'status': None,
+            'lastTradeTimestamp': self.safe_integer_product(order, 'updated', 0.000001),
+            'status': self.parse_status(self.safe_string(order, 'order_status')),
             'symbol': symbol,
-            'type': 'limit',
+            'type': type,
             'timeInForce': None,
             'postOnly': None,
             'side': side,
             'price': price,
-            'stopPrice': None,
-            'triggerPrice': None,
+            'stopPrice': triggerPrice,
+            'triggerPrice': triggerPrice,
             'cost': cost,
             'amount': amount,
             'filled': None,
@@ -1431,47 +1811,139 @@ class exmo(Exchange, ImplicitAPI):
             'info': order,
         }, market)
 
-    def fetch_canceled_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_canceled_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetches information on multiple canceled orders made by the user
-        :param str|None symbol: unified market symbol of the market orders were made in
-        :param int|None since: timestamp in ms of the earliest order, default is None
-        :param int|None limit: max number of orders to return, default is None
-        :param dict params: extra parameters specific to the exmo api endpoint
+        :see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#1d2524dd-ae6d-403a-a067-77b50d13fbe5  # margin
+        :see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#a51be1d0-af5f-44e4-99d7-f7b04c6067d0  # spot canceled orders
+        :param str symbol: unified market symbol of the market orders were made in
+        :param int [since]: timestamp in ms of the earliest order, default is None
+        :param int [limit]: max number of orders to return, default is None
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.marginMode]: set to "isolated" for margin orders
         :returns dict: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
-        request = {}
-        if since is not None:
-            request['offset'] = limit
-        if limit is not None:
-            request['limit'] = limit
+        marginMode = None
+        marginMode, params = self.handle_margin_mode_and_params('fetchOrders', params)
+        if marginMode == 'cross':
+            raise BadRequest(self.id + ' only supports isolated margin')
+        if limit is None:
+            limit = 100
+        isSpot = (marginMode != 'isolated')
+        if symbol is not None:
+            marketInner = self.market(symbol)
+            symbol = marketInner['symbol']
+        request = {
+            'limit': limit,
+        }
+        request['offset'] = limit if (since is not None) else 0
+        request['limit'] = limit
         market = None
         if symbol is not None:
             market = self.market(symbol)
-        response = self.privatePostUserCancelledOrders(self.extend(request, params))
-        #
-        #     [{
-        #         "order_id": "27056153840",
-        #         "client_id": "0",
-        #         "created": "1653428646",
-        #         "type": "buy",
-        #         "pair": "BTC_USDT",
-        #         "quantity": "0.1",
-        #         "price": "10",
-        #         "amount": "1"
-        #     }]
-        #
-        params = self.extend(params, {
-            'status': 'canceled',
-        })
-        return self.parse_orders(response, market, since, limit, params)
+        response = None
+        if isSpot:
+            response = self.privatePostUserCancelledOrders(self.extend(request, params))
+            #
+            #    [
+            #        {
+            #            "order_id": "27056153840",
+            #            "client_id": "0",
+            #            "created": "1653428646",
+            #            "type": "buy",
+            #            "pair": "BTC_USDT",
+            #            "quantity": "0.1",
+            #            "price": "10",
+            #            "amount": "1"
+            #        }
+            #    ]
+            #
+            params = self.extend(params, {
+                'status': 'canceled',
+            })
+            return self.parse_orders(response, market, since, limit, params)
+        else:
+            responseSwap = self.privatePostMarginUserOrderHistory(self.extend(request, params))
+            #
+            #    {
+            #        "items": [
+            #            {
+            #                "event_id": "692862104574106858",
+            #                "event_time": "1694116400173489405",
+            #                "event_type": "OrderCancelStarted",
+            #                "order_id": "692862104561289319",
+            #                "order_type": "stop_limit_sell",
+            #                "order_status": "cancel_started",
+            #                "trade_id": "0",
+            #                "trade_type":"",
+            #                "trade_quantity": "0",
+            #                "trade_price": "0",
+            #                "pair": "ADA_USDT",
+            #                "quantity": "12",
+            #                "price": "0.23",
+            #                "stop_price": "0.22",
+            #                "distance": "0"
+            #            }
+            #            ...
+            #        ]
+            #    }
+            #
+            items = self.safe_value(responseSwap, 'items')
+            orders = self.parse_orders(items, market, since, limit, params)
+            result = []
+            for i in range(0, len(orders)):
+                order = orders[i]
+                if order['status'] == 'canceled':
+                    result.append(order)
+            return result
+
+    def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}):
+        """
+        *margin only* edit a trade order
+        :see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#f27ee040-c75f-4b59-b608-d05bd45b7899  # margin
+        :param str id: order id
+        :param str symbol: unified CCXT market symbol
+        :param str type: not used by exmo editOrder
+        :param str side: not used by exmo editOrder
+        :param float [amount]: how much of the currency you want to trade in units of the base currency
+        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param float [params.triggerPrice]: stop price for stop-market and stop-limit orders
+        :param str params['marginMode']: must be set to isolated
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+        :param int [params.distance]: distance for trailing stop orders
+        :param int [params.expire]: expiration timestamp in UTC timezone for the order. order will not be expired if expire is 0
+        :param str [params.comment]: optional comment for order. up to 50 latin symbols, whitespaces, underscores
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        self.load_markets()
+        market = self.market(symbol)
+        marginMode = None
+        marginMode, params = self.handle_margin_mode_and_params('editOrder', params)
+        if marginMode != 'isolated':
+            raise BadRequest(self.id + ' editOrder() can only be used for isolated margin orders')
+        triggerPrice = self.safe_number_n(params, ['triggerPrice', 'stopPrice', 'stop_price'])
+        params = self.omit(params, ['triggerPrice', 'stopPrice'])
+        request = {
+            'order_id': id,  # id of the open order
+        }
+        if amount is not None:
+            request['quantity'] = amount
+        if price is not None:
+            request['price'] = self.price_to_precision(market['symbol'], price)
+        if triggerPrice is not None:
+            request['stop_price'] = self.price_to_precision(market['symbol'], triggerPrice)
+        response = self.privatePostMarginUserOrderUpdate(self.extend(request, params))
+        return self.parse_order(response)
 
     def fetch_deposit_address(self, code: str, params={}):
         """
         fetch the deposit address for a currency associated with self account
+        :see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#c8f9ced9-7ab6-4383-a6a4-bc54469ba60e
         :param str code: unified currency code
-        :param dict params: extra parameters specific to the exmo api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
         """
         self.load_markets()
@@ -1508,14 +1980,15 @@ class exmo(Exchange, ImplicitAPI):
             return self.markets[symbols[0]]
         return None
 
-    def withdraw(self, code: str, amount, address, tag=None, params={}):
+    def withdraw(self, code: str, amount: float, address, tag=None, params={}):
         """
         make a withdrawal
+        :see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#3ab9c34d-ad58-4f87-9c57-2e2ea88a8325
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
-        :param str|None tag:
-        :param dict params: extra parameters specific to the exmo api endpoint
+        :param str tag:
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
@@ -1547,9 +2020,9 @@ class exmo(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_transaction(self, transaction, currency=None):
+    def parse_transaction(self, transaction, currency: Currency = None) -> Transaction:
         #
-        # fetchTransactions
+        # fetchDepositsWithdrawals
         #
         #    {
         #        "dt": 1461841192,
@@ -1600,9 +2073,9 @@ class exmo(Exchange, ImplicitAPI):
         #    }
         #
         timestamp = self.safe_timestamp_2(transaction, 'dt', 'created')
-        amount = self.safe_string(transaction, 'amount')
-        if amount is not None:
-            amount = Precise.string_abs(amount)
+        amountString = self.safe_string(transaction, 'amount')
+        if amountString is not None:
+            amountString = Precise.string_abs(amountString)
         txid = self.safe_string(transaction, 'txid')
         if txid is None:
             extra = self.safe_value(transaction, 'extra', {})
@@ -1645,7 +2118,7 @@ class exmo(Exchange, ImplicitAPI):
             if feeCost is not None:
                 # withdrawal amount includes the fee
                 if type == 'withdrawal':
-                    amount = Precise.string_sub(amount, feeCost)
+                    amountString = Precise.string_sub(amountString, feeCost)
                 fee['cost'] = self.parse_number(feeCost)
                 fee['currency'] = code
         return {
@@ -1655,7 +2128,7 @@ class exmo(Exchange, ImplicitAPI):
             'type': type,
             'currency': code,
             'network': self.safe_string(transaction, 'provider'),
-            'amount': amount,
+            'amount': self.parse_number(amountString),
             'status': self.parse_transaction_status(self.safe_string_lower(transaction, 'status')),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -1667,16 +2140,18 @@ class exmo(Exchange, ImplicitAPI):
             'tagTo': None,
             'updated': self.safe_timestamp(transaction, 'updated'),
             'comment': comment,
+            'internal': None,
             'fee': fee,
         }
 
-    def fetch_transactions(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_deposits_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch history of deposits and withdrawals
-        :param str|None code: unified currency code for the currency of the transactions, default is None
-        :param int|None since: timestamp in ms of the earliest transaction, default is None
-        :param int|None limit: max number of transactions to return, default is None
-        :param dict params: extra parameters specific to the exmo api endpoint
+        :see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#31e69a33-4849-4e6a-b4b4-6d574238f6a7
+        :param str [code]: unified currency code for the currency of the deposit/withdrawals, default is None
+        :param int [since]: timestamp in ms of the earliest deposit/withdrawal, default is None
+        :param int [limit]: max number of deposit/withdrawals to return, default is None
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a list of `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         self.load_markets()
@@ -1719,14 +2194,15 @@ class exmo(Exchange, ImplicitAPI):
         #
         return self.parse_transactions(response['history'], currency, since, limit)
 
-    def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch all withdrawals made from an account
-        :param str|None code: unified currency code
-        :param int|None since: the earliest time in ms to fetch withdrawals for
-        :param int|None limit: the maximum number of withdrawals structures to retrieve
-        :param dict params: extra parameters specific to the exmo api endpoint
-        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#97f1becd-7aad-4e0e-babe-7bbe09e33706
+        :param str code: unified currency code
+        :param int [since]: the earliest time in ms to fetch withdrawals for
+        :param int [limit]: the maximum number of withdrawals structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         self.load_markets()
         currency = None
@@ -1765,15 +2241,16 @@ class exmo(Exchange, ImplicitAPI):
         #         "count": 23
         #     }
         #
-        items = self.safe_value(response, 'items', [])
+        items = self.safe_list(response, 'items', [])
         return self.parse_transactions(items, currency, since, limit)
 
-    def fetch_withdrawal(self, id: str, code: Optional[str] = None, params={}):
+    def fetch_withdrawal(self, id: str, code: Str = None, params={}):
         """
         fetch data on a currency withdrawal via the withdrawal id
+        :see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#97f1becd-7aad-4e0e-babe-7bbe09e33706
         :param str id: withdrawal id
-        :param str|None code: unified currency code of the currency withdrawn, default is None
-        :param dict params: extra parameters specific to the exmo api endpoint
+        :param str code: unified currency code of the currency withdrawn, default is None
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         self.load_markets()
@@ -1813,15 +2290,16 @@ class exmo(Exchange, ImplicitAPI):
         #     }
         #
         items = self.safe_value(response, 'items', [])
-        first = self.safe_value(items, 0, {})
+        first = self.safe_dict(items, 0, {})
         return self.parse_transaction(first, currency)
 
-    def fetch_deposit(self, id=None, code: Optional[str] = None, params={}):
+    def fetch_deposit(self, id=None, code: Str = None, params={}):
         """
         fetch information on a deposit
+        :see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#97f1becd-7aad-4e0e-babe-7bbe09e33706
         :param str id: deposit id
-        :param str|None code: unified currency code, default is None
-        :param dict params: extra parameters specific to the exmo api endpoint
+        :param str code: unified currency code, default is None
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         self.load_markets()
@@ -1861,17 +2339,18 @@ class exmo(Exchange, ImplicitAPI):
         #     }
         #
         items = self.safe_value(response, 'items', [])
-        first = self.safe_value(items, 0, {})
+        first = self.safe_dict(items, 0, {})
         return self.parse_transaction(first, currency)
 
-    def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch all deposits made to an account
-        :param str|None code: unified currency code
-        :param int|None since: the earliest time in ms to fetch deposits for
-        :param int|None limit: the maximum number of deposits structures to retrieve
-        :param dict params: extra parameters specific to the exmo api endpoint
-        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#97f1becd-7aad-4e0e-babe-7bbe09e33706
+        :param str code: unified currency code
+        :param int [since]: the earliest time in ms to fetch deposits for
+        :param int [limit]: the maximum number of deposits structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         self.load_markets()
         currency = None
@@ -1910,7 +2389,7 @@ class exmo(Exchange, ImplicitAPI):
         #         "count": 23
         #     }
         #
-        items = self.safe_value(response, 'items', [])
+        items = self.safe_list(response, 'items', [])
         return self.parse_transactions(items, currency, since, limit)
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
@@ -1938,12 +2417,25 @@ class exmo(Exchange, ImplicitAPI):
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
             return None  # fallback to default error handler
+        if ('error' in response) and not ('result' in response):
+            # error: {
+            #     "code": "140434",
+            #     "msg": "Your margin balance is not sufficient to place the order for '5 TON'. Please top up your margin wallet by "2.5 USDT"."
+            # }
+            #
+            errorCode = self.safe_value(response, 'error', {})
+            messageError = self.safe_string(errorCode, 'msg')
+            code = self.safe_string(errorCode, 'code')
+            feedback = self.id + ' ' + body
+            self.throw_exactly_matched_exception(self.exceptions['exact'], code, feedback)
+            self.throw_broadly_matched_exception(self.exceptions['broad'], messageError, feedback)
+            raise ExchangeError(feedback)
         if ('result' in response) or ('errmsg' in response):
             #
             #     {"result":false,"error":"Error 50052: Insufficient funds"}
             #     {"s":"error","errmsg":"strconv.ParseInt: parsing \"\": invalid syntax"}
             #
-            success = self.safe_value(response, 'result', False)
+            success = self.safe_bool(response, 'result', False)
             if isinstance(success, str):
                 if (success == 'true') or (success == '1'):
                     success = True

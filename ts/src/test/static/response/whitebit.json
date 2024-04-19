@@ -1,0 +1,145 @@
+{
+    "exchange": "whitebit",
+    "skipKeys": [],
+    "methods": {
+        "fetchTrades": [
+            {
+                "description": "public spot trades",
+                "method": "fetchTrades",
+                "input": [
+                    "BTC/USDT",
+                    null,
+                    1
+                ],
+                "httpResponse": [
+                    {
+                        "tradeID": "3717193477",
+                        "price": "73236.67",
+                        "quote_volume": "0.003212",
+                        "base_volume": "235.23",
+                        "trade_timestamp": "1710327649",
+                        "type": "sell"
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "tradeID": "3717193477",
+                            "price": "73236.67",
+                            "quote_volume": "0.003212",
+                            "base_volume": "235.23",
+                            "trade_timestamp": "1710327649",
+                            "type": "sell"
+                        },
+                        "timestamp": 1710327649000,
+                        "datetime": "2024-03-13T11:00:49.000Z",
+                        "symbol": "BTC/USDT",
+                        "id": "3717193477",
+                        "order": null,
+                        "type": null,
+                        "takerOrMaker": null,
+                        "side": "sell",
+                        "price": 73236.67,
+                        "amount": 0.003212,
+                        "cost": 0.00023523618404,
+                        "fee": null,
+                        "fees": []
+                    }
+                ]
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "public spot ticker",
+                "method": "fetchTicker",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "httpResponse": {
+                    "success": true,
+                    "message": null,
+                    "result": {
+                        "open": "72165.04",
+                        "bid": "73368.43",
+                        "ask": "73371.13",
+                        "low": "68701.12",
+                        "high": "73636.72",
+                        "last": "73363.07",
+                        "volume": "17340.923796",
+                        "deal": "1237525361.99814163",
+                        "change": "1.66"
+                    }
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/USDT",
+                    "timestamp": null,
+                    "datetime": null,
+                    "high": 73636.72,
+                    "low": 68701.12,
+                    "bid": 73368.43,
+                    "bidVolume": null,
+                    "ask": 73371.13,
+                    "askVolume": null,
+                    "vwap": 71364.44266502108,
+                    "open": 72165.04,
+                    "close": null,
+                    "last": null,
+                    "previousClose": null,
+                    "change": 1197.939664,
+                    "percentage": 1.66,
+                    "average": null,
+                    "baseVolume": 17340.923796,
+                    "quoteVolume": 1237525361.9981415,
+                    "info": {
+                        "open": "72165.04",
+                        "bid": "73368.43",
+                        "ask": "73371.13",
+                        "low": "68701.12",
+                        "high": "73636.72",
+                        "last": "73363.07",
+                        "volume": "17340.923796",
+                        "deal": "1237525361.99814163",
+                        "change": "1.66"
+                    }
+                }
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "public spot ohlcv",
+                "method": "fetchOHLCV",
+                "input": [
+                    "BTC/USDT",
+                    "1h",
+                    null,
+                    1
+                ],
+                "httpResponse": {
+                    "success": true,
+                    "message": null,
+                    "result": [
+                        [
+                            1710324000,
+                            "73306.55",
+                            "73260.84",
+                            "73392.67",
+                            "73121.22",
+                            "197.740208",
+                            "14485050.86832617"
+                        ]
+                    ]
+                },
+                "parsedResponse": [
+                    [
+                        1710324000000,
+                        73306.55,
+                        73392.67,
+                        73121.22,
+                        73260.84,
+                        197.740208
+                    ]
+                ]
+            }
+        ]
+    }
+}

@@ -46,6 +46,12 @@ const roundTimeframe = (timeframe, timestamp, direction = ROUND_DOWN) => {
     return timestamp - offset + ((direction === ROUND_UP) ? ms : 0);
 };
 const extractParams = (string) => {
+    /**
+     * @ignore
+     * @method
+     * @param string usually a url path
+     * @returns {[string]} all substrings surrounded by {} from parameter string
+     */
     const re = /{([\w-]+)}/g;
     const matches = [];
     let match = re.exec(string);

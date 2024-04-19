@@ -11,6 +11,7 @@ use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
 use ccxt\Precise;
 use React\Async;
+use React\Promise\PromiseInterface;
 
 class coinmate extends Exchange {
 
@@ -29,19 +30,23 @@ class coinmate extends Exchange {
                 'option' => false,
                 'addMargin' => false,
                 'cancelOrder' => true,
+                'closeAllPositions' => false,
+                'closePosition' => false,
                 'createOrder' => true,
                 'createReduceOnlyOrder' => false,
                 'fetchBalance' => true,
-                'fetchBorrowRate' => false,
                 'fetchBorrowRateHistories' => false,
                 'fetchBorrowRateHistory' => false,
-                'fetchBorrowRates' => false,
-                'fetchBorrowRatesPerSymbol' => false,
+                'fetchCrossBorrowRate' => false,
+                'fetchCrossBorrowRates' => false,
+                'fetchDepositsWithdrawals' => true,
                 'fetchFundingHistory' => false,
                 'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => false,
                 'fetchFundingRates' => false,
                 'fetchIndexOHLCV' => false,
+                'fetchIsolatedBorrowRate' => false,
+                'fetchIsolatedBorrowRates' => false,
                 'fetchLeverage' => false,
                 'fetchLeverageTiers' => false,
                 'fetchMarginMode' => false,
@@ -59,10 +64,11 @@ class coinmate extends Exchange {
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
+                'fetchTickers' => true,
                 'fetchTrades' => true,
                 'fetchTradingFee' => true,
                 'fetchTradingFees' => false,
-                'fetchTransactions' => true,
+                'fetchTransactions' => 'emulated',
                 'reduceMargin' => false,
                 'setLeverage' => false,
                 'setMarginMode' => false,
@@ -93,6 +99,8 @@ class coinmate extends Exchange {
                     'get' => array(
                         'orderBook',
                         'ticker',
+                        'tickerAll',
+                        'products',
                         'transactions',
                         'tradingPairs',
                     ),
@@ -141,6 +149,16 @@ class coinmate extends Exchange {
                         'unconfirmedEthereumDeposits',
                         'unconfirmedLitecoinDeposits',
                         'unconfirmedRippleDeposits',
+                        'cancelAllOpenOrders',
+                        'withdrawVirtualCurrency',
+                        'virtualCurrencyDepositAddresses',
+                        'unconfirmedVirtualCurrencyDeposits',
+                        'adaWithdrawal',
+                        'adaDepositAddresses',
+                        'unconfirmedAdaDeposits',
+                        'solWithdrawal',
+                        'solDepositAddresses',
+                        'unconfirmedSolDeposits',
                     ),
                 ),
             ),
@@ -185,6 +203,8 @@ class coinmate extends Exchange {
                         'XRP' => 'privatePostRippleWithdrawal',
                         'DASH' => 'privatePostDashWithdrawal',
                         'DAI' => 'privatePostDaiWithdrawal',
+                        'ADA' => 'privatePostAdaWithdrawal',
+                        'SOL' => 'privatePostSolWithdrawal',
                     ),
                 ),
             ),
@@ -205,12 +225,13 @@ class coinmate extends Exchange {
         ));
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * retrieves $data on all markets for coinmate
-             * @param {array} $params extra parameters specific to the exchange api endpoint
-             * @return {[array]} an array of objects representing $market $data
+             * @see https://coinmate.docs.apiary.io/#reference/trading-pairs/get-trading-pairs/get
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array[]} an array of objects representing $market $data
              */
             $response = Async\await($this->publicGetTradingPairs ($params));
             //
@@ -288,6 +309,7 @@ class coinmate extends Exchange {
                             'max' => null,
                         ),
                     ),
+                    'created' => null,
                     'info' => $market,
                 );
             }
@@ -295,7 +317,7 @@ class coinmate extends Exchange {
         }) ();
     }
 
-    public function parse_balance($response) {
+    public function parse_balance($response): array {
         $balances = $this->safe_value($response, 'data', array());
         $result = array( 'info' => $response );
         $currencyIds = is_array($balances) ? array_keys($balances) : array();
@@ -312,12 +334,13 @@ class coinmate extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function fetch_balance($params = array ()) {
+    public function fetch_balance($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * query for balance and get the amount of funds available for trading or funds locked in orders
-             * @param {array} $params extra parameters specific to the coinmate api endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+             * @see https://coinmate.docs.apiary.io/#reference/balance/get-balances/post
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
              */
             Async\await($this->load_markets());
             $response = Async\await($this->privatePostBalances ($params));
@@ -325,13 +348,14 @@ class coinmate extends Exchange {
         }) ();
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+             * @see https://coinmate.docs.apiary.io/#reference/order-book/get-order-book/get
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
-             * @param {int|null} $limit the maximum amount of order book entries to return
-             * @param {array} $params extra parameters specific to the coinmate api endpoint
+             * @param {int} [$limit] the maximum amount of order book entries to return
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
              */
             Async\await($this->load_markets());
@@ -347,13 +371,14 @@ class coinmate extends Exchange {
         }) ();
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
-             * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
-             * @param {string} $symbol unified $symbol of the $market to fetch the $ticker for
-             * @param {array} $params extra parameters specific to the coinmate api endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structure~
+             * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+             * @see https://coinmate.docs.apiary.io/#reference/ticker/get-ticker/get
+             * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -361,42 +386,120 @@ class coinmate extends Exchange {
                 'currencyPair' => $market['id'],
             );
             $response = Async\await($this->publicGetTicker (array_merge($request, $params)));
-            $ticker = $this->safe_value($response, 'data');
-            $timestamp = $this->safe_timestamp($ticker, 'timestamp');
-            $last = $this->safe_number($ticker, 'last');
-            return array(
-                'symbol' => $market['symbol'],
-                'timestamp' => $timestamp,
-                'datetime' => $this->iso8601($timestamp),
-                'high' => $this->safe_number($ticker, 'high'),
-                'low' => $this->safe_number($ticker, 'low'),
-                'bid' => $this->safe_number($ticker, 'bid'),
-                'bidVolume' => null,
-                'ask' => $this->safe_number($ticker, 'ask'),
-                'vwap' => null,
-                'askVolume' => null,
-                'open' => null,
-                'close' => $last,
-                'last' => $last,
-                'previousClose' => null,
-                'change' => null,
-                'percentage' => null,
-                'average' => null,
-                'baseVolume' => $this->safe_number($ticker, 'amount'),
-                'quoteVolume' => null,
-                'info' => $ticker,
-            );
+            //
+            //     {
+            //         "error" => false,
+            //         "errorMessage" => null,
+            //         "data" => {
+            //             "last" => 0.55105,
+            //             "high" => 0.56439,
+            //             "low" => 0.54358,
+            //             "amount" => 37038.993381,
+            //             "bid" => 0.54595,
+            //             "ask" => 0.55324,
+            //             "change" => 3.03659243,
+            //             "open" => 0.53481,
+            //             "timestamp" => 1708074779
+            //         }
+            //     }
+            //
+            $data = $this->safe_dict($response, 'data');
+            return $this->parse_ticker($data, $market);
         }) ();
     }
 
-    public function fetch_transactions(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each $market
+             * @see https://coinmate.docs.apiary.io/#reference/ticker/get-$ticker-all/get
+             * @param {string[]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all $market tickers are returned if not assigned
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structures~
+             */
+            Async\await($this->load_markets());
+            $symbols = $this->market_symbols($symbols);
+            $response = Async\await($this->publicGetTickerAll ($params));
+            //
+            //     {
+            //         "error" => false,
+            //         "errorMessage" => null,
+            //         "data" => {
+            //             "LTC_BTC" => {
+            //                 "last" => "0.001337",
+            //                 "high" => "0.001348",
+            //                 "low" => "0.001332",
+            //                 "amount" => "34.75472959",
+            //                 "bid" => "0.001348",
+            //                 "ask" => "0.001356",
+            //                 "change" => "-0.74239050",
+            //                 "open" => "0.001347",
+            //                 "timestamp" => "1708074485"
+            //             }
+            //         }
+            //     }
+            //
+            $data = $this->safe_value($response, 'data', array());
+            $keys = is_array($data) ? array_keys($data) : array();
+            $result = array();
+            for ($i = 0; $i < count($keys); $i++) {
+                $market = $this->market($keys[$i]);
+                $ticker = $this->parse_ticker($this->safe_value($data, $keys[$i]), $market);
+                $result[$market['symbol']] = $ticker;
+            }
+            return $this->filter_by_array_tickers($result, 'symbol', $symbols);
+        }) ();
+    }
+
+    public function parse_ticker($ticker, ?array $market = null): array {
+        //
+        //     {
+        //         "last" => "0.001337",
+        //         "high" => "0.001348",
+        //         "low" => "0.001332",
+        //         "amount" => "34.75472959",
+        //         "bid" => "0.001348",
+        //         "ask" => "0.001356",
+        //         "change" => "-0.74239050",
+        //         "open" => "0.001347",
+        //         "timestamp" => "1708074485"
+        //     }
+        //
+        $timestamp = $this->safe_timestamp($ticker, 'timestamp');
+        $last = $this->safe_number($ticker, 'last');
+        return $this->safe_ticker(array(
+            'symbol' => $market['symbol'],
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'high' => $this->safe_number($ticker, 'high'),
+            'low' => $this->safe_number($ticker, 'low'),
+            'bid' => $this->safe_number($ticker, 'bid'),
+            'bidVolume' => null,
+            'ask' => $this->safe_number($ticker, 'ask'),
+            'vwap' => null,
+            'askVolume' => null,
+            'open' => null,
+            'close' => $last,
+            'last' => $last,
+            'previousClose' => null,
+            'change' => null,
+            'percentage' => null,
+            'average' => null,
+            'baseVolume' => $this->safe_number($ticker, 'amount'),
+            'quoteVolume' => null,
+            'info' => $ticker,
+        ), $market);
+    }
+
+    public function fetch_deposits_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch history of deposits and withdrawals
-             * @param {string|null} $code unified $currency $code for the $currency of the transactions, default is null
-             * @param {int|null} $since timestamp in ms of the earliest transaction, default is null
-             * @param {int|null} $limit max number of transactions to return, default is null
-             * @param {array} $params extra parameters specific to the coinmate api endpoint
+             * @see https://coinmate.docs.apiary.io/#reference/transfers/get-transfer-history/post
+             * @param {string} [$code] unified $currency $code for the $currency of the deposit/withdrawals, default is null
+             * @param {int} [$since] timestamp in ms of the earliest deposit/withdrawal, default is null
+             * @param {int} [$limit] max number of deposit/withdrawals to return, default is null
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
              */
             Async\await($this->load_markets());
@@ -432,39 +535,39 @@ class coinmate extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_transaction($transaction, $currency = null) {
+    public function parse_transaction($transaction, ?array $currency = null): array {
         //
         // deposits
         //
         //     {
-        //         transactionId => 1862815,
-        //         $timestamp => 1516803982388,
-        //         amountCurrency => 'LTC',
-        //         amount => 1,
-        //         fee => 0,
-        //         walletType => 'LTC',
-        //         transferType => 'DEPOSIT',
-        //         transferStatus => 'COMPLETED',
-        //         txid:
-        //         'ccb9255dfa874e6c28f1a64179769164025329d65e5201849c2400abd6bce245',
-        //         destination => 'LQrtSKA6LnhcwRrEuiborQJnjFF56xqsFn',
-        //         destinationTag => null
+        //         "transactionId" => 1862815,
+        //         "timestamp" => 1516803982388,
+        //         "amountCurrency" => "LTC",
+        //         "amount" => 1,
+        //         "fee" => 0,
+        //         "walletType" => "LTC",
+        //         "transferType" => "DEPOSIT",
+        //         "transferStatus" => "COMPLETED",
+        //         "txid":
+        //         "ccb9255dfa874e6c28f1a64179769164025329d65e5201849c2400abd6bce245",
+        //         "destination" => "LQrtSKA6LnhcwRrEuiborQJnjFF56xqsFn",
+        //         "destinationTag" => null
         //     }
         //
         // withdrawals
         //
         //     {
-        //         transactionId => 2140966,
-        //         $timestamp => 1519314282976,
-        //         amountCurrency => 'EUR',
-        //         amount => 8421.7228,
-        //         fee => 16.8772,
-        //         walletType => 'BANK_WIRE',
-        //         transferType => 'WITHDRAWAL',
-        //         transferStatus => 'COMPLETED',
-        //         txid => null,
-        //         destination => null,
-        //         destinationTag => null
+        //         "transactionId" => 2140966,
+        //         "timestamp" => 1519314282976,
+        //         "amountCurrency" => "EUR",
+        //         "amount" => 8421.7228,
+        //         "fee" => 16.8772,
+        //         "walletType" => "BANK_WIRE",
+        //         "transferType" => "WITHDRAWAL",
+        //         "transferStatus" => "COMPLETED",
+        //         "txid" => null,
+        //         "destination" => null,
+        //         "destinationTag" => null
         //     }
         //
         // withdraw
@@ -495,6 +598,7 @@ class coinmate extends Exchange {
             'tagTo' => null,
             'updated' => null,
             'comment' => null,
+            'internal' => null,
             'fee' => array(
                 'cost' => $this->safe_number($transaction, 'fee'),
                 'currency' => $code,
@@ -503,15 +607,21 @@ class coinmate extends Exchange {
         );
     }
 
-    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
+             * @see https://coinmate.docs.apiary.io/#reference/bitcoin-withdrawal-and-deposit/withdraw-bitcoins/post
+             * @see https://coinmate.docs.apiary.io/#reference/litecoin-withdrawal-and-deposit/withdraw-litecoins/post
+             * @see https://coinmate.docs.apiary.io/#reference/ethereum-withdrawal-and-deposit/withdraw-ethereum/post
+             * @see https://coinmate.docs.apiary.io/#reference/ripple-withdrawal-and-deposit/withdraw-ripple/post
+             * @see https://coinmate.docs.apiary.io/#reference/cardano-withdrawal-and-deposit/withdraw-cardano/post
+             * @see https://coinmate.docs.apiary.io/#reference/solana-withdrawal-and-deposit/withdraw-solana/post
              * @param {string} $code unified $currency $code
              * @param {float} $amount the $amount to withdraw
              * @param {string} $address the $address to withdraw to
-             * @param {string|null} $tag
-             * @param {array} $params extra parameters specific to the coinmate api endpoint
+             * @param {string} $tag
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=$transaction-structure $transaction structure~
              */
             list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
@@ -544,7 +654,7 @@ class coinmate extends Exchange {
             //
             $data = $this->safe_value($response, 'data');
             $transaction = $this->parse_transaction($data, $currency);
-            $fillResponseFromRequest = $this->safe_value($withdrawOptions, 'fillResponseFromRequest', true);
+            $fillResponseFromRequest = $this->safe_bool($withdrawOptions, 'fillResponseFromRequest', true);
             if ($fillResponseFromRequest) {
                 $transaction['amount'] = $amount;
                 $transaction['currency'] = $code;
@@ -561,11 +671,12 @@ class coinmate extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all trades made by the user
-             * @param {string|null} $symbol unified $market $symbol
-             * @param {int|null} $since the earliest time in ms to fetch trades for
-             * @param {int|null} $limit the maximum number of trades structures to retrieve
-             * @param {array} $params extra parameters specific to the coinmate api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
+             * @see https://coinmate.docs.apiary.io/#reference/trade-history/get-trade-history/post
+             * @param {string} $symbol unified $market $symbol
+             * @param {int} [$since] the earliest time in ms to fetch trades for
+             * @param {int} [$limit] the maximum number of trades structures to retrieve
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
              */
             Async\await($this->load_markets());
             if ($limit === null) {
@@ -582,26 +693,26 @@ class coinmate extends Exchange {
                 $request['timestampFrom'] = $since;
             }
             $response = Async\await($this->privatePostTradeHistory (array_merge($request, $params)));
-            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_list($response, 'data', array());
             return $this->parse_trades($data, null, $since, $limit);
         }) ();
     }
 
-    public function parse_trade($trade, $market = null) {
+    public function parse_trade($trade, ?array $market = null): array {
         //
         // fetchMyTrades (private)
         //
         //     {
-        //         transactionId => 2671819,
-        //         createdTimestamp => 1529649127605,
-        //         currencyPair => 'LTC_BTC',
-        //         $type => 'BUY',
-        //         orderType => 'LIMIT',
-        //         $orderId => 101810227,
-        //         amount => 0.01,
-        //         price => 0.01406,
-        //         $fee => 0,
-        //         feeType => 'MAKER'
+        //         "transactionId" => 2671819,
+        //         "createdTimestamp" => 1529649127605,
+        //         "currencyPair" => "LTC_BTC",
+        //         "type" => "BUY",
+        //         "orderType" => "LIMIT",
+        //         "orderId" => 101810227,
+        //         "amount" => 0.01,
+        //         "price" => 0.01406,
+        //         "fee" => 0,
+        //         "feeType" => "MAKER"
         //     }
         //
         // fetchTrades (public)
@@ -651,15 +762,16 @@ class coinmate extends Exchange {
         ), $market);
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent trades for a particular $symbol
+             * @see https://coinmate.docs.apiary.io/#reference/transactions/transactions/get
              * @param {string} $symbol unified $symbol of the $market to fetch trades for
-             * @param {int|null} $since timestamp in ms of the earliest trade to fetch
-             * @param {int|null} $limit the maximum amount of trades to fetch
-             * @param {array} $params extra parameters specific to the coinmate api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
+             * @param {int} [$since] timestamp in ms of the earliest trade to fetch
+             * @param {int} [$limit] the maximum amount of trades to fetch
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=public-trades trade structures~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -684,17 +796,18 @@ class coinmate extends Exchange {
             //         )
             //     }
             //
-            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_list($response, 'data', array());
             return $this->parse_trades($data, $market, $since, $limit);
         }) ();
     }
 
-    public function fetch_trading_fee(string $symbol, $params = array ()) {
+    public function fetch_trading_fee(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch the trading fees for a $market
+             * @see https://coinmate.docs.apiary.io/#reference/trader-fees/get-trading-fees/post
              * @param {string} $symbol unified $market $symbol
-             * @param {array} $params extra parameters specific to the coinmate api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=fee-structure fee structure~
              */
             Async\await($this->load_markets());
@@ -705,9 +818,9 @@ class coinmate extends Exchange {
             $response = Async\await($this->privatePostTraderFees (array_merge($request, $params)));
             //
             //     {
-            //         error => false,
-            //         errorMessage => null,
-            //         $data => array( $maker => '0.3', $taker => '0.35', timestamp => '1646253217815' )
+            //         "error" => false,
+            //         "errorMessage" => null,
+            //         "data" => array( $maker => '0.3', $taker => "0.35", timestamp => "1646253217815" )
             //     }
             //
             $data = $this->safe_value($response, 'data', array());
@@ -726,15 +839,16 @@ class coinmate extends Exchange {
         }) ();
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all unfilled currently open orders
-             * @param {string|null} $symbol unified market $symbol
-             * @param {int|null} $since the earliest time in ms to fetch open orders for
-             * @param {int|null} $limit the maximum number of  open orders structures to retrieve
-             * @param {array} $params extra parameters specific to the coinmate api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @see https://coinmate.docs.apiary.io/#reference/order/get-open-orders/post
+             * @param {string} $symbol unified market $symbol
+             * @param {int} [$since] the earliest time in ms to fetch open orders for
+             * @param {int} [$limit] the maximum number of  open orders structures to retrieve
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             $response = Async\await($this->privatePostOpenOrders (array_merge(array(), $params)));
             $extension = array( 'status' => 'open' );
@@ -742,15 +856,16 @@ class coinmate extends Exchange {
         }) ();
     }
 
-    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple orders made by the user
+             * @see https://coinmate.docs.apiary.io/#reference/order/order-history/post
              * @param {string} $symbol unified $market $symbol of the $market orders were made in
-             * @param {int|null} $since the earliest time in ms to fetch orders for
-             * @param {int|null} $limit the maximum number of  orde structures to retrieve
-             * @param {array} $params extra parameters specific to the coinmate api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @param {int} [$since] the earliest time in ms to fetch orders for
+             * @param {int} [$limit] the maximum number of order structures to retrieve
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' fetchOrders() requires a $symbol argument');
@@ -787,47 +902,47 @@ class coinmate extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, ?array $market = null): array {
         //
         // limit sell
         //
         //     {
-        //         $id => 781246605,
-        //         $timestamp => 1584480015133,
-        //         trailingUpdatedTimestamp => null,
-        //         $type => 'SELL',
-        //         currencyPair => 'ETH_BTC',
-        //         price => 0.0345,
-        //         amount => 0.01,
-        //         $stopPrice => null,
-        //         originalStopPrice => null,
-        //         marketPriceAtLastUpdate => null,
-        //         marketPriceAtOrderCreation => null,
-        //         orderTradeType => 'LIMIT',
-        //         hidden => false,
-        //         trailing => false,
-        //         $clientOrderId => null
+        //         "id" => 781246605,
+        //         "timestamp" => 1584480015133,
+        //         "trailingUpdatedTimestamp" => null,
+        //         "type" => "SELL",
+        //         "currencyPair" => "ETH_BTC",
+        //         "price" => 0.0345,
+        //         "amount" => 0.01,
+        //         "stopPrice" => null,
+        //         "originalStopPrice" => null,
+        //         "marketPriceAtLastUpdate" => null,
+        //         "marketPriceAtOrderCreation" => null,
+        //         "orderTradeType" => "LIMIT",
+        //         "hidden" => false,
+        //         "trailing" => false,
+        //         "clientOrderId" => null
         //     }
         //
         // limit buy
         //
         //     {
-        //         $id => 67527001,
-        //         $timestamp => 1517931722613,
-        //         trailingUpdatedTimestamp => null,
-        //         $type => 'BUY',
-        //         price => 5897.24,
-        //         remainingAmount => 0.002367,
-        //         originalAmount => 0.1,
-        //         $stopPrice => null,
-        //         originalStopPrice => null,
-        //         marketPriceAtLastUpdate => null,
-        //         marketPriceAtOrderCreation => null,
-        //         $status => 'CANCELLED',
-        //         orderTradeType => 'LIMIT',
-        //         hidden => false,
-        //         avgPrice => null,
-        //         trailing => false,
+        //         "id" => 67527001,
+        //         "timestamp" => 1517931722613,
+        //         "trailingUpdatedTimestamp" => null,
+        //         "type" => "BUY",
+        //         "price" => 5897.24,
+        //         "remainingAmount" => 0.002367,
+        //         "originalAmount" => 0.1,
+        //         "stopPrice" => null,
+        //         "originalStopPrice" => null,
+        //         "marketPriceAtLastUpdate" => null,
+        //         "marketPriceAtOrderCreation" => null,
+        //         "status" => "CANCELLED",
+        //         "orderTradeType" => "LIMIT",
+        //         "hidden" => false,
+        //         "avgPrice" => null,
+        //         "trailing" => false,
         //     }
         //
         $id = $this->safe_string($order, 'id');
@@ -869,16 +984,20 @@ class coinmate extends Exchange {
         ), $market);
     }
 
-    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
+             * @see https://coinmate.docs.apiary.io/#reference/order/buy-limit-order/post
+             * @see https://coinmate.docs.apiary.io/#reference/order/sell-limit-order/post
+             * @see https://coinmate.docs.apiary.io/#reference/order/buy-instant-order/post
+             * @see https://coinmate.docs.apiary.io/#reference/order/sell-instant-order/post
              * @param {string} $symbol unified $symbol of the $market to create an order in
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of currency you want to trade in units of base currency
-             * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
-             * @param {array} $params extra parameters specific to the coinmate api endpoint
+             * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
             Async\await($this->load_markets());
@@ -912,8 +1031,10 @@ class coinmate extends Exchange {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * fetches information on an order made by the user
-             * @param {string|null} $symbol unified $symbol of the $market the order was made in
-             * @param {array} $params extra parameters specific to the coinmate api endpoint
+             * @see https://coinmate.docs.apiary.io/#reference/order/get-order-by-orderid/post
+             * @see https://coinmate.docs.apiary.io/#reference/order/get-order-by-clientorderid/post
+             * @param {string} $symbol unified $symbol of the $market the order was made in
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
             Async\await($this->load_markets());
@@ -925,7 +1046,7 @@ class coinmate extends Exchange {
                 $market = $this->market($symbol);
             }
             $response = Async\await($this->privatePostOrderById (array_merge($request, $params)));
-            $data = $this->safe_value($response, 'data');
+            $data = $this->safe_dict($response, 'data');
             return $this->parse_order($data, $market);
         }) ();
     }
@@ -934,9 +1055,10 @@ class coinmate extends Exchange {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * cancels an open order
+             * @see https://coinmate.docs.apiary.io/#reference/order/cancel-order/post
              * @param {string} $id order $id
-             * @param {string|null} $symbol not used by coinmate cancelOrder ()
-             * @param {array} $params extra parameters specific to the coinmate api endpoint
+             * @param {string} $symbol not used by coinmate cancelOrder ()
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
             //   array("error":false,"errorMessage":null,"data":array("success":true,"remainingAmount":0.01))

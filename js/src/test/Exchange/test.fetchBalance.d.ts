@@ -1,2 +1,3 @@
-declare function testFetchBalance(exchange: any, skippedProperties: any, code: any, symbol: any): Promise<void>;
+import { Exchange } from "../../../ccxt";
+declare function testFetchBalance(exchange: Exchange, skippedProperties: object): Promise<void>;
 export default testFetchBalance;

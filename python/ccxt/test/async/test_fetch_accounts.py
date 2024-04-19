@@ -12,14 +12,12 @@ sys.path.append(root)
 # ----------------------------------------------------------------------------
 # -*- coding: utf-8 -*-
 
-
 from ccxt.test.base import test_account  # noqa E402
-
+from ccxt.test.base import test_shared_methods  # noqa E402
 
 async def test_fetch_accounts(exchange, skipped_properties):
     method = 'fetchAccounts'
     accounts = await exchange.fetch_accounts()
-    assert isinstance(accounts, dict), exchange.id + ' ' + method + ' must return an object. ' + exchange.json(accounts)
-    account_values = list(accounts.values())
-    for i in range(0, len(account_values)):
+    test_shared_methods.assert_non_emtpy_array(exchange, skipped_properties, method, accounts)
+    for i in range(0, len(accounts)):
         test_account(exchange, skipped_properties, method, accounts[i])

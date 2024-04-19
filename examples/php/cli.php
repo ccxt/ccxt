@@ -37,6 +37,9 @@ $main = function() use ($argv) {
         $future = count(array_filter($args, function ($option) { return strstr($option, '--future') !== false; })) > 0;
         $args = array_values(array_filter($args, function ($option) { return strstr($option, '--future') === false; }));
 
+        $option = count(array_filter($args, function ($option) { return strstr($option, '--option') !== false; })) > 0;
+        $args = array_values(array_filter($args, function ($option) { return strstr($option, '--option') === false; }));
+
         $new_updates = count(array_filter($args, function ($option) { return strstr($option, '--newUpdates') !== false; })) > 0;
         $args = array_values(array_filter($args, function ($option) { return strstr($option, '--newUpdates') === false; }));
 
@@ -72,6 +75,8 @@ $main = function() use ($argv) {
                 $exchange->options['defaultType'] = 'swap';
             } else if ($future) {
                 $exchange->options['defaultType'] = 'future';
+            } else if ($option) {
+                $exchange->options['defaultType'] = 'option';
             }
 
             if ($new_updates) {
@@ -88,6 +93,9 @@ $main = function() use ($argv) {
                     $credential_var = strtoupper($id . '_' . $credential); // example: KRAKEN_SECRET
                     $credential_value = getenv($credential_var);
                     if ($credential_value) {
+                        if (str_contains($credential_value, "---BEGIN")) {
+                            $credential_value = str_replace('\n', "\n", $credential_value);
+                        }
                         $exchange->$credential = $credential_value;
                     }
                 }

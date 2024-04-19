@@ -7,10 +7,13 @@ namespace ccxt\async;
 
 use Exception; // a common import
 use ccxt\async\abstract\kuna as Exchange;
+use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
-use ccxt\OrderNotFound;
+use ccxt\BadRequest;
 use ccxt\NotSupported;
+use ccxt\Precise;
 use React\Async;
+use React\Promise\PromiseInterface;
 
 class kuna extends Exchange {
 
@@ -19,36 +22,66 @@ class kuna extends Exchange {
             'id' => 'kuna',
             'name' => 'Kuna',
             'countries' => array( 'UA' ),
-            'rateLimit' => 1000,
-            'version' => 'v2',
+            'rateLimit' => 1000,  // on private endpoints rateLimit = 200 for authenticated users, 50 for pro/vip users
+            'version' => 'v4',
             'has' => array(
                 'CORS' => null,
                 'spot' => true,
-                'margin' => null,
+                'margin' => false,
                 'swap' => false,
                 'future' => false,
                 'option' => false,
+                'addMargin' => false,
                 'cancelOrder' => true,
+                'cancelOrders' => true,
+                'closeAllPositions' => false,
+                'closePosition' => false,
+                'createDepositAddress' => true,
                 'createOrder' => true,
+                'createPostOnlyOrder' => false,
+                'createReduceOnlyOrder' => false,
+                'createStopLimitOrder' => true,
+                'createStopMarketOrder' => false,
+                'createStopOrder' => true,
                 'fetchBalance' => true,
+                'fetchBorrowInterest' => false,
+                'fetchBorrowRateHistories' => false,
+                'fetchBorrowRateHistory' => false,
+                'fetchClosedOrders' => true,
+                'fetchCrossBorrowRate' => false,
+                'fetchCrossBorrowRates' => false,
+                'fetchCurrencies' => true,
+                'fetchDeposit' => true,
+                'fetchDepositAddress' => true,
+                'fetchDeposits' => true,
+                'fetchDepositsWithdrawals' => false,
                 'fetchFundingHistory' => false,
                 'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => false,
                 'fetchFundingRates' => false,
                 'fetchIndexOHLCV' => false,
+                'fetchIsolatedBorrowRate' => false,
+                'fetchIsolatedBorrowRates' => false,
+                'fetchIsolatedPositions' => false,
                 'fetchL3OrderBook' => true,
                 'fetchLeverage' => false,
+                'fetchLeverageTiers' => false,
                 'fetchMarginMode' => false,
+                'fetchMarketLeverageTiers' => false,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => 'emulated',
+                'fetchOpenInterest' => false,
                 'fetchOpenInterestHistory' => false,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
+                'fetchOrdersByStatus' => true,
+                'fetchPosition' => false,
                 'fetchPositionMode' => false,
                 'fetchPositions' => false,
+                'fetchPositionsForSymbol' => false,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
@@ -57,9 +90,21 @@ class kuna extends Exchange {
                 'fetchTrades' => true,
                 'fetchTradingFee' => false,
                 'fetchTradingFees' => false,
+                'fetchTransactions' => false,
+                'fetchTransfers' => false,
+                'fetchWithdrawAddresses' => false,
+                'fetchWithdrawal' => true,
+                'fetchWithdrawals' => true,
                 'reduceMargin' => false,
+                'repayCrossMargin' => false,
+                'repayIsolatedMargin' => false,
                 'setLeverage' => false,
+                'setMargin' => false,
+                'setMarginMode' => false,
                 'setPositionMode' => false,
+                'signIn' => false,
+                'transfer' => false,
+                'withdraw' => true,
             ),
             'timeframes' => null,
             'urls' => array(
@@ -69,6 +114,7 @@ class kuna extends Exchange {
                 'api' => array(
                     'xreserve' => 'https://api.xreserve.fund',
                     'v3' => 'https://api.kuna.io',
+                    'v4' => 'https://api.kuna.io',
                     'public' => 'https://kuna.io', // v2
                     'private' => 'https://kuna.io', // v2
                 ),
@@ -85,6 +131,56 @@ class kuna extends Exchange {
                     ),
                     'post' => array(
                         'delegate-transfer' => 1,
+                    ),
+                ),
+                'v4' => array(
+                    'private' => array(
+                        'get' => array(
+                            'private/me' => 1,
+                            'private/getBalance' => 1,
+                            'order/private/active' => 1,
+                            'order/private/history' => 1,
+                            'order/private/{id}/trades' => 1,
+                            'order/private/details/{id}' => 1,
+                            'trade/private/history' => 1,
+                            'transaction/private/{hash}' => 1,
+                            'deposit/private/preRequest' => 1,
+                            'deposit/private/crypto/address' => 1,
+                            'deposit/private/crypto/getMerchantAddress' => 1,
+                            'deposit/private/history' => 1,
+                            'deposit/private/details/{depositId}' => 1,
+                            'withdraw/private/preRequest' => 1,
+                            'withdraw/private/history' => 1,
+                            'withdraw/private/details/{withdrawId}' => 1,
+                            'kuna-code/{id}' => 1,
+                            'kuna-code/{code}/check' => 1,
+                            'kuna-code/issued-by-me' => 1,
+                            'kuna-code/redeemed-by-me' => 1,
+                        ),
+                        'post' => array(
+                            'order/private/create' => 1,
+                            'order/private/cancel' => 1,
+                            'order/private/cancel/multi' => 1,
+                            'deposit/private/crypto/generateAddress' => 1,
+                            'deposit/private/crypto/generateMerchantAddress' => 1,
+                            'withdraw/private/create' => 1,
+                            'kuna-code' => 1,
+                        ),
+                        'put' => array(
+                            'kuna-code/redeem' => 1,
+                        ),
+                    ),
+                    'public' => array(
+                        'get' => array(
+                            'public/timestamp' => 1,
+                            'public/fees' => 1,
+                            'public/currencies?type={type}' => 1,
+                            'public/currencies' => 1,
+                            'markets/public/getAll' => 1,
+                            'markets/public/tickers?pairs={pairs}' => 1,
+                            'order/public/book/{pairs}' => 1,
+                            'trade/public/book/{pairs}' => 1,
+                        ),
                     ),
                 ),
                 'v3' => array(
@@ -291,8 +387,17 @@ class kuna extends Exchange {
             ),
             'precisionMode' => TICK_SIZE,
             'exceptions' => array(
+                'ARGUMENT_VALIDATION_ERROR' => '\\ccxt\\BadRequest',
+                'PAYMENT_METHOD_NOT_SUPPORTED' => '\\ccxt\\BadRequest',
+                'NOT_FOUND' => '\\ccxt\\OrderNotFound',
+                'INVALID:ORDER_SIZE' => '\\ccxt\\InvalidOrder',
+                'WrongRequestException' => '\\ccxt\\BadRequest',
+                'INSUFFICIENT_FUNDS' => '\\ccxt\\InsufficientFunds',
                 '2002' => '\\ccxt\\InsufficientFunds',
                 '2003' => '\\ccxt\\OrderNotFound',
+            ),
+            'options' => array(
+                // 'account' => 'pro'      // Only for pro accounts
             ),
         ));
     }
@@ -301,401 +406,610 @@ class kuna extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * fetches the current integer timestamp in milliseconds from the exchange server
-             * @param {array} $params extra parameters specific to the kuna api endpoint
+             * @see https://docs.kuna.io/docs/get-time-on-the-server
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {int} the current integer timestamp in milliseconds from the exchange server
              */
-            $response = Async\await($this->publicGetTimestamp ($params));
-            //
-            //     1594911427
-            //
-            return $response * 1000;
-        }) ();
-    }
-
-    public function fetch_markets($params = array ()) {
-        return Async\async(function () use ($params) {
-            /**
-             * retrieves data on all $markets for kuna
-             * @param {array} $params extra parameters specific to the exchange api endpoint
-             * @return {[array]} an array of objects representing market data
-             */
-            $quotes = array( 'btc', 'rub', 'uah', 'usd', 'usdt', 'usdc' );
-            $markets = array();
-            $response = Async\await($this->publicGetTickers ($params));
+            $response = Async\await($this->v4PublicGetPublicTimestamp ($params));
             //
             //    {
-            //        shibuah => {
-            //            at => '1644463685',
-            //            ticker => {
-            //                buy => '0.000911',
-            //                sell => '0.00092',
-            //                low => '0.000872',
-            //                high => '0.000963',
-            //                last => '0.000911',
-            //                vol => '1539278096.0',
-            //                price => '1434244.211249'
-            //            }
+            //        "data" => {
+            //            "timestamp" => 1686740531,
+            //            "timestamp_miliseconds" => 1686740531725,
             //        }
             //    }
             //
-            $ids = is_array($response) ? array_keys($response) : array();
-            for ($i = 0; $i < count($ids); $i++) {
-                $id = $ids[$i];
-                for ($j = 0; $j < count($quotes); $j++) {
-                    $quoteId = $quotes[$j];
-                    // usd gets matched before usdt in usdtusd USDT/USD
-                    // https://github.com/ccxt/ccxt/issues/9868
-                    $slicedId = mb_substr($id, 1);
-                    $index = mb_strpos($slicedId, $quoteId);
-                    $slicePart = mb_substr($slicedId, $index);
-                    if (($index > 0) && ($slicePart === $quoteId)) {
-                        // usd gets matched before usdt in usdtusd USDT/USD
-                        // https://github.com/ccxt/ccxt/issues/9868
-                        $baseId = $id[0] . str_replace($quoteId, '', $slicedId);
-                        $base = $this->safe_currency_code($baseId);
-                        $quote = $this->safe_currency_code($quoteId);
-                        $markets[] = array(
-                            'id' => $id,
-                            'symbol' => $base . '/' . $quote,
-                            'base' => $base,
-                            'quote' => $quote,
-                            'settle' => null,
-                            'baseId' => $baseId,
-                            'quoteId' => $quoteId,
-                            'settleId' => null,
-                            'type' => 'spot',
-                            'spot' => true,
-                            'margin' => false,
-                            'swap' => false,
-                            'future' => false,
-                            'option' => false,
-                            'active' => null,
-                            'contract' => false,
-                            'linear' => null,
-                            'inverse' => null,
-                            'contractSize' => null,
-                            'expiry' => null,
-                            'expiryDatetime' => null,
-                            'strike' => null,
-                            'optionType' => null,
-                            'precision' => array(
-                                'amount' => null,
-                                'price' => null,
-                            ),
-                            'limits' => array(
-                                'leverage' => array(
-                                    'min' => null,
-                                    'max' => null,
-                                ),
-                                'amount' => array(
-                                    'min' => null,
-                                    'max' => null,
-                                ),
-                                'price' => array(
-                                    'min' => null,
-                                    'max' => null,
-                                ),
-                                'cost' => array(
-                                    'min' => null,
-                                    'max' => null,
-                                ),
-                            ),
-                            'info' => null,
-                        );
-                    }
-                }
+            $data = $this->safe_value($response, 'data', array());
+            return $this->safe_integer($data, 'timestamp_miliseconds');
+        }) ();
+    }
+
+    public function fetch_currencies($params = array ()): PromiseInterface {
+        return Async\async(function () use ($params) {
+            /**
+             * fetches all available currencies on an exchange
+             * @see https://docs.kuna.io/docs/get-information-about-available-currencies
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} an associative dictionary of currencies
+             */
+            $response = Async\await($this->v4PublicGetPublicCurrencies ($params));
+            //
+            //    {
+            //        "data" => array(
+            //            {
+            //                "code" => "BTC",
+            //                "name" => "Bitcoin",
+            //                "payload" => array(
+            //                    "chart" => "https://kuna-pro.kuna.io/bitcoin-chart",
+            //                    "icons" => array(
+            //                        "svg" => "https://kuna-pro.kuna.io/icon-btc-svg",
+            //                        "png2x" => "https://kuna-pro.kuna.io/icon-btc-png2x",
+            //                        "png3x" => "https://kuna-pro.kuna.io/icon-btc-png3x",
+            //                        "svgXL" => "https://kuna-pro.kuna.io/icon-btc-svg"
+            //                    ),
+            //                    "pngChart" => "https://kuna-pro.kuna.io/png-bitcoin-chart"
+            //                ),
+            //                "position" => 1,
+            //                "precision" => 8,
+            //                "tradePrecision" => 6,
+            //                "type" => "Crypto"
+            //            }
+            //        )
+            //    }
+            //
+            $data = $this->safe_value($response, 'data', array());
+            return $this->parse_currencies($data);
+        }) ();
+    }
+
+    public function parse_currencies($currencies, $params = array ()) {
+        $currencies = $this->to_array($currencies);
+        $result = array();
+        for ($i = 0; $i < count($currencies); $i++) {
+            $currency = $this->parse_currency($currencies[$i]);
+            $result[$currency['code']] = $currency;
+        }
+        return $result;
+    }
+
+    public function parse_currency($currency) {
+        //
+        //    {
+        //        "code" => "BTC",
+        //        "name" => "Bitcoin",
+        //        "payload" => array(
+        //            "chart" => "https://kuna-pro.kuna.io/bitcoin-chart",
+        //            "icons" => array(
+        //                "svg" => "https://kuna-pro.kuna.io/icon-btc-svg",
+        //                "png2x" => "https://kuna-pro.kuna.io/icon-btc-png2x",
+        //                "png3x" => "https://kuna-pro.kuna.io/icon-btc-png3x",
+        //                "svgXL" => "https://kuna-pro.kuna.io/icon-btc-svg"
+        //            ),
+        //            "pngChart" => "https://kuna-pro.kuna.io/png-bitcoin-chart"
+        //        ),
+        //        "position" => 1,
+        //        "precision" => 8,
+        //        "tradePrecision" => 6,
+        //        "type" => "Crypto"
+        //    }
+        //
+        $currencyId = $this->safe_string($currency, 'code');
+        $precision = $this->safe_string($currency, 'precision');
+        $tradePrecision = $this->safe_string($currency, 'tradePrecision');
+        return array(
+            'info' => $currency,
+            'id' => $currencyId,
+            'code' => $this->safe_currency_code($currencyId),
+            'type' => null,
+            'margin' => null,
+            'name' => $this->safe_string($currency, 'name'),
+            'active' => null,
+            'deposit' => null,
+            'withdraw' => null,
+            'fee' => null,
+            'precision' => Precise::string_min($precision, $tradePrecision),
+            'limits' => array(
+                'amount' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'withdraw' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+            ),
+            'networks' => array(),
+        );
+    }
+
+    public function fetch_markets($params = array ()): PromiseInterface {
+        return Async\async(function () use ($params) {
+            /**
+             * retrieves $data on all $markets for kuna
+             * @see https://docs.kuna.io/docs/get-all-traded-$markets
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array[]} an array of objects representing market $data
+             */
+            $response = Async\await($this->v4PublicGetMarketsPublicGetAll ($params));
+            //
+            //    {
+            //        "data" => array(
+            //            {
+            //                "pair" => "BTC_USDT",               // Traded pair of assets
+            //                "baseAsset" => array(                    // The $base asset of the traded pair, the one to sell or buy result of the trade
+            //                    "code" => "BTC",
+            //                    "precision" => 6               // Maximum amount of digits for the decimal part of a number
+            //                ),
+            //                "quoteAsset" => array(                   // The quoted asset of the traded pair, the one to use to sell or buy the $base asset
+            //                    "code" => "USDT",
+            //                    "precision" => 2                // Maximum amount of digits for the decimal part of a number
+            //                ),
+            //                "tickerPriceChange" => "-0.07"      // Relative change compared with the last tick
+            //            }
+            //        )
+            //    }
+            //
+            $data = $this->safe_value($response, 'data', array());
+            $markets = array();
+            for ($i = 0; $i < count($data); $i++) {
+                $item = $data[$i];
+                $marketId = $this->safe_string($item, 'pair');
+                $baseAsset = $this->safe_value($item, 'baseAsset');
+                $quoteAsset = $this->safe_value($item, 'quoteAsset');
+                $baseId = $this->safe_string($baseAsset, 'code');
+                $quoteId = $this->safe_string($quoteAsset, 'code');
+                $base = $this->safe_currency_code($baseId);
+                $quote = $this->safe_currency_code($quoteId);
+                $basePrecision = $this->safe_string($baseAsset, 'precision');
+                $quotePrecision = $this->safe_string($quoteAsset, 'precision');
+                $markets[] = array(
+                    'id' => $marketId,
+                    'symbol' => $base . '/' . $quote,
+                    'base' => $base,
+                    'quote' => $quote,
+                    'settle' => null,
+                    'baseId' => $baseId,
+                    'quoteId' => $quoteId,
+                    'settleId' => null,
+                    'type' => 'spot',
+                    'spot' => true,
+                    'margin' => false,
+                    'swap' => false,
+                    'future' => false,
+                    'option' => false,
+                    'active' => null,
+                    'contract' => false,
+                    'linear' => null,
+                    'inverse' => null,
+                    'contractSize' => null,
+                    'expiry' => null,
+                    'expiryDatetime' => null,
+                    'strike' => null,
+                    'optionType' => null,
+                    'precision' => array(
+                        'amount' => $this->parse_number($this->parse_precision($basePrecision)),
+                        'price' => $this->parse_number($this->parse_precision($quotePrecision)),
+                    ),
+                    'limits' => array(
+                        'leverage' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
+                        'amount' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
+                        'price' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
+                        'cost' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
+                    ),
+                    'created' => null,
+                    'info' => $item,
+                );
             }
             return $markets;
         }) ();
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
-             * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+             * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other $data
+             * @see https://docs.kuna.io/docs/get-public-orders-book
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
-             * @param {int|null} $limit the maximum amount of order book entries to return
-             * @param {array} $params extra parameters specific to the kuna api endpoint
+             * @param {int} [$limit] 5, 10, 20, 50, 100, 500, or 1000 (default)
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $request = array(
-                'market' => $market['id'],
+                'pairs' => $market['id'],
             );
             if ($limit !== null) {
-                $request['limit'] = $limit; // default = 300
+                $request['level'] = $limit;
             }
-            $orderbook = Async\await($this->publicGetDepth (array_merge($request, $params)));
-            $timestamp = $this->safe_timestamp($orderbook, 'timestamp');
-            return $this->parse_order_book($orderbook, $market['symbol'], $timestamp);
+            $response = Async\await($this->v4PublicGetOrderPublicBookPairs (array_merge($request, $params)));
+            //
+            //      {
+            //          "data" => {
+            //              "asks" => array(               // An array of sell orders
+            //                  array(
+            //                      "16950",        // Sell price, level 1
+            //                      "0.001"         // Sell quantity, level 1
+            //                  ),
+            //                  array(
+            //                      "17000",        // Sell price, level 2
+            //                      "0.01"          // Sell quantity, level 2
+            //                  )
+            //              ),
+            //              "bids" => array(               // An array of buy orders
+            //                  array(
+            //                      "16700",        // Sell price, level 1
+            //                      "0.01"          // Sell quantity, level 1
+            //                  ),
+            //                  array(
+            //                      "16000",        // Sell price, level 2
+            //                      "0.001"         // Sell quantity, level 2
+            //                  )
+            //              )
+            //          }
+            //      }
+            //
+            $data = $this->safe_dict($response, 'data', array());
+            return $this->parse_order_book($data, $market['symbol'], null, 'bids', 'asks', 0, 1);
         }) ();
     }
 
-    public function parse_ticker($ticker, $market = null) {
-        $timestamp = $this->safe_timestamp($ticker, 'at');
-        $ticker = $ticker['ticker'];
-        $symbol = $this->safe_symbol(null, $market);
-        $last = $this->safe_string($ticker, 'last');
+    public function parse_ticker($ticker, ?array $market = null): array {
+        //
+        //    {
+        //        "pair" => "BTC_USDT",                                   // Traded pair
+        //        "percentagePriceChange" => "-0.03490931899641581",      // Relative price change, in percent
+        //        "price" => "27900",                                     // Current median price
+        //        "equivalentPrice" => "",                                // TBD
+        //        "high" => "29059.69",                                   // Highest price
+        //        "low" => "27900",                                       // Lowest price
+        //        "baseVolume" => "2.9008499999999993",                   // Traded volume
+        //        "quoteVolume" => "82251.41477976",                      // Traded volume
+        //        "bestBidPrice" => "27926.91",                           // The best bid price now
+        //        "bestAskPrice" => "27970.02",                           // The best ask price now
+        //        "priceChange" => "-973.9700000000012"                   // Absolute price change
+        //    }
+        //
+        $marketId = $this->safe_string($ticker, 'pair');
         return $this->safe_ticker(array(
-            'symbol' => $symbol,
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
+            'info' => $ticker,
+            'symbol' => $this->safe_symbol($marketId, $market),
+            'timestamp' => null,
+            'datetime' => null,
             'high' => $this->safe_string($ticker, 'high'),
             'low' => $this->safe_string($ticker, 'low'),
-            'bid' => $this->safe_string($ticker, 'buy'),
-            'bidVolume' => null,
-            'ask' => $this->safe_string($ticker, 'sell'),
-            'askVolume' => null,
+            'bid' => $this->safe_string($ticker, 'bestBidPrice'),
+            'ask' => $this->safe_string($ticker, 'bestAskPrice'),
             'vwap' => null,
             'open' => $this->safe_string($ticker, 'open'),
-            'close' => $last,
-            'last' => $last,
+            'close' => null,
+            'last' => null,
             'previousClose' => null,
-            'change' => null,
-            'percentage' => null,
+            'change' => $this->safe_string($ticker, 'priceChange'),
+            'percentage' => $this->safe_string($ticker, 'percentagePriceChange'),
             'average' => null,
-            'baseVolume' => $this->safe_string($ticker, 'vol'),
-            'quoteVolume' => null,
-            'info' => $ticker,
+            'baseVolume' => $this->safe_string($ticker, 'baseVolume'),
+            'quoteVolume' => $this->safe_string($ticker, 'quoteVolume'),
         ), $market);
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
-             * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
-             * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all $market tickers are returned if not assigned
-             * @param {array} $params extra parameters specific to the kuna api endpoint
-             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?$id=ticker-structure ticker structures~
+             * fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market. The average is not returned in the $response, but the median can be accessed via $response['info']['price']
+             * @see https://docs.kuna.io/docs/get-market-info-by-tickers
+             * @param {string[]} [$symbols] unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
              */
             Async\await($this->load_markets());
-            $symbols = $this->market_symbols($symbols);
-            $response = Async\await($this->publicGetTickers ($params));
-            $ids = is_array($response) ? array_keys($response) : array();
-            $result = array();
-            for ($i = 0; $i < count($ids); $i++) {
-                $id = $ids[$i];
-                $market = $this->safe_market($id);
-                $symbol = $market['symbol'];
-                $result[$symbol] = $this->parse_ticker($response[$id], $market);
+            if ($symbols === null) {
+                throw new ArgumentsRequired($this->id . ' fetchTickers () requires a $symbols argument');
             }
-            return $this->filter_by_array($result, 'symbol', $symbols);
+            $symbols = $this->market_symbols($symbols);
+            $marketIds = $this->market_ids($symbols);
+            $request = array(
+                'pairs' => implode(',', $marketIds),
+            );
+            $response = Async\await($this->v4PublicGetMarketsPublicTickersPairsPairs (array_merge($request, $params)));
+            //
+            //    {
+            //        "data" => array(
+            //            {
+            //                "pair" => "BTC_USDT",                                   // Traded pair
+            //                "percentagePriceChange" => "-0.03490931899641581",      // Relative price change, in percent
+            //                "price" => "27900",                                     // Current median price
+            //                "equivalentPrice" => "",                                // TBD
+            //                "high" => "29059.69",                                   // Highest price
+            //                "low" => "27900",                                       // Lowest price
+            //                "baseVolume" => "2.9008499999999993",                   // Traded volume
+            //                "quoteVolume" => "82251.41477976",                      // Traded volume
+            //                "bestBidPrice" => "27926.91",                           // The best bid price now
+            //                "bestAskPrice" => "27970.02",                           // The best ask price now
+            //                "priceChange" => "-973.9700000000012"                   // Absolute price change
+            //            }
+            //            ...
+            //        )
+            //    }
+            //
+            $data = $this->safe_list($response, 'data', array());
+            return $this->parse_tickers($data, $symbols, $params);
         }) ();
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
-             * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
-             * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
-             * @param {array} $params extra parameters specific to the kuna api endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+             * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+             * @see https://docs.kuna.io/docs/get-$market-info-by-tickers
+             * @param {string} $symbol unified $symbol of the $market to fetch the $ticker for
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $request = array(
-                'market' => $market['id'],
+                'pairs' => $market['id'],
             );
-            $response = Async\await($this->publicGetTickersMarket (array_merge($request, $params)));
-            return $this->parse_ticker($response, $market);
+            $response = Async\await($this->v4PublicGetMarketsPublicTickersPairsPairs (array_merge($request, $params)));
+            //
+            //    {
+            //        "data" => array(
+            //            {
+            //                "pair" => "BTC_USDT",                                   // Traded pair
+            //                "percentagePriceChange" => "-0.03490931899641581",      // Relative price change, in percent
+            //                "price" => "27900",                                     // Current median price
+            //                "equivalentPrice" => "",                                // TBD
+            //                "high" => "29059.69",                                   // Highest price
+            //                "low" => "27900",                                       // Lowest price
+            //                "baseVolume" => "2.9008499999999993",                   // Traded volume
+            //                "quoteVolume" => "82251.41477976",                      // Traded volume
+            //                "bestBidPrice" => "27926.91",                           // The best bid price now
+            //                "bestAskPrice" => "27970.02",                           // The best ask price now
+            //                "priceChange" => "-973.9700000000012"                   // Absolute price change
+            //            }
+            //            ...
+            //        )
+            //    }
+            //
+            $data = $this->safe_value($response, 'data', array());
+            $ticker = $this->safe_dict($data, 0);
+            return $this->parse_ticker($ticker, $market);
         }) ();
     }
 
     public function fetch_l3_order_book(string $symbol, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
+             * TODO => double check
              * fetches level 3 information on open orders with bid (buy) and ask (sell) prices, volumes and other data
              * @param {string} $symbol unified market $symbol
-             * @param {int|null} $limit max number of orders to return, default is null
-             * @param {array} $params extra parameters specific to the kuna api endpoint
+             * @param {int} [$limit] max number of orders to return, default is null
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structure~
              */
             return Async\await($this->fetch_order_book($symbol, $limit, $params));
         }) ();
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent trades for a particular $symbol
+             * @see https://docs.kuna.io/docs/get-public-trades-book
              * @param {string} $symbol unified $symbol of the $market to fetch trades for
-             * @param {int|null} $since timestamp in ms of the earliest trade to fetch
-             * @param {int|null} $limit the maximum amount of trades to fetch
-             * @param {array} $params extra parameters specific to the kuna api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
+             * @param {int} [$since] timestamp in ms of the earliest trade to fetch
+             * @param {int} [$limit] between 1 and 100, 25 by default
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=public-trades trade structures~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $request = array(
-                'market' => $market['id'],
+                'pairs' => $market['id'],
             );
-            $response = Async\await($this->publicGetTrades (array_merge($request, $params)));
+            if ($limit !== null) {
+                $request['limit'] = $limit;
+            }
+            $response = Async\await($this->v4PublicGetTradePublicBookPairs (array_merge($request, $params)));
             //
-            //      array(
-            //          array(
-            //              "id":11353466,
-            //              "price":"3000.16",
-            //              "volume":"0.000397",
-            //              "funds":"1.19106352",
-            //              "market":"ethusdt",
-            //              "created_at":"2022-04-12T18:32:36Z",
-            //              "side":null,
-            //              "trend":"sell"
-            //          ),
-            //      )
+            //    {
+            //        'data' => array(
+            //            array(
+            //                'createdAt' => '2024-03-02T00:10:49.385Z',
+            //                'id' => '3b42878a-3688-4bc1-891e-5cc2fc902142',
+            //                'matchPrice' => '62181.31',
+            //                'matchQuantity' => '0.00568',
+            //                'pair' => 'BTC_USDT',
+            //                'quoteQuantity' => '353.1898408',
+            //                'side' => 'Bid'
+            //            ),
+            //            ...
+            //        )
+            //    }
             //
-            return $this->parse_trades($response, $market, $since, $limit);
+            $data = $this->safe_list($response, 'data', array());
+            return $this->parse_trades($data, $market, $since, $limit);
         }) ();
     }
 
-    public function parse_trade($trade, $market = null) {
+    public function parse_trade($trade, ?array $market = null): array {
         //
         // fetchTrades (public)
         //
-        //      {
-        //          "id":11353466,
-        //          "price":"3000.16",
-        //          "volume":"0.000397",
-        //          "funds":"1.19106352",
-        //          "market":"ethusdt",
-        //          "created_at":"2022-04-12T18:32:36Z",
-        //          "side":null,
-        //          "trend":"sell"
-        //      }
+        //    {
+        //        "id" => "3e5591ba-2778-4d85-8851-54284045ea44",       // Unique identifier of a $trade
+        //        "pair" => "BTC_USDT",                                 // Market pair that is being traded
+        //        "quoteQuantity" => "11528.8118",                      // Qty of the quote asset, property_exists($this, USDT) example
+        //        "matchPrice" => "18649",                              // Exchange price at the moment of execution
+        //        "matchQuantity" => "0.6182",                          // Qty of the base asset, property_exists($this, BTC) example
+        //        "createdAt" => "2022-09-23T14:30:41.486Z",            // Date-time of $trade execution, UTC
+        //        "side" => "Ask"                                       // Trade type => `Ask` or `Bid`. Bid for buying base asset, Ask for selling base asset (e.g. for BTC_USDT trading pair, BTC is the base asset).
+        //    }
         //
-        // fetchMyTrades (private)
+        // fetchMyTrades, fetchOrder (private)
         //
-        //      {
-        //          "id":11353719,
-        //          "price":"0.13566",
-        //          "volume":"99.0",
-        //          "funds":"13.43034",
-        //          "market":"dogeusdt",
-        //          "created_at":"2022-04-12T18:58:44Z",
-        //          "side":"ask",
-        //          "order_id":1665670371,
-        //          "trend":"buy"
-        //      }
+        //    {
+        //        "id" => "edb17459-c9bf-4148-9ae6-7367d7f55d71",        // Unique identifier of a $trade
+        //        "orderId" => "a80bec3f-4ffa-45c1-9d78-f6301e9748fe",   // Unique identifier of an order associated with the $trade
+        //        "pair" => "BTC_USDT",                                  // Traded pair, base asset first, followed by quoted asset
+        //        "quantity" => "1.5862",                                // Traded quantity of base asset
+        //        "price" => "19087",                                    // Price of the $trade
+        //        "isTaker" => true,                                     // Various fees for Makers and Takers; "Market" orders are always `true`
+        //        "fee" => "0.0039655",                                  // Exchange commission fee
+        //        "feeCurrency" => "BTC",                                // Currency of the commission
+        //        "isBuyer" => true,                                     // Buy or sell the base asset
+        //        "quoteQuantity" => "30275.7994",                       // Quote asset quantity spent to fulfill the base amount
+        //        "createdAt" => "2022-09-29T13:43:53.824Z",             // Date-time of $trade execution, UTC
+        //    }
         //
-        $timestamp = $this->parse8601($this->safe_string($trade, 'created_at'));
-        $symbol = null;
-        if ($market) {
-            $symbol = $market['symbol'];
+        $datetime = $this->safe_string($trade, 'createdAt');
+        $marketId = $this->safe_string($trade, 'pair');
+        $isTaker = $this->safe_value($trade, 'isMaker');
+        $side = $this->safe_string_lower($trade, 'side');
+        if ($side === null) {
+            $isBuyer = $this->safe_value($trade, 'isBuyer');
+            $side = $isBuyer ? 'buy' : 'sell';
         }
-        $side = $this->safe_string_2($trade, 'side', 'trend');
-        if ($side !== null) {
-            $sideMap = array(
-                'ask' => 'sell',
-                'bid' => 'buy',
-            );
-            $side = $this->safe_string($sideMap, $side, $side);
-        }
-        $priceString = $this->safe_string($trade, 'price');
-        $amountString = $this->safe_string($trade, 'volume');
-        $costString = $this->safe_number($trade, 'funds');
-        $orderId = $this->safe_string($trade, 'order_id');
-        $id = $this->safe_string($trade, 'id');
         return $this->safe_trade(array(
-            'id' => $id,
             'info' => $trade,
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
-            'symbol' => $symbol,
+            'id' => $this->safe_string($trade, 'id'),
+            'symbol' => $this->safe_symbol($marketId, $market),
+            'timestamp' => $this->parse8601($datetime),
+            'datetime' => $datetime,
             'type' => null,
             'side' => $side,
-            'order' => $orderId,
-            'takerOrMaker' => null,
-            'price' => $priceString,
-            'amount' => $amountString,
-            'cost' => $costString,
-            'fee' => null,
+            'order' => $this->safe_string($trade, 'orderId'),
+            'takerOrMaker' => $isTaker ? 'taker' : 'maker',
+            'price' => $this->safe_string_2($trade, 'matchPrice', 'price'),
+            'amount' => $this->safe_string_2($trade, 'matchQuantity', 'quantity'),
+            'cost' => $this->safe_string($trade, 'quoteQuantity'),
+            'fee' => array(
+                'cost' => $this->safe_string($trade, 'fee'),
+                'currency' => $this->safe_currency_code($this->safe_string($trade, 'feeCurrency')),
+                'rate' => null,
+            ),
         ), $market);
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
-        return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
-            /**
-             * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-             * @param {string} $symbol unified $symbol of the market to fetch OHLCV data for
-             * @param {string} $timeframe the length of time each candle represents
-             * @param {int|null} $since timestamp in ms of the earliest candle to fetch
-             * @param {int|null} $limit the maximum amount of candles to fetch
-             * @param {array} $params extra parameters specific to the kuna api endpoint
-             * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
-             */
-            Async\await($this->load_markets());
-            $trades = Async\await($this->fetch_trades($symbol, $since, $limit, $params));
-            $ohlcvc = $this->build_ohlcvc($trades, $timeframe, $since, $limit);
-            $result = array();
-            for ($i = 0; $i < count($ohlcvc); $i++) {
-                $ohlcv = $ohlcvc[$i];
-                $result[] = [
-                    $ohlcv[0],
-                    $ohlcv[1],
-                    $ohlcv[2],
-                    $ohlcv[3],
-                    $ohlcv[4],
-                    $ohlcv[5],
-                ];
-            }
-            return $result;
-        }) ();
-    }
-
-    public function parse_balance($response) {
-        $balances = $this->safe_value($response, 'accounts', array());
-        $result = array( 'info' => $balances );
-        for ($i = 0; $i < count($balances); $i++) {
-            $balance = $balances[$i];
+    public function parse_balance($response): array {
+        //
+        //    array(
+        //        {
+        //            "currency" => "UAH",
+        //            "balance" => "7134.6",
+        //            "lockBalance" => "100"
+        //        }
+        //        ...
+        //    )
+        //
+        $result = array( 'info' => $response );
+        for ($i = 0; $i < count($response); $i++) {
+            $balance = $response[$i];
             $currencyId = $this->safe_string($balance, 'currency');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
             $account['free'] = $this->safe_string($balance, 'balance');
-            $account['used'] = $this->safe_string($balance, 'locked');
+            $account['used'] = $this->safe_string($balance, 'lockBalance');
             $result[$code] = $account;
         }
         return $this->safe_balance($result);
     }
 
-    public function fetch_balance($params = array ()) {
+    public function fetch_balance($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * query for balance and get the amount of funds available for trading or funds locked in orders
-             * @param {array} $params extra parameters specific to the kuna api endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
              */
             Async\await($this->load_markets());
-            $response = Async\await($this->privateGetMembersMe ($params));
-            return $this->parse_balance($response);
+            $response = Async\await($this->v4PrivateGetPrivateGetBalance ($params));
+            //
+            //    {
+            //        "data" => [array(
+            //            "currency" => "UAH",                    // Wallet currency
+            //            "balance" => "7134.6",                  // Available balance, precision depends on the currency
+            //            "lockBalance" => "100"                  // Minimum amount locked on the balance
+            //        )]
+            //    }
+            //
+            $data = $this->safe_value($response, 'data', array());
+            return $this->parse_balance($data);
         }) ();
     }
 
-    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
+             * @see https://docs.kuna.io/docs/create-a-new-order-private
              * @param {string} $symbol unified $symbol of the $market to create an order in
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of currency you want to trade in units of base currency
-             * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
-             * @param {array} $params extra parameters specific to the kuna api endpoint
+             * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {float} [$params->triggerPrice] the $price at which a trigger order is triggered at
+             *
+             * EXCHANGE SPECIFIC PARAMETERS
+             * @param {string} [$params->id] id must be a UUID format, if you do not specify id, it will be generated automatically.
+             * @param {float} [$params->quoteQuantity] the max quantity of the quote asset to use for selling/buying
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
+            $triggerPrice = $this->safe_string_2($params, 'triggerPrice', 'stopPrice');
+            $params = $this->omit($params, array( 'triggerPrice', 'stopPrice' ));
+            $capitalizedType = $this->capitalize($type);
             $request = array(
-                'market' => $market['id'],
-                'side' => $side,
-                'volume' => (string) $amount,
-                'ord_type' => $type,
+                'pair' => $market['id'],
+                'orderSide' => ($side === 'buy') ? 'Bid' : 'Ask',
+                'quantity' => $this->number_to_string($amount),
+                'type' => $capitalizedType,
             );
-            if ($type === 'limit') {
-                $request['price'] = (string) $price;
+            if ($capitalizedType === 'Limit') {
+                $request['price'] = $this->price_to_precision($market['symbol'], $price);
             }
-            $response = Async\await($this->privatePostOrders (array_merge($request, $params)));
-            return $this->parse_order($response, $market);
+            if ($triggerPrice !== null) {
+                if ($capitalizedType === 'Market') {
+                    throw new BadRequest($this->id . ' createOrder () cannot place trigger $market orders, or trigger limit');
+                }
+                $request['stopPrice'] = $this->price_to_precision($market['symbol'], $triggerPrice);
+                if ($capitalizedType !== 'TakeProfitLimit') {
+                    $request['type'] = 'StopLossLimit';
+                }
+            }
+            $response = Async\await($this->v4PrivatePostOrderPrivateCreate (array_merge($request, $params)));
+            //
+            //    {
+            //        "data" => {
+            //            "id" => "b0fcb54c-2278-4f16-a300-02765faad8b0",     // ID  of your newly created order
+            //            "type" => "Limit",                                  // Type of an order
+            //            "quantity" => "0.06",                               // Original order quantity
+            //            "executedQuantity" => "0",                          // Traded quantity in stock (>0 if traded)
+            //            "pair" => "BTC_USDT",                               // Traded pair
+            //            "price" => "26440.46",                              // Price of the trade
+            //            "status" => "Open",                                 // The status of the order
+            //            "createdAt" => "2023-07-11T08:01:30.550Z",          // Date-time of order creation, UTC
+            //            "updatedAt" => "2023-07-11T08:01:30.550Z"           // Date-time of the last update of the order, UTC
+            //        }
+            //    }
+            //
+            $data = $this->safe_dict($response, 'data', array());
+            return $this->parse_order($data, $market);
         }) ();
     }
 
@@ -704,26 +1018,69 @@ class kuna extends Exchange {
             /**
              * cancels an open $order
              * @param {string} $id $order $id
-             * @param {string|null} $symbol not used by kuna cancelOrder ()
-             * @param {array} $params extra parameters specific to the kuna api endpoint
+             * @param {string} $symbol unified $market $symbol
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} An ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structure~
              */
             Async\await($this->load_markets());
             $request = array(
-                'id' => $id,
+                'orderId' => $id,
             );
-            $response = Async\await($this->privatePostOrderDelete (array_merge($request, $params)));
-            $order = $this->parse_order($response);
-            $status = $order['status'];
-            if ($status === 'closed' || $status === 'canceled') {
-                throw new OrderNotFound($this->id . ' ' . $this->json($order));
+            $response = Async\await($this->v4PrivatePostOrderPrivateCancel (array_merge($request, $params)));
+            //
+            //    {
+            //        "data" => {
+            //            "success" => true
+            //        }
+            //    }
+            //
+            $data = $this->safe_value($response, 'data', array());
+            $market = null;
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
             }
+            $order = $this->parse_order($data, $market);
+            $order['id'] = $id;
             return $order;
+        }) ();
+    }
+
+    public function cancel_orders(array $ids, ?string $symbol = null, $params = array ()) {
+        return Async\async(function () use ($ids, $symbol, $params) {
+            /**
+             * cancels an open order
+             * @param {string} $ids order $ids
+             * @param {string} $symbol not used by kuna cancelOrder
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} An ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+             */
+            Async\await($this->load_markets());
+            $request = array(
+                'orderIds' => $ids,
+            );
+            $response = Async\await($this->v4PrivatePostOrderPrivateCancelMulti (array_merge($request, $params)));
+            //
+            //    {
+            //        "data" => array(
+            //            array(
+            //                "id" => "c7fc5b2b-bd9d-48c1-a458-a83412669fe2",   // Unique identifier of a canceled order
+            //                "success" => true                                 // Status for this order
+            //            ),
+            //            ...
+            //        )
+            //    }
+            //
+            $data = $this->safe_list($response, 'data', array());
+            return $this->parse_orders($data);
         }) ();
     }
 
     public function parse_order_status($status) {
         $statuses = array(
+            'Canceled' => 'canceled',
+            'Closed' => 'filled',
+            'Pending' => 'open',
+            'Open' => 'open',
             'done' => 'closed',
             'wait' => 'open',
             'cancel' => 'canceled',
@@ -731,37 +1088,81 @@ class kuna extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, $market = null) {
-        $marketId = $this->safe_string($order, 'market');
-        $symbol = $this->safe_symbol($marketId, $market);
-        $timestamp = $this->parse8601($this->safe_string($order, 'created_at'));
-        $status = $this->parse_order_status($this->safe_string($order, 'state'));
-        $type = $this->safe_string($order, 'type');
+    public function parse_order($order, ?array $market = null): array {
+        //
+        // createOrder, fetchOrder, fetchOpenOrders, fetchOrdersByStatus
+        //
+        //    {
+        //        "id" => "5992a049-8612-409d-8599-2c3d7298b106",     // Unique identifier of an $order
+        //        "type" => "Limit",                                  // Type of an $order
+        //        "quantity" => "5",                                  // Original $order quantity
+        //        "executedQuantity" => "0",                          // Traded quantity in stock (>0 if traded)
+        //        "cumulativeQuoteQty" => "0",                        // *absent on createOrder* Traded quantity in money (>0 if traded)
+        //        "cost" => "0.05",                                   // Total amount
+        //        "side" => "Bid",                                    // *absent on createOrder* Bid for buying base asset, Ask for selling base asset. FYI => For BTC_USDT trading pair, BTC is the base asset
+        //        "pair" => "TRX_USDT",                               // Traded pair
+        //        "price" => "0.01",                                  // Price of the trade
+        //        "status" => "Open",                                 // The status of the $order
+        //        "createdAt" => "2023-07-11T07:04:20.131Z",          // Date-time of $order creation, UTC
+        //        "updatedAt" => "2023-07-11T07:04:20.131Z"           // Date-time of the last update of the $order, UTC
+        //        "closedAt" => "2023-05-08T08:53:58.333Z"            // *absent on fetchOpenOrders/createOrder* Date-time of $order finish time, UTC
+        //        "trades" => array(                                       // * fetchOrder only *
+        //            {
+        //                "id" => "15ff497c-8d25-4155-8184-bb1f905cce1e",              // Unique identifier of a trade
+        //                "orderId" => "4b9b9705-e85f-4180-bdec-219fbf025fa3",         // Unique identifier of an associated $order
+        //                "pair" => "BTC_USDT",                                        // Traded pair
+        //                "quantity" => "0.00054",                                     // Traded quantity
+        //                "price" => "27770",                                          // Traded price
+        //                "isTaker" => false,                                          // Various fees for Makers and Takers; "Market" orders are always `true`
+        //                "fee" => "0.000001350",                                      // Exchange commission fee
+        //                "feeCurrency" => "BTC",                                      // Currency of the commission
+        //                "isBuyer" => true,                                           // Buy or sell the base asset
+        //                "quoteQuantity" => "14.9958",                                // Quote asset quantity
+        //                "createdAt" => "2023-05-08T08:53:58.332Z"                    // Date-time of trade execution, UTC
+        //            }
+        //        )
+        //    }
+        //
+        // cancelOrder, cancelOrders
+        //
+        //    {
+        //        "id" => "c7fc5b2b-bd9d-48c1-a458-a83412669fe2",   // Unique identifier of a canceled $order *absent on cancelOrder*
+        //        "success" => true                                 // Status for this $order
+        //    }
+        //
+        $marketId = $this->safe_string($order, 'pair');
+        $datetime = $this->safe_string($order, 'createdAt');
+        $triggerPrice = $this->safe_string($order, 'stopPrice');
         $side = $this->safe_string($order, 'side');
-        $id = $this->safe_string($order, 'id');
+        if ($side === 'Bid') {
+            $side = 'buy';
+        } elseif ($side === 'Ask') {
+            $side = 'sell';
+        }
+        $trades = $this->safe_value($order, 'trades', array());
         return $this->safe_order(array(
-            'id' => $id,
+            'info' => $order,
+            'id' => $this->safe_string_2($order, 'id', 'orderId'),
             'clientOrderId' => null,
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
-            'lastTradeTimestamp' => null,
-            'status' => $status,
-            'symbol' => $symbol,
-            'type' => $type,
+            'symbol' => $this->safe_symbol($marketId, $market),
+            'timestamp' => $this->parse8601($datetime),
+            'datetime' => $datetime,
+            'lastTradeTimestamp' => $this->parse8601($this->safe_string($order, 'updatedAt')),
+            'status' => $this->parse_order_status($this->safe_string($order, 'status')),
+            'type' => $this->safe_string_lower($order, 'type'),
             'timeInForce' => null,
             'postOnly' => null,
             'side' => $side,
             'price' => $this->safe_string($order, 'price'),
-            'stopPrice' => null,
-            'triggerPrice' => null,
-            'amount' => $this->safe_string($order, 'volume'),
-            'filled' => $this->safe_string($order, 'executed_volume'),
-            'remaining' => $this->safe_string($order, 'remaining_volume'),
-            'trades' => null,
-            'fee' => null,
-            'info' => $order,
-            'cost' => null,
+            'stopPrice' => $triggerPrice,
+            'triggerPrice' => $triggerPrice,
+            'amount' => $this->safe_string($order, 'quantity'),
+            'filled' => $this->safe_string($order, 'executedQuantity'),
+            'remaining' => null,
+            'trades' => $this->parse_trades($trades),
+            'cost' => $this->safe_string($order, 'cost'),
             'average' => null,
+            'fee' => null,
         ), $market);
     }
 
@@ -769,42 +1170,203 @@ class kuna extends Exchange {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * fetches information on an order made by the user
-             * @param {string|null} $symbol not used by kuna fetchOrder
-             * @param {array} $params extra parameters specific to the kuna api endpoint
+             * @see https://docs.kuna.io/docs/get-order-details-by-$id
+             * @param {string} $symbol not used by kuna fetchOrder
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             *
+             * EXCHANGE SPECIFIC PARAMETERS
+             * @param {boolean} [$params->withTrades] default == true, specify if the $response should include trades associated with the order
              * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
             Async\await($this->load_markets());
             $request = array(
-                'id' => intval($id),
+                'id' => $id,
+                'withTrades' => true,
             );
-            $response = Async\await($this->privateGetOrder (array_merge($request, $params)));
-            return $this->parse_order($response);
+            $response = Async\await($this->v4PrivateGetOrderPrivateDetailsId (array_merge($request, $params)));
+            //
+            //    {
+            //        "data" => {
+            //            "id" => "4b9b9705-e85f-4180-bdec-219fbf025fa3",
+            //            "type" => "Limit",
+            //            "quantity" => "0.00054",
+            //            "executedQuantity" => "0.00054",
+            //            "cumulativeQuoteQty" => "14.99580",
+            //            "cost" => "14.9958",
+            //            "side" => "Bid",
+            //            "pair" => "BTC_USDT",
+            //            "price" => "27770",
+            //            "status" => "Closed",
+            //            "createdAt" => "2023-05-08T08:39:46.708Z",
+            //            "updatedAt" => "2023-05-08T08:53:58.332Z",
+            //            "closedAt" => "2023-05-08T08:53:58.333Z",
+            //            "trades" => array(
+            //                {
+            //                    "id" => "15ff497c-8d25-4155-8184-bb1f905cce1e",              // Unique identifier of a trade
+            //                    "orderId" => "4b9b9705-e85f-4180-bdec-219fbf025fa3",         // Unique identifier of an associated order
+            //                    "pair" => "BTC_USDT",                                        // Traded pair
+            //                    "quantity" => "0.00054",                                     // Traded quantity
+            //                    "price" => "27770",                                          // Traded price
+            //                    "isTaker" => false,                                          // Various fees for Makers and Takers; "Market" orders are always `true`
+            //                    "fee" => "0.000001350",                                      // Exchange commission fee
+            //                    "feeCurrency" => "BTC",                                      // Currency of the commission
+            //                    "isBuyer" => true,                                           // Buy or sell the base asset
+            //                    "quoteQuantity" => "14.9958",                                // Quote asset quantity
+            //                    "createdAt" => "2023-05-08T08:53:58.332Z"                    // Date-time of trade execution, UTC
+            //                }
+            //            )
+            //        }
+            //    }
+            //
+            $data = $this->safe_dict($response, 'data', array());
+            return $this->parse_order($data);
         }) ();
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all unfilled currently open orders
+             * @see https://docs.kuna.io/docs/get-active-client-orders-private
              * @param {string} $symbol unified $market $symbol
-             * @param {int|null} $since the earliest time in ms to fetch open orders for
-             * @param {int|null} $limit the maximum number of  open orders structures to retrieve
-             * @param {array} $params extra parameters specific to the kuna api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @param {int} [$since] the earliest time in ms to fetch open orders for
+             * @param {int} [$limit] 1-100, the maximum number of open orders structures to retrieve
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {int} [$params->until] the latest timestamp (ms) to fetch orders for
+             *
+             * EXCHANGE SPECIFIC PARAMETERS
+             * @param {string} [$params->sort] asc (oldest-on-top) or desc (newest-on-top)
+             * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a $symbol argument');
-            }
             Async\await($this->load_markets());
-            $market = $this->market($symbol);
+            $until = $this->safe_integer($params, 'until');
+            $params = $this->omit($params, array( 'until' ));
+            $market = null;
             $request = array(
-                'market' => $market['id'],
             );
-            $response = Async\await($this->privateGetOrders (array_merge($request, $params)));
-            // todo emulation of fetchClosedOrders, fetchOrders, fetchOrder
-            // with order cache . fetchOpenOrders
-            // BTC-e, Liqui, Yobit, DSX, Tidex, WEX
-            return $this->parse_orders($response, $market, $since, $limit);
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+                $request['pairs'] = $market['id'];
+            }
+            if ($since !== null) {
+                $request['start'] = $this->iso8601($since);
+            }
+            if ($limit !== null) {
+                $request['limit'] = $limit;
+            }
+            if ($until !== null) {
+                $request['end'] = $this->iso8601($until);
+            }
+            $response = Async\await($this->v4PrivateGetOrderPrivateActive (array_merge($request, $params)));
+            //
+            //    {
+            //        "data" => array(
+            //            {
+            //                "id" => "5992a049-8612-409d-8599-2c3d7298b106",            // Unique identifier of an order
+            //                "type" => "Limit",                                         // Type of an order
+            //                "quantity" => "5",                                         // Original order quantity
+            //                "executedQuantity" => "0",                                 // Traded quantity in stock (>0 if traded)
+            //                "cumulativeQuoteQty" => "0",                               // Traded quantity in money (>0 if traded)
+            //                "cost" => "0.05",                                          // Total amount
+            //                "side" => "Bid",                                           // Bid for buying base asset, Ask for selling base asset. FYI => For BTC_USDT trading pair, BTC is the base asset
+            //                "pair" => "TRX_USDT",                                      // Traded pair
+            //                "price" => "0.01",                                         // Price of the trade
+            //                "status" => "Open",                                        // The status of the order
+            //                "createdAt" => "2023-07-11T07:04:20.131Z",                 // Date-time of order creation, UTC
+            //                "updatedAt" => "2023-07-11T07:04:20.131Z"                  // Date-time of the last update of the order, UTC
+            //            }
+            //            ...
+            //        )
+            //    }
+            //
+            $data = $this->safe_list($response, 'data', array());
+            return $this->parse_orders($data, $market, $since, $limit);
+        }) ();
+    }
+
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * fetches information on multiple closed orders made by the user
+             * @see https://docs.kuna.io/docs/get-private-orders-history
+             * @param {string} $symbol unified market $symbol of the market orders were made in
+             * @param {int} [$since] the earliest time in ms to fetch orders for
+             * @param {int} [$limit] the maximum number of order structures to retrieve
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {int} [$params->until] the latest time in ms to fetch orders for
+             *
+             * EXCHANGE SPECIFIC PARAMETERS
+             * @param {string} [$params->sort] asc (oldest-on-top) or desc (newest-on-top)
+             * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             */
+            return Async\await($this->fetch_orders_by_status('closed', $symbol, $since, $limit, $params));
+        }) ();
+    }
+
+    public function fetch_orders_by_status($status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        return Async\async(function () use ($status, $symbol, $since, $limit, $params) {
+            /**
+             * fetch a list of orders
+             * @see https://docs.kuna.io/docs/get-private-orders-history
+             * @param {string} $status canceled, closed, expired, open, pending, rejected, or waitStop
+             * @param {string} $symbol unified $market $symbol of the $market orders were made in
+             * @param {int} [$since] the earliest time in ms to fetch orders for
+             * @param {int} [$limit] 1-100, the maximum number of open orders structures to retrieve
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {int} [$params->until] the latest timestamp (ms) to fetch orders for
+             *
+             * EXCHANGE SPECIFIC PARAMETERS
+             * @param {string} [$params->sort] asc (oldest-on-top) or desc (newest-on-top)
+             * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             */
+            Async\await($this->load_markets());
+            if ($status === 'open') {
+                return $this->fetch_open_orders($symbol, $since, $limit, $params);
+            }
+            $until = $this->safe_integer($params, 'until');
+            $params = $this->omit($params, array( 'until' ));
+            $market = null;
+            $request = array(
+                'status' => $this->capitalize($status),
+            );
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+                $request['pairs'] = $market['id'];
+            }
+            if ($since !== null) {
+                $request['start'] = $this->iso8601($since);
+            }
+            if ($limit !== null) {
+                $request['limit'] = $limit;
+            }
+            if ($until !== null) {
+                $request['end'] = $this->iso8601($until);
+            }
+            $response = Async\await($this->v4PrivateGetOrderPrivateHistory ($request));
+            //
+            //    {
+            //        "data" => array(
+            //            array(
+            //                "id" => "4b9b9705-e85f-4180-bdec-219fbf025fa3",           // Unique identifier of an order
+            //                "type" => "Limit",                                        // Type of an order
+            //                "quantity" => "0.00054",                                  // Original order quantity
+            //                "executedQuantity" => "0.00054",                          // Traded quantity in stock (>0 if traded)
+            //                "cumulativeQuoteQty" => "14.99580",                       // Traded quantity in money (>0 if traded)
+            //                "cost" => "14.9958",                                      // Total amount
+            //                "side" => "Bid",                                          // Bid for buying base asset, Ask for selling base asset. FYI => For BTC_USDT trading pair, BTC is the base asset
+            //                "pair" => "BTC_USDT",                                     // Traded pair
+            //                "price" => "27770",                                       // Price of the trade
+            //                "status" => "Closed",                                     // The $status of the order
+            //                "createdAt" => "2023-05-08T08:39:46.708Z",                // Date-time of order creation, UTC
+            //                "updatedAt" => "2023-05-08T08:53:58.332Z",                // Date-time of the last update of the order, UTC
+            //                "closedAt" => "2023-05-08T08:53:58.333Z"                  // Date-time of order finish time, UTC
+            //            ),
+            //            ...
+            //        )
+            //    }
+            //
+            $data = $this->safe_list($response, 'data', array());
+            return $this->parse_orders($data, $market, $since, $limit);
         }) ();
     }
 
@@ -812,38 +1374,469 @@ class kuna extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all trades made by the user
+             * @see https://docs.kuna.io/docs/get-private-trades-history
              * @param {string} $symbol unified $market $symbol
-             * @param {int|null} $since the earliest time in ms to fetch trades for
-             * @param {int|null} $limit the maximum number of trades structures to retrieve
-             * @param {array} $params extra parameters specific to the kuna api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
+             * @param {int} [$since] not used by kuna fetchMyTrades
+             * @param {int} [$limit] not used by kuna fetchMyTrades
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             *
+             * EXCHANGE SPECIFIC PARAMETERS
+             * @param {string} [$params->orderId] UUID of an order, to receive trades for this order only
+             * @param {string} [$params->sort] asc (oldest-on-top) or desc (newest-on-top)
+             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
              */
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
-            }
             Async\await($this->load_markets());
-            $market = $this->market($symbol);
-            $request = array(
-                'market' => $market['id'],
-            );
-            $response = Async\await($this->privateGetTradesMy (array_merge($request, $params)));
+            $market = null;
+            $request = array();
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+                $request['pair'] = $market['id'];
+            }
+            $response = Async\await($this->v4PrivateGetTradePrivateHistory (array_merge($request, $params)));
             //
-            //      array(
-            //          array(
-            //              "id":11353719,
-            //              "price":"0.13566",
-            //              "volume":"99.0",
-            //              "funds":"13.43034",
-            //              "market":"dogeusdt",
-            //              "created_at":"2022-04-12T18:58:44Z",
-            //              "side":"ask",
-            //              "order_id":1665670371,
-            //              "trend":"buy"
-            //          ),
-            //      )
+            //    {
+            //        "data" => array(
+            //            array(
+            //                "id" => "edb17459-c9bf-4148-9ae6-7367d7f55d71",        // Unique identifier of a trade
+            //                "orderId" => "a80bec3f-4ffa-45c1-9d78-f6301e9748fe",   // Unique identifier of an order associated with the trade
+            //                "pair" => "BTC_USDT",                                  // Traded pair, base asset first, followed by quoted asset
+            //                "quantity" => "1.5862",                                // Traded quantity of base asset
+            //                "price" => "19087",                                    // Price of the trade
+            //                "isTaker" => true,                                     // Various fees for Makers and Takers; "Market" orders are always `true`
+            //                "fee" => "0.0039655",                                  // Exchange commission fee
+            //                "feeCurrency" => "BTC",                                // Currency of the commission
+            //                "isBuyer" => true,                                     // Buy or sell the base asset
+            //                "quoteQuantity" => "30275.7994",                       // Quote asset quantity spent to fulfill the base amount
+            //                "createdAt" => "2022-09-29T13:43:53.824Z",             // Date-time of trade execution, UTC
+            //            ),
+            //        )
+            //    }
             //
-            return $this->parse_trades($response, $market, $since, $limit);
+            $data = $this->safe_list($response, 'data');
+            return $this->parse_trades($data, $market, $since, $limit);
         }) ();
+    }
+
+    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
+        return Async\async(function () use ($code, $amount, $address, $tag, $params) {
+            /**
+             * make a withdrawal
+             * @see https://docs.kuna.io/docs/create-a-withdraw
+             * @param {string} $code unified $currency $code
+             * @param {float} $amount the $amount to withdraw
+             * @param {string} $address the $address to withdraw to
+             * @param {string} $tag
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->chain] the $chain to withdraw to
+             *
+             * EXCHANGE SPECIFIC PARAMETERS
+             * @param {string} [$params->id] id must be a uuid format, if you do not specify id, it will be generated automatically
+             * @param {boolean} [$params->withdrawAll] this field says that the $amount should also include a fee
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
+             */
+            $this->check_address($address);
+            $chain = $this->safe_string_2($params, 'chain', 'network');
+            $params = $this->omit($params, array( 'chain', 'network' ));
+            Async\await($this->load_markets());
+            $currency = $this->currency($code);
+            if ($chain === null) {
+                if (mb_strpos($currency['code'], 'USD') > 0) {
+                    throw new ArgumentsRequired($this->id . ' withdraw () requires an extra parameter $params["network"] to withdraw ' . $currency['code']);
+                } else {
+                    $chain = strtoupper($currency['id']);
+                }
+            }
+            $networkId = $this->network_code_to_id($chain);
+            $request = array(
+                'currency' => $networkId,
+                'amount' => $amount,
+                'address' => $address,
+                'paymentMethod' => $chain, // TODO => double check, Withdraw method for $currency, should be taken from "Get info about withdrawal methods by $currency name" endpoint (key field).
+            );
+            if ($tag !== null) {
+                $request['paymentId'] = $tag;
+            }
+            $response = Async\await($this->v4PrivatePostWithdrawPrivateCreate (array_merge($request, $params)));
+            //
+            //    {
+            //        "data" => {
+            //            "id" => "edb17459-c9bf-4148-9ae6-7367d7f55d71",     // unique identifier of a withdraw
+            //            "status" => "waitingForConfirmation"                // status of a withdraw, if you turn off withdrawal confirmation by email, it will return "processing" status, which means that the transaction is already being processed on our side
+            //        }
+            //    }
+            //
+            $data = $this->safe_dict($response, 'data', array());
+            return $this->parse_transaction($data, $currency);
+        }) ();
+    }
+
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($code, $since, $limit, $params) {
+            /**
+             * fetch all withdrawals made to an account
+             * @see https://docs.kuna.io/docs/get-withdraw-history
+             * @param {string} $code unified $currency $code
+             * @param {int} [$since] the earliest time in ms to fetch withdrawals for
+             * @param {int} [$limit] the maximum number of withdrawals structures to retrieve
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {int} [$params->until] the latest time in ms to fetch deposits for
+             *
+             * EXCHANGE SPECIFIC PARAMETERS
+             * @param {string} [$params->status] Created, Canceled, PartiallyProcessed, Processing, Processed, WaitForConfirmation, Pending, AmlChecking
+             * @param {string} [$params->sortField] amount (sorting by time), createdAt (sorting by date)
+             * @param {string} [$params->sortOrder] asc (oldest-on-top), or desc (newest-on-top, default)
+             * @param {int} [$params->skip] 0 - ... Select the number of transactions to skip
+             * @param {string} [$params->address]
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
+             */
+            Async\await($this->load_markets());
+            $until = $this->safe_integer($params, 'until');
+            $params = $this->omit($params, 'until');
+            $currency = null;
+            if ($code !== null) {
+                $currency = $this->currency($code);
+            }
+            $request = array();
+            if ($code !== null) {
+                $request['currency'] = $code;
+            }
+            if ($since !== null) {
+                $request['dateFrom'] = $this->iso8601($since);
+            }
+            if ($limit !== null) {
+                $request['take'] = $limit;
+            }
+            if ($until !== null) {
+                $request['dateTo'] = $this->iso8601($until);
+            }
+            $response = Async\await($this->v4PrivateGetWithdrawPrivateHistory (array_merge($request, $params)));
+            //
+            //    {
+            //        "data" => array(
+            //            array(
+            //                "id" => "e9aa15b8-9c19-42eb-800a-026a7a153990",                                 // Unique identifier of withdrawal
+            //                "amount" => "10.75",                                                            // Amount deducted from your account
+            //                "asset" => "USDT",                                                              // Withdrawal $currency
+            //                "merchantId" => "16214228-5c0c-5abc-be6a-c90259b21d4e",                         // Internal ID (not for use)
+            //                "paymentCode" => "TRX",                                                         // Blockchain name
+            //                "status" => "Processed",                                                        // Withdrawal status
+            //                "type" => "Withdraw",                                                           // Transaction type
+            //                "reason" => array(),                                                                 // Reason for manual transaction processing
+            //                "address" => "TL3CWAwviQQYSnzHT4RotCWYnarnunQM46",                              // Withdrawal address
+            //                "memo" => "",                                                                   // Withdrawal memo
+            //                "txId" => "5ecc4e559b528c57be6723ac960a38211fbd3101ef4b59008452b3bd88c84621",   // Withdrawal transaction hash
+            //                "fee" => "0.75",                                                                // Withdrawal fee
+            //                "processedAmount" => "10",                                                      // Withdrawal amount
+            //                "createdAt" => "2023-06-09T11:33:02.383Z",                                      // Withdrawal creation date
+            //                "updatedAt" => "2023-06-09T11:34:25.317Z"                                       // Date of final withdrawal status
+            //            ),
+            //            ...
+            //        )
+            //    }
+            //
+            $data = $this->safe_list($response, 'data', array());
+            return $this->parse_transactions($data, $currency);
+        }) ();
+    }
+
+    public function fetch_withdrawal(string $id, ?string $code = null, $params = array ()) {
+        return Async\async(function () use ($id, $code, $params) {
+            /**
+             * fetch $data on a currency withdrawal via the withdrawal $id
+             * @see https://docs.kuna.io/docs/get-withdraw-details-by-$id
+             * @param {string} $id withdrawal $id
+             * @param {string} $code not used by kuna.fetchWithdrawal
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?$id=transaction-structure transaction structure~
+             */
+            Async\await($this->load_markets());
+            $request = array(
+                'withdrawId' => $id,
+            );
+            $response = Async\await($this->v4PrivateGetWithdrawPrivateDetailsWithdrawId (array_merge($request, $params)));
+            //
+            //    {
+            //        "data" => {
+            //            "id" => "e9aa15b8-9c19-42eb-800a-026a7a153990",                                 // Unique identifier of withdrawal
+            //            "amount" => "10.75",                                                            // Amount deducted from your account
+            //            "asset" => "USDT",                                                              // Withdrawal currency
+            //            "merchantId" => "16214228-5c0c-5abc-be6a-c90259b21d4e",                         // Internal ID (not for use)
+            //            "paymentCode" => "TRX",                                                         // Blockchain name
+            //            "status" => "Processed",                                                        // Withdrawal status
+            //            "type" => "Withdraw",                                                           // Transaction type
+            //            "reason" => array(),                                                                 // Reason for manual transaction processing
+            //            "address" => "TL3CWAwviQQYSnzHT4RotCWYnarnunQM46",                              // Withdrawal address
+            //            "memo" => "",                                                                   // Withdrawal memo
+            //            "txId" => "5ecc4e559b528c57be6723ac960a38211fbd3101ef4b59008452b3bd88c84621",   // Withdrawal transaction hash
+            //            "fee" => "0.75",                                                                // Withdrawal fee
+            //            "processedAmount" => "10",                                                      // Withdrawal amount
+            //            "createdAt" => "2023-06-09T11:33:02.383Z",                                      // Withdrawal creation date
+            //            "updatedAt" => "2023-06-09T11:34:25.317Z"                                       // Date of final withdrawal status
+            //        }
+            //    }
+            //
+            $data = $this->safe_dict($response, 'data', array());
+            return $this->parse_transaction($data);
+        }) ();
+    }
+
+    public function create_deposit_address(string $code, $params = array ()) {
+        return Async\async(function () use ($code, $params) {
+            /**
+             * create a $currency deposit address
+             * @see https://docs.kuna.io/docs/generate-a-constant-crypto-address-for-deposit
+             * @param {string} $code unified $currency $code of the $currency for the deposit address
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} an ~@link https://docs.ccxt.com/#/?id=address-structure address structure~
+             */
+            Async\await($this->load_markets());
+            $currency = $this->currency($code);
+            $request = array(
+                'source' => $currency['id'],
+            );
+            $response = Async\await($this->v4PrivatePostDepositPrivateCryptoGenerateAddress (array_merge($request, $params)));
+            //
+            //    {
+            //        "data" => {
+            //            "id" => "1300c2b6-ree4-4f1e-2a9d-e0f7ed0991a7",                // ID of your address
+            //            "source" => "BTC",                                             // Blockchain name for which you want to get the address to deposit into the account
+            //            "address" => "bc1qm6xfv0qsaaanx0egn6hca5vgsd4r7ak9ttha2a"      // Your deposit address
+            //        }
+            //    }
+            //
+            $data = $this->safe_dict($response, 'data', array());
+            return $this->parse_deposit_address($data, $currency);
+        }) ();
+    }
+
+    public function fetch_deposit_address(string $code, $params = array ()) {
+        return Async\async(function () use ($code, $params) {
+            /**
+             * fetch the deposit address for a $currency associated with this account
+             * @see https://docs.kuna.io/docs/find-crypto-address-for-deposit
+             * @param {string} $code unified $currency $code
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} an ~@link https://docs.ccxt.com/#/?id=address-structure address structure~
+             */
+            Async\await($this->load_markets());
+            $currency = $this->currency($code);
+            $request = array(
+                'source' => strtoupper($currency['id']),
+            );
+            $response = Async\await($this->v4PrivateGetDepositPrivateCryptoAddress (array_merge($request, $params)));
+            //
+            //    {
+            //        "data" => {
+            //            "id" => "c52b6646-fb91-4760-b147-a4f952e8652c",             // ID of the address.
+            //            "source" => "BTC",                                          // Blockchain name for which you want to get the address to deposit into the account.
+            //            "address" => "bc1qm6xfv0qsaaanx0egn6hca5vgsd4r7ak9ttha2a"   // Your deposit address
+            //        }
+            //    }
+            //
+            $data = $this->safe_dict($response, 'data', array());
+            return $this->parse_deposit_address($data, $currency);
+        }) ();
+    }
+
+    public function parse_deposit_address($depositAddress, ?array $currency = null) {
+        //
+        //    {
+        //        "id" => "c52b6646-fb91-4760-b147-a4f952e8652c",             // ID of the address.
+        //        "source" => "BTC",                                          // Blockchain name for which you want to get the address to deposit into the account.
+        //        "address" => "bc1qm6xfv0qsaaanx0egn6hca5vgsd4r7ak9ttha2a"   // Your deposit address
+        //    }
+        //
+        $currencyId = $this->safe_string($depositAddress, 'source');
+        return array(
+            'info' => $this->safe_string($depositAddress, ''),
+            'currency' => $this->safe_currency_code($currencyId, $currency),
+            'network' => null,
+            'address' => $this->safe_string($depositAddress, 'address'),
+            'tag' => null,
+        );
+    }
+
+    public function parse_transaction_status($status) {
+        $statuses = array(
+            'Created' => 'pending',
+            'Canceled' => 'canceled',
+            'PartiallyProcessed' => 'pending',
+            'Processing' => 'pending',
+            'Processed' => 'ok',
+            'WaitForConfirmation' => 'pending',
+            'Pending' => 'pending',
+            'AmlChecking' => 'pending',
+        );
+        return $this->safe_string($statuses, $status, $status);
+    }
+
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($code, $since, $limit, $params) {
+            /**
+             * fetch all deposits made to an account
+             * @see https://docs.kuna.io/docs/get-deposit-history
+             * @param {string} $code unified $currency $code
+             * @param {int} [$since] the earliest time in ms to fetch deposits for
+             * @param {int} [$limit] the maximum number of deposits structures to retrieve
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {int} [$params->until] the latest time in ms to fetch deposits for
+             *
+             * EXCHANGE SPECIFIC PARAMETERS
+             * @param {string} [$params->status] Created, Canceled, PartiallyProcessed, Processing, Processed, WaitForConfirmation, Pending, AmlChecking
+             * @param {string} [$params->sortField] amount (sorting by time), createdAt (sorting by date)
+             * @param {string} [$params->sortOrder] asc (oldest-on-top), or desc (newest-on-top, default)
+             * @param {int} [$params->skip] 0 - ... Select the number of transactions to skip
+             * @param {string} [$params->address]
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
+             */
+            Async\await($this->load_markets());
+            $until = $this->safe_integer($params, 'until');
+            $params = $this->omit($params, 'until');
+            $currency = null;
+            if ($code !== null) {
+                $currency = $this->currency($code);
+            }
+            $request = array();
+            if ($code !== null) {
+                $request['currency'] = $code;
+            }
+            if ($since !== null) {
+                $request['dateFrom'] = $this->iso8601($since);
+            }
+            if ($limit !== null) {
+                $request['take'] = $limit;
+            }
+            if ($until !== null) {
+                $request['dateTo'] = $this->iso8601($until);
+            }
+            $response = Async\await($this->v4PrivateGetDepositPrivateHistory (array_merge($request, $params)));
+            //
+            //    {
+            //        "data" => array(
+            //            array(
+            //                "id" => "a201cb3c-5830-57ac-ad2c-f6a588dd55eb",                               // Unique ID of deposit
+            //                "amount" => "9.9",                                                            // Amount credited to your account
+            //                "asset" => "USDT",                                                            // Deposit $currency
+            //                "merchantId" => "16214228-5c0c-5abc-be6a-c90259b21d4e",                       // Internal ID (not for use)
+            //                "paymentCode" => "TRX",                                                       // Blockchain name
+            //                "status" => "Processed",                                                      // Transactions status
+            //                "type" => "Deposit",                                                          // Transaction type
+            //                "reason" => array(),                                                               // Reason for manual transaction processing
+            //                "address" => "TNeBQz8RyGGiAYAR7r8G6QGxtTWDkpH4dV",                            // Deposit address
+            //                "memo" => "",                                                                 // Deposit memo
+            //                "txId" => "8a0b0c5a2ac5679879b71b2fa63b0a5c39f90bc8ff6c41e708906b398ac3d4ef", // Deposit transaction hash
+            //                "fee" => "0.1",                                                               // Deposit fee
+            //                "processedAmount" => "10",                                                    // Amount of deposit
+            //                "createdAt" => "2023-06-13T12:55:01.256Z",                                    // Deposit receipt date
+            //                "updatedAt" => "2023-06-13T12:55:01.696Z"                                     // Deposit credit date
+            //            ),
+            //            ...
+            //        )
+            //    }
+            //
+            $data = $this->safe_list($response, 'data', array());
+            return $this->parse_transactions($data, $currency);
+        }) ();
+    }
+
+    public function fetch_deposit(string $id, ?string $code = null, $params = array ()) {
+        return Async\async(function () use ($id, $code, $params) {
+            /**
+             * fetch $data on a $currency deposit via the deposit $id
+             * @see https://docs.kuna.io/docs/get-deposit-details-by-$id
+             * @param {string} $id deposit $id
+             * @param {string} $code filter by $currency $code
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?$id=transaction-structure transaction structure~
+             */
+            Async\await($this->load_markets());
+            $currency = null;
+            if ($code !== null) {
+                $currency = $this->currency($code);
+            }
+            $request = array(
+                'depositId' => $id,
+            );
+            $response = Async\await($this->v4PrivateGetDepositPrivateDetailsDepositId (array_merge($request, $params)));
+            //
+            //    {
+            //        "data" => {
+            //            "id" => "a201cb3c-5830-57ac-ad2c-f6a588dd55eb",                               // Unique ID of deposit
+            //            "amount" => "9.9",                                                            // Amount credited to your account
+            //            "asset" => "USDT",                                                            // Deposit $currency
+            //            "merchantId" => "16214228-5c0c-5abc-be6a-c90259b21d4e",                       // Internal ID (not for use)
+            //            "paymentCode" => "TRX",                                                       // Blockchain name
+            //            "status" => "Processed",                                                      // Transactions status
+            //            "type" => "Deposit",                                                          // Transaction type
+            //            "reason" => array(),                                                               // Reason for manual transaction processing
+            //            "address" => "TNeBQz8RyGGiAYAR7r8G6QGxtTWDkpH4dV",                            // Deposit address
+            //            "memo" => "",                                                                 // Deposit memo
+            //            "txId" => "8a0b0c5a2ac5679879b71b2fa63b0a5c39f90bc8ff6c41e708906b398ac3d4ef", // Deposit transaction hash
+            //            "fee" => "0.1",                                                               // Deposit fee
+            //            "processedAmount" => "10",                                                    // Amount of deposit
+            //            "createdAt" => "2023-06-13T12:55:01.256Z",                                    // Deposit receipt date
+            //            "updatedAt" => "2023-06-13T12:55:01.696Z"                                     // Deposit credit date
+            //        }
+            //    }
+            //
+            $data = $this->safe_dict($response, 'data', array());
+            return $this->parse_transaction($data, $currency);
+        }) ();
+    }
+
+    public function parse_transaction($transaction, ?array $currency = null): array {
+        //
+        //    {
+        //        "id" => "a201cb3c-5830-57ac-ad2c-f6a588dd55eb",                               // Unique ID of deposit
+        //        "amount" => "9.9",                                                            // Amount credited to your account
+        //        "asset" => "USDT",                                                            // Deposit $currency
+        //        "merchantId" => "16214228-5c0c-5abc-be6a-c90259b21d4e",                       // Internal ID (not for use)
+        //        "paymentCode" => "TRX",                                                       // Blockchain name
+        //        "status" => "Processed",                                                      // Transactions status
+        //        "type" => "Deposit",                                                          // Transaction $type
+        //        "reason" => array(),                                                               // Reason for manual $transaction processing
+        //        "address" => "TNeBQz8RyGGiAYAR7r8G6QGxtTWDkpH4dV",                            // Deposit $address
+        //        "memo" => "",                                                                 // Deposit memo
+        //        "txId" => "8a0b0c5a2ac5679879b71b2fa63b0a5c39f90bc8ff6c41e708906b398ac3d4ef", // Deposit $transaction hash
+        //        "fee" => "0.1",                                                               // Deposit fee
+        //        "processedAmount" => "10",                                                    // Amount of deposit
+        //        "createdAt" => "2023-06-13T12:55:01.256Z",                                    // Deposit receipt date
+        //        "updatedAt" => "2023-06-13T12:55:01.696Z"                                     // Deposit credit date
+        //    }
+        //
+        $datetime = $this->safe_string($transaction, 'createdAt');
+        $currencyId = $this->safe_string($transaction, 'asset');
+        $code = $this->safe_currency_code($currencyId, $currency);
+        $networkId = $this->safe_string($transaction, 'paymentCode');
+        $type = $this->safe_string_lower($transaction, 'type');
+        $address = $this->safe_string($transaction, 'address');
+        $isDeposit = ($type === 'deposit');
+        $parsedType = $isDeposit ? $type : 'withdrawal';
+        return array(
+            'info' => $transaction,
+            'id' => $this->safe_string($transaction, 'id'),
+            'txid' => $this->safe_string($transaction, 'txId'),
+            'currency' => $code,
+            'timestamp' => $this->parse8601($datetime),
+            'datetime' => $datetime,
+            'network' => $this->network_id_to_code($networkId),
+            'addressFrom' => null,
+            'address' => $address,
+            'addressTo' => $address,
+            'amount' => $this->safe_number($transaction, 'amount'),
+            'type' => $parsedType,
+            'status' => $this->parse_transaction_status($this->safe_string($transaction, 'status')),
+            'updated' => $this->parse8601($this->safe_string($transaction, 'updatedAt')),
+            'tagFrom' => null,
+            'tag' => null,
+            'tagTo' => null,
+            'comment' => $this->safe_string($transaction, 'memo'),
+            'internal' => null,
+            'fee' => array(
+                'cost' => $this->safe_number($transaction, 'fee'),
+                'currency' => $code,
+            ),
+        );
     }
 
     public function nonce() {
@@ -871,19 +1864,56 @@ class kuna extends Exchange {
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = null;
         if (gettype($api) === 'array' && array_keys($api) === array_keys(array_keys($api))) {
-            list($version, $access) = $api;
-            $url = $this->urls['api'][$version] . '/' . $version . '/' . $this->implode_params($path, $params);
-            if ($access === 'public') {
-                if ($method === 'GET') {
-                    if ($params) {
-                        $url .= '?' . $this->urlencode($params);
+            $isGet = $method === 'GET';
+            $version = $this->safe_string($api, 0);
+            $access = $this->safe_string($api, 1);
+            if ($version === 'v3') {
+                $url = $this->urls['api'][$version] . '/' . $version . '/' . $this->implode_params($path, $params);
+                if ($access === 'public') {
+                    if ($isGet) {
+                        if ($params) {
+                            $url .= '?' . $this->urlencode($params);
+                        }
+                    } elseif (($method === 'POST') || ($method === 'PUT')) {
+                        $headers = array( 'Content-Type' => 'application/json' );
+                        $body = $this->json($params);
                     }
-                } elseif (($method === 'POST') || ($method === 'PUT')) {
-                    $headers = array( 'Content-Type' => 'application/json' );
-                    $body = $this->json($params);
+                } elseif ($access === 'private') {
+                    throw new NotSupported($this->id . ' private v3 API is not supported yet');
                 }
-            } elseif ($access === 'private') {
-                throw new NotSupported($this->id . ' private v3 API is not supported yet');
+            } elseif ($version === 'v4') {
+                $extractedParams = $this->extract_params($path);
+                $urlPath = '/' . $version . '/' . $this->implode_params($path, $params);
+                $params = $this->omit($params, $extractedParams);
+                if ($isGet) {
+                    $paramsList = is_array($params) ? array_keys($params) : array();
+                    $numParams = count($paramsList);
+                    if ($numParams > 0) {
+                        $urlPath .= '?' . $this->urlencode($params);
+                    }
+                }
+                if ($access === 'private') {
+                    $nonce = (string) $this->nonce();
+                    $auth = $urlPath . $nonce;
+                    if ($isGet) {
+                        $auth = $auth . $this->json(array());
+                    } else {
+                        $auth = $auth . $this->json($params);
+                        $body = $params;
+                    }
+                    $headers = array(
+                        'Content-Type' => 'application/json',
+                        'accept' => 'application/json',
+                        'nonce' => $nonce,
+                        'public-key' => $this->apiKey,
+                        'signature' => $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha384', 'hex'),
+                    );
+                    $account = $this->safe_string($this->options, 'account');
+                    if ($account === 'pro') {
+                        $headers['account'] = 'pro';
+                    }
+                }
+                $url = $this->urls['api'][$version] . $urlPath;
             }
         } else {
             $request = '/api/' . $this->version . '/' . $this->implode_params($path, $params);
@@ -914,19 +1944,38 @@ class kuna extends Exchange {
                 }
             }
         }
+        if ($body !== null) {
+            $body = json_encode ($body);
+        }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
     public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
-        if ($response === null) {
+        //
+        //    {
+        //        "errors" => array(
+        //            {
+        //                "extensions" => array(
+        //                    "code" => "IP_NOT_IN_WHITE_LIST"
+        //                ),
+        //                "code" => "IP_NOT_IN_WHITE_LIST"
+        //            }
+        //        )
+        //    }
+        //
+        $errors = $this->safe_value($response, 'errors');
+        if (($response === null) && ($errors === null)) {
             return null;
         }
-        if ($code === 400) {
-            $error = $this->safe_value($response, 'error');
+        if (($errors !== null) || ($code === 400)) {
+            $error = $this->safe_value($errors, 0);
+            if ($error === null) {
+                $error = $this->safe_value($response, 'error');
+            }
             $errorCode = $this->safe_string($error, 'code');
             $feedback = $this->id . ' ' . $this->json($response);
             $this->throw_exactly_matched_exception($this->exceptions, $errorCode, $feedback);
-            // fallback to default $error handler
+            throw new ExchangeError($feedback);
         }
         return null;
     }

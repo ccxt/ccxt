@@ -5,12 +5,13 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.bitrue import ImplicitAPI
+import asyncio
 import hashlib
 import json
-from ccxt.base.types import OrderSide
-from typing import Optional
+from ccxt.base.types import Balances, Currencies, Currency, Int, MarginModification, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import AccountSuspended
 from ccxt.base.errors import ArgumentsRequired
@@ -20,12 +21,12 @@ from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import OrderImmediatelyFillable
+from ccxt.base.errors import NotSupported
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import InvalidNonce
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TRUNCATE
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
@@ -47,28 +48,34 @@ class bitrue(Exchange, ImplicitAPI):
                 'CORS': None,
                 'spot': True,
                 'margin': False,
-                'swap': None,  # has but unimplemented
-                'future': None,
+                'swap': True,
+                'future': False,
                 'option': False,
-                'cancelAllOrders': False,
+                'cancelAllOrders': True,
                 'cancelOrder': True,
+                'createMarketBuyOrderWithCost': True,
+                'createMarketOrderWithCost': False,
+                'createMarketSellOrderWithCost': False,
                 'createOrder': True,
                 'createStopLimitOrder': True,
                 'createStopMarketOrder': True,
                 'createStopOrder': True,
                 'fetchBalance': True,
                 'fetchBidsAsks': True,
-                'fetchBorrowRate': False,
                 'fetchBorrowRateHistories': False,
                 'fetchBorrowRateHistory': False,
-                'fetchBorrowRates': False,
-                'fetchBorrowRatesPerSymbol': False,
                 'fetchClosedOrders': True,
+                'fetchCrossBorrowRate': False,
+                'fetchCrossBorrowRates': False,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': False,
                 'fetchDeposits': True,
+                'fetchDepositsWithdrawals': False,
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': True,
+                'fetchFundingRate': False,
+                'fetchIsolatedBorrowRate': False,
+                'fetchIsolatedBorrowRates': False,
                 'fetchMarginMode': False,
                 'fetchMarkets': True,
                 'fetchMyTrades': True,
@@ -87,9 +94,11 @@ class bitrue(Exchange, ImplicitAPI):
                 'fetchTradingFees': False,
                 'fetchTransactionFees': False,
                 'fetchTransactions': False,
-                'fetchTransfers': False,
+                'fetchTransfers': True,
                 'fetchWithdrawals': True,
-                'transfer': False,
+                'setLeverage': True,
+                'setMargin': True,
+                'transfer': True,
                 'withdraw': True,
             },
             'timeframes': {
@@ -106,66 +115,142 @@ class bitrue(Exchange, ImplicitAPI):
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/139516488-243a830d-05dd-446b-91c6-c1f18fe30c63.jpg',
                 'api': {
-                    'v1': 'https://www.bitrue.com/api/v1',
-                    'v2': 'https://www.bitrue.com/api/v2',
+                    'spot': 'https://www.bitrue.com/api',
+                    'fapi': 'https://fapi.bitrue.com/fapi',
+                    'dapi': 'https://fapi.bitrue.com/dapi',
                     'kline': 'https://www.bitrue.com/kline-api',
                 },
                 'www': 'https://www.bitrue.com',
-                'referral': 'https://www.bitrue.com/activity/task/task-landing?inviteCode=EZWETQE&cn=900000',
+                'referral': 'https://www.bitrue.com/affiliate/landing?cn=600000&inviteCode=EZWETQE',
                 'doc': [
                     'https://github.com/Bitrue-exchange/bitrue-official-api-docs',
+                    'https://www.bitrue.com/api-docs',
                 ],
                 'fees': 'https://bitrue.zendesk.com/hc/en-001/articles/4405479952537',
             },
             'api': {
-                'kline': {
-                    'public': {
-                        'get': {
-                            'public.json': 1,
-                            'public{currency}.json': 1,
+                'spot': {
+                    'kline': {
+                        'public': {
+                            'get': {
+                                'public.json': 1,
+                                'public{currency}.json': 1,
+                            },
+                        },
+                    },
+                    'v1': {
+                        'public': {
+                            'get': {
+                                'ping': 1,
+                                'time': 1,
+                                'exchangeInfo': 1,
+                                'depth': {'cost': 1, 'byLimit': [[100, 1], [500, 5], [1000, 10]]},
+                                'trades': 1,
+                                'historicalTrades': 5,
+                                'aggTrades': 1,
+                                'ticker/24hr': {'cost': 1, 'noSymbol': 40},
+                                'ticker/price': {'cost': 1, 'noSymbol': 2},
+                                'ticker/bookTicker': {'cost': 1, 'noSymbol': 2},
+                                'market/kline': 1,
+                            },
+                        },
+                        'private': {
+                            'get': {
+                                'order': 1,
+                                'openOrders': 1,
+                                'allOrders': 5,
+                                'account': 5,
+                                'myTrades': {'cost': 5, 'noSymbol': 40},
+                                'etf/net-value/{symbol}': 1,
+                                'withdraw/history': 1,
+                                'deposit/history': 1,
+                            },
+                            'post': {
+                                'order': 4,
+                                'withdraw/commit': 1,
+                            },
+                            'delete': {
+                                'order': 1,
+                            },
+                        },
+                    },
+                    'v2': {
+                        'private': {
+                            'get': {
+                                'myTrades': 5,
+                            },
                         },
                     },
                 },
-                'v1': {
-                    'public': {
-                        'get': {
-                            'ping': 1,
-                            'time': 1,
-                            'exchangeInfo': 1,
-                            'depth': {'cost': 1, 'byLimit': [[100, 1], [500, 5], [1000, 10]]},
-                            'trades': 1,
-                            'historicalTrades': 5,
-                            'aggTrades': 1,
-                            'ticker/24hr': {'cost': 1, 'noSymbol': 40},
-                            'ticker/price': {'cost': 1, 'noSymbol': 2},
-                            'ticker/bookTicker': {'cost': 1, 'noSymbol': 2},
-                            'market/kline': 1,
+                'fapi': {
+                    'v1': {
+                        'public': {
+                            'get': {
+                                'ping': 1,
+                                'time': 1,
+                                'contracts': 1,
+                                'depth': 1,
+                                'ticker': 1,
+                                'klines': 1,
+                            },
                         },
                     },
-                    'private': {
-                        'get': {
-                            'order': 1,
-                            'openOrders': 1,
-                            'allOrders': 5,
-                            'account': 5,
-                            'myTrades': {'cost': 5, 'noSymbol': 40},
-                            'etf/net-value/{symbol}': 1,
-                            'withdraw/history': 1,
-                            'deposit/history': 1,
-                        },
-                        'post': {
-                            'order': 4,
-                            'withdraw/commit': 1,
-                        },
-                        'delete': {
-                            'order': 1,
+                    'v2': {
+                        'private': {
+                            'get': {
+                                'myTrades': 1,
+                                'openOrders': 1,
+                                'order': 1,
+                                'account': 1,
+                                'leverageBracket': 1,
+                                'commissionRate': 1,
+                                'futures_transfer_history': 1,
+                                'forceOrdersHistory': 1,
+                            },
+                            'post': {
+                                'positionMargin': 1,
+                                'level_edit': 1,
+                                'cancel': 1,
+                                'order': 1,
+                                'allOpenOrders': 1,
+                                'futures_transfer': 1,
+                            },
                         },
                     },
                 },
-                'v2': {
-                    'private': {
-                        'get': {
-                            'myTrades': 5,
+                'dapi': {
+                    'v1': {
+                        'public': {
+                            'get': {
+                                'ping': 1,
+                                'time': 1,
+                                'contracts': 1,
+                                'depth': 1,
+                                'ticker': 1,
+                                'klines': 1,
+                            },
+                        },
+                    },
+                    'v2': {
+                        'private': {
+                            'get': {
+                                'myTrades': 1,
+                                'openOrders': 1,
+                                'order': 1,
+                                'account': 1,
+                                'leverageBracket': 1,
+                                'commissionRate': 1,
+                                'futures_transfer_history': 1,
+                                'forceOrdersHistory': 1,
+                            },
+                            'post': {
+                                'positionMargin': 1,
+                                'level_edit': 1,
+                                'cancel': 1,
+                                'order': 1,
+                                'allOpenOrders': 1,
+                                'futures_transfer': 1,
+                            },
                         },
                     },
                 },
@@ -251,8 +336,14 @@ class bitrue(Exchange, ImplicitAPI):
             },
             # exchange-specific options
             'options': {
+                'createMarketBuyOrderRequiresPrice': True,
+                'fetchMarkets': [
+                    'spot',
+                    'linear',
+                    'inverse',
+                ],
                 # 'fetchTradesMethod': 'publicGetAggTrades',  # publicGetTrades, publicGetHistoricalTrades
-                'fetchMyTradesMethod': 'v2PrivateGetMyTrades',  # v1PrivateGetMyTrades
+                'fetchMyTradesMethod': 'v2PrivateGetMyTrades',  # spotV1PrivateGetMyTrades
                 'hasAlreadyAuthenticatedSuccessfully': False,
                 'recvWindow': 5 * 1000,  # 5 sec, binance default
                 'timeDifference': 0,  # the difference between system clock and Binance clock
@@ -265,11 +356,39 @@ class bitrue(Exchange, ImplicitAPI):
                 'networks': {
                     'ERC20': 'ETH',
                     'TRC20': 'TRX',
-                    'TRON': 'TRX',
                 },
-                'networksById': {
-                    'TRX': 'TRC20',
-                    'ETH': 'ERC20',
+                'defaultType': 'spot',
+                'timeframes': {
+                    'spot': {
+                        '1m': '1m',
+                        '5m': '5m',
+                        '15m': '15m',
+                        '30m': '30m',
+                        '1h': '1H',
+                        '2h': '2H',
+                        '4h': '4H',
+                        '12h': '12H',
+                        '1d': '1D',
+                        '1w': '1W',
+                    },
+                    'future': {
+                        '1m': '1min',
+                        '5m': '5min',
+                        '15m': '15min',
+                        '30m': '30min',
+                        '1h': '1h',
+                        '1d': '1day',
+                        '1w': '1week',
+                        '1M': '1month',
+                    },
+                },
+                'accountsByType': {
+                    'spot': 'wallet',
+                    'future': 'contract',
+                    'swap': 'contract',
+                    'funding': 'wallet',
+                    'fund': 'wallet',
+                    'contract': 'contract',
                 },
             },
             'commonCurrencies': {
@@ -303,7 +422,7 @@ class bitrue(Exchange, ImplicitAPI):
                     '-1022': AuthenticationError,  # {"code":-1022,"msg":"Signature for self request is not valid."}
                     '-1100': BadRequest,  # createOrder(symbol, 1, asdf) -> 'Illegal characters found in parameter 'price'
                     '-1101': BadRequest,  # Too many parameters; expected %s and received %s.
-                    '-1102': BadRequest,  # Param %s or %s must be sent, but both were empty
+                    '-1102': BadRequest,  # Param %s or %s must be sent, but both were empty  # {"code":-1102,"msg":"timestamp IllegalArgumentException.","data":null}
                     '-1103': BadRequest,  # An unknown parameter was sent.
                     '-1104': BadRequest,  # Not all sent parameters were read, read 8 parameters but was sent 9
                     '-1105': BadRequest,  # Parameter %s was empty.
@@ -314,6 +433,7 @@ class bitrue(Exchange, ImplicitAPI):
                     '-1115': BadRequest,  # Invalid timeInForce.
                     '-1116': BadRequest,  # Invalid orderType.
                     '-1117': BadRequest,  # Invalid side.
+                    '-1166': InvalidOrder,  # {"code":"-1166","msg":"The leverage value of the order is inconsistent with the user contract configuration 5","data":null}
                     '-1118': BadRequest,  # New client order ID was empty.
                     '-1119': BadRequest,  # Original client order ID was empty.
                     '-1120': BadRequest,  # Invalid interval.
@@ -323,12 +443,15 @@ class bitrue(Exchange, ImplicitAPI):
                     '-1128': BadRequest,  # {"code":-1128,"msg":"Combination of optional parameters invalid."}
                     '-1130': BadRequest,  # Data sent for paramter %s is not valid.
                     '-1131': BadRequest,  # recvWindow must be less than 60000
+                    '-1160': InvalidOrder,  # {"code":"-1160","msg":"Minimum order amount 10","data":null}
+                    '-1156': InvalidOrder,  # {"code":"-1156","msg":"The number of closed positions exceeds the total number of positions","data":null}
                     '-2008': AuthenticationError,  # {"code":-2008,"msg":"Invalid Api-Key ID."}
                     '-2010': ExchangeError,  # generic error code for createOrder -> 'Account has insufficient balance for requested action.', {"code":-2010,"msg":"Rest API trading is not enabled."}, etc...
                     '-2011': OrderNotFound,  # cancelOrder(1, 'BTC/USDT') -> 'UNKNOWN_ORDER'
                     '-2013': OrderNotFound,  # fetchOrder(1, 'BTC/USDT') -> 'Order does not exist'
                     '-2014': AuthenticationError,  # {"code":-2014, "msg": "API-key format invalid."}
                     '-2015': AuthenticationError,  # "Invalid API-key, IP, or permissions for action."
+                    '-2017': InsufficientFunds,  # {code":"-2017","msg":"Insufficient balance","data":null}
                     '-2019': InsufficientFunds,  # {"code":-2019,"msg":"Margin is insufficient."}
                     '-3005': InsufficientFunds,  # {"code":-3005,"msg":"Transferring out not allowed. Transfer out amount exceeds max amount."}
                     '-3006': InsufficientFunds,  # {"code":-3006,"msg":"Your borrow amount has exceed maximum borrow amount."}
@@ -350,9 +473,6 @@ class bitrue(Exchange, ImplicitAPI):
             },
         })
 
-    def cost_to_precision(self, symbol, cost):
-        return self.decimal_to_precision(cost, TRUNCATE, self.markets[symbol]['precision']['quote'], self.precisionMode, self.paddingMode)
-
     def currency_to_precision(self, code, fee, networkCode=None):
         # info is available in currencies only if the user has configured his api keys
         if self.safe_value(self.currencies[code], 'precision') is not None:
@@ -366,10 +486,11 @@ class bitrue(Exchange, ImplicitAPI):
     async def fetch_status(self, params={}):
         """
         the latest known information on the availability of the exchange API
-        :param dict params: extra parameters specific to the bitrue api endpoint
+        :see: https://github.com/Bitrue-exchange/Spot-official-api-docs#test-connectivity
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `status structure <https://docs.ccxt.com/#/?id=exchange-status-structure>`
         """
-        response = await self.v1PublicGetPing(params)
+        response = await self.spotV1PublicGetPing(params)
         #
         # empty means working status.
         #
@@ -389,10 +510,11 @@ class bitrue(Exchange, ImplicitAPI):
     async def fetch_time(self, params={}):
         """
         fetches the current integer timestamp in milliseconds from the exchange server
-        :param dict params: extra parameters specific to the bitrue api endpoint
+        :see: https://github.com/Bitrue-exchange/Spot-official-api-docs#check-server-time
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int: the current integer timestamp in milliseconds from the exchange server
         """
-        response = await self.v1PublicGetTime(params)
+        response = await self.spotV1PublicGetTime(params)
         #
         #     {
         #         "serverTime":1635467280514
@@ -471,13 +593,13 @@ class bitrue(Exchange, ImplicitAPI):
         }
         return self.safe_string_2(networksById, networkId, uppercaseNetworkId, networkId)
 
-    async def fetch_currencies(self, params={}):
+    async def fetch_currencies(self, params={}) -> Currencies:
         """
         fetches all available currencies on an exchange
-        :param dict params: extra parameters specific to the bitrue api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an associative dictionary of currencies
         """
-        response = await self.v1PublicGetExchangeInfo(params)
+        response = await self.spotV1PublicGetExchangeInfo(params)
         #
         #     {
         #         "timezone":"CTT",
@@ -507,17 +629,17 @@ class bitrue(Exchange, ImplicitAPI):
         #         ],
         #         "coins":[
         #           {
-        #               coin: "near",
-        #               coinFulName: "NEAR Protocol",
-        #               chains: ["BEP20",],
-        #               chainDetail: [
+        #               "coin": "near",
+        #               "coinFulName": "NEAR Protocol",
+        #               "chains": ["BEP20",],
+        #               "chainDetail": [
         #                 {
-        #                     chain: "BEP20",
-        #                     enableWithdraw: True,
-        #                     enableDeposit: True,
-        #                     withdrawFee: "0.2000",
-        #                     minWithdraw: "5.0000",
-        #                     maxWithdraw: "1000000000000000.0000",
+        #                     "chain": "BEP20",
+        #                     "enableWithdraw": True,
+        #                     "enableDeposit": True,
+        #                     "withdrawFee": "0.2000",
+        #                     "minWithdraw": "5.0000",
+        #                     "maxWithdraw": "1000000000000000.0000",
         #                 },
         #               ],
         #           },
@@ -592,13 +714,36 @@ class bitrue(Exchange, ImplicitAPI):
             }
         return result
 
-    async def fetch_markets(self, params={}):
+    async def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for bitrue
-        :param dict params: extra parameters specific to the exchange api endpoint
-        :returns [dict]: an array of objects representing market data
+        :see: https://github.com/Bitrue-exchange/Spot-official-api-docs#exchangeInfo_endpoint
+        :see: https://www.bitrue.com/api-docs#current-open-contract
+        :see: https://www.bitrue.com/api_docs_includes_file/delivery.html#current-open-contract
+        :param dict [params]: extra parameters specific to the exchange api endpoint
+        :returns dict[]: an array of objects representing market data
         """
-        response = await self.v1PublicGetExchangeInfo(params)
+        promisesRaw = []
+        fetchMarkets = self.safe_value(self.options, 'fetchMarkets', ['spot', 'linear', 'inverse'])
+        for i in range(0, len(fetchMarkets)):
+            marketType = fetchMarkets[i]
+            if marketType == 'spot':
+                promisesRaw.append(self.spotV1PublicGetExchangeInfo(params))
+            elif marketType == 'linear':
+                promisesRaw.append(self.fapiV1PublicGetContracts(params))
+            elif marketType == 'inverse':
+                promisesRaw.append(self.dapiV1PublicGetContracts(params))
+            else:
+                raise ExchangeError(self.id + ' fetchMarkets() self.options fetchMarkets "' + marketType + '" is not a supported market type')
+        promises = await asyncio.gather(*promisesRaw)
+        spotMarkets = self.safe_value(self.safe_value(promises, 0), 'symbols', [])
+        futureMarkets = self.safe_value(promises, 1)
+        deliveryMarkets = self.safe_value(promises, 2)
+        markets = spotMarkets
+        markets = self.array_concat(markets, futureMarkets)
+        markets = self.array_concat(markets, deliveryMarkets)
+        #
+        # spot
         #
         #     {
         #         "timezone":"CTT",
@@ -640,107 +785,133 @@ class bitrue(Exchange, ImplicitAPI):
         #         ],
         #     }
         #
+        # swap / delivery
+        #
+        #     [
+        #         {
+        #           "symbol": "H-HT-USDT",
+        #           "pricePrecision": 8,
+        #           "side": 1,
+        #           "maxMarketVolume": 100000,
+        #           "multiplier": 6,
+        #           "minOrderVolume": 1,
+        #           "maxMarketMoney": 10000000,
+        #           "type": "H",  # E: perpetual contract, S: test contract, others are mixed contract
+        #           "maxLimitVolume": 1000000,
+        #           "maxValidOrder": 20,
+        #           "multiplierCoin": "HT",
+        #           "minOrderMoney": 0.001,
+        #           "maxLimitMoney": 1000000,
+        #           "status": 1
+        #         }
+        #     ]
+        #
         if self.options['adjustForTimeDifference']:
             await self.load_time_difference()
-        markets = self.safe_value(response, 'symbols', [])
-        result = []
-        for i in range(0, len(markets)):
-            market = markets[i]
-            id = self.safe_string(market, 'symbol')
-            lowercaseId = self.safe_string_lower(market, 'symbol')
-            baseId = self.safe_string(market, 'baseAsset')
-            quoteId = self.safe_string(market, 'quoteAsset')
-            base = self.safe_currency_code(baseId)
-            quote = self.safe_currency_code(quoteId)
-            filters = self.safe_value(market, 'filters', [])
-            filtersByType = self.index_by(filters, 'filterType')
-            status = self.safe_string(market, 'status')
-            priceFilter = self.safe_value(filtersByType, 'PRICE_FILTER', {})
-            amountFilter = self.safe_value(filtersByType, 'LOT_SIZE', {})
-            defaultPricePrecision = self.safe_string(market, 'pricePrecision')
-            defaultAmountPrecision = self.safe_string(market, 'quantityPrecision')
-            pricePrecision = self.safe_string(priceFilter, 'priceScale', defaultPricePrecision)
-            amountPrecision = self.safe_string(amountFilter, 'volumeScale', defaultAmountPrecision)
-            entry = {
-                'id': id,
-                'lowercaseId': lowercaseId,
-                'symbol': base + '/' + quote,
-                'base': base,
-                'quote': quote,
-                'settle': None,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'settleId': None,
-                'type': 'spot',
-                'spot': True,
-                'margin': False,
-                'swap': False,
-                'future': False,
-                'option': False,
-                'active': (status == 'TRADING'),
-                'contract': False,
-                'linear': None,
-                'inverse': None,
-                'contractSize': None,
-                'expiry': None,
-                'expiryDatetime': None,
-                'strike': None,
-                'optionType': None,
-                'precision': {
-                    'amount': self.parse_number(self.parse_precision(amountPrecision)),
-                    'price': self.parse_number(self.parse_precision(pricePrecision)),
-                    'base': self.parse_number(self.parse_precision(self.safe_string(market, 'baseAssetPrecision'))),
-                    'quote': self.parse_number(self.parse_precision(self.safe_string(market, 'quotePrecision'))),
-                },
-                'limits': {
-                    'leverage': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'amount': {
-                        'min': self.safe_number(amountFilter, 'minQty'),
-                        'max': self.safe_number(amountFilter, 'maxQty'),
-                    },
-                    'price': {
-                        'min': self.safe_number(priceFilter, 'minPrice'),
-                        'max': self.safe_number(priceFilter, 'maxPrice'),
-                    },
-                    'cost': {
-                        'min': self.safe_number(amountFilter, 'minVal'),
-                        'max': None,
-                    },
-                },
-                'info': market,
-            }
-            result.append(entry)
-        return result
+        return self.parse_markets(markets)
 
-    def parse_balance(self, response):
-        result = {
-            'info': response,
+    def parse_market(self, market) -> Market:
+        id = self.safe_string(market, 'symbol')
+        lowercaseId = self.safe_string_lower(market, 'symbol')
+        side = self.safe_integer(market, 'side')  # 1 linear, 0 inverse, None spot
+        type = None
+        isLinear = None
+        isInverse = None
+        if side is None:
+            type = 'spot'
+        else:
+            type = 'swap'
+            isLinear = (side == 1)
+            isInverse = (side == 0)
+        isContract = (type != 'spot')
+        baseId = self.safe_string(market, 'baseAsset')
+        quoteId = self.safe_string(market, 'quoteAsset')
+        settleId = None
+        settle = None
+        if isContract:
+            symbolSplit = id.split('-')
+            baseId = self.safe_string(symbolSplit, 1)
+            quoteId = self.safe_string(symbolSplit, 2)
+            if isLinear:
+                settleId = quoteId
+            else:
+                settleId = baseId
+            settle = self.safe_currency_code(settleId)
+        base = self.safe_currency_code(baseId)
+        quote = self.safe_currency_code(quoteId)
+        symbol = base + '/' + quote
+        if settle is not None:
+            symbol += ':' + settle
+        filters = self.safe_value(market, 'filters', [])
+        filtersByType = self.index_by(filters, 'filterType')
+        status = self.safe_string(market, 'status')
+        priceFilter = self.safe_value(filtersByType, 'PRICE_FILTER', {})
+        amountFilter = self.safe_value(filtersByType, 'LOT_SIZE', {})
+        defaultPricePrecision = self.safe_string(market, 'pricePrecision')
+        defaultAmountPrecision = self.safe_string(market, 'quantityPrecision')
+        pricePrecision = self.safe_string(priceFilter, 'priceScale', defaultPricePrecision)
+        amountPrecision = self.safe_string(amountFilter, 'volumeScale', defaultAmountPrecision)
+        multiplier = self.safe_string(market, 'multiplier')
+        maxQuantity = self.safe_number(amountFilter, 'maxQty')
+        if maxQuantity is None:
+            maxQuantity = self.safe_number(market, 'maxValidOrder')
+        minCost = self.safe_number(amountFilter, 'minVal')
+        if minCost is None:
+            minCost = self.safe_number(market, 'minOrderMoney')
+        return {
+            'id': id,
+            'lowercaseId': lowercaseId,
+            'symbol': symbol,
+            'base': base,
+            'quote': quote,
+            'settle': settle,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': settleId,
+            'type': type,
+            'spot': (type == 'spot'),
+            'margin': False,
+            'swap': isContract,
+            'future': False,
+            'option': False,
+            'active': (status == 'TRADING'),
+            'contract': isContract,
+            'linear': isLinear,
+            'inverse': isInverse,
+            'contractSize': self.parse_number(Precise.string_abs(multiplier)),
+            'expiry': None,
+            'expiryDatetime': None,
+            'strike': None,
+            'optionType': None,
+            'precision': {
+                'amount': self.parse_number(self.parse_precision(amountPrecision)),
+                'price': self.parse_number(self.parse_precision(pricePrecision)),
+            },
+            'limits': {
+                'leverage': {
+                    'min': None,
+                    'max': None,
+                },
+                'amount': {
+                    'min': self.safe_number(amountFilter, 'minQty'),
+                    'max': maxQuantity,
+                },
+                'price': {
+                    'min': self.safe_number(priceFilter, 'minPrice'),
+                    'max': self.safe_number(priceFilter, 'maxPrice'),
+                },
+                'cost': {
+                    'min': minCost,
+                    'max': None,
+                },
+            },
+            'created': None,
+            'info': market,
         }
-        timestamp = self.safe_integer(response, 'updateTime')
-        balances = self.safe_value(response, 'balances', [])
-        for i in range(0, len(balances)):
-            balance = balances[i]
-            currencyId = self.safe_string(balance, 'asset')
-            code = self.safe_currency_code(currencyId)
-            account = self.account()
-            account['free'] = self.safe_string(balance, 'free')
-            account['used'] = self.safe_string(balance, 'locked')
-            result[code] = account
-        result['timestamp'] = timestamp
-        result['datetime'] = self.iso8601(timestamp)
-        return self.safe_balance(result)
 
-    async def fetch_balance(self, params={}):
-        """
-        query for balance and get the amount of funds available for trading or funds locked in orders
-        :param dict params: extra parameters specific to the bitrue api endpoint
-        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
-        """
-        await self.load_markets()
-        response = await self.v1PrivateGetAccount(params)
+    def parse_balance(self, response) -> Balances:
+        #
+        # spot
         #
         #     {
         #         "makerCommission":0,
@@ -758,24 +929,196 @@ class bitrue(Exchange, ImplicitAPI):
         #         "canDeposit":false
         #     }
         #
-        return self.parse_balance(response)
+        # swap
+        #
+        #     {
+        #         "account":[
+        #             {
+        #                 "marginCoin":"USDT",
+        #                 "coinPrecious":4,
+        #                 "accountNormal":1010.4043400372839856,
+        #                 "accountLock":2.9827889600000006,
+        #                 "partPositionNormal":0,
+        #                 "totalPositionNormal":0,
+        #                 "achievedAmount":0,
+        #                 "unrealizedAmount":0,
+        #                 "totalMarginRate":0,
+        #                 "totalEquity":1010.4043400372839856,
+        #                 "partEquity":0,
+        #                 "totalCost":0,
+        #                 "sumMarginRate":0,
+        #                 "sumOpenRealizedAmount":0,
+        #                 "canUseTrialFund":0,
+        #                 "sumMaintenanceMargin":null,
+        #                 "futureModel":null,
+        #                 "positionVos":[]
+        #             }
+        #         ]
+        #     }
+        #
+        result = {
+            'info': response,
+        }
+        timestamp = self.safe_integer(response, 'updateTime')
+        balances = self.safe_value_2(response, 'balances', 'account', [])
+        for i in range(0, len(balances)):
+            balance = balances[i]
+            currencyId = self.safe_string_2(balance, 'asset', 'marginCoin')
+            code = self.safe_currency_code(currencyId)
+            account = self.account()
+            account['free'] = self.safe_string_2(balance, 'free', 'accountNormal')
+            account['used'] = self.safe_string_2(balance, 'locked', 'accountLock')
+            result[code] = account
+        result['timestamp'] = timestamp
+        result['datetime'] = self.iso8601(timestamp)
+        return self.safe_balance(result)
 
-    async def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    async def fetch_balance(self, params={}) -> Balances:
+        """
+        query for balance and get the amount of funds available for trading or funds locked in orders
+        :see: https://github.com/Bitrue-exchange/Spot-official-api-docs#account-information-user_data
+        :see: https://www.bitrue.com/api-docs#account-information-v2-user_data-hmac-sha256
+        :see: https://www.bitrue.com/api_docs_includes_file/delivery.html#account-information-v2-user_data-hmac-sha256
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.type]: 'future', 'delivery', 'spot', 'swap'
+        :param str [params.subType]: 'linear', 'inverse'
+        :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
+        """
+        await self.load_markets()
+        type = None
+        type, params = self.handle_market_type_and_params('fetchBalance', None, params)
+        subType = None
+        subType, params = self.handle_sub_type_and_params('fetchBalance', None, params)
+        response = None
+        result = None
+        if type == 'swap':
+            if subType is not None and subType == 'inverse':
+                response = await self.dapiV2PrivateGetAccount(params)
+                result = self.safe_value(response, 'data', {})
+                #
+                # {
+                #         "code":"0",
+                #         "msg":"Success",
+                #         "data":{
+                #             "account":[
+                #                 {
+                #                     "marginCoin":"USD",
+                #                     "coinPrecious":4,
+                #                     "accountNormal":1010.4043400372839856,
+                #                     "accountLock":2.9827889600000006,
+                #                     "partPositionNormal":0,
+                #                     "totalPositionNormal":0,
+                #                     "achievedAmount":0,
+                #                     "unrealizedAmount":0,
+                #                     "totalMarginRate":0,
+                #                     "totalEquity":1010.4043400372839856,
+                #                     "partEquity":0,
+                #                     "totalCost":0,
+                #                     "sumMarginRate":0,
+                #                     "sumOpenRealizedAmount":0,
+                #                     "canUseTrialFund":0,
+                #                     "sumMaintenanceMargin":null,
+                #                     "futureModel":null,
+                #                     "positionVos":[]
+                #                 }
+                #             ]
+                #         }
+                #     }
+                #
+            else:
+                response = await self.fapiV2PrivateGetAccount(params)
+                result = self.safe_value(response, 'data', {})
+                #
+                #     {
+                #         "code":"0",
+                #         "msg":"Success",
+                #         "data":{
+                #             "account":[
+                #                 {
+                #                     "marginCoin":"USDT",
+                #                     "coinPrecious":4,
+                #                     "accountNormal":1010.4043400372839856,
+                #                     "accountLock":2.9827889600000006,
+                #                     "partPositionNormal":0,
+                #                     "totalPositionNormal":0,
+                #                     "achievedAmount":0,
+                #                     "unrealizedAmount":0,
+                #                     "totalMarginRate":0,
+                #                     "totalEquity":1010.4043400372839856,
+                #                     "partEquity":0,
+                #                     "totalCost":0,
+                #                     "sumMarginRate":0,
+                #                     "sumOpenRealizedAmount":0,
+                #                     "canUseTrialFund":0,
+                #                     "sumMaintenanceMargin":null,
+                #                     "futureModel":null,
+                #                     "positionVos":[]
+                #                 }
+                #             ]
+                #         }
+                #     }
+                #
+        else:
+            response = await self.spotV1PrivateGetAccount(params)
+            result = response
+            #
+            #     {
+            #         "makerCommission":0,
+            #         "takerCommission":0,
+            #         "buyerCommission":0,
+            #         "sellerCommission":0,
+            #         "updateTime":null,
+            #         "balances":[
+            #             {"asset":"sbr","free":"0","locked":"0"},
+            #             {"asset":"ksm","free":"0","locked":"0"},
+            #             {"asset":"neo3s","free":"0","locked":"0"},
+            #         ],
+            #         "canTrade":false,
+            #         "canWithdraw":false,
+            #         "canDeposit":false
+            #     }
+            #
+        return self.parse_balance(result)
+
+    async def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        :see: https://github.com/Bitrue-exchange/Spot-official-api-docs#order-book
+        :see: https://www.bitrue.com/api-docs#order-book
+        :see: https://www.bitrue.com/api_docs_includes_file/delivery.html#order-book
         :param str symbol: unified symbol of the market to fetch the order book for
-        :param int|None limit: the maximum amount of order book entries to return
-        :param dict params: extra parameters specific to the bitrue api endpoint
+        :param int [limit]: the maximum amount of order book entries to return
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
         market = self.market(symbol)
-        request = {
-            'symbol': market['id'],
-        }
-        if limit is not None:
-            request['limit'] = limit  # default 100, max 1000, see https://github.com/Bitrue-exchange/bitrue-official-api-docs#order-book
-        response = await self.v1PublicGetDepth(self.extend(request, params))
+        response = None
+        if market['swap']:
+            request = {
+                'contractName': market['id'],
+            }
+            if limit is not None:
+                if limit > 100:
+                    limit = 100
+                request['limit'] = limit  # default 100, max 100, see https://www.bitrue.com/api-docs#order-book
+            if market['linear']:
+                response = await self.fapiV1PublicGetDepth(self.extend(request, params))
+            elif market['inverse']:
+                response = await self.dapiV1PublicGetDepth(self.extend(request, params))
+        elif market['spot']:
+            request = {
+                'symbol': market['id'],
+            }
+            if limit is not None:
+                if limit > 1000:
+                    limit = 1000
+                request['limit'] = limit  # default 100, max 1000, see https://github.com/Bitrue-exchange/bitrue-official-api-docs#order-book
+            response = await self.spotV1PublicGetDepth(self.extend(request, params))
+        else:
+            raise NotSupported(self.id + ' fetchOrderBook only support spot & swap markets')
+        #
+        # spot
         #
         #     {
         #         "lastUpdateId":1635474910177,
@@ -791,114 +1134,206 @@ class bitrue(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        orderbook = self.parse_order_book(response, symbol)
+        # swap
+        #
+        #     {
+        #         "asks": [[34916.5, 2582], [34916.6, 2193], [34916.7, 2629], [34916.8, 3478], [34916.9, 2718]],
+        #         "bids": [[34916.4, 92065], [34916.3, 25703], [34916.2, 37259], [34916.1, 26446], [34916, 44456]],
+        #         "time": 1699338305000
+        #     }
+        #
+        timestamp = self.safe_integer(response, 'time')
+        orderbook = self.parse_order_book(response, symbol, timestamp)
         orderbook['nonce'] = self.safe_integer(response, 'lastUpdateId')
         return orderbook
 
-    def parse_ticker(self, ticker, market=None):
+    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
+        #
+        # fetchBidsAsks
+        #
+        #     {
+        #         "symbol": "LTCBTC",
+        #         "bidPrice": "4.00000000",
+        #         "bidQty": "431.00000000",
+        #         "askPrice": "4.00000200",
+        #         "askQty": "9.00000000"
+        #     }
         #
         # fetchTicker
         #
         #     {
-        #         "id":397945892,
-        #         "last":"1.143411",
-        #         "lowestAsk":"1.144223",
-        #         "highestBid":"1.141696",
-        #         "percentChange":"-0.001432",
-        #         "baseVolume":"338287",
-        #         "quoteVolume":"415013.244366",
-        #         "isFrozen":"0",
-        #         "high24hr":"1.370087",
-        #         "low24hr":"1.370087",
+        #         "symbol": "BNBBTC",
+        #         "priceChange": "0.000248",
+        #         "priceChangePercent": "3.5500",
+        #         "weightedAvgPrice": null,
+        #         "prevClosePrice": null,
+        #         "lastPrice": "0.007226",
+        #         "lastQty": null,
+        #         "bidPrice": "0.007208",
+        #         "askPrice": "0.007240",
+        #         "openPrice": "0.006978",
+        #         "highPrice": "0.007295",
+        #         "lowPrice": "0.006935",
+        #         "volume": "11749.86",
+        #         "quoteVolume": "84.1066211",
+        #         "openTime": 0,
+        #         "closeTime": 0,
+        #         "firstId": 0,
+        #         "lastId": 0,
+        #         "count": 0
         #     }
         #
         symbol = self.safe_symbol(None, market)
-        last = self.safe_string(ticker, 'last')
+        last = self.safe_string_2(ticker, 'lastPrice', 'last')
+        timestamp = self.safe_integer(ticker, 'time')
+        percentage = None
+        if market['swap']:
+            percentage = Precise.string_mul(self.safe_string(ticker, 'rose'), '100')
+        else:
+            percentage = self.safe_string(ticker, 'priceChangePercent')
         return self.safe_ticker({
             'symbol': symbol,
-            'timestamp': None,
-            'datetime': None,
-            'high': self.safe_string(ticker, 'high24hr'),
-            'low': self.safe_string(ticker, 'low24hr'),
-            'bid': self.safe_string(ticker, 'highestBid'),
-            'bidVolume': None,
-            'ask': self.safe_string(ticker, 'lowestAsk'),
-            'askVolume': None,
-            'vwap': None,
-            'open': None,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'high': self.safe_string_2(ticker, 'highPrice', 'high'),
+            'low': self.safe_string_2(ticker, 'lowPrice', 'low'),
+            'bid': self.safe_string_2(ticker, 'bidPrice', 'buy'),
+            'bidVolume': self.safe_string(ticker, 'bidQty'),
+            'ask': self.safe_string_2(ticker, 'askPrice', 'sell'),
+            'askVolume': self.safe_string(ticker, 'askQty'),
+            'vwap': self.safe_string(ticker, 'weightedAvgPrice'),
+            'open': self.safe_string(ticker, 'openPrice'),
             'close': last,
             'last': last,
             'previousClose': None,
-            'change': None,
-            'percentage': self.safe_string(ticker, 'percentChange'),
+            'change': self.safe_string(ticker, 'priceChange'),
+            'percentage': percentage,
             'average': None,
-            'baseVolume': self.safe_string(ticker, 'baseVolume'),
+            'baseVolume': self.safe_string_2(ticker, 'volume', 'vol'),
             'quoteVolume': self.safe_string(ticker, 'quoteVolume'),
             'info': ticker,
         }, market)
 
-    async def fetch_ticker(self, symbol: str, params={}):
+    async def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        :see: https://github.com/Bitrue-exchange/Spot-official-api-docs#24hr-ticker-price-change-statistics
+        :see: https://www.bitrue.com/api-docs#ticker
+        :see: https://www.bitrue.com/api_docs_includes_file/delivery.html#ticker
         :param str symbol: unified symbol of the market to fetch the ticker for
-        :param dict params: extra parameters specific to the bitrue api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
-        uppercaseBaseId = self.safe_string_upper(market, 'baseId')
-        uppercaseQuoteId = self.safe_string_upper(market, 'quoteId')
-        request = {
-            'currency': uppercaseQuoteId,
-            'command': 'returnTicker',
-        }
-        response = await self.klinePublicGetPublicCurrencyJson(self.extend(request, params))
+        response = None
+        data = None
+        if market['swap']:
+            request = {
+                'contractName': market['id'],
+            }
+            if market['linear']:
+                response = await self.fapiV1PublicGetTicker(self.extend(request, params))
+            elif market['inverse']:
+                response = await self.dapiV1PublicGetTicker(self.extend(request, params))
+            data = response
+        elif market['spot']:
+            request = {
+                'symbol': market['id'],
+            }
+            response = await self.spotV1PublicGetTicker24hr(self.extend(request, params))
+            data = self.safe_value(response, 0, {})
+        else:
+            raise NotSupported(self.id + ' fetchTicker only support spot & swap markets')
+        #
+        # spot
+        #
+        #     [{
+        #         symbol: 'BTCUSDT',
+        #         priceChange: '105.20',
+        #         priceChangePercent: '0.3000',
+        #         weightedAvgPrice: null,
+        #         prevClosePrice: null,
+        #         lastPrice: '34905.21',
+        #         lastQty: null,
+        #         bidPrice: '34905.21',
+        #         askPrice: '34905.22',
+        #         openPrice: '34800.01',
+        #         highPrice: '35276.33',
+        #         lowPrice: '34787.51',
+        #         volume: '12549.6481',
+        #         quoteVolume: '439390492.917',
+        #         openTime: '0',
+        #         closeTime: '0',
+        #         firstId: '0',
+        #         lastId: '0',
+        #         count: '0'
+        #     }]
+        #
+        # swap
         #
         #     {
-        #         "code":"200",
-        #         "msg":"success",
-        #         "data":{
-        #             "DODO3S_USDT":{
-        #                 "id":397945892,
-        #                 "last":"1.143411",
-        #                 "lowestAsk":"1.144223",
-        #                 "highestBid":"1.141696",
-        #                 "percentChange":"-0.001432",
-        #                 "baseVolume":"338287",
-        #                 "quoteVolume":"415013.244366",
-        #                 "isFrozen":"0",
-        #                 "high24hr":"1.370087",
-        #                 "low24hr":"1.370087"
-        #             }
-        #         }
+        #         "high": "35296",
+        #         "vol": "779308354",
+        #         "last": "34884.1",
+        #         "low": "34806.7",
+        #         "buy": 34883.9,
+        #         "sell": 34884,
+        #         "rose": "-0.0027957315",
+        #         "time": 1699348013000
         #     }
         #
-        data = self.safe_value(response, 'data', {})
-        id = uppercaseBaseId + '_' + uppercaseQuoteId
-        ticker = self.safe_value(data, id)
-        if ticker is None:
-            raise ExchangeError(self.id + ' fetchTicker() could not find the ticker for ' + market['symbol'])
-        return self.parse_ticker(ticker, market)
+        return self.parse_ticker(data, market)
 
-    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        :see: https://github.com/Bitrue-exchange/Spot-official-api-docs#kline-data
+        :see: https://www.bitrue.com/api-docs#kline-candlestick-data
+        :see: https://www.bitrue.com/api_docs_includes_file/delivery.html#kline-candlestick-data
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
-        :param int|None since: timestamp in ms of the earliest candle to fetch
-        :param int|None limit: the maximum amount of candles to fetch
-        :param dict params: extra parameters specific to the bitrue api endpoint
-        :returns [[int]]: A list of candles ordered, open, high, low, close, volume
+        :param int [since]: timestamp in ms of the earliest candle to fetch
+        :param int [limit]: the maximum amount of candles to fetch
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         await self.load_markets()
         market = self.market(symbol)
-        request = {
-            'symbol': market['id'],
-            'scale': self.safe_string(self.timeframes, timeframe, timeframe),
-        }
-        if limit is not None:
-            request['limit'] = limit
-        response = await self.v1PublicGetMarketKline(self.extend(request, params))
+        timeframes = self.safe_value(self.options, 'timeframes', {})
+        response = None
+        data = None
+        if market['swap']:
+            timeframesFuture = self.safe_value(timeframes, 'future', {})
+            request = {
+                'contractName': market['id'],
+                # 1min / 5min / 15min / 30min / 1h / 1day / 1week / 1month
+                'interval': self.safe_string(timeframesFuture, timeframe, '1min'),
+            }
+            if limit is not None:
+                request['limit'] = limit
+            if market['linear']:
+                response = await self.fapiV1PublicGetKlines(self.extend(request, params))
+            elif market['inverse']:
+                response = await self.dapiV1PublicGetKlines(self.extend(request, params))
+            data = response
+        elif market['spot']:
+            timeframesSpot = self.safe_value(timeframes, 'spot', {})
+            request = {
+                'symbol': market['id'],
+                # 1m / 5m / 15m / 30m / 1H / 2H / 4H / 12H / 1D / 1W
+                'scale': self.safe_string(timeframesSpot, timeframe, '1m'),
+            }
+            if limit is not None:
+                request['limit'] = limit
+            if since is not None:
+                request['fromIdx'] = since
+            response = await self.spotV1PublicGetMarketKline(self.extend(request, params))
+            data = self.safe_value(response, 'data', [])
+        else:
+            raise NotSupported(self.id + ' fetchOHLCV only support spot & swap markets')
+        #
+        # spot
         #
         #       {
         #           "symbol":"BTCUSDT",
@@ -916,10 +1351,24 @@ class bitrue(Exchange, ImplicitAPI):
         #           ]
         #       }
         #
-        data = self.safe_value(response, 'data', [])
+        # swap
+        #
+        #     [
+        #         {
+        #           "high": "35360.7",
+        #           "vol": "110288",
+        #           "low": "35347.9",
+        #           "idx": 1699411680000,
+        #           "close": "35347.9",
+        #           "open": "35349.4"
+        #         }
+        #     ]
+        #
         return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market=None):
+    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
+        #
+        # spot
         #
         #      {
         #         "i":"1660825020",
@@ -931,97 +1380,170 @@ class bitrue(Exchange, ImplicitAPI):
         #         "o":"23508.34"
         #      }
         #
-        return [
-            self.safe_timestamp(ohlcv, 'i'),
-            self.safe_number(ohlcv, 'o'),
-            self.safe_number(ohlcv, 'h'),
-            self.safe_number(ohlcv, 'l'),
-            self.safe_number(ohlcv, 'c'),
-            self.safe_number(ohlcv, 'v'),
-        ]
-
-    async def fetch_bids_asks(self, symbols: Optional[List[str]] = None, params={}):
-        """
-        fetches the bid and ask price and volume for multiple markets
-        :param [str]|None symbols: unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
-        :param dict params: extra parameters specific to the bitrue api endpoint
-        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
-        """
-        await self.load_markets()
-        defaultType = self.safe_string_2(self.options, 'fetchBidsAsks', 'defaultType', 'spot')
-        type = self.safe_string(params, 'type', defaultType)
-        query = self.omit(params, 'type')
-        method = None
-        if type == 'future':
-            method = 'fapiPublicGetTickerBookTicker'
-        elif type == 'delivery':
-            method = 'dapiPublicGetTickerBookTicker'
-        else:
-            method = 'publicGetTickerBookTicker'
-        response = await getattr(self, method)(query)
-        return self.parse_tickers(response, symbols)
-
-    async def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
-        """
-        fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-        :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-        :param dict params: extra parameters specific to the bitrue api endpoint
-        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
-        """
-        await self.load_markets()
-        request = {
-            'command': 'returnTicker',
-        }
-        response = await self.klinePublicGetPublicJson(self.extend(request, params))
+        # swap
         #
         #     {
-        #         "code":"200",
-        #         "msg":"success",
-        #         "data":{
-        #             "DODO3S_USDT":{
-        #                 "id":397945892,
-        #                 "last":"1.143411",
-        #                 "lowestAsk":"1.144223",
-        #                 "highestBid":"1.141696",
-        #                 "percentChange":"-0.001432",
-        #                 "baseVolume":"338287",
-        #                 "quoteVolume":"415013.244366",
-        #                 "isFrozen":"0",
-        #                 "high24hr":"1.370087",
-        #                 "low24hr":"1.370087"
-        #             }
-        #         }
+        #         "high": "35360.7",
+        #         "vol": "110288",
+        #         "low": "35347.9",
+        #         "idx": 1699411680000,
+        #         "close": "35347.9",
+        #         "open": "35349.4"
         #     }
         #
-        data = self.safe_value(response, 'data', {})
+        timestamp = self.safe_timestamp(ohlcv, 'i')
+        if timestamp is None:
+            timestamp = self.safe_integer(ohlcv, 'idx')
+        return [
+            timestamp,
+            self.safe_number_2(ohlcv, 'o', 'open'),
+            self.safe_number_2(ohlcv, 'h', 'high'),
+            self.safe_number_2(ohlcv, 'l', 'low'),
+            self.safe_number_2(ohlcv, 'c', 'close'),
+            self.safe_number_2(ohlcv, 'v', 'vol'),
+        ]
+
+    async def fetch_bids_asks(self, symbols: Strings = None, params={}):
+        """
+        fetches the bid and ask price and volume for multiple markets
+        :see: https://github.com/Bitrue-exchange/Spot-official-api-docs#symbol-order-book-ticker
+        :see: https://www.bitrue.com/api-docs#ticker
+        :see: https://www.bitrue.com/api_docs_includes_file/delivery.html#ticker
+        :param str[]|None symbols: unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
+        """
+        await self.load_markets()
+        symbols = self.market_symbols(symbols, None, False)
+        first = self.safe_string(symbols, 0)
+        market = self.market(first)
+        response = None
+        if market['swap']:
+            request = {
+                'contractName': market['id'],
+            }
+            if market['linear']:
+                response = await self.fapiV1PublicGetTicker(self.extend(request, params))
+            elif market['inverse']:
+                response = await self.dapiV1PublicGetTicker(self.extend(request, params))
+        elif market['spot']:
+            request = {
+                'symbol': market['id'],
+            }
+            response = await self.spotV1PublicGetTickerBookTicker(self.extend(request, params))
+        else:
+            raise NotSupported(self.id + ' fetchBidsAsks only support spot & swap markets')
+        #
+        # spot
+        #
+        #     {
+        #         "symbol": "LTCBTC",
+        #         "bidPrice": "4.00000000",
+        #         "bidQty": "431.00000000",
+        #         "askPrice": "4.00000200",
+        #         "askQty": "9.00000000"
+        #     }
+        #
+        # swap
+        #
+        #     {
+        #         "high": "35296",
+        #         "vol": "779308354",
+        #         "last": "34884.1",
+        #         "low": "34806.7",
+        #         "buy": 34883.9,
+        #         "sell": 34884,
+        #         "rose": "-0.0027957315",
+        #         "time": 1699348013000
+        #     }
+        #
+        data = {}
+        data[market['id']] = response
+        return self.parse_tickers(data, symbols)
+
+    async def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
+        """
+        fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+        :see: https://github.com/Bitrue-exchange/Spot-official-api-docs#24hr-ticker-price-change-statistics
+        :see: https://www.bitrue.com/api-docs#ticker
+        :see: https://www.bitrue.com/api_docs_includes_file/delivery.html#ticker
+        :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
+        """
+        await self.load_markets()
+        symbols = self.market_symbols(symbols)
+        response = None
+        data = None
+        request = {}
+        type = None
+        if symbols is not None:
+            first = self.safe_string(symbols, 0)
+            market = self.market(first)
+            if market['swap']:
+                raise NotSupported(self.id + ' fetchTickers does not support swap markets, please use fetchTicker instead')
+            elif market['spot']:
+                response = await self.spotV1PublicGetTicker24hr(self.extend(request, params))
+                data = response
+            else:
+                raise NotSupported(self.id + ' fetchTickers only support spot & swap markets')
+        else:
+            type, params = self.handle_market_type_and_params('fetchTickers', None, params)
+            if type != 'spot':
+                raise NotSupported(self.id + ' fetchTickers only support spot when symbols are not proved')
+            response = await self.spotV1PublicGetTicker24hr(self.extend(request, params))
+            data = response
+        #
+        # spot
+        #
+        #     [{
+        #         symbol: 'BTCUSDT',
+        #         priceChange: '105.20',
+        #         priceChangePercent: '0.3000',
+        #         weightedAvgPrice: null,
+        #         prevClosePrice: null,
+        #         lastPrice: '34905.21',
+        #         lastQty: null,
+        #         bidPrice: '34905.21',
+        #         askPrice: '34905.22',
+        #         openPrice: '34800.01',
+        #         highPrice: '35276.33',
+        #         lowPrice: '34787.51',
+        #         volume: '12549.6481',
+        #         quoteVolume: '439390492.917',
+        #         openTime: '0',
+        #         closeTime: '0',
+        #         firstId: '0',
+        #         lastId: '0',
+        #         count: '0'
+        #     }]
+        #
+        # swap
+        #
+        #     {
+        #         "high": "35296",
+        #         "vol": "779308354",
+        #         "last": "34884.1",
+        #         "low": "34806.7",
+        #         "buy": 34883.9,
+        #         "sell": 34884,
+        #         "rose": "-0.0027957315",
+        #         "time": 1699348013000
+        #     }
+        #
         # the exchange returns market ids with an underscore from the tickers endpoint
         # the market ids do not have an underscore, so it has to be removed
         # https://github.com/ccxt/ccxt/issues/13856
         tickers = {}
-        marketIds = list(data.keys())
-        for i in range(0, len(marketIds)):
-            marketId = marketIds[i].replace('_', '')
-            tickers[marketId] = data[marketIds[i]]
+        for i in range(0, len(data)):
+            ticker = self.safe_value(data, i, {})
+            market = self.market(self.safe_value(ticker, 'symbol'))
+            tickers[market['id']] = ticker
         return self.parse_tickers(tickers, symbols)
 
-    def parse_trade(self, trade, market=None):
+    def parse_trade(self, trade, market: Market = None) -> Trade:
         #
-        # aggregate trades
-        #  - "T" is timestamp of *api-call* not trades. Use more expensive v1PublicGetHistoricalTrades if actual timestamp of trades matter
-        #  - Trades are aggregated by timestamp, price, and side. But "m" is always True. Use method above if side of trades matter
-        #
-        #     {
-        #         "a": 26129,         # Aggregate tradeId
-        #         "p": "0.01633102",  # Price
-        #         "q": "4.70443515",  # Quantity
-        #         "f": 27781,         # First tradeId
-        #         "l": 27781,         # Last tradeId
-        #         "T": 1498793709153,  # Timestamp of *Api-call* not trade!
-        #         "m": True,          # Was the buyer the maker?  # Always True -> ignore it and leave side None
-        #         "M": True           # Was the trade the best price match?
-        #     }
-        #
-        # recent public trades and old public trades
+        # fetchTrades
         #
         #     {
         #         "id": 28457,
@@ -1032,7 +1554,7 @@ class bitrue(Exchange, ImplicitAPI):
         #         "isBestMatch": True
         #     }
         #
-        # private trades
+        # fetchTrades - spot
         #
         #     {
         #         "symbol":"USDCUSDT",
@@ -1049,14 +1571,32 @@ class bitrue(Exchange, ImplicitAPI):
         #         "isBestMatch":true
         #     }
         #
-        timestamp = self.safe_integer_2(trade, 'T', 'time')
-        priceString = self.safe_string_2(trade, 'p', 'price')
-        amountString = self.safe_string_2(trade, 'q', 'qty')
-        marketId = self.safe_string(trade, 'symbol')
+        # fetchTrades - future
+        #
+        #     {
+        #         "tradeId":12,
+        #         "price":0.9,
+        #         "qty":1,
+        #         "amount":9,
+        #         "contractName":"E-SAND-USDT",
+        #         "side":"BUY",
+        #         "fee":"0.0018",
+        #         "bidId":1558124009467904992,
+        #         "askId":1558124043827644908,
+        #         "bidUserId":10294,
+        #         "askUserId":10467,
+        #         "isBuyer":true,
+        #         "isMaker":true,
+        #         "ctime":1678426306000
+        #     }
+        #
+        timestamp = self.safe_integer_2(trade, 'ctime', 'time')
+        priceString = self.safe_string(trade, 'price')
+        amountString = self.safe_string(trade, 'qty')
+        marketId = self.safe_string_2(trade, 'symbol', 'contractName')
         symbol = self.safe_symbol(marketId, market)
         orderId = self.safe_string(trade, 'orderId')
-        id = self.safe_string_2(trade, 't', 'a')
-        id = self.safe_string_2(trade, 'id', 'tradeId', id)
+        id = self.safe_string_2(trade, 'id', 'tradeId')
         side = None
         buyerMaker = self.safe_value(trade, 'isBuyerMaker')  # ignore "m" until Bitrue fixes api
         isBuyer = self.safe_value(trade, 'isBuyer')
@@ -1067,11 +1607,11 @@ class bitrue(Exchange, ImplicitAPI):
         fee = None
         if 'commission' in trade:
             fee = {
-                'cost': self.safe_string(trade, 'commission'),
+                'cost': self.safe_string_2(trade, 'commission', 'fee'),
                 'currency': self.safe_currency_code(self.safe_string(trade, 'commissionAssert')),
             }
         takerOrMaker = None
-        isMaker = self.safe_value_2(trade, 'isMaker', 'maker')
+        isMaker = self.safe_value(trade, 'isMaker')
         if isMaker is not None:
             takerOrMaker = 'maker' if isMaker else 'taker'
         return self.safe_trade({
@@ -1090,51 +1630,31 @@ class bitrue(Exchange, ImplicitAPI):
             'fee': fee,
         }, market)
 
-    async def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
+        :see: https://github.com/Bitrue-exchange/Spot-official-api-docs#recent-trades-list
         :param str symbol: unified symbol of the market to fetch trades for
-        :param int|None since: timestamp in ms of the earliest trade to fetch
-        :param int|None limit: the maximum amount of trades to fetch
-        :param dict params: extra parameters specific to the bitrue api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :param int [since]: timestamp in ms of the earliest trade to fetch
+        :param int [limit]: the maximum amount of trades to fetch
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
         """
         await self.load_markets()
         market = self.market(symbol)
-        request = {
-            'symbol': market['id'],
-            # 'limit': 100,  # default 100, max = 1000
-        }
-        method = self.safe_string(self.options, 'fetchTradesMethod', 'v1PublicGetAggTrades')
-        if limit is not None:
-            request['limit'] = limit  # default 100, max 1000
+        response = None
+        if market['spot']:
+            request = {
+                'symbol': market['id'],
+                # 'limit': 100,  # default 100, max = 1000
+            }
+            if limit is not None:
+                request['limit'] = limit  # default 100, max 1000
+            response = await self.spotV1PublicGetTrades(self.extend(request, params))
+        else:
+            raise NotSupported(self.id + ' fetchTrades only support spot markets')
         #
-        # Caveats:
-        # - default limit(500) applies only if no other parameters set, trades up
-        #   to the maximum limit may be returned to satisfy other parameters
-        # - if both limit and time window is set and time window contains more
-        #   trades than the limit then the last trades from the window are returned
-        # - 'tradeId' accepted and returned by self method is "aggregate" trade id
-        #   which is different from actual trade id
-        # - setting both fromId and time window results in error
-        response = await getattr(self, method)(self.extend(request, params))
-        #
-        # aggregate trades
-        #
-        #     [
-        #         {
-        #             "a": 26129,         # Aggregate tradeId
-        #             "p": "0.01633102",  # Price
-        #             "q": "4.70443515",  # Quantity
-        #             "f": 27781,         # First tradeId
-        #             "l": 27781,         # Last tradeId
-        #             "T": 1498793709153,  # Timestamp
-        #             "m": True,          # Was the buyer the maker?
-        #             "M": True           # Was the trade the best price match?
-        #         }
-        #     ]
-        #
-        # recent public trades and historical public trades
+        # spot
         #
         #     [
         #         {
@@ -1151,6 +1671,8 @@ class bitrue(Exchange, ImplicitAPI):
 
     def parse_order_status(self, status):
         statuses = {
+            'INIT': 'open',
+            'PENDING_CREATE': 'open',
             'NEW': 'open',
             'PARTIALLY_FILLED': 'open',
             'FILLED': 'closed',
@@ -1161,9 +1683,9 @@ class bitrue(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order(self, order, market=None):
+    def parse_order(self, order, market: Market = None) -> Order:
         #
-        # createOrder
+        # createOrder - spot
         #
         #     {
         #         "symbol":"USDCUSDT",
@@ -1172,7 +1694,13 @@ class bitrue(Exchange, ImplicitAPI):
         #         "transactTime":1635551031276
         #     }
         #
-        # fetchOpenOrders
+        # createOrder - future
+        #
+        #     {
+        #         "orderId":1690615676032452985,
+        #     }
+        #
+        # fetchOrders - spot
         #
         #     {
         #         "symbol":"USDCUSDT",
@@ -1193,7 +1721,24 @@ class bitrue(Exchange, ImplicitAPI):
         #         "isWorking":false
         #     }
         #
-        status = self.parse_order_status(self.safe_string(order, 'status'))
+        # fetchOrders - future
+        #
+        #     {
+        #         "orderId":1917641,
+        #         "price":100,
+        #         "origQty":10,
+        #         "origAmount":10,
+        #         "executedQty":1,
+        #         "avgPrice":10000,
+        #         "status":"INIT",
+        #         "type":"LIMIT",
+        #         "side":"BUY",
+        #         "action":"OPEN",
+        #         "transactTime":1686716571425
+        #         "clientOrderId":4949299210
+        #     }
+        #
+        status = self.parse_order_status(self.safe_string_2(order, 'status', 'orderStatus'))
         marketId = self.safe_string(order, 'symbol')
         symbol = self.safe_symbol(marketId, market)
         filled = self.safe_string(order, 'executedQty')
@@ -1222,7 +1767,7 @@ class bitrue(Exchange, ImplicitAPI):
         fills = self.safe_value(order, 'fills', [])
         clientOrderId = self.safe_string(order, 'clientOrderId')
         timeInForce = self.safe_string(order, 'timeInForce')
-        postOnly = (type == 'limit_maker') or (timeInForce == 'GTX')
+        postOnly = (type == 'limit_maker') or (timeInForce == 'GTX') or (type == 'post_only')
         if type == 'limit_maker':
             type = 'limit'
         stopPriceString = self.safe_string(order, 'stopPrice')
@@ -1252,93 +1797,246 @@ class bitrue(Exchange, ImplicitAPI):
             'trades': fills,
         }, market)
 
-    async def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
+    async def create_market_buy_order_with_cost(self, symbol: str, cost: float, params={}):
         """
-        create a trade order
+        create a market buy order by providing the symbol and cost
+        :see: https://www.bitrue.com/api-docs#new-order-trade-hmac-sha256
+        :see: https://www.bitrue.com/api_docs_includes_file/delivery.html#new-order-trade-hmac-sha256
         :param str symbol: unified symbol of the market to create an order in
-        :param str type: 'market' or 'limit'
-        :param str side: 'buy' or 'sell'
-        :param float amount: how much of currency you want to trade in units of base currency
-        :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-        :param dict params: extra parameters specific to the bitrue api endpoint
+        :param float cost: how much you want to trade in units of the quote currency
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
+        if not market['swap']:
+            raise NotSupported(self.id + ' createMarketBuyOrderWithCost() supports swap orders only')
+        params['createMarketBuyOrderRequiresPrice'] = False
+        return await self.create_order(symbol, 'market', 'buy', cost, None, params)
+
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
+        """
+        create a trade order
+        :see: https://github.com/Bitrue-exchange/Spot-official-api-docs#recent-trades-list
+        :see: https://www.bitrue.com/api-docs#new-order-trade-hmac-sha256
+        :see: https://www.bitrue.com/api_docs_includes_file/delivery.html#new-order-trade-hmac-sha256
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much of currency you want to trade in units of base currency
+        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param float [params.triggerPrice]: *spot only* the price at which a trigger order is triggered at
+        :param str [params.clientOrderId]: a unique id for the order, automatically generated if not sent
+        :param decimal [params.leverage]: in future order, the leverage value of the order should consistent with the user contract configuration, default is 1
+        :param str [params.timeInForce]: 'fok', 'ioc' or 'po'
+        :param bool [params.postOnly]: default False
+        :param bool [params.reduceOnly]: default False
+         * EXCHANGE SPECIFIC PARAMETERS
+        :param decimal [params.icebergQty]:
+        :param long [params.recvWindow]:
+        :param float [params.cost]: *swap market buy only* the quote quantity that can be used alternative for the amount
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        response = None
+        data = None
         uppercaseType = type.upper()
-        validOrderTypes = self.safe_value(market['info'], 'orderTypes')
-        if not self.in_array(uppercaseType, validOrderTypes):
-            raise InvalidOrder(self.id + ' ' + type + ' is not a valid order type in market ' + symbol)
         request = {
-            'symbol': market['id'],
             'side': side.upper(),
             'type': uppercaseType,
             # 'timeInForce': '',
-            'quantity': self.amount_to_precision(symbol, amount),
             # 'price': self.price_to_precision(symbol, price),
             # 'newClientOrderId': clientOrderId,  # automatically generated if not sent
             # 'stopPrice': self.price_to_precision(symbol, 'stopPrice'),
             # 'icebergQty': self.amount_to_precision(symbol, icebergQty),
         }
-        clientOrderId = self.safe_string_2(params, 'newClientOrderId', 'clientOrderId')
-        if clientOrderId is not None:
-            params = self.omit(params, ['newClientOrderId', 'clientOrderId'])
-            request['newClientOrderId'] = clientOrderId
         if uppercaseType == 'LIMIT':
             if price is None:
                 raise InvalidOrder(self.id + ' createOrder() requires a price argument')
             request['price'] = self.price_to_precision(symbol, price)
-        stopPrice = self.safe_value_2(params, 'triggerPrice', 'stopPrice')
-        if stopPrice is not None:
-            params = self.omit(params, ['triggerPrice', 'stopPrice'])
-            request['stopPrice'] = self.price_to_precision(symbol, stopPrice)
-        response = await self.v1PrivatePostOrder(self.extend(request, params))
+        if market['swap']:
+            isMarket = uppercaseType == 'MARKET'
+            timeInForce = self.safe_string_lower(params, 'timeInForce')
+            postOnly = self.is_post_only(isMarket, None, params)
+            if postOnly:
+                request['type'] = 'POST_ONLY'
+            elif timeInForce == 'fok':
+                request['type'] = 'FOK'
+            elif timeInForce == 'ioc':
+                request['type'] = 'IOC'
+            request['contractName'] = market['id']
+            createMarketBuyOrderRequiresPrice = True
+            createMarketBuyOrderRequiresPrice, params = self.handle_option_and_params(params, 'createOrder', 'createMarketBuyOrderRequiresPrice', True)
+            if isMarket and (side == 'buy') and createMarketBuyOrderRequiresPrice:
+                cost = self.safe_string(params, 'cost')
+                params = self.omit(params, 'cost')
+                if price is None and cost is None:
+                    raise InvalidOrder(self.id + ' createOrder() requires the price argument with swap market buy orders to calculate total order cost(amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options["createMarketBuyOrderRequiresPrice"] = False to supply the cost in the amount argument(the exchange-specific behaviour)')
+                else:
+                    amountString = self.number_to_string(amount)
+                    priceString = self.number_to_string(price)
+                    quoteAmount = Precise.string_mul(amountString, priceString)
+                    requestAmount = cost if (cost is not None) else quoteAmount
+                    request['amount'] = self.cost_to_precision(symbol, requestAmount)
+                    request['volume'] = self.cost_to_precision(symbol, requestAmount)
+            else:
+                request['amount'] = self.parse_to_numeric(amount)
+                request['volume'] = self.parse_to_numeric(amount)
+            request['positionType'] = 1
+            reduceOnly = self.safe_value_2(params, 'reduceOnly', 'reduce_only')
+            request['open'] = 'CLOSE' if reduceOnly else 'OPEN'
+            leverage = self.safe_string(params, 'leverage', '1')
+            request['leverage'] = self.parse_to_numeric(leverage)
+            params = self.omit(params, ['leverage', 'reduceOnly', 'reduce_only', 'timeInForce'])
+            if market['linear']:
+                response = await self.fapiV2PrivatePostOrder(self.extend(request, params))
+            elif market['inverse']:
+                response = await self.dapiV2PrivatePostOrder(self.extend(request, params))
+            data = self.safe_value(response, 'data', {})
+        elif market['spot']:
+            request['symbol'] = market['id']
+            request['quantity'] = self.amount_to_precision(symbol, amount)
+            validOrderTypes = self.safe_value(market['info'], 'orderTypes')
+            if not self.in_array(uppercaseType, validOrderTypes):
+                raise InvalidOrder(self.id + ' ' + type + ' is not a valid order type in market ' + symbol)
+            clientOrderId = self.safe_string_2(params, 'newClientOrderId', 'clientOrderId')
+            if clientOrderId is not None:
+                params = self.omit(params, ['newClientOrderId', 'clientOrderId'])
+                request['newClientOrderId'] = clientOrderId
+            stopPrice = self.safe_value_2(params, 'triggerPrice', 'stopPrice')
+            if stopPrice is not None:
+                params = self.omit(params, ['triggerPrice', 'stopPrice'])
+                request['stopPrice'] = self.price_to_precision(symbol, stopPrice)
+            response = await self.spotV1PrivatePostOrder(self.extend(request, params))
+            data = response
+        else:
+            raise NotSupported(self.id + ' createOrder only support spot & swap markets')
+        #
+        # spot
         #
         #     {
-        #         "symbol":"USDCUSDT",
-        #         "orderId":2878854881,
-        #         "clientOrderId":"",
-        #         "transactTime":1635551031276
+        #         "symbol": "BTCUSDT",
+        #         "orderId": 307650651173648896,
+        #         "orderIdStr": "307650651173648896",
+        #         "clientOrderId": "6gCrw2kRUAF9CvJDGP16IP",
+        #         "transactTime": 1507725176595
         #     }
         #
-        return self.parse_order(response, market)
+        # swap
+        #
+        #     {
+        #         "code": "0",
+        #         "msg": "Success",
+        #         "data": {
+        #             "orderId": 1690615676032452985
+        #         }
+        #     }
+        #
+        return self.parse_order(data, market)
 
-    async def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
+    async def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
         fetches information on an order made by the user
+        :see: https://github.com/Bitrue-exchange/Spot-official-api-docs#query-order-user_data
+        :see: https://www.bitrue.com/api-docs#query-order-user_data-hmac-sha256
+        :see: https://www.bitrue.com/api_docs_includes_file/delivery.html#query-order-user_data-hmac-sha256
         :param str symbol: unified symbol of the market the order was made in
-        :param dict params: extra parameters specific to the bitrue api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
-        request = {
-            'symbol': market['id'],
-        }
-        clientOrderId = self.safe_value_2(params, 'origClientOrderId', 'clientOrderId')
-        if clientOrderId is not None:
-            request['origClientOrderId'] = clientOrderId
-        else:
+        origClientOrderId = self.safe_value_2(params, 'origClientOrderId', 'clientOrderId')
+        params = self.omit(params, ['origClientOrderId', 'clientOrderId'])
+        response = None
+        data = None
+        request = {}
+        if origClientOrderId is None:
             request['orderId'] = id
-        query = self.omit(params, ['type', 'clientOrderId', 'origClientOrderId'])
-        response = await self.v1PrivateGetOrder(self.extend(request, query))
-        return self.parse_order(response, market)
+        else:
+            if market['swap']:
+                request['clientOrderId'] = origClientOrderId
+            else:
+                request['origClientOrderId'] = origClientOrderId
+        if market['swap']:
+            request['contractName'] = market['id']
+            if market['linear']:
+                response = await self.fapiV2PrivateGetOrder(self.extend(request, params))
+            elif market['inverse']:
+                response = await self.dapiV2PrivateGetOrder(self.extend(request, params))
+            data = self.safe_value(response, 'data', {})
+        elif market['spot']:
+            request['orderId'] = id  # spot market id is mandatory
+            request['symbol'] = market['id']
+            response = await self.spotV1PrivateGetOrder(self.extend(request, params))
+            data = response
+        else:
+            raise NotSupported(self.id + ' fetchOrder only support spot & swap markets')
+        #
+        # spot
+        #
+        #     {
+        #         "symbol": "LTCBTC",
+        #         "orderId": 1,
+        #         "clientOrderId": "myOrder1",
+        #         "price": "0.1",
+        #         "origQty": "1.0",
+        #         "executedQty": "0.0",
+        #         "cummulativeQuoteQty": "0.0",
+        #         "status": "NEW",
+        #         "timeInForce": "GTC",
+        #         "type": "LIMIT",
+        #         "side": "BUY",
+        #         "stopPrice": "0.0",
+        #         "icebergQty": "0.0",
+        #         "time": 1499827319559,
+        #         "updateTime": 1499827319559,
+        #         "isWorking": True
+        #     }
+        #
+        # swap
+        #
+        #     {
+        #         "code":0,
+        #         "msg":"success",
+        #         "data":{
+        #             "orderId":1917641,
+        #             "price":100,
+        #             "origQty":10,
+        #             "origAmount":10,
+        #             "executedQty":1,
+        #             "avgPrice":10000,
+        #             "status":"INIT",
+        #             "type":"LIMIT",
+        #             "side":"BUY",
+        #             "action":"OPEN",
+        #             "transactTime":1686716571425
+        #             "clientOrderId":4949299210
+        #         }
+        #     }
+        #
+        return self.parse_order(data, market)
 
-    async def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetches information on multiple closed orders made by the user
+        :see: https://github.com/Bitrue-exchange/Spot-official-api-docs#all-orders-user_data
         :param str symbol: unified market symbol of the market orders were made in
-        :param int|None since: the earliest time in ms to fetch orders for
-        :param int|None limit: the maximum number of  orde structures to retrieve
-        :param dict params: extra parameters specific to the bitrue api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :param int [since]: the earliest time in ms to fetch orders for
+        :param int [limit]: the maximum number of order structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchClosedOrders() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
+        if not market['spot']:
+            raise NotSupported(self.id + ' fetchClosedOrders only support spot markets')
         request = {
             'symbol': market['id'],
             # 'orderId': 123445,  # long
@@ -1350,7 +2048,7 @@ class bitrue(Exchange, ImplicitAPI):
             request['startTime'] = since
         if limit is not None:
             request['limit'] = limit  # default 100, max 1000
-        response = await self.v1PrivateGetAllOrders(self.extend(request, params))
+        response = await self.spotV1PrivateGetAllOrders(self.extend(request, params))
         #
         #     [
         #         {
@@ -1375,23 +2073,40 @@ class bitrue(Exchange, ImplicitAPI):
         #
         return self.parse_orders(response, market, since, limit)
 
-    async def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
+        :see: https://github.com/Bitrue-exchange/Spot-official-api-docs#current-open-orders-user_data
+        :see: https://www.bitrue.com/api-docs#current-all-open-orders-user_data-hmac-sha256
+        :see: https://www.bitrue.com/api_docs_includes_file/delivery.html#current-all-open-orders-user_data-hmac-sha256
         :param str symbol: unified market symbol
-        :param int|None since: the earliest time in ms to fetch open orders for
-        :param int|None limit: the maximum number of  open orders structures to retrieve
-        :param dict params: extra parameters specific to the bitrue api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :param int [since]: the earliest time in ms to fetch open orders for
+        :param int [limit]: the maximum number of open order structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
-        request = {
-            'symbol': market['id'],
-        }
-        response = await self.v1PrivateGetOpenOrders(self.extend(request, params))
+        response = None
+        data = None
+        request = {}
+        if market['swap']:
+            request['contractName'] = market['id']
+            if market['linear']:
+                response = await self.fapiV2PrivateGetOpenOrders(self.extend(request, params))
+            elif market['inverse']:
+                response = await self.dapiV2PrivateGetOpenOrders(self.extend(request, params))
+            data = self.safe_value(response, 'data', [])
+        elif market['spot']:
+            request['symbol'] = market['id']
+            response = await self.spotV1PrivateGetOpenOrders(self.extend(request, params))
+            data = response
+        else:
+            raise NotSupported(self.id + ' fetchOpenOrders only support spot & swap markets')
+        #
+        # spot
         #
         #     [
         #         {
@@ -1414,14 +2129,39 @@ class bitrue(Exchange, ImplicitAPI):
         #         }
         #     ]
         #
-        return self.parse_orders(response, market, since, limit)
+        # swap
+        #
+        #      {
+        #          "code": "0",
+        #          "msg": "Success",
+        #          "data": [{
+        #                  "orderId": 1917641,
+        #                  "clientOrderId": "2488514315",
+        #                  "price": 100,
+        #                  "origQty": 10,
+        #                  "origAmount": 10,
+        #                  "executedQty": 1,
+        #                  "avgPrice": 12451,
+        #                  "status": "INIT",
+        #                  "type": "LIMIT",
+        #                  "side": "BUY",
+        #                  "action": "OPEN",
+        #                  "transactTime": 1686717303975
+        #              }
+        #          ]
+        #      }
+        #
+        return self.parse_orders(data, market, since, limit)
 
-    async def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
+    async def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
         cancels an open order
+        :see: https://github.com/Bitrue-exchange/Spot-official-api-docs#cancel-order-trade
+        :see: https://www.bitrue.com/api-docs#cancel-order-trade-hmac-sha256
+        :see: https://www.bitrue.com/api_docs_includes_file/delivery.html#cancel-order-trade-hmac-sha256
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
-        :param dict params: extra parameters specific to the bitrue api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         if symbol is None:
@@ -1429,18 +2169,32 @@ class bitrue(Exchange, ImplicitAPI):
         await self.load_markets()
         market = self.market(symbol)
         origClientOrderId = self.safe_value_2(params, 'origClientOrderId', 'clientOrderId')
-        request = {
-            'symbol': market['id'],
-            # 'orderId': id,
-            # 'origClientOrderId': id,
-            # 'newClientOrderId': id,
-        }
+        params = self.omit(params, ['origClientOrderId', 'clientOrderId'])
+        response = None
+        data = None
+        request = {}
         if origClientOrderId is None:
             request['orderId'] = id
         else:
-            request['origClientOrderId'] = origClientOrderId
-        query = self.omit(params, ['type', 'origClientOrderId', 'clientOrderId'])
-        response = await self.v1PrivateDeleteOrder(self.extend(request, query))
+            if market['swap']:
+                request['clientOrderId'] = origClientOrderId
+            else:
+                request['origClientOrderId'] = origClientOrderId
+        if market['swap']:
+            request['contractName'] = market['id']
+            if market['linear']:
+                response = await self.fapiV2PrivatePostCancel(self.extend(request, params))
+            elif market['inverse']:
+                response = await self.dapiV2PrivatePostCancel(self.extend(request, params))
+            data = self.safe_value(response, 'data', {})
+        elif market['spot']:
+            request['symbol'] = market['id']
+            response = await self.spotV1PrivateDeleteOrder(self.extend(request, params))
+            data = response
+        else:
+            raise NotSupported(self.id + ' cancelOrder only support spot & swap markets')
+        #
+        # spot
         #
         #     {
         #         "symbol": "LTCBTC",
@@ -1449,37 +2203,94 @@ class bitrue(Exchange, ImplicitAPI):
         #         "clientOrderId": "cancelMyOrder1"
         #     }
         #
-        return self.parse_order(response, market)
+        # swap
+        #
+        #     {
+        #         "code": "0",
+        #         "msg": "Success",
+        #         "data": {
+        #             "orderId": 1690615847831143159
+        #         }
+        #     }
+        #
+        return self.parse_order(data, market)
 
-    async def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def cancel_all_orders(self, symbol: Str = None, params={}):
+        """
+        cancel all open orders in a market
+        :see: https://www.bitrue.com/api-docs#cancel-all-open-orders-trade-hmac-sha256
+        :see: https://www.bitrue.com/api_docs_includes_file/delivery.html#cancel-all-open-orders-trade-hmac-sha256
+        :param str symbol: unified market symbol of the market to cancel orders in
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.marginMode]: 'cross' or 'isolated', for spot margin trading
+        :returns dict[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        response = None
+        data = None
+        if market['swap']:
+            request = {
+                'contractName': market['id'],
+            }
+            if market['linear']:
+                response = await self.fapiV2PrivatePostAllOpenOrders(self.extend(request, params))
+            elif market['inverse']:
+                response = await self.dapiV2PrivatePostAllOpenOrders(self.extend(request, params))
+            data = self.safe_value(response, 'data', [])
+        else:
+            raise NotSupported(self.id + ' cancelAllOrders only support future markets')
+        #
+        # swap
+        #
+        #      {
+        #          'code': '0',
+        #          'msg': 'Success',
+        #          'data': null
+        #      }
+        #
+        return self.parse_orders(data, market)
+
+    async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all trades made by the user
-        :param str|None symbol: unified market symbol
-        :param int|None since: the earliest time in ms to fetch trades for
-        :param int|None limit: the maximum number of trades structures to retrieve
-        :param dict params: extra parameters specific to the bitrue api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        :see: https://github.com/Bitrue-exchange/Spot-official-api-docs#account-trade-list-user_data
+        :see: https://www.bitrue.com/api-docs#account-trade-list-user_data-hmac-sha256
+        :see: https://www.bitrue.com/api_docs_includes_file/delivery.html#account-trade-list-user_data-hmac-sha256
+        :param str symbol: unified market symbol
+        :param int [since]: the earliest time in ms to fetch trades for
+        :param int [limit]: the maximum number of trades structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
-        method = self.safe_string(self.options, 'fetchMyTradesMethod', 'v2PrivateGetMyTrades')
-        if (symbol is None) and (method == 'v2PrivateGetMyTrades'):
-            raise ArgumentsRequired(self.id + ' v2PrivateGetMyTrades() requires a symbol argument')
         await self.load_markets()
-        request = {
-            # 'symbol': market['id'],
-            # 'startTime': since,
-            # 'endTime': self.milliseconds(),
-            # 'fromId': 12345,  # trade id to fetch from, most recent trades by default
-            # 'limit': limit,  # default 100, max 1000
-        }
-        market = None
-        if symbol is not None:
-            market = self.market(symbol)
-            request['symbol'] = market['id']
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
+        market = self.market(symbol)
+        response = None
+        data = None
+        request = {}
         if since is not None:
             request['startTime'] = since
         if limit is not None:
+            if limit > 1000:
+                limit = 1000
             request['limit'] = limit
-        response = await getattr(self, method)(self.extend(request, params))
+        if market['swap']:
+            request['contractName'] = market['id']
+            if market['linear']:
+                response = await self.fapiV2PrivateGetMyTrades(self.extend(request, params))
+            elif market['inverse']:
+                response = await self.dapiV2PrivateGetMyTrades(self.extend(request, params))
+            data = self.safe_value(response, 'data', [])
+        elif market['spot']:
+            request['symbol'] = market['id']
+            response = await self.spotV2PrivateGetMyTrades(self.extend(request, params))
+            data = response
+        else:
+            raise NotSupported(self.id + ' fetchMyTrades only support spot & swap markets')
+        #
+        # spot
         #
         #     [
         #         {
@@ -1498,16 +2309,42 @@ class bitrue(Exchange, ImplicitAPI):
         #         }
         #     ]
         #
-        return self.parse_trades(response, market, since, limit)
+        # swap
+        #
+        #     {
+        #         "code":"0",
+        #         "msg":"Success",
+        #         "data":[
+        #             {
+        #                 "tradeId":12,
+        #                 "price":0.9,
+        #                 "qty":1,
+        #                 "amount":9,
+        #                 "contractName":"E-SAND-USDT",
+        #                 "side":"BUY",
+        #                 "fee":"0.0018",
+        #                 "bidId":1558124009467904992,
+        #                 "askId":1558124043827644908,
+        #                 "bidUserId":10294,
+        #                 "askUserId":10467,
+        #                 "isBuyer":true,
+        #                 "isMaker":true,
+        #                 "ctime":1678426306000
+        #             }
+        #         ]
+        #     }
+        #
+        return self.parse_trades(data, market, since, limit)
 
-    async def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch all deposits made to an account
+        :see: https://github.com/Bitrue-exchange/Spot-official-api-docs#deposit-history--withdraw_data
         :param str code: unified currency code
-        :param int|None since: the earliest time in ms to fetch deposits for
-        :param int|None limit: the maximum number of deposits structures to retrieve
-        :param dict params: extra parameters specific to the bitrue api endpoint
-        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :param int [since]: the earliest time in ms to fetch deposits for
+        :param int [limit]: the maximum number of deposits structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         if code is None:
             raise ArgumentsRequired(self.id + ' fetchDeposits() requires a code argument')
@@ -1526,7 +2363,7 @@ class bitrue(Exchange, ImplicitAPI):
             # request['endTime'] = self.sum(since, 7776000000)
         if limit is not None:
             request['limit'] = limit
-        response = await self.v1PrivateGetDepositHistory(self.extend(request, params))
+        response = await self.spotV1PrivateGetDepositHistory(self.extend(request, params))
         #
         #     {
         #         "code":200,
@@ -1563,17 +2400,18 @@ class bitrue(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        data = self.safe_value(response, 'data', [])
+        data = self.safe_list(response, 'data', [])
         return self.parse_transactions(data, currency, since, limit)
 
-    async def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch all withdrawals made from an account
+        :see: https://github.com/Bitrue-exchange/Spot-official-api-docs#withdraw-history--withdraw_data
         :param str code: unified currency code
-        :param int|None since: the earliest time in ms to fetch withdrawals for
-        :param int|None limit: the maximum number of withdrawals structures to retrieve
-        :param dict params: extra parameters specific to the bitrue api endpoint
-        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :param int [since]: the earliest time in ms to fetch withdrawals for
+        :param int [limit]: the maximum number of withdrawals structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         if code is None:
             raise ArgumentsRequired(self.id + ' fetchWithdrawals() requires a code argument')
@@ -1592,22 +2430,31 @@ class bitrue(Exchange, ImplicitAPI):
             # request['endTime'] = self.sum(since, 7776000000)
         if limit is not None:
             request['limit'] = limit
-        response = await self.v1PrivateGetWithdrawHistory(self.extend(request, params))
+        response = await self.spotV1PrivateGetWithdrawHistory(self.extend(request, params))
         #
-        #     {
-        #         "code": 200,
-        #         "msg": "succ",
-        #         "data": {
-        #             "msg": null,
-        #             "amount": 1000,
-        #             "fee": 1,
-        #             "ctime": null,
-        #             "coin": "usdt_erc20",
-        #             "addressTo": "0x2edfae3878d7b6db70ce4abed177ab2636f60c83"
-        #         }
-        #     }
+        #    {
+        #        "code": 200,
+        #        "msg": "succ",
+        #        "data": [
+        #            {
+        #                "id": 183745,
+        #                "symbol": "usdt_erc20",
+        #                "amount": "8.4000000000000000",
+        #                "fee": "1.6000000000000000",
+        #                "payAmount": "0.0000000000000000",
+        #                "createdAt": 1595336441000,
+        #                "updatedAt": 1595336576000,
+        #                "addressFrom": "",
+        #                "addressTo": "0x2edfae3878d7b6db70ce4abed177ab2636f60c83",
+        #                "txid": "",
+        #                "confirmations": 0,
+        #                "status": 6,
+        #                "tagType": null
+        #            }
+        #        ]
+        #    }
         #
-        data = self.safe_value(response, 'data', {})
+        data = self.safe_list(response, 'data', [])
         return self.parse_transactions(data, currency)
 
     def parse_transaction_status_by_type(self, status, type=None):
@@ -1625,7 +2472,7 @@ class bitrue(Exchange, ImplicitAPI):
         statuses = self.safe_value(statusesByType, type, {})
         return self.safe_string(statuses, status, status)
 
-    def parse_transaction(self, transaction, currency=None):
+    def parse_transaction(self, transaction, currency: Currency = None) -> Transaction:
         #
         # fetchDeposits
         #
@@ -1741,46 +2588,41 @@ class bitrue(Exchange, ImplicitAPI):
             'status': status,
             'updated': updated,
             'internal': False,
+            'comment': None,
             'fee': fee,
         }
 
-    async def withdraw(self, code: str, amount, address, tag=None, params={}):
+    async def withdraw(self, code: str, amount: float, address, tag=None, params={}):
         """
         make a withdrawal
+        :see: https://github.com/Bitrue-exchange/Spot-official-api-docs#withdraw-commit--withdraw_data
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
-        :param str|None tag:
-        :param dict params: extra parameters specific to the bitrue api endpoint
+        :param str tag:
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.check_address(address)
         await self.load_markets()
         currency = self.currency(code)
-        chainName = self.safe_string(params, 'chainName')
-        if chainName is None:
-            networks = self.safe_value(currency, 'networks', {})
-            optionsNetworks = self.safe_value(self.options, 'networks', {})
-            network = self.safe_string_upper(params, 'network')  # self line allows the user to specify either ERC20 or ETH
-            network = self.safe_string(optionsNetworks, network, network)
-            networkEntry = self.safe_value(networks, network, {})
-            chainName = self.safe_string(networkEntry, 'id')  # handle ERC20>ETH alias
-            if chainName is None:
-                raise ArgumentsRequired(self.id + ' withdraw() requires a network parameter or a chainName parameter')
-            params = self.omit(params, 'network')
         request = {
-            'coin': currency['id'].upper(),
+            'coin': currency['id'],
             'amount': amount,
             'addressTo': address,
-            'chainName': chainName,  # 'ERC20', 'TRC20', 'SOL'
+            # 'chainName': chainName,  # 'ERC20', 'TRC20', 'SOL'
             # 'addressMark': '',  # mark of address
             # 'addrType': '',  # type of address
             # 'tag': tag,
         }
+        networkCode = None
+        networkCode, params = self.handle_network_code_and_params(params)
+        if networkCode is not None:
+            request['chainName'] = self.network_code_to_id(networkCode)
         if tag is not None:
             request['tag'] = tag
-        response = await self.v1PrivatePostWithdrawCommit(self.extend(request, params))
+        response = await self.spotV1PrivatePostWithdrawCommit(self.extend(request, params))
         #
         #     {
         #         "code": 200,
@@ -1796,16 +2638,16 @@ class bitrue(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        data = self.safe_value(response, 'data')
+        data = self.safe_dict(response, 'data', {})
         return self.parse_transaction(data, currency)
 
-    def parse_deposit_withdraw_fee(self, fee, currency=None):
+    def parse_deposit_withdraw_fee(self, fee, currency: Currency = None):
         #
         #   {
-        #       coin: 'adx',
-        #       coinFulName: 'Ambire AdEx',
-        #       chains: ['BSC'],
-        #       chainDetail: [[Object]]
+        #       "coin": "adx",
+        #       "coinFulName": "Ambire AdEx",
+        #       "chains": ["BSC"],
+        #       "chainDetail": [[Object]]
         #   }
         #
         chainDetails = self.safe_value(fee, 'chainDetail', [])
@@ -1837,41 +2679,280 @@ class bitrue(Exchange, ImplicitAPI):
                     result['withdraw']['percentage'] = False
         return result
 
-    async def fetch_deposit_withdraw_fees(self, codes=None, params={}):
+    async def fetch_deposit_withdraw_fees(self, codes: Strings = None, params={}):
         """
         fetch deposit and withdraw fees
-        see https://github.com/Bitrue-exchange/Spot-official-api-docs#exchangeInfo_endpoint
-        :param [str]|None codes: list of unified currency codes
-        :param dict params: extra parameters specific to the bitrue api endpoint
-        :returns dict: a list of `fee structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
+        :see: https://github.com/Bitrue-exchange/Spot-official-api-docs#exchangeInfo_endpoint
+        :param str[]|None codes: list of unified currency codes
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a list of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>`
         """
         await self.load_markets()
-        response = await self.v1PublicGetExchangeInfo(params)
-        coins = self.safe_value(response, 'coins')
+        response = await self.spotV1PublicGetExchangeInfo(params)
+        coins = self.safe_list(response, 'coins')
         return self.parse_deposit_withdraw_fees(coins, codes, 'coin')
 
+    def parse_transfer(self, transfer, currency=None):
+        #
+        #     fetchTransfers
+        #
+        #     {
+        #         'transferType': 'wallet_to_contract',
+        #         'symbol': 'USDT',
+        #         'amount': 1.0,
+        #         'status': 1,
+        #         'ctime': 1685404575000
+        #     }
+        #
+        #     transfer
+        #
+        #     {}
+        #
+        transferType = self.safe_string(transfer, 'transferType')
+        fromAccount = None
+        toAccount = None
+        if transferType is not None:
+            accountSplit = transferType.split('_to_')
+            fromAccount = self.safe_string(accountSplit, 0)
+            toAccount = self.safe_string(accountSplit, 1)
+        timestamp = self.safe_integer(transfer, 'ctime')
+        return {
+            'info': transfer,
+            'id': None,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'currency': self.safe_string(currency, 'code'),
+            'amount': self.safe_number(transfer, 'amount'),
+            'fromAccount': fromAccount,
+            'toAccount': toAccount,
+            'status': 'ok',
+        }
+
+    async def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
+        """
+        fetch a history of internal transfers made on an account
+        :see: https://www.bitrue.com/api-docs#get-future-account-transfer-history-list-user_data-hmac-sha256
+        :see: https://www.bitrue.com/api_docs_includes_file/delivery.html#get-future-account-transfer-history-list-user_data-hmac-sha256
+        :param str code: unified currency code of the currency transferred
+        :param int [since]: the earliest time in ms to fetch transfers for
+        :param int [limit]: the maximum number of transfers structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.until]: the latest time in ms to fetch transfers for
+        :param str [params.type]: transfer type wallet_to_contract or contract_to_wallet
+        :returns dict[]: a list of `transfer structures <https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure>`
+        """
+        await self.load_markets()
+        type = self.safe_string_2(params, 'type', 'transferType')
+        request = {
+            'transferType': type,
+        }
+        currency = None
+        if code is not None:
+            currency = self.currency(code)
+            request['coinSymbol'] = currency['id']
+        if since is not None:
+            request['beginTime'] = since
+        if limit is not None:
+            if limit > 200:
+                limit = 200
+            request['limit'] = limit
+        until = self.safe_integer(params, 'until')
+        if until is not None:
+            params = self.omit(params, 'until')
+            request['endTime'] = until
+        response = await self.fapiV2PrivateGetFuturesTransferHistory(self.extend(request, params))
+        #
+        #     {
+        #         'code': '0',
+        #         'msg': 'Success',
+        #         'data': [{
+        #             'transferType': 'wallet_to_contract',
+        #             'symbol': 'USDT',
+        #             'amount': 1.0,
+        #             'status': 1,
+        #             'ctime': 1685404575000
+        #         }]
+        #     }
+        #
+        data = self.safe_list(response, 'data', [])
+        return self.parse_transfers(data, currency, since, limit)
+
+    async def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
+        """
+        transfer currency internally between wallets on the same account
+        :see: https://www.bitrue.com/api-docs#new-future-account-transfer-user_data-hmac-sha256
+        :see: https://www.bitrue.com/api_docs_includes_file/delivery.html#user-commission-rate-user_data-hmac-sha256
+        :param str code: unified currency code
+        :param float amount: amount to transfer
+        :param str fromAccount: account to transfer from
+        :param str toAccount: account to transfer to
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `transfer structure <https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure>`
+        """
+        await self.load_markets()
+        currency = self.currency(code)
+        accountTypes = self.safe_value(self.options, 'accountsByType', {})
+        fromId = self.safe_string(accountTypes, fromAccount, fromAccount)
+        toId = self.safe_string(accountTypes, toAccount, toAccount)
+        request = {
+            'coinSymbol': currency['id'],
+            'amount': self.currency_to_precision(code, amount),
+            'transferType': fromId + '_to_' + toId,
+        }
+        response = await self.fapiV2PrivatePostFuturesTransfer(self.extend(request, params))
+        #
+        #     {
+        #         'code': '0',
+        #         'msg': 'Success',
+        #         'data': null
+        #     }
+        #
+        data = self.safe_dict(response, 'data', {})
+        return self.parse_transfer(data, currency)
+
+    async def set_leverage(self, leverage: Int, symbol: Str = None, params={}):
+        """
+        set the level of leverage for a market
+        :see: https://www.bitrue.com/api-docs#change-initial-leverage-trade-hmac-sha256
+        :see: https://www.bitrue.com/api_docs_includes_file/delivery.html#change-initial-leverage-trade-hmac-sha256
+        :param float leverage: the rate of leverage
+        :param str symbol: unified market symbol
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: response from the exchange
+        """
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' setLeverage() requires a symbol argument')
+        if (leverage < 1) or (leverage > 125):
+            raise BadRequest(self.id + ' leverage should be between 1 and 125')
+        await self.load_markets()
+        market = self.market(symbol)
+        response = None
+        request = {
+            'contractName': market['id'],
+            'leverage': leverage,
+        }
+        if not market['swap']:
+            raise NotSupported(self.id + ' setLeverage only support swap markets')
+        if market['linear']:
+            response = await self.fapiV2PrivatePostLevelEdit(self.extend(request, params))
+        elif market['inverse']:
+            response = await self.dapiV2PrivatePostLevelEdit(self.extend(request, params))
+        return response
+
+    def parse_margin_modification(self, data, market=None) -> MarginModification:
+        #
+        # setMargin
+        #
+        #     {
+        #         "code": 0,
+        #         "msg": "success"
+        #         "data": null
+        #     }
+        #
+        return {
+            'info': data,
+            'symbol': market['symbol'],
+            'type': None,
+            'marginMode': 'isolated',
+            'amount': None,
+            'total': None,
+            'code': None,
+            'status': None,
+            'timestamp': None,
+            'datetime': None,
+        }
+
+    async def set_margin(self, symbol: str, amount: float, params={}) -> MarginModification:
+        """
+        Either adds or reduces margin in an isolated position in order to set the margin to a specific value
+        :see: https://www.bitrue.com/api-docs#modify-isolated-position-margin-trade-hmac-sha256
+        :see: https://www.bitrue.com/api_docs_includes_file/delivery.html#modify-isolated-position-margin-trade-hmac-sha256
+        :param str symbol: unified market symbol of the market to set margin in
+        :param float amount: the amount to set the margin to
+        :param dict [params]: parameters specific to the exchange API endpoint
+        :returns dict: A `margin structure <https://github.com/ccxt/ccxt/wiki/Manual#add-margin-structure>`
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        if not market['swap']:
+            raise NotSupported(self.id + ' setMargin only support swap markets')
+        response = None
+        request = {
+            'contractName': market['id'],
+            'amount': self.parse_to_numeric(amount),
+        }
+        if market['linear']:
+            response = await self.fapiV2PrivatePostPositionMargin(self.extend(request, params))
+        elif market['inverse']:
+            response = await self.dapiV2PrivatePostPositionMargin(self.extend(request, params))
+        #
+        #     {
+        #         "code": 0,
+        #         "msg": "success"
+        #         "data": null
+        #     }
+        #
+        return self.parse_margin_modification(response, market)
+
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        version = self.safe_string(api, 0)
-        access = self.safe_string(api, 1)
-        url = self.urls['api'][version] + '/' + self.implode_params(path, params)
+        type = self.safe_string(api, 0)
+        version = self.safe_string(api, 1)
+        access = self.safe_string(api, 2)
+        url = None
+        if type == 'api' and version == 'kline':
+            url = self.urls['api'][type]
+        else:
+            url = self.urls['api'][type] + '/' + version
+        url = url + '/' + self.implode_params(path, params)
         params = self.omit(params, self.extract_params(path))
         if access == 'private':
             self.check_required_credentials()
             recvWindow = self.safe_integer(self.options, 'recvWindow', 5000)
-            query = self.urlencode(self.extend({
-                'timestamp': self.nonce(),
-                'recvWindow': recvWindow,
-            }, params))
-            signature = self.hmac(self.encode(query), self.encode(self.secret), hashlib.sha256)
-            query += '&' + 'signature=' + signature
-            headers = {
-                'X-MBX-APIKEY': self.apiKey,
-            }
-            if (method == 'GET') or (method == 'DELETE'):
-                url += '?' + query
+            if type == 'spot':
+                query = self.urlencode(self.extend({
+                    'timestamp': self.nonce(),
+                    'recvWindow': recvWindow,
+                }, params))
+                signature = self.hmac(self.encode(query), self.encode(self.secret), hashlib.sha256)
+                query += '&' + 'signature=' + signature
+                headers = {
+                    'X-MBX-APIKEY': self.apiKey,
+                }
+                if (method == 'GET') or (method == 'DELETE'):
+                    url += '?' + query
+                else:
+                    body = query
+                    headers['Content-Type'] = 'application/x-www-form-urlencoded'
             else:
-                body = query
-                headers['Content-Type'] = 'application/x-www-form-urlencoded'
+                timestamp = str(self.nonce())
+                signPath = None
+                if type == 'fapi':
+                    signPath = '/fapi'
+                elif type == 'dapi':
+                    signPath = '/dapi'
+                signPath = signPath + '/' + version + '/' + path
+                signMessage = timestamp + method + signPath
+                if method == 'GET':
+                    signature = self.hmac(self.encode(signMessage), self.encode(self.secret), hashlib.sha256)
+                    headers = {
+                        'X-CH-APIKEY': self.apiKey,
+                        'X-CH-SIGN': signature,
+                        'X-CH-TS': timestamp,
+                    }
+                    url += '?' + self.urlencode(params)
+                else:
+                    query = self.extend({
+                        'recvWindow': recvWindow,
+                    }, params)
+                    body = self.json(query)
+                    signMessage = signMessage + json.dumps(body)
+                    signature = self.hmac(self.encode(signMessage), self.encode(self.secret), hashlib.sha256)
+                    headers = {
+                        'Content-Type': 'application/json',
+                        'X-CH-APIKEY': self.apiKey,
+                        'X-CH-SIGN': signature,
+                        'X-CH-TS': timestamp,
+                    }
         else:
             if params:
                 url += '?' + self.urlencode(params)
@@ -1894,7 +2975,7 @@ class bitrue(Exchange, ImplicitAPI):
             return None  # fallback to default error handler
         # check success value for wapi endpoints
         # response in format {'msg': 'The coin does not exist.', 'success': True/false}
-        success = self.safe_value(response, 'success', True)
+        success = self.safe_bool(response, 'success', True)
         if not success:
             messageInner = self.safe_string(response, 'msg')
             parsedMessage = None

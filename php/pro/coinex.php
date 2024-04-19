@@ -10,6 +10,7 @@ use ccxt\ExchangeError;
 use ccxt\NotSupported;
 use ccxt\Precise;
 use React\Async;
+use React\Promise\PromiseInterface;
 
 class coinex extends \ccxt\async\coinex {
 
@@ -24,7 +25,8 @@ class coinex extends \ccxt\async\coinex {
                 'watchMyTrades' => false, // can query but can't subscribe
                 'watchOrders' => true,
                 'watchOrderBook' => true,
-                'watchOHLCV' => false, // only for swap markets
+                'watchOHLCV' => true, // only for swap markets
+                'fetchOHLCVWs' => true,
             ),
             'urls' => array(
                 'api' => array(
@@ -85,19 +87,19 @@ class coinex extends \ccxt\async\coinex {
         //  spot
         //
         //     {
-        //         method => 'state.update',
-        //         $params => [{
-        //             BTCUSDT => array(
-        //                 last => '31577.89',
-        //                 open => '29318.36',
-        //                 close => '31577.89',
-        //                 high => '32222.19',
-        //                 low => '29317.21',
-        //                 volume => '630.43024965',
-        //                 sell_total => '13.66143951',
-        //                 buy_total => '2.76410939',
-        //                 period => 86400,
-        //                 deal => '19457487.84611409070000000000'
+        //         "method" => "state.update",
+        //         "params" => [{
+        //             "BTCUSDT" => array(
+        //                 "last" => "31577.89",
+        //                 "open" => "29318.36",
+        //                 "close" => "31577.89",
+        //                 "high" => "32222.19",
+        //                 "low" => "29317.21",
+        //                 "volume" => "630.43024965",
+        //                 "sell_total" => "13.66143951",
+        //                 "buy_total" => "2.76410939",
+        //                 "period" => 86400,
+        //                 "deal" => "19457487.84611409070000000000"
         //             }
         //         )]
         //     }
@@ -105,27 +107,27 @@ class coinex extends \ccxt\async\coinex {
         //  swap
         //
         //     {
-        //         method => 'state.update',
-        //         $params => [{
-        //             BTCUSDT => array(
-        //                 period => 86400,
-        //                 funding_time => 422,
-        //                 position_amount => '285.6246',
-        //                 funding_rate_last => '-0.00097933',
-        //                 funding_rate_next => '0.00022519',
-        //                 funding_rate_predict => '0.00075190',
-        //                 insurance => '17474289.49925859030905338270',
-        //                 last => '31570.08',
-        //                 sign_price => '31568.09',
-        //                 index_price => '31561.85000000',
-        //                 open => '29296.11',
-        //                 close => '31570.08',
-        //                 high => '32463.40',
-        //                 low => '29296.11',
-        //                 volume => '8774.7318',
-        //                 deal => '270675177.827928219109030017258398',
-        //                 sell_total => '19.2230',
-        //                 buy_total => '25.7814'
+        //         "method" => "state.update",
+        //         "params" => [{
+        //             "BTCUSDT" => array(
+        //                 "period" => 86400,
+        //                 "funding_time" => 422,
+        //                 "position_amount" => "285.6246",
+        //                 "funding_rate_last" => "-0.00097933",
+        //                 "funding_rate_next" => "0.00022519",
+        //                 "funding_rate_predict" => "0.00075190",
+        //                 "insurance" => "17474289.49925859030905338270",
+        //                 "last" => "31570.08",
+        //                 "sign_price" => "31568.09",
+        //                 "index_price" => "31561.85000000",
+        //                 "open" => "29296.11",
+        //                 "close" => "31570.08",
+        //                 "high" => "32463.40",
+        //                 "low" => "29296.11",
+        //                 "volume" => "8774.7318",
+        //                 "deal" => "270675177.827928219109030017258398",
+        //                 "sell_total" => "19.2230",
+        //                 "buy_total" => "25.7814"
         //             }
         //         )]
         //     }
@@ -165,39 +167,39 @@ class coinex extends \ccxt\async\coinex {
         //  spot
         //
         //     {
-        //         last => '31577.89',
-        //         open => '29318.36',
-        //         close => '31577.89',
-        //         high => '32222.19',
-        //         low => '29317.21',
-        //         volume => '630.43024965',
-        //         sell_total => '13.66143951',
-        //         buy_total => '2.76410939',
-        //         period => 86400,
-        //         deal => '19457487.84611409070000000000'
+        //         "last" => "31577.89",
+        //         "open" => "29318.36",
+        //         "close" => "31577.89",
+        //         "high" => "32222.19",
+        //         "low" => "29317.21",
+        //         "volume" => "630.43024965",
+        //         "sell_total" => "13.66143951",
+        //         "buy_total" => "2.76410939",
+        //         "period" => 86400,
+        //         "deal" => "19457487.84611409070000000000"
         //     }
         //
         //  swap
         //
         //     {
-        //         period => 86400,
-        //         funding_time => 422,
-        //         position_amount => '285.6246',
-        //         funding_rate_last => '-0.00097933',
-        //         funding_rate_next => '0.00022519',
-        //         funding_rate_predict => '0.00075190',
-        //         insurance => '17474289.49925859030905338270',
-        //         last => '31570.08',
-        //         sign_price => '31568.09',
-        //         index_price => '31561.85000000',
-        //         open => '29296.11',
-        //         close => '31570.08',
-        //         high => '32463.40',
-        //         low => '29296.11',
-        //         volume => '8774.7318',
-        //         deal => '270675177.827928219109030017258398',
-        //         sell_total => '19.2230',
-        //         buy_total => '25.7814'
+        //         "period" => 86400,
+        //         "funding_time" => 422,
+        //         "position_amount" => "285.6246",
+        //         "funding_rate_last" => "-0.00097933",
+        //         "funding_rate_next" => "0.00022519",
+        //         "funding_rate_predict" => "0.00075190",
+        //         "insurance" => "17474289.49925859030905338270",
+        //         "last" => "31570.08",
+        //         "sign_price" => "31568.09",
+        //         "index_price" => "31561.85000000",
+        //         "open" => "29296.11",
+        //         "close" => "31570.08",
+        //         "high" => "32463.40",
+        //         "low" => "29296.11",
+        //         "volume" => "8774.7318",
+        //         "deal" => "270675177.827928219109030017258398",
+        //         "sell_total" => "19.2230",
+        //         "buy_total" => "25.7814"
         //     }
         //
         $defaultType = $this->safe_string($this->options, 'defaultType');
@@ -225,12 +227,12 @@ class coinex extends \ccxt\async\coinex {
         ), $market);
     }
 
-    public function watch_balance($params = array ()) {
+    public function watch_balance($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
-             * query for balance and get the amount of funds available for trading or funds locked in orders
-             * @param {array} $params extra parameters specific to the coinex api endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+             * watch balance and get the amount of funds available for trading or funds locked in orders
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
              */
             Async\await($this->load_markets());
             Async\await($this->authenticate($params));
@@ -273,11 +275,9 @@ class coinex extends \ccxt\async\coinex {
             $code = $this->safe_currency_code($currencyId);
             $available = $this->safe_string($first[$currencyId], 'available');
             $frozen = $this->safe_string($first[$currencyId], 'frozen');
-            $total = Precise::string_add($available, $frozen);
             $account = $this->account();
-            $account['free'] = $this->parse_number($available);
-            $account['used'] = $this->parse_number($frozen);
-            $account['total'] = $this->parse_number($total);
+            $account['free'] = $available;
+            $account['used'] = $frozen;
             $this->balance[$code] = $account;
             $this->balance = $this->safe_balance($this->balance);
         }
@@ -355,57 +355,85 @@ class coinex extends \ccxt\async\coinex {
 
     public function handle_ohlcv(Client $client, $message) {
         //
+        //  spot
         //     {
-        //         method => 'kline.update',
-        //         params => array(
+        //         "error" => null,
+        //         "result" => array(
+        //           array(
+        //             1673846940,
+        //             "21148.74",
+        //             "21148.38",
+        //             "21148.75",
+        //             "21138.66",
+        //             "1.57060173",
+        //             "33214.9138778914"
+        //           ),
+        //         )
+        //         "id" => 1,
+        //     }
+        //  swap
+        //     {
+        //         "method" => "kline.update",
+        //         "params" => array(
         //             array(
         //                 1654019640,   // timestamp
-        //                 '32061.99',   // open
-        //                 '32061.28',   // close
-        //                 '32061.99',   // high
-        //                 '32061.28',   // low
-        //                 '0.1285',     // amount base
-        //                 '4119.943736' // amount quote
+        //                 "32061.99",   // open
+        //                 "32061.28",   // close
+        //                 "32061.99",   // high
+        //                 "32061.28",   // low
+        //                 "0.1285",     // amount base
+        //                 "4119.943736" // amount quote
         //             )
         //         ),
-        //         id => null
+        //         "id" => null
         //     }
         //
-        $candles = $this->safe_value($message, 'params', array());
+        $candles = $this->safe_value_2($message, 'params', 'result', array());
         $messageHash = 'ohlcv';
+        $id = $this->safe_string($message, 'id');
         $ohlcvs = $this->parse_ohlcvs($candles);
-        $keysLength = $this->ohlcvs;
-        if ($keysLength === 0) {
-            $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
-            $this->ohlcvs = new ArrayCacheByTimestamp ($limit);
+        if ($id !== null) {
+            // spot subscription response
+            $client->resolve ($ohlcvs, $messageHash);
+            return;
         }
+        $keys = is_array($this->ohlcvs) ? array_keys($this->ohlcvs) : array();
+        $keysLength = count($keys);
+        if ($keysLength === 0) {
+            $this->ohlcvs['unknown'] = array();
+            $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
+            $stored = new ArrayCacheByTimestamp ($limit);
+            $this->ohlcvs['unknown']['unknown'] = $stored;
+        }
+        $ohlcv = $this->ohlcvs['unknown']['unknown'];
         for ($i = 0; $i < count($ohlcvs); $i++) {
             $candle = $ohlcvs[$i];
-            $this->ohlcvs.append ($candle);
+            $ohlcv->append ($candle);
         }
-        $client->resolve ($this->ohlcvs, $messageHash);
+        $client->resolve ($ohlcv, $messageHash);
     }
 
-    public function watch_ticker(string $symbol, $params = array ()) {
+    public function watch_ticker(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot004_websocket007_state_subscribe
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
              * @param {string} $symbol unified $symbol of the market to fetch the ticker for
-             * @param {array} $params extra parameters specific to the coinex api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
              */
-            return Async\await($this->watch_tickers(array( $symbol ), $params));
+            $tickers = Async\await($this->watch_tickers(array( $symbol ), $params));
+            return $this->safe_value($tickers, $symbol);
         }) ();
     }
 
-    public function watch_tickers(?array $symbols = null, $params = array ()) {
+    public function watch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot004_websocket007_state_subscribe
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
-             * @param {[string]} $symbols unified symbol of the market to fetch the ticker for
-             * @param {array} $params extra parameters specific to the coinex api endpoint
+             * @param {string[]} $symbols unified symbol of the market to fetch the ticker for
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
              */
             Async\await($this->load_markets());
@@ -431,17 +459,17 @@ class coinex extends \ccxt\async\coinex {
         }) ();
     }
 
-    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot004_websocket012_deal_subcribe
              * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures002_websocket019_deal_subcribe
              * get the list of most recent $trades for a particular $symbol
              * @param {string} $symbol unified $symbol of the $market to fetch $trades for
-             * @param {int|null} $since timestamp in ms of the earliest trade to fetch
-             * @param {int|null} $limit the maximum amount of $trades to fetch
-             * @param {array} $params extra parameters specific to the coinex api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
+             * @param {int} [$since] timestamp in ms of the earliest trade to fetch
+             * @param {int} [$limit] the maximum amount of $trades to fetch
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=public-$trades trade structures~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -464,15 +492,15 @@ class coinex extends \ccxt\async\coinex {
         }) ();
     }
 
-    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot004_websocket017_depth_subscribe_multi
              * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures002_websocket011_depth_subscribe_multi
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
-             * @param {int|null} $limit the maximum amount of order book entries to return
-             * @param {array} $params extra parameters specific to the coinex api endpoint
+             * @param {int} [$limit] the maximum amount of order book entries to return
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
              */
             Async\await($this->load_markets());
@@ -513,16 +541,17 @@ class coinex extends \ccxt\async\coinex {
         }) ();
     }
 
-    public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
+             * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures002_websocket023_kline_subscribe
              * watches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
              * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
              * @param {string} $timeframe the length of time each candle represents
-             * @param {int|null} $since timestamp in ms of the earliest candle to fetch
-             * @param {int|null} $limit the maximum amount of candles to fetch
-             * @param {array} $params extra parameters specific to the coinex api endpoint
-             * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
+             * @param {int} [$since] timestamp in ms of the earliest candle to fetch
+             * @param {int} [$limit] the maximum amount of candles to fetch
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -530,15 +559,18 @@ class coinex extends \ccxt\async\coinex {
             $type = null;
             list($type, $params) = $this->handle_market_type_and_params('watchOHLCV', $market, $params);
             if ($type !== 'swap') {
-                throw new NotSupported($this->id . ' watchOHLCV() is only supported for swap markets');
+                throw new NotSupported($this->id . ' watchOHLCV() is only supported for swap markets. Try using fetchOHLCV () instead');
             }
             $url = $this->urls['api']['ws'][$type];
             $messageHash = 'ohlcv';
-            $watchOHLCVWarning = $this->safe_value($this->options, 'watchOHLCVWarning', true);
+            $watchOHLCVWarning = $this->safe_bool($this->options, 'watchOHLCVWarning', true);
             $client = $this->safe_value($this->clients, $url, array());
-            $existingSubscription = $this->safe_value($client->subscriptions, $messageHash);
+            $clientSub = $this->safe_value($client, 'subscriptions', array());
+            $existingSubscription = $this->safe_value($clientSub, $messageHash);
+            $subSymbol = $this->safe_string($existingSubscription, 'symbol');
+            $subTimeframe = $this->safe_string($existingSubscription, 'timeframe');
             // due to nature of coinex response can only watch one $symbol at a time
-            if ($watchOHLCVWarning && $existingSubscription !== null && ($existingSubscription['symbol'] !== $symbol || $existingSubscription['timeframe'] !== $timeframe)) {
+            if ($watchOHLCVWarning && $existingSubscription !== null && ($subSymbol !== $symbol || $subTimeframe !== $timeframe)) {
                 throw new ExchangeError($this->id . ' watchOHLCV() can only watch one $symbol and $timeframe at a time. To supress this warning set $watchOHLCVWarning to false in options');
             }
             $timeframes = $this->safe_value($this->options, 'timeframes', array());
@@ -547,7 +579,7 @@ class coinex extends \ccxt\async\coinex {
                 'id' => $this->request_id(),
                 'params' => [
                     $market['id'],
-                    $this->safe_string($timeframes, $timeframe, $timeframe),
+                    $this->safe_integer($timeframes, $timeframe),
                 ],
             );
             $subscription = array(
@@ -559,6 +591,52 @@ class coinex extends \ccxt\async\coinex {
             if ($this->newUpdates) {
                 $limit = $ohlcvs->getLimit ($symbol, $limit);
             }
+            return $this->filter_by_since_limit($ohlcvs, $since, $limit, 0);
+        }) ();
+    }
+
+    public function fetch_ohlcv_ws(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
+            /**
+             * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot004_websocket005_kline_query
+             * $query historical candlestick data containing the open, high, low, and close price, and the volume of a $market
+             * @param {string} $symbol unified $symbol of the $market to $query OHLCV data for
+             * @param {string} $timeframe the length of time each candle represents
+             * @param {int|null} $since timestamp in ms of the earliest candle to fetch
+             * @param {int|null} $limit the maximum amount of candles to fetch
+             * @param {array} $params extra parameters specific to the exchange API endpoint
+             * @param {int|null} $params->end the end time for spot markets, $this->seconds() is set
+             * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            list($type, $query) = $this->handle_market_type_and_params('fetchOHLCV', $market, $params);
+            $url = $this->urls['api']['ws'][$type];
+            $symbol = $market['symbol'];
+            $messageHash = 'ohlcv';
+            $timeframes = $this->safe_value($this->options, 'timeframes', array());
+            $timeframe = $this->safe_string($timeframes, $timeframe, $timeframe);
+            if ($since === null) {
+                $since = 1640995200;  // January 1, 2022
+            }
+            $id = $this->request_id();
+            $subscribe = array(
+                'method' => 'kline.query',
+                'params' => [
+                    $market['id'],
+                    $this->parse_to_int($since / 1000),
+                    $this->safe_integer($params, 'end', $this->seconds()),
+                    $this->parse_to_int($timeframe),
+                ],
+                'id' => $id,
+            );
+            $subscription = array(
+                'id' => $id,
+                'future' => $messageHash,
+            );
+            $subscriptionHash = $id;
+            $request = $this->deep_extend($subscribe, $query);
+            $ohlcvs = Async\await($this->watch($url, $messageHash, $request, $subscriptionHash, $subscription));
             return $this->filter_by_since_limit($ohlcvs, $since, $limit, 0);
         }) ();
     }
@@ -600,27 +678,27 @@ class coinex extends \ccxt\async\coinex {
         //
         $params = $this->safe_value($message, 'params', array());
         $fullOrderBook = $this->safe_value($params, 0);
-        $orderBook = $this->safe_value($params, 1);
+        $orderbook = $this->safe_value($params, 1);
         $marketId = $this->safe_string($params, 2);
         $defaultType = $this->safe_string($this->options, 'defaultType');
         $market = $this->safe_market($marketId, null, null, $defaultType);
         $symbol = $market['symbol'];
         $name = 'orderbook';
         $messageHash = $name . ':' . $symbol;
-        $timestamp = $this->safe_number($orderBook, 'time');
+        $timestamp = $this->safe_integer($orderbook, 'time');
         $currentOrderBook = $this->safe_value($this->orderbooks, $symbol);
         if ($fullOrderBook) {
-            $snapshot = $this->parse_order_book($orderBook, $symbol, $timestamp);
+            $snapshot = $this->parse_order_book($orderbook, $symbol, $timestamp);
             if ($currentOrderBook === null) {
-                $orderBook = $this->order_book($snapshot);
-                $this->orderbooks[$symbol] = $orderBook;
+                $orderbook = $this->order_book($snapshot);
+                $this->orderbooks[$symbol] = $orderbook;
             } else {
-                $orderBook = $this->orderbooks[$symbol];
-                $orderBook->reset ($snapshot);
+                $orderbook = $this->orderbooks[$symbol];
+                $orderbook->reset ($snapshot);
             }
         } else {
-            $asks = $this->safe_value($orderBook, 'asks', array());
-            $bids = $this->safe_value($orderBook, 'bids', array());
+            $asks = $this->safe_value($orderbook, 'asks', array());
+            $bids = $this->safe_value($orderbook, 'bids', array());
             $this->handle_deltas($currentOrderBook['asks'], $asks);
             $this->handle_deltas($currentOrderBook['bids'], $bids);
             $currentOrderBook['nonce'] = $timestamp;
@@ -632,7 +710,7 @@ class coinex extends \ccxt\async\coinex {
         $client->resolve ($this->orderbooks[$symbol], $messageHash);
     }
 
-    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             Async\await($this->load_markets());
             Async\await($this->authenticate($params));
@@ -657,7 +735,7 @@ class coinex extends \ccxt\async\coinex {
             if ($this->newUpdates) {
                 $limit = $orders->getLimit ($symbol, $limit);
             }
-            return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit);
+            return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
         }) ();
     }
 
@@ -666,86 +744,86 @@ class coinex extends \ccxt\async\coinex {
         //  spot
         //
         //      {
-        //          method => 'order.update',
-        //          $params => array(
+        //          "method" => "order.update",
+        //          "params" => array(
         //              1,
         //              {
-        //                  id => 77782469357,
-        //                  type => 1,
-        //                  side => 2,
-        //                  user => 1849116,
-        //                  account => 0,
-        //                  option => 2,
-        //                  ctime => 1653961043.048967,
-        //                  mtime => 1653961043.048967,
-        //                  market => 'BTCUSDT',
-        //                  source => 'web',
-        //                  client_id => '',
-        //                  price => '1.00',
-        //                  amount => '1.00000000',
-        //                  taker_fee => '0.0020',
-        //                  maker_fee => '0.0020',
-        //                  left => '1.00000000',
-        //                  deal_stock => '0',
-        //                  deal_money => '0',
-        //                  money_fee => '0',
-        //                  stock_fee => '0',
-        //                  asset_fee => '0',
-        //                  fee_discount => '1',
-        //                  last_deal_amount => '0',
-        //                  last_deal_price => '0',
-        //                  last_deal_time => 0,
-        //                  last_deal_id => 0,
-        //                  last_role => 0,
-        //                  fee_asset => null,
-        //                  stop_id => 0
+        //                  "id" => 77782469357,
+        //                  "type" => 1,
+        //                  "side" => 2,
+        //                  "user" => 1849116,
+        //                  "account" => 0,
+        //                  "option" => 2,
+        //                  "ctime" => 1653961043.048967,
+        //                  "mtime" => 1653961043.048967,
+        //                  "market" => "BTCUSDT",
+        //                  "source" => "web",
+        //                  "client_id" => '',
+        //                  "price" => "1.00",
+        //                  "amount" => "1.00000000",
+        //                  "taker_fee" => "0.0020",
+        //                  "maker_fee" => "0.0020",
+        //                  "left" => "1.00000000",
+        //                  "deal_stock" => "0",
+        //                  "deal_money" => "0",
+        //                  "money_fee" => "0",
+        //                  "stock_fee" => "0",
+        //                  "asset_fee" => "0",
+        //                  "fee_discount" => "1",
+        //                  "last_deal_amount" => "0",
+        //                  "last_deal_price" => "0",
+        //                  "last_deal_time" => 0,
+        //                  "last_deal_id" => 0,
+        //                  "last_role" => 0,
+        //                  "fee_asset" => null,
+        //                  "stop_id" => 0
         //              }
         //          ),
-        //          id => null
+        //          "id" => null
         //      }
         //
         //  swap
         //
         //      {
-        //          method => 'order.update',
-        //          $params => array(
+        //          "method" => "order.update",
+        //          "params" => array(
         //              1,
         //              {
-        //                  order_id => 23423462821,
-        //                  position_id => 0,
-        //                  stop_id => 0,
-        //                  market => 'BTCUSDT',
-        //                  type => 1,
-        //                  side => 2,
-        //                  target => 0,
-        //                  effect_type => 1,
-        //                  user_id => 1849116,
-        //                  create_time => 1653961509.25049,
-        //                  update_time => 1653961509.25049,
-        //                  source => 'web',
-        //                  price => '1.00',
-        //                  amount => '1.0000',
-        //                  taker_fee => '0.00050',
-        //                  maker_fee => '0.00030',
-        //                  left => '1.0000',
-        //                  deal_stock => '0.00000000000000000000',
-        //                  deal_fee => '0.00000000000000000000',
-        //                  deal_profit => '0.00000000000000000000',
-        //                  last_deal_amount => '0.00000000000000000000',
-        //                  last_deal_price => '0.00000000000000000000',
-        //                  last_deal_time => 0,
-        //                  last_deal_id => 0,
-        //                  last_deal_type => 0,
-        //                  last_deal_role => 0,
-        //                  client_id => '',
-        //                  fee_asset => '',
-        //                  fee_discount => '0.00000000000000000000',
-        //                  deal_asset_fee => '0.00000000000000000000',
-        //                  leverage => '3',
-        //                  position_type => 2
+        //                  "order_id" => 23423462821,
+        //                  "position_id" => 0,
+        //                  "stop_id" => 0,
+        //                  "market" => "BTCUSDT",
+        //                  "type" => 1,
+        //                  "side" => 2,
+        //                  "target" => 0,
+        //                  "effect_type" => 1,
+        //                  "user_id" => 1849116,
+        //                  "create_time" => 1653961509.25049,
+        //                  "update_time" => 1653961509.25049,
+        //                  "source" => "web",
+        //                  "price" => "1.00",
+        //                  "amount" => "1.0000",
+        //                  "taker_fee" => "0.00050",
+        //                  "maker_fee" => "0.00030",
+        //                  "left" => "1.0000",
+        //                  "deal_stock" => "0.00000000000000000000",
+        //                  "deal_fee" => "0.00000000000000000000",
+        //                  "deal_profit" => "0.00000000000000000000",
+        //                  "last_deal_amount" => "0.00000000000000000000",
+        //                  "last_deal_price" => "0.00000000000000000000",
+        //                  "last_deal_time" => 0,
+        //                  "last_deal_id" => 0,
+        //                  "last_deal_type" => 0,
+        //                  "last_deal_role" => 0,
+        //                  "client_id" => '',
+        //                  "fee_asset" => '',
+        //                  "fee_discount" => "0.00000000000000000000",
+        //                  "deal_asset_fee" => "0.00000000000000000000",
+        //                  "leverage" => "3",
+        //                  "position_type" => 2
         //              }
         //          ),
-        //          id => null
+        //          "id" => null
         //      }
         //
         $params = $this->safe_value($message, 'params', array());
@@ -755,109 +833,110 @@ class coinex extends \ccxt\async\coinex {
             $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);
             $this->orders = new ArrayCacheBySymbolById ($limit);
         }
-        $this->orders.append ($parsedOrder);
+        $orders = $this->orders;
+        $orders->append ($parsedOrder);
         $messageHash = 'orders';
         $client->resolve ($this->orders, $messageHash);
         $messageHash .= ':' . $parsedOrder['symbol'];
         $client->resolve ($this->orders, $messageHash);
     }
 
-    public function parse_ws_order($order) {
+    public function parse_ws_order($order, $market = null) {
         //
         //  spot
         //
         //       {
-        //           id => 77782469357,
-        //           $type => 1,
-        //           $side => 2,
-        //           user => 1849116,
-        //           account => 0,
-        //           option => 2,
-        //           ctime => 1653961043.048967,
-        //           mtime => 1653961043.048967,
-        //           $market => 'BTCUSDT',
-        //           source => 'web',
-        //           client_id => '',
-        //           price => '1.00',
-        //           $amount => '1.00000000',
-        //           taker_fee => '0.0020',
-        //           maker_fee => '0.0020',
-        //           left => '1.00000000',
-        //           deal_stock => '0',
-        //           deal_money => '0',
-        //           money_fee => '0',
-        //           stock_fee => '0',
-        //           asset_fee => '0',
-        //           fee_discount => '1',
-        //           last_deal_amount => '0',
-        //           last_deal_price => '0',
-        //           last_deal_time => 0,
-        //           last_deal_id => 0,
-        //           last_role => 0,
-        //           fee_asset => null,
-        //           stop_id => 0
+        //           "id" => 77782469357,
+        //           "type" => 1,
+        //           "side" => 2,
+        //           "user" => 1849116,
+        //           "account" => 0,
+        //           "option" => 2,
+        //           "ctime" => 1653961043.048967,
+        //           "mtime" => 1653961043.048967,
+        //           "market" => "BTCUSDT",
+        //           "source" => "web",
+        //           "client_id" => '',
+        //           "price" => "1.00",
+        //           "amount" => "1.00000000",
+        //           "taker_fee" => "0.0020",
+        //           "maker_fee" => "0.0020",
+        //           "left" => "1.00000000",
+        //           "deal_stock" => "0",
+        //           "deal_money" => "0",
+        //           "money_fee" => "0",
+        //           "stock_fee" => "0",
+        //           "asset_fee" => "0",
+        //           "fee_discount" => "1",
+        //           "last_deal_amount" => "0",
+        //           "last_deal_price" => "0",
+        //           "last_deal_time" => 0,
+        //           "last_deal_id" => 0,
+        //           "last_role" => 0,
+        //           "fee_asset" => null,
+        //           "stop_id" => 0
         //       }
         //
         //  swap
         //
         //      {
-        //          order_id => 23423462821,
-        //          position_id => 0,
-        //          stop_id => 0,
-        //          $market => 'BTCUSDT',
-        //          $type => 1,
-        //          $side => 2,
-        //          target => 0,
-        //          effect_type => 1,
-        //          user_id => 1849116,
-        //          create_time => 1653961509.25049,
-        //          update_time => 1653961509.25049,
-        //          source => 'web',
-        //          price => '1.00',
-        //          $amount => '1.0000',
-        //          taker_fee => '0.00050',
-        //          maker_fee => '0.00030',
-        //          left => '1.0000',
-        //          deal_stock => '0.00000000000000000000',
-        //          deal_fee => '0.00000000000000000000',
-        //          deal_profit => '0.00000000000000000000',
-        //          last_deal_amount => '0.00000000000000000000',
-        //          last_deal_price => '0.00000000000000000000',
-        //          last_deal_time => 0,
-        //          last_deal_id => 0,
-        //          last_deal_type => 0,
-        //          last_deal_role => 0,
-        //          client_id => '',
-        //          fee_asset => '',
-        //          fee_discount => '0.00000000000000000000',
-        //          deal_asset_fee => '0.00000000000000000000',
-        //          $leverage => '3',
-        //          position_type => 2
+        //          "order_id" => 23423462821,
+        //          "position_id" => 0,
+        //          "stop_id" => 0,
+        //          "market" => "BTCUSDT",
+        //          "type" => 1,
+        //          "side" => 2,
+        //          "target" => 0,
+        //          "effect_type" => 1,
+        //          "user_id" => 1849116,
+        //          "create_time" => 1653961509.25049,
+        //          "update_time" => 1653961509.25049,
+        //          "source" => "web",
+        //          "price" => "1.00",
+        //          "amount" => "1.0000",
+        //          "taker_fee" => "0.00050",
+        //          "maker_fee" => "0.00030",
+        //          "left" => "1.0000",
+        //          "deal_stock" => "0.00000000000000000000",
+        //          "deal_fee" => "0.00000000000000000000",
+        //          "deal_profit" => "0.00000000000000000000",
+        //          "last_deal_amount" => "0.00000000000000000000",
+        //          "last_deal_price" => "0.00000000000000000000",
+        //          "last_deal_time" => 0,
+        //          "last_deal_id" => 0,
+        //          "last_deal_type" => 0,
+        //          "last_deal_role" => 0,
+        //          "client_id" => '',
+        //          "fee_asset" => '',
+        //          "fee_discount" => "0.00000000000000000000",
+        //          "deal_asset_fee" => "0.00000000000000000000",
+        //          "leverage" => "3",
+        //          "position_type" => 2
         //      }
         //
         //  $order->update_stop
         //
         //       {
-        //           id => 78006745870,
-        //           $type => 1,
-        //           $side => 2,
-        //           user => 1849116,
-        //           account => 1,
-        //           option => 70,
-        //           direction => 1,
-        //           ctime => 1654171725.131976,
-        //           mtime => 1654171725.131976,
-        //           $market => 'BTCUSDT',
-        //           source => 'web',
-        //           client_id => '',
-        //           stop_price => '1.00',
-        //           price => '1.00',
-        //           $amount => '1.00000000',
-        //           taker_fee => '0.0020',
-        //           maker_fee => '0.0020',
-        //           fee_discount => '1',
-        //           fee_asset => null,
-        //           $status => 0
+        //           "id" => 78006745870,
+        //           "type" => 1,
+        //           "side" => 2,
+        //           "user" => 1849116,
+        //           "account" => 1,
+        //           "option" => 70,
+        //           "direction" => 1,
+        //           "ctime" => 1654171725.131976,
+        //           "mtime" => 1654171725.131976,
+        //           "market" => "BTCUSDT",
+        //           "source" => "web",
+        //           "client_id" => '',
+        //           "stop_price" => "1.00",
+        //           "price" => "1.00",
+        //           "amount" => "1.00000000",
+        //           "taker_fee" => "0.0020",
+        //           "maker_fee" => "0.0020",
+        //           "fee_discount" => "1",
+        //           "fee_asset" => null,
+        //           "status" => 0
         //       }
         //
         $timestamp = $this->safe_timestamp_2($order, 'update_time', 'mtime');
@@ -876,7 +955,7 @@ class coinex extends \ccxt\async\coinex {
         $amount = $this->safe_string($order, 'amount');
         $status = $this->safe_string($order, 'status');
         $defaultType = $this->safe_string($this->options, 'defaultType');
-        $market = $this->safe_market($marketId, null, null, $defaultType);
+        $market = $this->safe_market($marketId, $market, null, $defaultType);
         $cost = $this->safe_string($order, 'deal_money');
         $filled = $this->safe_string($order, 'deal_stock');
         $average = null;
@@ -946,25 +1025,30 @@ class coinex extends \ccxt\async\coinex {
         );
         $handler = $this->safe_value($handlers, $method);
         if ($handler !== null) {
-            return $handler($client, $message);
+            $handler($client, $message);
+            return;
         }
-        return $this->handle_subscription_status($client, $message);
+        $this->handle_subscription_status($client, $message);
     }
 
     public function handle_authentication_message(Client $client, $message) {
         //
         //     {
-        //         error => null,
-        //         result => array(
-        //             status => 'success'
+        //         "error" => null,
+        //         "result" => array(
+        //             "status" => "success"
         //         ),
-        //         id => 1
+        //         "id" => 1
         //     }
         //
         $messageHashSpot = 'authenticated:spot';
         $messageHashSwap = 'authenticated:swap';
-        $client->resolve ($message, $messageHashSpot);
-        $client->resolve ($message, $messageHashSwap);
+        // $client->resolve ($message, $messageHashSpot);
+        // $client->resolve ($message, $messageHashSwap);
+        $spotFuture = $this->safe_value($client->futures, $messageHashSpot);
+        $spotFuture->resolve (true);
+        $swapFutures = $this->safe_value($client->futures, $messageHashSwap);
+        $swapFutures->resolve (true);
         return $message;
     }
 
@@ -973,6 +1057,10 @@ class coinex extends \ccxt\async\coinex {
         $subscription = $this->safe_value($client->subscriptions, $id);
         if ($subscription !== null) {
             $futureIndex = $this->safe_string($subscription, 'future');
+            if ($futureIndex === 'ohlcv') {
+                $this->handle_ohlcv($client, $message);
+                return;
+            }
             $future = $this->safe_value($client->futures, $futureIndex);
             if ($future !== null) {
                 $future->resolve (true);
@@ -982,61 +1070,65 @@ class coinex extends \ccxt\async\coinex {
     }
 
     public function authenticate($params = array ()) {
-        $type = null;
-        list($type, $params) = $this->handle_market_type_and_params('authenticate', null, $params);
-        $url = $this->urls['api']['ws'][$type];
-        $client = $this->client($url);
-        $time = $this->milliseconds();
-        if ($type === 'spot') {
-            $messageHash = 'authenticated:spot';
-            $future = $this->safe_value($client->subscriptions, $messageHash);
-            if ($future !== null) {
-                return $future;
+        return Async\async(function () use ($params) {
+            $type = null;
+            list($type, $params) = $this->handle_market_type_and_params('authenticate', null, $params);
+            $url = $this->urls['api']['ws'][$type];
+            $client = $this->client($url);
+            $time = $this->milliseconds();
+            $isSpot = ($type === 'spot');
+            $spotMessageHash = 'authenticated:spot';
+            $swapMessageHash = 'authenticated:swap';
+            $messageHash = $isSpot ? $spotMessageHash : $swapMessageHash;
+            $future = $client->future ($messageHash);
+            $authenticated = $this->safe_value($client->subscriptions, $messageHash);
+            if ($type === 'spot') {
+                if ($authenticated !== null) {
+                    return Async\await($future);
+                }
+                $requestId = $this->request_id();
+                $subscribe = array(
+                    'id' => $requestId,
+                    'future' => $spotMessageHash,
+                );
+                $signData = 'access_id=' . $this->apiKey . '&tonce=' . $this->number_to_string($time) . '&secret_key=' . $this->secret;
+                $hash = $this->hash($this->encode($signData), 'md5');
+                $request = array(
+                    'method' => 'server.sign',
+                    'params' => array(
+                        $this->apiKey,
+                        strtoupper($hash),
+                        $time,
+                    ),
+                    'id' => $requestId,
+                );
+                $this->watch($url, $messageHash, $request, $requestId, $subscribe);
+                $client->subscriptions[$messageHash] = true;
+                return Async\await($future);
+            } else {
+                if ($authenticated !== null) {
+                    return Async\await($future);
+                }
+                $requestId = $this->request_id();
+                $subscribe = array(
+                    'id' => $requestId,
+                    'future' => $swapMessageHash,
+                );
+                $signData = 'access_id=' . $this->apiKey . '&timestamp=' . $this->number_to_string($time) . '&secret_key=' . $this->secret;
+                $hash = $this->hash($this->encode($signData), 'sha256', 'hex');
+                $request = array(
+                    'method' => 'server.sign',
+                    'params' => array(
+                        $this->apiKey,
+                        strtolower($hash),
+                        $time,
+                    ),
+                    'id' => $requestId,
+                );
+                $this->watch($url, $messageHash, $request, $requestId, $subscribe);
+                $client->subscriptions[$messageHash] = true;
+                return Async\await($future);
             }
-            $requestId = $this->request_id();
-            $subscribe = array(
-                'id' => $requestId,
-                'future' => 'authenticated:spot',
-            );
-            $signData = 'access_id=' . $this->apiKey . '&tonce=' . $this->number_to_string($time) . '&secret_key=' . $this->secret;
-            $hash = $this->hash($this->encode($signData), 'md5');
-            $request = array(
-                'method' => 'server.sign',
-                'params' => array(
-                    $this->apiKey,
-                    strtoupper($hash),
-                    $time,
-                ),
-                'id' => $requestId,
-            );
-            $future = $this->watch($url, $messageHash, $request, $requestId, $subscribe);
-            $client->subscriptions[$messageHash] = $future;
-            return $future;
-        } else {
-            $messageHash = 'authenticated:swap';
-            $future = $this->safe_value($client->subscriptions, $messageHash);
-            if ($future !== null) {
-                return $future;
-            }
-            $requestId = $this->request_id();
-            $subscribe = array(
-                'id' => $requestId,
-                'future' => 'authenticated:swap',
-            );
-            $signData = 'access_id=' . $this->apiKey . '&timestamp=' . $this->number_to_string($time) . '&secret_key=' . $this->secret;
-            $hash = $this->hash($this->encode($signData), 'sha256', 'hex');
-            $request = array(
-                'method' => 'server.sign',
-                'params' => array(
-                    $this->apiKey,
-                    strtolower($hash),
-                    $time,
-                ),
-                'id' => $requestId,
-            );
-            $future = $this->watch($url, $messageHash, $request, $requestId, $subscribe);
-            $client->subscriptions[$messageHash] = $future;
-            return $future;
-        }
+        }) ();
     }
 }

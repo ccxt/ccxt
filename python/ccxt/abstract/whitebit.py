@@ -33,6 +33,7 @@ class ImplicitAPI:
     v4_public_get_time = v4PublicGetTime = Entry('time', ['v4', 'public'], 'GET', {})
     v4_public_get_ping = v4PublicGetPing = Entry('ping', ['v4', 'public'], 'GET', {})
     v4_public_get_markets = v4PublicGetMarkets = Entry('markets', ['v4', 'public'], 'GET', {})
+    v4_public_get_futures = v4PublicGetFutures = Entry('futures', ['v4', 'public'], 'GET', {})
     v4_private_post_collateral_account_balance = v4PrivatePostCollateralAccountBalance = Entry('collateral-account/balance', ['v4', 'private'], 'POST', {})
     v4_private_post_collateral_account_positions_history = v4PrivatePostCollateralAccountPositionsHistory = Entry('collateral-account/positions/history', ['v4', 'private'], 'POST', {})
     v4_private_post_collateral_account_leverage = v4PrivatePostCollateralAccountLeverage = Entry('collateral-account/leverage', ['v4', 'private'], 'POST', {})

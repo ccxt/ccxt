@@ -1,0 +1,259 @@
+{
+    "exchange": "upbit",
+    "skipKeys": [],
+    "outputType": "json",
+    "methods": {
+        "fetchMarkets": [
+            {
+                "description": "fetchMarkets",
+                "method": "fetchMarkets",
+                "url": "https://api.upbit.com/v1/market/all",
+                "input": []
+            }
+        ],
+        "withdraw": [
+            {
+                "description": "withdraw usdt",
+                "method": "withdraw",
+                "url": "https://api.upbit.com/v1/withdraws/coin",
+                "input": [
+                    "USDT",
+                    1,
+                    "1234",
+                    null,
+                    {
+                        "network": "TRX"
+                    }
+                ],
+                "output": "{\"amount\":1,\"net_type\":\"TRX\",\"address\":\"1234\",\"currency\":\"USDT\"}"
+            },
+            {
+                "description": "withdraw krw",
+                "method": "withdraw",
+                "url": "https://api.upbit.com/v1/withdraws/krw",
+                "input": [
+                    "KRW",
+                    1,
+                    "1234"
+                ],
+                "output": "{\"amount\":1}"
+            }
+        ],
+        "createOrder": [
+            {
+                "description": "Spot market buy order with createMarketBuyOrderRequiresPrice set to true",
+                "method": "createOrder",
+                "url": "https://sg-api.upbit.com/v1/orders",
+                "input": [
+                    "BTC/USDT",
+                    "market",
+                    "buy",
+                    0.00015,
+                    49998,
+                    {
+                        "createMarketBuyOrderRequiresPrice": true
+                    }
+                ],
+                "output": "{\"market\":\"USDT-BTC\",\"side\":\"bid\",\"ord_type\":\"price\",\"price\":\"7.4997\"}"
+            },
+            {
+                "description": "Spot market buy order with createMarketBuyOrderRequiresPrice set to false",
+                "method": "createOrder",
+                "url": "https://sg-api.upbit.com/v1/orders",
+                "input": [
+                    "BTC/USDT",
+                    "market",
+                    "buy",
+                    5,
+                    null,
+                    {
+                        "createMarketBuyOrderRequiresPrice": false
+                    }
+                ],
+                "output": "{\"market\":\"USDT-BTC\",\"side\":\"bid\",\"ord_type\":\"price\",\"price\":\"5\"}"
+            },
+            {
+                "description": "Spot market buy order using the cost param",
+                "method": "createOrder",
+                "url": "https://sg-api.upbit.com/v1/orders",
+                "input": [
+                    "BTC/USDT",
+                    "market",
+                    "buy",
+                    0,
+                    null,
+                    {
+                        "cost": 5
+                    }
+                ],
+                "output": "{\"market\":\"USDT-BTC\",\"side\":\"bid\",\"ord_type\":\"price\",\"price\":\"5\"}"
+            },
+            {
+                "description": "Spot limit buy order",
+                "method": "createOrder",
+                "url": "https://sg-api.upbit.com/v1/orders",
+                "input": [
+                    "BTC/USDT",
+                    "limit",
+                    "buy",
+                    0.00015,
+                    42000
+                ],
+                "output": "{\"market\":\"USDT-BTC\",\"side\":\"bid\",\"price\":\"42000\",\"ord_type\":\"limit\",\"volume\":\"0.00015\"}"
+            },
+            {
+                "description": "Spot limit sell order",
+                "method": "createOrder",
+                "url": "https://sg-api.upbit.com/v1/orders",
+                "input": [
+                    "BTC/USDT",
+                    "limit",
+                    "sell",
+                    0.00015,
+                    55000
+                ],
+                "output": "{\"market\":\"USDT-BTC\",\"side\":\"ask\",\"price\":\"55000\",\"ord_type\":\"limit\",\"volume\":\"0.00015\"}"
+            },
+            {
+                "description": "Spot market sell order",
+                "method": "createOrder",
+                "url": "https://sg-api.upbit.com/v1/orders",
+                "input": [
+                    "BTC/USDT",
+                    "market",
+                    "sell",
+                    0.00015,
+                    null
+                ],
+                "output": "{\"market\":\"USDT-BTC\",\"side\":\"ask\",\"ord_type\":\"market\",\"volume\":\"0.00015\"}"
+            },
+            {
+                "description": "Spot IOC limit sell order",
+                "method": "createOrder",
+                "url": "https://sg-api.upbit.com/v1/orders",
+                "input": [
+                    "XRP/SGD",
+                    "limit",
+                    "sell",
+                    10,
+                    1.5,
+                    {
+                        "timeInForce": "IOC"
+                    }
+                ],
+                "output": "{\"market\":\"SGD-XRP\",\"side\":\"ask\",\"price\":\"1.5\",\"ord_type\":\"limit\",\"volume\":\"10\",\"time_in_force\":\"ioc\"}"
+            },
+            {
+                "description": "Spot FOK limit sell order",
+                "method": "createOrder",
+                "url": "https://sg-api.upbit.com/v1/orders",
+                "input": [
+                    "XRP/SGD",
+                    "limit",
+                    "sell",
+                    10,
+                    1.5,
+                    {
+                        "timeInForce": "FOK"
+                    }
+                ],
+                "output": "{\"market\":\"SGD-XRP\",\"side\":\"ask\",\"price\":\"1.5\",\"ord_type\":\"limit\",\"volume\":\"10\",\"time_in_force\":\"fok\"}"
+            }
+        ],
+        "createMarketBuyOrderWithCost": [
+            {
+                "description": "Create market buy order with cost",
+                "method": "createMarketBuyOrderWithCost",
+                "url": "https://sg-api.upbit.com/v1/orders",
+                "input": [
+                    "BTC/USDT",
+                    5
+                ],
+                "output": "{\"market\":\"USDT-BTC\",\"side\":\"bid\",\"ord_type\":\"price\",\"price\":\"5\"}"
+            }
+        ],
+        "cancelOrder": [
+            {
+                "description": "Spot cancel sell order",
+                "method": "cancelOrder",
+                "url": "https://sg-api.upbit.com/v1/order?uuid=4321cb06-94cc-4fd5-bb15-a514c721ff56",
+                "input": [
+                    "4321cb06-94cc-4fd5-bb15-a514c721ff56"
+                ]
+            }
+        ],
+        "fetchWithdrawal": [
+            {
+                "description": "Fetch a withdrawal",
+                "method": "fetchWithdrawal",
+                "url": "https://sg-api.upbit.com/v1/withdraw?uuid=95ef274b-23a6-4de4-95b0-5cbef4ca658f",
+                "input": [
+                    "95ef274b-23a6-4de4-95b0-5cbef4ca658f"
+                ]
+            }
+        ],
+        "fetchDeposit": [
+            {
+                "description": "Fetch a deposit",
+                "method": "fetchDeposit",
+                "url": "https://sg-api.upbit.com/v1/deposit?uuid=7f54527e-2eee-4268-860e-fd8b9d7fe3c7",
+                "input": [
+                    "7f54527e-2eee-4268-860e-fd8b9d7fe3c7"
+                ]
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "spot fetchTrades",
+                "method": "fetchTrades",
+                "url": "https://api.upbit.com/v1/trades/ticks?market=USDT-BTC&count=200",
+                "input": [
+                    "BTC/USDT"
+                ]
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "spot orderbook",
+                "method": "fetchOrderBook",
+                "url": "https://api.upbit.com/v1/orderbook?markets=USDT-BTC",
+                "input": [
+                    "BTC/USDT"
+                ]
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "spot ticker",
+                "method": "fetchTicker",
+                "url": "https://api.upbit.com/v1/ticker?markets=USDT-BTC",
+                "input": [
+                    "BTC/USDT"
+                ]
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "spot tickers",
+                "method": "fetchTickers",
+                "url": "https://api.upbit.com/v1/ticker?markets=USDT-BTC%2CUSDT-ETH",
+                "input": [
+                    [
+                        "BTC/USDT",
+                        "ETH/USDT"
+                    ]
+                ]
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "spot ohlcv",
+                "method": "fetchOHLCV",
+                "url": "https://api.upbit.com/v1/candles/minutes/1?market=USDT-BTC&count=200",
+                "input": [
+                    "BTC/USDT"
+                ]
+            }
+        ]
+    }
+}

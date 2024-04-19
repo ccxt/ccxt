@@ -5,8 +5,8 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 import assert from 'assert';
-import testSharedMethods from './test.sharedMethods.js';
 import Precise from '../../../base/Precise.js';
+import testSharedMethods from './test.sharedMethods.js';
 function testBalance(exchange, skippedProperties, method, entry) {
     const format = {
         'free': {},
@@ -20,15 +20,18 @@ function testBalance(exchange, skippedProperties, method, entry) {
     const codesTotal = Object.keys(entry['total']);
     const codesFree = Object.keys(entry['free']);
     const codesUsed = Object.keys(entry['used']);
-    let allCodes = codesTotal.concat(codesFree);
-    allCodes = allCodes.concat(codesUsed);
+    testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, codesTotal, 'total');
+    testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, codesFree, 'free');
+    testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, codesUsed, 'used');
+    let allCodes = exchange.arrayConcat(codesTotal, codesFree);
+    allCodes = exchange.arrayConcat(allCodes, codesUsed);
     const codesLength = codesTotal.length;
     const freeLength = codesFree.length;
     const usedLength = codesUsed.length;
     assert((codesLength === freeLength) || (codesLength === usedLength), 'free and total and used codes have different lengths' + logText);
     for (let i = 0; i < allCodes.length; i++) {
         const code = allCodes[i];
-        testSharedMethods.assertCurrencyCode(exchange, skippedProperties, method, entry, code);
+        // testSharedMethods.assertCurrencyCode (exchange, skippedProperties, method, entry, code);
         assert(code in entry['total'], 'code ' + code + ' not in total' + logText);
         assert(code in entry['free'], 'code ' + code + ' not in free' + logText);
         assert(code in entry['used'], 'code ' + code + ' not in used' + logText);

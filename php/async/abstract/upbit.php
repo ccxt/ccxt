@@ -28,6 +28,9 @@ abstract class upbit extends \ccxt\async\Exchange {
     public function public_get_candles_minutes_5($params = array()) {
         return $this->request('candles/minutes/5', 'public', 'GET', $params, null, null, array());
     }
+    public function public_get_candles_minutes_10($params = array()) {
+        return $this->request('candles/minutes/10', 'public', 'GET', $params, null, null, array());
+    }
     public function public_get_candles_minutes_15($params = array()) {
         return $this->request('candles/minutes/15', 'public', 'GET', $params, null, null, array());
     }
@@ -126,6 +129,9 @@ abstract class upbit extends \ccxt\async\Exchange {
     }
     public function publicGetCandlesMinutes5($params = array()) {
         return $this->request('candles/minutes/5', 'public', 'GET', $params, null, null, array());
+    }
+    public function publicGetCandlesMinutes10($params = array()) {
+        return $this->request('candles/minutes/10', 'public', 'GET', $params, null, null, array());
     }
     public function publicGetCandlesMinutes15($params = array()) {
         return $this->request('candles/minutes/15', 'public', 'GET', $params, null, null, array());

@@ -6,7 +6,7 @@ export default class binanceusdm extends binance {
         id: string;
         timestamp: number;
         datetime: string;
-        currency: any;
+        currency: string;
         amount: number;
         fromAccount: any;
         toAccount: any;
@@ -17,7 +17,7 @@ export default class binanceusdm extends binance {
         id: string;
         timestamp: number;
         datetime: string;
-        currency: any;
+        currency: string;
         amount: number;
         fromAccount: any;
         toAccount: any;

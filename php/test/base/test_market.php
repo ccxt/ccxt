@@ -1,6 +1,5 @@
 <?php
 namespace ccxt;
-use \ccxt\Precise;
 
 // ----------------------------------------------------------------------------
 
@@ -8,7 +7,8 @@ use \ccxt\Precise;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 // -----------------------------------------------------------------------------
-include_once __DIR__ . '/test_shared_methods.php';
+use \ccxt\Precise;
+include_once PATH_TO_CCXT . '/test/base/test_shared_methods.php';
 
 function test_market($exchange, $skipped_properties, $method, $market) {
     $format = array(
@@ -63,7 +63,7 @@ function test_market($exchange, $skipped_properties, $method, $market) {
     assert_symbol($exchange, $skipped_properties, $method, $market, 'symbol');
     $log_text = log_template($exchange, $method, $market);
     //
-    $valid_types = ['spot', 'margin', 'swap', 'future', 'option'];
+    $valid_types = ['spot', 'margin', 'swap', 'future', 'option', 'index'];
     assert_in_array($exchange, $skipped_properties, $method, $market, 'type', $valid_types);
     $has_index = (is_array($market) && array_key_exists('index', $market)); // todo: add in all
     // check if string is consistent with 'type'
@@ -88,6 +88,10 @@ function test_market($exchange, $skipped_properties, $method, $market) {
         assert_in_array($exchange, $skipped_properties, $method, $market, 'margin', [false, null]);
     }
     if (!(is_array($skipped_properties) && array_key_exists('contractSize', $skipped_properties))) {
+        if (!$market['spot']) {
+            // if not spot, then contractSize should be defined
+            assert($market['contractSize'] !== null, '\"contractSize\" must be defined when \"spot\" is false' . $log_text);
+        }
         assert_greater($exchange, $skipped_properties, $method, $market, 'contractSize', '0');
     }
     // typical values
@@ -126,13 +130,13 @@ function test_market($exchange, $skipped_properties, $method, $market) {
         assert(!$market['spot'], '\"spot\" must be false when \"contract\" is true' . $log_text);
     } else {
         // linear & inverse needs to be undefined
-        assert(($market['linear'] === null) && ($market['inverse'] === null), 'market linear and inverse must be undefined when \"contract\" is true' . $log_text);
+        assert(($market['linear'] === null) && ($market['inverse'] === null), 'market linear and inverse must be undefined when \"contract\" is false' . $log_text);
         // contract size should be undefined
         if (!(is_array($skipped_properties) && array_key_exists('contractSize', $skipped_properties))) {
             assert($contract_size === null, '\"contractSize\" must be undefined when \"contract\" is false' . $log_text);
         }
         // settle should be undefined
-        assert(($market['settle'] === null) && ($market['settleId'] === null), '\"settle\" must be undefined when \"contract\" is true' . $log_text);
+        assert(($market['settle'] === null) && ($market['settleId'] === null), '\"settle\" must be undefined when \"contract\" is false' . $log_text);
         // spot should be true
         assert($market['spot'], '\"spot\" must be true when \"contract\" is false' . $log_text);
     }
@@ -169,7 +173,8 @@ function test_market($exchange, $skipped_properties, $method, $market) {
     // check precisions
     if (!(is_array($skipped_properties) && array_key_exists('precision', $skipped_properties))) {
         $precision_keys = is_array($market['precision']) ? array_keys($market['precision']) : array();
-        assert(count($precision_keys) >= 2, 'precision should have \"amount\" and \"price\" keys at least' . $log_text);
+        $keys_length = count($precision_keys);
+        assert($keys_length >= 2, 'precision should have \"amount\" and \"price\" keys at least' . $log_text);
         for ($i = 0; $i < count($precision_keys); $i++) {
             check_precision_accuracy($exchange, $skipped_properties, $method, $market['precision'], $precision_keys[$i]);
         }
@@ -177,7 +182,8 @@ function test_market($exchange, $skipped_properties, $method, $market) {
     // check limits
     if (!(is_array($skipped_properties) && array_key_exists('limits', $skipped_properties))) {
         $limits_keys = is_array($market['limits']) ? array_keys($market['limits']) : array();
-        assert(count($limits_keys) >= 3, 'limits should have \"amount\", \"price\" and \"cost\" keys at least' . $log_text);
+        $keys_length = count($limits_keys);
+        assert($keys_length >= 3, 'limits should have \"amount\", \"price\" and \"cost\" keys at least' . $log_text);
         for ($i = 0; $i < count($limits_keys); $i++) {
             $key = $limits_keys[$i];
             $limit_entry = $market['limits'][$key];
@@ -193,9 +199,10 @@ function test_market($exchange, $skipped_properties, $method, $market) {
         }
     }
     // check whether valid currency ID and CODE is used
-    if (!(is_array($skipped_properties) && array_key_exists('currencyIdAndCode', $skipped_properties))) {
+    if (!(is_array($skipped_properties) && array_key_exists('currency', $skipped_properties)) && !(is_array($skipped_properties) && array_key_exists('currencyIdAndCode', $skipped_properties))) {
         assert_valid_currency_id_and_code($exchange, $skipped_properties, $method, $market, $market['baseId'], $market['base']);
         assert_valid_currency_id_and_code($exchange, $skipped_properties, $method, $market, $market['quoteId'], $market['quote']);
         assert_valid_currency_id_and_code($exchange, $skipped_properties, $method, $market, $market['settleId'], $market['settle']);
     }
+    assert_timestamp($exchange, $skipped_properties, $method, $market, null, 'created');
 }

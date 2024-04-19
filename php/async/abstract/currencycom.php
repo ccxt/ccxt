@@ -166,6 +166,9 @@ abstract class currencycom extends \ccxt\async\Exchange {
     public function private_get_v2_withdrawals($params = array()) {
         return $this->request('v2/withdrawals', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
+    public function private_get_v2_fetchorder($params = array()) {
+        return $this->request('v2/fetchOrder', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
     public function private_post_v1_order($params = array()) {
         return $this->request('v1/order', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
@@ -354,6 +357,9 @@ abstract class currencycom extends \ccxt\async\Exchange {
     }
     public function privateGetV2Withdrawals($params = array()) {
         return $this->request('v2/withdrawals', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function privateGetV2FetchOrder($params = array()) {
+        return $this->request('v2/fetchOrder', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     public function privatePostV1Order($params = array()) {
         return $this->request('v1/order', 'private', 'POST', $params, null, null, array("cost" => 1));
