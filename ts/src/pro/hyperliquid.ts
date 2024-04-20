@@ -69,7 +69,7 @@ export default class hyperliquid extends hyperliquidRest {
             'method': 'subscribe',
             'subscription': {
                 'type': 'l2Book',
-                'coin': market['base'],
+                'coin': market['swap'] ? market['base'] : market['id'],
             },
         };
         const message = this.extend (request, params);
@@ -372,7 +372,7 @@ export default class hyperliquid extends hyperliquidRest {
             'method': 'subscribe',
             'subscription': {
                 'type': 'candle',
-                'coin': market['base'],
+                'coin': market['swap'] ? market['base'] : market['id'],
                 'interval': timeframe,
             },
         };
