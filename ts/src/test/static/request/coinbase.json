@@ -218,7 +218,23 @@
                   }
                 ],
                 "output": "{\"product_id\":\"ADA-PERP-INTX\",\"side\":\"BUY\",\"order_configuration\":{\"market_market_ioc\":{\"base_size\":\"20\"}}}"
-              }
+            },
+            {
+                "description": "timeInForce='FOK'",
+                "method": "createOrder",
+                "url": "https://api.coinbase.com/api/v3/brokerage/orders",
+                "input": [
+                  "XRP/USDC",
+                  "limit",
+                  "buy",
+                  10,
+                  0.5,
+                  {
+                    "timeInForce": "FOK"
+                  }
+                ],
+                "output": "{\"client_order_id\":\"ccxt-4018cbc8-f42a-4c79-b078-b16d838e95d6\",\"product_id\":\"XRP-USDC\",\"side\":\"BUY\",\"order_configuration\":{\"limit_limit_fok\":{\"base_size\":\"10\",\"limit_price\":\"0.5\"}}}"
+            }
         ],
         "createMarketBuyOrderWithCost": [
             {
