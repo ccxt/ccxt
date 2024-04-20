@@ -55,8 +55,8 @@ export default class bitflex extends Exchange {
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
-                'fetchOrders': false,
                 'fetchOrderBook': true,
+                'fetchOrders': false,
                 'fetchPositionMode': false,
                 'fetchPositions': false,
                 'fetchPremiumIndexOHLCV': false,
@@ -132,12 +132,12 @@ export default class bitflex extends Exchange {
                         'openapi/v1/withdrawalOrders': 1,
                         'openapi/v1/withdraw/detail': 1,
                         'openapi/v1/balance_flow': 1,
-                        'openapi/quote/contract/v1/getOrder': 1,
-                        'openapi/quote/contract/v1/openOrders': 1,
-                        'openapi/quote/contract/v1/historyOrders': 1,
-                        'openapi/quote/contract/v1/myTrades': 1,
-                        'openapi/quote/contract/v1/positions': 1,
-                        'openapi/quote/contract/v1/account': 1,
+                        'openapi/contract/v1/getOrder': 1,
+                        'openapi/contract/v1/openOrders': 1,
+                        'openapi/contract/v1/historyOrders': 1,
+                        'openapi/contract/v1/myTrades': 1,
+                        'openapi/contract/v1/positions': 1,
+                        'openapi/contract/v1/account': 1,
                     },
                     'post': {
                         'openapi/v1/subAccount/query': 1, // implemented
@@ -191,6 +191,7 @@ export default class bitflex extends Exchange {
                     // 400 {"code":-100012,"msg":"Parameter symbol [String] missing!"}
                     // 400 {"code":-100012,"msg":"Parameter interval [String] missing!"}
                     // 400 {"code":-1140,"msg":"Transaction amount lower than the minimum."}
+                    // 400 {"code":-1131,"msg":"Balance insufficient "}
                 },
                 'broad': {
                 },
@@ -198,7 +199,7 @@ export default class bitflex extends Exchange {
             'precisionMode': TICK_SIZE,
             'options': {
                 'createMarketBuyOrderRequiresPrice': true,
-                'defaultMarketType': 'spot', // 'spot', 'contract' or 'all'
+                'defaultType': 'spot', // 'spot' or 'swap'
                 'networks': {
                     'ERC20': 'ERC20',
                     'TRC20': 'TRC20',
@@ -713,7 +714,7 @@ export default class bitflex extends Exchange {
             //         ...
             //     ]
             //
-        } else if (market['contract']) {
+        } else if (market['swap']) {
             response = await this.publicGetOpenapiQuoteV1ContractTrades (this.extend (request, params));
             //
             //     [
@@ -862,7 +863,7 @@ export default class bitflex extends Exchange {
         //         "openPrice": "63364.98"
         //     }
         //
-        } else if (market['contract']) {
+        } else if (market['swap']) {
             response = await this.publicGetOpenapiQuoteV1ContractTicker24hr (this.extend (request, params));
         }
         //
@@ -905,7 +906,7 @@ export default class bitflex extends Exchange {
                 const market = this.market (symbol);
                 if (market['spot']) {
                     hasSpot = true;
-                } else if (market['contract']) {
+                } else if (market['swap']) {
                     hasContract = true;
                 }
             }
@@ -1093,25 +1094,35 @@ export default class bitflex extends Exchange {
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
          * @see https://docs.bitflex.com/spot#account-information
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.type] market type, ['spot', 'swap']
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.loadMarkets ();
-        const response = await this.privateGetOpenapiV1Account (params);
-        //
-        //     {
-        //         "balances":
-        //             [
-        //                 {
-        //                     "asset": "USDT",
-        //                     "assetId": "USDT",
-        //                     "assetName": "USDT",
-        //                     "total": "149",
-        //                     "free": "149",
-        //                     "locked": "0"
-        //                 }
-        //             ]
-        //     }
-        //
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
+        let response = {};
+        if (type === 'spot') {
+            response = await this.privateGetOpenapiV1Account (params);
+            //
+            //     {
+            //         "balances":
+            //             [
+            //                 {
+            //                     "asset": "USDT",
+            //                     "assetId": "USDT",
+            //                     "assetName": "USDT",
+            //                     "total": "149",
+            //                     "free": "149",
+            //                     "locked": "0"
+            //                 }
+            //             ]
+            //     }
+            //
+        } else if (type === 'swap') {
+            response = await this.privateGetOpenapiContractV1Account (params);
+        } else {
+            throw new NotSupported (this.id + ' fetchBalance() is only supported for spot and contract markets');
+        }
         return this.parseBalance (response);
     }
 
@@ -1174,7 +1185,7 @@ export default class bitflex extends Exchange {
         const market = this.market (symbol);
         if (market['spot']) {
             return await this.createSpotOrder (market, type, side, amount, price, params);
-        } else if (market['contract']) {
+        } else if (market['swap']) {
             return await this.createContractOrder (market, type, side, amount, price, params);
         } else {
             throw new NotSupported (this.id + ' createOrder() is only supported for spot and contract markets');
@@ -1251,33 +1262,46 @@ export default class bitflex extends Exchange {
     }
 
     createContractOrderRequest (market, type, side, amount, price = undefined, params = {}) {
+        const clientOrderId = this.safeString2 (params, 'clientOrderId', 'newClientOrderId');
+        if (clientOrderId === undefined) {
+            throw new InvalidOrder (this.id + ' createOrder() requires a params.clientOrderId parameter'); // the exchange requires a unique clientOrderId for each order
+        }
+        params = this.omit (params, [ 'clientOrderId', 'newClientOrderId' ]);
         const symbol = market['symbol'];
-        const orderSide = side.toUpperCase ();
+        const orderSide = side.toUpperCase () + '_OPEN'; // todo when should we use _OPEN and when should we use _CLOSE
         const request = {
             'symbol': market['id'],
             'side': orderSide,
-            'type': type.toUpperCase (),
+            'quantity': this.amountToPrecision (symbol, amount),
+            'clientOrderId': clientOrderId,
         };
-        if ((orderSide === 'BUY') && (type === 'market')) {
-            let createMarketBuyOrderRequiresPrice = true;
-            [ createMarketBuyOrderRequiresPrice, params ] = this.handleOptionAndParams (params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
-            const cost = this.safeNumber (params, 'cost');
-            params = this.omit (params, 'cost');
-            if (cost !== undefined) {
-                amount = cost;
-            } else if (createMarketBuyOrderRequiresPrice) {
-                if (price === undefined) {
-                    throw new InvalidOrder (this.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument');
-                }
-            }
+        if (price !== undefined) {
+            request['price'] = this.priceToPrecision (symbol, price);
         }
-        return request;
+        let postOnly = undefined;
+        const timeInForce = this.safeString (params, 'timeInForce');
+        [ postOnly, params ] = this.handlePostOnly (type === 'market', timeInForce === 'LIMIT_MAKER', params);
+        if (postOnly) {
+            request['timeInForce'] = 'LIMIT_MAKER';
+        }
+        if (type === 'market') {
+            request['priceType'] = 'MARKET';
+        }
+        const triggerPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
+        if (triggerPrice !== undefined) {
+            request['triggerPrice'] = this.priceToPrecision (symbol, triggerPrice);
+            params = this.omit (params, [ 'triggerPrice', 'stopPrice' ]);
+            request['orderType'] = 'STOP';
+        } else {
+            request['orderType'] = 'LIMIT';
+        }
+        return this.extend (request, params);
     }
 
     async createContractOrder (market, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         const request = this.createContractOrderRequest (market, type, side, amount, price, params);
-        const response = await this.privatePostOpenapiContractV1Order (this.extend (request, params));
+        const response = await this.privatePostOpenapiContractV1Order (request);
         //
         //
         return this.parseOrder (response, market);
@@ -1397,6 +1421,10 @@ export default class bitflex extends Exchange {
          * @see https://docs.bitflex.com/contract#query-order
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+         * @param {string} [params.clientOrderId] a unique ID of the order (user defined)
+         * @param {string} [params.orderType] The order type, possible types: 'LIMIT', 'STOP' (for contract orders only)
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -1407,31 +1435,60 @@ export default class bitflex extends Exchange {
         const request = {
             'orderId': id,
         };
-        const response = await this.privateGetOpenapiV1Order (this.extend (request, params));
-        //
-        //     {
-        //         "accountId": "1662502620223296001",
-        //         "exchangeId": "301",
-        //         "symbol": "ETHUSDT",
-        //         "symbolName": "ETHUSDT",
-        //         "clientOrderId": "1713528894473521",
-        //         "orderId": "1667595665113501696",
-        //         "price": "2000",
-        //         "origQty": "0.01",
-        //         "executedQty": "0",
-        //         "cummulativeQuoteQty": "0",
-        //         "avgPrice": "0",
-        //         "status": "NEW",
-        //         "timeInForce": "GTC",
-        //         "type": "LIMIT_MAKER",
-        //         "side": "BUY",
-        //         "stopPrice": "0.0",
-        //         "icebergQty": "0.0",
-        //         "time": "1713528894498",
-        //         "updateTime": "1713528894508",
-        //         "isWorking": true
-        //     }
-        //
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchOrder', market, params, 'spot');
+        let response = undefined;
+        if (type === 'spot') {
+            response = await this.privateGetOpenapiV1Order (this.extend (request, params));
+            //
+            //     {
+            //         "accountId": "1662502620223296001",
+            //         "exchangeId": "301",
+            //         "symbol": "ETHUSDT",
+            //         "symbolName": "ETHUSDT",
+            //         "clientOrderId": "1713528894473521",
+            //         "orderId": "1667595665113501696",
+            //         "price": "2000",
+            //         "origQty": "0.01",
+            //         "executedQty": "0",
+            //         "cummulativeQuoteQty": "0",
+            //         "avgPrice": "0",
+            //         "status": "NEW",
+            //         "timeInForce": "GTC",
+            //         "type": "LIMIT_MAKER",
+            //         "side": "BUY",
+            //         "stopPrice": "0.0",
+            //         "icebergQty": "0.0",
+            //         "time": "1713528894498",
+            //         "updateTime": "1713528894508",
+            //         "isWorking": true
+            //     }
+            //
+        } else if (type === 'swap') {
+            response = await this.privateGetOpenapiContractV1GetOrder (this.extend (request, params));
+            //
+            //     {
+            //         "time": "1713644180835",
+            //         "updateTime": "1713644180876",
+            //         "orderId": "1668562756977053184",
+            //         "clientOrderId": "123ss443335",
+            //         "symbol": "ETH-SWAP-USDT",
+            //         "price": "0",
+            //         "leverage": "0",
+            //         "origQty": "0.1",
+            //         "executedQty": "0.1",
+            //         "executeQty": "0.1",
+            //         "avgPrice": "3162.28",
+            //         "marginLocked": "0",
+            //         "orderType": "MARKET",
+            //         "side": "BUY_CLOSE",
+            //         "fees": [],
+            //         "timeInForce": "IOC",
+            //         "status": "FILLED",
+            //         "priceType": "MARKET"
+            //     }
+            //
+        }
         return this.parseOrder (response, market);
     }
 
@@ -1450,6 +1507,7 @@ export default class bitflex extends Exchange {
          *
          * EXCHANGE SPECIFIC PARAMETERS
          * @param {string} [params.orderId] if orderId is set, it will get orders < that orderId. Otherwise most recent orders are returned.
+         * @param {string} [params.orderType] order type, ['LIMIT', 'STOP'] for contract orders only
          * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -1461,42 +1519,79 @@ export default class bitflex extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        if (since !== undefined) {
-            request['startTime'] = since;
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchCanceledAndClosedOrders', market, params, 'spot');
+        let response = undefined;
+        if (type === 'spot') {
+            if (since !== undefined) {
+                request['startTime'] = since;
+            }
+            const until = this.safeInteger2 (params, 'till', 'until');
+            if (until !== undefined) {
+                params = this.omit (params, [ 'till', 'until' ]);
+                request['endTime'] = until;
+            }
+            response = await this.privateGetOpenapiV1HistoryOrders (this.extend (request, params));
+            //
+            //     [
+            //         {
+            //             "accountId": "1662502620223296001",
+            //             "exchangeId": "301",
+            //             "symbol": "ETHUSDT",
+            //             "symbolName": "ETHUSDT",
+            //             "clientOrderId": "1713531483905247",
+            //             "orderId": "1667617386700800256",
+            //             "price": "0",
+            //             "origQty": "0.001",
+            //             "executedQty": "0.001",
+            //             "cummulativeQuoteQty": "3.09928",
+            //             "avgPrice": "3099.28",
+            //             "status": "FILLED",
+            //             "timeInForce": "GTC",
+            //             "type": "MARKET",
+            //             "side": "SELL",
+            //             "stopPrice": "0.0",
+            //             "icebergQty": "0.0",
+            //             "time": "1713531483914",
+            //             "updateTime": "1713531483961",
+            //             "isWorking": true
+            //         },
+            //         ...
+            //     ]
+            //
+        } else if (type === 'swap') {
+            if (market !== undefined) {
+                request['symbol'] = market['id'];
+            }
+            response = await this.privateGetOpenapiContractV1HistoryOrders (this.extend (request, params));
+            //
+            //     [
+            //         {
+            //             "time": "1713644180835",
+            //             "updateTime": "1713644180876",
+            //             "orderId": "1668562756977053184",
+            //             "clientOrderId": "123ss443335",
+            //             "symbol": "ETH-SWAP-USDT",
+            //             "price": "0",
+            //             "leverage": "0",
+            //             "origQty": "0.1",
+            //             "executedQty": "0.1",
+            //             "executeQty": "0.1",
+            //             "avgPrice": "3162.28",
+            //             "marginLocked": "0",
+            //             "orderType": "MARKET",
+            //             "side": "BUY_CLOSE",
+            //             "fees": [],
+            //             "timeInForce": "IOC",
+            //             "status": "FILLED",
+            //             "priceType": "MARKET"
+            //         },
+            //         ...
+            //     ]
+            //
+        } else {
+            throw new NotSupported (this.id + ' fetchCanceledAndClosedOrders() is only supported for spot and contract markets');
         }
-        const until = this.safeInteger2 (params, 'till', 'until');
-        if (until !== undefined) {
-            params = this.omit (params, [ 'till', 'until' ]);
-            request['endTime'] = until;
-        }
-        const response = await this.privateGetOpenapiV1HistoryOrders (this.extend (request, params));
-        //
-        //     [
-        //         {
-        //             "accountId": "1662502620223296001",
-        //             "exchangeId": "301",
-        //             "symbol": "ETHUSDT",
-        //             "symbolName": "ETHUSDT",
-        //             "clientOrderId": "1713531483905247",
-        //             "orderId": "1667617386700800256",
-        //             "price": "0",
-        //             "origQty": "0.001",
-        //             "executedQty": "0.001",
-        //             "cummulativeQuoteQty": "3.09928",
-        //             "avgPrice": "3099.28",
-        //             "status": "FILLED",
-        //             "timeInForce": "GTC",
-        //             "type": "MARKET",
-        //             "side": "SELL",
-        //             "stopPrice": "0.0",
-        //             "icebergQty": "0.0",
-        //             "time": "1713531483914",
-        //             "updateTime": "1713531483961",
-        //             "isWorking": true
-        //         },
-        //         ...
-        //     ]
-        //
         return this.parseOrders (response, market, since, limit);
     }
 
@@ -1511,51 +1606,86 @@ export default class bitflex extends Exchange {
          * @param {int} [since] the earliest time in ms to fetch open orders for
          * @param {int} [limit] the maximum number of open orders structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {string} [params.type] market type, ['spot', 'contract']
+         * @param {string} [params.type] market type, ['spot', 'swap']
          *
          * EXCHANGE SPECIFIC PARAMETERS
          * @param {string} [params.orderId] if orderId is set, it will get orders < that orderId. Otherwise most recent orders are returned.
-         * @param {string} [params.orderType] order type, ['LIMIT', 'STOP']
+         * @param {string} [params.orderType] order type, ['LIMIT', 'STOP'] for contract orders only
          * @param {string} [params.priceType] price type, ['INPUT', 'OPPONENT', 'QUEUE', 'OVER', 'MARKET']
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         let market = undefined;
+        const request = {};
         if (symbol !== undefined) {
             market = this.market (symbol);
+            request['symbol'] = market['id'];
         }
-        const request = {};
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.privateGetOpenapiV1OpenOrders (this.extend (request, params));
-        //
-        //     [
-        //         {
-        //             "accountId": "1662502620223296001",
-        //             "exchangeId": "301",
-        //             "symbol": "ETHUSDT",
-        //             "symbolName": "ETHUSDT",
-        //             "clientOrderId": "1713608796954308",
-        //             "orderId": "1668265935553757440",
-        //             "price": "2500",
-        //             "origQty": "0.01",
-        //             "executedQty": "0",
-        //             "cummulativeQuoteQty": "0",
-        //             "avgPrice": "0",
-        //             "status": "NEW",
-        //             "timeInForce": "GTC",
-        //             "type": "LIMIT",
-        //             "side": "BUY",
-        //             "stopPrice": "0.0",
-        //             "icebergQty": "0.0",
-        //             "time": "1713608796960",
-        //             "updateTime": "1713608796971",
-        //             "isWorking": true
-        //         },
-        //         ...
-        //     ]
-        //
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
+        let response = undefined;
+        if (type === 'spot') {
+            response = await this.privateGetOpenapiV1OpenOrders (this.extend (request, params));
+            //
+            //     [
+            //         {
+            //             "accountId": "1662502620223296001",
+            //             "exchangeId": "301",
+            //             "symbol": "ETHUSDT",
+            //             "symbolName": "ETHUSDT",
+            //             "clientOrderId": "1713608796954308",
+            //             "orderId": "1668265935553757440",
+            //             "price": "2500",
+            //             "origQty": "0.01",
+            //             "executedQty": "0",
+            //             "cummulativeQuoteQty": "0",
+            //             "avgPrice": "0",
+            //             "status": "NEW",
+            //             "timeInForce": "GTC",
+            //             "type": "LIMIT",
+            //             "side": "BUY",
+            //             "stopPrice": "0.0",
+            //             "icebergQty": "0.0",
+            //             "time": "1713608796960",
+            //             "updateTime": "1713608796971",
+            //             "isWorking": true
+            //         },
+            //         ...
+            //     ]
+            //
+        } else if (type === 'swap') {
+            response = await this.privateGetOpenapiContractV1OpenOrders (this.extend (request, params));
+            //
+            //     ]
+            //         {
+            //             "time": "1713647854927",
+            //             "updateTime": "1713647854940",
+            //             "orderId": "1668593577494664704",
+            //             "clientOrderId": "sddafadfasdfasdfasdfasdf",
+            //             "symbol": "ETH-SWAP-USDT",
+            //             "price": "1000",
+            //             "leverage": "0",
+            //             "origQty": "0.1",
+            //             "executedQty": "0",
+            //             "executeQty": "0",
+            //             "avgPrice": "0",
+            //             "marginLocked": "10",
+            //             "orderType": "LIMIT",
+            //             "side": "BUY_OPEN",
+            //             "fees": [],
+            //             "timeInForce": "GTC",
+            //             "status": "NEW",
+            //             "priceType": "INPUT"
+            //         },
+            //         ...
+            //     ]
+            //
+        } else {
+            throw new NotSupported (this.id + ' fetchOpenOrders() is only supported for spot and contract markets');
+        }
         return this.parseOrders (response, market, since, limit);
     }
 
