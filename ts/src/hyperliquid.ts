@@ -468,7 +468,7 @@ export default class hyperliquid extends Exchange {
             const innerBaseTokenInfo = this.safeDict (baseTokenInfo, 'spec', baseTokenInfo);
             const innerQuoteTokenInfo = this.safeDict (quoteTokenInfo, 'spec', quoteTokenInfo);
             const amountPrecision = this.parseNumber (this.parsePrecision (this.safeString (innerBaseTokenInfo, 'szDecimals')));
-            const quotePrecision = this.parseNumber (this.parsePrecision (this.safeString (innerQuoteTokenInfo, 'szDecimals')));
+            // const quotePrecision = this.parseNumber (this.parsePrecision (this.safeString (innerQuoteTokenInfo, 'szDecimals')));
             const baseId = this.numberToString (i + 10000);
             markets.push (this.safeMarketStructure ({
                 'id': marketName,
@@ -499,7 +499,7 @@ export default class hyperliquid extends Exchange {
                 'optionType': undefined,
                 'precision': {
                     'amount': amountPrecision, // decimal places
-                    'price': quotePrecision,
+                    'price': 5, // significant digits
                 },
                 'limits': {
                     'leverage': {
@@ -889,11 +889,18 @@ export default class hyperliquid extends Exchange {
     }
 
     amountToPrecision (symbol, amount) {
+        const market = this.market (symbol);
+        if (market['spot']) {
+            return super.amountToPrecision (symbol, amount);
+        }
         return this.decimalToPrecision (amount, ROUND, this.markets[symbol]['precision']['amount'], this.precisionMode);
     }
 
     priceToPrecision (symbol: string, price): string {
         const market = this.market (symbol);
+        if (market['spot']) {
+            return super.priceToPrecision (symbol, price);
+        }
         const result = this.decimalToPrecision (price, ROUND, market['precision']['price'], SIGNIFICANT_DIGITS, this.paddingMode);
         const decimalParsedResult = this.decimalToPrecision (result, ROUND, 6, DECIMAL_PLACES, this.paddingMode);
         return decimalParsedResult;
