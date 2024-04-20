@@ -462,11 +462,11 @@ export default class hyperliquid extends Exchange {
             const maker = this.safeNumber (fees, 'maker');
             const tokensPos = this.safeList (market, 'tokens', []);
             const baseTokenPos = this.safeInteger (tokensPos, 0);
-            const quoteTokenPos = this.safeInteger (tokensPos, 1);
+            // const quoteTokenPos = this.safeInteger (tokensPos, 1);
             const baseTokenInfo = this.safeDict (tokens, baseTokenPos, {});
-            const quoteTokenInfo = this.safeDict (tokens, quoteTokenPos, {});
+            // const quoteTokenInfo = this.safeDict (tokens, quoteTokenPos, {});
             const innerBaseTokenInfo = this.safeDict (baseTokenInfo, 'spec', baseTokenInfo);
-            const innerQuoteTokenInfo = this.safeDict (quoteTokenInfo, 'spec', quoteTokenInfo);
+            // const innerQuoteTokenInfo = this.safeDict (quoteTokenInfo, 'spec', quoteTokenInfo);
             const amountPrecision = this.parseNumber (this.parsePrecision (this.safeString (innerBaseTokenInfo, 'szDecimals')));
             // const quotePrecision = this.parseNumber (this.parsePrecision (this.safeString (innerQuoteTokenInfo, 'szDecimals')));
             const baseId = this.numberToString (i + 10000);
