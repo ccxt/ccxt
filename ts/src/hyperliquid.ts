@@ -320,6 +320,7 @@ export default class hyperliquid extends Exchange {
         //         ]
         //     ]
         //
+        //
         let meta = this.safeDict (response, 0, {});
         meta = this.safeList (meta, 'universe', []);
         const assetCtxs = this.safeDict (response, 1, {});
@@ -382,10 +383,70 @@ export default class hyperliquid extends Exchange {
         //         },
         //     ],
         // ];
+        // mainnet
+        // [
+        //     {
+        //        "canonical_tokens2":[
+        //           0,
+        //           1
+        //        ],
+        //        "spot_infos":[
+        //           {
+        //              "name":"PURR/USDC",
+        //              "tokens":[
+        //                 1,
+        //                 0
+        //              ]
+        //           }
+        //        ],
+        //        "token_id_to_token":[
+        //           [
+        //              "0x6d1e7cde53ba9467b783cb7c530ce054",
+        //              0
+        //           ],
+        //           [
+        //              "0xc1fb593aeffbeb02f85e0308e9956a90",
+        //              1
+        //           ]
+        //        ],
+        //        "token_infos":[
+        //           {
+        //              "deployer":null,
+        //              "spec":{
+        //                 "name":"USDC",
+        //                 "szDecimals":"8",
+        //                 "weiDecimals":"8"
+        //              },
+        //              "spots":[
+        //              ]
+        //           },
+        //           {
+        //              "deployer":null,
+        //              "spec":{
+        //                 "name":"PURR",
+        //                 "szDecimals":"0",
+        //                 "weiDecimals":"5"
+        //              },
+        //              "spots":[
+        //                 0
+        //              ]
+        //           }
+        //        ]
+        //     },
+        //     [
+        //        {
+        //           "dayNtlVlm":"35001170.16631",
+        //           "markPx":"0.15743",
+        //           "midPx":"0.157555",
+        //           "prevDayPx":"0.158"
+        //        }
+        //     ]
+        // ]
         //
+        // response differs depending on the environment (mainnet vs sandbox)
         const first = this.safeDict (response, 0, {});
-        const meta = this.safeList (first, 'universe', []);
-        const tokens = this.safeList (first, 'tokens', []);
+        const meta = this.safeList2 (first, 'universe', 'spot_infos', []);
+        const tokens = this.safeList2 (first, 'tokens', 'token_infos', []);
         const markets = [];
         for (let i = 0; i < meta.length; i++) {
             const market = this.safeDict (meta, i, {});
@@ -404,8 +465,10 @@ export default class hyperliquid extends Exchange {
             const quoteTokenPos = this.safeInteger (tokensPos, 1);
             const baseTokenInfo = this.safeDict (tokens, baseTokenPos, {});
             const quoteTokenInfo = this.safeDict (tokens, quoteTokenPos, {});
-            const baseDecimals = this.safeString (baseTokenInfo, 'szDecimals');
-            const quoteDecimals = this.safeInteger (quoteTokenInfo, 'szDecimals');
+            const innerBaseTokenInfo = this.safeDict (baseTokenInfo, 'spec', baseTokenInfo);
+            const innerQuoteTokenInfo = this.safeDict (quoteTokenInfo, 'spec', quoteTokenInfo);
+            const baseDecimals = this.safeString (innerBaseTokenInfo, 'szDecimals');
+            const quoteDecimals = this.safeInteger (innerQuoteTokenInfo, 'szDecimals');
             const baseId = this.numberToString (i + 10000);
             markets.push (this.safeMarketStructure ({
                 'id': baseId,
@@ -418,13 +481,14 @@ export default class hyperliquid extends Exchange {
                 'settleId': undefined,
                 'type': 'spot',
                 'spot': true,
+                'subType': undefined,
                 'margin': undefined,
                 'swap': false,
                 'future': false,
                 'option': false,
                 'active': true,
                 'contract': false,
-                'linear': true,
+                'linear': false,
                 'inverse': false,
                 'taker': taker,
                 'maker': maker,
