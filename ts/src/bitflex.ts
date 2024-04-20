@@ -39,6 +39,7 @@ export default class bitflex extends Exchange {
                 'fetchBalance': true,
                 'fetchBidsAsks': true,
                 'fetchClosedOrders': false,
+                'fetchCanceledAndClosedOrders': true,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': false,
                 'fetchDeposits': false,
@@ -52,9 +53,9 @@ export default class bitflex extends Exchange {
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': false,
                 'fetchOHLCV': true,
-                'fetchOpenOrders': false,
+                'fetchOpenOrders': true,
                 'fetchOrder': true,
-                'fetchOrders': true,
+                'fetchOrders': false,
                 'fetchOrderBook': true,
                 'fetchPositionMode': false,
                 'fetchPositions': false,
@@ -1527,44 +1528,59 @@ export default class bitflex extends Exchange {
         return this.parseOrders (response, market, since, limit);
     }
 
-    async cancelOrder (id: string, symbol: Str = undefined, params = {}) { // todo cancelOrder for swap
+    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> { // todo fetchOrders for swap
         /**
          * @method
-         * @name bitflex#cancelOrder
-         * @description cancels an open order
-         * @see https://docs.bitflex.com/spot#cancel-order
-         * @see https://docs.bitflex.com/contract#cancel-order
-         * @param {string} id order id
-         * @param {string} symbol unified symbol of the market the order was made in
+         * @name bitflex#fetchOpenOrders
+         * @description fetch all unfilled currently open orders
+         * @see https://docs.bitflex.com/spot#current-open-orders
+         * @see https://docs.bitflex.com/contract#current-open-orders
+         * @param {string} symbol unified market symbol
+         * @param {int} [since] the earliest time in ms to fetch open orders for
+         * @param {int} [limit] the maximum number of open orders structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @param {string} [params.type] market type, ['swap', 'option', 'spot']
+         * @param {string} [params.subType] market subType, ['linear', 'inverse']
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const request = {
-            'orderId': id,
-        };
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const response = await this.privateDeleteOpenapiV1Order (this.extend (request, params));
+        const request = {};
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.privateGetOpenapiV1OpenOrders (this.extend (request, params));
         //
-        //     {
-        //         "accountId": "1662502620223296001",
-        //         "symbol": "ETHUSDT",
-        //         "clientOrderId": "1713528894473521",
-        //         "orderId": "1667595665113501696",
-        //         "transactTime": "1713528894498",
-        //         "price": "2000",
-        //         "origQty": "0.01",
-        //         "executedQty": "0",
-        //         "status": "CANCELED",
-        //         "timeInForce": "GTC",
-        //         "type": "LIMIT_MAKER",
-        //         "side": "BUY"
-        //     }
+        //     [
+        //         {
+        //             "accountId": "1662502620223296001",
+        //             "exchangeId": "301",
+        //             "symbol": "ETHUSDT",
+        //             "symbolName": "ETHUSDT",
+        //             "clientOrderId": "1713608796954308",
+        //             "orderId": "1668265935553757440",
+        //             "price": "2500",
+        //             "origQty": "0.01",
+        //             "executedQty": "0",
+        //             "cummulativeQuoteQty": "0",
+        //             "avgPrice": "0",
+        //             "status": "NEW",
+        //             "timeInForce": "GTC",
+        //             "type": "LIMIT",
+        //             "side": "BUY",
+        //             "stopPrice": "0.0",
+        //             "icebergQty": "0.0",
+        //             "time": "1713608796960",
+        //             "updateTime": "1713608796971",
+        //             "isWorking": true
+        //         },
+        //         ...
+        //     ]
         //
-        return this.parseOrder (response, market);
+        return this.parseOrders (response, market, since, limit);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
