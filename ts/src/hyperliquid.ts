@@ -898,9 +898,6 @@ export default class hyperliquid extends Exchange {
 
     priceToPrecision (symbol: string, price): string {
         const market = this.market (symbol);
-        if (market['spot']) {
-            return super.priceToPrecision (symbol, price);
-        }
         const result = this.decimalToPrecision (price, ROUND, market['precision']['price'], SIGNIFICANT_DIGITS, this.paddingMode);
         const decimalParsedResult = this.decimalToPrecision (result, ROUND, 6, DECIMAL_PLACES, this.paddingMode);
         return decimalParsedResult;
