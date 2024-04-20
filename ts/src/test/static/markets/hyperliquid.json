@@ -260,7 +260,7 @@
         }
     },
     "PURR/USDC": {
-        "id": "10000",
+        "id": "PURR/USDC",
         "symbol": "PURR/USDC",
         "base": "PURR",
         "quote": "USDC",
