@@ -1701,8 +1701,8 @@ export default class bitflex extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          *
          * EXCHANGE SPECIFIC PARAMETERS
-         * @param {string} [params.orderId] either orderId or clientOrderId must be sent.
-         * @param {string} [params.clientOrderId] either orderId or clientOrderId must be sent.
+         * @param {string} [params.clientOrderId] either orderId or clientOrderId must be sent
+         * @param {string} [params.orderType] order type, ['LIMIT', 'STOP'] for contract orders only
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -1713,23 +1713,54 @@ export default class bitflex extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const response = await this.privateDeleteOpenapiV1Order (this.extend (request, params));
-        //
-        //     {
-        //         "accountId": "1662502620223296001",
-        //         "symbol": "ETHUSDT",
-        //         "clientOrderId": "1713528894473521",
-        //         "orderId": "1667595665113501696",
-        //         "transactTime": "1713528894498",
-        //         "price": "2000",
-        //         "origQty": "0.01",
-        //         "executedQty": "0",
-        //         "status": "CANCELED",
-        //         "timeInForce": "GTC",
-        //         "type": "LIMIT_MAKER",
-        //         "side": "BUY"
-        //     }
-        //
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('cancelOrder', market, params);
+        let response = undefined;
+        if (type === 'spot') {
+            response = await this.privateDeleteOpenapiV1Order (this.extend (request, params));
+            //
+            //     {
+            //         "accountId": "1662502620223296001",
+            //         "symbol": "ETHUSDT",
+            //         "clientOrderId": "1713528894473521",
+            //         "orderId": "1667595665113501696",
+            //         "transactTime": "1713528894498",
+            //         "price": "2000",
+            //         "origQty": "0.01",
+            //         "executedQty": "0",
+            //         "status": "CANCELED",
+            //         "timeInForce": "GTC",
+            //         "type": "LIMIT_MAKER",
+            //         "side": "BUY"
+            //     }
+            //
+        } else if (type === 'swap') {
+            response = await this.privateDeleteOpenapiContractV1OrderCancel (this.extend (request, params));
+            //
+            //     {
+            //         "time": "1713648762414",
+            //         "updateTime": "1713649270107",
+            //         "orderId": "1668601190047372800",
+            //         "clientOrderId": "sddafadfasffffff",
+            //         "symbol": "ETH-SWAP-USDT",
+            //         "price": "1000",
+            //         "leverage": "0",
+            //         "origQty": "0.1",
+            //         "executedQty": "0",
+            //         "executeQty": "0",
+            //         "avgPrice": "0",
+            //         "marginLocked": "0",
+            //         "orderType": "LIMIT",
+            //         "side": "BUY_OPEN",
+            //         "fees": [],
+            //         "timeInForce": "GTC",
+            //         "status": "CANCELED",
+            //         "priceType": "INPUT"
+            //     }
+            //
+        } else {
+            throw new NotSupported (this.id + ' cancelOrder() is only supported for spot and contract markets');
+        }
         return this.parseOrder (response, market);
     }
 
