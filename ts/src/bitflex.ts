@@ -1222,10 +1222,6 @@ export default class bitflex extends Exchange {
         [ postOnly, params ] = this.handlePostOnly (type === 'market', type === 'LIMIT_MAKER', params);
         if (postOnly) {
             request['type'] = 'LIMIT_MAKER';
-            const timeInForce = this.safeString (params, 'timeInForce');
-            if (timeInForce === 'PO') {
-                params = this.omit (params, 'timeInForce');
-            }
         }
         return this.extend (request, params);
     }
@@ -1233,7 +1229,7 @@ export default class bitflex extends Exchange {
     async createSpotOrder (market, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         const request = this.createSpotOrderRequest (market, type, side, amount, price, params);
-        const response = await this.privatePostOpenapiV1Order (this.extend (request, params));
+        const response = await this.privatePostOpenapiV1Order (request);
         //
         //     {
         //         "accountId": "1662502620223296001",
