@@ -480,6 +480,15 @@
                     "ETH/USDC:USDC"
                 ],
                 "output": "{\"type\":\"l2Book\",\"coin\":\"ETH\"}"
+            },
+            {
+                "description": "spot orderbook",
+                "method": "fetchOrderBook",
+                "url": "https://api.hyperliquid.xyz/info",
+                "input": [
+                  "PURR/USDC"
+                ],
+                "output": "{\"type\":\"l2Book\",\"coin\":\"PURR/USDC\"}"
             }
         ],
         "fetchOHLCV": [
@@ -491,6 +500,15 @@
                     "ETH/USDC:USDC"
                 ],
                 "output": "{\"type\":\"candleSnapshot\",\"req\":{\"coin\":\"ETH\",\"interval\":\"1m\",\"startTime\":0,\"endTime\":1704683640997}}"
+            },
+            {
+                "description": "spot ohlcv",
+                "method": "fetchOHLCV",
+                "url": "https://api.hyperliquid.xyz/info",
+                "input": [
+                  "PURR/USDC"
+                ],
+                "output": "{\"type\":\"candleSnapshot\",\"req\":{\"coin\":\"PURR/USDC\",\"interval\":\"1m\",\"startTime\":0,\"endTime\":1713610566832}}"
             }
         ],
         "fetchFundingRateHistory": [
