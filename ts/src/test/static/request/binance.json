@@ -3055,9 +3055,12 @@
             {
                 "description": "Fetch the conversion trade history for BUSD conversions",
                 "method": "fetchConvertTradeHistory",
-                "url": "https://api.binance.com/sapi/v1/asset/convert-transfer/queryByPage?timestamp=1713569909204&startTime=1713483509188&endTime=1713569909188&asset=BUSD&recvWindow=10000&signature=ee6908b431a1da834ae717ec872ea3f3c6a557e8adeb8a0266fa470aecfbfe99",
+                "url": "https://api.binance.com/sapi/v1/asset/convert-transfer/queryByPage?timestamp=1713569909204&startTime=1713336537740&endTime=1713422937740&asset=BUSD&recvWindow=10000&signature=ee6908b431a1da834ae717ec872ea3f3c6a557e8adeb8a0266fa470aecfbfe99",
                 "input": [
-                  "BUSD"
+                  "BUSD",
+                  1713336537740,
+                  null,
+                  {"endTime":1713422937740}
                 ]
             }
         ],
