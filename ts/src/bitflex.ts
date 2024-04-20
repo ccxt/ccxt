@@ -124,8 +124,8 @@ export default class bitflex extends Exchange {
                 'private': {
                     'get': {
                         'openapi/v1/order': 1, // implemented
-                        'openapi/v1/openOrders': 1,
-                        'openapi/v1/historyOrders': 1,
+                        'openapi/v1/openOrders': 1, // implemented
+                        'openapi/v1/historyOrders': 1, // implemented
                         'openapi/v1/myTrades': 1,
                         'openapi/v1/account': 1, // implemented
                         'openapi/v1/depositOrders': 1,
@@ -1478,6 +1478,9 @@ export default class bitflex extends Exchange {
          * @param {int} [limit] the maximum amount of orders to fetch, default 500, max 1000
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {int} [params.until] the latest time in ms to fetch entries for
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+         * @param {string} [params.orderId] if orderId is set, it will get orders < that orderId. Otherwise most recent orders are returned.
          * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -1541,6 +1544,9 @@ export default class bitflex extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.type] market type, ['swap', 'option', 'spot']
          * @param {string} [params.subType] market subType, ['linear', 'inverse']
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+         * @param {string} [params.orderId] if orderId is set, it will get orders < that orderId. Otherwise most recent orders are returned.
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -1581,6 +1587,46 @@ export default class bitflex extends Exchange {
         //     ]
         //
         return this.parseOrders (response, market, since, limit);
+    }
+
+    async cancelOrder (id: string, symbol: Str = undefined, params = {}) { // todo cancelOrder for swap
+        /**
+         * @method
+         * @name bitflex#cancelOrder
+         * @description cancels an open order
+         * @see https://docs.bitflex.com/spot#cancel-order
+         * @see https://docs.bitflex.com/contract#cancel-order
+         * @param {string} id order id
+         * @param {string} symbol unified symbol of the market the order was made in
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        const request = {
+            'orderId': id,
+        };
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        const response = await this.privateDeleteOpenapiV1Order (this.extend (request, params));
+        //
+        //     {
+        //         "accountId": "1662502620223296001",
+        //         "symbol": "ETHUSDT",
+        //         "clientOrderId": "1713528894473521",
+        //         "orderId": "1667595665113501696",
+        //         "transactTime": "1713528894498",
+        //         "price": "2000",
+        //         "origQty": "0.01",
+        //         "executedQty": "0",
+        //         "status": "CANCELED",
+        //         "timeInForce": "GTC",
+        //         "type": "LIMIT_MAKER",
+        //         "side": "BUY"
+        //     }
+        //
+        return this.parseOrder (response, market);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
