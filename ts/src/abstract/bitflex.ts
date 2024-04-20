@@ -37,12 +37,12 @@ interface Exchange {
     privateGetOpenapiV1WithdrawalOrders (params?: {}): Promise<implicitReturnType>;
     privateGetOpenapiV1WithdrawDetail (params?: {}): Promise<implicitReturnType>;
     privateGetOpenapiV1BalanceFlow (params?: {}): Promise<implicitReturnType>;
-    privateGetOpenapiQuoteContractV1GetOrder (params?: {}): Promise<implicitReturnType>;
-    privateGetOpenapiQuoteContractV1OpenOrders (params?: {}): Promise<implicitReturnType>;
-    privateGetOpenapiQuoteContractV1HistoryOrders (params?: {}): Promise<implicitReturnType>;
-    privateGetOpenapiQuoteContractV1MyTrades (params?: {}): Promise<implicitReturnType>;
-    privateGetOpenapiQuoteContractV1Positions (params?: {}): Promise<implicitReturnType>;
-    privateGetOpenapiQuoteContractV1Account (params?: {}): Promise<implicitReturnType>;
+    privateGetOpenapiContractV1GetOrder (params?: {}): Promise<implicitReturnType>;
+    privateGetOpenapiContractV1OpenOrders (params?: {}): Promise<implicitReturnType>;
+    privateGetOpenapiContractV1HistoryOrders (params?: {}): Promise<implicitReturnType>;
+    privateGetOpenapiContractV1MyTrades (params?: {}): Promise<implicitReturnType>;
+    privateGetOpenapiContractV1Positions (params?: {}): Promise<implicitReturnType>;
+    privateGetOpenapiContractV1Account (params?: {}): Promise<implicitReturnType>;
     privatePostOpenapiV1SubAccountQuery (params?: {}): Promise<implicitReturnType>;
     privatePostOpenapiV1Transfer (params?: {}): Promise<implicitReturnType>;
     privatePostOpenapiV1Withdraw (params?: {}): Promise<implicitReturnType>;
