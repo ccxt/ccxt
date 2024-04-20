@@ -54,6 +54,7 @@ export default class bitflex extends Exchange {
                 'fetchOHLCV': true,
                 'fetchOpenOrders': false,
                 'fetchOrder': true,
+                'fetchOrders': true,
                 'fetchOrderBook': true,
                 'fetchPositionMode': false,
                 'fetchPositions': false,
@@ -1464,17 +1465,18 @@ export default class bitflex extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async fetchOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) { // todo fetchOrders for swap
+    async fetchCanceledAndClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) { // todo fetchOrders for swap
         /**
          * @method
-         * @name bitflex#fetchOrders
-         * @description fetches all orders made by the user
+         * @name bitflex#fetchCanceledAndClosedOrders
+         * @description fetches information on multiple canceled and closed orders made by the user
          * @see https://docs.bitflex.com/spot#all-orders
          * @see https://docs.bitflex.com/contract#all-orders
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {int} [since] timestamp in ms of the earliest order to fetch
-         * @param {int} [limit] the maximum amount of orders to fetch, default 100, max 1000
+         * @param {int} [limit] the maximum amount of orders to fetch, default 500, max 1000
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {int} [params.until] the latest time in ms to fetch entries for
          * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -1488,6 +1490,11 @@ export default class bitflex extends Exchange {
         }
         if (since !== undefined) {
             request['startTime'] = since;
+        }
+        const until = this.safeInteger2 (params, 'till', 'until');
+        if (until !== undefined) {
+            params = this.omit (params, [ 'till', 'until' ]);
+            request['endTime'] = until;
         }
         const response = await this.privateGetOpenapiV1HistoryOrders (this.extend (request, params));
         //
