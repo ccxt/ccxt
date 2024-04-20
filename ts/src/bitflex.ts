@@ -3,10 +3,10 @@
 
 import Exchange from './abstract/bitflex.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { InvalidOrder } from './base/errors.js';
+import { BadRequest, InvalidOrder, NotSupported } from './base/errors.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { Precise } from './base/Precise.js';
-import { Account, Balances, Currencies, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Tickers, Trade, Strings } from './base/types.js';
+import { Account, Balances, Currencies, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Tickers, Trade, TransferEntry, Strings } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -38,8 +38,8 @@ export default class bitflex extends Exchange {
                 'fetchAccounts': true,
                 'fetchBalance': true,
                 'fetchBidsAsks': true,
-                'fetchClosedOrders': false,
                 'fetchCanceledAndClosedOrders': true,
+                'fetchClosedOrders': false,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': false,
                 'fetchDeposits': false,
@@ -198,6 +198,7 @@ export default class bitflex extends Exchange {
             'precisionMode': TICK_SIZE,
             'options': {
                 'createMarketBuyOrderRequiresPrice': true,
+                'defaultMarketType': 'spot', // 'spot', 'contract' or 'all'
                 'networks': {
                     'ERC20': 'ERC20',
                     'TRC20': 'TRC20',
@@ -1085,72 +1086,6 @@ export default class bitflex extends Exchange {
         return this.parseTickers (response, symbols);
     }
 
-    async fetchAccounts (params = {}): Promise<Account[]> {
-        /**
-         * @method
-         * @name bitflex#fetchAccounts
-         * @description fetch all the accounts associated with a profile
-         * @see https://docs.bitflex.com/spot#get-sub-account-list
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type
-         */
-        await this.loadMarkets ();
-        const response = await this.privatePostOpenapiV1SubAccountQuery (params);
-        //
-        //     [
-        //         {
-        //             "accountId": "1662502620223296001",
-        //             "accountName": "",
-        //             "accountType": 1,
-        //             "accountIndex": 0
-        //         },
-        //         {
-        //             "accountId": "1662502620223296003",
-        //             "accountName": "",
-        //             "accountType": 3,
-        //             "accountIndex": 0
-        //         }
-        //     ]
-        //
-        return this.parseAccounts (response, params);
-    }
-
-    parseAccount (account) {
-        //
-        //     {
-        //         "accountId": "1662502620223296001",
-        //         "accountName": "",
-        //         "accountType": 1,
-        //         "accountIndex": 0
-        //     },
-        //
-        const accountType = this.safeString (account, 'accountType'); // todo check
-        return {
-            'id': this.safeString (account, 'accountId'),
-            'name': this.safeString (account, 'accountName'),
-            'type': this.parseAccountType (accountType),
-            'code': undefined,
-            'info': account,
-        };
-    }
-
-    parseAccountType (type) {
-        const types = {
-            '1': 'spot',
-            '2': 'option',
-            '3': 'swap',
-        };
-        return this.safeString (types, type, type);
-    }
-
-    parseAccountIndex (index) {
-        const indexes = {
-            '0': 'main',
-            '1': 'subaccount',
-        };
-        return this.safeString (indexes, index, index);
-    }
-
     async fetchBalance (params = {}): Promise<Balances> {
         /**
          * @method
@@ -1239,10 +1174,11 @@ export default class bitflex extends Exchange {
         const market = this.market (symbol);
         if (market['spot']) {
             return await this.createSpotOrder (market, type, side, amount, price, params);
+        } else if (market['contract']) {
+            return await this.createContractOrder (market, type, side, amount, price, params);
+        } else {
+            throw new NotSupported (this.id + ' createOrder() is only supported for spot and contract markets');
         }
-        // else {
-        //     return await this.createSwapOrder (market, type, side, amount, price, marginMode, query);
-        // }
     }
 
     createSpotOrderRequest (market, type, side, amount, price = undefined, params = {}) {
@@ -1286,6 +1222,10 @@ export default class bitflex extends Exchange {
         [ postOnly, params ] = this.handlePostOnly (type === 'market', type === 'LIMIT_MAKER', params);
         if (postOnly) {
             request['type'] = 'LIMIT_MAKER';
+            const timeInForce = this.safeString (params, 'timeInForce');
+            if (timeInForce === 'PO') {
+                params = this.omit (params, 'timeInForce');
+            }
         }
         return this.extend (request, params);
     }
@@ -1310,6 +1250,39 @@ export default class bitflex extends Exchange {
         //         "type": "MARKET",
         //         "side": "BUY"
         //     }
+        //
+        return this.parseOrder (response, market);
+    }
+
+    createContractOrderRequest (market, type, side, amount, price = undefined, params = {}) {
+        const symbol = market['symbol'];
+        const orderSide = side.toUpperCase ();
+        const request = {
+            'symbol': market['id'],
+            'side': orderSide,
+            'type': type.toUpperCase (),
+        };
+        if ((orderSide === 'BUY') && (type === 'market')) {
+            let createMarketBuyOrderRequiresPrice = true;
+            [ createMarketBuyOrderRequiresPrice, params ] = this.handleOptionAndParams (params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+            const cost = this.safeNumber (params, 'cost');
+            params = this.omit (params, 'cost');
+            if (cost !== undefined) {
+                amount = cost;
+            } else if (createMarketBuyOrderRequiresPrice) {
+                if (price === undefined) {
+                    throw new InvalidOrder (this.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument');
+                }
+            }
+        }
+        return request;
+    }
+
+    async createContractOrder (market, type, side, amount, price = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = this.createContractOrderRequest (market, type, side, amount, price, params);
+        const response = await this.privatePostOpenapiContractV1Order (this.extend (request, params));
+        //
         //
         return this.parseOrder (response, market);
     }
@@ -1542,11 +1515,12 @@ export default class bitflex extends Exchange {
          * @param {int} [since] the earliest time in ms to fetch open orders for
          * @param {int} [limit] the maximum number of open orders structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {string} [params.type] market type, ['swap', 'option', 'spot']
-         * @param {string} [params.subType] market subType, ['linear', 'inverse']
+         * @param {string} [params.type] market type, ['spot', 'contract']
          *
          * EXCHANGE SPECIFIC PARAMETERS
          * @param {string} [params.orderId] if orderId is set, it will get orders < that orderId. Otherwise most recent orders are returned.
+         * @param {string} [params.orderType] order type, ['LIMIT', 'STOP']
+         * @param {string} [params.priceType] price type, ['INPUT', 'OPPONENT', 'QUEUE', 'OVER', 'MARKET']
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -1599,6 +1573,10 @@ export default class bitflex extends Exchange {
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+         * @param {string} [params.orderId] either orderId or clientOrderId must be sent.
+         * @param {string} [params.clientOrderId] either orderId or clientOrderId must be sent.
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -1627,6 +1605,140 @@ export default class bitflex extends Exchange {
         //     }
         //
         return this.parseOrder (response, market);
+    }
+
+    async fetchAccounts (params = {}): Promise<Account[]> {
+        /**
+         * @method
+         * @name bitflex#fetchAccounts
+         * @description fetch all the accounts associated with a profile
+         * @see https://docs.bitflex.com/spot#get-sub-account-list
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type
+         */
+        await this.loadMarkets ();
+        const response = await this.privatePostOpenapiV1SubAccountQuery (params);
+        //
+        //     [
+        //         {
+        //             "accountId": "1662502620223296001",
+        //             "accountName": "",
+        //             "accountType": 1,
+        //             "accountIndex": 0
+        //         },
+        //         {
+        //             "accountId": "1662502620223296003",
+        //             "accountName": "",
+        //             "accountType": 3,
+        //             "accountIndex": 0
+        //         }
+        //     ]
+        //
+        return this.parseAccounts (response, params);
+    }
+
+    parseAccount (account) {
+        //
+        //     {
+        //         "accountId": "1662502620223296001",
+        //         "accountName": "",
+        //         "accountType": 1,
+        //         "accountIndex": 0
+        //     },
+        //
+        const accountType = this.safeString (account, 'accountType'); // todo check
+        return {
+            'id': this.safeString (account, 'accountId'),
+            'name': this.safeString (account, 'accountName'),
+            'type': this.parseAccountType (accountType),
+            'code': undefined,
+            'info': account,
+        };
+    }
+
+    parseAccountType (type) {
+        const types = {
+            '1': 'spot',
+            '2': 'option',
+            '3': 'swap',
+        };
+        return this.safeString (types, type, type);
+    }
+
+    parseAccountIndex (index) {
+        const indexes = {
+            '0': 'main',
+            '1': 'subaccount',
+        };
+        return this.safeString (indexes, index, index);
+    }
+
+    async transfer (code: string, amount: number, fromAccount: string, toAccount: string, params = {}): Promise<TransferEntry> {
+        /**
+         * @method
+         * @name biflex#transfer
+         * @description transfer currency internally between wallets on the same account
+         * @see https://docs.bitflex.com/spot#internal-account-transfer
+         * @see https://docs.bitflex.com/contract#transfer-pending
+         * @param {string} code unified currency code
+         * @param {float} amount amount to transfer
+         * @param {string} fromAccount account to transfer from
+         * @param {string} toAccount account to transfer to
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+         */
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        amount = this.currencyToPrecision (code, amount);
+        amount = this.parseToNumeric (amount);
+        const request = {
+            'amount': amount,
+            'currency': currency['id'].toUpperCase (),
+        };
+        let response = undefined;
+        if (fromAccount === 'main') {
+            request['subAccount'] = toAccount;
+            response = await this.privatePostOpenapiV1Transfer (this.extend (request, params));
+        } else if (toAccount === 'main') {
+            request['subAccount'] = fromAccount;
+            response = await this.privatePostOpenapiV1Transfer (this.extend (request, params));
+        } else {
+            throw new BadRequest (this.id + ' transfer() only supports from or to main');
+        }
+        //
+        //    { "success": "true" }
+        //
+        const transfer = this.parseTransfer (response, currency);
+        transfer['amount'] = amount;
+        transfer['fromAccount'] = fromAccount;
+        transfer['toAccount'] = toAccount;
+        return transfer;
+    }
+
+    parseTransfer (transfer, currency = undefined) {
+        //
+        //    { "success": "true" }
+        //
+        const status = this.safeString (transfer, 'success');
+        return {
+            'info': transfer,
+            'id': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'currency': currency['code'],
+            'amount': undefined,
+            'fromAccount': undefined,
+            'toAccount': undefined,
+            'status': this.parseTransferStatus (status),
+        };
+    }
+
+    parseTransferStatus (status) {
+        const statuses = {
+            'success': 'true',
+            'error': 'failed',
+        };
+        return this.safeString (statuses, status, status);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
