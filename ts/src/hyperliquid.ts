@@ -467,8 +467,8 @@ export default class hyperliquid extends Exchange {
             const quoteTokenInfo = this.safeDict (tokens, quoteTokenPos, {});
             const innerBaseTokenInfo = this.safeDict (baseTokenInfo, 'spec', baseTokenInfo);
             const innerQuoteTokenInfo = this.safeDict (quoteTokenInfo, 'spec', quoteTokenInfo);
-            const baseDecimals = this.safeString (innerBaseTokenInfo, 'szDecimals');
-            const quoteDecimals = this.safeInteger (innerQuoteTokenInfo, 'szDecimals');
+            const amountPrecision = this.parseNumber (this.parsePrecision (this.safeString (innerBaseTokenInfo, 'szDecimals')));
+            const quotePrecision = this.parseNumber (this.parsePrecision (this.safeString (innerQuoteTokenInfo, 'szDecimals')));
             const baseId = this.numberToString (i + 10000);
             markets.push (this.safeMarketStructure ({
                 'id': marketName,
@@ -498,8 +498,8 @@ export default class hyperliquid extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': this.parseNumber (this.parsePrecision (baseDecimals)), // decimal places
-                    'price': quoteDecimals, // significant digits
+                    'amount': amountPrecision, // decimal places
+                    'price': quotePrecision,
                 },
                 'limits': {
                     'leverage': {

@@ -274,12 +274,11 @@
         "index": false,
         "active": true,
         "contract": false,
-        "linear": true,
-        "inverse": false,
-        "subType": "linear",
+        "taker": 0.00035,
+        "maker": 0.0001,
         "precision": {
             "amount": 1,
-            "price": 8
+            "price": 1e-8
         },
         "limits": {
             "leverage": {},
@@ -288,6 +287,7 @@
             "cost": {}
         },
         "info": {
+            "index": "0",
             "name": "PURR/USDC",
             "tokens": [
                 1,
