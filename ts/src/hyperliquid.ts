@@ -471,7 +471,7 @@ export default class hyperliquid extends Exchange {
             const quoteDecimals = this.safeInteger (innerQuoteTokenInfo, 'szDecimals');
             const baseId = this.numberToString (i + 10000);
             markets.push (this.safeMarketStructure ({
-                'id': baseId,
+                'id': marketName,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
@@ -718,7 +718,7 @@ export default class hyperliquid extends Exchange {
         const market = this.market (symbol);
         const request = {
             'type': 'l2Book',
-            'coin': market['base'],
+            'coin': market['swap'] ? market['base'] : market['id'],
         };
         const response = await this.publicPostInfo (this.extend (request, params));
         //
@@ -779,7 +779,7 @@ export default class hyperliquid extends Exchange {
         const request = {
             'type': 'candleSnapshot',
             'req': {
-                'coin': market['base'],
+                'coin': market['swap'] ? market['base'] : market['id'],
                 'interval': timeframe,
                 'startTime': since,
                 'endTime': until,
