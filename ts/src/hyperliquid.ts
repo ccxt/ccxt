@@ -2464,6 +2464,13 @@ export default class hyperliquid extends Exchange {
         throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a user parameter inside \'params\' or the wallet address set');
     }
 
+    coinToMarketId (coin: Str) {
+        if (coin.indexOf ('/') > -1) {
+            return coin; // spot
+        }
+        return coin + '/USDC:USDC';
+    }
+
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (!response) {
             return undefined; // fallback to default error handler
