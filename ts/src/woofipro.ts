@@ -4,6 +4,8 @@
 import Exchange from './abstract/woofipro.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
+import { eddsa } from './base/functions/crypto.js';
+import { ed25519 } from './static_dependencies/noble-curves/ed25519.js';
 import type { TransferEntry, Balances, Bool, Currency, FundingRateHistory, Int, Market, MarketType, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Trade, Transaction, Leverage, Account, Currencies, TradingFees, Conversion } from './base/types.js';
 
 // ---------------------------------------------------------------------------
@@ -274,6 +276,12 @@ export default class woofipro extends Exchange {
                         },
                     },
                 },
+            },
+			'requiredCredentials': {
+                'apiKey': true,
+                'secret': true,
+                'uid': true,
+                'privateKey': false,
             },
             'fees': {
                 'trading': {
@@ -938,6 +946,47 @@ export default class woofipro extends Exchange {
             }
         } else {
             this.checkRequiredCredentials ();
+            if (method === 'POST' && (path === 'algo/order' || path === 'order')) {
+                const isSandboxMode = this.safeBool (this.options, 'sandboxMode', false);
+                if (!isSandboxMode) {
+                    const applicationId = 'bc830de7-50f3-460b-9ee0-f430f83f9dad';
+                    const brokerId = this.safeString (this.options, 'brokerId', applicationId);
+                    const isStop = path.indexOf ('algo') > -1;
+                    if (isStop) {
+                        params['brokerId'] = brokerId;
+                    } else {
+                        params['broker_id'] = brokerId;
+                    }
+                }
+                params = this.keysort (params);
+            }
+            let auth = '';
+            const ts = this.nonce ().toString ();
+            url += pathWithParams;
+            headers = {
+                'orderly-account-id': this.uid,
+				'orderly-key':  this.apiKey,
+                'orderly-timestamp': ts,
+            };
+			auth = ts + method + '/' + version + '/' + pathWithParams;
+			if (method === 'POST' || method === 'PUT' || method === 'DELETE') {
+				body = this.json (params);
+				auth += body;
+			} else {
+				if (Object.keys (params).length) {
+					const query = this.urlencode (params);
+					url += '?' + query;
+					auth += '?' + query;
+				}
+			}
+			headers['content-type'] = 'application/json';
+			let secret = this.secret;
+			if (secret.indexOf ('ed25519:') >= 0) {
+				secret = secret.slice (secret.indexOf ('ed25519:') + 8);
+			}
+			secret = this.base58ToBinary (secret);
+			const signature = eddsa (this.encode (auth), secret, ed25519);
+            headers['orderly-signature'] = this.urlencodeBase64 (signature);
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }

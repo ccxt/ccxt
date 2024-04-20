@@ -100,9 +100,15 @@ function axolotl (request: Hex, secret: Hex, curve: CurveFnEDDSA) {
 }
 
 function eddsa (request: Hex, secret: string, curve: CurveFnEDDSA) {
-    // secret is the base64 pem encoded key
-    // we get the last 32 bytes
-    const privateKey = new Uint8Array (Base64.unarmor (secret).slice (16))
+    let privateKey = undefined;
+    if (secret.length === 32) {
+      // secret is raw bytes
+      privateKey = secret
+    } else {
+      // secret is the base64 pem encoded key
+      // we get the last 32 bytes
+      privateKey = new Uint8Array (Base64.unarmor (secret).slice (16))
+    }
     const signature = curve.sign (request, privateKey)
     return base64.encode (signature)
 }
