@@ -307,6 +307,7 @@ class hyperliquid extends Exchange {
         //         )
         //     )
         //
+        //
         $meta = $this->safe_dict($response, 0, array());
         $meta = $this->safe_list($meta, 'universe', array());
         $assetCtxs = $this->safe_dict($response, 1, array());
@@ -367,10 +368,70 @@ class hyperliquid extends Exchange {
         //         ),
         //     ),
         // );
+        // mainnet
+        // array(
+        //     {
+        //        "canonical_tokens2":array(
+        //           0,
+        //           1
+        //        ),
+        //        "spot_infos":array(
+        //           {
+        //              "name":"PURR/USDC",
+        //              "tokens":array(
+        //                 1,
+        //                 0
+        //              )
+        //           }
+        //        ),
+        //        "token_id_to_token":array(
+        //           array(
+        //              "0x6d1e7cde53ba9467b783cb7c530ce054",
+        //              0
+        //           ),
+        //           array(
+        //              "0xc1fb593aeffbeb02f85e0308e9956a90",
+        //              1
+        //           )
+        //        ),
+        //        "token_infos":array(
+        //           array(
+        //              "deployer":null,
+        //              "spec":array(
+        //                 "name":"USDC",
+        //                 "szDecimals":"8",
+        //                 "weiDecimals":"8"
+        //              ),
+        //              "spots":array(
+        //              )
+        //           ),
+        //           array(
+        //              "deployer":null,
+        //              "spec":array(
+        //                 "name":"PURR",
+        //                 "szDecimals":"0",
+        //                 "weiDecimals":"5"
+        //              ),
+        //              "spots":array(
+        //                 0
+        //              )
+        //           }
+        //        )
+        //     ),
+        //     array(
+        //        {
+        //           "dayNtlVlm":"35001170.16631",
+        //           "markPx":"0.15743",
+        //           "midPx":"0.157555",
+        //           "prevDayPx":"0.158"
+        //        }
+        //     )
+        // )
         //
+        // $response differs depending on the environment (mainnet vs sandbox)
         $first = $this->safe_dict($response, 0, array());
-        $meta = $this->safe_list($first, 'universe', array());
-        $tokens = $this->safe_list($first, 'tokens', array());
+        $meta = $this->safe_list_2($first, 'universe', 'spot_infos', array());
+        $tokens = $this->safe_list_2($first, 'tokens', 'token_infos', array());
         $markets = array();
         for ($i = 0; $i < count($meta); $i++) {
             $market = $this->safe_dict($meta, $i, array());
@@ -386,14 +447,16 @@ class hyperliquid extends Exchange {
             $maker = $this->safe_number($fees, 'maker');
             $tokensPos = $this->safe_list($market, 'tokens', array());
             $baseTokenPos = $this->safe_integer($tokensPos, 0);
-            $quoteTokenPos = $this->safe_integer($tokensPos, 1);
+            // $quoteTokenPos = $this->safe_integer($tokensPos, 1);
             $baseTokenInfo = $this->safe_dict($tokens, $baseTokenPos, array());
-            $quoteTokenInfo = $this->safe_dict($tokens, $quoteTokenPos, array());
-            $baseDecimals = $this->safe_string($baseTokenInfo, 'szDecimals');
-            $quoteDecimals = $this->safe_integer($quoteTokenInfo, 'szDecimals');
+            // $quoteTokenInfo = $this->safe_dict($tokens, $quoteTokenPos, array());
+            $innerBaseTokenInfo = $this->safe_dict($baseTokenInfo, 'spec', $baseTokenInfo);
+            // $innerQuoteTokenInfo = $this->safe_dict($quoteTokenInfo, 'spec', $quoteTokenInfo);
+            $amountPrecision = $this->parse_number($this->parse_precision($this->safe_string($innerBaseTokenInfo, 'szDecimals')));
+            // $quotePrecision = $this->parse_number($this->parse_precision($this->safe_string($innerQuoteTokenInfo, 'szDecimals')));
             $baseId = $this->number_to_string($i + 10000);
             $markets[] = $this->safe_market_structure(array(
-                'id' => $baseId,
+                'id' => $marketName,
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
@@ -403,14 +466,15 @@ class hyperliquid extends Exchange {
                 'settleId' => null,
                 'type' => 'spot',
                 'spot' => true,
+                'subType' => null,
                 'margin' => null,
                 'swap' => false,
                 'future' => false,
                 'option' => false,
                 'active' => true,
                 'contract' => false,
-                'linear' => true,
-                'inverse' => false,
+                'linear' => null,
+                'inverse' => null,
                 'taker' => $taker,
                 'maker' => $maker,
                 'contractSize' => null,
@@ -419,8 +483,8 @@ class hyperliquid extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'amount' => $this->parse_number($this->parse_precision($baseDecimals)), // decimal places
-                    'price' => $quoteDecimals, // significant digits
+                    'amount' => $amountPrecision, // decimal places
+                    'price' => 5, // significant digits
                 ),
                 'limits' => array(
                     'leverage' => array(
@@ -635,7 +699,7 @@ class hyperliquid extends Exchange {
         $market = $this->market($symbol);
         $request = array(
             'type' => 'l2Book',
-            'coin' => $market['base'],
+            'coin' => $market['swap'] ? $market['base'] : $market['id'],
         );
         $response = $this->publicPostInfo (array_merge($request, $params));
         //
@@ -694,7 +758,7 @@ class hyperliquid extends Exchange {
         $request = array(
             'type' => 'candleSnapshot',
             'req' => array(
-                'coin' => $market['base'],
+                'coin' => $market['swap'] ? $market['base'] : $market['id'],
                 'interval' => $timeframe,
                 'startTime' => $since,
                 'endTime' => $until,
@@ -802,6 +866,10 @@ class hyperliquid extends Exchange {
     }
 
     public function amount_to_precision($symbol, $amount) {
+        $market = $this->market($symbol);
+        if ($market['spot']) {
+            return parent::amount_to_precision($symbol, $amount);
+        }
         return $this->decimal_to_precision($amount, ROUND, $this->markets[$symbol]['precision']['amount'], $this->precisionMode);
     }
 
@@ -2337,6 +2405,13 @@ class hyperliquid extends Exchange {
             return array( $this->walletAddress, $params );
         }
         throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires a $user parameter inside \'params\' or the wallet address set');
+    }
+
+    public function coin_to_market_id(?string $coin) {
+        if (mb_strpos($coin, '/') > -1) {
+            return $coin; // spot
+        }
+        return $coin . '/USDC:USDC';
     }
 
     public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
