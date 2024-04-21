@@ -73,6 +73,8 @@ class bitget extends Exchange {
                 'fetchClosedOrders' => true,
                 'fetchConvertCurrencies' => true,
                 'fetchConvertQuote' => true,
+                'fetchConvertTrade' => false,
+                'fetchConvertTradeHistory' => true,
                 'fetchCrossBorrowRate' => true,
                 'fetchCrossBorrowRates' => false,
                 'fetchCurrencies' => true,
@@ -8474,6 +8476,65 @@ class bitget extends Exchange {
         }) ();
     }
 
+    public function fetch_convert_trade_history(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($code, $since, $limit, $params) {
+            /**
+             * fetch the users history of conversion trades
+             * @see https://www.bitget.com/api-doc/common/convert/Get-Convert-Record
+             * @param {string} [$code] the unified currency $code
+             * @param {int} [$since] the earliest time in ms to fetch conversions for
+             * @param {int} [$limit] the maximum number of conversion structures to retrieve
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=conversion-structure conversion structures~
+             */
+            Async\await($this->load_markets());
+            $request = array();
+            $msInDay = 86400000;
+            $now = $this->milliseconds();
+            if ($since !== null) {
+                $request['startTime'] = $since;
+            } else {
+                $request['startTime'] = $now - $msInDay;
+            }
+            $endTime = $this->safe_string_2($params, 'endTime', 'until');
+            if ($endTime !== null) {
+                $request['endTime'] = $endTime;
+            } else {
+                $request['endTime'] = $now;
+            }
+            if ($limit !== null) {
+                $request['limit'] = $limit;
+            }
+            $params = $this->omit($params, 'until');
+            $response = Async\await($this->privateConvertGetV2ConvertConvertRecord (array_merge($request, $params)));
+            //
+            //     {
+            //         "code" => "00000",
+            //         "msg" => "success",
+            //         "requestTime" => 1712124371799,
+            //         "data" => {
+            //             "dataList" => array(
+            //                 {
+            //                     "id" => "1159296505255219205",
+            //                     "fromCoin" => "USDT",
+            //                     "fromCoinSize" => "5",
+            //                     "cnvtPrice" => "0.99940076",
+            //                     "toCoin" => "USDC",
+            //                     "toCoinSize" => "4.99700379",
+            //                     "ts" => "1712123746217",
+            //                     "fee" => "0"
+            //                 }
+            //             ),
+            //             "endId" => "1159296505255219205"
+            //         }
+            //     }
+            //
+            $data = $this->safe_dict($response, 'data', array());
+            $dataList = $this->safe_list($data, 'dataList', array());
+            return $this->parse_conversions($dataList, 'fromCoin', 'toCoin', $since, $limit);
+        }) ();
+    }
+
     public function parse_conversion($conversion, ?array $fromCurrency = null, ?array $toCurrency = null): Conversion {
         //
         // fetchConvertQuote
@@ -8497,6 +8558,19 @@ class bitget extends Exchange {
         //         "ts" => "1712123746217"
         //     }
         //
+        // fetchConvertTradeHistory
+        //
+        //     {
+        //         "id" => "1159296505255219205",
+        //         "fromCoin" => "USDT",
+        //         "fromCoinSize" => "5",
+        //         "cnvtPrice" => "0.99940076",
+        //         "toCoin" => "USDC",
+        //         "toCoinSize" => "4.99700379",
+        //         "ts" => "1712123746217",
+        //         "fee" => "0"
+        //     }
+        //
         $timestamp = $this->safe_integer($conversion, 'ts');
         $fromCoin = $this->safe_string($conversion, 'fromCoin');
         $fromCode = $this->safe_currency_code($fromCoin, $fromCurrency);
@@ -8506,7 +8580,7 @@ class bitget extends Exchange {
             'info' => $conversion,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'id' => $this->safe_string($conversion, 'traceId'),
+            'id' => $this->safe_string_2($conversion, 'id', 'traceId'),
             'fromCurrency' => $fromCode,
             'fromAmount' => $this->safe_number($conversion, 'fromCoinSize'),
             'toCurrency' => $toCode,
@@ -8587,6 +8661,8 @@ class bitget extends Exchange {
         //
         // spot
         //
+        //     array("code":"00000","msg":"success","requestTime":1713294492511,"data":[...])"
+        //
         //     array("status":"fail","err_code":"01001","err_msg":"系统异常，请稍后重试")
         //     array("status":"error","ts":1595594160149,"err_code":"invalid-parameter","err_msg":"invalid size, valid range => [1,2000]")
         //     array("status":"error","ts":1595684716042,"err_code":"invalid-parameter","err_msg":"illegal sign invalid")
@@ -8608,14 +8684,14 @@ class bitget extends Exchange {
         //     array("code":"40108","msg":"","requestTime":1595885064600,"data":null)
         //     array("order_id":"513468410013679613","client_oid":null,"symbol":"ethusd","result":false,"err_code":"order_no_exist_error","err_msg":"订单不存在！")
         //
-        $message = $this->safe_string($response, 'err_msg');
-        $errorCode = $this->safe_string_2($response, 'code', 'err_code');
+        $message = $this->safe_string_2($response, 'err_msg', 'msg');
         $feedback = $this->id . ' ' . $body;
-        $nonEmptyMessage = (($message !== null) && ($message !== ''));
+        $nonEmptyMessage = (($message !== null) && ($message !== '') && ($message !== 'success'));
         if ($nonEmptyMessage) {
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
         }
+        $errorCode = $this->safe_string_2($response, 'code', 'err_code');
         $nonZeroErrorCode = ($errorCode !== null) && ($errorCode !== '00000');
         if ($nonZeroErrorCode) {
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $feedback);

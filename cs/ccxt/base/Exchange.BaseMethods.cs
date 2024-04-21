@@ -3950,6 +3950,12 @@ public partial class Exchange
         throw new NotSupported ((string)add(this.id, " cancelAllOrders() is not supported yet")) ;
     }
 
+    public async virtual Task<object> cancelOrdersForSymbols(object orders, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " cancelOrdersForSymbols() is not supported yet")) ;
+    }
+
     public async virtual Task<object> cancelAllOrdersWs(object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
@@ -5775,6 +5781,34 @@ public partial class Exchange
     public virtual object parseLeverage(object leverage, object market = null)
     {
         throw new NotSupported ((string)add(this.id, " parseLeverage () is not supported yet")) ;
+    }
+
+    public virtual object parseConversions(object conversions, object fromCurrencyKey = null, object toCurrencyKey = null, object since = null, object limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        conversions = this.toArray(conversions);
+        object result = new List<object>() {};
+        object fromCurrency = null;
+        object toCurrency = null;
+        for (object i = 0; isLessThan(i, getArrayLength(conversions)); postFixIncrement(ref i))
+        {
+            object entry = getValue(conversions, i);
+            object fromId = this.safeString(entry, fromCurrencyKey);
+            object toId = this.safeString(entry, toCurrencyKey);
+            if (isTrue(!isEqual(fromId, null)))
+            {
+                fromCurrency = this.currency(fromId);
+            }
+            if (isTrue(!isEqual(toId, null)))
+            {
+                toCurrency = this.currency(toId);
+            }
+            object conversion = this.extend(this.parseConversion(entry, fromCurrency, toCurrency), parameters);
+            ((IList<object>)result).Add(conversion);
+        }
+        object sorted = this.sortBy(result, "timestamp");
+        object code = ((bool) isTrue((!isEqual(fromCurrency, null)))) ? getValue(fromCurrency, "code") : null;
+        return this.filterByCurrencySinceLimit(sorted, code, since, limit);
     }
 
     public virtual object parseConversion(object conversion, object fromCurrency = null, object toCurrency = null)

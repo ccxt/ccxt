@@ -589,6 +589,8 @@ export default class kucoin extends Exchange {
                 'BIFI': 'BIFIF',
                 'VAI': 'VAIOT',
                 'WAX': 'WAXP',
+                'ALT': 'APTOSLAUNCHTOKEN',
+                'KALT': 'ALT', // ALTLAYER
             },
             'options': {
                 'version': 'v1',
@@ -1824,7 +1826,7 @@ export default class kucoin extends Exchange {
         }
         let code = undefined;
         if (currency !== undefined) {
-            code = currency['id'];
+            code = this.safeCurrencyCode (currency['id']);
             if (code !== 'NIM') {
                 // contains spaces
                 this.checkAddress (address);
@@ -1875,7 +1877,7 @@ export default class kucoin extends Exchange {
         this.options['versions']['private']['GET']['deposit-addresses'] = version;
         const chains = this.safeList (response, 'data', []);
         const parsed = this.parseDepositAddresses (chains, [ currency['code'] ], false, {
-            'currency': currency['id'],
+            'currency': currency['code'],
         });
         return this.indexBy (parsed, 'network');
     }
@@ -2970,7 +2972,7 @@ export default class kucoin extends Exchange {
          * @method
          * @name kucoin#fetchTrades
          * @description get the list of most recent trades for a particular symbol
-         * @see https://docs.kucoin.com/#get-trade-histories
+         * @see https://www.kucoin.com/docs/rest/spot-trading/market-data/get-trade-histories
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
@@ -3144,7 +3146,7 @@ export default class kucoin extends Exchange {
          * @method
          * @name kucoin#fetchTradingFee
          * @description fetch the trading fees for a market
-         * @see https://docs.kucoin.com/#actual-fee-rate-of-the-trading-pair
+         * @see https://www.kucoin.com/docs/rest/funding/trade-fee/trading-pair-actual-fee-spot-margin-trade_hf
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
@@ -3185,7 +3187,7 @@ export default class kucoin extends Exchange {
          * @method
          * @name kucoin#withdraw
          * @description make a withdrawal
-         * @see https://docs.kucoin.com/#apply-withdraw-2
+         * @see https://www.kucoin.com/docs/rest/funding/withdrawals/apply-withdraw
          * @param {string} code unified currency code
          * @param {float} amount the amount to withdraw
          * @param {string} address the address to withdraw to
@@ -3363,8 +3365,8 @@ export default class kucoin extends Exchange {
          * @method
          * @name kucoin#fetchDeposits
          * @description fetch all deposits made to an account
-         * @see https://docs.kucoin.com/#get-deposit-list
-         * @see https://docs.kucoin.com/#get-v1-historical-deposits-list
+         * @see https://www.kucoin.com/docs/rest/funding/deposit/get-deposit-list
+         * @see https://www.kucoin.com/docs/rest/funding/deposit/get-v1-historical-deposits-list
          * @param {string} code unified currency code
          * @param {int} [since] the earliest time in ms to fetch deposits for
          * @param {int} [limit] the maximum number of deposits structures to retrieve
@@ -3447,8 +3449,8 @@ export default class kucoin extends Exchange {
          * @method
          * @name kucoin#fetchWithdrawals
          * @description fetch all withdrawals made from an account
-         * @see https://docs.kucoin.com/#get-withdrawals-list
-         * @see https://docs.kucoin.com/#get-v1-historical-withdrawals-list
+         * @see https://www.kucoin.com/docs/rest/funding/withdrawals/get-withdrawals-list
+         * @see https://www.kucoin.com/docs/rest/funding/withdrawals/get-v1-historical-withdrawals-list
          * @param {string} code unified currency code
          * @param {int} [since] the earliest time in ms to fetch withdrawals for
          * @param {int} [limit] the maximum number of withdrawals structures to retrieve
@@ -3720,7 +3722,7 @@ export default class kucoin extends Exchange {
          * @method
          * @name kucoin#transfer
          * @description transfer currency internally between wallets on the same account
-         * @see https://docs.kucoin.com/#inner-transfer
+         * @see https://www.kucoin.com/docs/rest/funding/transfer/inner-transfer
          * @see https://docs.kucoin.com/futures/#transfer-funds-to-kucoin-main-account-2
          * @see https://docs.kucoin.com/spot-hf/#internal-funds-transfers-in-high-frequency-trading-accounts
          * @param {string} code unified currency code
@@ -4005,7 +4007,7 @@ export default class kucoin extends Exchange {
         /**
          * @method
          * @name kucoin#fetchLedger
-         * @see https://docs.kucoin.com/#get-account-ledgers
+         * @see https://www.kucoin.com/docs/rest/account/basic-info/get-account-ledgers-spot-margin
          * @see https://www.kucoin.com/docs/rest/account/basic-info/get-account-ledgers-trade_hf
          * @see https://www.kucoin.com/docs/rest/account/basic-info/get-account-ledgers-margin_hf
          * @description fetch the history of changes, actions done by the user or operations that altered balance of the user

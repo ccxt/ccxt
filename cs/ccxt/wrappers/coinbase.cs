@@ -498,7 +498,7 @@ public partial class coinbase
     /// <item>
     /// <term>params.timeInForce</term>
     /// <description>
-    /// string : 'GTC', 'IOC', 'GTD' or 'PO'
+    /// string : 'GTC', 'IOC', 'GTD' or 'PO', 'FOK'
     /// </description>
     /// </item>
     /// <item>

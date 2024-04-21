@@ -1612,7 +1612,7 @@ class cryptocom extends Exchange {
              */
             list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
             Async\await($this->load_markets());
-            $currency = $this->currency($code);
+            $currency = $this->safe_currency($code); // for instance, USDC is not inferred from markets but it's still available
             $request = array(
                 'currency' => $currency['id'],
                 'amount' => $amount,
@@ -1659,7 +1659,7 @@ class cryptocom extends Exchange {
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$address-structure $address structures~ indexed by the $network
              */
             Async\await($this->load_markets());
-            $currency = $this->currency($code);
+            $currency = $this->safe_currency($code);
             $request = array(
                 'currency' => $currency['id'],
             );
@@ -1760,7 +1760,7 @@ class cryptocom extends Exchange {
             $currency = null;
             $request = array();
             if ($code !== null) {
-                $currency = $this->currency($code);
+                $currency = $this->safe_currency($code);
                 $request['currency'] = $currency['id'];
             }
             if ($since !== null) {
@@ -1820,7 +1820,7 @@ class cryptocom extends Exchange {
             $currency = null;
             $request = array();
             if ($code !== null) {
-                $currency = $this->currency($code);
+                $currency = $this->safe_currency($code);
                 $request['currency'] = $currency['id'];
             }
             if ($since !== null) {
@@ -2346,7 +2346,7 @@ class cryptocom extends Exchange {
             $request = array();
             $currency = null;
             if ($code !== null) {
-                $currency = $this->currency($code);
+                $currency = $this->safe_currency($code);
             }
             if ($since !== null) {
                 $request['start_time'] = $since;
