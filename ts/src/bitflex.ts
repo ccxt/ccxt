@@ -3,7 +3,7 @@
 
 import Exchange from './abstract/bitflex.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { BadRequest, InvalidOrder, NotSupported } from './base/errors.js';
+import { InvalidOrder, NotSupported } from './base/errors.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { Precise } from './base/Precise.js';
 import { Account, Balances, Currencies, Currency, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Tickers, Trade, Transaction, TransferEntry, Strings } from './base/types.js';
@@ -2485,7 +2485,7 @@ export default class bitflex extends Exchange {
          * @method
          * @name bitflex#fetchWithdrawal
          * @description fetch data on a currency withdrawal via the withdrawal id
-         * @sww https://docs.bitflex.com/spot#withdrawal-detail
+         * @see https://docs.bitflex.com/spot#withdrawal-detail
          * @param {string} id withdrawal id
          * @param {string} code unified currency code
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2691,7 +2691,7 @@ export default class bitflex extends Exchange {
             'fromAccountType': fromAccountType,
             'toAccountType': toAccountType,
         };
-        const response = await this.privatePostOpenapiV1Transfer (this.extend(request, params));
+        const response = await this.privatePostOpenapiV1Transfer (this.extend (request, params));
         //
         //    { "success": true }
         //
