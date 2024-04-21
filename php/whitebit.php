@@ -25,7 +25,7 @@ class whitebit extends Exchange {
                 'swap' => false,
                 'future' => false,
                 'option' => false,
-                'cancelAllOrders' => false,
+                'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'cancelOrders' => false,
                 'createOrder' => true,
@@ -170,11 +170,13 @@ class whitebit extends Exchange {
                             'ping',
                             'markets',
                             'futures',
+                            'platform/status',
                         ),
                     ),
                     'private' => array(
                         'post' => array(
                             'collateral-account/balance',
+                            'collateral-account/balance-summary',
                             'collateral-account/positions/history',
                             'collateral-account/leverage',
                             'collateral-account/positions/open',
@@ -191,21 +193,40 @@ class whitebit extends Exchange {
                             'main-account/withdraw',
                             'main-account/withdraw-pay',
                             'main-account/transfer',
+                            'main-account/smart/plans',
+                            'main-account/smart/investment',
+                            'main-account/smart/investment/close',
+                            'main-account/smart/investments',
+                            'main-account/fee',
+                            'main-account/smart/interest-payment-history',
                             'trade-account/balance',
                             'trade-account/executed-history',
                             'trade-account/order',
                             'trade-account/order/history',
                             'order/collateral/limit',
                             'order/collateral/market',
-                            'order/collateral/trigger_market',
+                            'order/collateral/stop-limit',
+                            'order/collateral/trigger-market',
                             'order/new',
                             'order/market',
                             'order/stock_market',
                             'order/stop_limit',
                             'order/stop_market',
                             'order/cancel',
+                            'order/cancel/all',
+                            'order/kill-switch',
+                            'order/kill-switch/status',
+                            'order/bulk',
+                            'order/modify',
                             'orders',
+                            'oco-orders',
+                            'order/collateral/oco',
+                            'order/oco-cancel',
+                            'order/oto-cancel',
                             'profile/websocket_token',
+                            'convert/estimate',
+                            'convert/confirm',
+                            'convert/history',
                         ),
                     ),
                 ),
@@ -1235,6 +1256,66 @@ class whitebit extends Exchange {
         return $this->parse_order($response);
     }
 
+    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array ()) {
+        /**
+         * edit a trade order
+         * @see https://docs.whitebit.com/private/http-trade-v4/#modify-order
+         * @param {string} $id cancel order $id
+         * @param {string} $symbol unified $symbol of the $market to create an order in
+         * @param {string} $type 'market' or 'limit'
+         * @param {string} $side 'buy' or 'sell'
+         * @param {float} $amount how much of currency you want to trade in units of base currency
+         * @param {float} $price the $price at which the order is to be fullfilled, in units of the base currency, ignored in $market orders
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+         */
+        if ($id === null) {
+            throw new ArgumentsRequired($this->id . ' editOrder() requires a $id argument');
+        }
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' editOrder() requires a $symbol argument');
+        }
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'orderId' => $id,
+            'market' => $market['id'],
+        );
+        $clientOrderId = $this->safe_string_2($params, 'clOrdId', 'clientOrderId');
+        if ($clientOrderId !== null) {
+            // Update $clientOrderId of the order
+            $request['clientOrderId'] = $clientOrderId;
+        }
+        $isLimitOrder = $type === 'limit';
+        $stopPrice = $this->safe_number_n($params, array( 'triggerPrice', 'stopPrice', 'activation_price' ));
+        $isStopOrder = ($stopPrice !== null);
+        $params = $this->omit($params, array( 'clOrdId', 'clientOrderId', 'triggerPrice', 'stopPrice' ));
+        if ($isStopOrder) {
+            $request['activation_price'] = $this->price_to_precision($symbol, $stopPrice);
+            if ($isLimitOrder) {
+                // stop limit order
+                $request['amount'] = $this->amount_to_precision($symbol, $amount);
+                $request['price'] = $this->price_to_precision($symbol, $price);
+            } else {
+                // stop $market order
+                if ($side === 'buy') {
+                    // Use total parameter instead of $amount for modify buy stop $market order
+                    $request['total'] = $this->amount_to_precision($symbol, $amount);
+                } else {
+                    $request['amount'] = $this->amount_to_precision($symbol, $amount);
+                }
+            }
+        } else {
+            $request['amount'] = $this->amount_to_precision($symbol, $amount);
+            if ($isLimitOrder) {
+                // limit order
+                $request['price'] = $this->price_to_precision($symbol, $price);
+            }
+        }
+        $response = $this->v4PrivatePostOrderModify (array_merge($request, $params));
+        return $this->parse_order($response);
+    }
+
     public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * cancels an open order
@@ -1254,6 +1335,47 @@ class whitebit extends Exchange {
             'orderId' => intval($id),
         );
         return $this->v4PrivatePostOrderCancel (array_merge($request, $params));
+    }
+
+    public function cancel_all_orders(?string $symbol = null, $params = array ()) {
+        /**
+         * cancel all open orders
+         * @see https://docs.whitebit.com/private/http-trade-v4/#cancel-all-orders
+         * @param {string} $symbol unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->type] $market $type, ['swap', 'spot']
+         * @param {boolean} [$params->isMargin] cancel all margin orders
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         */
+        $this->load_markets();
+        $market = null;
+        $request = array();
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $request['market'] = $market['id'];
+        }
+        $type = null;
+        list($type, $params) = $this->handle_market_type_and_params('cancelAllOrders', $market, $params);
+        $requestType = array();
+        if ($type === 'spot') {
+            $isMargin = null;
+            list($isMargin, $params) = $this->handle_option_and_params($params, 'cancelAllOrders', 'isMargin', false);
+            if ($isMargin) {
+                $requestType[] = 'margin';
+            } else {
+                $requestType[] = 'spot';
+            }
+        } elseif ($type === 'swap') {
+            $requestType[] = 'futures';
+        } else {
+            throw new NotSupported($this->id . ' cancelAllOrders() does not support ' . $type . ' type');
+        }
+        $request['type'] = $requestType;
+        $response = $this->v4PrivatePostOrderCancelAll (array_merge($request, $params));
+        //
+        // array()
+        //
+        return $response;
     }
 
     public function parse_balance($response): array {
