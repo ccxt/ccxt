@@ -970,6 +970,65 @@ export default class woofipro extends Exchange {
         return this.parseOrderBook (data, symbol, timestamp, 'bids', 'asks', 'price', 'quantity');
     }
 
+	parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
+        return [
+            this.safeInteger (ohlcv, 'start_timestamp'),
+            this.safeNumber (ohlcv, 'open'),
+            this.safeNumber (ohlcv, 'high'),
+            this.safeNumber (ohlcv, 'low'),
+            this.safeNumber (ohlcv, 'close'),
+            this.safeNumber (ohlcv, 'volume'),
+        ];
+    }
+
+	async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+        /**
+         * @method
+         * @name woofipro#fetchOHLCV
+         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-kline
+		 * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {string} timeframe the length of time each candle represents
+         * @param {int} [since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [limit] max=1000, max=100 when since is defined and is less than (now - (999 * (timeframe in ms)))
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+            'type': this.safeString (this.timeframes, timeframe, timeframe),
+        };
+        if (limit !== undefined) {
+            request['limit'] = Math.min (limit, 1000);
+        }
+        const response = await this.v1PrivateGetKline (this.extend (request, params));
+		const data = this.safeDict (response, 'data', {});
+		//
+		// 	{
+		// 		"success": true,
+		// 		"timestamp": 1702989203989,
+		// 		"data": {
+		// 		  "rows": [{
+		// 			"open": 66166.23,
+		// 			"close": 66124.56,
+		// 			"low": 66038.06,
+		// 			"high": 66176.97,
+		// 			"volume": 23.45528526,
+		// 			"amount": 1550436.21725288,
+		// 			"symbol": "PERP_BTC_USDC",
+		// 			"type": "1m",
+		// 			"start_timestamp": 1636388220000,
+		// 			"end_timestamp": 1636388280000
+		// 		  }]
+		// 		}
+		// 	}
+		//
+        const rows = this.safeList (data, 'rows', []);
+        return this.parseOHLCVs (rows, market, timeframe, since, limit);
+    }
+
     nonce () {
         return this.milliseconds ();
     }
