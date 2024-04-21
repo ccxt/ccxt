@@ -42,7 +42,7 @@ export default class bitflex extends Exchange {
                 'fetchClosedOrders': false,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': false,
-                'fetchDeposits': false,
+                'fetchDeposits': true,
                 'fetchDepositsWithdrawals': false,
                 'fetchDepositWithdrawFee': false,
                 'fetchDepositWithdrawFees': false,
@@ -69,6 +69,8 @@ export default class bitflex extends Exchange {
                 'fetchTransactionFees': false,
                 'fetchTransactions': false,
                 'fetchTransfers': false,
+                'fetchWithdrawal': true,
+                'fetchWithdrawals': true,
                 'transfer': true,
                 'withdraw': false,
             },
@@ -129,9 +131,9 @@ export default class bitflex extends Exchange {
                         'openapi/v1/historyOrders': 1, // implemented
                         'openapi/v1/myTrades': 1,
                         'openapi/v1/account': 1, // implemented
-                        'openapi/v1/depositOrders': 1,
-                        'openapi/v1/withdrawalOrders': 1,
-                        'openapi/v1/withdraw/detail': 1,
+                        'openapi/v1/depositOrders': 1, // implemented
+                        'openapi/v1/withdrawalOrders': 1, // implemented
+                        'openapi/v1/withdraw/detail': 1, // implemented
                         'openapi/v1/balance_flow': 1,
                         'openapi/contract/v1/getOrder': 1, // implemented
                         'openapi/contract/v1/openOrders': 1, // implemented
@@ -734,6 +736,103 @@ export default class bitflex extends Exchange {
             //         ...
             //     ]
             //
+        }
+        return this.parseTrades (response, market, since, limit);
+    }
+
+    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitflex#fetchMyTrades
+         * @see https://docs.bitflex.com/spot#trades
+         * @see https://docs.bitflex.com/contract#trades
+         * @description fetch all trades made by the user
+         * @param {string} symbol unified market symbol
+         * @param {int} [since] the earliest time in ms to fetch trades for
+         * @param {int} [limit] the maximum number of trades structures to retrieve, default 500, max 1000
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+         * @param {string} [params.fromId] *trade Id to fetch from
+         * @param {string} [params.toId] *trade Id to fetch to
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+         */
+        await this.loadMarkets ();
+        let market = undefined;
+        const request = {};
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        const until = this.safeInteger2 (params, 'till', 'until');
+        if (until !== undefined) {
+            params = this.omit (params, [ 'till', 'until' ]);
+            request['endTime'] = until;
+        }
+        let response = undefined;
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, params);
+        if (type === 'spot') {
+            response = await this.privateGetOpenapiV1MyTrades (this.extend (request, params));
+            //
+            //     [
+            //         {
+            //             "id": "1668380991176069888",
+            //             "symbol": "ETHUSDT",
+            //             "symbolName": "ETHUSDT",
+            //             "orderId": "1668380991008297728",
+            //             "matchOrderId": "1668380954509508864",
+            //             "price": "3060.73",
+            //             "qty": "0.0081",
+            //             "commission": "0.00000486",
+            //             "commissionAsset": "ETH",
+            //             "time": "1713622512646",
+            //             "isBuyer": true,
+            //             "isMaker": false,
+            //             "fee":
+            //                 {
+            //                     "feeTokenId": "ETH",
+            //                     "feeTokenName": "ETH",
+            //                     "fee": "0.00000486"
+            //                 },
+            //             "feeTokenId": "ETH",
+            //             "feeAmount": "0.00000486",
+            //             "makerRebate": "0"
+            //         },
+            //         ...
+            //     ]
+            //
+        } else if (type === 'swap') {
+            response = await this.privateGetOpenapiContractV1MyTrades (this.extend (request, params));
+            //
+            //     [
+            //         {
+            //             "time": "1713689556972",
+            //             "tradeId": "1668943399821004289",
+            //             "orderId": "1668943399544181504",
+            //             "matchOrderId": "1668943398437015552",
+            //             "symbolId": "ETH-SWAP-USDT",
+            //             "price": "3173.75",
+            //             "quantity": "0.02",
+            //             "feeTokenId": "USDT",
+            //             "fee": "0.038",
+            //             "makerRebate": "0",
+            //             "orderType": "MARKET",
+            //             "side": "SELL_CLOSE",
+            //             "pnl": "0.307",
+            //             "isMaker": false
+            //         },
+            //         ...
+            //     ]
+            //
+        } else {
+            throw new NotSupported (this.id + ' fetchMyTrades() does not support ' + type + ' orders, only spot and swap orders are accepted');
         }
         return this.parseTrades (response, market, since, limit);
     }
