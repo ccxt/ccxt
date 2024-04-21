@@ -2328,6 +2328,15 @@ export default class bitflex extends Exchange {
         return this.safeString (types, type, type);
     }
 
+    parseSwapAccountType (type) {
+        const types = {
+            'wallet': 'spot',
+            'option': 'option',
+            'contract': 'swap',
+        };
+        return this.safeString (types, type, type);
+    }
+
     parseAccountIndex (index) {
         const indexes = {
             '0': 'main',
@@ -2653,7 +2662,7 @@ export default class bitflex extends Exchange {
         };
     }
 
-    async transfer (code: string, amount: number, fromAccount: string, toAccount: string, params = {}): Promise<TransferEntry> {
+    async transfer (code: string, amount: number, fromAccount: string, toAccount: string, params = {}): Promise<TransferEntry> { // todo transfer to account with special index subaccount
         /**
          * @method
          * @name biflex#transfer
@@ -2669,24 +2678,22 @@ export default class bitflex extends Exchange {
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
-        amount = this.currencyToPrecision (code, amount);
-        amount = this.parseToNumeric (amount);
+        const accounts = {
+            'spot': '1',
+            'option': '2',
+            'swap': '3',
+        };
+        const fromAccountType = this.safeString (accounts, fromAccount);
+        const toAccountType = this.safeString (accounts, toAccount);
         const request = {
             'amount': amount,
-            'currency': currency['id'].toUpperCase (),
+            'tokenId': currency['id'],
+            'fromAccountType': fromAccountType,
+            'toAccountType': toAccountType,
         };
-        let response = undefined;
-        if (fromAccount === 'main') {
-            request['subAccount'] = toAccount;
-            response = await this.privatePostOpenapiV1Transfer (this.extend (request, params));
-        } else if (toAccount === 'main') {
-            request['subAccount'] = fromAccount;
-            response = await this.privatePostOpenapiV1Transfer (this.extend (request, params));
-        } else {
-            throw new BadRequest (this.id + ' transfer() only supports from or to main');
-        }
+        const response = await this.privatePostOpenapiV1Transfer (this.extend(request, params));
         //
-        //    { "success": "true" }
+        //    { "success": true }
         //
         const transfer = this.parseTransfer (response, currency);
         transfer['amount'] = amount;
@@ -2697,13 +2704,14 @@ export default class bitflex extends Exchange {
 
     parseTransfer (transfer, currency = undefined) {
         //
-        //    { "success": "true" }
+        //    { "success": true }
         //
         const status = this.safeString (transfer, 'success');
+        const timestamp = this.safeInteger (transfer, 'timestamp');
         return {
             'info': transfer,
             'id': undefined,
-            'timestamp': undefined,
+            'timestamp': timestamp,
             'datetime': undefined,
             'currency': currency['code'],
             'amount': undefined,
