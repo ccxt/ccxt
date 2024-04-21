@@ -927,6 +927,49 @@ export default class woofipro extends Exchange {
         return this.filterBySymbolSinceLimit (sorted, symbol, since, limit) as FundingRateHistory[];
     }
 
+	async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+        /**
+         * @method
+         * @name woofipro#fetchOrderBook
+         * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/orderbook-snapshot
+		 * @param {string} symbol unified symbol of the market to fetch the order book for
+         * @param {int} [limit] the maximum amount of order book entries to return
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        if (limit !== undefined) {
+            limit = Math.min (limit, 1000);
+            request['max_level'] = limit;
+        }
+        const response = await this.v1PrivateGetOrderbookSymbol (this.extend (request, params));
+        //
+		// 	{
+		// 		"success": true,
+		// 		"timestamp": 1702989203989,
+		// 		"data": {
+		// 		  "asks": [{
+		// 			"price": 10669.4,
+		// 			"quantity": 1.56263218
+		// 		  }],
+		// 		  "bids": [{
+		// 			"price": 10669.4,
+		// 			"quantity": 1.56263218
+		// 		  }],
+		// 		  "timestamp": 123
+		// 		}
+		// 	}
+        //
+		const data = this.safeDict (response, 'data', {});
+        const timestamp = this.safeInteger (data, 'timestamp');
+        return this.parseOrderBook (data, symbol, timestamp, 'bids', 'asks', 'price', 'quantity');
+    }
+
     nonce () {
         return this.milliseconds ();
     }
