@@ -2375,7 +2375,7 @@ export default class bitflex extends Exchange {
          * @method
          * @name bitflex#fetchWithdrawal
          * @description fetch data on a currency withdrawal via the withdrawal id
-         * @sww https://docs.bitflex.com/spot#withdrawal-detail
+         * @see https://docs.bitflex.com/spot#withdrawal-detail
          * @param {string} id withdrawal id
          * @param {string} code unified currency code
          * @param {object} [params] extra parameters specific to the exchange API endpoint
