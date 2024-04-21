@@ -4382,7 +4382,7 @@ class bitget(Exchange, ImplicitAPI):
             elif stop:
                 _, order_id = self.get_order_trigger_is_open_sub_order_id(id, symbol)
                 if order_id:
-                    self.cancel_order(order_id, symbol)
+                    return self.cancel_order(order_id, symbol)
                 else:
                     response = self.privateMixPostV2MixOrderCancelPlanOrder(self.extend(request, params))
             else:
@@ -4397,7 +4397,7 @@ class bitget(Exchange, ImplicitAPI):
                 if stop:
                     _, order_id = self.get_order_trigger_is_open_sub_order_id(id, symbol)
                     if order_id:
-                        self.cancel_order(order_id, symbol)
+                        return self.cancel_order(order_id, symbol)
                     else:
                         response = self.privateSpotPostV2SpotTradeCancelPlanOrder(self.extend(request, params))
                 else:
@@ -4449,7 +4449,11 @@ class bitget(Exchange, ImplicitAPI):
         order = None
         if (market['swap'] or market['future']) and stop:
             orderInfo = self.safe_value(data, 'successList', [])
-            order = orderInfo[0]
+            if orderInfo:
+                order = orderInfo[0]
+            else:
+                orderInfo = self.safe_value(data, 'failureList', [])
+                raise ExchangeError(f'{self.id} {orderInfo[0]}')
         else:
             order = data
         return self.parse_order(order, market)
