@@ -72,7 +72,7 @@ export default class bitflex extends Exchange {
                 'fetchWithdrawal': true,
                 'fetchWithdrawals': true,
                 'transfer': true,
-                'withdraw': false,
+                'withdraw': true,
             },
             'timeframes': {
                 '1m': '1m',
@@ -144,7 +144,7 @@ export default class bitflex extends Exchange {
                     },
                     'post': {
                         'openapi/v1/subAccount/query': 1, // implemented
-                        'openapi/v1/transfer': 1,
+                        'openapi/v1/transfer': 1, // implemented
                         'openapi/v1/withdraw': 1,
                         'openapi/v1/order': 1, // implemented
                         'openapi/v1/test': 1,
@@ -1329,7 +1329,7 @@ export default class bitflex extends Exchange {
             //             "positionMargin": "0",
             //             "orderMargin": "0",
             //             "tokenId": "USDT"
-            //         }
+            //         },
             //     }
             //
         } else {
@@ -2328,15 +2328,6 @@ export default class bitflex extends Exchange {
         return this.safeString (types, type, type);
     }
 
-    parseSwapAccountType (type) {
-        const types = {
-            'wallet': 'spot',
-            'option': 'option',
-            'contract': 'swap',
-        };
-        return this.safeString (types, type, type);
-    }
-
     parseAccountIndex (index) {
         const indexes = {
             '0': 'main',
@@ -2596,6 +2587,13 @@ export default class bitflex extends Exchange {
         //         ...
         //     ]
         //
+        // withdraw
+        //     {
+        //         "status": 0,
+        //         "success": true,
+        //         "needBrokerAudit": false, // Whether this request needs broker auit
+        //         "orderId": "423885103582776064" // Id for successful withdrawal
+        //     }
         // todo: this is in progress
         const id = this.safeString (transaction, 'orderId');
         const address = this.safeString (transaction, 'address');
@@ -2727,6 +2725,53 @@ export default class bitflex extends Exchange {
             'error': 'failed',
         };
         return this.safeString (statuses, status, status);
+    }
+
+    async withdraw (code: string, amount: number, address, tag = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitflex#withdraw
+         * @description make a withdrawal
+         * @see https://docs.bitflex.com/spot#withdraw
+         * @param {string} code unified currency code
+         * @param {float} amount the amount to withdraw
+         * @param {string} address the address to withdraw to
+         * @param {string} tag
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+         * @param {string} [params.clientOrderId] either orderId or clientOrderId must be sent
+         * @param {string} [params.chainType] chain type, USDT chain types areOMNI ERC20 TRC20default is OMNI
+         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+         */
+        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
+        const networks = this.safeValue (this.options, 'networks', {});
+        let network = this.safeString2 (params, 'network', 'chainType');
+        network = this.safeString (networks, network, network);
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'tokenId': currency['id'],
+            'address': address,
+            'amount': amount,
+        };
+        if (tag !== undefined) {
+            request['addressExt'] = tag;
+        }
+        if (network !== undefined) {
+            request['chainType'] = network;
+            params = this.omit (params, [ 'network', 'chainType' ]);
+        }
+        const response = await this.privatePostOpenapiV1Withdraw (this.extend (request, params));
+        //
+        //     {
+        //         "status": 0,
+        //         "success": true,
+        //         "needBrokerAudit": false, // Whether this request needs broker auit
+        //         "orderId": "423885103582776064" // Id for successful withdrawal
+        //     }
+        //
+        return this.parseTransaction (response, currency);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
