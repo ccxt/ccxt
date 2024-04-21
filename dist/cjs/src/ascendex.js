@@ -358,7 +358,7 @@ class ascendex extends ascendex$1 {
                     '300013': errors.InvalidOrder,
                     '300014': errors.InvalidOrder,
                     '300020': errors.InvalidOrder,
-                    '300021': errors.InvalidOrder,
+                    '300021': errors.AccountSuspended,
                     '300031': errors.InvalidOrder,
                     '310001': errors.InsufficientFunds,
                     '310002': errors.InvalidOrder,

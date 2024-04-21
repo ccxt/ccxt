@@ -29,6 +29,7 @@ public partial class woo : Exchange
                 { "cancelWithdraw", false },
                 { "closeAllPositions", false },
                 { "closePosition", false },
+                { "createConvertTrade", true },
                 { "createDepositAddress", false },
                 { "createMarketBuyOrderWithCost", true },
                 { "createMarketOrder", false },
@@ -52,6 +53,8 @@ public partial class woo : Exchange
                 { "fetchClosedOrders", true },
                 { "fetchConvertCurrencies", true },
                 { "fetchConvertQuote", true },
+                { "fetchConvertTrade", true },
+                { "fetchConvertTradeHistory", true },
                 { "fetchCurrencies", true },
                 { "fetchDepositAddress", true },
                 { "fetchDeposits", true },
@@ -3275,6 +3278,142 @@ public partial class woo : Exchange
         return this.parseConversion(data, fromCurrency, toCurrency);
     }
 
+    public async virtual Task<object> createConvertTrade(object id, object fromCode, object toCode, object amount = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name woo#createConvertTrade
+        * @description convert from one currency to another
+        * @see https://docs.woo.org/#send-quote-rft
+        * @param {string} id the id of the trade that you want to make
+        * @param {string} fromCode the currency that you want to sell and convert from
+        * @param {string} toCode the currency that you want to buy and convert into
+        * @param {float} [amount] how much you want to trade in units of the from currency
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object request = new Dictionary<string, object>() {
+            { "quoteId", id },
+        };
+        object response = await this.v3PrivatePostConvertRft(this.extend(request, parameters));
+        //
+        //     {
+        //         "success": true,
+        //         "data": {
+        //             "quoteId": 123123123,
+        //             "counterPartyId": "",
+        //             "rftAccepted": 1 // 1 -> success; 2 -> processing; 3 -> fail
+        //         }
+        //     }
+        //
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        return this.parseConversion(data);
+    }
+
+    public async virtual Task<object> fetchConvertTrade(object id, object code = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name woo#fetchConvertTrade
+        * @description fetch the data for a conversion trade
+        * @see https://docs.woo.org/#get-quote-trade
+        * @param {string} id the id of the trade that you want to fetch
+        * @param {string} [code] the unified currency code of the conversion trade
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object request = new Dictionary<string, object>() {
+            { "quoteId", id },
+        };
+        object response = await this.v3PrivateGetConvertTrade(this.extend(request, parameters));
+        //
+        //     {
+        //         "success": true,
+        //         "data": {
+        //             "quoteId": 12,
+        //             "buyAsset": "",
+        //             "sellAsset": "",
+        //             "buyAmount": 12.11,
+        //             "sellAmount": 12.11,
+        //             "tradeStatus": 12,
+        //             "createdTime": ""
+        //         }
+        //     }
+        //
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        object fromCurrencyId = this.safeString(data, "sellAsset");
+        object toCurrencyId = this.safeString(data, "buyAsset");
+        object fromCurrency = null;
+        object toCurrency = null;
+        if (isTrue(!isEqual(fromCurrencyId, null)))
+        {
+            fromCurrency = this.currency(fromCurrencyId);
+        }
+        if (isTrue(!isEqual(toCurrencyId, null)))
+        {
+            toCurrency = this.currency(toCurrencyId);
+        }
+        return this.parseConversion(data, fromCurrency, toCurrency);
+    }
+
+    public async virtual Task<object> fetchConvertTradeHistory(object code = null, object since = null, object limit = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name woo#fetchConvertTradeHistory
+        * @description fetch the users history of conversion trades
+        * @see https://docs.woo.org/#get-quote-trades
+        * @param {string} [code] the unified currency code
+        * @param {int} [since] the earliest time in ms to fetch conversions for
+        * @param {int} [limit] the maximum number of conversion structures to retrieve
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {int} [params.until] timestamp in ms of the latest conversion to fetch
+        * @returns {object[]} a list of [conversion structures]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object request = new Dictionary<string, object>() {};
+        var requestparametersVariable = this.handleUntilOption("endTime", request, parameters);
+        request = ((IList<object>)requestparametersVariable)[0];
+        parameters = ((IList<object>)requestparametersVariable)[1];
+        if (isTrue(!isEqual(since, null)))
+        {
+            ((IDictionary<string,object>)request)["startTime"] = since;
+        }
+        if (isTrue(!isEqual(limit, null)))
+        {
+            ((IDictionary<string,object>)request)["size"] = limit;
+        }
+        object response = await this.v3PrivateGetConvertTrades(this.extend(request, parameters));
+        //
+        //     {
+        //         "success": true,
+        //         "data": {
+        //             "count": 12,
+        //             "tradeVos":[
+        //                 {
+        //                     "quoteId": 12,
+        //                     "buyAsset": "",
+        //                     "sellAsset": "",
+        //                     "buyAmount": 12.11,
+        //                     "sellAmount": 12.11,
+        //                     "tradeStatus": 12,
+        //                     "createdTime": ""
+        //                 }
+        //                 ...
+        //             ]
+        //         }
+        //     }
+        //
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        object rows = this.safeList(data, "tradeVos", new List<object>() {});
+        return this.parseConversions(rows, "sellAsset", "buyAsset", since, limit);
+    }
+
     public override object parseConversion(object conversion, object fromCurrency = null, object toCurrency = null)
     {
         //
@@ -3292,10 +3431,30 @@ public partial class woo : Exchange
         //         "message": 1659084466000
         //     }
         //
-        object timestamp = this.safeInteger(conversion, "expireTimestamp");
-        object fromCoin = this.safeString(conversion, "sellToken");
-        object fromCode = this.safeCurrencyCode(fromCoin, fromCurrency);
-        object to = this.safeString(conversion, "buyToken");
+        // createConvertTrade
+        //
+        //     {
+        //         "quoteId": 123123123,
+        //         "counterPartyId": "",
+        //         "rftAccepted": 1 // 1 -> success; 2 -> processing; 3 -> fail
+        //     }
+        //
+        // fetchConvertTrade, fetchConvertTradeHistory
+        //
+        //     {
+        //         "quoteId": 12,
+        //         "buyAsset": "",
+        //         "sellAsset": "",
+        //         "buyAmount": 12.11,
+        //         "sellAmount": 12.11,
+        //         "tradeStatus": 12,
+        //         "createdTime": ""
+        //     }
+        //
+        object timestamp = this.safeInteger2(conversion, "expireTimestamp", "createdTime");
+        object fromCurr = this.safeString2(conversion, "sellToken", "buyAsset");
+        object fromCode = this.safeCurrencyCode(fromCurr, fromCurrency);
+        object to = this.safeString2(conversion, "buyToken", "sellAsset");
         object toCode = this.safeCurrencyCode(to, toCurrency);
         return new Dictionary<string, object>() {
             { "info", conversion },
@@ -3303,9 +3462,9 @@ public partial class woo : Exchange
             { "datetime", this.iso8601(timestamp) },
             { "id", this.safeString(conversion, "quoteId") },
             { "fromCurrency", fromCode },
-            { "fromAmount", this.safeNumber(conversion, "sellQuantity") },
+            { "fromAmount", this.safeNumber2(conversion, "sellQuantity", "sellAmount") },
             { "toCurrency", toCode },
-            { "toAmount", this.safeNumber(conversion, "buyQuantity") },
+            { "toAmount", this.safeNumber2(conversion, "buyQuantity", "buyAmount") },
             { "price", this.safeNumber(conversion, "buyPrice") },
             { "fee", null },
         };

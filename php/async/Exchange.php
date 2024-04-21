@@ -42,11 +42,11 @@ use React\EventLoop\Loop;
 
 use Exception;
 
-$version = '4.2.97';
+$version = '4.3.4';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.2.97';
+    const VERSION = '4.3.4';
 
     public $browser;
     public $marketsLoading = null;
@@ -3519,6 +3519,10 @@ class Exchange extends \ccxt\Exchange {
         throw new NotSupported($this->id . ' cancelAllOrders() is not supported yet');
     }
 
+    public function cancel_orders_for_symbols(array $orders, $params = array ()) {
+        throw new NotSupported($this->id . ' cancelOrdersForSymbols() is not supported yet');
+    }
+
     public function cancel_all_orders_ws(?string $symbol = null, $params = array ()) {
         throw new NotSupported($this->id . ' cancelAllOrdersWs() is not supported yet');
     }
@@ -4972,6 +4976,29 @@ class Exchange extends \ccxt\Exchange {
 
     public function parse_leverage($leverage, ?array $market = null) {
         throw new NotSupported($this->id . ' parseLeverage () is not supported yet');
+    }
+
+    public function parse_conversions(array $conversions, ?string $fromCurrencyKey = null, ?string $toCurrencyKey = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        $conversions = $this->to_array($conversions);
+        $result = array();
+        $fromCurrency = null;
+        $toCurrency = null;
+        for ($i = 0; $i < count($conversions); $i++) {
+            $entry = $conversions[$i];
+            $fromId = $this->safe_string($entry, $fromCurrencyKey);
+            $toId = $this->safe_string($entry, $toCurrencyKey);
+            if ($fromId !== null) {
+                $fromCurrency = $this->currency ($fromId);
+            }
+            if ($toId !== null) {
+                $toCurrency = $this->currency ($toId);
+            }
+            $conversion = array_merge($this->parseConversion ($entry, $fromCurrency, $toCurrency), $params);
+            $result[] = $conversion;
+        }
+        $sorted = $this->sort_by($result, 'timestamp');
+        $code = ($fromCurrency !== null) ? $fromCurrency['code'] : null;
+        return $this->filter_by_currency_since_limit($sorted, $code, $since, $limit);
     }
 
     public function parse_conversion($conversion, ?array $fromCurrency = null, ?array $toCurrency = null) {

@@ -4464,6 +4464,9 @@ export default class Exchange {
     async cancelAllOrders(symbol = undefined, params = {}) {
         throw new NotSupported(this.id + ' cancelAllOrders() is not supported yet');
     }
+    async cancelOrdersForSymbols(orders, params = {}) {
+        throw new NotSupported(this.id + ' cancelOrdersForSymbols() is not supported yet');
+    }
     async cancelAllOrdersWs(symbol = undefined, params = {}) {
         throw new NotSupported(this.id + ' cancelAllOrdersWs() is not supported yet');
     }
@@ -5792,6 +5795,28 @@ export default class Exchange {
     }
     parseLeverage(leverage, market = undefined) {
         throw new NotSupported(this.id + ' parseLeverage () is not supported yet');
+    }
+    parseConversions(conversions, fromCurrencyKey = undefined, toCurrencyKey = undefined, since = undefined, limit = undefined, params = {}) {
+        conversions = this.toArray(conversions);
+        const result = [];
+        let fromCurrency = undefined;
+        let toCurrency = undefined;
+        for (let i = 0; i < conversions.length; i++) {
+            const entry = conversions[i];
+            const fromId = this.safeString(entry, fromCurrencyKey);
+            const toId = this.safeString(entry, toCurrencyKey);
+            if (fromId !== undefined) {
+                fromCurrency = this.currency(fromId);
+            }
+            if (toId !== undefined) {
+                toCurrency = this.currency(toId);
+            }
+            const conversion = this.extend(this.parseConversion(entry, fromCurrency, toCurrency), params);
+            result.push(conversion);
+        }
+        const sorted = this.sortBy(result, 'timestamp');
+        const code = (fromCurrency !== undefined) ? fromCurrency['code'] : undefined;
+        return this.filterByCurrencySinceLimit(sorted, code, since, limit);
     }
     parseConversion(conversion, fromCurrency = undefined, toCurrency = undefined) {
         throw new NotSupported(this.id + ' parseConversion () is not supported yet');

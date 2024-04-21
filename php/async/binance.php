@@ -47,6 +47,7 @@ class binance extends Exchange {
                 'cancelOrders' => true,  // contract only
                 'closeAllPositions' => false,
                 'closePosition' => false,  // exchange specific closePosition parameter for binance createOrder is not synonymous with how CCXT uses closePositions
+                'createConvertTrade' => true,
                 'createDepositAddress' => false,
                 'createLimitBuyOrder' => true,
                 'createLimitSellOrder' => true,
@@ -79,7 +80,9 @@ class binance extends Exchange {
                 'fetchClosedOrder' => false,
                 'fetchClosedOrders' => 'emulated',
                 'fetchConvertCurrencies' => true,
-                'fetchConvertQuote' => false,
+                'fetchConvertQuote' => true,
+                'fetchConvertTrade' => true,
+                'fetchConvertTradeHistory' => true,
                 'fetchCrossBorrowRate' => true,
                 'fetchCrossBorrowRates' => false,
                 'fetchCurrencies' => true,
@@ -12486,5 +12489,357 @@ class binance extends Exchange {
             }
             return $result;
         }) ();
+    }
+
+    public function fetch_convert_quote(string $fromCode, string $toCode, ?float $amount = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($fromCode, $toCode, $amount, $params) {
+            /**
+             * fetch a quote for converting from one currency to another
+             * @see https://binance-docs.github.io/apidocs/spot/en/#send-quote-$request-user_data
+             * @param {string} $fromCode the currency that you want to sell and convert from
+             * @param {string} $toCode the currency that you want to buy and convert into
+             * @param {float} $amount how much you want to trade in units of the from currency
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->walletType] either 'SPOT' or 'FUNDING', the default is 'SPOT'
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=conversion-structure conversion structure~
+             */
+            if ($amount === null) {
+                throw new ArgumentsRequired($this->id . ' fetchConvertQuote() requires an $amount argument');
+            }
+            Async\await($this->load_markets());
+            $request = array(
+                'fromAsset' => $fromCode,
+                'toAsset' => $toCode,
+                'fromAmount' => $amount,
+            );
+            $response = Async\await($this->sapiPostConvertGetQuote (array_merge($request, $params)));
+            //
+            //     {
+            //         "quoteId":"12415572564",
+            //         "ratio":"38163.7",
+            //         "inverseRatio":"0.0000262",
+            //         "validTimestamp":1623319461670,
+            //         "toAmount":"3816.37",
+            //         "fromAmount":"0.1"
+            //     }
+            //
+            $fromCurrency = $this->currency($fromCode);
+            $toCurrency = $this->currency($toCode);
+            return $this->parse_conversion($response, $fromCurrency, $toCurrency);
+        }) ();
+    }
+
+    public function create_convert_trade(string $id, string $fromCode, string $toCode, ?float $amount = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($id, $fromCode, $toCode, $amount, $params) {
+            /**
+             * convert from one currency to another
+             * @see https://binance-docs.github.io/apidocs/spot/en/#busd-convert-trade
+             * @see https://binance-docs.github.io/apidocs/spot/en/#accept-quote-trade
+             * @param {string} $id the $id of the trade that you want to make
+             * @param {string} $fromCode the currency that you want to sell and convert from
+             * @param {string} $toCode the currency that you want to buy and convert into
+             * @param {float} [$amount] how much you want to trade in units of the from currency
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?$id=conversion-structure conversion structure~
+             */
+            Async\await($this->load_markets());
+            $request = array();
+            $response = null;
+            if (($fromCode === 'BUSD') || ($toCode === 'BUSD')) {
+                if ($amount === null) {
+                    throw new ArgumentsRequired($this->id . ' createConvertTrade() requires an $amount argument');
+                }
+                $request['clientTranId'] = $id;
+                $request['asset'] = $fromCode;
+                $request['targetAsset'] = $toCode;
+                $request['amount'] = $amount;
+                $response = Async\await($this->sapiPostAssetConvertTransfer (array_merge($request, $params)));
+                //
+                //     {
+                //         "tranId" => 118263407119,
+                //         "status" => "S"
+                //     }
+                //
+            } else {
+                $request['quoteId'] = $id;
+                $response = Async\await($this->sapiPostConvertAcceptQuote (array_merge($request, $params)));
+                //
+                //     {
+                //         "orderId":"933256278426274426",
+                //         "createTime":1623381330472,
+                //         "orderStatus":"PROCESS"
+                //     }
+                //
+            }
+            $fromCurrency = $this->currency($fromCode);
+            $toCurrency = $this->currency($toCode);
+            return $this->parse_conversion($response, $fromCurrency, $toCurrency);
+        }) ();
+    }
+
+    public function fetch_convert_trade(string $id, ?string $code = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($id, $code, $params) {
+            /**
+             * fetch the $data for a conversion trade
+             * @see https://binance-docs.github.io/apidocs/spot/en/#busd-convert-history-user_data
+             * @see https://binance-docs.github.io/apidocs/spot/en/#order-status-user_data
+             * @param {string} $id the $id of the trade that you want to fetch
+             * @param {string} [$code] the unified $currency $code of the conversion trade
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?$id=conversion-structure conversion structure~
+             */
+            Async\await($this->load_markets());
+            $request = array();
+            $response = null;
+            if ($code === 'BUSD') {
+                $msInDay = 86400000;
+                $now = $this->milliseconds();
+                if ($code !== null) {
+                    $currency = $this->currency($code);
+                    $request['asset'] = $currency['id'];
+                }
+                $request['tranId'] = $id;
+                $request['startTime'] = $now - $msInDay;
+                $request['endTime'] = $now;
+                $response = Async\await($this->sapiGetAssetConvertTransferQueryByPage (array_merge($request, $params)));
+                //
+                //     {
+                //         "total" => 3,
+                //         "rows" => array(
+                //             array(
+                //                 "tranId" => 118263615991,
+                //                 "type" => 244,
+                //                 "time" => 1664442078000,
+                //                 "deductedAsset" => "BUSD",
+                //                 "deductedAmount" => "1",
+                //                 "targetAsset" => "USDC",
+                //                 "targetAmount" => "1",
+                //                 "status" => "S",
+                //                 "accountType" => "MAIN"
+                //             ),
+                //         )
+                //     }
+                //
+            } else {
+                $request['orderId'] = $id;
+                $response = Async\await($this->sapiGetConvertOrderStatus (array_merge($request, $params)));
+                //
+                //     {
+                //         "orderId":933256278426274426,
+                //         "orderStatus":"SUCCESS",
+                //         "fromAsset":"BTC",
+                //         "fromAmount":"0.00054414",
+                //         "toAsset":"USDT",
+                //         "toAmount":"20",
+                //         "ratio":"36755",
+                //         "inverseRatio":"0.00002721",
+                //         "createTime":1623381330472
+                //     }
+                //
+            }
+            $data = $response;
+            if ($code === 'BUSD') {
+                $rows = $this->safe_list($response, 'rows', array());
+                $data = $this->safe_dict($rows, 0, array());
+            }
+            $fromCurrencyId = $this->safe_string_2($data, 'deductedAsset', 'fromAsset');
+            $toCurrencyId = $this->safe_string_2($data, 'targetAsset', 'toAsset');
+            $fromCurrency = null;
+            $toCurrency = null;
+            if ($fromCurrencyId !== null) {
+                $fromCurrency = $this->currency($fromCurrencyId);
+            }
+            if ($toCurrencyId !== null) {
+                $toCurrency = $this->currency($toCurrencyId);
+            }
+            return $this->parse_conversion($data, $fromCurrency, $toCurrency);
+        }) ();
+    }
+
+    public function fetch_convert_trade_history(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($code, $since, $limit, $params) {
+            /**
+             * fetch the users history of conversion trades
+             * @see https://binance-docs.github.io/apidocs/spot/en/#busd-convert-history-user_data
+             * @see https://binance-docs.github.io/apidocs/spot/en/#get-convert-trade-history-user_data
+             * @param {string} [$code] the unified $currency $code
+             * @param {int} [$since] the earliest time in ms to fetch conversions for
+             * @param {int} [$limit] the maximum number of conversion structures to retrieve
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {int} [$params->until] timestamp in ms of the latest conversion to fetch
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=conversion-structure conversion structures~
+             */
+            Async\await($this->load_markets());
+            $request = array();
+            $msInThirtyDays = 2592000000;
+            $now = $this->milliseconds();
+            if ($since !== null) {
+                $request['startTime'] = $since;
+            } else {
+                $request['startTime'] = $now - $msInThirtyDays;
+            }
+            $endTime = $this->safe_string_2($params, 'endTime', 'until');
+            if ($endTime !== null) {
+                $request['endTime'] = $endTime;
+            } else {
+                $request['endTime'] = $now;
+            }
+            $params = $this->omit($params, 'until');
+            $response = null;
+            $responseQuery = null;
+            $fromCurrencyKey = null;
+            $toCurrencyKey = null;
+            if ($code === 'BUSD') {
+                $currency = $this->currency($code);
+                $request['asset'] = $currency['id'];
+                if ($limit !== null) {
+                    $request['size'] = $limit;
+                }
+                $fromCurrencyKey = 'deductedAsset';
+                $toCurrencyKey = 'targetAsset';
+                $responseQuery = 'rows';
+                $response = Async\await($this->sapiGetAssetConvertTransferQueryByPage (array_merge($request, $params)));
+                //
+                //     {
+                //         "total" => 3,
+                //         "rows" => array(
+                //             array(
+                //                 "tranId" => 118263615991,
+                //                 "type" => 244,
+                //                 "time" => 1664442078000,
+                //                 "deductedAsset" => "BUSD",
+                //                 "deductedAmount" => "1",
+                //                 "targetAsset" => "USDC",
+                //                 "targetAmount" => "1",
+                //                 "status" => "S",
+                //                 "accountType" => "MAIN"
+                //             ),
+                //         )
+                //     }
+                //
+            } else {
+                if ($limit !== null) {
+                    $request['limit'] = $limit;
+                }
+                $fromCurrencyKey = 'fromAsset';
+                $toCurrencyKey = 'toAsset';
+                $responseQuery = 'list';
+                $response = Async\await($this->sapiGetConvertTradeFlow (array_merge($request, $params)));
+                //
+                //     {
+                //         "list" => array(
+                //             {
+                //                 "quoteId" => "f3b91c525b2644c7bc1e1cd31b6e1aa6",
+                //                 "orderId" => 940708407462087195,
+                //                 "orderStatus" => "SUCCESS",
+                //                 "fromAsset" => "USDT",
+                //                 "fromAmount" => "20",
+                //                 "toAsset" => "BNB",
+                //                 "toAmount" => "0.06154036",
+                //                 "ratio" => "0.00307702",
+                //                 "inverseRatio" => "324.99",
+                //                 "createTime" => 1624248872184
+                //             }
+                //         ),
+                //         "startTime" => 1623824139000,
+                //         "endTime" => 1626416139000,
+                //         "limit" => 100,
+                //         "moreData" => false
+                //     }
+                //
+            }
+            $rows = $this->safe_list($response, $responseQuery, array());
+            return $this->parse_conversions($rows, $fromCurrencyKey, $toCurrencyKey, $since, $limit);
+        }) ();
+    }
+
+    public function parse_conversion($conversion, ?array $fromCurrency = null, ?array $toCurrency = null): Conversion {
+        //
+        // fetchConvertQuote
+        //
+        //     {
+        //         "quoteId":"12415572564",
+        //         "ratio":"38163.7",
+        //         "inverseRatio":"0.0000262",
+        //         "validTimestamp":1623319461670,
+        //         "toAmount":"3816.37",
+        //         "fromAmount":"0.1"
+        //     }
+        //
+        // createConvertTrade
+        //
+        //     {
+        //         "orderId":"933256278426274426",
+        //         "createTime":1623381330472,
+        //         "orderStatus":"PROCESS"
+        //     }
+        //
+        // createConvertTrade BUSD
+        //
+        //     {
+        //         "tranId" => 118263407119,
+        //         "status" => "S"
+        //     }
+        //
+        // fetchConvertTrade, fetchConvertTradeHistory BUSD
+        //
+        //     {
+        //         "tranId" => 118263615991,
+        //         "type" => 244,
+        //         "time" => 1664442078000,
+        //         "deductedAsset" => "BUSD",
+        //         "deductedAmount" => "1",
+        //         "targetAsset" => "USDC",
+        //         "targetAmount" => "1",
+        //         "status" => "S",
+        //         "accountType" => "MAIN"
+        //     }
+        //
+        // fetchConvertTrade
+        //
+        //     {
+        //         "orderId":933256278426274426,
+        //         "orderStatus":"SUCCESS",
+        //         "fromAsset":"BTC",
+        //         "fromAmount":"0.00054414",
+        //         "toAsset":"USDT",
+        //         "toAmount":"20",
+        //         "ratio":"36755",
+        //         "inverseRatio":"0.00002721",
+        //         "createTime":1623381330472
+        //     }
+        //
+        // fetchConvertTradeHistory
+        //
+        //     {
+        //         "quoteId" => "f3b91c525b2644c7bc1e1cd31b6e1aa6",
+        //         "orderId" => 940708407462087195,
+        //         "orderStatus" => "SUCCESS",
+        //         "fromAsset" => "USDT",
+        //         "fromAmount" => "20",
+        //         "toAsset" => "BNB",
+        //         "toAmount" => "0.06154036",
+        //         "ratio" => "0.00307702",
+        //         "inverseRatio" => "324.99",
+        //         "createTime" => 1624248872184
+        //     }
+        //
+        $timestamp = $this->safe_integer_n($conversion, array( 'time', 'validTimestamp', 'createTime' ));
+        $fromCur = $this->safe_string_2($conversion, 'deductedAsset', 'fromAsset');
+        $fromCode = $this->safe_currency_code($fromCur, $fromCurrency);
+        $to = $this->safe_string_2($conversion, 'targetAsset', 'toAsset');
+        $toCode = $this->safe_currency_code($to, $toCurrency);
+        return array(
+            'info' => $conversion,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'id' => $this->safe_string_n($conversion, array( 'tranId', 'orderId', 'quoteId' )),
+            'fromCurrency' => $fromCode,
+            'fromAmount' => $this->safe_number_2($conversion, 'deductedAmount', 'fromAmount'),
+            'toCurrency' => $toCode,
+            'toAmount' => $this->safe_number_2($conversion, 'targetAmount', 'toAmount'),
+            'price' => null,
+            'fee' => null,
+        );
     }
 }

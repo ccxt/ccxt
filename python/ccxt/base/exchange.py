@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.2.97'
+__version__ = '4.3.4'
 
 # -----------------------------------------------------------------------------
 
@@ -31,7 +31,7 @@ from ccxt.base.decimal_to_precision import decimal_to_precision
 from ccxt.base.decimal_to_precision import DECIMAL_PLACES, TICK_SIZE, NO_PADDING, TRUNCATE, ROUND, ROUND_UP, ROUND_DOWN, SIGNIFICANT_DIGITS
 from ccxt.base.decimal_to_precision import number_to_string
 from ccxt.base.precise import Precise
-from ccxt.base.types import BalanceAccount, Currency, IndexType, OrderSide, OrderType, Trade, OrderRequest, Market, MarketType, Str, Num, Strings
+from ccxt.base.types import BalanceAccount, Currency, IndexType, OrderSide, OrderType, Trade, OrderRequest, Market, MarketType, Str, Num, Strings, CancellationRequest
 
 # -----------------------------------------------------------------------------
 
@@ -4318,6 +4318,9 @@ class Exchange(object):
     def cancel_all_orders(self, symbol: Str = None, params={}):
         raise NotSupported(self.id + ' cancelAllOrders() is not supported yet')
 
+    def cancel_orders_for_symbols(self, orders: List[CancellationRequest], params={}):
+        raise NotSupported(self.id + ' cancelOrdersForSymbols() is not supported yet')
+
     def cancel_all_orders_ws(self, symbol: Str = None, params={}):
         raise NotSupported(self.id + ' cancelAllOrdersWs() is not supported yet')
 
@@ -5450,6 +5453,25 @@ class Exchange(object):
 
     def parse_leverage(self, leverage, market: Market = None):
         raise NotSupported(self.id + ' parseLeverage() is not supported yet')
+
+    def parse_conversions(self, conversions: List[Any], fromCurrencyKey: Str = None, toCurrencyKey: Str = None, since: Int = None, limit: Int = None, params={}):
+        conversions = self.to_array(conversions)
+        result = []
+        fromCurrency = None
+        toCurrency = None
+        for i in range(0, len(conversions)):
+            entry = conversions[i]
+            fromId = self.safe_string(entry, fromCurrencyKey)
+            toId = self.safe_string(entry, toCurrencyKey)
+            if fromId is not None:
+                fromCurrency = self.currency(fromId)
+            if toId is not None:
+                toCurrency = self.currency(toId)
+            conversion = self.extend(self.parseConversion(entry, fromCurrency, toCurrency), params)
+            result.append(conversion)
+        sorted = self.sort_by(result, 'timestamp')
+        code = fromCurrency['code'] if (fromCurrency is not None) else None
+        return self.filter_by_currency_since_limit(sorted, code, since, limit)
 
     def parse_conversion(self, conversion, fromCurrency: Currency = None, toCurrency: Currency = None):
         raise NotSupported(self.id + ' parseConversion() is not supported yet')

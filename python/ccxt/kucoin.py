@@ -606,6 +606,8 @@ class kucoin(Exchange, ImplicitAPI):
                 'BIFI': 'BIFIF',
                 'VAI': 'VAIOT',
                 'WAX': 'WAXP',
+                'ALT': 'APTOSLAUNCHTOKEN',
+                'KALT': 'ALT',  # ALTLAYER
             },
             'options': {
                 'version': 'v1',
@@ -1206,10 +1208,10 @@ class kucoin(Exchange, ImplicitAPI):
         #    }
         #
         responses = promises
-        currenciesResponse = self.safe_value(responses, 0, {})
-        currenciesData = self.safe_value(currenciesResponse, 'data', [])
-        additionalResponse = self.safe_value(responses, 1, {})
-        additionalData = self.safe_value(additionalResponse, 'data', [])
+        currenciesResponse = self.safe_dict(responses, 0, {})
+        currenciesData = self.safe_list(currenciesResponse, 'data', [])
+        additionalResponse = self.safe_dict(responses, 1, {})
+        additionalData = self.safe_list(additionalResponse, 'data', [])
         additionalDataGrouped = self.group_by(additionalData, 'currency')
         result = {}
         for i in range(0, len(currenciesData)):
@@ -1221,7 +1223,7 @@ class kucoin(Exchange, ImplicitAPI):
             isDepositEnabled = None
             networks = {}
             chains = self.safe_list(entry, 'chains', [])
-            extraChainsData = self.index_by(self.safe_value(additionalDataGrouped, id, []), 'chain')
+            extraChainsData = self.index_by(self.safe_list(additionalDataGrouped, id, []), 'chain')
             rawPrecision = self.safe_string(entry, 'precision')
             precision = self.parse_number(self.parse_precision(rawPrecision))
             chainsLength = len(chains)
@@ -1349,7 +1351,7 @@ class kucoin(Exchange, ImplicitAPI):
         if networkCode is not None:
             request['chain'] = self.network_code_to_id(networkCode).lower()
         response = self.privateGetWithdrawalsQuotas(self.extend(request, params))
-        data = self.safe_value(response, 'data')
+        data = self.safe_dict(response, 'data', {})
         withdrawFees = {}
         withdrawFees[code] = self.safe_number(data, 'withdrawMinFee')
         return {
@@ -1776,7 +1778,7 @@ class kucoin(Exchange, ImplicitAPI):
             address = address.replace('bitcoincash:', '')
         code = None
         if currency is not None:
-            code = currency['id']
+            code = self.safe_currency_code(currency['id'])
             if code != 'NIM':
                 # contains spaces
                 self.check_address(address)
@@ -1822,7 +1824,7 @@ class kucoin(Exchange, ImplicitAPI):
         self.options['versions']['private']['GET']['deposit-addresses'] = version
         chains = self.safe_list(response, 'data', [])
         parsed = self.parse_deposit_addresses(chains, [currency['code']], False, {
-            'currency': currency['id'],
+            'currency': currency['code'],
         })
         return self.index_by(parsed, 'network')
 
@@ -2799,7 +2801,7 @@ class kucoin(Exchange, ImplicitAPI):
     def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
-        :see: https://docs.kucoin.com/#get-trade-histories
+        :see: https://www.kucoin.com/docs/rest/spot-trading/market-data/get-trade-histories
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
@@ -2964,7 +2966,7 @@ class kucoin(Exchange, ImplicitAPI):
     def fetch_trading_fee(self, symbol: str, params={}) -> TradingFeeInterface:
         """
         fetch the trading fees for a market
-        :see: https://docs.kucoin.com/#actual-fee-rate-of-the-trading-pair
+        :see: https://www.kucoin.com/docs/rest/funding/trade-fee/trading-pair-actual-fee-spot-margin-trade_hf
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `fee structure <https://docs.ccxt.com/#/?id=fee-structure>`
@@ -3002,7 +3004,7 @@ class kucoin(Exchange, ImplicitAPI):
     def withdraw(self, code: str, amount: float, address, tag=None, params={}):
         """
         make a withdrawal
-        :see: https://docs.kucoin.com/#apply-withdraw-2
+        :see: https://www.kucoin.com/docs/rest/funding/withdrawals/apply-withdraw
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
@@ -3163,8 +3165,8 @@ class kucoin(Exchange, ImplicitAPI):
     def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch all deposits made to an account
-        :see: https://docs.kucoin.com/#get-deposit-list
-        :see: https://docs.kucoin.com/#get-v1-historical-deposits-list
+        :see: https://www.kucoin.com/docs/rest/funding/deposit/get-deposit-list
+        :see: https://www.kucoin.com/docs/rest/funding/deposit/get-v1-historical-deposits-list
         :param str code: unified currency code
         :param int [since]: the earliest time in ms to fetch deposits for
         :param int [limit]: the maximum number of deposits structures to retrieve
@@ -3239,8 +3241,8 @@ class kucoin(Exchange, ImplicitAPI):
     def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch all withdrawals made from an account
-        :see: https://docs.kucoin.com/#get-withdrawals-list
-        :see: https://docs.kucoin.com/#get-v1-historical-withdrawals-list
+        :see: https://www.kucoin.com/docs/rest/funding/withdrawals/get-withdrawals-list
+        :see: https://www.kucoin.com/docs/rest/funding/withdrawals/get-v1-historical-withdrawals-list
         :param str code: unified currency code
         :param int [since]: the earliest time in ms to fetch withdrawals for
         :param int [limit]: the maximum number of withdrawals structures to retrieve
@@ -3490,7 +3492,7 @@ class kucoin(Exchange, ImplicitAPI):
     def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
         """
         transfer currency internally between wallets on the same account
-        :see: https://docs.kucoin.com/#inner-transfer
+        :see: https://www.kucoin.com/docs/rest/funding/transfer/inner-transfer
         :see: https://docs.kucoin.com/futures/#transfer-funds-to-kucoin-main-account-2
         :see: https://docs.kucoin.com/spot-hf/#internal-funds-transfers-in-high-frequency-trading-accounts
         :param str code: unified currency code
@@ -3757,7 +3759,7 @@ class kucoin(Exchange, ImplicitAPI):
 
     def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
         """
-        :see: https://docs.kucoin.com/#get-account-ledgers
+        :see: https://www.kucoin.com/docs/rest/account/basic-info/get-account-ledgers-spot-margin
         :see: https://www.kucoin.com/docs/rest/account/basic-info/get-account-ledgers-trade_hf
         :see: https://www.kucoin.com/docs/rest/account/basic-info/get-account-ledgers-margin_hf
         fetch the history of changes, actions done by the user or operations that altered balance of the user

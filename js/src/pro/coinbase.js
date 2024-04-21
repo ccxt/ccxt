@@ -6,7 +6,7 @@
 
 //  ---------------------------------------------------------------------------
 import coinbaseRest from '../coinbase.js';
-import { ExchangeError } from '../base/errors.js';
+import { ArgumentsRequired, ExchangeError } from '../base/errors.js';
 import { ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
@@ -78,15 +78,36 @@ export default class coinbase extends coinbaseRest {
         }
         const url = this.urls['api']['ws'];
         const timestamp = this.numberToString(this.seconds());
+        const isCloudAPiKey = (this.apiKey.indexOf('organizations/') >= 0) || (this.secret.startsWith('-----BEGIN'));
         const auth = timestamp + name + productIds.join(',');
         const subscribe = {
             'type': 'subscribe',
             'product_ids': productIds,
             'channel': name,
-            'api_key': this.apiKey,
-            'timestamp': timestamp,
-            'signature': this.hmac(this.encode(auth), this.encode(this.secret), sha256),
+            // 'api_key': this.apiKey,
+            // 'timestamp': timestamp,
+            // 'signature': this.hmac (this.encode (auth), this.encode (this.secret), sha256),
         };
+        if (!isCloudAPiKey) {
+            subscribe['api_key'] = this.apiKey;
+            subscribe['timestamp'] = timestamp;
+            subscribe['signature'] = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
+        }
+        else {
+            if (this.apiKey.startsWith('-----BEGIN')) {
+                throw new ArgumentsRequired(this.id + ' apiKey should contain the name (eg: organizations/3b910e93....) and not the public key');
+            }
+            const currentToken = this.safeString(this.options, 'wsToken');
+            const tokenTimestamp = this.safeInteger(this.options, 'wsTokenTimestamp', 0);
+            const seconds = this.seconds();
+            if (currentToken === undefined || tokenTimestamp + 120 < seconds) {
+                // we should generate new token
+                const token = this.createAuthToken(seconds);
+                this.options['wsToken'] = token;
+                this.options['wsTokenTimestamp'] = seconds;
+            }
+            subscribe['jwt'] = this.safeString(this.options, 'wsToken');
+        }
         return await this.watch(url, messageHash, subscribe, messageHash);
     }
     async watchTicker(symbol, params = {}) {

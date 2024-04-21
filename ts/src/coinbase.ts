@@ -19,9 +19,10 @@ export default class coinbase extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'coinbase',
-            'name': 'Coinbase',
+            'name': 'Coinbase Advanced',
             'countries': [ 'US' ],
             'pro': true,
+            'certified': true,
             // rate-limits:
             // ADVANCED API: https://docs.cloud.coinbase.com/advanced-trade-api/docs/rest-api-rate-limits
             // - max 30 req/second for private data, 10 req/s for public data
@@ -1473,6 +1474,7 @@ export default class coinbase extends Exchange {
         const contractExpiryType = this.safeString (futureProductDetails, 'contract_expiry_type');
         const contractSize = this.safeNumber (futureProductDetails, 'contract_size');
         const contractExpire = this.safeString (futureProductDetails, 'contract_expiry');
+        const expireTimestamp = this.parse8601 (contractExpire);
         const isSwap = (contractExpiryType === 'PERPETUAL');
         const baseId = this.safeString (futureProductDetails, 'contract_root_unit');
         const quoteId = this.safeString (market, 'quote_currency_id');
@@ -1486,7 +1488,7 @@ export default class coinbase extends Exchange {
             symbol = symbol + ':' + quote;
         } else {
             type = 'future';
-            symbol = symbol + ':' + quote + '-' + this.yymmdd (contractExpire);
+            symbol = symbol + ':' + quote + '-' + this.yymmdd (expireTimestamp);
         }
         const takerFeeRate = this.safeNumber (feeTier, 'taker_fee_rate');
         const makerFeeRate = this.safeNumber (feeTier, 'maker_fee_rate');
@@ -1514,7 +1516,7 @@ export default class coinbase extends Exchange {
             'taker': taker,
             'maker': maker,
             'contractSize': contractSize,
-            'expiry': this.parse8601 (contractExpire),
+            'expiry': expireTimestamp,
             'expiryDatetime': contractExpire,
             'strike': undefined,
             'optionType': undefined,
@@ -2615,7 +2617,7 @@ export default class coinbase extends Exchange {
          * @param {float} [params.stopLossPrice] price to trigger stop-loss orders
          * @param {float} [params.takeProfitPrice] price to trigger take-profit orders
          * @param {bool} [params.postOnly] true or false
-         * @param {string} [params.timeInForce] 'GTC', 'IOC', 'GTD' or 'PO'
+         * @param {string} [params.timeInForce] 'GTC', 'IOC', 'GTD' or 'PO', 'FOK'
          * @param {string} [params.stop_direction] 'UNKNOWN_STOP_DIRECTION', 'STOP_DIRECTION_STOP_UP', 'STOP_DIRECTION_STOP_DOWN' the direction the stopPrice is triggered from
          * @param {string} [params.end_time] '2023-05-25T17:01:05.092Z' for 'GTD' orders
          * @param {float} [params.cost] *spot market buy only* the quote quantity that can be used as an alternative for the amount
@@ -2710,6 +2712,13 @@ export default class coinbase extends Exchange {
                 } else if (timeInForce === 'IOC') {
                     request['order_configuration'] = {
                         'sor_limit_ioc': {
+                            'base_size': this.amountToPrecision (symbol, amount),
+                            'limit_price': this.priceToPrecision (symbol, price),
+                        },
+                    };
+                } else if (timeInForce === 'FOK') {
+                    request['order_configuration'] = {
+                        'limit_limit_fok': {
                             'base_size': this.amountToPrecision (symbol, amount),
                             'limit_price': this.priceToPrecision (symbol, price),
                         },
@@ -4322,6 +4331,34 @@ export default class coinbase extends Exchange {
         });
     }
 
+    createAuthToken (seconds: Int, method: Str = undefined, url: Str = undefined) {
+        // it may not work for v2
+        let uri = undefined;
+        if (url !== undefined) {
+            uri = method + ' ' + url.replace ('https://', '');
+            const quesPos = uri.indexOf ('?');
+            // Due to we use mb_strpos, quesPos could be false in php. In that case, the quesPos >= 0 is true
+            // Also it's not possible that the question mark is first character, only check > 0 here.
+            if (quesPos > 0) {
+                uri = uri.slice (0, quesPos);
+            }
+        }
+        const nonce = this.randomBytes (16);
+        const request = {
+            'aud': [ 'retail_rest_api_proxy' ],
+            'iss': 'coinbase-cloud',
+            'nbf': seconds,
+            'exp': seconds + 120,
+            'sub': this.apiKey,
+            'iat': seconds,
+        };
+        if (uri !== undefined) {
+            request['uri'] = uri;
+        }
+        const token = jwt (request, this.encode (this.secret), sha256, false, { 'kid': this.apiKey, 'nonce': nonce, 'alg': 'ES256' });
+        return token;
+    }
+
     sign (path, api = [], method = 'GET', params = {}, headers = undefined, body = undefined) {
         const version = api[0];
         const signed = api[1] === 'private';
@@ -4368,25 +4405,26 @@ export default class coinbase extends Exchange {
                     if (this.apiKey.startsWith ('-----BEGIN')) {
                         throw new ArgumentsRequired (this.id + ' apiKey should contain the name (eg: organizations/3b910e93....) and not the public key');
                     }
-                    // it may not work for v2
-                    let uri = method + ' ' + url.replace ('https://', '');
-                    const quesPos = uri.indexOf ('?');
-                    // Due to we use mb_strpos, quesPos could be false in php. In that case, the quesPos >= 0 is true
-                    // Also it's not possible that the question mark is first character, only check > 0 here.
-                    if (quesPos > 0) {
-                        uri = uri.slice (0, quesPos);
-                    }
-                    const nonce = this.randomBytes (16);
-                    const request = {
-                        'aud': [ 'retail_rest_api_proxy' ],
-                        'iss': 'coinbase-cloud',
-                        'nbf': seconds,
-                        'exp': seconds + 120,
-                        'sub': this.apiKey,
-                        'uri': uri,
-                        'iat': seconds,
-                    };
-                    const token = jwt (request, this.encode (this.secret), sha256, false, { 'kid': this.apiKey, 'nonce': nonce, 'alg': 'ES256' });
+                    // // it may not work for v2
+                    // let uri = method + ' ' + url.replace ('https://', '');
+                    // const quesPos = uri.indexOf ('?');
+                    // // Due to we use mb_strpos, quesPos could be false in php. In that case, the quesPos >= 0 is true
+                    // // Also it's not possible that the question mark is first character, only check > 0 here.
+                    // if (quesPos > 0) {
+                    //     uri = uri.slice (0, quesPos);
+                    // }
+                    // const nonce = this.randomBytes (16);
+                    // const request = {
+                    //     'aud': [ 'retail_rest_api_proxy' ],
+                    //     'iss': 'coinbase-cloud',
+                    //     'nbf': seconds,
+                    //     'exp': seconds + 120,
+                    //     'sub': this.apiKey,
+                    //     'uri': uri,
+                    //     'iat': seconds,
+                    // };
+                    const token = this.createAuthToken (seconds, method, url);
+                    // const token = jwt (request, this.encode (this.secret), sha256, false, { 'kid': this.apiKey, 'nonce': nonce, 'alg': 'ES256' });
                     authorizationString = 'Bearer ' + token;
                 } else {
                     const timestampString = this.seconds ().toString ();
