@@ -68,7 +68,8 @@ export default class bitflex extends Exchange {
                 'fetchTradingFees': false,
                 'fetchTransactionFees': false,
                 'fetchTransactions': false,
-                'transfer': false,
+                'fetchTransfers': false,
+                'transfer': true,
                 'withdraw': false,
             },
             'timeframes': {
@@ -132,9 +133,9 @@ export default class bitflex extends Exchange {
                         'openapi/v1/withdrawalOrders': 1,
                         'openapi/v1/withdraw/detail': 1,
                         'openapi/v1/balance_flow': 1,
-                        'openapi/contract/v1/getOrder': 1,
-                        'openapi/contract/v1/openOrders': 1,
-                        'openapi/contract/v1/historyOrders': 1,
+                        'openapi/contract/v1/getOrder': 1, // implemented
+                        'openapi/contract/v1/openOrders': 1, // implemented
+                        'openapi/contract/v1/historyOrders': 1, // implemented
                         'openapi/contract/v1/myTrades': 1,
                         'openapi/contract/v1/positions': 1,
                         'openapi/contract/v1/account': 1,
@@ -145,13 +146,13 @@ export default class bitflex extends Exchange {
                         'openapi/v1/withdraw': 1,
                         'openapi/v1/order': 1, // implemented
                         'openapi/v1/test': 1,
-                        'openapi/contract/v1/order': 1,
+                        'openapi/contract/v1/order': 1, // implemented
                         'openapi/contract/v1/modifyMargin': 1,
                         'openapi/contract/v1/modifyLeverage': 1,
                     },
                     'delete': {
                         'openapi/v1/order': 1, // implemented
-                        'openapi/contract/v1/order/cancel': 1,
+                        'openapi/contract/v1/order/cancel': 1, // implemented
                         'openapi/contract/v1/order/batchCancel': 1,
                     },
                 },
@@ -1100,7 +1101,7 @@ export default class bitflex extends Exchange {
         await this.loadMarkets ();
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
-        let response = {};
+        let response = undefined;
         if (type === 'spot') {
             response = await this.privateGetOpenapiV1Account (params);
             //
@@ -1120,27 +1121,50 @@ export default class bitflex extends Exchange {
             //
         } else if (type === 'swap') {
             response = await this.privateGetOpenapiContractV1Account (params);
+            //
+            //     {
+            //         "USDT": {
+            //             "total": "49.81107894",
+            //             "availableMargin": "49.81107894",
+            //             "positionMargin": "0",
+            //             "orderMargin": "0",
+            //             "tokenId": "USDT"
+            //         }
+            //     }
+            //
         } else {
             throw new NotSupported (this.id + ' fetchBalance() is only supported for spot and contract markets');
         }
-        return this.parseBalance (response);
+        return this.customParseBalance (response, type);
     }
 
-    parseBalance (response): Balances {
-        const balances = this.safeList (response, 'balances', []);
+    customParseBalance (response, type): Balances {
+        let balances = undefined;
         const result = {
             'info': response,
             'timestamp': undefined,
             'datetime': undefined,
         };
-        for (let i = 0; i < balances.length; i++) {
-            const balance = balances[i];
-            const currencyId = this.safeString (balance, 'asset');
+        if (type === 'spot') {
+            balances = this.safeList (response, 'balances', []);
+            for (let i = 0; i < balances.length; i++) {
+                const balance = balances[i];
+                const currencyId = this.safeString (balance, 'asset');
+                const code = this.safeCurrencyCode (currencyId);
+                const account = this.account ();
+                account['free'] = this.safeString (balance, 'free');
+                account['used'] = this.safeString (balance, 'locked');
+                result[code] = account;
+            }
+        } else if (type === 'swap') {
+            const balance = this.safeDict (response, 'USDT', {});
+            const currencyId = this.safeString (balance, 'tokenId');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['free'] = this.safeString (balance, 'free');
-            account['used'] = this.safeString (balance, 'locked');
+            account['free'] = this.safeString (balance, 'availableMargin');
+            account['used'] = this.safeString (balance, 'positionMargin');
             result[code] = account;
+            return this.safeBalance (result);
         }
         return this.safeBalance (result);
     }
