@@ -484,9 +484,9 @@ export default class Exchange {
                 'cancelAllOrders': undefined,
                 'cancelAllOrdersWs': undefined,
                 'cancelOrder': true,
+                'cancelOrderWs': undefined,
                 'cancelOrders': undefined,
                 'cancelOrdersWs': undefined,
-                'cancelOrderWs': undefined,
                 'closeAllPositions': undefined,
                 'closePosition': undefined,
                 'createDepositAddress': undefined,
@@ -615,16 +615,20 @@ export default class Exchange {
                 'fetchOrderWs': undefined,
                 'fetchPermissions': undefined,
                 'fetchPosition': undefined,
+                'fetchPositionWs': undefined,
                 'fetchPositionMode': undefined,
                 'fetchPositions': undefined,
+                'fetchPositionsWs': undefined,
                 'fetchPositionsForSymbol': undefined,
+                'fetchPositionsForSymbolWs': undefined,
                 'fetchPositionsRisk': undefined,
                 'fetchPremiumIndexOHLCV': undefined,
                 'fetchSettlementHistory': undefined,
                 'fetchStatus': undefined,
                 'fetchTicker': true,
-                'fetchTickers': undefined,
                 'fetchTickerWs': undefined,
+                'fetchTickers': undefined,
+                'fetchTickersWs': undefined,
                 'fetchTime': undefined,
                 'fetchTrades': true,
                 'fetchTradesWs': undefined,
@@ -4208,6 +4212,10 @@ export default class Exchange {
         throw new NotSupported (this.id + ' fetchPosition() is not supported yet');
     }
 
+    async fetchPositionWs (symbol: string, params = {}): Promise<Position[]> {
+        throw new NotSupported (this.id + ' fetchPositionWs() is not supported yet');
+    }
+
     async watchPosition (symbol: Str = undefined, params = {}): Promise<Position> {
         throw new NotSupported (this.id + ' watchPosition() is not supported yet');
     }
@@ -4232,7 +4240,23 @@ export default class Exchange {
         throw new NotSupported (this.id + ' fetchPositionsForSymbol() is not supported yet');
     }
 
+    async fetchPositionsForSymbolWs (symbol: string, params = {}): Promise<Position[]> {
+        /**
+         * @method
+         * @name exchange#fetchPositionsForSymbol
+         * @description fetches all open positions for specific symbol, unlike fetchPositions (which is designed to work with multiple symbols) so this method might be preffered for one-market position, because of less rate-limit consumption and speed
+         * @param {string} symbol unified market symbol
+         * @param {object} params extra parameters specific to the endpoint
+         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure} with maximum 3 items - possible one position for "one-way" mode, and possible two positions (long & short) for "two-way" (a.k.a. hedge) mode
+         */
+        throw new NotSupported (this.id + ' fetchPositionsForSymbol() is not supported yet');
+    }
+
     async fetchPositions (symbols: string[] = undefined, params = {}): Promise<Position[]> {
+        throw new NotSupported (this.id + ' fetchPositions() is not supported yet');
+    }
+
+    async fetchPositionsWs (symbols: string[] = undefined, params = {}): Promise<Position[]> {
         throw new NotSupported (this.id + ' fetchPositions() is not supported yet');
     }
 
@@ -4636,11 +4660,32 @@ export default class Exchange {
         }
     }
 
+    async fetchTickerWs (symbol: string, params = {}): Promise<Ticker> {
+        if (this.has['fetchTickersWs']) {
+            await this.loadMarkets ();
+            const market = this.market (symbol);
+            symbol = market['symbol'];
+            const tickers = await this.fetchTickerWs (symbol, params);
+            const ticker = this.safeDict (tickers, symbol);
+            if (ticker === undefined) {
+                throw new NullResponse (this.id + ' fetchTickers() could not find a ticker for ' + symbol);
+            } else {
+                return ticker as Ticker;
+            }
+        } else {
+            throw new NotSupported (this.id + ' fetchTicker() is not supported yet');
+        }
+    }
+
     async watchTicker (symbol: string, params = {}): Promise<Ticker> {
         throw new NotSupported (this.id + ' watchTicker() is not supported yet');
     }
 
     async fetchTickers (symbols: string[] = undefined, params = {}): Promise<Tickers> {
+        throw new NotSupported (this.id + ' fetchTickers() is not supported yet');
+    }
+
+    async fetchTickersWs (symbols: string[] = undefined, params = {}): Promise<Tickers> {
         throw new NotSupported (this.id + ' fetchTickers() is not supported yet');
     }
 
