@@ -70,6 +70,8 @@ class okx extends Exchange {
                 'fetchClosedOrders' => true,
                 'fetchConvertCurrencies' => true,
                 'fetchConvertQuote' => true,
+                'fetchConvertTrade' => true,
+                'fetchConvertTradeHistory' => true,
                 'fetchCrossBorrowRate' => true,
                 'fetchCrossBorrowRates' => true,
                 'fetchCurrencies' => true,
@@ -7740,6 +7742,106 @@ class okx extends Exchange {
         }) ();
     }
 
+    public function fetch_convert_trade(string $id, ?string $code = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($id, $code, $params) {
+            /**
+             * fetch the $data for a conversion trade
+             * @see https://www.okx.com/docs-v5/en/#funding-account-rest-api-get-convert-history
+             * @param {string} $id the $id of the trade that you want to fetch
+             * @param {string} [$code] the unified currency $code of the conversion trade
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?$id=conversion-structure conversion structure~
+             */
+            Async\await($this->load_markets());
+            $request = array(
+                'clTReqId' => $id,
+            );
+            $response = Async\await($this->privateGetAssetConvertHistory (array_merge($request, $params)));
+            //
+            //     {
+            //         "code" => "0",
+            //         "data" => array(
+            //             {
+            //                 "clTReqId" => "",
+            //                 "instId" => "ETH-USDT",
+            //                 "side" => "buy",
+            //                 "fillPx" => "2932.401044",
+            //                 "baseCcy" => "ETH",
+            //                 "quoteCcy" => "USDT",
+            //                 "fillBaseSz" => "0.01023052",
+            //                 "state" => "fullyFilled",
+            //                 "tradeId" => "trader16461885203381437",
+            //                 "fillQuoteSz" => "30",
+            //                 "ts" => "1646188520000"
+            //             }
+            //         ),
+            //         "msg" => ""
+            //     }
+            //
+            $data = $this->safe_list($response, 'data', array());
+            $result = $this->safe_dict($data, 0, array());
+            $fromCurrencyId = $this->safe_string($result, 'baseCcy');
+            $toCurrencyId = $this->safe_string($result, 'quoteCcy');
+            $fromCurrency = null;
+            $toCurrency = null;
+            if ($fromCurrencyId !== null) {
+                $fromCurrency = $this->currency($fromCurrencyId);
+            }
+            if ($toCurrencyId !== null) {
+                $toCurrency = $this->currency($toCurrencyId);
+            }
+            return $this->parse_conversion($result, $fromCurrency, $toCurrency);
+        }) ();
+    }
+
+    public function fetch_convert_trade_history(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($code, $since, $limit, $params) {
+            /**
+             * fetch the users history of conversion trades
+             * @see https://www.okx.com/docs-v5/en/#funding-account-rest-api-get-convert-history
+             * @param {string} [$code] the unified currency $code
+             * @param {int} [$since] the earliest time in ms to fetch conversions for
+             * @param {int} [$limit] the maximum number of conversion structures to retrieve
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {int} [$params->until] timestamp in ms of the latest conversion to fetch
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=conversion-structure conversion structures~
+             */
+            Async\await($this->load_markets());
+            $request = array();
+            list($request, $params) = $this->handle_until_option('after', $request, $params);
+            if ($since !== null) {
+                $request['before'] = $since;
+            }
+            if ($limit !== null) {
+                $request['limit'] = $limit;
+            }
+            $response = Async\await($this->privateGetAssetConvertHistory (array_merge($request, $params)));
+            //
+            //     {
+            //         "code" => "0",
+            //         "data" => array(
+            //             {
+            //                 "clTReqId" => "",
+            //                 "instId" => "ETH-USDT",
+            //                 "side" => "buy",
+            //                 "fillPx" => "2932.401044",
+            //                 "baseCcy" => "ETH",
+            //                 "quoteCcy" => "USDT",
+            //                 "fillBaseSz" => "0.01023052",
+            //                 "state" => "fullyFilled",
+            //                 "tradeId" => "trader16461885203381437",
+            //                 "fillQuoteSz" => "30",
+            //                 "ts" => "1646188520000"
+            //             }
+            //         ),
+            //         "msg" => ""
+            //     }
+            //
+            $rows = $this->safe_list($response, 'data', array());
+            return $this->parse_conversions($rows, 'baseCcy', 'quoteCcy', $since, $limit);
+        }) ();
+    }
+
     public function parse_conversion($conversion, ?array $fromCurrency = null, ?array $toCurrency = null): Conversion {
         //
         // fetchConvertQuote
@@ -7775,6 +7877,22 @@ class okx extends Exchange {
         //         "state" => "fullyFilled",
         //         "tradeId" => "trader16461885203381437",
         //         "ts" => "1646188520338"
+        //     }
+        //
+        // fetchConvertTrade, fetchConvertTradeHistory
+        //
+        //     {
+        //         "clTReqId" => "",
+        //         "instId" => "ETH-USDT",
+        //         "side" => "buy",
+        //         "fillPx" => "2932.401044",
+        //         "baseCcy" => "ETH",
+        //         "quoteCcy" => "USDT",
+        //         "fillBaseSz" => "0.01023052",
+        //         "state" => "fullyFilled",
+        //         "tradeId" => "trader16461885203381437",
+        //         "fillQuoteSz" => "30",
+        //         "ts" => "1646188520000"
         //     }
         //
         $timestamp = $this->safe_integer_2($conversion, 'quoteTime', 'ts');

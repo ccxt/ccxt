@@ -1594,6 +1594,14 @@
                 ],
                 "output": "{\"traceId\":\"1164014202462613512\",\"fromCoin\":\"USDC\",\"toCoin\":\"USDT\",\"fromCoinSize\":\"5\",\"toCoinSize\":\"4.9915035\",\"cnvtPrice\":\"0.9983007\"}"
             }
+        ],
+        "fetchConvertTradeHistory": [
+            {
+                "description": "Fetch the conversion trade history",
+                "method": "fetchConvertTradeHistory",
+                "url": "https://api.bitget.com/api/v2/convert/convert-record?endTime=1713423544995&startTime=1713337144995",
+                "input": []
+            }
         ]
     }
 }

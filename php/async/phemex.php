@@ -2854,11 +2854,16 @@ class phemex extends Exchange {
             }
             Async\await($this->load_markets());
             $market = $this->market($symbol);
+            $stop = $this->safe_value_2($params, 'stop', 'trigger', false);
+            $params = $this->omit($params, 'stop', 'trigger');
             $request = array(
                 'symbol' => $market['id'],
                 // 'untriggerred' => false, // false to cancel non-conditional orders, true to cancel conditional orders
                 // 'text' => 'up to 40 characters max',
             );
+            if ($stop) {
+                $request['untriggerred'] = $stop;
+            }
             $response = null;
             if ($market['settle'] === 'USDT') {
                 $response = Async\await($this->privateDeleteGOrdersAll (array_merge($request, $params)));

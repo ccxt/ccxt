@@ -69,6 +69,8 @@ export default class bitget extends Exchange {
                 'fetchClosedOrders': true,
                 'fetchConvertCurrencies': true,
                 'fetchConvertQuote': true,
+                'fetchConvertTrade': false,
+                'fetchConvertTradeHistory': true,
                 'fetchCrossBorrowRate': true,
                 'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
@@ -8542,6 +8544,66 @@ export default class bitget extends Exchange {
         const toCurrency = this.currency(toCurrencyId);
         return this.parseConversion(data, undefined, toCurrency);
     }
+    async fetchConvertTradeHistory(code = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitget#fetchConvertTradeHistory
+         * @description fetch the users history of conversion trades
+         * @see https://www.bitget.com/api-doc/common/convert/Get-Convert-Record
+         * @param {string} [code] the unified currency code
+         * @param {int} [since] the earliest time in ms to fetch conversions for
+         * @param {int} [limit] the maximum number of conversion structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [conversion structures]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+         */
+        await this.loadMarkets();
+        const request = {};
+        const msInDay = 86400000;
+        const now = this.milliseconds();
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        else {
+            request['startTime'] = now - msInDay;
+        }
+        const endTime = this.safeString2(params, 'endTime', 'until');
+        if (endTime !== undefined) {
+            request['endTime'] = endTime;
+        }
+        else {
+            request['endTime'] = now;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        params = this.omit(params, 'until');
+        const response = await this.privateConvertGetV2ConvertConvertRecord(this.extend(request, params));
+        //
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1712124371799,
+        //         "data": {
+        //             "dataList": [
+        //                 {
+        //                     "id": "1159296505255219205",
+        //                     "fromCoin": "USDT",
+        //                     "fromCoinSize": "5",
+        //                     "cnvtPrice": "0.99940076",
+        //                     "toCoin": "USDC",
+        //                     "toCoinSize": "4.99700379",
+        //                     "ts": "1712123746217",
+        //                     "fee": "0"
+        //                 }
+        //             ],
+        //             "endId": "1159296505255219205"
+        //         }
+        //     }
+        //
+        const data = this.safeDict(response, 'data', {});
+        const dataList = this.safeList(data, 'dataList', []);
+        return this.parseConversions(dataList, 'fromCoin', 'toCoin', since, limit);
+    }
     parseConversion(conversion, fromCurrency = undefined, toCurrency = undefined) {
         //
         // fetchConvertQuote
@@ -8565,6 +8627,19 @@ export default class bitget extends Exchange {
         //         "ts": "1712123746217"
         //     }
         //
+        // fetchConvertTradeHistory
+        //
+        //     {
+        //         "id": "1159296505255219205",
+        //         "fromCoin": "USDT",
+        //         "fromCoinSize": "5",
+        //         "cnvtPrice": "0.99940076",
+        //         "toCoin": "USDC",
+        //         "toCoinSize": "4.99700379",
+        //         "ts": "1712123746217",
+        //         "fee": "0"
+        //     }
+        //
         const timestamp = this.safeInteger(conversion, 'ts');
         const fromCoin = this.safeString(conversion, 'fromCoin');
         const fromCode = this.safeCurrencyCode(fromCoin, fromCurrency);
@@ -8574,7 +8649,7 @@ export default class bitget extends Exchange {
             'info': conversion,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'id': this.safeString(conversion, 'traceId'),
+            'id': this.safeString2(conversion, 'id', 'traceId'),
             'fromCurrency': fromCode,
             'fromAmount': this.safeNumber(conversion, 'fromCoinSize'),
             'toCurrency': toCode,

@@ -41,7 +41,9 @@ interface Exchange {
     v4PublicGetPing (params?: {}): Promise<implicitReturnType>;
     v4PublicGetMarkets (params?: {}): Promise<implicitReturnType>;
     v4PublicGetFutures (params?: {}): Promise<implicitReturnType>;
+    v4PublicGetPlatformStatus (params?: {}): Promise<implicitReturnType>;
     v4PrivatePostCollateralAccountBalance (params?: {}): Promise<implicitReturnType>;
+    v4PrivatePostCollateralAccountBalanceSummary (params?: {}): Promise<implicitReturnType>;
     v4PrivatePostCollateralAccountPositionsHistory (params?: {}): Promise<implicitReturnType>;
     v4PrivatePostCollateralAccountLeverage (params?: {}): Promise<implicitReturnType>;
     v4PrivatePostCollateralAccountPositionsOpen (params?: {}): Promise<implicitReturnType>;
@@ -58,12 +60,19 @@ interface Exchange {
     v4PrivatePostMainAccountWithdraw (params?: {}): Promise<implicitReturnType>;
     v4PrivatePostMainAccountWithdrawPay (params?: {}): Promise<implicitReturnType>;
     v4PrivatePostMainAccountTransfer (params?: {}): Promise<implicitReturnType>;
+    v4PrivatePostMainAccountSmartPlans (params?: {}): Promise<implicitReturnType>;
+    v4PrivatePostMainAccountSmartInvestment (params?: {}): Promise<implicitReturnType>;
+    v4PrivatePostMainAccountSmartInvestmentClose (params?: {}): Promise<implicitReturnType>;
+    v4PrivatePostMainAccountSmartInvestments (params?: {}): Promise<implicitReturnType>;
+    v4PrivatePostMainAccountFee (params?: {}): Promise<implicitReturnType>;
+    v4PrivatePostMainAccountSmartInterestPaymentHistory (params?: {}): Promise<implicitReturnType>;
     v4PrivatePostTradeAccountBalance (params?: {}): Promise<implicitReturnType>;
     v4PrivatePostTradeAccountExecutedHistory (params?: {}): Promise<implicitReturnType>;
     v4PrivatePostTradeAccountOrder (params?: {}): Promise<implicitReturnType>;
     v4PrivatePostTradeAccountOrderHistory (params?: {}): Promise<implicitReturnType>;
     v4PrivatePostOrderCollateralLimit (params?: {}): Promise<implicitReturnType>;
     v4PrivatePostOrderCollateralMarket (params?: {}): Promise<implicitReturnType>;
+    v4PrivatePostOrderCollateralStopLimit (params?: {}): Promise<implicitReturnType>;
     v4PrivatePostOrderCollateralTriggerMarket (params?: {}): Promise<implicitReturnType>;
     v4PrivatePostOrderNew (params?: {}): Promise<implicitReturnType>;
     v4PrivatePostOrderMarket (params?: {}): Promise<implicitReturnType>;
@@ -71,8 +80,20 @@ interface Exchange {
     v4PrivatePostOrderStopLimit (params?: {}): Promise<implicitReturnType>;
     v4PrivatePostOrderStopMarket (params?: {}): Promise<implicitReturnType>;
     v4PrivatePostOrderCancel (params?: {}): Promise<implicitReturnType>;
+    v4PrivatePostOrderCancelAll (params?: {}): Promise<implicitReturnType>;
+    v4PrivatePostOrderKillSwitch (params?: {}): Promise<implicitReturnType>;
+    v4PrivatePostOrderKillSwitchStatus (params?: {}): Promise<implicitReturnType>;
+    v4PrivatePostOrderBulk (params?: {}): Promise<implicitReturnType>;
+    v4PrivatePostOrderModify (params?: {}): Promise<implicitReturnType>;
     v4PrivatePostOrders (params?: {}): Promise<implicitReturnType>;
+    v4PrivatePostOcoOrders (params?: {}): Promise<implicitReturnType>;
+    v4PrivatePostOrderCollateralOco (params?: {}): Promise<implicitReturnType>;
+    v4PrivatePostOrderOcoCancel (params?: {}): Promise<implicitReturnType>;
+    v4PrivatePostOrderOtoCancel (params?: {}): Promise<implicitReturnType>;
     v4PrivatePostProfileWebsocketToken (params?: {}): Promise<implicitReturnType>;
+    v4PrivatePostConvertEstimate (params?: {}): Promise<implicitReturnType>;
+    v4PrivatePostConvertConfirm (params?: {}): Promise<implicitReturnType>;
+    v4PrivatePostConvertHistory (params?: {}): Promise<implicitReturnType>;
 }
 abstract class Exchange extends _Exchange {}
 

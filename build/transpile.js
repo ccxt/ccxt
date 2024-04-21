@@ -346,6 +346,7 @@ class Transpiler {
             [ /\.fetchIsolatedBorrowRates\s/g, '.fetch_isolated_borrow_rates'],
             [ /\.extendExchangeOptions\s/g, '.extend_exchange_options'],
             [ /\.createSafeDictionary\s/g, '.create_safe_dictionary'],
+            [ /\.setTakeProfitAndStopLossParams\s/g, '.set_take_profit_and_stop_loss_params'],
             [ /\.randomBytes\s/g, '.random_bytes'],
             [ /\.createAuthToken\s/g, '.create_auth_token'],
             [ /\ssha(1|256|384|512)([,)])/g, ' \'sha$1\'$2'], // from js imports to this
