@@ -129,7 +129,7 @@ export default class bitflex extends Exchange {
                         'openapi/v1/order': 1, // implemented
                         'openapi/v1/openOrders': 1, // implemented
                         'openapi/v1/historyOrders': 1, // implemented
-                        'openapi/v1/myTrades': 1,
+                        'openapi/v1/myTrades': 1, // implemented
                         'openapi/v1/account': 1, // implemented
                         'openapi/v1/depositOrders': 1, // implemented
                         'openapi/v1/withdrawalOrders': 1, // implemented
@@ -138,7 +138,7 @@ export default class bitflex extends Exchange {
                         'openapi/contract/v1/getOrder': 1, // implemented
                         'openapi/contract/v1/openOrders': 1, // implemented
                         'openapi/contract/v1/historyOrders': 1, // implemented
-                        'openapi/contract/v1/myTrades': 1,
+                        'openapi/contract/v1/myTrades': 1, // implemented
                         'openapi/contract/v1/positions': 1,
                         'openapi/contract/v1/account': 1, // implemented
                     },
@@ -838,30 +838,131 @@ export default class bitflex extends Exchange {
     }
 
     parseTrade (trade, market: Market = undefined): Trade {
+        //
+        // fetchTrades (spot)
+        //     [
+        //         {
+        //             "price":"63385.91",
+        //             "time":1713343387094,
+        //             "qty":"0.022238",
+        //             "isBuyerMaker":true
+        //         },
+        //         {
+        //             "price":"63385.94",
+        //             "time":1713343390091,
+        //             "qty":"0.009984",
+        //             "isBuyerMaker":true
+        //         },
+        //         ...
+        //     ]
+        //
+        // fetchTrades (swap)
+        //     [
+        //         {
+        //             "price":"63277.43",
+        //             "time":1713343654079,
+        //             "qty":"0.044525",
+        //             "isBuyerMaker":false
+        //         },
+        //         {
+        //             "price":"63277.47",
+        //             "time":1713343655085,
+        //             "qty":"0.019592",
+        //             "isBuyerMaker":true
+        //         },
+        //         ...
+        //     ]
+        //
+        // fetchMyTrades (spot)
+        //     [
+        //         {
+        //             "id": "1668380991176069888",
+        //             "symbol": "ETHUSDT",
+        //             "symbolName": "ETHUSDT",
+        //             "orderId": "1668380991008297728",
+        //             "matchOrderId": "1668380954509508864",
+        //             "price": "3060.73",
+        //             "qty": "0.0081",
+        //             "commission": "0.00000486",
+        //             "commissionAsset": "ETH",
+        //             "time": "1713622512646",
+        //             "isBuyer": true,
+        //             "isMaker": false,
+        //             "fee":
+        //                 {
+        //                     "feeTokenId": "ETH",
+        //                     "feeTokenName": "ETH",
+        //                     "fee": "0.00000486"
+        //                 },
+        //             "feeTokenId": "ETH",
+        //             "feeAmount": "0.00000486",
+        //             "makerRebate": "0"
+        //         },
+        //         ...
+        //     ]
+        //
+        // fetchMyTrades (swap)
+        //     [
+        //         {
+        //             "time": "1713689556972",
+        //             "tradeId": "1668943399821004289",
+        //             "orderId": "1668943399544181504",
+        //             "matchOrderId": "1668943398437015552",
+        //             "symbolId": "ETH-SWAP-USDT",
+        //             "price": "3173.75",
+        //             "quantity": "0.02",
+        //             "feeTokenId": "USDT",
+        //             "fee": "0.038",
+        //             "makerRebate": "0",
+        //             "orderType": "MARKET",
+        //             "side": "SELL_CLOSE",
+        //             "pnl": "0.307",
+        //             "isMaker": false
+        //         },
+        //         ...
+        //     ]
+        //
+        const marketId = this.safeString (trade, 'symbol');
+        market = this.safeMarket (marketId, market);
         const symbol = this.safeString (market, 'symbol');
+        const id = this.safeString2 (trade, 'id', 'tradeId');
+        const orderId = this.safeString (trade, 'orderId');
         const timestamp = this.safeInteger (trade, 'time');
         const price = this.safeString (trade, 'price');
-        const amount = this.safeString (trade, 'qty');
-        const isBuyerMaker = this.safeBool (trade, 'isBuyerMaker');
+        const amount = this.safeString2 (trade, 'qty', 'quantity');
+        const isBuyer = this.safeValue2 (trade, 'isBuyer', 'isBuyerMaker', undefined);
         let takerOrMaker = undefined;
-        if ((isBuyerMaker !== undefined) && (isBuyerMaker)) {
+        if ((isBuyer !== undefined) && (isBuyer)) {
             takerOrMaker = 'maker';
-        } else if ((isBuyerMaker !== undefined) && (!isBuyerMaker)) {
+        } else if ((isBuyer !== undefined) && (!isBuyer)) {
             takerOrMaker = 'taker';
         }
+        let side = undefined;
+        if (isBuyer !== undefined) {
+            side = (isBuyer === true) ? 'buy' : 'sell';
+        }
+        let fee = undefined;
+        const feeCost = this.safeString2 (trade, 'commission', 'fee');
+        if (feeCost !== undefined) {
+            const feeCurrencyId = this.safeString (trade, 'commissionAsset');
+            fee = {
+                'cost': feeCost,
+                'currency': this.safeCurrencyCode (feeCurrencyId),
+            };
+        }
         return this.safeTrade ({
-            'id': undefined,
-            'order': undefined,
+            'id': id,
+            'order': orderId,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
             'type': undefined,
-            'side': undefined, // todo check
+            'side': side, // todo check
             'takerOrMaker': takerOrMaker, // todo check
             'price': price,
             'amount': amount,
             'cost': undefined,
-            'fee': undefined,
+            'fee': fee,
             'info': trade,
         }, market);
     }
@@ -2375,7 +2476,7 @@ export default class bitflex extends Exchange {
          * @method
          * @name bitflex#fetchWithdrawal
          * @description fetch data on a currency withdrawal via the withdrawal id
-         * @see https://docs.bitflex.com/spot#withdrawal-detail
+         * @sww https://docs.bitflex.com/spot#withdrawal-detail
          * @param {string} id withdrawal id
          * @param {string} code unified currency code
          * @param {object} [params] extra parameters specific to the exchange API endpoint
