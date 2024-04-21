@@ -41,12 +41,26 @@ use React\Promise;
 //     throw $e;
 // } );
 
-$filetered_args = array_filter(array_map (function ($x) { return stripos($x,'--')===false? $x : null;} , $argv));
-$exchangeId = array_key_exists(1, $filetered_args) ? $filetered_args[1] : null; // this should be different than JS
-$exchangeSymbol = null; // todo: this should be different than JS
+// ############## detect cli arguments ############## //
+array_shift($argv); // remove first argument (which is script path "ccxt/php/test/test_async.php")
+
+function filterArgvs($argsArray, $needle, $include = true) {
+    return array_filter($argsArray, function ($x) use ($needle, $include) { return ($include && str_contains($x, $needle) || (!$include && !str_contains($x, $needle))); });
+};
+
+function selectArgv ($argsArray, $needle) {
+    $foundArray = array_filter($argsArray, function ($x) use ($needle) { return str_contains($x, $needle); });
+    return count($foundArray) > 0 ? $foundArray : null;
+}
+
+$argvExchange = filterArgvs ($argv, '--', false)[0];
+$argvSymbol   = selectArgv ($argv, '/');
+$argvMethod   = selectArgv ($argv, '()');
+// #################################################### //
+
+
 
 // non-transpiled part, but shared names among langs
-
 function get_cli_arg_value ($arg) {
     return in_array($arg, $GLOBALS['argv']);
 }
@@ -1951,7 +1965,7 @@ class testMainClass extends baseMainTestClass {
 
 // ***** AUTO-TRANSPILER-END *****
 // *******************************
-$promise = (new testMainClass())->init($exchangeId, $exchangeSymbol);
+$promise = (new testMainClass())->init($argvExchange, $argvSymbol, $argvMethod);
 if (!is_synchronous) {
     Async\await($promise);
 }
