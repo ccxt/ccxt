@@ -30,8 +30,8 @@ export default class whitebit extends Exchange {
                 'swap': false,
                 'future': false,
                 'option': false,
-                'cancelAllOrdersAfter': true,
                 'cancelAllOrders': true,
+                'cancelAllOrdersAfter': true,
                 'cancelOrder': true,
                 'cancelOrders': false,
                 'createOrder': true,
@@ -1434,14 +1434,20 @@ export default class whitebit extends Exchange {
         await this.loadMarkets ();
         const symbol = this.safeString (params, 'symbol');
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelAllOrdersAfter() requires a symbol params');
+            throw new ArgumentsRequired (this.id + ' cancelAllOrdersAfter() requires a symbol argument in params');
         }
         const market = this.market (symbol);
         params = this.omit (params, 'symbol');
+        const isBiggerThanZero = (timeout > 0);
         const request: Dict = {
             'market': market['id'],
-            'timeout': (timeout > 0) ? this.numberToString (timeout / 1000) : null,
+            // 'timeout': (timeout > 0) ? this.numberToString (timeout / 1000) : null,
         };
+        if (isBiggerThanZero) {
+            request['timeout'] = this.numberToString (timeout / 1000);
+        } else {
+            request['timeout'] = undefined;
+        }
         const response = await this.v4PrivatePostOrderKillSwitch (this.extend (request, params));
         //
         //     {
