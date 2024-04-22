@@ -1720,7 +1720,11 @@ class Transpiler {
                 promiseReturnTypeMatch = returnType.match (/^Promise<([^>]+)>$/)
                 syncReturnType = promiseReturnTypeMatch ? promiseReturnTypeMatch[1] : returnType
                 if (syncReturnType.match (phpArrayRegex)) {
-                    syncPhpReturnType = ': array'
+                    if (syncPhpReturnType === 'Currencies') {
+                        syncPhpReturnType = ': ?array'; // since for now `fetchCurrencies` returns null or Currencies
+                    } else {
+                        syncPhpReturnType = ': array'
+                    }
                 } else {
                     syncPhpReturnType = ': ' + (phpTypes[syncReturnType] ?? syncReturnType)
                 }
