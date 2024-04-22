@@ -30,6 +30,7 @@ export default class bitflex extends Exchange {
                 'swap': true,
                 'future': false,
                 'option': true, // todo: check
+                'addMargin': true,
                 'cancelAllOrders': false,
                 'cancelOrder': true,
                 'createDepositAddress': false,
@@ -74,6 +75,7 @@ export default class bitflex extends Exchange {
                 'fetchTransfers': false,
                 'fetchWithdrawal': true,
                 'fetchWithdrawals': true,
+                'reduceMargin': true,
                 'transfer': true,
                 'setLeverage': true,
                 'withdraw': true,
@@ -153,7 +155,7 @@ export default class bitflex extends Exchange {
                         'openapi/v1/order': 1, // implemented
                         'openapi/v1/test': 1, // todo check
                         'openapi/contract/v1/order': 1, // implemented
-                        'openapi/contract/v1/modifyMargin': 1,
+                        'openapi/contract/v1/modifyMargin': 1, // implemented
                         'openapi/contract/v1/modifyLeverage': 1, // implemented
                     },
                     'delete': {
@@ -3163,6 +3165,11 @@ export default class bitflex extends Exchange {
         params = this.omit (params, 'side');
         const response = await this.privatePostOpenapiContractV1ModifyMargin (this.extend (request, params));
         //
+        //     {
+        //         "symbol": "BTC-SWAP-USDT",
+        //         "margin": "14.0917",
+        //         "timestamp": "1713818240989"
+        //     }
         //
         if (type === 'reduce') {
             amount = Precise.stringAbs (amount);
@@ -3175,11 +3182,11 @@ export default class bitflex extends Exchange {
 
     parseMarginModification (data, market: Market = undefined): MarginModification {
         //
-        // {
-        //     'symbol':'BTC-PERP-REV',
-        //     'margin': 15,
-        //     'timestamp': 1541161088303
-        // }
+        //     {
+        //         "symbol": "BTC-SWAP-USDT",
+        //         "margin": "14.0917",
+        //         "timestamp": "1713818240989"
+        //     }
         //
         const marketId = this.safeString (data, 'symbol');
         market = this.safeMarket (marketId, market);
@@ -3227,6 +3234,92 @@ export default class bitflex extends Exchange {
          * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=add-margin-structure}
          */
         return await this.modifyMarginHelper (symbol, amount, 'add', params);
+    }
+
+    async fetchFundingRate (symbol: string, params = {}) {
+        /**
+         * @method
+         * @name bitflex#fetchFundingRate
+         * @description fetch the current funding rate
+         * @see https://docs.bitflex.com/contract#funding-rate-pending
+         * @param {string} symbol unified market symbol
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this.publicGetOpenapiContractV1FundingRate (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "symbol": "BTC-SWAP-USDT",
+        //             "intervalStart": "1713816000000",
+        //             "intervalEnd": "1713844800000",
+        //             "rate": "0.000272543243139311"
+        //         }
+        //     ]
+        //
+        return this.parseFundingRate (response[0], market);
+    }
+
+    async fetchFundingRates (symbols: Strings = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitflex#fetchFundingRates
+         * @description fetch the funding rate for multiple markets
+         * @see https://docs.bitflex.com/contract#funding-rate-pending
+         * @param {string[]|undefined} symbols list of unified market symbols
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a dictionary of [funding rates structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexe by market symbols
+         */
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
+        const response = await this.publicGetOpenapiContractV1FundingRate (params);
+        const result = [];
+        for (let i = 0; i < response.length; i++) {
+            const entry = response[i];
+            const parsed = this.parseFundingRate (entry);
+            result.push (parsed);
+        }
+        return this.filterByArray (result, 'symbol', symbols);
+    }
+
+    parseFundingRate (contract, market: Market = undefined) {
+        //
+        //     {
+        //         "symbol": "BTC-SWAP-USDT",
+        //         "intervalStart": "1713816000000",
+        //         "intervalEnd": "1713844800000",
+        //         "rate": "0.000272543243139311"
+        //     }
+        //
+        const marketId = this.safeString (contract, 'symbol');
+        const symbol = this.safeSymbol (marketId, market);
+        const nextFundingTimestamp = this.safeInteger (contract, 'intervalEnd'); // todo check
+        const previousFundingTimestamp = this.safeInteger (contract, 'intervalStart');
+        const fundingRate = this.safeNumber (contract, 'rate');
+        return {
+            'info': contract,
+            'symbol': symbol,
+            'markPrice': undefined,
+            'indexPrice': undefined,
+            'interestRate': undefined,
+            'estimatedSettlePrice': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'fundingRate': fundingRate,
+            'fundingTimestamp': undefined,
+            'fundingDatetime': undefined,
+            'nextFundingRate': undefined,
+            'nextFundingTimestamp': nextFundingTimestamp,
+            'nextFundingDatetime': this.iso8601 (nextFundingTimestamp),
+            'previousFundingRate': undefined,
+            'previousFundingTimestamp': previousFundingTimestamp,
+            'previousFundingDatetime': this.iso8601 (previousFundingTimestamp),
+        };
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
