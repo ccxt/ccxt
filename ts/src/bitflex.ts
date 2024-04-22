@@ -195,6 +195,7 @@ export default class bitflex extends Exchange {
                     // 400 {"code":-100012,"msg":"Parameter interval [String] missing!"}
                     // 400 {"code":-1140,"msg":"Transaction amount lower than the minimum."}
                     // 400 {"code":-1131,"msg":"Balance insufficient "}
+                    // {"code":-1156,"msg":"Order quantity invalid"} - reduceOnly order for already closed position
                 },
                 'broad': {
                 },
@@ -1527,7 +1528,7 @@ export default class bitflex extends Exchange {
          * @param {float} [params.triggerPrice] the price to trigger a stop order
          * @param {bool} [params.postOnly] if true, the order will only be posted if it will be a maker order
          * @param {string} [params.timeInForce] "GTC", "IOC", "FOK", or "PO", default: "GTC"
-         * @param {string} [params.clientOrderId] a unique id for the order (mandatory for swap orders)
+         * @param {string} params.clientOrderId a unique id for the order (mandatory for swap orders)
          * @param {bool} [params.reduceOnly] true or false whether the order is reduce-only
          *
          * EXCHANGE SPECIFIC PARAMETERS
@@ -1550,8 +1551,8 @@ export default class bitflex extends Exchange {
         let suffix = '_OPEN';
         if (reduceOnly) {
             suffix = '_CLOSE';
-            params = this.omit (params, 'reduceOnly');
         }
+        params = this.omit (params, 'reduceOnly');
         const orderSide = side.toUpperCase () + suffix;
         request['side'] = orderSide;
         const priceType = this.safeString (params, 'priceType');
@@ -1818,13 +1819,12 @@ export default class bitflex extends Exchange {
         const average = this.safeString (order, 'avgPrice');
         const filled = this.safeString (order, 'executedQty'); // todo check
         market = this.safeMarket (marketId, market);
-        let amount = undefined; // todo check
+        let amount = this.safeString (order, 'origQty');
         let cost = undefined;
         if (market['spot']) {
             if ((type === 'market') && (side === 'buy')) {
                 cost = this.safeString (order, 'origQty');
-            } else {
-                amount = this.safeString (order, 'origQty');
+                amount = undefined;
             }
         }
         if (market['contract']) {
@@ -2719,7 +2719,7 @@ export default class bitflex extends Exchange {
         };
     }
 
-    parseTransferStatus (status) {
+    parseTransferStatus (status) { // todo check
         const statuses = {
             'success': 'true',
             'error': 'failed',
@@ -2772,6 +2772,126 @@ export default class bitflex extends Exchange {
         //     }
         //
         return this.parseTransaction (response, currency);
+    }
+
+    async fetchPosition (symbol: string, params = {}) {
+        /**
+         * @method
+         * @name bitflex#fetchPosition
+         * @see https://docs.bitflex.com/contract#positions
+         * @description fetch data on an open position
+         * @param {string} symbol unified market symbol of the market the position is held in
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+         * @param {string} [params.side] 'LONG' or 'SHORT' - direction of the position. If not sent, positions for both sides will be returned.
+         * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (market['spot']) {
+            throw new NotSupported (this.id + ' fetchPosition() does not support spot markets');
+        }
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this.privateGetOpenapiContractV1Positions (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "symbol": "BTC-SWAP-USDT",
+        //             "side": "LONG",
+        //             "avgPrice": "66004.8",
+        //             "position": "0.001",
+        //             "available": "0.001",
+        //             "leverage": "10",
+        //             "lastPrice": "65998.2",
+        //             "positionValue": "66.0223",
+        //             "flp": "59709.4",
+        //             "margin": "6.5939",
+        //             "marginRate": "0.1001",
+        //             "unrealizedPnL": "0.0175",
+        //             "profitRate": "0.0026",
+        //             "realizedPnL": "-0.0396"
+        //         }
+        //     ]
+        //
+        return this.parsePosition (response[0], market);
+    }
+
+    async fetchPositions (symbols: Strings = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitflex#fetchPositions
+         * @description fetch all open positions
+         * @see https://docs.bitflex.com/contract#positions
+         * @param {string[]|undefined} symbols list of unified market symbols
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+         * @param {string} [params.side] 'LONG' or 'SHORT' - direction of the position. If not sent, positions for both sides will be returned.
+         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+         */
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
+        const response = await this.privateGetOpenapiContractV1Positions (params);
+        //
+        //     [
+        //         {
+        //             "symbol": "BTC-SWAP-USDT",
+        //             "side": "LONG",
+        //             "avgPrice": "66004.8",
+        //             "position": "0.001",
+        //             "available": "0.001",
+        //             "leverage": "10",
+        //             "lastPrice": "65998.2",
+        //             "positionValue": "66.0223",
+        //             "flp": "59709.4",
+        //             "margin": "6.5939",
+        //             "marginRate": "0.1001",
+        //             "unrealizedPnL": "0.0175",
+        //             "profitRate": "0.0026",
+        //             "realizedPnL": "-0.0396"
+        //         },
+        //         ...
+        //     ]
+        //
+        return this.parsePositions (response, symbols);
+    }
+
+    parsePosition (position, market: Market = undefined) {
+        const marketId = this.safeString (position, 'symbol');
+        market = this.safeMarket (marketId, market);
+        return this.safePosition ({
+            'info': position,
+            'id': undefined,
+            'symbol': market['symbol'],
+            'notional': this.safeNumber (position, 'positionValue'),
+            'marginMode': 'cross',
+            'liquidationPrice': this.safeNumber (position, 'flp'),
+            'entryPrice': this.safeNumber (position, 'avgPrice'),
+            'unrealizedPnl': this.safeNumber (position, 'unrealizedPnL'),
+            'realizedPnl': this.safeNumber (position, 'realizedPnL'),
+            'percentage': undefined,
+            'contracts': this.safeNumber (position, 'position'),
+            'contractSize': undefined,
+            'markPrice': undefined,
+            'lastPrice': this.safeNumber (position, 'lastPrice'),
+            'side': this.safeStringLower (position, 'side'),
+            'hedged': undefined, // todo check
+            'timestamp': undefined,
+            'datetime': undefined,
+            'lastUpdateTimestamp': undefined,
+            'maintenanceMargin': undefined,
+            'maintenanceMarginPercentage': undefined,
+            'collateral': undefined,
+            'initialMargin': undefined,
+            'initialMarginPercentage': undefined,
+            'leverage': this.safeNumber (position, 'leverage'),
+            'marginRatio': undefined,
+            'stopLossPrice': undefined,
+            'takeProfitPrice': undefined,
+        });
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
