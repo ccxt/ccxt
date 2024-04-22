@@ -1,4 +1,5 @@
 
+
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/bitflex.js';
@@ -2559,14 +2560,24 @@ export default class bitflex extends Exchange {
         return this.parseTransaction (response);
     }
 
-    parseTransactionStatus (status) {
+    parseWithdrawTransactionStatus (status) {
         const statuses = {
-            '0': 'pending', // Create
-            '1': 'pending', // Submitted, waiting for withdrawal
-            '2': 'pending', // Processing
-            '3': 'ok', // Success
-            '4': 'canceled', // Cancel
-            '5': 'failed', // Fail
+            '1': 'pending', // Processing by broker
+            '2': 'canceled', // Rejected by broker
+            '3': 'pending', // Processing by platform
+            '4': 'canceled', // Reject by platfor
+            '5': 'pending', // Processing by wallet
+            '6': 'Ok', // Withdrawal success
+            '7': 'failed', // Withdrawal failed
+            '8': 'pending', // Blockchain mining
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    parseDepositTransactionStatus (status) {
+        const statuses = {
+            '1': 'failed', // failed
+            '2': '2', // deposit can withdraw
         };
         return this.safeString (statuses, status, status);
     }
@@ -2631,8 +2642,9 @@ export default class bitflex extends Exchange {
         //         "orderId": "423885103582776064" // Id for successful withdrawal
         //     }
         //
-        // todo: this is in progress
         const id = this.safeString (transaction, 'orderId');
+        const txid = this.safeString (transaction, 'txid');
+        const timestamp = this.safeInteger (transaction, 'time');
         const address = this.safeString (transaction, 'address');
         const fromAddress = this.safeString (transaction, 'fromAddress');
         let tag = this.safeString (transaction, 'addressTag');
@@ -2646,20 +2658,20 @@ export default class bitflex extends Exchange {
             tag = ext;
         }
         const tagFrom = this.safeString (transaction, 'fromAddressTag');
-        const txid = this.safeString (transaction, 'txid');
-        const currencyId = this.safeString (transaction, 'tokenName');
-        const code = this.safeCurrencyCode (currencyId, currency);
-        let timestamp = undefined;
-        timestamp = this.safeInteger (transaction, 'time');
-        const updated = undefined;
         let type = undefined;
-        if (ext !== undefined) {
-            type = 'deposit';
-        } else {
+        if ('adressExt' in transaction) {
             type = 'withdrawal';
+        } else {
+            type = 'deposit';
         }
-        const status = this.parseTransactionStatus (this.safeString (transaction, 'status')); // todo check
         const amount = this.safeNumber (transaction, 'quantity');
+        const code = this.safeString (transaction, 'tokenId');
+        let status = undefined;
+        if (type === 'withdrawal') {
+            status = this.parseWithdrawTransactionStatus (this.safeString (transaction, 'status'));
+        } else {
+            status = this.parseDepositTransactionStatus (this.safeString (transaction, 'status'));
+        }
         const feeCost = this.safeNumber (transaction, 'fee');
         let fee = undefined;
         if (feeCost !== undefined) {
@@ -2690,7 +2702,7 @@ export default class bitflex extends Exchange {
             'amount': amount,
             'currency': code,
             'status': status,
-            'updated': updated,
+            'updated': undefined,
             'internal': internal,
             'comment': undefined,
             'fee': fee,
