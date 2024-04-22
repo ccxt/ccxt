@@ -1425,7 +1425,7 @@ export default class whitebit extends Exchange {
          * @name whitebit#cancelAllOrdersAfter
          * @description dead man's switch, cancel all orders after the given timeout
          * @see https://docs.whitebit.com/private/http-trade-v4/#sync-kill-switch-timer
-         * @param {number} countdown time in milliseconds, 0 represents cancel the timer
+         * @param {number} timeout time in milliseconds, 0 represents cancel the timer
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.types] Order types value. Example: "spot", "margin", "futures" or null
          * @param {string} [params.symbol] symbol unified symbol of the market the order was made in

@@ -1295,7 +1295,7 @@ export default class woo extends Exchange {
          * @name woo#cancelAllOrdersAfter
          * @description dead man's switch, cancel all orders after the given timeout
          * @see https://docs.woo.org/#cancel-all-after
-         * @param {number} countdown time in milliseconds, 0 represents cancel the timer
+         * @param {number} timeout time in milliseconds, 0 represents cancel the timer
          * @param {boolean} activated countdown
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} the api result

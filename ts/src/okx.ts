@@ -3275,13 +3275,13 @@ export default class okx extends Exchange {
          * @name okx#cancelAllOrdersAfter
          * @description dead man's switch, cancel all orders after the given timeout
          * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-cancel-all-after
-         * @param {number} countdown time in milliseconds, 0 represents cancel the timer
+         * @param {number} timeout time in milliseconds, 0 represents cancel the timer
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} the api result
          */
         await this.loadMarkets ();
         const request: Dict = {
-            'timeOut': (timeout > 0) ? (timeout / 1000) : 0,
+            'timeOut': (timeout > 0) ? this.parseToInt (timeout / 1000) : 0,
         };
         const response = await this.privatePostTradeCancelAllAfter (this.extend (request, params));
         //

@@ -6001,13 +6001,13 @@ export default class htx extends Exchange {
          * @name huobi#cancelAllOrdersAfter
          * @description dead man's switch, cancel all orders after the given timeout
          * @see https://huobiapi.github.io/docs/spot/v1/en/#dead-man-s-switch
-         * @param {number} countdown time in milliseconds, 0 represents cancel the timer
+         * @param {number} timeout time in milliseconds, 0 represents cancel the timer
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} the api result
          */
         await this.loadMarkets ();
         const request: Dict = {
-            'timeout': (timeout > 0) ? (timeout / 1000) : 0,
+            'timeout': (timeout > 0) ? this.parseToInt (timeout / 1000) : 0,
         };
         const response = await this.v2PrivatePostAlgoOrdersCancelAllAfter (this.extend (request, params));
         //

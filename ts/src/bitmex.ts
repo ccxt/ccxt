@@ -2139,13 +2139,13 @@ export default class bitmex extends Exchange {
          * @name bitmex#cancelAllOrdersAfter
          * @description dead man's switch, cancel all orders after the given timeout
          * @see https://www.bitmex.com/api/explorer/#!/Order/Order_cancelAllAfter
-         * @param {number} countdown time in milliseconds, 0 represents cancel the timer
+         * @param {number} timeout time in milliseconds, 0 represents cancel the timer
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} the api result
          */
         await this.loadMarkets ();
         const request: Dict = {
-            'timeout': (timeout > 0) ? (timeout / 1000) : 0,
+            'timeout': (timeout > 0) ? this.parseToInt (timeout / 1000) : 0,
         };
         const response = await this.privatePostOrderCancelAllAfter (this.extend (request, params));
         //

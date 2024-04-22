@@ -2161,7 +2161,7 @@ export default class kraken extends Exchange {
          * @name kraken#cancelAllOrdersAfter
          * @description dead man's switch, cancel all orders after the given timeout
          * @see https://docs.kraken.com/rest/#tag/Spot-Trading/operation/cancelAllOrdersAfter
-         * @param {number} countdown time in milliseconds, 0 represents cancel the timer
+         * @param {number} timeout time in milliseconds, 0 represents cancel the timer
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} the api result
          */
@@ -2170,7 +2170,7 @@ export default class kraken extends Exchange {
         }
         await this.loadMarkets ();
         const request: Dict = {
-            'timeout': (timeout > 0) ? (timeout / 1000) : 0,
+            'timeout': (timeout > 0) ? (this.parseToInt (timeout / 1000)) : 0,
         };
         const response = await this.privatePostCancelAllOrdersAfter (this.extend (request, params));
         //

@@ -2762,7 +2762,7 @@ export default class bingx extends Exchange {
          * @description dead man's switch, cancel all orders after the given timeout
          * @see https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Cancel%20all%20orders%20in%20countdown
          * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Cancel%20all%20orders%20in%20countdown
-         * @param {number} countdown time in milliseconds, 0 represents cancel the timer
+         * @param {number} timeout time in milliseconds, 0 represents cancel the timer
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.type] spot or swap market
          * @returns {object} the api result
@@ -2771,7 +2771,7 @@ export default class bingx extends Exchange {
         const isActive = (timeout > 0);
         const request: Dict = {
             'type': (isActive) ? 'ACTIVATE' : 'CLOSE',
-            'timeOut': (isActive) ? (timeout / 1000) : 0,
+            'timeOut': (isActive) ? (this.parseToInt (timeout / 1000)) : 0,
         };
         let response = undefined;
         let type = undefined;
