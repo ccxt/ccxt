@@ -6,7 +6,7 @@ import { TICK_SIZE } from './base/functions/number.js';
 import { ArgumentsRequired, BadSymbol, InvalidOrder, NotSupported } from './base/errors.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { Precise } from './base/Precise.js';
-import { Account, Balances, Currencies, Currency, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Ticker, Tickers, Trade, Transaction, TransferEntry, Strings } from './base/types.js';
+import { Account, Balances, Currencies, Currency, Int, MarginModification, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Ticker, Tickers, Trade, Transaction, TransferEntry, Strings } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -203,6 +203,9 @@ export default class bitflex extends Exchange {
                     // {"code":-1004,"msg":"Missing required parameter \u0027symbol\u0027"}
                     // {"code":-1001,"msg":"Internal error."}
                     // {"code":-1130,"msg":"Data sent for paramter \u0027leverage\u0027 is not valid."}
+                    // {"code":-1162,"msg":"Modify position leverage error"}
+                    // {"code":-1155,"msg":"Invalid position side"}
+                    // {"code":-1000,"msg":"An unknown error occured while processing the request."}
                 },
                 'broad': {
                 },
@@ -3099,15 +3102,13 @@ export default class bitflex extends Exchange {
          * @param {float} leverage the rate of leverage
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {string} params.side 'long' or 'short' - direction of the position. If not sent, positions for both sides will be returned.
+         * @param {string} params.side 'long' or 'short' - direction of the position
          * @returns {object} response from the exchange
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
         }
-        // if ((leverage < 1) || (leverage > 100)) {
-        //     throw new BadRequest (this.id + ' leverage should be between 1 and 100');
-        // }
+        // todo find out the limits for leverage
         await this.loadMarkets ();
         const market = this.market (symbol);
         if (!market['swap']) {
@@ -3115,7 +3116,7 @@ export default class bitflex extends Exchange {
         }
         const side = this.safeString (params, 'side');
         if (side === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchPosition() requires a params.side argument (long or short)');
+            throw new ArgumentsRequired (this.id + ' setLeverage() requires a params.side argument (long or short)');
         }
         const request = {
             'symbol': market['id'],
@@ -3131,6 +3132,91 @@ export default class bitflex extends Exchange {
         //         "timestamp": "1713813534115"
         //     }
         //
+    }
+
+    async modifyMarginHelper (symbol: string, amount, type, params = {}): Promise<MarginModification> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (!market['swap']) {
+            throw new BadSymbol (this.id + ' reduceMargin() and addMargin() support swap contracts only');
+        }
+        const side = this.safeString (params, 'side');
+        if (side === undefined) {
+            throw new ArgumentsRequired (this.id + ' reduceMargin() and addMargin() require a params.side argument (long or short)');
+        }
+        amount = this.amountToPrecision (symbol, amount);
+        const request = {
+            'symbol': market['id'],
+            'amount': amount, // positive value for adding margin, negative for reducing
+            'side': side.toUpperCase (),
+        };
+        params = this.omit (params, 'side');
+        const response = await this.privatePostOpenapiContractV1ModifyMargin (this.extend (request, params));
+        //
+        //
+        if (type === 'reduce') {
+            amount = Precise.stringAbs (amount);
+        }
+        return this.extend (this.parseMarginModification (response, market), {
+            'amount': this.parseNumber (amount),
+            'type': type,
+        });
+    }
+
+    parseMarginModification (data, market: Market = undefined): MarginModification {
+        //
+        // {
+        //     'symbol':'BTC-PERP-REV',
+        //     'margin': 15,
+        //     'timestamp': 1541161088303
+        // }
+        //
+        const marketId = this.safeString (data, 'symbol');
+        market = this.safeMarket (marketId, market);
+        const total = this.safeNumber (data, 'margin');
+        const timestamp = this.safeInteger (data, 'timestamp');
+        return {
+            'info': data,
+            'symbol': market['symbol'],
+            'type': undefined,
+            'marginMode': 'cross', // todo check
+            'amount': undefined,
+            'total': total,
+            'code': market['settle'],
+            'status': 'ok',
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        };
+    }
+
+    async reduceMargin (symbol: string, amount, params = {}): Promise<MarginModification> {
+        /**
+         * @method
+         * @name ascendex#reduceMargin
+         * @description remove margin from a position
+         * @see https://docs.bitflex.com/contract#modify-margin
+         * @param {string} symbol unified market symbol
+         * @param {float} amount the amount of margin to remove
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} params.side 'long' or 'short' - direction of the position
+         * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=reduce-margin-structure}
+         */
+        return await this.modifyMarginHelper (symbol, -amount, 'reduce', params);
+    }
+
+    async addMargin (symbol: string, amount, params = {}): Promise<MarginModification> {
+        /**
+         * @method
+         * @name ascendex#addMargin
+         * @description add margin
+         * @see https://docs.bitflex.com/contract#modify-margin
+         * @param {string} symbol unified market symbol
+         * @param {float} amount amount of margin to add
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} params.side 'long' or 'short' - direction of the position
+         * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=add-margin-structure}
+         */
+        return await this.modifyMarginHelper (symbol, amount, 'add', params);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
