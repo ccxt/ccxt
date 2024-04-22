@@ -475,7 +475,7 @@ class coinex extends Exchange {
         ));
     }
 
-    public function fetch_currencies($params = array ()): array {
+    public function fetch_currencies($params = array ()): ?array {
         $response = $this->v1PublicGetCommonAssetConfig ($params);
         //     {
         //         "code" => 0,

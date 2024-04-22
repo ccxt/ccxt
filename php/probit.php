@@ -341,7 +341,7 @@ class probit extends Exchange {
         );
     }
 
-    public function fetch_currencies($params = array ()): array {
+    public function fetch_currencies($params = array ()): ?array {
         /**
          * @see https://docs-en.probit.com/reference/currency
          * fetches all available $currencies on an exchange
