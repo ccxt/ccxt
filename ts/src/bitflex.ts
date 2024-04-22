@@ -47,6 +47,8 @@ export default class bitflex extends Exchange {
                 'fetchDepositsWithdrawals': false,
                 'fetchDepositWithdrawFee': false,
                 'fetchDepositWithdrawFees': false,
+                'fetchFundingRate': true,
+                'fetchFundingRates': true,
                 'fetchIndexOHLCV': false,
                 'fetchLedger': true,
                 'fetchLeverageTiers': false,
@@ -2807,8 +2809,8 @@ export default class bitflex extends Exchange {
         /**
          * @method
          * @name bitstamp#fetchLedger
-         * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
-         * @see https://www.bitstamp.net/api/#tag/Transactions-private/operation/GetUserTransactions
+         * @description fetch the history of changes, actions done by the user or operations that altered balance of the user, not available for spot account
+         * @see https://docs.bitflex.com/spot#check-balance-flow
          * @param {string} code unified currency code, default is undefined
          * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
          * @param {int} [limit] max number of ledger entrys to return, default is undefined
@@ -2818,6 +2820,8 @@ export default class bitflex extends Exchange {
          *
          * EXCHANGE SPECIFIC PARAMETERS
          * @param {string} [params.accountIndex] sub-account index, default is '0'
+         * @param {int} [params.fromFlowId] Id to start from
+         * @param {int} [params.endFlowId] Id to end with
          * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
          */
         await this.loadMarkets ();
@@ -2828,6 +2832,7 @@ export default class bitflex extends Exchange {
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
+            request['tokenId'] = currency['id'];
         }
         if (since !== undefined) {
             request['startTime'] = since;
@@ -2837,11 +2842,13 @@ export default class bitflex extends Exchange {
             params = this.omit (params, [ 'till', 'until' ]);
             request['endTime'] = until;
         }
-        const accountType = this.safeString (params, 'accountType');
-        if (accountType !== undefined) {
-            request['accountType'] = this.encodeAccountType (accountType);
-            params = this.omit (params, 'accountType');
+        let type = undefined;
+        [ type, params ] = this.handleOptionAndParams (params, 'fetchLedger', 'accountType', 'swap');
+        if (type === 'spot') {
+            throw new NotSupported (this.id + ' fetchLedger() does not support spot accounts, only swap accounts are accepted');
         }
+        request['accountType'] = this.encodeAccountType (type);
+        params = this.omit (params, 'accountType');
         const response = await this.privateGetOpenapiV1BalanceFlow (this.extend (request, params));
         //
         //     [
