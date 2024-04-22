@@ -1372,6 +1372,12 @@ export default class woofipro extends Exchange {
 		// 		  "status": "CANCEL_SENT"
 		// 		}
 		// 	}
+		//
+		// 	{
+		// 		"success": true,
+		// 		"timestamp": 1702989203989,
+		// 		"status": "CANCEL_SENT"
+		// 	}
         //
         const extendParams = { 'symbol': symbol };
         if (isByClientOrder) {
@@ -1379,6 +1385,9 @@ export default class woofipro extends Exchange {
         } else {
             extendParams['id'] = id;
         }
+		if (stop) {
+			return this.extend (this.parseOrder (response), extendParams);
+		}
 		const data = this.safeDict (response, 'data', {});
         return this.extend (this.parseOrder (data), extendParams);
     }
@@ -1428,14 +1437,15 @@ export default class woofipro extends Exchange {
 			if (method === 'POST' || method === 'PUT') {
 				body = this.json (params);
 				auth += body;
+				headers['content-type'] = 'application/json';
 			} else {
 				if (Object.keys (params).length) {
 					const query = this.urlencode (params);
 					url += '?' + query;
 					auth += '?' + query;
 				}
+				headers['content-type'] = 'application/x-www-form-urlencoded';
 			}
-			headers['content-type'] = 'application/json';
 			let secret = this.secret;
 			if (secret.indexOf ('ed25519:') >= 0) {
 				secret = secret.slice (secret.indexOf ('ed25519:') + 8);
