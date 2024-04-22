@@ -2994,6 +2994,12 @@ public partial class Exchange
         throw new NotSupported ((string)add(this.id, " fetchPosition() is not supported yet")) ;
     }
 
+    public async virtual Task<object> fetchPositionWs(object symbol, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " fetchPositionWs() is not supported yet")) ;
+    }
+
     public async virtual Task<object> watchPosition(object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
@@ -3018,7 +3024,19 @@ public partial class Exchange
         throw new NotSupported ((string)add(this.id, " fetchPositionsForSymbol() is not supported yet")) ;
     }
 
+    public async virtual Task<object> fetchPositionsForSymbolWs(object symbol, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " fetchPositionsForSymbol() is not supported yet")) ;
+    }
+
     public async virtual Task<object> fetchPositions(object symbols = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " fetchPositions() is not supported yet")) ;
+    }
+
+    public async virtual Task<object> fetchPositionsWs(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " fetchPositions() is not supported yet")) ;
@@ -3554,6 +3572,29 @@ public partial class Exchange
         }
     }
 
+    public async virtual Task<object> fetchTickerWs(object symbol, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        if (isTrue(getValue(this.has, "fetchTickersWs")))
+        {
+            await this.loadMarkets();
+            object market = this.market(symbol);
+            symbol = getValue(market, "symbol");
+            object tickers = await this.fetchTickerWs(symbol, parameters);
+            object ticker = this.safeDict(tickers, symbol);
+            if (isTrue(isEqual(ticker, null)))
+            {
+                throw new NullResponse ((string)add(add(this.id, " fetchTickers() could not find a ticker for "), symbol)) ;
+            } else
+            {
+                return ticker;
+            }
+        } else
+        {
+            throw new NotSupported ((string)add(this.id, " fetchTicker() is not supported yet")) ;
+        }
+    }
+
     public async virtual Task<object> watchTicker(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
@@ -3561,6 +3602,12 @@ public partial class Exchange
     }
 
     public async virtual Task<object> fetchTickers(object symbols = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " fetchTickers() is not supported yet")) ;
+    }
+
+    public async virtual Task<object> fetchTickersWs(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " fetchTickers() is not supported yet")) ;
