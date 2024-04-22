@@ -1313,6 +1313,76 @@ export default class woofipro extends Exchange {
         return order;
     }
 
+	async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
+        /**
+         * @method
+         * @name woofipro#cancelOrder
+         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/cancel-order
+		 * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/cancel-order-by-client_order_id
+         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/cancel-algo-order
+         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/cancel-algo-order-by-client_order_id
+         * @description cancels an open order
+         * @param {string} id order id
+         * @param {string} symbol unified symbol of the market the order was made in
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [params.stop] whether the order is a stop/algo order
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        const stop = this.safeBool (params, 'stop', false);
+        params = this.omit (params, 'stop');
+        if (!stop && (symbol === undefined)) {
+            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        let market: Market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        const request = {
+			'symbol': market['id'],
+		};
+        const clientOrderIdUnified = this.safeString2 (params, 'clOrdID', 'clientOrderId');
+        const clientOrderIdExchangeSpecific = this.safeString (params, 'client_order_id', clientOrderIdUnified);
+        const isByClientOrder = clientOrderIdExchangeSpecific !== undefined;
+        let response = undefined;
+        if (stop) {
+			if (isByClientOrder) {
+				request['client_order_id'] = clientOrderIdExchangeSpecific;
+                params = this.omit (params, [ 'clOrdID', 'clientOrderId', 'client_order_id' ]);
+                response = await this.v1PrivateDeleteAlgoClientOrder (this.extend (request, params));
+			} else {
+				request['order_id'] = id;
+				response = await this.v1PrivateDeleteAlgoOrder (this.extend (request, params));
+			}
+        } else {
+            if (isByClientOrder) {
+                request['client_order_id'] = clientOrderIdExchangeSpecific;
+                params = this.omit (params, [ 'clOrdID', 'clientOrderId', 'client_order_id' ]);
+                response = await this.v1PrivateDeleteClientOrder (this.extend (request, params));
+            } else {
+                request['order_id'] = id;
+                response = await this.v1PrivateDeleteOrder (this.extend (request, params));
+            }
+        }
+        //
+		// 	{
+		// 		"success": true,
+		// 		"timestamp": 1702989203989,
+		// 		"data": {
+		// 		  "status": "CANCEL_SENT"
+		// 		}
+		// 	}
+        //
+        const extendParams = { 'symbol': symbol };
+        if (isByClientOrder) {
+            extendParams['client_order_id'] = clientOrderIdExchangeSpecific;
+        } else {
+            extendParams['id'] = id;
+        }
+		const data = this.safeDict (response, 'data', {});
+        return this.extend (this.parseOrder (data), extendParams);
+    }
+
     nonce () {
         return this.milliseconds ();
     }
@@ -1355,7 +1425,7 @@ export default class woofipro extends Exchange {
                 'orderly-timestamp': ts,
             };
 			auth = ts + method + '/' + version + '/' + pathWithParams;
-			if (method === 'POST' || method === 'PUT' || method === 'DELETE') {
+			if (method === 'POST' || method === 'PUT') {
 				body = this.json (params);
 				auth += body;
 			} else {
