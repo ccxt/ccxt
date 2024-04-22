@@ -1498,6 +1498,28 @@ export default class woofipro extends Exchange {
         return await this.fetchOrders (symbol, since, limit, extendedParams);
     }
 
+	async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        /**
+         * @method
+         * @name woofipro#fetchClosedOrders
+         * @description fetches information on multiple orders made by the user
+         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-orders
+         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-algo-orders
+         * @param {string} symbol unified market symbol of the market orders were made in
+         * @param {int} [since] the earliest time in ms to fetch orders for
+         * @param {int} [limit] the maximum number of order structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [params.stop] whether the order is a stop/algo order
+         * @param {boolean} [params.is_triggered] whether the order has been triggered (false by default)
+         * @param {string} [params.side] 'buy' or 'sell'
+         * @param {boolean} [params.paginate] set to true if you want to fetch orders with pagination
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        const extendedParams = this.extend (params, { 'status': 'COMPLETED' });
+        return await this.fetchOrders (symbol, since, limit, extendedParams);
+    }
+
     nonce () {
         return this.milliseconds ();
     }
