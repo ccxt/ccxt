@@ -1187,11 +1187,8 @@ export default class woofipro extends Exchange {
          * @param {float} [params.takeProfit.triggerPrice] take profit trigger price
          * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered (perpetual swap markets only)
          * @param {float} [params.stopLoss.triggerPrice] stop loss trigger price
-         * @param {float} [params.algoType] 'STOP'or 'TRAILING_STOP' or 'OCO' or 'CLOSE_POSITION'
+         * @param {float} [params.algoType] 'STOP'or 'TP_SL' or 'POSITIONAL_TP_SL'
          * @param {float} [params.cost] *spot market buy only* the quote quantity that can be used as an alternative for the amount
-         * @param {string} [params.trailingAmount] the quote amount to trail away from the current market price
-         * @param {string} [params.trailingPercent] the percent to trail away from the current market price
-         * @param {string} [params.trailingTriggerPrice] the price to trigger a trailing order, default uses the price argument
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         const reduceOnly = this.safeBool2 (params, 'reduceOnly', 'reduce_only');
@@ -1241,12 +1238,10 @@ export default class woofipro extends Exchange {
             request['client_order_id'] = clientOrderId;
         }
 		if (stopPrice !== undefined) {
-            if (algoType !== 'TRAILING_STOP') {
-                request['trigger_price'] = this.priceToPrecision (symbol, stopPrice);
-                request['algo_type'] = 'STOP';
-            }
+			request['trigger_price'] = this.priceToPrecision (symbol, stopPrice);
+			request['algo_type'] = 'STOP';
         } else if ((stopLoss !== undefined) || (takeProfit !== undefined)) {
-            request['algo_type'] = 'BRACKET';
+            request['algo_type'] = 'TP_SL';
             const outterOrder = {
                 'symbol': market['id'],
                 'reduce_only': false,
@@ -1258,9 +1253,9 @@ export default class woofipro extends Exchange {
                 const stopLossPrice = this.safeNumber2 (stopLoss, 'triggerPrice', 'price', stopLoss);
                 const stopLossOrder = {
                     'side': closeSide,
-                    'algo_type': 'STOP_LOSS',
+                    'algo_type': 'TP_SL',
                     'trigger_price': this.priceToPrecision (symbol, stopLossPrice),
-                    'type': 'CLOSE_POSITION',
+                    'type': 'LIMIT',
                     'reduce_only': true,
                 };
                 outterOrder['child_orders'].push (stopLossOrder);
@@ -1269,9 +1264,9 @@ export default class woofipro extends Exchange {
                 const takeProfitPrice = this.safeNumber2 (takeProfit, 'triggerPrice', 'price', takeProfit);
                 const takeProfitOrder = {
                     'side': closeSide,
-                    'algo_type': 'TAKE_PROFIT',
+                    'algo_type': 'TP_SL',
                     'trigger_price': this.priceToPrecision (symbol, takeProfitPrice),
-                    'type': 'CLOSE_POSITION',
+                    'type': 'LIMIT',
                     'reduce_only': true,
                 };
                 outterOrder['child_orders'].push (takeProfitOrder);
