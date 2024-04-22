@@ -105,7 +105,7 @@ export default class bitflex extends Exchange {
                     'get': {
                         'openapi/v1/ping': 1,
                         'openapi/v1/time': 1, // implemented
-                        'openapi/v1/pairs': 1,
+                        'openapi/v1/pairs': 1, // implemented
                         'openapi/v1/brokerInfo': 1, // implemented
                         'openapi/v1/contracts': 1,
                         'openapi/contract/v1/insurance': 1,
@@ -120,7 +120,7 @@ export default class bitflex extends Exchange {
                         'openapi/quote/v1/klines': 1, // implemented
                         'openapi/quote/v1/ticker/24hr': 1, // implemented
                         'openapi/quote/v1/contract/ticker/24hr': 1, // implemented
-                        'openapi/quote/v1/ticker/price': 1,
+                        'openapi/quote/v1/ticker/price': 1, // implemented
                         'openapi/quote/v1/ticker/bookTicker': 1, // implemented
                     },
                 },
@@ -139,13 +139,13 @@ export default class bitflex extends Exchange {
                         'openapi/contract/v1/openOrders': 1, // implemented
                         'openapi/contract/v1/historyOrders': 1, // implemented
                         'openapi/contract/v1/myTrades': 1, // implemented
-                        'openapi/contract/v1/positions': 1,
+                        'openapi/contract/v1/positions': 1, // implemented
                         'openapi/contract/v1/account': 1, // implemented
                     },
                     'post': {
                         'openapi/v1/subAccount/query': 1, // implemented
                         'openapi/v1/transfer': 1, // implemented
-                        'openapi/v1/withdraw': 1,
+                        'openapi/v1/withdraw': 1, // implemented
                         'openapi/v1/order': 1, // implemented
                         'openapi/v1/test': 1,
                         'openapi/contract/v1/order': 1, // implemented
@@ -1355,17 +1355,20 @@ export default class bitflex extends Exchange {
                 const account = this.account ();
                 account['free'] = this.safeString (balance, 'free');
                 account['used'] = this.safeString (balance, 'locked');
+                account['total'] = this.safeString (balance, 'total');
                 result[code] = account;
             }
         } else if (type === 'swap') {
-            const balance = this.safeDict (response, 'USDT', {});
-            const currencyId = this.safeString (balance, 'tokenId');
-            const code = this.safeCurrencyCode (currencyId);
-            const account = this.account ();
-            account['free'] = this.safeString (balance, 'availableMargin');
-            account['used'] = this.safeString (balance, 'positionMargin');
-            result[code] = account;
-            return this.safeBalance (result);
+            const currencyIds = Object.keys (response);
+            for (let i = 0; i < currencyIds.length; i++) {
+                const currencyId = currencyIds[i];
+                const balance = response[currencyId];
+                const code = this.safeCurrencyCode (currencyId);
+                const account = this.account ();
+                account['free'] = this.safeString (balance, 'availableMargin');
+                account['total'] = this.safeString (balance, 'total');
+                result[code] = account;
+            }
         }
         return this.safeBalance (result);
     }
@@ -2691,7 +2694,7 @@ export default class bitflex extends Exchange {
         };
         const response = await this.privatePostOpenapiV1Transfer (this.extend (request, params));
         //
-        //    { "success": true }
+        //    { "success": "true" }
         //
         const transfer = this.parseTransfer (response, currency);
         transfer['amount'] = amount;
@@ -2702,7 +2705,7 @@ export default class bitflex extends Exchange {
 
     parseTransfer (transfer, currency = undefined) {
         //
-        //    { "success": true }
+        //    { "success": "true" }
         //
         const status = this.safeString (transfer, 'success');
         const timestamp = this.safeInteger (transfer, 'timestamp');
@@ -2719,10 +2722,9 @@ export default class bitflex extends Exchange {
         };
     }
 
-    parseTransferStatus (status) { // todo check
+    parseTransferStatus (status) {
         const statuses = {
-            'success': 'true',
-            'error': 'failed',
+            'true': 'ok',
         };
         return this.safeString (statuses, status, status);
     }
