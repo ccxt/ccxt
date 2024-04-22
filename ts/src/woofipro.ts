@@ -1075,7 +1075,7 @@ export default class woofipro extends Exchange {
         //       "updatedTime": "1686149903.362"
         //   }
         //
-        const timestamp = this.safeTimestampN (order, [ 'timestamp', 'created_time', 'createdTime' ]);
+        const timestamp = this.safeIntegerN (order, [ 'timestamp', 'created_time', 'createdTime' ]);
         const orderId = this.safeStringN (order, [ 'order_id', 'orderId', 'algoOrderId' ]);
         const clientOrderId = this.omitZero (this.safeString2 (order, 'client_order_id', 'clientOrderId')); // Somehow, this always returns 0 for limit order
         const marketId = this.safeString (order, 'symbol');
@@ -1108,7 +1108,7 @@ export default class woofipro extends Exchange {
                 stopLossPrice = this.safeNumber (stopLossOrder, 'triggerPrice');
             }
         }
-        const lastUpdateTimestamp = this.safeTimestamp2 (order, 'updatedTime', 'updated_time');
+        const lastUpdateTimestamp = this.safeInteger2 (order, 'updatedTime', 'updated_time');
         return this.safeOrder ({
             'id': orderId,
             'clientOrderId': clientOrderId,
@@ -1432,7 +1432,7 @@ export default class woofipro extends Exchange {
             request['size'] = 500;
         }
         if (stop) {
-            request['algo_type'] = 'stop';
+            request['algo_type'] = 'STOP';
         }
         let response = undefined;
         if (stop) {
@@ -1474,6 +1474,28 @@ export default class woofipro extends Exchange {
         const data = this.safeValue (response, 'data', response);
         const orders = this.safeList (data, 'rows');
         return this.parseOrders (orders, market, since, limit);
+    }
+
+	async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        /**
+         * @method
+         * @name woofipro#fetchOpenOrders
+         * @description fetches information on multiple orders made by the user
+         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-orders
+         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-algo-orders
+         * @param {string} symbol unified market symbol of the market orders were made in
+         * @param {int} [since] the earliest time in ms to fetch orders for
+         * @param {int} [limit] the maximum number of order structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [params.stop] whether the order is a stop/algo order
+         * @param {boolean} [params.is_triggered] whether the order has been triggered (false by default)
+         * @param {string} [params.side] 'buy' or 'sell'
+         * @param {boolean} [params.paginate] set to true if you want to fetch orders with pagination
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        const extendedParams = this.extend (params, { 'status': 'INCOMPLETE' });
+        return await this.fetchOrders (symbol, since, limit, extendedParams);
     }
 
     nonce () {
