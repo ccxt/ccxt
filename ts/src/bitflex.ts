@@ -1,5 +1,4 @@
 
-
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/bitflex.js';
@@ -2567,17 +2566,17 @@ export default class bitflex extends Exchange {
             '3': 'pending', // Processing by platform
             '4': 'canceled', // Reject by platfor
             '5': 'pending', // Processing by wallet
-            '6': 'Ok', // Withdrawal success
+            '6': 'ok', // Withdrawal success
             '7': 'failed', // Withdrawal failed
             '8': 'pending', // Blockchain mining
         };
         return this.safeString (statuses, status, status);
     }
 
-    parseDepositTransactionStatus (status) {
+    parseDepositTransactionStatus (status) { // todo check
         const statuses = {
             '1': 'failed', // failed
-            '2': '2', // deposit can withdraw
+            '2': 'ok', // deposit can withdraw
         };
         return this.safeString (statuses, status, status);
     }
@@ -2654,7 +2653,7 @@ export default class bitflex extends Exchange {
             }
         }
         const ext = this.safeString (transaction, 'addressExt');
-        if ((ext !== undefined) && (tag === undefined)) {
+        if ((ext !== undefined) && (tag === undefined)) { // todo check
             tag = ext;
         }
         const tagFrom = this.safeString (transaction, 'fromAddressTag');
@@ -2680,11 +2679,7 @@ export default class bitflex extends Exchange {
                 'currency': code,
             };
         }
-        const isInternal = this.safeBool (transaction, 'isInternalTransfer');
-        let internal = undefined;
-        if (isInternal) {
-            internal = isInternal;
-        }
+        const internal = this.safeBool (transaction, 'isInternalTransfer');
         return {
             'info': transaction,
             'id': id,
