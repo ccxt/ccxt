@@ -123,6 +123,9 @@ export default class coinbase extends Exchange {
                 'api': {
                     'rest': 'https://api.coinbase.com',
                 },
+                'test': {
+                    'rest': 'https://api-public.sandbox.exchange.coinbase.com',
+                },
                 'www': 'https://www.coinbase.com',
                 'doc': [
                     'https://developers.coinbase.com/api/v2',
@@ -364,6 +367,17 @@ export default class coinbase extends Exchange {
                 'user_native_currency': 'USD', // needed to get fees for v3
             },
         });
+    }
+
+    setSandboxMode (enable: boolean) {
+        /**
+         * @method
+         * @name coinbase#setSandboxMode
+         * @description enables or disables sandbox mode
+         * @param {boolean} [enable] true if demo trading should be enabled, false otherwise
+         */
+        super.setSandboxMode (enable);
+        this.options['sandboxMode'] = enable;
     }
 
     async fetchTime (params = {}) {
@@ -1604,6 +1618,9 @@ export default class coinbase extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an associative dictionary of currencies
          */
+        if (this.safeBool (this.options, 'sandboxMode')) {
+            return undefined;
+        }
         const response = await this.fetchCurrenciesFromCache (params);
         const currencies = this.safeList (response, 'currencies', []);
         //
@@ -4436,6 +4453,9 @@ export default class coinbase extends Exchange {
                         'CB-ACCESS-TIMESTAMP': timestampString,
                         'Content-Type': 'application/json',
                     };
+                    if (this.password !== undefined) {
+                        headers['CB-ACCESS-PASSPHRASE'] = this.password;
+                    }
                 }
             }
             if (authorizationString !== undefined) {

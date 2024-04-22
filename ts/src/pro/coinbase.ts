@@ -35,6 +35,9 @@ export default class coinbase extends coinbaseRest {
                 'api': {
                     'ws': 'wss://advanced-trade-ws.coinbase.com',
                 },
+                'test': {
+                    'ws': 'wss://ws-feed-public.sandbox.exchange.coinbase.com',
+                },
             },
             'options': {
                 'tradesLimit': 1000,
