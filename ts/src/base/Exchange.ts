@@ -2506,6 +2506,17 @@ export default class Exchange {
         return res === 0;
     }
 
+    safeIntegerOmitZero (obj: object, key: IndexType, defaultValue: Int = undefined): Int {
+        const timestampString = this.omitZero (this.safeString (obj, key));
+        let timestamp = undefined;
+        if (timestampString !== undefined) {
+            timestamp = this.parseToInt (timestampString);
+        } else if (defaultValue !== undefined) {
+            timestamp = defaultValue;
+        }
+        return timestamp;
+    }
+
     afterConstruct () {
         this.createNetworksByIdObject ();
     }
