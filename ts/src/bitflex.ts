@@ -58,7 +58,8 @@ export default class bitflex extends Exchange {
                 'fetchOrderBook': true,
                 'fetchOrders': false,
                 'fetchPositionMode': false,
-                'fetchPositions': false,
+                'fetchPosition': true,
+                'fetchPositions': true,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
@@ -752,6 +753,7 @@ export default class bitflex extends Exchange {
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trades structures to retrieve, default 500, max 1000
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {int} [params.until] the latest time in ms to fetch entries for
          *
          * EXCHANGE SPECIFIC PARAMETERS
          * @param {string} [params.fromId] *trade Id to fetch from
@@ -1798,7 +1800,6 @@ export default class bitflex extends Exchange {
         //         "priceType": "INPUT"
         //     }
         //
-        //
         const id = this.safeString (order, 'orderId');
         const clientOrderId = this.safeString (order, 'clientOrderId');
         const timestamp = this.safeString (order, 'transactTime');
@@ -2331,6 +2332,15 @@ export default class bitflex extends Exchange {
         return this.safeString (types, type, type);
     }
 
+    encodeAccountType (type) {
+        const types = {
+            'spot': '1',
+            'option': '2',
+            'swap': '3',
+        };
+        return this.safeString (types, type, type);
+    }
+
     parseAccountIndex (index) {
         const indexes = {
             '0': 'main',
@@ -2597,6 +2607,7 @@ export default class bitflex extends Exchange {
         //         "needBrokerAudit": false, // Whether this request needs broker auit
         //         "orderId": "423885103582776064" // Id for successful withdrawal
         //     }
+        //
         // todo: this is in progress
         const id = this.safeString (transaction, 'orderId');
         const address = this.safeString (transaction, 'address');
@@ -2679,13 +2690,8 @@ export default class bitflex extends Exchange {
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const accounts = {
-            'spot': '1',
-            'option': '2',
-            'swap': '3',
-        };
-        const fromAccountType = this.safeString (accounts, fromAccount);
-        const toAccountType = this.safeString (accounts, toAccount);
+        const fromAccountType = this.encodeAccountType (fromAccount);
+        const toAccountType = this.encodeAccountType (toAccount);
         const request = {
             'amount': amount,
             'tokenId': currency['id'],
@@ -2774,6 +2780,159 @@ export default class bitflex extends Exchange {
         //     }
         //
         return this.parseTransaction (response, currency);
+    }
+
+    async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+        /**
+         * @method
+         * @name bitstamp#fetchLedger
+         * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
+         * @see https://www.bitstamp.net/api/#tag/Transactions-private/operation/GetUserTransactions
+         * @param {string} code unified currency code, default is undefined
+         * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
+         * @param {int} [limit] max number of ledger entrys to return, default is undefined
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {int} [params.until] the latest time in ms to fetch entries for
+         * @param {string} [params.accountType] account type: spot, option, swap
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+         * @param {string} [params.accountIndex] sub-account index, default is '0'
+         * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
+         */
+        await this.loadMarkets ();
+        const request = {};
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+        }
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        const until = this.safeInteger2 (params, 'till', 'until');
+        if (until !== undefined) {
+            params = this.omit (params, [ 'till', 'until' ]);
+            request['endTime'] = until;
+        }
+        const accountType = this.safeString (params, 'accountType');
+        if (accountType !== undefined) {
+            request['accountType'] = this.encodeAccountType (accountType);
+            params = this.omit (params, 'accountType');
+        }
+        const response = await this.privateGetOpenapiV1BalanceFlow (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "id": "1669330193041477632",
+        //             "accountId": "1662502620223296001",
+        //             "token": "USDT",
+        //             "tokenId": "USDT",
+        //             "tokenName": "USDT",
+        //             "flowTypeValue": 51,
+        //             "flowType": "USER_ACCOUNT_TRANSFER",
+        //             "flowName": "Transfer",
+        //             "change": "30",
+        //             "total": "32.230409432",
+        //             "created": "1713735666338"
+        //         },
+        //         {
+        //             "id": "1668427992530046976",
+        //             "accountId": "1662502620223296001",
+        //             "token": "USDT",
+        //             "tokenId": "USDT",
+        //             "tokenName": "USDT",
+        //             "flowTypeValue": 51,
+        //             "flowType": "USER_ACCOUNT_TRANSFER",
+        //             "flowName": "Transfer",
+        //             "change": "-50",
+        //             "total": "2.230409432",
+        //             "created": "1713628115657"
+        //         }
+        //     ]
+        //
+        return this.parseLedger (response, currency, since, limit);
+    }
+
+    parseLedgerEntryType (type) {
+        const types = {
+            '1': 'trade', // trades
+            '2': 'fee', // trading fees
+            '3': 'transfer', // transfer
+            '4': 'transaction', // deposit
+            '27': 'reward', // maker reward todo check
+            '28': 'trade', // PnL from contracts todo check
+            '30': 'trade', // settlement todo check
+            '31': 'trade', // liquidation
+            '32': 'fee', // funding fee settlement todo check
+            '51': 'transfer', // userAccountTransfer Exclusive
+            '65': 'trade', // OTC buy coin
+            '66': 'trade', // OTC sell coin
+            '67': 'reward', // campaign reward todo check
+            '68': 'rebate', // user rebates
+            '69': 'reward', // registration reward todo check
+            '70': 'airdrop', // airdrop
+            '71': 'reward', // mining reward todo check
+            '73': 'fee', // OTC fees
+            '200': 'trade', // old OTC balance flow
+        };
+        return this.safeString (types, type, type);
+    }
+
+    parseLedgerEntry (item, currency: Currency = undefined) {
+        //
+        //     [
+        //         {
+        //             "id": "1669330193041477632",
+        //             "accountId": "1662502620223296001",
+        //             "token": "USDT",
+        //             "tokenId": "USDT",
+        //             "tokenName": "USDT",
+        //             "flowTypeValue": 51,
+        //             "flowType": "USER_ACCOUNT_TRANSFER",
+        //             "flowName": "Transfer",
+        //             "change": "30",
+        //             "total": "32.230409432",
+        //             "created": "1713735666338"
+        //         },
+        //         ...
+        //     ]
+        //
+        const id = this.safeString (item, 'id');
+        const account = undefined;
+        const referenceId = undefined;
+        const referenceAccount = this.safeString (item, 'accountId');
+        const type = this.parseLedgerEntryType (this.safeString (item, 'flowTypeValue')); // todo
+        const code = this.safeCurrencyCode (this.safeString (item, 'token'), currency);
+        let amount = this.safeString (item, 'change');
+        const amountIsNegative = Precise.stringLt (amount, '0');
+        const direction = amountIsNegative ? 'out' : 'in';
+        amount = Precise.stringAbs (amount);
+        const timestamp = this.safeString (item, 'created');
+        const fee = this.safeString (item, 'fee');
+        const before = undefined;
+        const after = this.safeString (item, 'total');
+        const status = 'ok';
+        const symbol = undefined;
+        return this.safeLedgerEntry ({
+            'id': id,
+            'info': item,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'account': account,
+            'direction': direction,
+            'referenceId': referenceId,
+            'referenceAccount': referenceAccount,
+            'type': type,
+            'currency': code,
+            'symbol': symbol,
+            'amount': amount,
+            'before': before,
+            'after': after,
+            'status': status,
+            'fee': fee,
+        });
     }
 
     async fetchPosition (symbol: string, params = {}) {
