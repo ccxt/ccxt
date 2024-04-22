@@ -763,10 +763,11 @@ export default class bitflex extends Exchange {
          * @param {int} [limit] the maximum number of trades structures to retrieve, default 500, max 1000
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {int} [params.until] the latest time in ms to fetch entries for
+         * @param {string} [params.type] market type, ['spot', 'swap']
          *
          * EXCHANGE SPECIFIC PARAMETERS
-         * @param {string} [params.fromId] *trade Id to fetch from
-         * @param {string} [params.toId] *trade Id to fetch to
+         * @param {string} [params.fromId] trade Id to fetch from
+         * @param {string} [params.toId] trade Id to fetch to
          * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets ();
@@ -942,21 +943,20 @@ export default class bitflex extends Exchange {
         const timestamp = this.safeInteger (trade, 'time');
         const price = this.safeString (trade, 'price');
         const amount = this.safeString2 (trade, 'qty', 'quantity');
-        const isBuyer = this.safeValue2 (trade, 'isBuyer', 'isBuyerMaker', undefined);
-        let takerOrMaker = undefined;
-        if ((isBuyer !== undefined) && (isBuyer)) {
-            takerOrMaker = 'maker';
-        } else if ((isBuyer !== undefined) && (!isBuyer)) {
-            takerOrMaker = 'taker';
-        }
+        const isMaker = this.safeBool (trade, 'isMaker', undefined);
+        const takerOrMaker = isMaker ? 'maker' : 'taker';
+        const isBuyer = this.safeBool (trade, 'isBuyer');
         let side = undefined;
         if (isBuyer !== undefined) {
-            side = (isBuyer === true) ? 'buy' : 'sell';
+            side = (isBuyer) ? 'buy' : 'sell';
+        } else { // swap trades have no isBuyer
+            const tradeSide = this.safeString (trade, 'side');
+            side = this.parseSwapTradeSide (tradeSide);
         }
         let fee = undefined;
         const feeCost = this.safeString2 (trade, 'commission', 'fee');
         if (feeCost !== undefined) {
-            const feeCurrencyId = this.safeString (trade, 'commissionAsset');
+            const feeCurrencyId = this.safeString2 (trade, 'commissionAsset', 'feeTokenId');
             fee = {
                 'cost': feeCost,
                 'currency': this.safeCurrencyCode (feeCurrencyId),
@@ -977,6 +977,16 @@ export default class bitflex extends Exchange {
             'fee': fee,
             'info': trade,
         }, market);
+    }
+
+    parseSwapTradeSide (side) {
+        const sides = {
+            'BUY_CLOSE': 'buy',
+            'BUY_OPEN': 'buy',
+            'SELL_CLOSE': 'sell',
+            'SELL_OPEN': 'sell',
+        };
+        return this.safeString (sides, side);
     }
 
     async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
