@@ -1392,6 +1392,90 @@ export default class woofipro extends Exchange {
         return this.extend (this.parseOrder (data), extendParams);
     }
 
+	async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        /**
+         * @method
+         * @name woofipro#fetchOrders
+         * @description fetches information on multiple orders made by the user
+         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-orders
+         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-algo-orders
+         * @param {string} symbol unified market symbol of the market orders were made in
+         * @param {int} [since] the earliest time in ms to fetch orders for
+         * @param {int} [limit] the maximum number of order structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [params.stop] whether the order is a stop/algo order
+         * @param {boolean} [params.is_triggered] whether the order has been triggered (false by default)
+         * @param {string} [params.side] 'buy' or 'sell'
+         * @param {boolean} [params.paginate] set to true if you want to fetch orders with pagination
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOrders', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallIncremental ('fetchOrders', symbol, since, limit, params, 'page', 500) as Order[];
+        }
+        const request = {};
+        let market: Market = undefined;
+        const stop = this.safeBool2 (params, 'stop', 'trigger');
+        params = this.omit (params, [ 'stop', 'trigger' ]);
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
+        }
+        if (since !== undefined) {
+            request['start_t'] = since;
+        }
+        if (limit !== undefined) {
+            request['size'] = limit;
+        } else {
+            request['size'] = 500;
+        }
+        if (stop) {
+            request['algo_type'] = 'stop';
+        }
+        let response = undefined;
+        if (stop) {
+            response = await this.v1PrivateGetAlgoOrders (this.extend (request, params));
+        } else {
+            response = await this.v1PrivateGetOrders (this.extend (request, params));
+        }
+        //
+        //     {
+        //         "success":true,
+        //         "meta":{
+        //             "total":1,
+        //             "records_per_page":100,
+        //             "current_page":1
+        //         },
+        //         "rows":[
+        //             {
+        //                 "symbol":"PERP_BTC_USDT",
+        //                 "status":"FILLED",
+        //                 "side":"SELL",
+        //                 "created_time":"1611617776.000",
+        //                 "updated_time":"1611617776.000",
+        //                 "order_id":52121167,
+        //                 "order_tag":"default",
+        //                 "price":null,
+        //                 "type":"MARKET",
+        //                 "quantity":0.002,
+        //                 "amount":null,
+        //                 "visible":0,
+        //                 "executed":0.002,
+        //                 "total_fee":0.01732885,
+        //                 "fee_asset":"USDT",
+        //                 "client_order_id":null,
+        //                 "average_executed_price":28881.41
+        //             }
+        //         ]
+        //     }
+        //
+        const data = this.safeValue (response, 'data', response);
+        const orders = this.safeList (data, 'rows');
+        return this.parseOrders (orders, market, since, limit);
+    }
+
     nonce () {
         return this.milliseconds ();
     }
