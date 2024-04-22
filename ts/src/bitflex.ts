@@ -6,7 +6,7 @@ import { TICK_SIZE } from './base/functions/number.js';
 import { BadRequest, InvalidOrder, NotSupported } from './base/errors.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { Precise } from './base/Precise.js';
-import { Account, Balances, Currencies, Currency, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Tickers, Trade, Transaction, TransferEntry, Strings } from './base/types.js';
+import { Account, Balances, Currencies, Currency, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Ticker, Tickers, Trade, Transaction, TransferEntry, Strings } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -2936,7 +2936,7 @@ export default class bitflex extends Exchange {
         });
     }
 
-    async fetchPosition (symbol: string, params = {}) {
+    async fetchPosition (symbol: string, params = {}): Promise<Position> {
         /**
          * @method
          * @name bitflex#fetchPosition
@@ -2982,13 +2982,11 @@ export default class bitflex extends Exchange {
         //         }
         //     ]
         //
-        let position = undefined;
         if (response.length > 0) {
-            position = this.parsePosition (response[0], market);
+            return this.parsePosition (response[0], market);
         } else {
-            position = this.parsePosition (response[0]); // omiting market to return empty Position
+            return this.parsePosition (response[0]); // omiting market to return empty Position
         }
-        return position;
     }
 
     async fetchPositionsForSymbol (symbol: string, params = {}) {
