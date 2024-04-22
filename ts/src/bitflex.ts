@@ -3,7 +3,7 @@
 
 import Exchange from './abstract/bitflex.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { BadRequest, InvalidOrder, NotSupported } from './base/errors.js';
+import { ArgumentsRequired, BadSymbol, InvalidOrder, NotSupported } from './base/errors.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { Precise } from './base/Precise.js';
 import { Account, Balances, Currencies, Currency, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Ticker, Tickers, Trade, Transaction, TransferEntry, Strings } from './base/types.js';
@@ -61,6 +61,7 @@ export default class bitflex extends Exchange {
                 'fetchPosition': true,
                 'fetchPositionMode': false,
                 'fetchPositions': true,
+                'fetchPositionsForSymbol': true,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
@@ -74,6 +75,7 @@ export default class bitflex extends Exchange {
                 'fetchWithdrawal': true,
                 'fetchWithdrawals': true,
                 'transfer': true,
+                'setLeverage': true,
                 'withdraw': true,
             },
             'timeframes': {
@@ -152,7 +154,7 @@ export default class bitflex extends Exchange {
                         'openapi/v1/test': 1, // todo check
                         'openapi/contract/v1/order': 1, // implemented
                         'openapi/contract/v1/modifyMargin': 1,
-                        'openapi/contract/v1/modifyLeverage': 1,
+                        'openapi/contract/v1/modifyLeverage': 1, // implemented
                     },
                     'delete': {
                         'openapi/v1/order': 1, // implemented
@@ -198,6 +200,9 @@ export default class bitflex extends Exchange {
                     // 400 {"code":-1140,"msg":"Transaction amount lower than the minimum."}
                     // 400 {"code":-1131,"msg":"Balance insufficient "}
                     // {"code":-1156,"msg":"Order quantity invalid"} - reduceOnly order for already closed position
+                    // {"code":-1004,"msg":"Missing required parameter \u0027symbol\u0027"}
+                    // {"code":-1001,"msg":"Internal error."}
+                    // {"code":-1130,"msg":"Data sent for paramter \u0027leverage\u0027 is not valid."}
                 },
                 'broad': {
                 },
@@ -491,7 +496,7 @@ export default class bitflex extends Exchange {
         //         "allowMargin": false
         //     }
         //
-        // contract market
+        // swap market
         //     {
         //         "filters": [
         //             { "minPrice": "0.01", "maxPrice": "100000.00000000", "tickSize": "0.01", "filterType": "PRICE_FILTER" },
@@ -836,7 +841,7 @@ export default class bitflex extends Exchange {
             //     ]
             //
         } else {
-            throw new NotSupported (this.id + ' fetchMyTrades() does not support ' + type + ' orders, only spot and swap orders are accepted');
+            throw new NotSupported (this.id + ' fetchMyTrades() does not support ' + type + ' markets, only spot and swap orders are accepted');
         }
         return this.parseTrades (response, market, since, limit);
     }
@@ -1337,7 +1342,7 @@ export default class bitflex extends Exchange {
             //     }
             //
         } else {
-            throw new NotSupported (this.id + ' fetchBalance() is only supported for spot and contract markets');
+            throw new NotSupported (this.id + ' fetchBalance() does not support ' + type + ' markets, only spot and swap markets are accepted');
         }
         return this.customParseBalance (response, type);
     }
@@ -1425,7 +1430,7 @@ export default class bitflex extends Exchange {
         } else if (market['swap']) {
             return await this.createSwapOrder (market, type, side, amount, price, params);
         } else {
-            throw new NotSupported (this.id + ' createOrder() is only supported for spot and contract markets');
+            throw new NotSupported (this.id + ' createOrder() does not support ' + type + ' orders, only spot and swap orders are accepted');
         }
     }
 
@@ -1544,7 +1549,7 @@ export default class bitflex extends Exchange {
          */
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'newClientOrderId');
         if (clientOrderId === undefined) {
-            throw new InvalidOrder (this.id + ' createOrder() requires a params.clientOrderId parameter'); // the exchange requires a unique clientOrderId for each order
+            throw new ArgumentsRequired (this.id + ' createOrder() requires a params.clientOrderId parameter'); // the exchange requires a unique clientOrderId for each order
         }
         params = this.omit (params, [ 'clientOrderId', 'newClientOrderId' ]);
         const symbol = market['symbol'];
@@ -2101,7 +2106,7 @@ export default class bitflex extends Exchange {
             //     ]
             //
         } else {
-            throw new NotSupported (this.id + ' fetchCanceledAndClosedOrders() is only supported for spot and contract markets');
+            throw new NotSupported (this.id + ' fetchCanceledAndClosedOrders() does not support ' + type + ' orders, only spot and swap orders are accepted');
         }
         return this.parseOrders (response, market, since, limit);
     }
@@ -2195,7 +2200,7 @@ export default class bitflex extends Exchange {
             //     ]
             //
         } else {
-            throw new NotSupported (this.id + ' fetchOpenOrders() is only supported for spot and contract markets');
+            throw new NotSupported (this.id + ' fetchOpenOrders() does not support ' + type + ' orders, only spot and swap orders are accepted');
         }
         return this.parseOrders (response, market, since, limit);
     }
@@ -2270,7 +2275,7 @@ export default class bitflex extends Exchange {
             //     }
             //
         } else {
-            throw new NotSupported (this.id + ' cancelOrder() is only supported for spot and contract markets');
+            throw new NotSupported (this.id + ' cancelOrder() does not support ' + type + ' orders, only spot and swap orders are accepted');
         }
         return this.parseOrder (response, market);
     }
@@ -2950,11 +2955,11 @@ export default class bitflex extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         if (market['spot']) {
-            throw new NotSupported (this.id + ' fetchPosition() does not support spot markets');
+            throw new NotSupported (this.id + ' fetchPosition() does not support spot markets, only swap markets are accepted');
         }
         const side = this.safeString (params, 'side');
         if (side === undefined) {
-            throw new BadRequest (this.id + ' fetchPosition() requires params.side argument for fetching long or short position. Use fetchPositionsForSymbol() for fetching both long and short positions');
+            throw new ArgumentsRequired (this.id + ' fetchPosition() requires a params.side argument for fetching long or short position. Use fetchPositionsForSymbol() for fetching both long and short positions');
         }
         const request = {
             'symbol': market['id'],
@@ -3083,6 +3088,49 @@ export default class bitflex extends Exchange {
             'stopLossPrice': undefined,
             'takeProfitPrice': undefined,
         });
+    }
+
+    async setLeverage (leverage: Int, symbol: Str = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitflex#setLeverage
+         * @description set the level of leverage for a market
+         * @see https://docs.bitflex.com/contract#modify-leverage
+         * @param {float} leverage the rate of leverage
+         * @param {string} symbol unified market symbol
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} params.side 'long' or 'short' - direction of the position. If not sent, positions for both sides will be returned.
+         * @returns {object} response from the exchange
+         */
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
+        }
+        // if ((leverage < 1) || (leverage > 100)) {
+        //     throw new BadRequest (this.id + ' leverage should be between 1 and 100');
+        // }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (!market['swap']) {
+            throw new BadSymbol (this.id + ' setLeverage() supports swap contracts only');
+        }
+        const side = this.safeString (params, 'side');
+        if (side === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchPosition() requires a params.side argument (long or short)');
+        }
+        const request = {
+            'symbol': market['id'],
+            'leverage': leverage,
+            'side': side.toUpperCase (),
+        };
+        params = this.omit (params, 'side');
+        return await this.privatePostOpenapiContractV1ModifyLeverage (this.extend (request, params));
+        //
+        //     {
+        //         "symbol": "ETH-SWAP-USDT",
+        //         "leverage": "10",
+        //         "timestamp": "1713813534115"
+        //     }
+        //
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
