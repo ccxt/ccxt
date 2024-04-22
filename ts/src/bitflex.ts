@@ -3,7 +3,7 @@
 
 import Exchange from './abstract/bitflex.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { InvalidOrder, NotSupported } from './base/errors.js';
+import { BadRequest, InvalidOrder, NotSupported } from './base/errors.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { Precise } from './base/Precise.js';
 import { Account, Balances, Currencies, Currency, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Tickers, Trade, Transaction, TransferEntry, Strings } from './base/types.js';
@@ -47,6 +47,7 @@ export default class bitflex extends Exchange {
                 'fetchDepositWithdrawFee': false,
                 'fetchDepositWithdrawFees': false,
                 'fetchIndexOHLCV': false,
+                'fetchLedger': true,
                 'fetchLeverageTiers': false,
                 'fetchMarginMode': false,
                 'fetchMarkets': true,
@@ -57,8 +58,8 @@ export default class bitflex extends Exchange {
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': false,
-                'fetchPositionMode': false,
                 'fetchPosition': true,
+                'fetchPositionMode': false,
                 'fetchPositions': true,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
@@ -104,7 +105,7 @@ export default class bitflex extends Exchange {
             'api': {
                 'public': {
                     'get': {
-                        'openapi/v1/ping': 1,
+                        'openapi/v1/ping': 1, // not unified
                         'openapi/v1/time': 1, // implemented
                         'openapi/v1/pairs': 1, // implemented
                         'openapi/v1/brokerInfo': 1, // implemented
@@ -121,7 +122,7 @@ export default class bitflex extends Exchange {
                         'openapi/quote/v1/klines': 1, // implemented
                         'openapi/quote/v1/ticker/24hr': 1, // implemented
                         'openapi/quote/v1/contract/ticker/24hr': 1, // implemented
-                        'openapi/quote/v1/ticker/price': 1, // implemented
+                        'openapi/quote/v1/ticker/price': 1, // not unified
                         'openapi/quote/v1/ticker/bookTicker': 1, // implemented
                     },
                 },
@@ -135,7 +136,7 @@ export default class bitflex extends Exchange {
                         'openapi/v1/depositOrders': 1, // implemented
                         'openapi/v1/withdrawalOrders': 1, // implemented
                         'openapi/v1/withdraw/detail': 1, // implemented
-                        'openapi/v1/balance_flow': 1,
+                        'openapi/v1/balance_flow': 1, // implemented
                         'openapi/contract/v1/getOrder': 1, // implemented
                         'openapi/contract/v1/openOrders': 1, // implemented
                         'openapi/contract/v1/historyOrders': 1, // implemented
@@ -148,7 +149,7 @@ export default class bitflex extends Exchange {
                         'openapi/v1/transfer': 1, // implemented
                         'openapi/v1/withdraw': 1, // implemented
                         'openapi/v1/order': 1, // implemented
-                        'openapi/v1/test': 1,
+                        'openapi/v1/test': 1, // todo check
                         'openapi/contract/v1/order': 1, // implemented
                         'openapi/contract/v1/modifyMargin': 1,
                         'openapi/contract/v1/modifyLeverage': 1,
@@ -2943,9 +2944,7 @@ export default class bitflex extends Exchange {
          * @description fetch data on an open position
          * @param {string} symbol unified market symbol of the market the position is held in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         *
-         * EXCHANGE SPECIFIC PARAMETERS
-         * @param {string} [params.side] 'LONG' or 'SHORT' - direction of the position. If not sent, positions for both sides will be returned.
+         * @param {string} params.side 'long' or 'short' - direction of the position. If not sent, positions for both sides will be returned.
          * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
          */
         await this.loadMarkets ();
@@ -2953,9 +2952,15 @@ export default class bitflex extends Exchange {
         if (market['spot']) {
             throw new NotSupported (this.id + ' fetchPosition() does not support spot markets');
         }
+        const side = this.safeString (params, 'side');
+        if (side === undefined) {
+            throw new BadRequest (this.id + ' fetchPosition() requires params.side argument for fetching long or short position. Use fetchPositionsForSymbol() for fetching both long and short positions');
+        }
         const request = {
             'symbol': market['id'],
+            'side': side.toUpperCase (),
         };
+        params = this.omit (params, 'side');
         const response = await this.privateGetOpenapiContractV1Positions (this.extend (request, params));
         //
         //     [
@@ -2977,7 +2982,26 @@ export default class bitflex extends Exchange {
         //         }
         //     ]
         //
-        return this.parsePosition (response[0], market);
+        let position = undefined;
+        if (response.length > 0) {
+            position = this.parsePosition (response[0], market);
+        } else {
+            position = this.parsePosition (response[0]); // omiting market to return empty Position
+        }
+        return position;
+    }
+
+    async fetchPositionsForSymbol (symbol: string, params = {}) {
+        /**
+         * @method
+         * @name bitflex#fetchPositionsForSymbol
+         * @see https://docs.bitflex.com/contract#positions
+         * @description fetch all open positions for specific symbol
+         * @param {string} symbol unified market symbol
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+         */
+        return await this.fetchPositions ([ symbol ], params);
     }
 
     async fetchPositions (symbols: Strings = undefined, params = {}) {
@@ -2988,14 +3012,18 @@ export default class bitflex extends Exchange {
          * @see https://docs.bitflex.com/contract#positions
          * @param {string[]|undefined} symbols list of unified market symbols
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         *
-         * EXCHANGE SPECIFIC PARAMETERS
-         * @param {string} [params.side] 'LONG' or 'SHORT' - direction of the position. If not sent, positions for both sides will be returned.
+         * @param {string} [params.side] 'long' or 'short' - direction of the position. If not sent, positions for both sides will be returned.
          * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
-        const response = await this.privateGetOpenapiContractV1Positions (params);
+        const request = {};
+        const side = this.safeString (params, 'side');
+        if (side !== undefined) {
+            request['side'] = side.toUpperCase ();
+            params = this.omit (params, 'side');
+        }
+        const response = await this.privateGetOpenapiContractV1Positions (this.extend (request, params));
         //
         //     [
         //         {
@@ -3022,13 +3050,17 @@ export default class bitflex extends Exchange {
 
     parsePosition (position, market: Market = undefined) {
         const marketId = this.safeString (position, 'symbol');
+        let marginMode = 'cross';
+        if (position === undefined) {
+            marginMode = undefined;
+        }
         market = this.safeMarket (marketId, market);
         return this.safePosition ({
             'info': position,
             'id': undefined,
             'symbol': market['symbol'],
             'notional': this.safeNumber (position, 'positionValue'),
-            'marginMode': 'cross',
+            'marginMode': marginMode,
             'liquidationPrice': this.safeNumber (position, 'flp'),
             'entryPrice': this.safeNumber (position, 'avgPrice'),
             'unrealizedPnl': this.safeNumber (position, 'unrealizedPnL'),
