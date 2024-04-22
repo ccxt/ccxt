@@ -381,17 +381,17 @@ class bingx extends Exchange {
                     '100400' => '\\ccxt\\BadRequest',
                     '100421' => '\\ccxt\\BadSymbol', // array("code":100421,"msg":"This pair is currently restricted from API trading","debugMsg":"")
                     '100440' => '\\ccxt\\ExchangeError',
-                    '100500' => '\\ccxt\\ExchangeError',
+                    '100500' => '\\ccxt\\OperationFailed', // array("code":100500,"msg":"The current system is busy, please try again later","debugMsg":"")
                     '100503' => '\\ccxt\\ExchangeError',
                     '80001' => '\\ccxt\\BadRequest',
-                    '80012' => '\\ccxt\\InsufficientFunds', // bingx array("code":80012,"msg":"array(\"Code\":101253,\"Msg\":\"margin is not enough\"))
+                    '80012' => '\\ccxt\\InsufficientFunds', // array("code":80012,"msg":"array(\"Code\":101253,\"Msg\":\"margin is not enough\"))
                     '80014' => '\\ccxt\\BadRequest',
                     '80016' => '\\ccxt\\OrderNotFound',
                     '80017' => '\\ccxt\\OrderNotFound',
                     '100414' => '\\ccxt\\AccountSuspended', // array("code":100414,"msg":"Code => 100414, Msg => risk control check fail,code(1)","debugMsg":"")
                     '100419' => '\\ccxt\\PermissionDenied', // array("code":100419,"msg":"IP does not match IP whitelist","success":false,"timestamp":1705274099347)
                     '100437' => '\\ccxt\\BadRequest', // array("code":100437,"msg":"The withdrawal amount is lower than the minimum limit, please re-enter.","timestamp":1689258588845)
-                    '101204' => '\\ccxt\\InsufficientFunds', // bingx array("code":101204,"msg":"","data":array())
+                    '101204' => '\\ccxt\\InsufficientFunds', // array("code":101204,"msg":"","data":array())
                 ),
                 'broad' => array(),
             ),
@@ -3912,7 +3912,7 @@ class bingx extends Exchange {
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $request['symbol'] = $symbol;
+            $request['symbol'] = $market['id'];
         }
         if ($since !== null) {
             $request['startTime'] = $since;

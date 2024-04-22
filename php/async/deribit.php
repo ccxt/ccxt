@@ -1225,13 +1225,18 @@ class deribit extends Exchange {
             /**
              * fetches price $tickers for multiple markets, statistical information calculated over the past 24 hours for each market
              * @see https://docs.deribit.com/#public-get_book_summary_by_currency
-             * @param {string[]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all market $tickers are returned if not assigned
+             * @param {string[]} [$symbols] unified $symbols of the markets to fetch the $ticker for, all market $tickers are returned if not assigned
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->code] *required* the $currency $code to fetch the $tickers for, eg. 'BTC', 'ETH'
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structures~
              */
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols);
-            $code = $this->code_from_options('fetchTickers', $params);
+            $code = $this->safe_string_2($params, 'code', 'currency');
+            $params = $this->omit($params, array( 'code' ));
+            if ($code === null) {
+                throw new ArgumentsRequired($this->id . ' fetchTickers requires a currency/code (eg => BTC/ETH/USDT) parameter to fetch $tickers for');
+            }
             $currency = $this->currency($code);
             $request = array(
                 'currency' => $currency['id'],
@@ -1267,7 +1272,7 @@ class deribit extends Exchange {
             //         "testnet" => false
             //     }
             //
-            $result = $this->safe_value($response, 'result', array());
+            $result = $this->safe_list($response, 'result', array());
             $tickers = array();
             for ($i = 0; $i < count($result); $i++) {
                 $ticker = $this->parse_ticker($result[$i]);

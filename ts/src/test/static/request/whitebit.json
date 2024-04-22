@@ -92,7 +92,7 @@
             {
                 "description": "Swap market buy spot order",
                 "method": "createOrder",
-                "url": "https://whitebit.com/api/v4/order/collateral/trigger_market",
+                "url": "https://whitebit.com/api/v4/order/collateral/trigger-market",
                 "input": [
                     "DOGE/USDT:USDT",
                     "market",
@@ -103,7 +103,120 @@
                         "triggerPrice": "0.08"
                     }
                 ],
-                "output": "{\"request\":\"/api/v4/order/collateral/trigger_market\",\"nonce\":\"1701937579352\",\"market\":\"DOGE_PERP\",\"side\":\"buy\",\"amount\":\"100\",\"clientOrderId\":\"ccxt79f2861ea4fbae32\",\"activation_price\":\"0.08\"}"
+                "output": "{\"request\":\"/api/v4/order/collateral/trigger-market\",\"nonce\":\"1701937579352\",\"market\":\"DOGE_PERP\",\"side\":\"buy\",\"amount\":\"100\",\"clientOrderId\":\"ccxt79f2861ea4fbae32\",\"activation_price\":\"0.08\"}"
+            }
+        ],
+        "editOrder": [
+            {
+                "description": "Spot limit buy",
+                "method": "editOrder",
+                "url": "https://whitebit.com/api/v4/order/modify",
+                "input": [
+                    "123456789",
+                    "DOGE/USDT",
+                    "limit",
+                    "buy",
+                    100,
+                    0.09
+                ],
+                "output": "{\"request\":\"/api/v4/order/modify\",\"nonce\":\"1701937579352\",\"market\":\"DOGE_USDT\",\"orderId\":\"123456789\",\"amount\":\"100\",\"price\":\"0.09\"}"
+            },
+            {
+                "description": "Swap limit buy",
+                "method": "editOrder",
+                "url": "https://whitebit.com/api/v4/order/modify",
+                "input": [
+                    "123456789",
+                    "DOGE/USDT:USDT",
+                    "limit",
+                    "buy",
+                    100,
+                    0.09
+                ],
+                "output": "{\"request\":\"/api/v4/order/modify\",\"nonce\":\"1701937579352\",\"market\":\"DOGE_PERP\",\"orderId\":\"123456789\",\"amount\":\"100\",\"price\":\"0.09\"}"
+            },
+            {
+                "description": "Spot market buy spot order",
+                "method": "editOrder",
+                "url": "https://whitebit.com/api/v4/order/modify",
+                "input": [
+                    "123456789",
+                    "DOGE/USDT",
+                    "market",
+                    "buy",
+                    100,
+                    null,
+                    {
+                        "triggerPrice": "0.08"
+                    }
+                ],
+                "output": "{\"request\":\"/api/v4/order/modify\",\"nonce\":\"1701937579352\",\"market\":\"DOGE_USDT\",\"orderId\":\"123456789\",\"total\":\"100\",\"activation_price\":\"0.08\"}"
+            },
+            {
+                "description": "Spot limit buy spot order",
+                "method": "editOrder",
+                "url": "https://whitebit.com/api/v4/order/modify",
+                "input": [
+                    "123456789",
+                    "DOGE/USDT",
+                    "limit",
+                    "buy",
+                    100,
+                    0.07,
+                    {
+                        "triggerPrice": "0.08"
+                    }
+                ],
+                "output": "{\"request\":\"/api/v4/order/modify\",\"nonce\":\"1701937579352\",\"market\":\"DOGE_USDT\",\"orderId\":\"123456789\",\"amount\":\"100\",\"activation_price\":\"0.08\",\"price\":\"0.07\"}"
+            },
+            {
+                "description": "Swap market buy spot order",
+                "method": "editOrder",
+                "url": "https://whitebit.com/api/v4/order/modify",
+                "input": [
+                    "123456789",
+                    "DOGE/USDT:USDT",
+                    "market",
+                    "buy",
+                    100,
+                    null,
+                    {
+                        "triggerPrice": "0.08"
+                    }
+                ],
+                "output": "{\"request\":\"/api/v4/order/modify\",\"nonce\":\"1701937579352\",\"market\":\"DOGE_PERP\",\"orderId\":\"123456789\",\"total\":\"100\",\"activation_price\":\"0.08\"}"
+            }
+        ],
+        "cancelAllOrders": [
+            {
+                "description": "cancel all orders - spot",
+                "method": "cancelAllOrders",
+                "url": "https://whitebit.com/api/v4/order/cancel/all",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "output": "{\"request\":\"/api/v4/order/cancel/all\",\"nonce\":\"1701937579352\",\"market\":\"BTC_USDT\",\"type\":[\"spot\"]}"
+            },
+            {
+                "description": "cancel all orders - margin",
+                "method": "cancelAllOrders",
+                "url": "https://whitebit.com/api/v4/order/cancel/all",
+                "input": [
+                    "BTC/USDT",
+                    {
+                        "isMargin": true
+                    }
+                ],
+                "output": "{\"request\":\"/api/v4/order/cancel/all\",\"nonce\":\"1701937579352\",\"market\":\"BTC_USDT\",\"type\":[\"margin\"]}"
+            },
+            {
+                "description": "cancel all orders - swap",
+                "method": "cancelAllOrders",
+                "url": "https://whitebit.com/api/v4/order/cancel/all",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "output": "{\"request\":\"/api/v4/order/cancel/all\",\"nonce\":\"1701937579352\",\"market\":\"BTC_PERP\",\"type\":[\"futures\"]}"
             }
         ],
         "cancelAllOrdersAfter": [

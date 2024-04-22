@@ -522,6 +522,16 @@
                 "url": "https://api.kucoin.com/api/v3/margin/interest?isIsolated=false",
                 "input": []
             }
+        ],
+        "fetchDepositAddressesByNetwork": [
+            {
+                "description": "with common currency",
+                "method": "fetchDepositAddressesByNetwork",
+                "url": "https://api.kucoin.com/api/v2/deposit-addresses?currency=KALT",
+                "input": [
+                  "ALT"
+                ]
+            }
         ]
     }
 }

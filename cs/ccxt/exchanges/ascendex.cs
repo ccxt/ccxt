@@ -344,7 +344,7 @@ public partial class ascendex : Exchange
                     { "300013", typeof(InvalidOrder) },
                     { "300014", typeof(InvalidOrder) },
                     { "300020", typeof(InvalidOrder) },
-                    { "300021", typeof(InvalidOrder) },
+                    { "300021", typeof(AccountSuspended) },
                     { "300031", typeof(InvalidOrder) },
                     { "310001", typeof(InsufficientFunds) },
                     { "310002", typeof(InvalidOrder) },

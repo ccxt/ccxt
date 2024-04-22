@@ -1625,7 +1625,7 @@ class cryptocom extends cryptocom$1 {
          */
         [tag, params] = this.handleWithdrawTagAndParams(tag, params);
         await this.loadMarkets();
-        const currency = this.currency(code);
+        const currency = this.safeCurrency(code); // for instance, USDC is not inferred from markets but it's still available
         const request = {
             'currency': currency['id'],
             'amount': amount,
@@ -1671,7 +1671,7 @@ class cryptocom extends cryptocom$1 {
          * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/#/?id=address-structure} indexed by the network
          */
         await this.loadMarkets();
-        const currency = this.currency(code);
+        const currency = this.safeCurrency(code);
         const request = {
             'currency': currency['id'],
         };
@@ -1770,7 +1770,7 @@ class cryptocom extends cryptocom$1 {
         let currency = undefined;
         const request = {};
         if (code !== undefined) {
-            currency = this.currency(code);
+            currency = this.safeCurrency(code);
             request['currency'] = currency['id'];
         }
         if (since !== undefined) {
@@ -1829,7 +1829,7 @@ class cryptocom extends cryptocom$1 {
         let currency = undefined;
         const request = {};
         if (code !== undefined) {
-            currency = this.currency(code);
+            currency = this.safeCurrency(code);
             request['currency'] = currency['id'];
         }
         if (since !== undefined) {
@@ -2345,7 +2345,7 @@ class cryptocom extends cryptocom$1 {
         const request = {};
         let currency = undefined;
         if (code !== undefined) {
-            currency = this.currency(code);
+            currency = this.safeCurrency(code);
         }
         if (since !== undefined) {
             request['start_time'] = since;

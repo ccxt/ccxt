@@ -7,6 +7,7 @@ namespace ccxt\pro;
 
 use Exception; // a common import
 use ccxt\ExchangeError;
+use ccxt\ArgumentsRequired;
 use React\Async;
 use React\Promise\PromiseInterface;
 
@@ -79,15 +80,35 @@ class coinbase extends \ccxt\async\coinbase {
             }
             $url = $this->urls['api']['ws'];
             $timestamp = $this->number_to_string($this->seconds());
+            $isCloudAPiKey = (mb_strpos($this->apiKey, 'organizations/') !== false) || (str_starts_with($this->secret, '-----BEGIN'));
             $auth = $timestamp . $name . implode(',', $productIds);
             $subscribe = array(
                 'type' => 'subscribe',
                 'product_ids' => $productIds,
                 'channel' => $name,
-                'api_key' => $this->apiKey,
-                'timestamp' => $timestamp,
-                'signature' => $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256'),
+                // 'api_key' => $this->apiKey,
+                // 'timestamp' => $timestamp,
+                // 'signature' => $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256'),
             );
+            if (!$isCloudAPiKey) {
+                $subscribe['api_key'] = $this->apiKey;
+                $subscribe['timestamp'] = $timestamp;
+                $subscribe['signature'] = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256');
+            } else {
+                if (str_starts_with($this->apiKey, '-----BEGIN')) {
+                    throw new ArgumentsRequired($this->id . ' apiKey should contain the $name (eg => organizations/3b910e93....) and not the public key');
+                }
+                $currentToken = $this->safe_string($this->options, 'wsToken');
+                $tokenTimestamp = $this->safe_integer($this->options, 'wsTokenTimestamp', 0);
+                $seconds = $this->seconds();
+                if ($currentToken === null || $tokenTimestamp + 120 < $seconds) {
+                    // we should generate new $token
+                    $token = $this->create_auth_token($seconds);
+                    $this->options['wsToken'] = $token;
+                    $this->options['wsTokenTimestamp'] = $seconds;
+                }
+                $subscribe['jwt'] = $this->safe_string($this->options, 'wsToken');
+            }
             return Async\await($this->watch($url, $messageHash, $subscribe, $messageHash));
         }) ();
     }

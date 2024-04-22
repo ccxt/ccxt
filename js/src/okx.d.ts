@@ -6,7 +6,7 @@ import type { TransferEntry, Int, OrderSide, OrderType, Trade, OHLCV, Order, Fun
  */
 export default class okx extends Exchange {
     describe(): any;
-    handleMarketTypeAndParams(methodName: any, market?: any, params?: {}): any;
+    handleMarketTypeAndParams(methodName: string, market?: Market, params?: {}, defaultValue?: any): any;
     convertToInstrumentType(type: any): string;
     createExpiredOptionMarket(symbol: string): MarketInterface;
     safeMarket(marketId?: Str, market?: Market, delimiter?: Str, marketType?: Str): MarketInterface;
@@ -298,6 +298,9 @@ export default class okx extends Exchange {
         quoteVolume: any;
     };
     fetchConvertQuote(fromCode: string, toCode: string, amount?: Num, params?: {}): Promise<Conversion>;
+    createConvertTrade(id: string, fromCode: string, toCode: string, amount?: Num, params?: {}): Promise<Conversion>;
+    fetchConvertTrade(id: string, code?: Str, params?: {}): Promise<Conversion>;
+    fetchConvertTradeHistory(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Conversion[]>;
     parseConversion(conversion: any, fromCurrency?: Currency, toCurrency?: Currency): Conversion;
     fetchConvertCurrencies(params?: {}): Promise<Currencies>;
     handleErrors(httpCode: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): any;
