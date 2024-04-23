@@ -1,0 +1,46 @@
+{
+    "exchange": "bitflex",
+    "skipKeys": [],
+    "methods": {
+        "fetchTrades": [
+            {
+                "description": "Fill this with a description of the method call",
+                "method": "fetchTrades",
+                "input": [
+                    "ETH/USDT"
+                ],
+                "httpResponse": [
+                    {
+                        "price": "3238.82",
+                        "time": "1713888794739",
+                        "qty": "0.025",
+                        "isBuyerMaker": false
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "id": null,
+                        "order": null,
+                        "timestamp": 1713888794739,
+                        "datetime": "2024-04-23T16:13:14.739Z",
+                        "symbol": "ETH/USDT",
+                        "type": null,
+                        "side": null,
+                        "takerOrMaker": "taker",
+                        "price": 3238.82,
+                        "amount": 0.025,
+                        "cost": 80.9705,
+                        "fee": null,
+                        "info": {
+                            "price": "3238.82",
+                            "time": "1713888794739",
+                            "qty": "0.025",
+                            "isBuyerMaker": false
+                        },
+                        "fees": []
+                    }
+                ]
+            }
+        ]
+    }
+}
