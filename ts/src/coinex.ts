@@ -1235,10 +1235,10 @@ export default class coinex extends Exchange {
                 side = 'buy';
             }
             if (side === undefined) {
-                side = this.safeString (trade, 'type');
+                side = this.safeString2 (trade, 'type', 'side');
             }
         } else {
-            side = this.safeString (trade, 'type');
+            side = this.safeString2 (trade, 'type', 'side');
         }
         return this.safeTrade ({
             'info': trade,
