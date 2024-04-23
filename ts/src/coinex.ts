@@ -1138,14 +1138,13 @@ export default class coinex extends Exchange {
         //
         // Spot and Swap fetchTrades (public)
         //
-        //      {
-        //          "id":  2611511379,
-        //          "type": "buy",
-        //          "price": "192.63",
-        //          "amount": "0.02266931",
-        //          "date":  1638990110,
-        //          "date_ms":  1638990110518
-        //      },
+        //     {
+        //         "amount": "0.00049432",
+        //         "created_at": 1713849825667,
+        //         "deal_id": 4137517302,
+        //         "price": "66251",
+        //         "side": "buy"
+        //     }
         //
         // Spot and Margin fetchMyTrades (private)
         //
@@ -1199,9 +1198,9 @@ export default class coinex extends Exchange {
         //
         let timestamp = this.safeTimestamp2 (trade, 'create_time', 'time');
         if (timestamp === undefined) {
-            timestamp = this.safeInteger (trade, 'date_ms');
+            timestamp = this.safeInteger (trade, 'created_at');
         }
-        const tradeId = this.safeString (trade, 'id');
+        const tradeId = this.safeString2 (trade, 'id', 'deal_id');
         const orderId = this.safeString (trade, 'order_id');
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString (trade, 'amount');
@@ -1262,9 +1261,9 @@ export default class coinex extends Exchange {
         /**
          * @method
          * @name coinex#fetchTrades
-         * @description get the list of most recent trades for a particular symbol
-         * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot001_market005_market_deals
-         * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http011_market_deals
+         * @description get the list of the most recent trades for a particular symbol
+         * @see https://docs.coinex.com/api/v2/spot/market/http/list-market-deals
+         * @see https://docs.coinex.com/api/v2/futures/market/http/list-market-deals
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
@@ -1282,27 +1281,26 @@ export default class coinex extends Exchange {
         }
         let response = undefined;
         if (market['swap']) {
-            response = await this.v1PerpetualPublicGetMarketDeals (this.extend (request, params));
+            response = await this.v2PublicGetFuturesDeals (this.extend (request, params));
         } else {
-            response = await this.v1PublicGetMarketDeals (this.extend (request, params));
+            response = await this.v2PublicGetSpotDeals (this.extend (request, params));
         }
         //
         // Spot and Swap
         //
-        //      {
-        //          "code":    0,
-        //          "data": [
-        //              {
-        //                  "id":  2611511379,
-        //                  "type": "buy",
-        //                  "price": "192.63",
-        //                  "amount": "0.02266931",
-        //                  "date":  1638990110,
-        //                  "date_ms":  1638990110518
-        //                  },
-        //              ],
-        //          "message": "OK"
-        //      }
+        //     {
+        //         "code": 0,
+        //         "data": [
+        //             {
+        //                 "amount": "0.00049432",
+        //                 "created_at": 1713849825667,
+        //                 "deal_id": 4137517302,
+        //                 "price": "66251",
+        //                 "side": "buy"
+        //             },
+        //         ],
+        //         "message": "OK"
+        //     }
         //
         return this.parseTrades (response['data'], market, since, limit);
     }
