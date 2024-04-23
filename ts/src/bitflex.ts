@@ -210,6 +210,8 @@ export default class bitflex extends Exchange {
                     // {"code":-1162,"msg":"Modify position leverage error"}
                     // {"code":-1155,"msg":"Invalid position side"}
                     // {"code":-1000,"msg":"An unknown error occured while processing the request."}
+                    // {"code":-1187,"msg":"Withdrawal address not in whitelist"}
+                    // {"code":-1023,"msg":"Please set IP whitelist before using API"}
                 },
                 'broad': {
                 },
@@ -2778,24 +2780,24 @@ export default class bitflex extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          *
          * EXCHANGE SPECIFIC PARAMETERS
-         * @param {string} [params.clientOrderId] either orderId or clientOrderId must be sent
-         * @param {string} [params.chainType] chain type, USDT chain types areOMNI ERC20 TRC20default is OMNI
+         * @param {string} params.clientOrderId Id generated from broker side, to prevent double withdrawal
+         * @param {string} [params.chainType] chain type, USDT chain types are OMNI ERC20 TRC20, default is OMNI
          * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
-        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
-        const networks = this.safeValue (this.options, 'networks', {});
-        let network = this.safeString2 (params, 'network', 'chainType');
-        network = this.safeString (networks, network, network);
         await this.loadMarkets ();
         const currency = this.currency (code);
         const request = {
             'tokenId': currency['id'],
             'address': address,
-            'amount': amount,
+            'withdrawQuantity': amount,
         };
+        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         if (tag !== undefined) {
             request['addressExt'] = tag;
         }
+        const networks = this.safeValue (this.options, 'networks', {});
+        let network = this.safeString2 (params, 'network', 'chainType');
+        network = this.safeString (networks, network, network);
         if (network !== undefined) {
             request['chainType'] = network;
             params = this.omit (params, [ 'network', 'chainType' ]);
