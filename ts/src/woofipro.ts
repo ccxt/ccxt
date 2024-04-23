@@ -1640,6 +1640,71 @@ export default class woofipro extends Exchange {
         return this.parseTrades (trades, market, since, limit, params);
     }
 
+	async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        /**
+         * @method
+         * @name woofipro#fetchMyTrades
+         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-trades
+         * @description fetch all trades made by the user
+         * @param {string} symbol unified market symbol
+         * @param {int} [since] the earliest time in ms to fetch trades for
+         * @param {int} [limit] the maximum number of trades structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [params.paginate] set to true if you want to fetch trades with pagination
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+         */
+        await this.loadMarkets ();
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallIncremental ('fetchMyTrades', symbol, since, limit, params, 'page', 500) as Trade[];
+        }
+        const request = {};
+        let market: Market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
+        }
+        if (since !== undefined) {
+            request['start_t'] = since;
+        }
+        if (limit !== undefined) {
+            request['size'] = limit;
+        } else {
+            request['size'] = 500;
+        }
+        const response = await this.v1PrivateGetTrades (this.extend (request, params));
+		//
+		// 	{
+		// 		"success": true,
+		// 		"timestamp": 1702989203989,
+		// 		"data": {
+		// 		  "meta": {
+		// 			"total": 9,
+		// 			"records_per_page": 25,
+		// 			"current_page": 1
+		// 		  },
+		// 		  "rows": [{
+		// 			"id": 2,
+		// 			"symbol": "PERP_BTC_USDC",
+		// 			"fee": 0.0001,
+		// 			"fee_asset": "USDC",
+		// 			"side": "BUY",
+		// 			"order_id": 1,
+		// 			"executed_price": 123,
+		// 			"executed_quantity": 0.05,
+		// 			"executed_timestamp": 1567382401000,
+		// 			"is_maker": 1,
+		// 			"realized_pnl": 123
+		// 		  }]
+		// 		}
+		// 	}
+		//
+		const data = this.safeDict (response, 'data', {});
+        const trades = this.safeList (data, 'rows', []);
+        return this.parseTrades (trades, market, since, limit, params);
+    }
+
     nonce () {
         return this.milliseconds ();
     }
