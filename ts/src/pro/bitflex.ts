@@ -1,4 +1,5 @@
- //  ---------------------------------------------------------------------------
+
+//  ---------------------------------------------------------------------------
 
 import bitflexRest from '../bitflex.js';
 import { ArrayCache, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
