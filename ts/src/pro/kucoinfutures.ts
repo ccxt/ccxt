@@ -2,7 +2,7 @@
 
 import kucoinfuturesRest from '../kucoinfutures.js';
 import { ExchangeError, ArgumentsRequired } from '../base/errors.js';
-import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
+import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import type { Int, Str, OrderBook, Order, Trade, Ticker, Balances, Position, Strings, Tickers } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
@@ -360,8 +360,9 @@ export default class kucoinfutures extends kucoinfuturesRest {
         if (this.positions === undefined) {
             return undefined;
         }
-        const cache = this.positions.hashmap;
-        const symbolCache = this.safeValue (cache, symbol, {});
+        const cache = this.positions;
+        const positionsHashMap = cache.hashmap;
+        const symbolCache = this.safeValue (positionsHashMap, symbol, {});
         const values = Object.values (symbolCache);
         return this.safeValue (values, 0);
     }
@@ -380,7 +381,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
     async loadPositionSnapshot (client, messageHash, symbol) {
         const position = await this.fetchPosition (symbol);
         if (this.positions === undefined) {
-            this.positions = new ArrayCacheBySymbolById ();
+            this.positions = new ArrayCacheBySymbolBySide (false);
         }
         const cache = this.positions;
         cache.append (position);
@@ -442,7 +443,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
     async loadPositionsSnapshot (client, messageHash) {
         const positions = await this.fetchPositions ();
         if (this.positions === undefined) {
-            this.positions = new ArrayCacheBySymbolById ();
+            this.positions = new ArrayCacheBySymbolBySide (false);
         }
         const cache = this.positions;
         for (let i = 0; i < positions.length; i++) {

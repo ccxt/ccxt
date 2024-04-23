@@ -221,9 +221,10 @@ class ArrayCacheBySymbolById extends ArrayCache {
 
 class ArrayCacheBySymbolBySide extends ArrayCache {
 
-    constructor () {
+    constructor (hedged = true) {
         super ()
         this.nestedNewUpdatesBySymbol = true
+        this.hedged = hedged
         Object.defineProperty (this, 'hashmap', {
             __proto__: null, // make it invisible
             value: {},
@@ -233,6 +234,17 @@ class ArrayCacheBySymbolBySide extends ArrayCache {
 
     append (item) {
         const bySide = this.hashmap[item.symbol] = this.hashmap[item.symbol] || {}
+        if (!this.hedged) {
+            // if one-way mode reset other side and remove from array
+            const sideToReset = item.side === 'long' ? 'short' : 'long'
+            if (sideToReset in bySide) {
+                delete bySide[sideToReset]
+                const index = this.findIndex ((x) => x.symbol === item.symbol && x.side === sideToReset)
+                if (index >= 0) {
+                    this.splice (index, 1)
+                }
+            }
+        }
         if (item.side in bySide) {
             const reference = bySide[item.side]
             if (reference !== item) {

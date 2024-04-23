@@ -171,14 +171,21 @@ class ArrayCacheBySymbolById(ArrayCache):
 
 
 class ArrayCacheBySymbolBySide(ArrayCache):
-    def __init__(self, max_size=None):
+    def __init__(self, max_size=None, hedged=True):
         super(ArrayCacheBySymbolBySide, self).__init__(max_size)
         self._nested_new_updates_by_symbol = True
+        self._hedged = hedged
         self.hashmap = {}
         self._index = collections.deque([], max_size)
 
     def append(self, item):
         by_side = self.hashmap.setdefault(item['symbol'], {})
+        if  not self._hedged:
+            side_to_reset = 'long' if item['side'] == 'short' else 'short'
+            del by_side[side_to_reset]
+            index = self._index.index(side_to_reset)
+            del self._deque[index]
+            del self._index[index]
         if item['side'] in by_side:
             reference = by_side[item['side']]
             if reference != item:
