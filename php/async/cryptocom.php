@@ -39,6 +39,7 @@ class cryptocom extends Exchange {
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'cancelOrders' => true,
+                'cancelOrdersForSymbols' => true,
                 'closeAllPositions' => false,
                 'closePosition' => true,
                 'createMarketBuyOrderWithCost' => false,
@@ -1447,6 +1448,38 @@ class cryptocom extends Exchange {
             $response = Async\await($this->v1PrivatePostPrivateCancelOrderList (array_merge($request, $params)));
             $result = $this->safe_list($response, 'result', array());
             return $this->parse_orders($result, $market, null, null, $params);
+        }) ();
+    }
+
+    public function cancel_orders_for_symbols(array $orders, $params = array ()) {
+        return Async\async(function () use ($orders, $params) {
+            /**
+             * cancel multiple $orders for multiple symbols
+             * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-cancel-$order-list-list
+             * @param {CancellationRequest[]} $orders each $order should contain the parameters required by cancelOrder namely $id and $symbol
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} an list of ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structures~
+             */
+            Async\await($this->load_markets());
+            $orderRequests = array();
+            for ($i = 0; $i < count($orders); $i++) {
+                $order = $orders[$i];
+                $id = $this->safe_string($order, 'id');
+                $symbol = $this->safe_string($order, 'symbol');
+                $market = $this->market($symbol);
+                $orderItem = array(
+                    'instrument_name' => $market['id'],
+                    'order_id' => (string) $id,
+                );
+                $orderRequests[] = $orderItem;
+            }
+            $request = array(
+                'contingency_type' => 'LIST',
+                'order_list' => $orderRequests,
+            );
+            $response = Async\await($this->v1PrivatePostPrivateCancelOrderList (array_merge($request, $params)));
+            $result = $this->safe_list($response, 'result', array());
+            return $this->parse_orders($result, null, null, null, $params);
         }) ();
     }
 

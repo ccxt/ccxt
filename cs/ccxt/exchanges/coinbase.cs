@@ -3655,13 +3655,14 @@ public partial class coinbase : Exchange
             sinceString = Precise.stringSub(now, ((object)requestedDuration).ToString());
         }
         ((IDictionary<string,object>)request)["start"] = sinceString;
-        object endString = this.numberToString(until);
-        if (isTrue(isEqual(until, null)))
+        if (isTrue(!isEqual(until, null)))
+        {
+            ((IDictionary<string,object>)request)["end"] = this.numberToString(this.parseToInt(divide(until, 1000)));
+        } else
         {
             // 300 candles max
-            endString = Precise.stringAdd(sinceString, ((object)requestedDuration).ToString());
+            ((IDictionary<string,object>)request)["end"] = Precise.stringAdd(sinceString, ((object)requestedDuration).ToString());
         }
-        ((IDictionary<string,object>)request)["end"] = endString;
         object response = await this.v3PrivateGetBrokerageProductsProductIdCandles(this.extend(request, parameters));
         //
         //     {

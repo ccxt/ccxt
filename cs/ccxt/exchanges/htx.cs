@@ -28,6 +28,7 @@ public partial class htx : Exchange
                 { "borrowCrossMargin", true },
                 { "borrowIsolatedMargin", true },
                 { "cancelAllOrders", true },
+                { "cancelAllOrdersAfter", true },
                 { "cancelOrder", true },
                 { "cancelOrders", true },
                 { "createDepositAddress", null },
@@ -6371,6 +6372,36 @@ public partial class htx : Exchange
         //             "successes": "1104754904426696704"
         //         },
         //         "ts": "1683435723755"
+        //     }
+        //
+        return response;
+    }
+
+    public async override Task<object> cancelAllOrdersAfter(object timeout, object parameters = null)
+    {
+        /**
+        * @method
+        * @name huobi#cancelAllOrdersAfter
+        * @description dead man's switch, cancel all orders after the given timeout
+        * @see https://huobiapi.github.io/docs/spot/v1/en/#dead-man-s-switch
+        * @param {number} timeout time in milliseconds, 0 represents cancel the timer
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} the api result
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object request = new Dictionary<string, object>() {
+            { "timeout", ((bool) isTrue((isGreaterThan(timeout, 0)))) ? this.parseToInt(divide(timeout, 1000)) : 0 },
+        };
+        object response = await this.v2PrivatePostAlgoOrdersCancelAllAfter(this.extend(request, parameters));
+        //
+        //     {
+        //         "code": 200,
+        //         "message": "success",
+        //         "data": {
+        //             "currentTime": 1630491627230,
+        //             "triggerTime": 1630491637230
+        //         }
         //     }
         //
         return response;

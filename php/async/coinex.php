@@ -1148,14 +1148,13 @@ class coinex extends Exchange {
         //
         // Spot and Swap fetchTrades (public)
         //
-        //      array(
-        //          "id" =>  2611511379,
-        //          "type" => "buy",
-        //          "price" => "192.63",
-        //          "amount" => "0.02266931",
-        //          "date" =>  1638990110,
-        //          "date_ms" =>  1638990110518
-        //      ),
+        //     {
+        //         "amount" => "0.00049432",
+        //         "created_at" => 1713849825667,
+        //         "deal_id" => 4137517302,
+        //         "price" => "66251",
+        //         "side" => "buy"
+        //     }
         //
         // Spot and Margin fetchMyTrades (private)
         //
@@ -1209,9 +1208,9 @@ class coinex extends Exchange {
         //
         $timestamp = $this->safe_timestamp_2($trade, 'create_time', 'time');
         if ($timestamp === null) {
-            $timestamp = $this->safe_integer($trade, 'date_ms');
+            $timestamp = $this->safe_integer($trade, 'created_at');
         }
-        $tradeId = $this->safe_string($trade, 'id');
+        $tradeId = $this->safe_string_2($trade, 'id', 'deal_id');
         $orderId = $this->safe_string($trade, 'order_id');
         $priceString = $this->safe_string($trade, 'price');
         $amountString = $this->safe_string($trade, 'amount');
@@ -1246,10 +1245,10 @@ class coinex extends Exchange {
                 $side = 'buy';
             }
             if ($side === null) {
-                $side = $this->safe_string($trade, 'type');
+                $side = $this->safe_string_2($trade, 'type', 'side');
             }
         } else {
-            $side = $this->safe_string($trade, 'type');
+            $side = $this->safe_string_2($trade, 'type', 'side');
         }
         return $this->safe_trade(array(
             'info' => $trade,
@@ -1271,9 +1270,9 @@ class coinex extends Exchange {
     public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
-             * get the list of most recent trades for a particular $symbol
-             * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot001_market005_market_deals
-             * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http011_market_deals
+             * get the list of the most recent trades for a particular $symbol
+             * @see https://docs.coinex.com/api/v2/spot/market/http/list-$market-deals
+             * @see https://docs.coinex.com/api/v2/futures/market/http/list-$market-deals
              * @param {string} $symbol unified $symbol of the $market to fetch trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of trades to fetch
@@ -1291,27 +1290,26 @@ class coinex extends Exchange {
             }
             $response = null;
             if ($market['swap']) {
-                $response = Async\await($this->v1PerpetualPublicGetMarketDeals (array_merge($request, $params)));
+                $response = Async\await($this->v2PublicGetFuturesDeals (array_merge($request, $params)));
             } else {
-                $response = Async\await($this->v1PublicGetMarketDeals (array_merge($request, $params)));
+                $response = Async\await($this->v2PublicGetSpotDeals (array_merge($request, $params)));
             }
             //
             // Spot and Swap
             //
-            //      {
-            //          "code" =>    0,
-            //          "data" => array(
-            //              array(
-            //                  "id" =>  2611511379,
-            //                  "type" => "buy",
-            //                  "price" => "192.63",
-            //                  "amount" => "0.02266931",
-            //                  "date" =>  1638990110,
-            //                  "date_ms" =>  1638990110518
-            //                  ),
-            //              ),
-            //          "message" => "OK"
-            //      }
+            //     {
+            //         "code" => 0,
+            //         "data" => array(
+            //             array(
+            //                 "amount" => "0.00049432",
+            //                 "created_at" => 1713849825667,
+            //                 "deal_id" => 4137517302,
+            //                 "price" => "66251",
+            //                 "side" => "buy"
+            //             ),
+            //         ),
+            //         "message" => "OK"
+            //     }
             //
             return $this->parse_trades($response['data'], $market, $since, $limit);
         }) ();

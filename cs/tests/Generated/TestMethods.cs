@@ -347,6 +347,10 @@ public partial class testMainClass : BaseTest
         {
             ((IDictionary<string,object>)finalSkips)["ask"] = getValue(finalSkips, "bid");
         }
+        if (isTrue(isTrue((inOp(finalSkips, "baseVolume"))) && !isTrue((inOp(finalSkips, "quoteVolume")))))
+        {
+            ((IDictionary<string,object>)finalSkips)["quoteVolume"] = getValue(finalSkips, "baseVolume");
+        }
         return finalSkips;
     }
 

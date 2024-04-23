@@ -38,6 +38,7 @@ class hyperliquid extends Exchange {
                 'borrowCrossMargin' => false,
                 'borrowIsolatedMargin' => false,
                 'cancelAllOrders' => false,
+                'cancelAllOrdersAfter' => true,
                 'cancelOrder' => true,
                 'cancelOrders' => true,
                 'cancelOrdersForSymbols' => true,
@@ -1385,6 +1386,46 @@ class hyperliquid extends Exchange {
             //                 )
             //             }
             //         }
+            //     }
+            //
+            return $response;
+        }) ();
+    }
+
+    public function cancel_all_orders_after(?int $timeout, $params = array ()) {
+        return Async\async(function () use ($timeout, $params) {
+            /**
+             * dead man's switch, cancel all orders after the given $timeout
+             * @param {number} $timeout time in milliseconds, 0 represents cancel the timer
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->vaultAddress] the vault address
+             * @return {array} the api result
+             */
+            $this->check_required_credentials();
+            Async\await($this->load_markets());
+            $params = $this->omit($params, array( 'clientOrderId', 'client_id' ));
+            $nonce = $this->milliseconds();
+            $request = array(
+                'nonce' => $nonce,
+                // 'vaultAddress' => $vaultAddress,
+            );
+            $cancelAction = array(
+                'type' => 'scheduleCancel',
+                'time' => $nonce . $timeout,
+            );
+            $vaultAddress = $this->format_vault_address($this->safe_string($params, 'vaultAddress'));
+            $signature = $this->sign_l1_action($cancelAction, $nonce, $vaultAddress);
+            $request['action'] = $cancelAction;
+            $request['signature'] = $signature;
+            if ($vaultAddress !== null) {
+                $params = $this->omit($params, 'vaultAddress');
+                $request['vaultAddress'] = $vaultAddress;
+            }
+            $response = Async\await($this->privatePostExchange (array_merge($request, $params)));
+            //
+            //     {
+            //         "status":"err",
+            //         "response":"Cannot set scheduled cancel time until enough volume traded. Required => $1000000. Traded => $373.47205."
             //     }
             //
             return $response;

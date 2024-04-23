@@ -38,6 +38,7 @@ export default class htx extends Exchange {
                 'borrowCrossMargin': true,
                 'borrowIsolatedMargin': true,
                 'cancelAllOrders': true,
+                'cancelAllOrdersAfter': true,
                 'cancelOrder': true,
                 'cancelOrders': true,
                 'createDepositAddress': undefined,
@@ -6162,6 +6163,33 @@ export default class htx extends Exchange {
         //             "successes": "1104754904426696704"
         //         },
         //         "ts": "1683435723755"
+        //     }
+        //
+        return response;
+    }
+    async cancelAllOrdersAfter(timeout, params = {}) {
+        /**
+         * @method
+         * @name huobi#cancelAllOrdersAfter
+         * @description dead man's switch, cancel all orders after the given timeout
+         * @see https://huobiapi.github.io/docs/spot/v1/en/#dead-man-s-switch
+         * @param {number} timeout time in milliseconds, 0 represents cancel the timer
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} the api result
+         */
+        await this.loadMarkets();
+        const request = {
+            'timeout': (timeout > 0) ? this.parseToInt(timeout / 1000) : 0,
+        };
+        const response = await this.v2PrivatePostAlgoOrdersCancelAllAfter(this.extend(request, params));
+        //
+        //     {
+        //         "code": 200,
+        //         "message": "success",
+        //         "data": {
+        //             "currentTime": 1630491627230,
+        //             "triggerTime": 1630491637230
+        //         }
         //     }
         //
         return response;

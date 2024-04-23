@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.3.5'
+__version__ = '4.3.6'
 
 # -----------------------------------------------------------------------------
 
@@ -1347,6 +1347,9 @@ class Exchange(BaseExchange):
 
     async def cancel_all_orders(self, symbol: Str = None, params={}):
         raise NotSupported(self.id + ' cancelAllOrders() is not supported yet')
+
+    async def cancel_all_orders_after(self, timeout: Int, params={}):
+        raise NotSupported(self.id + ' cancelAllOrdersAfter() is not supported yet')
 
     async def cancel_orders_for_symbols(self, orders: List[CancellationRequest], params={}):
         raise NotSupported(self.id + ' cancelOrdersForSymbols() is not supported yet')

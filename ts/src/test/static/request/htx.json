@@ -514,6 +514,26 @@
                 "output": "{\"contract_code\":\"BTC-USDT\"}"
             }
         ],
+        "cancelAllOrdersAfter": [
+            {
+                "description": "Cancel all orders after",
+                "method": "cancelAllOrdersAfter",
+                "url": "https://api.huobi.pro/v2/algo-orders/cancel-all-after?AccessKeyId=bgbfh5tv3f-83da6485-1bbb64ae-3231b&SignatureMethod=HmacSHA256&SignatureVersion=2&Timestamp=2023-11-08T15%3A44%3A57&Signature=T7k1MsUZ8RDbFdly3alFH%2F%2B5TfQHMkRe3bRCR9SAz4Q%3D",
+                "input": [
+                    10000
+                ],
+                "output": "{\"timeout\":10}"
+            },
+            {
+                "description": "Close cancel all orders after",
+                "method": "cancelAllOrdersAfter",
+                "url": "https://api.huobi.pro/v2/algo-orders/cancel-all-after?AccessKeyId=bgbfh5tv3f-83da6485-1bbb64ae-3231b&SignatureMethod=HmacSHA256&SignatureVersion=2&Timestamp=2023-11-08T15%3A44%3A57&Signature=T7k1MsUZ8RDbFdly3alFH%2F%2B5TfQHMkRe3bRCR9SAz4Q%3D",
+                "input": [
+                    0
+                ],
+                "output": "{\"timeout\":0}"
+            }
+        ],
         "fetchPositions": [
             {
                 "description": "Fetch linear position",
