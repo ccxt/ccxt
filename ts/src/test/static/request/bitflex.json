@@ -155,5 +155,67 @@
                 ]
             }
         ],
+        "fetchOHLCV": [
+            {
+                "description": "Fetch OHLCV for spot",
+                "method": "fetchOHLCV",
+                "url": "https://api.bitflex.com/openapi/quote/v1/klines?symbol=ETHUSDT&interval=1m",
+                "input": [
+                  "ETH/USDT"
+                ]
+            },
+            {
+                "description": "Fetch OHLCV for swap",
+                "method": "fetchOHLCV",
+                "url": "https://api.bitflex.com/openapi/quote/v1/klines?symbol=ETH-SWAP-USDT&interval=1m",
+                "input": [
+                  "ETH/USDT:USDT"
+                ]
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "Fetch ticker for spot",
+                "method": "fetchTicker",
+                "url": "https://api.bitflex.com/openapi/quote/v1/ticker/24hr?symbol=ETHUSDT",
+                "input": [
+                  "ETH/USDT"
+                ]
+            },
+            {
+                "description": "Fetch ticker for swap",
+                "method": "fetchTicker",
+                "url": "https://api.bitflex.com/openapi/quote/v1/contract/ticker/24hr?symbol=ETH-SWAP-USDT",
+                "input": [
+                  "ETH/USDT:USDT"
+                ]
+            }
+        ],
+        "fetchBidsAdks": [
+            {
+                "description": "Fetch bids and asks",
+                "method": "fetchBidsAsks",
+                "url": "https://api.bitflex.com/openapi/quote/v1/ticker/bookTicker",
+                "input": []
+            }
+        ],
+        "fetchBalance": [
+            {
+                "description": "Fetch balance",
+                "method": "fetchBalance",
+                "url": "https://api.bitflex.com/openapi/v1/account?timestamp=1713895891306&signature=ae31353b01c82932b9a58b631fdb279881ff2e14d81ad9376463a9492475588f",
+                "input": []
+            },
+            {
+                "description": "Fetch balance for swap",
+                "method": "fetchBalance",
+                "url": "https://api.bitflex.com/openapi/contract/v1/account?timestamp=1713896205431&signature=7009571170c8de94827a664af6ba623f3381b0d665d859ce48f1a72c986d5c3c",
+                "input": [
+                  {
+                    "type": "swap"
+                  }
+                ]
+            }
+        ]
     }
 }
