@@ -138,7 +138,7 @@ export default class gate extends Exchange {
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchPosition': true,
-                'fetchPositionHistory': true,
+                'fetchPositionHistory': 'emulated',
                 'fetchPositionMode': false,
                 'fetchPositions': true,
                 'fetchPositionsHistory': true,
