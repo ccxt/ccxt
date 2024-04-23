@@ -93,6 +93,9 @@ $main = function() use ($argv) {
                     $credential_var = strtoupper($id . '_' . $credential); // example: KRAKEN_SECRET
                     $credential_value = getenv($credential_var);
                     if ($credential_value) {
+                        if (str_contains($credential_value, "---BEGIN")) {
+                            $credential_value = str_replace('\n', "\n", $credential_value);
+                        }
                         $exchange->$credential = $credential_value;
                     }
                 }

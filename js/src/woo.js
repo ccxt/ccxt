@@ -35,10 +35,12 @@ export default class woo extends Exchange {
                 'option': false,
                 'addMargin': false,
                 'cancelAllOrders': true,
+                'cancelAllOrdersAfter': true,
                 'cancelOrder': true,
                 'cancelWithdraw': false,
                 'closeAllPositions': false,
                 'closePosition': false,
+                'createConvertTrade': true,
                 'createDepositAddress': false,
                 'createMarketBuyOrderWithCost': true,
                 'createMarketOrder': false,
@@ -62,6 +64,8 @@ export default class woo extends Exchange {
                 'fetchClosedOrders': true,
                 'fetchConvertCurrencies': true,
                 'fetchConvertQuote': true,
+                'fetchConvertTrade': true,
+                'fetchConvertTradeHistory': true,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
@@ -199,6 +203,7 @@ export default class woo extends Exchange {
                         },
                         'post': {
                             'order': 5,
+                            'order/cancel_all_after': 1,
                             'asset/main_sub_transfer': 30,
                             'asset/ltv': 30,
                             'asset/withdraw': 30,
@@ -1285,6 +1290,33 @@ export default class woo extends Exchange {
         //     {
         //         "success":true,
         //         "status":"CANCEL_ALL_SENT"
+        //     }
+        //
+        return response;
+    }
+    async cancelAllOrdersAfter(timeout, params = {}) {
+        /**
+         * @method
+         * @name woo#cancelAllOrdersAfter
+         * @description dead man's switch, cancel all orders after the given timeout
+         * @see https://docs.woo.org/#cancel-all-after
+         * @param {number} timeout time in milliseconds, 0 represents cancel the timer
+         * @param {boolean} activated countdown
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} the api result
+         */
+        await this.loadMarkets();
+        const request = {
+            'trigger_after': (timeout > 0) ? timeout : 0,
+        };
+        const response = await this.v1PrivatePostOrderCancelAllAfter(this.extend(request, params));
+        //
+        //     {
+        //         "success": true,
+        //         "data": {
+        //             "expected_trigger_time": 1711534302938
+        //         },
+        //         "timestamp": 1711534302943
         //     }
         //
         return response;
@@ -3032,6 +3064,127 @@ export default class woo extends Exchange {
         const toCurrency = this.currency(toCurrencyId);
         return this.parseConversion(data, fromCurrency, toCurrency);
     }
+    async createConvertTrade(id, fromCode, toCode, amount = undefined, params = {}) {
+        /**
+         * @method
+         * @name woo#createConvertTrade
+         * @description convert from one currency to another
+         * @see https://docs.woo.org/#send-quote-rft
+         * @param {string} id the id of the trade that you want to make
+         * @param {string} fromCode the currency that you want to sell and convert from
+         * @param {string} toCode the currency that you want to buy and convert into
+         * @param {float} [amount] how much you want to trade in units of the from currency
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+         */
+        await this.loadMarkets();
+        const request = {
+            'quoteId': id,
+        };
+        const response = await this.v3PrivatePostConvertRft(this.extend(request, params));
+        //
+        //     {
+        //         "success": true,
+        //         "data": {
+        //             "quoteId": 123123123,
+        //             "counterPartyId": "",
+        //             "rftAccepted": 1 // 1 -> success; 2 -> processing; 3 -> fail
+        //         }
+        //     }
+        //
+        const data = this.safeDict(response, 'data', {});
+        return this.parseConversion(data);
+    }
+    async fetchConvertTrade(id, code = undefined, params = {}) {
+        /**
+         * @method
+         * @name woo#fetchConvertTrade
+         * @description fetch the data for a conversion trade
+         * @see https://docs.woo.org/#get-quote-trade
+         * @param {string} id the id of the trade that you want to fetch
+         * @param {string} [code] the unified currency code of the conversion trade
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+         */
+        await this.loadMarkets();
+        const request = {
+            'quoteId': id,
+        };
+        const response = await this.v3PrivateGetConvertTrade(this.extend(request, params));
+        //
+        //     {
+        //         "success": true,
+        //         "data": {
+        //             "quoteId": 12,
+        //             "buyAsset": "",
+        //             "sellAsset": "",
+        //             "buyAmount": 12.11,
+        //             "sellAmount": 12.11,
+        //             "tradeStatus": 12,
+        //             "createdTime": ""
+        //         }
+        //     }
+        //
+        const data = this.safeDict(response, 'data', {});
+        const fromCurrencyId = this.safeString(data, 'sellAsset');
+        const toCurrencyId = this.safeString(data, 'buyAsset');
+        let fromCurrency = undefined;
+        let toCurrency = undefined;
+        if (fromCurrencyId !== undefined) {
+            fromCurrency = this.currency(fromCurrencyId);
+        }
+        if (toCurrencyId !== undefined) {
+            toCurrency = this.currency(toCurrencyId);
+        }
+        return this.parseConversion(data, fromCurrency, toCurrency);
+    }
+    async fetchConvertTradeHistory(code = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name woo#fetchConvertTradeHistory
+         * @description fetch the users history of conversion trades
+         * @see https://docs.woo.org/#get-quote-trades
+         * @param {string} [code] the unified currency code
+         * @param {int} [since] the earliest time in ms to fetch conversions for
+         * @param {int} [limit] the maximum number of conversion structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {int} [params.until] timestamp in ms of the latest conversion to fetch
+         * @returns {object[]} a list of [conversion structures]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+         */
+        await this.loadMarkets();
+        let request = {};
+        [request, params] = this.handleUntilOption('endTime', request, params);
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        if (limit !== undefined) {
+            request['size'] = limit;
+        }
+        const response = await this.v3PrivateGetConvertTrades(this.extend(request, params));
+        //
+        //     {
+        //         "success": true,
+        //         "data": {
+        //             "count": 12,
+        //             "tradeVos":[
+        //                 {
+        //                     "quoteId": 12,
+        //                     "buyAsset": "",
+        //                     "sellAsset": "",
+        //                     "buyAmount": 12.11,
+        //                     "sellAmount": 12.11,
+        //                     "tradeStatus": 12,
+        //                     "createdTime": ""
+        //                 }
+        //                 ...
+        //             ]
+        //         }
+        //     }
+        //
+        const data = this.safeDict(response, 'data', {});
+        const rows = this.safeList(data, 'tradeVos', []);
+        return this.parseConversions(rows, 'sellAsset', 'buyAsset', since, limit);
+    }
     parseConversion(conversion, fromCurrency = undefined, toCurrency = undefined) {
         //
         // fetchConvertQuote
@@ -3048,10 +3201,30 @@ export default class woo extends Exchange {
         //         "message": 1659084466000
         //     }
         //
-        const timestamp = this.safeInteger(conversion, 'expireTimestamp');
-        const fromCoin = this.safeString(conversion, 'sellToken');
-        const fromCode = this.safeCurrencyCode(fromCoin, fromCurrency);
-        const to = this.safeString(conversion, 'buyToken');
+        // createConvertTrade
+        //
+        //     {
+        //         "quoteId": 123123123,
+        //         "counterPartyId": "",
+        //         "rftAccepted": 1 // 1 -> success; 2 -> processing; 3 -> fail
+        //     }
+        //
+        // fetchConvertTrade, fetchConvertTradeHistory
+        //
+        //     {
+        //         "quoteId": 12,
+        //         "buyAsset": "",
+        //         "sellAsset": "",
+        //         "buyAmount": 12.11,
+        //         "sellAmount": 12.11,
+        //         "tradeStatus": 12,
+        //         "createdTime": ""
+        //     }
+        //
+        const timestamp = this.safeInteger2(conversion, 'expireTimestamp', 'createdTime');
+        const fromCurr = this.safeString2(conversion, 'sellToken', 'buyAsset');
+        const fromCode = this.safeCurrencyCode(fromCurr, fromCurrency);
+        const to = this.safeString2(conversion, 'buyToken', 'sellAsset');
         const toCode = this.safeCurrencyCode(to, toCurrency);
         return {
             'info': conversion,
@@ -3059,9 +3232,9 @@ export default class woo extends Exchange {
             'datetime': this.iso8601(timestamp),
             'id': this.safeString(conversion, 'quoteId'),
             'fromCurrency': fromCode,
-            'fromAmount': this.safeNumber(conversion, 'sellQuantity'),
+            'fromAmount': this.safeNumber2(conversion, 'sellQuantity', 'sellAmount'),
             'toCurrency': toCode,
-            'toAmount': this.safeNumber(conversion, 'buyQuantity'),
+            'toAmount': this.safeNumber2(conversion, 'buyQuantity', 'buyAmount'),
             'price': this.safeNumber(conversion, 'buyPrice'),
             'fee': undefined,
         };

@@ -39,6 +39,7 @@ class cryptocom extends Exchange {
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'cancelOrders' => true,
+                'cancelOrdersForSymbols' => true,
                 'closeAllPositions' => false,
                 'closePosition' => true,
                 'createMarketBuyOrderWithCost' => false,
@@ -1450,6 +1451,38 @@ class cryptocom extends Exchange {
         }) ();
     }
 
+    public function cancel_orders_for_symbols(array $orders, $params = array ()) {
+        return Async\async(function () use ($orders, $params) {
+            /**
+             * cancel multiple $orders for multiple symbols
+             * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-cancel-$order-list-list
+             * @param {CancellationRequest[]} $orders each $order should contain the parameters required by cancelOrder namely $id and $symbol
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} an list of ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structures~
+             */
+            Async\await($this->load_markets());
+            $orderRequests = array();
+            for ($i = 0; $i < count($orders); $i++) {
+                $order = $orders[$i];
+                $id = $this->safe_string($order, 'id');
+                $symbol = $this->safe_string($order, 'symbol');
+                $market = $this->market($symbol);
+                $orderItem = array(
+                    'instrument_name' => $market['id'],
+                    'order_id' => (string) $id,
+                );
+                $orderRequests[] = $orderItem;
+            }
+            $request = array(
+                'contingency_type' => 'LIST',
+                'order_list' => $orderRequests,
+            );
+            $response = Async\await($this->v1PrivatePostPrivateCancelOrderList (array_merge($request, $params)));
+            $result = $this->safe_list($response, 'result', array());
+            return $this->parse_orders($result, null, null, null, $params);
+        }) ();
+    }
+
     public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
@@ -1612,7 +1645,7 @@ class cryptocom extends Exchange {
              */
             list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
             Async\await($this->load_markets());
-            $currency = $this->currency($code);
+            $currency = $this->safe_currency($code); // for instance, USDC is not inferred from markets but it's still available
             $request = array(
                 'currency' => $currency['id'],
                 'amount' => $amount,
@@ -1659,7 +1692,7 @@ class cryptocom extends Exchange {
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$address-structure $address structures~ indexed by the $network
              */
             Async\await($this->load_markets());
-            $currency = $this->currency($code);
+            $currency = $this->safe_currency($code);
             $request = array(
                 'currency' => $currency['id'],
             );
@@ -1760,7 +1793,7 @@ class cryptocom extends Exchange {
             $currency = null;
             $request = array();
             if ($code !== null) {
-                $currency = $this->currency($code);
+                $currency = $this->safe_currency($code);
                 $request['currency'] = $currency['id'];
             }
             if ($since !== null) {
@@ -1820,7 +1853,7 @@ class cryptocom extends Exchange {
             $currency = null;
             $request = array();
             if ($code !== null) {
-                $currency = $this->currency($code);
+                $currency = $this->safe_currency($code);
                 $request['currency'] = $currency['id'];
             }
             if ($since !== null) {
@@ -2346,7 +2379,7 @@ class cryptocom extends Exchange {
             $request = array();
             $currency = null;
             if ($code !== null) {
-                $currency = $this->currency($code);
+                $currency = $this->safe_currency($code);
             }
             if ($since !== null) {
                 $request['start_time'] = $since;

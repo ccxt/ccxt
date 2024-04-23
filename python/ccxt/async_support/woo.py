@@ -41,10 +41,12 @@ class woo(Exchange, ImplicitAPI):
                 'option': False,
                 'addMargin': False,
                 'cancelAllOrders': True,
+                'cancelAllOrdersAfter': True,
                 'cancelOrder': True,
                 'cancelWithdraw': False,  # exchange have that endpoint disabled atm, but was once implemented in ccxt per old docs: https://kronosresearch.github.io/wootrade-documents/#cancel-withdraw-request
                 'closeAllPositions': False,
                 'closePosition': False,
+                'createConvertTrade': True,
                 'createDepositAddress': False,
                 'createMarketBuyOrderWithCost': True,
                 'createMarketOrder': False,
@@ -68,6 +70,8 @@ class woo(Exchange, ImplicitAPI):
                 'fetchClosedOrders': True,
                 'fetchConvertCurrencies': True,
                 'fetchConvertQuote': True,
+                'fetchConvertTrade': True,
+                'fetchConvertTradeHistory': True,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
@@ -205,6 +209,7 @@ class woo(Exchange, ImplicitAPI):
                         },
                         'post': {
                             'order': 5,  # 2 requests per 1 second per symbol
+                            'order/cancel_all_after': 1,
                             'asset/main_sub_transfer': 30,  # 20 requests per 60 seconds
                             'asset/ltv': 30,
                             'asset/withdraw': 30,  # implemented in ccxt, disabled on the exchange side https://kronosresearch.github.io/wootrade-documents/#token-withdraw
@@ -1196,6 +1201,31 @@ class woo(Exchange, ImplicitAPI):
         #     {
         #         "success":true,
         #         "status":"CANCEL_ALL_SENT"
+        #     }
+        #
+        return response
+
+    async def cancel_all_orders_after(self, timeout: Int, params={}):
+        """
+        dead man's switch, cancel all orders after the given timeout
+        :see: https://docs.woo.org/#cancel-all-after
+        :param number timeout: time in milliseconds, 0 represents cancel the timer
+        :param boolean activated: countdown
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: the api result
+        """
+        await self.load_markets()
+        request: dict = {
+            'trigger_after': timeout if (timeout > 0) else 0,
+        }
+        response = await self.v1PrivatePostOrderCancelAllAfter(self.extend(request, params))
+        #
+        #     {
+        #         "success": True,
+        #         "data": {
+        #             "expected_trigger_time": 1711534302938
+        #         },
+        #         "timestamp": 1711534302943
         #     }
         #
         return response
@@ -2823,6 +2853,117 @@ class woo(Exchange, ImplicitAPI):
         toCurrency = self.currency(toCurrencyId)
         return self.parse_conversion(data, fromCurrency, toCurrency)
 
+    async def create_convert_trade(self, id: str, fromCode: str, toCode: str, amount: Num = None, params={}) -> Conversion:
+        """
+        convert from one currency to another
+        :see: https://docs.woo.org/#send-quote-rft
+        :param str id: the id of the trade that you want to make
+        :param str fromCode: the currency that you want to sell and convert from
+        :param str toCode: the currency that you want to buy and convert into
+        :param float [amount]: how much you want to trade in units of the from currency
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `conversion structure <https://docs.ccxt.com/#/?id=conversion-structure>`
+        """
+        await self.load_markets()
+        request = {
+            'quoteId': id,
+        }
+        response = await self.v3PrivatePostConvertRft(self.extend(request, params))
+        #
+        #     {
+        #         "success": True,
+        #         "data": {
+        #             "quoteId": 123123123,
+        #             "counterPartyId": "",
+        #             "rftAccepted": 1  # 1 -> success; 2 -> processing; 3 -> fail
+        #         }
+        #     }
+        #
+        data = self.safe_dict(response, 'data', {})
+        return self.parse_conversion(data)
+
+    async def fetch_convert_trade(self, id: str, code: Str = None, params={}) -> Conversion:
+        """
+        fetch the data for a conversion trade
+        :see: https://docs.woo.org/#get-quote-trade
+        :param str id: the id of the trade that you want to fetch
+        :param str [code]: the unified currency code of the conversion trade
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `conversion structure <https://docs.ccxt.com/#/?id=conversion-structure>`
+        """
+        await self.load_markets()
+        request = {
+            'quoteId': id,
+        }
+        response = await self.v3PrivateGetConvertTrade(self.extend(request, params))
+        #
+        #     {
+        #         "success": True,
+        #         "data": {
+        #             "quoteId": 12,
+        #             "buyAsset": "",
+        #             "sellAsset": "",
+        #             "buyAmount": 12.11,
+        #             "sellAmount": 12.11,
+        #             "tradeStatus": 12,
+        #             "createdTime": ""
+        #         }
+        #     }
+        #
+        data = self.safe_dict(response, 'data', {})
+        fromCurrencyId = self.safe_string(data, 'sellAsset')
+        toCurrencyId = self.safe_string(data, 'buyAsset')
+        fromCurrency = None
+        toCurrency = None
+        if fromCurrencyId is not None:
+            fromCurrency = self.currency(fromCurrencyId)
+        if toCurrencyId is not None:
+            toCurrency = self.currency(toCurrencyId)
+        return self.parse_conversion(data, fromCurrency, toCurrency)
+
+    async def fetch_convert_trade_history(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Conversion]:
+        """
+        fetch the users history of conversion trades
+        :see: https://docs.woo.org/#get-quote-trades
+        :param str [code]: the unified currency code
+        :param int [since]: the earliest time in ms to fetch conversions for
+        :param int [limit]: the maximum number of conversion structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.until]: timestamp in ms of the latest conversion to fetch
+        :returns dict[]: a list of `conversion structures <https://docs.ccxt.com/#/?id=conversion-structure>`
+        """
+        await self.load_markets()
+        request = {}
+        request, params = self.handle_until_option('endTime', request, params)
+        if since is not None:
+            request['startTime'] = since
+        if limit is not None:
+            request['size'] = limit
+        response = await self.v3PrivateGetConvertTrades(self.extend(request, params))
+        #
+        #     {
+        #         "success": True,
+        #         "data": {
+        #             "count": 12,
+        #             "tradeVos":[
+        #                 {
+        #                     "quoteId": 12,
+        #                     "buyAsset": "",
+        #                     "sellAsset": "",
+        #                     "buyAmount": 12.11,
+        #                     "sellAmount": 12.11,
+        #                     "tradeStatus": 12,
+        #                     "createdTime": ""
+        #                 }
+        #                 ...
+        #             ]
+        #         }
+        #     }
+        #
+        data = self.safe_dict(response, 'data', {})
+        rows = self.safe_list(data, 'tradeVos', [])
+        return self.parse_conversions(rows, 'sellAsset', 'buyAsset', since, limit)
+
     def parse_conversion(self, conversion, fromCurrency: Currency = None, toCurrency: Currency = None) -> Conversion:
         #
         # fetchConvertQuote
@@ -2839,10 +2980,30 @@ class woo(Exchange, ImplicitAPI):
         #         "message": 1659084466000
         #     }
         #
-        timestamp = self.safe_integer(conversion, 'expireTimestamp')
-        fromCoin = self.safe_string(conversion, 'sellToken')
-        fromCode = self.safe_currency_code(fromCoin, fromCurrency)
-        to = self.safe_string(conversion, 'buyToken')
+        # createConvertTrade
+        #
+        #     {
+        #         "quoteId": 123123123,
+        #         "counterPartyId": "",
+        #         "rftAccepted": 1  # 1 -> success; 2 -> processing; 3 -> fail
+        #     }
+        #
+        # fetchConvertTrade, fetchConvertTradeHistory
+        #
+        #     {
+        #         "quoteId": 12,
+        #         "buyAsset": "",
+        #         "sellAsset": "",
+        #         "buyAmount": 12.11,
+        #         "sellAmount": 12.11,
+        #         "tradeStatus": 12,
+        #         "createdTime": ""
+        #     }
+        #
+        timestamp = self.safe_integer_2(conversion, 'expireTimestamp', 'createdTime')
+        fromCurr = self.safe_string_2(conversion, 'sellToken', 'buyAsset')
+        fromCode = self.safe_currency_code(fromCurr, fromCurrency)
+        to = self.safe_string_2(conversion, 'buyToken', 'sellAsset')
         toCode = self.safe_currency_code(to, toCurrency)
         return {
             'info': conversion,
@@ -2850,9 +3011,9 @@ class woo(Exchange, ImplicitAPI):
             'datetime': self.iso8601(timestamp),
             'id': self.safe_string(conversion, 'quoteId'),
             'fromCurrency': fromCode,
-            'fromAmount': self.safe_number(conversion, 'sellQuantity'),
+            'fromAmount': self.safe_number_2(conversion, 'sellQuantity', 'sellAmount'),
             'toCurrency': toCode,
-            'toAmount': self.safe_number(conversion, 'buyQuantity'),
+            'toAmount': self.safe_number_2(conversion, 'buyQuantity', 'buyAmount'),
             'price': self.safe_number(conversion, 'buyPrice'),
             'fee': None,
         }
