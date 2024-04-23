@@ -278,6 +278,7 @@ public partial class Exchange
             }
             throw e;
         }
+
         this.httpClient.DefaultRequestHeaders.Clear();
 
         var responseHeaders = response?.Headers.ToDictionary(x => x, y => y.Value.First());
