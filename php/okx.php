@@ -1551,7 +1551,7 @@ class okx extends Exchange {
         return $this->safe_string($networksById, $networkId, $networkId);
     }
 
-    public function fetch_currencies($params = array ()): array {
+    public function fetch_currencies($params = array ()): ?array {
         /**
          * fetches all available currencies on an exchange
          * @see https://www.okx.com/docs-v5/en/#rest-api-funding-get-currencies
@@ -7762,7 +7762,7 @@ class okx extends Exchange {
         );
     }
 
-    public function fetch_convert_currencies($params = array ()): array {
+    public function fetch_convert_currencies($params = array ()): ?array {
         /**
          * fetches all available currencies that can be converted
          * @see https://www.okx.com/docs-v5/en/#funding-account-rest-api-get-convert-currencies

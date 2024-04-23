@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.3.4'
+__version__ = '4.3.5'
 
 # -----------------------------------------------------------------------------
 
@@ -849,6 +849,9 @@ class Exchange(BaseExchange):
     async def fetch_position(self, symbol: str, params={}):
         raise NotSupported(self.id + ' fetchPosition() is not supported yet')
 
+    async def fetch_position_ws(self, symbol: str, params={}):
+        raise NotSupported(self.id + ' fetchPositionWs() is not supported yet')
+
     async def watch_position(self, symbol: Str = None, params={}):
         raise NotSupported(self.id + ' watchPosition() is not supported yet')
 
@@ -867,7 +870,19 @@ class Exchange(BaseExchange):
         """
         raise NotSupported(self.id + ' fetchPositionsForSymbol() is not supported yet')
 
+    async def fetch_positions_for_symbol_ws(self, symbol: str, params={}):
+        """
+        fetches all open positions for specific symbol, unlike fetchPositions(which is designed to work with multiple symbols) so self method might be preffered for one-market position, because of less rate-limit consumption and speed
+        :param str symbol: unified market symbol
+        :param dict params: extra parameters specific to the endpoint
+        :returns dict[]: a list of `position structure <https://docs.ccxt.com/#/?id=position-structure>` with maximum 3 items - possible one position for "one-way" mode, and possible two positions(long & short) for "two-way"(a.k.a. hedge) mode
+        """
+        raise NotSupported(self.id + ' fetchPositionsForSymbol() is not supported yet')
+
     async def fetch_positions(self, symbols: List[str] = None, params={}):
+        raise NotSupported(self.id + ' fetchPositions() is not supported yet')
+
+    async def fetch_positions_ws(self, symbols: List[str] = None, params={}):
         raise NotSupported(self.id + ' fetchPositions() is not supported yet')
 
     async def fetch_positions_risk(self, symbols: List[str] = None, params={}):
@@ -961,10 +976,27 @@ class Exchange(BaseExchange):
         else:
             raise NotSupported(self.id + ' fetchTicker() is not supported yet')
 
+    async def fetch_ticker_ws(self, symbol: str, params={}):
+        if self.has['fetchTickersWs']:
+            await self.load_markets()
+            market = self.market(symbol)
+            symbol = market['symbol']
+            tickers = await self.fetchTickerWs(symbol, params)
+            ticker = self.safe_dict(tickers, symbol)
+            if ticker is None:
+                raise NullResponse(self.id + ' fetchTickers() could not find a ticker for ' + symbol)
+            else:
+                return ticker
+        else:
+            raise NotSupported(self.id + ' fetchTicker() is not supported yet')
+
     async def watch_ticker(self, symbol: str, params={}):
         raise NotSupported(self.id + ' watchTicker() is not supported yet')
 
     async def fetch_tickers(self, symbols: List[str] = None, params={}):
+        raise NotSupported(self.id + ' fetchTickers() is not supported yet')
+
+    async def fetch_tickers_ws(self, symbols: List[str] = None, params={}):
         raise NotSupported(self.id + ' fetchTickers() is not supported yet')
 
     async def fetch_order_books(self, symbols: List[str] = None, limit: Int = None, params={}):

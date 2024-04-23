@@ -1824,7 +1824,7 @@ class bitget extends Exchange {
         return $this->parse_markets($data);
     }
 
-    public function fetch_currencies($params = array ()): array {
+    public function fetch_currencies($params = array ()): ?array {
         /**
          * fetches all available currencies on an exchange
          * @see https://www.bitget.com/api-doc/spot/market/Get-Coin-List
@@ -8458,7 +8458,7 @@ class bitget extends Exchange {
         );
     }
 
-    public function fetch_convert_currencies($params = array ()): array {
+    public function fetch_convert_currencies($params = array ()): ?array {
         /**
          * fetches all available currencies that can be converted
          * @see https://www.bitget.com/api-doc/common/convert/Get-Convert-Currencies

@@ -34,7 +34,7 @@ function run_tests {
   if [ -z "$rest_pid" ]; then
     if [ -z "$rest_args" ] || { [ -n "$rest_args" ] && [ "$rest_args" != "skip" ]; }; then
       # shellcheck disable=SC2086
-      node test-commonjs.cjs && ./package-test.sh && node run-tests --js --python-async --php-async --csharp --useProxy $rest_args &
+      node run-tests --js --python-async --php-async --csharp --useProxy $rest_args &
       local rest_pid=$!
     fi
   fi
@@ -82,6 +82,8 @@ build_and_test_all () {
     fi
     npm run test-base
     npm run test-base-ws
+    node test-commonjs.cjs
+    npm run package-test
     last_commit_message=$(git log -1 --pretty=%B)
     echo "Last commit: $last_commit_message" # for debugging
     if [[ "$last_commit_message" == *"skip-tests"* ]]; then

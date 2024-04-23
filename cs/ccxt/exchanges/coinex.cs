@@ -4653,7 +4653,7 @@ public partial class coinex : Exchange
     public async override Task<object> fetchFundingRates(object symbols = null, object parameters = null)
     {
         /**
-        *  @method
+        * @method
         * @name coinex#fetchFundingRates
         * @description fetch the current funding rates
         * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http009_market_ticker_all

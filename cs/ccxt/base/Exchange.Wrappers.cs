@@ -325,6 +325,11 @@ public partial class Exchange
         var res = await this.fetchPosition(symbol, parameters);
         return new Position(res);
     }
+    public async Task<List<Position>> FetchPositionWs(string symbol, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchPositionWs(symbol, parameters);
+        return ((IList<object>)res).Select(item => new Position(item)).ToList<Position>();
+    }
     public async Task<Position> WatchPosition(string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.watchPosition(symbol, parameters);
@@ -349,9 +354,19 @@ public partial class Exchange
         var res = await this.fetchPositionsForSymbol(symbol, parameters);
         return ((IList<object>)res).Select(item => new Position(item)).ToList<Position>();
     }
+    public async Task<List<Position>> FetchPositionsForSymbolWs(string symbol, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchPositionsForSymbolWs(symbol, parameters);
+        return ((IList<object>)res).Select(item => new Position(item)).ToList<Position>();
+    }
     public async Task<List<Position>> FetchPositions(List<string> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchPositions(symbols, parameters);
+        return ((IList<object>)res).Select(item => new Position(item)).ToList<Position>();
+    }
+    public async Task<List<Position>> FetchPositionsWs(List<string> symbols = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchPositionsWs(symbols, parameters);
         return ((IList<object>)res).Select(item => new Position(item)).ToList<Position>();
     }
     public async Task<List<Position>> FetchPositionsRisk(List<string> symbols = null, Dictionary<string, object> parameters = null)
@@ -458,6 +473,11 @@ public partial class Exchange
         var res = await this.fetchTicker(symbol, parameters);
         return new Ticker(res);
     }
+    public async Task<Ticker> FetchTickerWs(string symbol, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchTickerWs(symbol, parameters);
+        return new Ticker(res);
+    }
     public async Task<Ticker> WatchTicker(string symbol, Dictionary<string, object> parameters = null)
     {
         var res = await this.watchTicker(symbol, parameters);
@@ -466,6 +486,11 @@ public partial class Exchange
     public async Task<Tickers> FetchTickers(List<string> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchTickers(symbols, parameters);
+        return new Tickers(res);
+    }
+    public async Task<Tickers> FetchTickersWs(List<string> symbols = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchTickersWs(symbols, parameters);
         return new Tickers(res);
     }
     public async Task<Dictionary<string, OrderBook>> FetchOrderBooks(List<string> symbols = null, Int64? limit2 = 0, Dictionary<string, object> parameters = null)

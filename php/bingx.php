@@ -444,7 +444,7 @@ class bingx extends Exchange {
         return $this->safe_integer($data, 'serverTime');
     }
 
-    public function fetch_currencies($params = array ()): array {
+    public function fetch_currencies($params = array ()): ?array {
         /**
          * fetches all available currencies on an exchange
          * @see https://bingx-api.github.io/docs/#/common/account-api.html#All%20Coins

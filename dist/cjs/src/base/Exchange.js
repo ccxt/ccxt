@@ -374,9 +374,9 @@ class Exchange {
                 'cancelAllOrders': undefined,
                 'cancelAllOrdersWs': undefined,
                 'cancelOrder': true,
+                'cancelOrderWs': undefined,
                 'cancelOrders': undefined,
                 'cancelOrdersWs': undefined,
-                'cancelOrderWs': undefined,
                 'closeAllPositions': undefined,
                 'closePosition': undefined,
                 'createDepositAddress': undefined,
@@ -505,16 +505,20 @@ class Exchange {
                 'fetchOrderWs': undefined,
                 'fetchPermissions': undefined,
                 'fetchPosition': undefined,
+                'fetchPositionWs': undefined,
                 'fetchPositionMode': undefined,
                 'fetchPositions': undefined,
+                'fetchPositionsWs': undefined,
                 'fetchPositionsForSymbol': undefined,
+                'fetchPositionsForSymbolWs': undefined,
                 'fetchPositionsRisk': undefined,
                 'fetchPremiumIndexOHLCV': undefined,
                 'fetchSettlementHistory': undefined,
                 'fetchStatus': undefined,
                 'fetchTicker': true,
-                'fetchTickers': undefined,
                 'fetchTickerWs': undefined,
+                'fetchTickers': undefined,
+                'fetchTickersWs': undefined,
                 'fetchTime': undefined,
                 'fetchTrades': true,
                 'fetchTradesWs': undefined,
@@ -3804,6 +3808,9 @@ class Exchange {
     async fetchPosition(symbol, params = {}) {
         throw new errors.NotSupported(this.id + ' fetchPosition() is not supported yet');
     }
+    async fetchPositionWs(symbol, params = {}) {
+        throw new errors.NotSupported(this.id + ' fetchPositionWs() is not supported yet');
+    }
     async watchPosition(symbol = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' watchPosition() is not supported yet');
     }
@@ -3824,7 +3831,21 @@ class Exchange {
          */
         throw new errors.NotSupported(this.id + ' fetchPositionsForSymbol() is not supported yet');
     }
+    async fetchPositionsForSymbolWs(symbol, params = {}) {
+        /**
+         * @method
+         * @name exchange#fetchPositionsForSymbol
+         * @description fetches all open positions for specific symbol, unlike fetchPositions (which is designed to work with multiple symbols) so this method might be preffered for one-market position, because of less rate-limit consumption and speed
+         * @param {string} symbol unified market symbol
+         * @param {object} params extra parameters specific to the endpoint
+         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure} with maximum 3 items - possible one position for "one-way" mode, and possible two positions (long & short) for "two-way" (a.k.a. hedge) mode
+         */
+        throw new errors.NotSupported(this.id + ' fetchPositionsForSymbol() is not supported yet');
+    }
     async fetchPositions(symbols = undefined, params = {}) {
+        throw new errors.NotSupported(this.id + ' fetchPositions() is not supported yet');
+    }
+    async fetchPositionsWs(symbols = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' fetchPositions() is not supported yet');
     }
     async fetchPositionsRisk(symbols = undefined, params = {}) {
@@ -4203,10 +4224,31 @@ class Exchange {
             throw new errors.NotSupported(this.id + ' fetchTicker() is not supported yet');
         }
     }
+    async fetchTickerWs(symbol, params = {}) {
+        if (this.has['fetchTickersWs']) {
+            await this.loadMarkets();
+            const market = this.market(symbol);
+            symbol = market['symbol'];
+            const tickers = await this.fetchTickerWs(symbol, params);
+            const ticker = this.safeDict(tickers, symbol);
+            if (ticker === undefined) {
+                throw new errors.NullResponse(this.id + ' fetchTickers() could not find a ticker for ' + symbol);
+            }
+            else {
+                return ticker;
+            }
+        }
+        else {
+            throw new errors.NotSupported(this.id + ' fetchTicker() is not supported yet');
+        }
+    }
     async watchTicker(symbol, params = {}) {
         throw new errors.NotSupported(this.id + ' watchTicker() is not supported yet');
     }
     async fetchTickers(symbols = undefined, params = {}) {
+        throw new errors.NotSupported(this.id + ' fetchTickers() is not supported yet');
+    }
+    async fetchTickersWs(symbols = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' fetchTickers() is not supported yet');
     }
     async fetchOrderBooks(symbols = undefined, limit = undefined, params = {}) {

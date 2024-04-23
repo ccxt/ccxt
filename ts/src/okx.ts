@@ -6,7 +6,7 @@ import { ExchangeError, ExchangeNotAvailable, OnMaintenance, ArgumentsRequired, 
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { TransferEntry, Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Str, Transaction, Ticker, OrderBook, Balances, Tickers, Market, Greeks, Strings, MarketInterface, Currency, Leverage, Num, Account, OptionChain, Option, MarginModification, TradingFeeInterface, Currencies, Conversion, Dict } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Str, Transaction, Ticker, OrderBook, Balances, Tickers, Market, Greeks, Strings, MarketInterface, Currency, Leverage, Num, Account, OptionChain, Option, MarginModification, TradingFeeInterface, Currencies, Conversion, CancellationRequest, Dict } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -36,6 +36,7 @@ export default class okx extends Exchange {
                 'cancelAllOrdersAfter': true,
                 'cancelOrder': true,
                 'cancelOrders': true,
+                'cancelOrdersForSymbols': true,
                 'closeAllPositions': false,
                 'closePosition': true,
                 'createConvertTrade': true,
@@ -3267,6 +3268,87 @@ export default class okx extends Exchange {
         //
         const ordersData = this.safeList (response, 'data', []);
         return this.parseOrders (ordersData, market, undefined, undefined, params);
+    }
+
+    async cancelOrdersForSymbols (orders: CancellationRequest[], params = {}) {
+        /**
+         * @method
+         * @name okx#cancelOrdersForSymbols
+         * @description cancel multiple orders for multiple symbols
+         * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-cancel-multiple-orders
+         * @see https://www.okx.com/docs-v5/en/#order-book-trading-algo-trading-post-cancel-algo-order
+         * @param {CancellationRequest[]} orders each order should contain the parameters required by cancelOrder namely id and symbol
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [params.trigger] whether the order is a stop/trigger order
+         * @param {boolean} [params.trailing] set to true if you want to cancel trailing orders
+         * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        const request = [];
+        const options = this.safeDict (this.options, 'cancelOrders', {});
+        const defaultMethod = this.safeString (options, 'method', 'privatePostTradeCancelBatchOrders');
+        let method = this.safeString (params, 'method', defaultMethod);
+        const stop = this.safeBool2 (params, 'stop', 'trigger');
+        const trailing = this.safeBool (params, 'trailing', false);
+        const isStopOrTrailing = stop || trailing;
+        if (isStopOrTrailing) {
+            method = 'privatePostTradeCancelAlgos';
+        }
+        for (let i = 0; i < orders.length; i++) {
+            const order = orders[i];
+            const id = this.safeString (order, 'id');
+            const clientOrderId = this.safeString2 (order, 'clOrdId', 'clientOrderId');
+            const symbol = this.safeString (order, 'symbol');
+            const market = this.market (symbol);
+            let idKey = 'ordId';
+            if (isStopOrTrailing) {
+                idKey = 'algoId';
+            } else if (clientOrderId !== undefined) {
+                idKey = 'clOrdId';
+            }
+            const requestItem = {
+                'instId': market['id'],
+            };
+            requestItem[idKey] = id;
+            request.push (requestItem);
+        }
+        let response = undefined;
+        if (method === 'privatePostTradeCancelAlgos') {
+            response = await this.privatePostTradeCancelAlgos (request); // * dont extend with params, otherwise ARRAY will be turned into OBJECT
+        } else {
+            response = await this.privatePostTradeCancelBatchOrders (request); // * dont extend with params, otherwise ARRAY will be turned into OBJECT
+        }
+        //
+        //     {
+        //         "code": "0",
+        //         "data": [
+        //             {
+        //                 "clOrdId": "e123456789ec4dBC1123456ba123b45e",
+        //                 "ordId": "405071912345641543",
+        //                 "sCode": "0",
+        //                 "sMsg": ""
+        //             },
+        //             ...
+        //         ],
+        //         "msg": ""
+        //     }
+        //
+        // Algo order
+        //
+        //     {
+        //         "code": "0",
+        //         "data": [
+        //             {
+        //                 "algoId": "431375349042380800",
+        //                 "sCode": "0",
+        //                 "sMsg": ""
+        //             }
+        //         ],
+        //         "msg": ""
+        //     }
+        //
+        const ordersData = this.safeList (response, 'data', []);
+        return this.parseOrders (ordersData, undefined, undefined, undefined, params);
     }
 
     async cancelAllOrdersAfter (timeout: Int, params = {}) {
