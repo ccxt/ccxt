@@ -86,6 +86,7 @@ interface Exchange {
     sapiGetCapitalDepositSubAddress(params?: {}): Promise<implicitReturnType>;
     sapiGetCapitalDepositSubHisrec(params?: {}): Promise<implicitReturnType>;
     sapiGetCapitalWithdrawHistory(params?: {}): Promise<implicitReturnType>;
+    sapiGetCapitalWithdrawAddressList(params?: {}): Promise<implicitReturnType>;
     sapiGetCapitalContractConvertibleCoins(params?: {}): Promise<implicitReturnType>;
     sapiGetConvertTradeFlow(params?: {}): Promise<implicitReturnType>;
     sapiGetConvertExchangeInfo(params?: {}): Promise<implicitReturnType>;

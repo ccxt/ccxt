@@ -26,6 +26,7 @@ public partial class cryptocom : Exchange
                 { "cancelAllOrders", true },
                 { "cancelOrder", true },
                 { "cancelOrders", true },
+                { "cancelOrdersForSymbols", true },
                 { "closeAllPositions", false },
                 { "closePosition", true },
                 { "createMarketBuyOrderWithCost", false },
@@ -1558,6 +1559,41 @@ public partial class cryptocom : Exchange
         object response = await this.v1PrivatePostPrivateCancelOrderList(this.extend(request, parameters));
         object result = this.safeList(response, "result", new List<object>() {});
         return this.parseOrders(result, market, null, null, parameters);
+    }
+
+    public async override Task<object> cancelOrdersForSymbols(object orders, object parameters = null)
+    {
+        /**
+        * @method
+        * @name cryptocom#cancelOrdersForSymbols
+        * @description cancel multiple orders for multiple symbols
+        * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-cancel-order-list-list
+        * @param {CancellationRequest[]} orders each order should contain the parameters required by cancelOrder namely id and symbol
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object orderRequests = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
+        {
+            object order = getValue(orders, i);
+            object id = this.safeString(order, "id");
+            object symbol = this.safeString(order, "symbol");
+            object market = this.market(symbol);
+            object orderItem = new Dictionary<string, object>() {
+                { "instrument_name", getValue(market, "id") },
+                { "order_id", ((object)id).ToString() },
+            };
+            ((IList<object>)orderRequests).Add(orderItem);
+        }
+        object request = new Dictionary<string, object>() {
+            { "contingency_type", "LIST" },
+            { "order_list", orderRequests },
+        };
+        object response = await this.v1PrivatePostPrivateCancelOrderList(this.extend(request, parameters));
+        object result = this.safeList(response, "result", new List<object>() {});
+        return this.parseOrders(result, null, null, null, parameters);
     }
 
     public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)

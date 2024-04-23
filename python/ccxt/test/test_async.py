@@ -496,6 +496,8 @@ class testMainClass(baseMainTestClass):
             final_skips['datetime'] = final_skips['timestamp']
         if ('bid' in final_skips) and not ('ask' in final_skips):
             final_skips['ask'] = final_skips['bid']
+        if ('baseVolume' in final_skips) and not ('quoteVolume' in final_skips):
+            final_skips['quoteVolume'] = final_skips['baseVolume']
         return final_skips
 
     async def test_safe(self, method_name, exchange, args=[], is_public=False):

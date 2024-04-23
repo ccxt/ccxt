@@ -62,6 +62,7 @@ class ImplicitAPI:
     swap_v2_private_post_trade_order = swapV2PrivatePostTradeOrder = Entry('trade/order', ['swap', 'v2', 'private'], 'POST', {'cost': 3})
     swap_v2_private_post_trade_batchorders = swapV2PrivatePostTradeBatchOrders = Entry('trade/batchOrders', ['swap', 'v2', 'private'], 'POST', {'cost': 3})
     swap_v2_private_post_trade_closeallpositions = swapV2PrivatePostTradeCloseAllPositions = Entry('trade/closeAllPositions', ['swap', 'v2', 'private'], 'POST', {'cost': 3})
+    swap_v2_private_post_trade_cancelallafter = swapV2PrivatePostTradeCancelAllAfter = Entry('trade/cancelAllAfter', ['swap', 'v2', 'private'], 'POST', {'cost': 3})
     swap_v2_private_post_trade_margintype = swapV2PrivatePostTradeMarginType = Entry('trade/marginType', ['swap', 'v2', 'private'], 'POST', {'cost': 3})
     swap_v2_private_post_trade_leverage = swapV2PrivatePostTradeLeverage = Entry('trade/leverage', ['swap', 'v2', 'private'], 'POST', {'cost': 3})
     swap_v2_private_post_trade_positionmargin = swapV2PrivatePostTradePositionMargin = Entry('trade/positionMargin', ['swap', 'v2', 'private'], 'POST', {'cost': 3})

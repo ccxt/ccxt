@@ -2093,8 +2093,8 @@ class kucoinfutures(kucoin, ImplicitAPI):
             # symbol(str) [optional] Symbol of the contract
             # side(str) [optional] buy or sell
             # type(str) [optional] limit, market, limit_stop or market_stop
-            # startAt(long) [optional] Start time(milisecond)
-            # endAt(long) [optional] End time(milisecond)
+            # startAt(long) [optional] Start time(millisecond)
+            # endAt(long) [optional] End time(millisecond)
         }
         market = None
         if symbol is not None:

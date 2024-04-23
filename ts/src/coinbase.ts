@@ -3450,12 +3450,12 @@ export default class coinbase extends Exchange {
             sinceString = Precise.stringSub (now, requestedDuration.toString ());
         }
         request['start'] = sinceString;
-        let endString = this.numberToString (until);
-        if (until === undefined) {
+        if (until !== undefined) {
+            request['end'] = this.numberToString (this.parseToInt (until / 1000));
+        } else {
             // 300 candles max
-            endString = Precise.stringAdd (sinceString, requestedDuration.toString ());
+            request['end'] = Precise.stringAdd (sinceString, requestedDuration.toString ());
         }
-        request['end'] = endString;
         const response = await this.v3PrivateGetBrokerageProductsProductIdCandles (this.extend (request, params));
         //
         //     {

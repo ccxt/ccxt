@@ -32,6 +32,7 @@ class cryptocom extends cryptocom$1 {
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'cancelOrders': true,
+                'cancelOrdersForSymbols': true,
                 'closeAllPositions': false,
                 'closePosition': true,
                 'createMarketBuyOrderWithCost': false,
@@ -1463,6 +1464,37 @@ class cryptocom extends cryptocom$1 {
         const response = await this.v1PrivatePostPrivateCancelOrderList(this.extend(request, params));
         const result = this.safeList(response, 'result', []);
         return this.parseOrders(result, market, undefined, undefined, params);
+    }
+    async cancelOrdersForSymbols(orders, params = {}) {
+        /**
+         * @method
+         * @name cryptocom#cancelOrdersForSymbols
+         * @description cancel multiple orders for multiple symbols
+         * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-cancel-order-list-list
+         * @param {CancellationRequest[]} orders each order should contain the parameters required by cancelOrder namely id and symbol
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets();
+        const orderRequests = [];
+        for (let i = 0; i < orders.length; i++) {
+            const order = orders[i];
+            const id = this.safeString(order, 'id');
+            const symbol = this.safeString(order, 'symbol');
+            const market = this.market(symbol);
+            const orderItem = {
+                'instrument_name': market['id'],
+                'order_id': id.toString(),
+            };
+            orderRequests.push(orderItem);
+        }
+        const request = {
+            'contingency_type': 'LIST',
+            'order_list': orderRequests,
+        };
+        const response = await this.v1PrivatePostPrivateCancelOrderList(this.extend(request, params));
+        const result = this.safeList(response, 'result', []);
+        return this.parseOrders(result, undefined, undefined, undefined, params);
     }
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**

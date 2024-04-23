@@ -3478,12 +3478,12 @@ class coinbase extends Exchange {
                 $sinceString = Precise::string_sub($now, (string) $requestedDuration);
             }
             $request['start'] = $sinceString;
-            $endString = $this->number_to_string($until);
-            if ($until === null) {
+            if ($until !== null) {
+                $request['end'] = $this->number_to_string($this->parse_to_int($until / 1000));
+            } else {
                 // 300 $candles max
-                $endString = Precise::string_add($sinceString, (string) $requestedDuration);
+                $request['end'] = Precise::string_add($sinceString, (string) $requestedDuration);
             }
-            $request['end'] = $endString;
             $response = Async\await($this->v3PrivateGetBrokerageProductsProductIdCandles (array_merge($request, $params)));
             //
             //     {
