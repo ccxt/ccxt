@@ -198,20 +198,22 @@ export default class bitflex extends Exchange {
             },
             'exceptions': {
                 'exact': {
-                    // 400  {"code":-1130,"msg":"Data sent for paramter \u0027type\u0027 is not valid."}
+                    // 400 {"code":-1130,"msg":"Data sent for paramter \u0027type\u0027 is not valid."}
                     // 400 {"code":-100012,"msg":"Parameter symbol [String] missing!"}
                     // 400 {"code":-100012,"msg":"Parameter interval [String] missing!"}
                     // 400 {"code":-1140,"msg":"Transaction amount lower than the minimum."}
                     // 400 {"code":-1131,"msg":"Balance insufficient "}
-                    // {"code":-1156,"msg":"Order quantity invalid"} - reduceOnly order for already closed position
-                    // {"code":-1004,"msg":"Missing required parameter \u0027symbol\u0027"}
-                    // {"code":-1001,"msg":"Internal error."}
-                    // {"code":-1130,"msg":"Data sent for paramter \u0027leverage\u0027 is not valid."}
-                    // {"code":-1162,"msg":"Modify position leverage error"}
-                    // {"code":-1155,"msg":"Invalid position side"}
-                    // {"code":-1000,"msg":"An unknown error occured while processing the request."}
-                    // {"code":-1187,"msg":"Withdrawal address not in whitelist"}
-                    // {"code":-1023,"msg":"Please set IP whitelist before using API"}
+                    // 400 {"code":-100002,"msg":"Param limit should be int."}
+                    // 400 {"code":-1156,"msg":"Order quantity invalid"} - reduceOnly order for already closed position
+                    // 400 {"code":-1004,"msg":"Missing required parameter \u0027symbol\u0027"}
+                    // 400 {"code":-1001,"msg":"Internal error."}
+                    // 400 {"code":-1130,"msg":"Data sent for paramter \u0027leverage\u0027 is not valid."}
+                    // 400 {"code":-1162,"msg":"Modify position leverage error"}
+                    // 400 {"code":-1155,"msg":"Invalid position side"}
+                    // 400 {"code":-1000,"msg":"An unknown error occured while processing the request."}
+                    // 400 {"code":-1187,"msg":"Withdrawal address not in whitelist"}
+                    // 400 {"code":-1023,"msg":"Please set IP whitelist before using API"}
+                    // 500 {"code":-9999,"msg":"Server Error"}
                 },
                 'broad': {
                 },
