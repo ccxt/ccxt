@@ -1197,7 +1197,7 @@ export default class coinbase extends Exchange {
     }
 
     async fetchMarketsV3 (params = {}) {
-        const spotUnresolvedPromises = [
+        let spotUnresolvedPromises = [
             this.v3PublicGetBrokerageMarketProducts (params),
             //
             //    {
@@ -1244,31 +1244,36 @@ export default class coinbase extends Exchange {
             //        num_products: '646'
             //    }
             //
-            this.v3PrivateGetBrokerageTransactionSummary (params),
-            //
-            //    {
-            //        total_volume: '9.995989116664404',
-            //        total_fees: '0.07996791093331522',
-            //        fee_tier: {
-            //            pricing_tier: 'Advanced 1',
-            //            usd_from: '0',
-            //            usd_to: '1000',
-            //            taker_fee_rate: '0.008',
-            //            maker_fee_rate: '0.006',
-            //            aop_from: '',
-            //            aop_to: ''
-            //        },
-            //        margin_rate: null,
-            //        goods_and_services_tax: null,
-            //        advanced_trade_only_volume: '9.995989116664404',
-            //        advanced_trade_only_fees: '0.07996791093331522',
-            //        coinbase_pro_volume: '0',
-            //        coinbase_pro_fees: '0',
-            //        total_balance: '',
-            //        has_promo_fee: false
-            //    }
-            //
         ];
+        if (this.checkRequiredCredentials (false)) {
+            spotUnresolvedPromises = [
+                spotUnresolvedPromises[0],
+                this.v3PrivateGetBrokerageTransactionSummary (params),
+            ];
+        }
+        //
+        //    {
+        //        total_volume: '9.995989116664404',
+        //        total_fees: '0.07996791093331522',
+        //        fee_tier: {
+        //            pricing_tier: 'Advanced 1',
+        //            usd_from: '0',
+        //            usd_to: '1000',
+        //            taker_fee_rate: '0.008',
+        //            maker_fee_rate: '0.006',
+        //            aop_from: '',
+        //            aop_to: ''
+        //        },
+        //        margin_rate: null,
+        //        goods_and_services_tax: null,
+        //        advanced_trade_only_volume: '9.995989116664404',
+        //        advanced_trade_only_fees: '0.07996791093331522',
+        //        coinbase_pro_volume: '0',
+        //        coinbase_pro_fees: '0',
+        //        total_balance: '',
+        //        has_promo_fee: false
+        //    }
+        //
         let unresolvedContractPromises = [];
         try {
             unresolvedContractPromises = [
@@ -1334,9 +1339,15 @@ export default class coinbase extends Exchange {
                 //    }
                 //
                 this.v3PublicGetBrokerageMarketProducts (this.extend (params, { 'product_type': 'FUTURE', 'contract_expiry_type': 'PERPETUAL' })),
-                this.v3PrivateGetBrokerageTransactionSummary (this.extend (params, { 'product_type': 'FUTURE' })),
-                this.v3PrivateGetBrokerageTransactionSummary (this.extend (params, { 'product_type': 'FUTURE', 'contract_expiry_type': 'PERPETUAL' })),
             ];
+            if (this.checkRequiredCredentials (false)) {
+                unresolvedContractPromises = [
+                    unresolvedContractPromises[0],
+                    unresolvedContractPromises[1],
+                    this.v3PrivateGetBrokerageTransactionSummary (this.extend (params, { 'product_type': 'FUTURE' })),
+                    this.v3PrivateGetBrokerageTransactionSummary (this.extend (params, { 'product_type': 'FUTURE', 'contract_expiry_type': 'PERPETUAL' })),
+                ];
+            }
         } catch (e) {
             unresolvedContractPromises = []; // the sync version of ccxt won't have the promise.all line so the request is made here
         }
