@@ -277,7 +277,7 @@ class testMainClass(baseMainTestClass):
         self.load_keys = get_cli_arg_value('--loadKeys')
         self.ws_tests = get_cli_arg_value('--ws')
 
-    def init(self, exchange_id, symbol_argv):
+    def init(self, exchange_id, symbol_argv, method_argv):
         self.parse_cli_args()
         if self.request_tests and self.response_tests:
             self.run_static_request_tests(exchange_id, symbol_argv)
@@ -292,13 +292,12 @@ class testMainClass(baseMainTestClass):
         if self.id_tests:
             self.run_broker_id_tests()
             return
-        symbol_str = symbol_argv if symbol_argv is not None else 'all'
-        exchange_object = {
+        dump(self.new_line + '' + self.new_line + '' + '[INFO] TESTING ', self.ext, {
             'exchange': exchange_id,
-            'symbol': symbol_str,
+            'symbol': symbol_argv,
+            'method': method_argv,
             'isWs': self.ws_tests,
-        }
-        dump(self.new_line + '' + self.new_line + '' + '[INFO] TESTING ', self.ext, json_stringify(exchange_object), self.new_line)
+        }, self.new_line)
         exchange_args = {
             'verbose': self.verbose,
             'debug': self.debug,
@@ -311,25 +310,22 @@ class testMainClass(baseMainTestClass):
         self.import_files(exchange)
         assert len(list(self.test_files.keys())) > 0, 'Test files were not loaded'  # ensure test files are found & filled
         self.expand_settings(exchange)
-        symbol = self.check_if_specific_test_is_chosen(symbol_argv)
-        self.start_test(exchange, symbol)
+        self.check_if_specific_test_is_chosen(method_argv)
+        self.start_test(exchange, symbol_argv)
         exit_script(0)  # needed to be explicitly finished for WS tests
 
-    def check_if_specific_test_is_chosen(self, symbol_argv):
-        if symbol_argv is not None:
+    def check_if_specific_test_is_chosen(self, method_argv):
+        if method_argv is not None:
             test_file_names = list(self.test_files.keys())
-            possible_method_names = symbol_argv.split(',')  # i.e. `test.ts binance fetchBalance,fetchDeposits`
+            possible_method_names = method_argv.split(',')  # i.e. `test.ts binance fetchBalance,fetchDeposits`
             if len(possible_method_names) >= 1:
                 for i in range(0, len(test_file_names)):
                     test_file_name = test_file_names[i]
                     for j in range(0, len(possible_method_names)):
                         method_name = possible_method_names[j]
+                        method_name = method_name.replace('()', '')
                         if test_file_name == method_name:
                             self.only_specific_tests.append(test_file_name)
-            # if method names were found, then remove them from symbolArgv
-            if len(self.only_specific_tests) > 0:
-                return None
-        return symbol_argv
 
     def import_files(self, exchange):
         properties = list(exchange.has.keys())
@@ -1578,5 +1574,7 @@ class testMainClass(baseMainTestClass):
 
 
 if __name__ == '__main__':
-    symbol = argv.symbol if argv.symbol else None
-    (testMainClass().init(argv.exchange, symbol))
+    argvSymbol = argv.symbol if argv.symbol and '/' in argv.symbol else None
+    # in python, we check it through "symbol" arg (as opposed to JS/PHP) because argvs were already built above
+    argvMethod = argv.symbol if argv.symbol and '()' in argv.symbol else None
+    (testMainClass().init(argv.exchange, argvSymbol, argvMethod))

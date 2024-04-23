@@ -2268,5 +2268,156 @@
                 ]
             ]
         }
+    },
+    "XRP/USDC": {
+        "id": "XRP-USDC",
+        "symbol": "XRP/USDC",
+        "base": "XRP",
+        "quote": "USDC",
+        "baseId": "XRP",
+        "quoteId": "USDC",
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "index": false,
+        "active": true,
+        "contract": false,
+        "taker": 0.01,
+        "maker": 0.006,
+        "precision": {
+            "amount": 0.000001,
+            "price": 0.0001
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 0.000001,
+                "max": 11996772.84072922
+            },
+            "price": {},
+            "cost": {
+                "min": 1,
+                "max": 10000000
+            }
+        },
+        "info": {
+            "product_id": "XRP-USDC",
+            "price": "0.5208",
+            "price_percentage_change_24h": "3.99361022364217",
+            "volume_24h": "66018508.397644",
+            "volume_percentage_change_24h": "-23.47310133273151",
+            "base_increment": "0.000001",
+            "quote_increment": "0.0001",
+            "quote_min_size": "1",
+            "quote_max_size": "10000000",
+            "base_min_size": "0.000001",
+            "base_max_size": "11996772.8407292192545075",
+            "base_name": "XRP",
+            "quote_name": "USDC",
+            "watched": false,
+            "is_disabled": false,
+            "new": false,
+            "status": "online",
+            "cancel_only": false,
+            "limit_only": false,
+            "post_only": false,
+            "trading_disabled": false,
+            "auction_mode": false,
+            "product_type": "SPOT",
+            "quote_currency_id": "USDC",
+            "base_currency_id": "XRP",
+            "fcm_trading_session_details": null,
+            "mid_market_price": "",
+            "alias": "XRP-USD",
+            "alias_to": [],
+            "base_display_symbol": "XRP",
+            "quote_display_symbol": "USD",
+            "view_only": false,
+            "price_increment": "0.0001",
+            "display_name": "XRP-USDC",
+            "product_venue": "CBE"
+        },
+        "tierBased": true,
+        "percentage": true,
+        "tiers": {
+            "taker": [
+                [
+                    0,
+                    0.006
+                ],
+                [
+                    10000,
+                    0.004
+                ],
+                [
+                    50000,
+                    0.0025
+                ],
+                [
+                    100000,
+                    0.002
+                ],
+                [
+                    1000000,
+                    0.0018
+                ],
+                [
+                    15000000,
+                    0.0016
+                ],
+                [
+                    75000000,
+                    0.0012
+                ],
+                [
+                    250000000,
+                    0.0008
+                ],
+                [
+                    400000000,
+                    0.0005
+                ]
+            ],
+            "maker": [
+                [
+                    0,
+                    0.004
+                ],
+                [
+                    10000,
+                    0.0025
+                ],
+                [
+                    50000,
+                    0.0015
+                ],
+                [
+                    100000,
+                    0.001
+                ],
+                [
+                    1000000,
+                    0.0008
+                ],
+                [
+                    15000000,
+                    0.0006
+                ],
+                [
+                    75000000,
+                    0.0003
+                ],
+                [
+                    250000000,
+                    0
+                ],
+                [
+                    400000000,
+                    0
+                ]
+            ]
+        }
     }
 }
