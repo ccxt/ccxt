@@ -1,7 +1,8 @@
-//  ---------------------------------------------------------------------------
+ //  ---------------------------------------------------------------------------
 
 import bitflexRest from '../bitflex.js';
-import type { Int, OrderBook, Ticker } from '../base/types.js';
+import { ArrayCache, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
+import type { Int, Market, OHLCV, OrderBook, Ticker, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -11,7 +12,7 @@ export default class bitflex extends bitflexRest {
             'has': {
                 'ws': true,
                 'watchBalance': false,
-                'watchTicker': false,
+                'watchTicker': true,
                 'watchTickers': false,
                 'watchTrades': false,
                 'watchMyTrades': false,
@@ -162,7 +163,7 @@ export default class bitflex extends bitflexRest {
         client.resolve (this.tickers, 'tickers');
     }
 
-    parseWsTicker (message, market = undefined) {
+    parseWsTicker (message, market: Market = undefined) {
         //
         //     {
         //         t: 1713868819783,
@@ -204,6 +205,205 @@ export default class bitflex extends bitflexRest {
         }, market);
     }
 
+    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        /**
+         * @method
+         * @name bitflex#watchTrades
+         * @see https://docs.bitflex.com/websocket-v2
+         * @description get the list of most recent trades for a particular symbol
+         * @param {string} symbol unified symbol of the market to fetch trades for
+         * @param {int} [since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [limit] the maximum amount of trades to fetch
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        symbol = market['symbol'];
+        const subscriptionHash = 'trade';
+        const messageHash = 'trades:' + symbol;
+        const request = {
+            'topic': subscriptionHash,
+            'event': 'sub',
+            'params': {
+                'binary': false,
+                'symbol': market['id'],
+            },
+        };
+        const url = this.urls['api']['ws']['public'];
+        const trades = await this.watch (url, messageHash, this.extend (request, params), messageHash);
+        if (this.newUpdates) {
+            const first = this.safeDict (trades, 0, {});
+            const tradeSymbol = this.safeString (first, 'symbol');
+            limit = trades.getLimit (tradeSymbol, limit);
+        }
+        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+    }
+
+    handleTrades (client: Client, message) {
+        //
+        //     {
+        //         topic: 'trade',
+        //         params: {
+        //             symbol: 'ETH-SWAP-USDT',
+        //             binary: 'false',
+        //             symbolName: 'ETH-SWAP-USDT'
+        //         },
+        //         data: {
+        //             v: '1670465027720953857',
+        //             t: 1713870949174,
+        //             p: '3178.59',
+        //             q: '0.58',
+        //             m: false
+        //         }
+        //     }
+        //
+        const params = this.safeDict (message, 'params', {});
+        const marketId = this.safeString (params, 'symbol');
+        const market = this.safeMarket (marketId);
+        const symbol = market['symbol'];
+        if (!(symbol in this.trades)) {
+            const tradesLimit = this.safeInteger (this.options, 'tradesLimit', 1000);
+            this.trades[symbol] = new ArrayCache (tradesLimit);
+        }
+        const stored = this.trades[symbol];
+        const messageHash = 'trades:' + symbol;
+        const data = this.safeDict (message, 'data', {});
+        const trade = this.parseWsTrade (data, market);
+        stored.append (trade);
+        client.resolve (stored, messageHash);
+    }
+
+    parseWsTrade (trade, market: Market = undefined) {
+        //
+        //     data: {
+        //         v: '1670465027720953857',
+        //         t: 1713870949174,
+        //         p: '3178.59',
+        //         q: '0.58',
+        //         m: false
+        //     }
+        //
+        const timestamp = this.safeInteger (trade, 't');
+        const isMaker = this.safeBool (trade, 'm');
+        return this.safeTrade ({
+            'info': trade,
+            'amount': this.safeString (trade, 'q'),
+            'datetime': this.iso8601 (timestamp),
+            'id': undefined,
+            'order': undefined,
+            'price': this.safeString (trade, 'p'),
+            'timestamp': timestamp,
+            'type': undefined,
+            'side': undefined,
+            'symbol': this.safeString (market, 'symbol'),
+            'takerOrMaker': isMaker ? 'maker' : 'taker',
+            'cost': undefined,
+            'fee': undefined,
+        }, market);
+    }
+
+    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+        /**
+         * @method
+         * @name bitflex#fetchOHLCV
+         * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @see https://docs.bitflex.exchange/#candlesticks
+         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {string} timeframe the length of time each candle represents
+         * @param {int} [since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [limit] the maximum amount of candles to fetch
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const timeframeId = this.safeString (this.timeframes, timeframe, timeframe);
+        const request = {
+            'topic': 'kline',
+            'event': 'sub',
+            'params': {
+                'binary': false,
+                'symbol': market['id'],
+                'klineType': timeframeId,
+            },
+        };
+        const url = this.urls['api']['ws']['public'];
+        const messageHash = 'ohlcv:' + market['symbol'] + ':' + timeframe;
+        const ohlcv = await this.watch (url, messageHash, this.extend (request, params), messageHash);
+        if (this.newUpdates) {
+            limit = ohlcv.getLimit (symbol, limit);
+        }
+        return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
+    }
+
+    handleOHLCV (client: Client, message) {
+        //
+        //     {
+        //         topic: 'kline',
+        //         params: {
+        //             symbol: 'ETHUSDT',
+        //             binary: 'false',
+        //             klineType: '6h',
+        //             symbolName: 'ETHUSDT'
+        //         },
+        //         data: {
+        //             t: 1713873600000,
+        //             s: 'ETHUSDT',
+        //             sn: 'ETHUSDT',
+        //             c: '3188.19',
+        //             h: '3188.21',
+        //             l: '3177.46',
+        //             o: '3179.17',
+        //             v: '8.5997'
+        //         }
+        //     }
+        //
+        const params = this.safeDict (message, 'params', {});
+        const timeframeId = this.safeString (params, 'klineType');
+        const marketId = this.safeString (params, 'symbol', '');
+        const market = this.safeMarket (marketId);
+        const symbol = this.safeSymbol (marketId, market);
+        const timeframe = this.findTimeframe (timeframeId);
+        if (!(symbol in this.ohlcvs)) {
+            this.ohlcvs[symbol] = {};
+        }
+        if (!(timeframe in this.ohlcvs[symbol])) {
+            const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
+            this.ohlcvs[symbol][timeframe] = new ArrayCacheByTimestamp (limit);
+        }
+        const data = this.safeDict (message, 'data', {});
+        const parsed = this.parseWsOHLCV (data, market);
+        const stored = this.ohlcvs[symbol][timeframe];
+        // todo the excchange returns multiple candles with same timeframe
+        stored.push (parsed);
+        const messageHash = 'ohlcv:' + symbol + ':' + timeframe;
+        client.resolve (stored, messageHash);
+    }
+
+    parseWsOHLCV (ohlcv, market: Market = undefined): OHLCV {
+        //
+        //     {
+        //         t: 1713873600000,
+        //         s: 'ETHUSDT',
+        //         sn: 'ETHUSDT',
+        //         c: '3188.19',
+        //         h: '3188.21',
+        //         l: '3177.46',
+        //         o: '3179.17',
+        //         v: '8.5997'
+        //     }
+        //
+        return [
+            this.safeInteger (ohlcv, 't'),
+            this.safeNumber (ohlcv, 'o'),
+            this.safeNumber (ohlcv, 'h'),
+            this.safeNumber (ohlcv, 'l'),
+            this.safeNumber (ohlcv, 'c'),
+            this.safeNumber (ohlcv, 'v'),
+        ];
+    }
+
     handleMessage (client: Client, message) {
         //
         //     {
@@ -238,6 +438,12 @@ export default class bitflex extends bitflexRest {
             }
             if (topic === 'realtimes') {
                 this.handleTicker (client, message);
+            }
+            if (topic === 'trade') {
+                this.handleTrades (client, message);
+            }
+            if (topic === 'kline') {
+                this.handleOHLCV (client, message);
             }
         }
     }
