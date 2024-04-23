@@ -1,0 +1,69 @@
+{
+    "exchange": "bitflex",
+    "skipKeys": [],
+    "outputType": "urlencoded",
+    "methods": {
+        "fetchCurrensies": [
+            {
+                "description": "Fetch currensies",
+                "method": "fetchCurrencies",
+                "url": "https://api.bitflex.com/openapi/v1/brokerInfo",
+                "input": []
+            }
+        ],
+        "fetchMarkets": [
+            {
+                "description": "Fetch markets",
+                "method": "fetchMarkets",
+                "url": "https://api.bitflex.com/openapi/v1/brokerInfo",
+                "input": []
+            },
+            {
+                "description": "Fetch markets with type token",
+                "method": "fetchMarkets",
+                "url": "https://api.bitflex.com/openapi/v1/brokerInfo?type=token",
+                "input": [
+                  {
+                    "type": "token"
+                  }
+                ]
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "Fetch order book for spot",
+                "method": "fetchOrderBook",
+                "url": "https://api.bitflex.com/openapi/quote/v1/depth/merged?symbol=ETHUSDT",
+                "input": [
+                  "ETH/USDT"
+                ]
+            },
+            {
+                "description": "Fetch order book with limit 41",
+                "method": "fetchOrderBook",
+                "url": "https://api.bitflex.com/openapi/quote/v1/depth?symbol=ETHUSDT&limit=41",
+                "input": [
+                  "ETH/USDT",
+                  41
+                ]
+            },
+            {
+                "description": "Fetch order book for swap",
+                "method": "fetchOrderBook",
+                "url": "https://api.bitflex.com/openapi/quote/v1/contract/depth/merged?symbol=ETH-SWAP-USDT",
+                "input": [
+                  "ETH/USDT:USDT"
+                ]
+            },
+            {
+                "description": "Fetch order book for swap with limit 3",
+                "method": "fetchOrderBook",
+                "url": "https://api.bitflex.com/openapi/quote/v1/contract/depth/merged?symbol=ETH-SWAP-USDT&limit=3",
+                "input": [
+                  "ETH/USDT:USDT",
+                  3
+                ]
+            }
+        ]
+    }
+}
