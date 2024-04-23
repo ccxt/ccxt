@@ -1189,6 +1189,7 @@ export default class woofipro extends Exchange {
          * @param {float} [params.stopLoss.triggerPrice] stop loss trigger price
          * @param {float} [params.algoType] 'STOP'or 'TP_SL' or 'POSITIONAL_TP_SL'
          * @param {float} [params.cost] *spot market buy only* the quote quantity that can be used as an alternative for the amount
+		 * @param {string} [params.clientOrderId] a unique id for the order
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         const reduceOnly = this.safeBool2 (params, 'reduceOnly', 'reduce_only');
@@ -1326,6 +1327,7 @@ export default class woofipro extends Exchange {
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [params.stop] whether the order is a stop/algo order
+		 * @param {string} [params.clientOrderId] a unique id for the order
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         const stop = this.safeBool2 (params, 'stop', 'trigger', false);
@@ -1404,14 +1406,15 @@ export default class woofipro extends Exchange {
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [params.stop] whether the order is a stop/algo order
+		 * @param {string} [params.clientOrderId] a unique id for the order
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         const market = (symbol !== undefined) ? this.market (symbol) : undefined;
         const stop = this.safeBool2 (params, 'stop', 'trigger', false);
         const request = {};
-        const clientOrderId = this.safeString2 (params, 'clOrdID', 'clientOrderId');
-		params = this.omit (params, [ 'stop', 'trigger', 'clOrdID', 'clientOrderId' ]);
+        const clientOrderId = this.safeStringN (params, [ 'clOrdID', 'clientOrderId', 'client_order_id' ]);
+		params = this.omit (params, [ 'stop', 'trigger', 'clOrdID', 'clientOrderId', 'client_order_id' ]);
         let response = undefined;
         if (stop) {
 			if (clientOrderId) {
