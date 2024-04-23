@@ -1315,6 +1315,70 @@ export default class woofipro extends Exchange {
         return order;
     }
 
+	async editOrder (id: string, symbol: string, type:OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) {
+        /**
+         * @method
+         * @name woofipro#editOrder
+         * @description edit a trade order
+         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/edit-order
+         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/edit-algo-order
+         * @param {string} id order id
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {float} [params.triggerPrice] The price a trigger order is triggered at
+         * @param {float} [params.stopLossPrice] price to trigger stop-loss orders
+         * @param {float} [params.takeProfitPrice] price to trigger take-profit orders
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+			'order_id': id,
+        };
+		const stopPrice = this.safeNumberN (params, [ 'triggerPrice', 'stopPrice', 'takeProfitPrice', 'stopLossPrice' ]);
+        if (stopPrice !== undefined) {
+            request['triggerPrice'] = this.priceToPrecision (symbol, stopPrice);
+        }
+		const isStop = (stopPrice !== undefined) || (this.safeValue (params, 'childOrders') !== undefined);
+		const orderQtyKey = isStop ? 'quantity' : 'order_quantity';
+        const priceKey = isStop ? 'price' : 'order_price';
+        if (price !== undefined) {
+            request[priceKey] = this.priceToPrecision (symbol, price);
+        }
+        if (amount !== undefined) {
+            request[orderQtyKey] = this.amountToPrecision (symbol, amount);
+        }
+        params = this.omit (params, [ 'stopPrice', 'triggerPrice', 'takeProfitPrice', 'stopLossPrice', 'trailingTriggerPrice', 'trailingAmount', 'trailingPercent' ]);
+        let response = undefined;
+		if (isStop) {
+			response = await this.v1PrivatePutAlgoOrder (this.extend (request, params));
+		} else {
+			const clientOrderId = this.safeStringN (params, [ 'clOrdID', 'clientOrderId', 'client_order_id' ]);
+			params = this.omit (params, [ 'clOrdID', 'clientOrderId', 'client_order_id' ]);
+			if (clientOrderId !== undefined) {
+				request['client_order_id'] = clientOrderId;
+			}
+			request['side'] = side.toUpperCase ();
+			request['symbol'] = market['id'];
+			response = await this.v1PrivatePutOrder (this.extend (request, params));
+		}
+        //
+		// 	{
+		// 		"success": true,
+		// 		"timestamp": 1702989203989,
+		// 		"data": {
+		// 		  "status": "EDIT_SENT"
+		// 		}
+		// 	}
+        //
+        const data = this.safeDict (response, 'data', {});
+        return this.parseOrder (data, market);
+    }
+
 	async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
