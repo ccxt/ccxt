@@ -4365,7 +4365,7 @@ export default class bybit extends Exchange {
          */
         await this.loadMarkets ();
         const ordersRequests = [];
-        const category = undefined;
+        let category = undefined;
         for (let i = 0; i < orders.length; i++) {
             const order = orders[i];
             const symbol = this.safeString (order, 'symbol');
@@ -4378,6 +4378,7 @@ export default class bybit extends Exchange {
             if ((category !== undefined) && (category !== currentCategory)) {
                 throw new ExchangeError (this.id + ' cancelOrdersForSymbols requires all orders to be of the same category (linear, spot or option))');
             }
+            category = currentCategory;
             const id = this.safeString (order, 'id');
             const clientOrderId = this.safeString (order, 'clientOrderId');
             let idKey = 'orderId';
