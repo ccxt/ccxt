@@ -4204,7 +4204,6 @@ class coinex(Exchange, ImplicitAPI):
 
     def fetch_funding_rates(self, symbols: Strings = None, params={}):
         """
-         *  @method
         fetch the current funding rates
         :see: https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http009_market_ticker_all
         :param str[] symbols: unified market symbols

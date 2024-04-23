@@ -666,7 +666,7 @@ class poloniex extends Exchange {
         return $this->parse_tickers($response, $symbols);
     }
 
-    public function fetch_currencies($params = array ()): array {
+    public function fetch_currencies($params = array ()): ?array {
         /**
          * fetches all available currencies on an exchange
          * @see https://docs.poloniex.com/#public-endpoints-reference-data-$currency-information

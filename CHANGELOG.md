@@ -1,3 +1,74 @@
+## 4.3.2 (2024-04-19)
+
+*  fix(cli.php): escape pem keys from env (#22201) [1191b49462](https://github.com/ccxt/ccxt/commits/1191b49462984058c9cc38de9fad3dab14f5ac3d)
+*  feat(coinbase): certify (#22203) [d53fbe0e2a](https://github.com/ccxt/ccxt/commits/d53fbe0e2a30be144dc43d4e0d2636da01f8d4b0)
+*  feat(coinbase): renames (#22211) [064b26a794](https://github.com/ccxt/ccxt/commits/064b26a7943ed773f7dd208f4d072866423523a5)
+*  fix(bingx): remove white line (#22213) [b8d3caefe8](https://github.com/ccxt/ccxt/commits/b8d3caefe8eeae102d5759b32a0a18dd620fab76)
+*  coinex: update fetchTicker and fetchTickers to v2 (#22207) [d9cdea6990](https://github.com/ccxt/ccxt/commits/d9cdea699029f639c4dc96662e43eca73a3b74a7)
+*  feat(hyperliquid): add cancelOrdersForSymbols (#22204) [79c14ae798](https://github.com/ccxt/ccxt/commits/79c14ae798cdab8f0233099299b53b5bc244695a)
+*  fix(build): CancellationRequest type (#22216) [3fc7ed446d](https://github.com/ccxt/ccxt/commits/3fc7ed446dff97299a494d7952e69611f13cff92)
+*  fix(hyperliquid): cancelOrdersForSymbols by clientOrderId (#22217) [6ea5133a0d](https://github.com/ccxt/ccxt/commits/6ea5133a0d846f4cae18a31f2a69fac264671eee)
+*  4.3.2 [a2e136ce07](https://github.com/ccxt/ccxt/commits/a2e136ce079740dbeae6f858329bf6668d77c500)
+
+
+## 4.3.1 (2024-04-18)
+
+*  new method: createConvertTrade (#22167) [699ca2d803](https://github.com/ccxt/ccxt/commits/699ca2d803c536b8b1661bb1e374e17ad30bd5b4)
+*  new method: createConvertTrade (#22167) [9080b2ac47](https://github.com/ccxt/ccxt/commits/9080b2ac47d9263cf845e812cb2d658416bf03be)
+*  fix(kraken): reduceOnly orders over WS (#22185) [8979e93e45](https://github.com/ccxt/ccxt/commits/8979e93e450c919d309677001d04345d00f5ae19)
+*  feat(cs): add ed25519  (#22183) [7fd379249d](https://github.com/ccxt/ccxt/commits/7fd379249d985923645e8aca1ff60d3bcb3897b9)
+*  fix(bingx): fetchMyLiquidations (#22186) [2ae7b31fee](https://github.com/ccxt/ccxt/commits/2ae7b31feee59dc2b173f85e6e201dcc0d154ef9)
+*  4.3.0 [74864b582c](https://github.com/ccxt/ccxt/commits/74864b582c98d29f4a0e3187f9e8259b621d60e1)
+*  bingx ExchangeNotAvailable code 100500 error handling {"code":100500,"msg":"The current system is busy, please try again later","debugMsg":""} [def9b773a1](https://github.com/ccxt/ccxt/commits/def9b773a102c3860ffa93f6c2e015c1cfa27bdf)
+*  feat(npmignore): rewrite npmignore (#22174) [023c2c99dc](https://github.com/ccxt/ccxt/commits/023c2c99dcb64805feafaa44f5e4c26110f33b14)
+*  docs(kucoin): update some @see links (#22192) [50fa07dae9](https://github.com/ccxt/ccxt/commits/50fa07dae94affe65b327cf2e166161f597fb6e3)
+*  coinex: fetchMarkets v2 (#22180) [42bc15fbd5](https://github.com/ccxt/ccxt/commits/42bc15fbd5e69ff0977f463f2f8cfa121dacf52b)
+*  build: fix static tests (#22197) [e14ec8d9d1](https://github.com/ccxt/ccxt/commits/e14ec8d9d144f983f0b93c8889b0af823b29740f)
+*  4.3.1 [fa601406c3](https://github.com/ccxt/ccxt/commits/fa601406c3188ee5d20301cf256e161a920398b0)
+
+
+## 4.2.100 (2024-04-17)
+
+*  kucoin replacing safeValue to safeDict/List/Bool (#22159) [c3b54f371a](https://github.com/ccxt/ccxt/commits/c3b54f371a60223d430ece797e43bf996e610789)
+*  kucoin replacing safeValue to safeDict/List/Bool (#22159) [0415bdfda1](https://github.com/ccxt/ccxt/commits/0415bdfda1975a051f378430ee6eaa98e364582f)
+*  ascendex error remapping (#22173) [c15f2c43bb](https://github.com/ccxt/ccxt/commits/c15f2c43bbce2f5510d705c304d850ec1d4535bc)
+*  4.2.100 [ac3722c32c](https://github.com/ccxt/ccxt/commits/ac3722c32c72d5496ac1bd2783881e63a72ca7aa)
+
+
+## 4.2.99 (2024-04-16)
+
+*  fix(kraken): patch parse ws order (#22152) [80b9465d2a](https://github.com/ccxt/ccxt/commits/80b9465d2ab8007d384c2c5bc1ff2390c4c2c5b6)
+*  fix(coinbase): futures markets loading (#22160) [9759cc2488](https://github.com/ccxt/ccxt/commits/9759cc2488674a8e21e1f124df73dc2ca4bcc4ad)
+*  feat(coinbase): support JWT on the WS side (#22162) [0264d0b0f0](https://github.com/ccxt/ccxt/commits/0264d0b0f0302379c6c44c88c58b48765499f3a9)
+*  feat(coinbase): support JWT on the WS side (#22162) [e2e3680d3f](https://github.com/ccxt/ccxt/commits/e2e3680d3feab24b4f9cc1b99691746d0b0cbc8d)
+*  4.2.99 [87b11709f0](https://github.com/ccxt/ccxt/commits/87b11709f057a14832fda8d37b740ee338bae34c)
+
+
+## 4.2.98 (2024-04-15)
+
+*  fix(thotler.cs): fix #22141 (#22154) [c40b971017](https://github.com/ccxt/ccxt/commits/c40b971017a700ce852de01782598be97ca8476c)
+*  4.2.98 [d38e4054e8](https://github.com/ccxt/ccxt/commits/d38e4054e8b5588d57887426f19f942f1f9a2204)
+
+
+## 4.2.97 (2024-04-14)
+
+*  binance: simplify spot portfolio margin usage (#22139) [569551dbb3](https://github.com/ccxt/ccxt/commits/569551dbb3be6e29071280e6d8cc6892e38fdf05)
+*  chore: update changelog (#22145) [d9e783e603](https://github.com/ccxt/ccxt/commits/d9e783e60304c0990ceb1bcd9aea0e11232f9757)
+*  fix(coinbase): sync markets loading (#22146) [a745ae72f4](https://github.com/ccxt/ccxt/commits/a745ae72f4a265acff7371de2840c202d4258779)
+*  fix(deribit): fetchTickers code refactoring (#22149) [f3d887bdf6](https://github.com/ccxt/ccxt/commits/f3d887bdf61aaee32dd548c91b42257559e9e62b)
+*  4.2.97 [d30dc312e3](https://github.com/ccxt/ccxt/commits/d30dc312e3ddb94e925a1e736c750e73b80a987a)
+
+
+## 4.2.96 (2024-04-12)
+
+*  read new ask/bid from ticker (#22130) [8389813bb9](https://github.com/ccxt/ccxt/commits/8389813bb98319ef408e5182566df10fd0524c62)
+*  fix(orderbook): add symbol type (#22132) [05293f4e99](https://github.com/ccxt/ccxt/commits/05293f4e99fbc6f5f34cfcc80c48f796db1c712b)
+*  fix(ecdsa): unify the ecdsa signing (#22131) [cbb4fcfb4d](https://github.com/ccxt/ccxt/commits/cbb4fcfb4d10cd0b0a0b87861e816de4c5f47d73)
+*  feat(Coinbase): perpetuals support (#22102) [5d1ca21737](https://github.com/ccxt/ccxt/commits/5d1ca21737a3936e6fc8ab5a48674e1d5bb0d258)
+*  fix(gemini): conflicting market (#22135) [84c6a8617e](https://github.com/ccxt/ccxt/commits/84c6a8617eacfedc76fd37f324c4693a45c0175b)
+*  4.2.96 [ecc11abe0c](https://github.com/ccxt/ccxt/commits/ecc11abe0cd8ac52334ec53aea5ec219e628e1c9)
+
+
 ## 4.2.95 (2024-04-11)
 
 *  coinex: fetchOrderBook v2 (#22116) [c4ba8f0e6e](https://github.com/ccxt/ccxt/commits/c4ba8f0e6e71560ed18d9b34ac1fa5e162703f0e)

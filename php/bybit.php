@@ -1283,7 +1283,7 @@ class bybit extends Exchange {
         return $this->safe_integer($response, 'time');
     }
 
-    public function fetch_currencies($params = array ()): array {
+    public function fetch_currencies($params = array ()): ?array {
         /**
          * fetches all available currencies on an exchange
          * @see https://bybit-exchange.github.io/docs/v5/asset/coin-info

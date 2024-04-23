@@ -320,6 +320,7 @@ export default class hyperliquid extends Exchange {
         //         ]
         //     ]
         //
+        //
         let meta = this.safeDict (response, 0, {});
         meta = this.safeList (meta, 'universe', []);
         const assetCtxs = this.safeDict (response, 1, {});
@@ -382,10 +383,70 @@ export default class hyperliquid extends Exchange {
         //         },
         //     ],
         // ];
+        // mainnet
+        // [
+        //     {
+        //        "canonical_tokens2":[
+        //           0,
+        //           1
+        //        ],
+        //        "spot_infos":[
+        //           {
+        //              "name":"PURR/USDC",
+        //              "tokens":[
+        //                 1,
+        //                 0
+        //              ]
+        //           }
+        //        ],
+        //        "token_id_to_token":[
+        //           [
+        //              "0x6d1e7cde53ba9467b783cb7c530ce054",
+        //              0
+        //           ],
+        //           [
+        //              "0xc1fb593aeffbeb02f85e0308e9956a90",
+        //              1
+        //           ]
+        //        ],
+        //        "token_infos":[
+        //           {
+        //              "deployer":null,
+        //              "spec":{
+        //                 "name":"USDC",
+        //                 "szDecimals":"8",
+        //                 "weiDecimals":"8"
+        //              },
+        //              "spots":[
+        //              ]
+        //           },
+        //           {
+        //              "deployer":null,
+        //              "spec":{
+        //                 "name":"PURR",
+        //                 "szDecimals":"0",
+        //                 "weiDecimals":"5"
+        //              },
+        //              "spots":[
+        //                 0
+        //              ]
+        //           }
+        //        ]
+        //     },
+        //     [
+        //        {
+        //           "dayNtlVlm":"35001170.16631",
+        //           "markPx":"0.15743",
+        //           "midPx":"0.157555",
+        //           "prevDayPx":"0.158"
+        //        }
+        //     ]
+        // ]
         //
+        // response differs depending on the environment (mainnet vs sandbox)
         const first = this.safeDict (response, 0, {});
-        const meta = this.safeList (first, 'universe', []);
-        const tokens = this.safeList (first, 'tokens', []);
+        const meta = this.safeList2 (first, 'universe', 'spot_infos', []);
+        const tokens = this.safeList2 (first, 'tokens', 'token_infos', []);
         const markets = [];
         for (let i = 0; i < meta.length; i++) {
             const market = this.safeDict (meta, i, {});
@@ -401,14 +462,16 @@ export default class hyperliquid extends Exchange {
             const maker = this.safeNumber (fees, 'maker');
             const tokensPos = this.safeList (market, 'tokens', []);
             const baseTokenPos = this.safeInteger (tokensPos, 0);
-            const quoteTokenPos = this.safeInteger (tokensPos, 1);
+            // const quoteTokenPos = this.safeInteger (tokensPos, 1);
             const baseTokenInfo = this.safeDict (tokens, baseTokenPos, {});
-            const quoteTokenInfo = this.safeDict (tokens, quoteTokenPos, {});
-            const baseDecimals = this.safeString (baseTokenInfo, 'szDecimals');
-            const quoteDecimals = this.safeInteger (quoteTokenInfo, 'szDecimals');
+            // const quoteTokenInfo = this.safeDict (tokens, quoteTokenPos, {});
+            const innerBaseTokenInfo = this.safeDict (baseTokenInfo, 'spec', baseTokenInfo);
+            // const innerQuoteTokenInfo = this.safeDict (quoteTokenInfo, 'spec', quoteTokenInfo);
+            const amountPrecision = this.parseNumber (this.parsePrecision (this.safeString (innerBaseTokenInfo, 'szDecimals')));
+            // const quotePrecision = this.parseNumber (this.parsePrecision (this.safeString (innerQuoteTokenInfo, 'szDecimals')));
             const baseId = this.numberToString (i + 10000);
             markets.push (this.safeMarketStructure ({
-                'id': baseId,
+                'id': marketName,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
@@ -418,14 +481,15 @@ export default class hyperliquid extends Exchange {
                 'settleId': undefined,
                 'type': 'spot',
                 'spot': true,
+                'subType': undefined,
                 'margin': undefined,
                 'swap': false,
                 'future': false,
                 'option': false,
                 'active': true,
                 'contract': false,
-                'linear': true,
-                'inverse': false,
+                'linear': undefined,
+                'inverse': undefined,
                 'taker': taker,
                 'maker': maker,
                 'contractSize': undefined,
@@ -434,8 +498,8 @@ export default class hyperliquid extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': this.parseNumber (this.parsePrecision (baseDecimals)), // decimal places
-                    'price': quoteDecimals, // significant digits
+                    'amount': amountPrecision, // decimal places
+                    'price': 5, // significant digits
                 },
                 'limits': {
                     'leverage': {
@@ -654,7 +718,7 @@ export default class hyperliquid extends Exchange {
         const market = this.market (symbol);
         const request = {
             'type': 'l2Book',
-            'coin': market['base'],
+            'coin': market['swap'] ? market['base'] : market['id'],
         };
         const response = await this.publicPostInfo (this.extend (request, params));
         //
@@ -715,7 +779,7 @@ export default class hyperliquid extends Exchange {
         const request = {
             'type': 'candleSnapshot',
             'req': {
-                'coin': market['base'],
+                'coin': market['swap'] ? market['base'] : market['id'],
                 'interval': timeframe,
                 'startTime': since,
                 'endTime': until,
@@ -825,6 +889,10 @@ export default class hyperliquid extends Exchange {
     }
 
     amountToPrecision (symbol, amount) {
+        const market = this.market (symbol);
+        if (market['spot']) {
+            return super.amountToPrecision (symbol, amount);
+        }
         return this.decimalToPrecision (amount, ROUND, this.markets[symbol]['precision']['amount'], this.precisionMode);
     }
 
@@ -2398,6 +2466,13 @@ export default class hyperliquid extends Exchange {
             return [ this.walletAddress, params ];
         }
         throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a user parameter inside \'params\' or the wallet address set');
+    }
+
+    coinToMarketId (coin: Str) {
+        if (coin.indexOf ('/') > -1) {
+            return coin; // spot
+        }
+        return coin + '/USDC:USDC';
     }
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {

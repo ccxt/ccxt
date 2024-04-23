@@ -79,6 +79,7 @@ export default class hyperliquid extends Exchange {
     withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<any>;
     formatVaultAddress(address?: Str): string;
     handlePublicAddress(methodName: string, params: Dict): any[];
+    coinToMarketId(coin: Str): string;
     handleErrors(code: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): any;
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;

@@ -719,7 +719,7 @@ class idex extends Exchange {
         return $this->sort_by($result, 0, $descending);
     }
 
-    public function fetch_currencies($params = array ()): array {
+    public function fetch_currencies($params = array ()): ?array {
         /**
          * fetches all available currencies on an exchange
          * @see https://api-docs-v3.idex.io/#get-assets

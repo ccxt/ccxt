@@ -947,7 +947,7 @@ class bitget(ccxt.async_support.bitget):
             limit = orders.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
 
-    def handle_order(self, client: Client, message, subscription=None):
+    def handle_order(self, client: Client, message):
         #
         # spot
         #
