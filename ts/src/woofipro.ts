@@ -1394,6 +1394,50 @@ export default class woofipro extends Exchange {
         return this.extend (this.parseOrder (data), extendParams);
     }
 
+	async cancelAllOrders (symbol: Str = undefined, params = {}) {
+        /**
+         * @method
+         * @name woo#cancelAllOrders
+         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/cancel-all-pending-algo-orders
+         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/cancel-orders-in-bulk
+         * @description cancel all open orders in a market
+         * @param {string} symbol unified market symbol
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [params.stop] whether the order is a stop/algo order
+         * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        const stop = this.safeBool2 (params, 'stop', 'trigger');
+		params = this.omit (params, [ 'stop', 'trigger' ]);
+		const request = {};
+		if (symbol !== undefined) {
+			const market = this.market (symbol);
+			request['symbol'] = market['id'];
+        }
+		let response = undefined;
+        if (stop) {
+            response = await this.v1PrivateDeleteAlgoOrders (this.extend (request, params));
+        } else {
+			response = await this.v1PrivateDeleteOrders (this.extend (request, params));
+		}
+        // stop
+		// 	{
+		// 		"success": true,
+		// 		"timestamp": 1702989203989,
+		// 		 "status": "CANCEL_ALL_SENT"
+		// 	}
+		//
+		// 	{
+		// 		"success": true,
+		// 		"timestamp": 1702989203989,
+		// 		"data": {
+		// 		  "status": "CANCEL_ALL_SENT"
+		// 		}
+		// 	}
+        //
+        return response;
+    }
+
 	async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
