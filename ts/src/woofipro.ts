@@ -1907,6 +1907,52 @@ export default class woofipro extends Exchange {
         return this.parseTrades (trades, market, since, limit, params);
     }
 
+	parseBalance (response): Balances {
+        const result = {
+            'info': response,
+        };
+        const balances = this.safeList (response, 'holding', []);
+        for (let i = 0; i < balances.length; i++) {
+            const balance = balances[i];
+            const code = this.safeCurrencyCode (this.safeString (balance, 'token'));
+            const account = this.account ();
+            account['total'] = this.safeString (balance, 'holding');
+            account['frozen'] = this.safeString (balance, 'frozen');
+            result[code] = account;
+        }
+        return this.safeBalance (result);
+    }
+
+	async fetchBalance (params = {}): Promise<Balances> {
+        /**
+         * @method
+         * @name woofipro#fetchBalance
+         * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-current-holding
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+         */
+        await this.loadMarkets ();
+        const response = await this.v1PrivateGetClientHolding (params);
+        //
+		// 	{
+		// 		"success": true,
+		// 		"timestamp": 1702989203989,
+		// 		"data": {
+		// 		  "holding": [{
+		// 			"updated_time": 1580794149000,
+		// 			"token": "BTC",
+		// 			"holding": -28.000752,
+		// 			"frozen": 123,
+		// 			"pending_short": -2000
+		// 		  }]
+		// 		}
+		// 	}
+        //
+        const data = this.safeDict (response, 'data');
+        return this.parseBalance (data);
+    }
+
     nonce () {
         return this.milliseconds ();
     }
