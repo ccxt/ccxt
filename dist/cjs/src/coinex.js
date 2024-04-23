@@ -4484,7 +4484,7 @@ class coinex extends coinex$1 {
     }
     async fetchFundingRates(symbols = undefined, params = {}) {
         /**
-         *  @method
+         * @method
          * @name coinex#fetchFundingRates
          * @description fetch the current funding rates
          * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http009_market_ticker_all

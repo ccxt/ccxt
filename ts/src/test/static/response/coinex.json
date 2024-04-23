@@ -440,12 +440,11 @@
                     "code": 0,
                     "data": [
                         {
-                            "id": 4023534184,
-                            "type": "sell",
-                            "price": "73242.73",
-                            "amount": "0.00037339",
-                            "date": 1710327659,
-                            "date_ms": 1710327659543
+                            "amount": "0.00132336",
+                            "created_at": 1713852267517,
+                            "deal_id": 4137594247,
+                            "price": "66567.15",
+                            "side": "sell"
                         }
                     ],
                     "message": "OK"
@@ -453,24 +452,23 @@
                 "parsedResponse": [
                     {
                         "info": {
-                            "id": 4023534184,
-                            "type": "sell",
-                            "price": "73242.73",
-                            "amount": "0.00037339",
-                            "date": 1710327659,
-                            "date_ms": 1710327659543
+                            "amount": "0.00132336",
+                            "created_at": 1713852267517,
+                            "deal_id": 4137594247,
+                            "price": "66567.15",
+                            "side": "sell"
                         },
-                        "timestamp": 1710327659543,
-                        "datetime": "2024-03-13T11:00:59.543Z",
+                        "timestamp": 1713852267517,
+                        "datetime": "2024-04-23T06:04:27.517Z",
                         "symbol": "BTC/USDT",
-                        "id": "4023534184",
+                        "id": "4137594247",
                         "order": null,
                         "type": null,
                         "side": "sell",
                         "takerOrMaker": null,
-                        "price": 73242.73,
-                        "amount": 0.00037339,
-                        "cost": 27.3481029547,
+                        "price": 66567.15,
+                        "amount": 0.00132336,
+                        "cost": 88.092303624,
                         "fee": null,
                         "fees": []
                     }

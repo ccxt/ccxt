@@ -79,7 +79,6 @@ class woo(ccxt.async_support.woo):
         return newValue
 
     async def watch_public(self, messageHash, message):
-        self.check_required_uid()
         url = self.urls['api']['ws']['public'] + '/' + self.uid
         requestId = self.request_id(url)
         subscribe = {

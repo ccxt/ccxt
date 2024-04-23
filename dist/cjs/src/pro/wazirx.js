@@ -746,7 +746,8 @@ class wazirx extends wazirx$1 {
         };
         const streams = Object.keys(streamHandlers);
         for (let i = 0; i < streams.length; i++) {
-            if (this.inArray(streams[i], stream)) {
+            const streamContains = stream.indexOf(streams[i]) > -1;
+            if (streamContains) {
                 const handler = streamHandlers[streams[i]];
                 handler.call(this, client, message);
                 return;

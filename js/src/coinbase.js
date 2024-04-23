@@ -2592,7 +2592,7 @@ export default class coinbase extends Exchange {
          * @param {float} [params.stopLossPrice] price to trigger stop-loss orders
          * @param {float} [params.takeProfitPrice] price to trigger take-profit orders
          * @param {bool} [params.postOnly] true or false
-         * @param {string} [params.timeInForce] 'GTC', 'IOC', 'GTD' or 'PO'
+         * @param {string} [params.timeInForce] 'GTC', 'IOC', 'GTD' or 'PO', 'FOK'
          * @param {string} [params.stop_direction] 'UNKNOWN_STOP_DIRECTION', 'STOP_DIRECTION_STOP_UP', 'STOP_DIRECTION_STOP_DOWN' the direction the stopPrice is triggered from
          * @param {string} [params.end_time] '2023-05-25T17:01:05.092Z' for 'GTD' orders
          * @param {float} [params.cost] *spot market buy only* the quote quantity that can be used as an alternative for the amount
@@ -2692,6 +2692,14 @@ export default class coinbase extends Exchange {
                 else if (timeInForce === 'IOC') {
                     request['order_configuration'] = {
                         'sor_limit_ioc': {
+                            'base_size': this.amountToPrecision(symbol, amount),
+                            'limit_price': this.priceToPrecision(symbol, price),
+                        },
+                    };
+                }
+                else if (timeInForce === 'FOK') {
+                    request['order_configuration'] = {
+                        'limit_limit_fok': {
                             'base_size': this.amountToPrecision(symbol, amount),
                             'limit_price': this.priceToPrecision(symbol, price),
                         },
