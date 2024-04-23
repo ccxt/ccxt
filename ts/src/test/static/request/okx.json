@@ -819,6 +819,26 @@
                 "output": "[{\"instId\":\"LTC-USDT-SWAP\",\"ordId\":\"1388361822563405824\"},{\"instId\":\"ADA-USDT\",\"ordId\":\"1388360134171496448\"}]"
             }
         ],
+        "cancelAllOrdersAfter": [
+            {
+                "description": "Cancel orders after",
+                "method": "cancelAllOrdersAfter",
+                "url": "https://www.okx.com/api/v5/trade/cancel-all-after",
+                "input": [
+                    10000
+                ],
+                "output": "{\"timeOut\":10}"
+            },
+            {
+                "description": "Close cancel orders after",
+                "method": "cancelAllOrdersAfter",
+                "url": "https://www.okx.com/api/v5/trade/cancel-all-after",
+                "input": [
+                    0
+                ],
+                "output": "{\"timeOut\":0}"
+            }
+        ],
         "closePosition": [
             {
                 "description": "Closing positiion in net mode",
