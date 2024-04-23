@@ -1199,146 +1199,22 @@ export default class coinbase extends Exchange {
     async fetchMarketsV3 (params = {}) {
         const spotUnresolvedPromises = [
             this.v3PublicGetBrokerageMarketProducts (params),
-            //
-            //    {
-            //        products: [
-            //            {
-            //                product_id: 'BTC-USD',
-            //                price: '67060',
-            //                price_percentage_change_24h: '3.30054960636883',
-            //                volume_24h: '10967.87426597',
-            //                volume_percentage_change_24h: '141.73048325503036',
-            //                base_increment: '0.00000001',
-            //                quote_increment: '0.01',
-            //                quote_min_size: '1',
-            //                quote_max_size: '150000000',
-            //                base_min_size: '0.00000001',
-            //                base_max_size: '3400',
-            //                base_name: 'Bitcoin',
-            //                quote_name: 'US Dollar',
-            //                watched: false,
-            //                is_disabled: false,
-            //                new: false,
-            //                status: 'online',
-            //                cancel_only: false,
-            //                limit_only: false,
-            //                post_only: false,
-            //                trading_disabled: false,
-            //                auction_mode: false,
-            //                product_type: 'SPOT',
-            //                quote_currency_id: 'USD',
-            //                base_currency_id: 'BTC',
-            //                fcm_trading_session_details: null,
-            //                mid_market_price: '',
-            //                alias: '',
-            //                alias_to: [ 'BTC-USDC' ],
-            //                base_display_symbol: 'BTC',
-            //                quote_display_symbol: 'USD',
-            //                view_only: false,
-            //                price_increment: '0.01',
-            //                display_name: 'BTC-USD',
-            //                product_venue: 'CBE'
-            //            },
-            //            ...
-            //        ],
-            //        num_products: '646'
-            //    }
-            //
-            this.v3PrivateGetBrokerageTransactionSummary (params),
-            //
-            //    {
-            //        total_volume: '9.995989116664404',
-            //        total_fees: '0.07996791093331522',
-            //        fee_tier: {
-            //            pricing_tier: 'Advanced 1',
-            //            usd_from: '0',
-            //            usd_to: '1000',
-            //            taker_fee_rate: '0.008',
-            //            maker_fee_rate: '0.006',
-            //            aop_from: '',
-            //            aop_to: ''
-            //        },
-            //        margin_rate: null,
-            //        goods_and_services_tax: null,
-            //        advanced_trade_only_volume: '9.995989116664404',
-            //        advanced_trade_only_fees: '0.07996791093331522',
-            //        coinbase_pro_volume: '0',
-            //        coinbase_pro_fees: '0',
-            //        total_balance: '',
-            //        has_promo_fee: false
-            //    }
-            //
         ];
+        if (this.checkRequiredCredentials (false)) {
+            spotUnresolvedPromises.push (this.v3PrivateGetBrokerageTransactionSummary (params));
+        }
         let unresolvedContractPromises = [];
         try {
             unresolvedContractPromises = [
                 this.v3PublicGetBrokerageMarketProducts (this.extend (params, { 'product_type': 'FUTURE' })),
-                //
-                //    {
-                //       products: [
-                //           {
-                //                product_id: 'BIT-26APR24-CDE',
-                //                price: '67125',
-                //                price_percentage_change_24h: '3.46023427866831',
-                //                volume_24h: '69974',
-                //                volume_percentage_change_24h: '866.35823781245684',
-                //                base_increment: '1',
-                //                quote_increment: '0.01',
-                //                quote_min_size: '0',
-                //                quote_max_size: '100000000',
-                //                base_min_size: '1',
-                //                base_max_size: '100000000',
-                //                base_name: '',
-                //                quote_name: 'US Dollar',
-                //                watched: false,
-                //                is_disabled: false,
-                //                new: false,
-                //                status: '',
-                //                cancel_only: false,
-                //                limit_only: false,
-                //                post_only: false,
-                //                trading_disabled: false,
-                //                auction_mode: false,
-                //                product_type: 'FUTURE',
-                //                quote_currency_id: 'USD',
-                //                base_currency_id: '',
-                //                fcm_trading_session_details: {
-                //                    is_session_open: true,
-                //                    open_time: '2024-04-22T22:00:00Z',
-                //                    close_time: '2024-04-23T21:00:00Z'
-                //                },
-                //                mid_market_price: '67112.5',
-                //                alias: '',
-                //                alias_to: [],
-                //                base_display_symbol: '',
-                //                quote_display_symbol: 'USD',
-                //                view_only: false,
-                //                price_increment: '5',
-                //                display_name: 'BTC 26 APR 24',
-                //                product_venue: 'FCM',
-                //                future_product_details: {
-                //                    venue: 'cde',
-                //                    contract_code: 'BIT',
-                //                    contract_expiry: '2024-04-26T15:00:00Z',
-                //                    contract_size: '0.01',
-                //                    contract_root_unit: 'BTC',
-                //                    group_description: 'Nano Bitcoin Futures',
-                //                    contract_expiry_timezone: 'Europe/London',
-                //                    group_short_description: 'Nano BTC',
-                //                    risk_managed_by: 'MANAGED_BY_FCM',
-                //                    contract_expiry_type: 'EXPIRING',
-                //                    contract_display_name: 'BTC 26 APR 24'
-                //                }
-                //            }
-                //        }
-                //    }
-                //
                 this.v3PublicGetBrokerageMarketProducts (this.extend (params, { 'product_type': 'FUTURE', 'contract_expiry_type': 'PERPETUAL' })),
-                this.v3PrivateGetBrokerageTransactionSummary (this.extend (params, { 'product_type': 'FUTURE' })),
-                this.v3PrivateGetBrokerageTransactionSummary (this.extend (params, { 'product_type': 'FUTURE', 'contract_expiry_type': 'PERPETUAL' })),
             ];
+            if (this.checkRequiredCredentials (false)) {
+                unresolvedContractPromises.push (this.extend (params, { 'product_type': 'FUTURE' }));
+                unresolvedContractPromises.push (this.extend (params, { 'product_type': 'FUTURE', 'contract_expiry_type': 'PERPETUAL' }));
+            }
         } catch (e) {
-            unresolvedContractPromises = []; // the sync version of ccxt won't have the promise.all line so the request is made here
+            unresolvedContractPromises = []; // the sync version of ccxt won't have the promise.all line so the request is made here. Some users can't access perpetual products
         }
         const promises = await Promise.all (spotUnresolvedPromises);
         let contractPromises = undefined;
