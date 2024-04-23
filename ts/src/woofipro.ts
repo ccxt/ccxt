@@ -929,6 +929,62 @@ export default class woofipro extends Exchange {
         return this.filterBySymbolSinceLimit (sorted, symbol, since, limit) as FundingRateHistory[];
     }
 
+	async fetchTradingFees (params = {}): Promise<TradingFees> {
+        /**
+         * @method
+         * @name woofipro#fetchTradingFees
+         * @description fetch the trading fees for multiple markets
+         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-account-information
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
+         */
+        await this.loadMarkets ();
+        const response = await this.v1PrivateGetClientInfo (params);
+        //
+		// 	{
+		// 		"success": true,
+		// 		"timestamp": 1702989203989,
+		// 		"data": {
+		// 		"account_id": "<string>",
+		// 		"email": "test@test.com",
+		// 		"account_mode": "FUTURES",
+		// 		"max_leverage": 20,
+		// 		"taker_fee_rate": 123,
+		// 		"maker_fee_rate": 123,
+		// 		"futures_taker_fee_rate": 123,
+		// 		"futures_maker_fee_rate": 123,
+		// 		"maintenance_cancel_orders": true,
+		// 		"imr_factor": {
+		// 			"PERP_BTC_USDC": 123,
+		// 			"PERP_ETH_USDC": 123,
+		// 			"PERP_NEAR_USDC": 123
+		// 		},
+		// 		"max_notional": {
+		// 			"PERP_BTC_USDC": 123,
+		// 			"PERP_ETH_USDC": 123,
+		// 			"PERP_NEAR_USDC": 123
+		// 		}
+		// 		}
+		// 	}
+        //
+        const data = this.safeDict (response, 'data', {});
+        const maker = this.safeString (data, 'makerFeeRate');
+        const taker = this.safeString (data, 'takerFeeRate');
+        const result = {};
+        for (let i = 0; i < this.symbols.length; i++) {
+            const symbol = this.symbols[i];
+            result[symbol] = {
+                'info': response,
+                'symbol': symbol,
+                'maker': this.parseNumber (Precise.stringDiv (maker, '10000')),
+                'taker': this.parseNumber (Precise.stringDiv (taker, '10000')),
+                'percentage': true,
+                'tierBased': true,
+            };
+        }
+        return result;
+    }
+
 	async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         /**
          * @method
@@ -1357,13 +1413,13 @@ export default class woofipro extends Exchange {
 		if (isStop) {
 			response = await this.v1PrivatePutAlgoOrder (this.extend (request, params));
 		} else {
-			const clientOrderId = this.safeStringN (params, [ 'clOrdID', 'clientOrderId', 'client_order_id' ]);
-			params = this.omit (params, [ 'clOrdID', 'clientOrderId', 'client_order_id' ]);
-			if (clientOrderId !== undefined) {
-				request['client_order_id'] = clientOrderId;
-			}
-			request['side'] = side.toUpperCase ();
-			request['symbol'] = market['id'];
+			// const clientOrderId = this.safeStringN (params, [ 'clOrdID', 'clientOrderId', 'client_order_id' ]);
+			// params = this.omit (params, [ 'clOrdID', 'clientOrderId', 'client_order_id' ]);
+			// if (clientOrderId !== undefined) {
+			// 	request['client_order_id'] = clientOrderId;
+			// }
+			// request['side'] = side.toUpperCase ();
+			// request['symbol'] = market['id'];
 			response = await this.v1PrivatePutOrder (this.extend (request, params));
 		}
         //
