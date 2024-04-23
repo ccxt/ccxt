@@ -33,7 +33,7 @@
     "transpileCS": "node --no-warnings --loader ts-node/esm build/csharpTranspiler.ts --multi",
     "transpileCSWs": "node --no-warnings --loader ts-node/esm build/csharpTranspiler.ts --ws",
     "buildCS": "dotnet build cs/ccxt.sln",
-    "buildTests": "dotnet build cs/tests/tests.csproj",
+    "buildCSTests": "dotnet build cs/tests/tests.csproj",
     "buildCSRelease": "dotnet build cs --configuration Release",
     "csharp": "npm run transpileCS && npm run transpileCSWs && npm run buildCS",
     "force-build": "npm run pre-transpile && npm run force-transpile-fast && npm run csharp && npm run post-transpile && npm run update-badges",
