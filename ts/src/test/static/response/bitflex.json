@@ -189,6 +189,205 @@
                     }
                 }
             }
+        ],
+        "createOrder": [
+            {
+                "description": "Create spot market order",
+                "method": "createOrder",
+                "input": [
+                    "ETH/USDT",
+                    "market",
+                    "buy",
+                    0.01,
+                    3100
+                ],
+                "httpResponse": {
+                    "accountId": "1662502620223296001",
+                    "symbol": "ETHUSDT",
+                    "symbolName": "ETHUSDT",
+                    "clientOrderId": "1713900495608567",
+                    "orderId": "1670712881241456896",
+                    "transactTime": "1713900495618",
+                    "price": "0",
+                    "origQty": "31",
+                    "executedQty": "0",
+                    "status": "FILLED",
+                    "timeInForce": "GTC",
+                    "type": "MARKET",
+                    "side": "BUY"
+                },
+                "parsedResponse": {
+                    "id": "1670712881241456896",
+                    "clientOrderId": "1713900495608567",
+                    "timestamp": 1713900495618,
+                    "datetime": "2024-04-23T19:28:15.618Z",
+                    "lastUpdateTimestamp": null,
+                    "lastTradeTimestamp": null,
+                    "status": "closed",
+                    "symbol": "ETH/USDT",
+                    "type": "market",
+                    "timeInForce": "GTC",
+                    "side": "buy",
+                    "price": null,
+                    "stopPrice": null,
+                    "triggerPrice": null,
+                    "average": null,
+                    "amount": 0,
+                    "cost": 31,
+                    "filled": 0,
+                    "remaining": 0,
+                    "reduceOnly": null,
+                    "fee": null,
+                    "trades": [],
+                    "info": {
+                        "accountId": "1662502620223296001",
+                        "symbol": "ETHUSDT",
+                        "symbolName": "ETHUSDT",
+                        "clientOrderId": "1713900495608567",
+                        "orderId": "1670712881241456896",
+                        "transactTime": "1713900495618",
+                        "price": "0",
+                        "origQty": "31",
+                        "executedQty": "0",
+                        "status": "FILLED",
+                        "timeInForce": "GTC",
+                        "type": "MARKET",
+                        "side": "BUY"
+                  },
+                  "fees": [],
+                  "postOnly": false,
+                  "takeProfitPrice": null,
+                  "stopLossPrice": null
+                }
+            }
+        ],
+        "fetchOrder" [
+            {
+                "description": "Fetch spot market order",
+                "method": "fetchOrder",
+                "input": [
+                    "1670712881241456896"
+                ],
+                "httpResponse": {
+                    "accountId": "1662502620223296001",
+                    "exchangeId": "301",
+                    "symbol": "ETHUSDT",
+                    "symbolName": "ETHUSDT",
+                    "clientOrderId": "1713900495608567",
+                    "orderId": "1670712881241456896",
+                    "price": "0",
+                    "origQty": "31",
+                    "executedQty": "0.0096",
+                    "cummulativeQuoteQty": "30.897888",
+                    "avgPrice": "3218.53",
+                    "status": "FILLED",
+                    "timeInForce": "GTC",
+                    "type": "MARKET",
+                    "side": "BUY",
+                    "stopPrice": "0.0",
+                    "icebergQty": "0.0",
+                    "time": "1713900495618",
+                    "updateTime": "1713900495656",
+                    "isWorking": true
+                },
+                "parsedResponse": {
+                    "id": "1670712881241456896",
+                    "clientOrderId": "1713900495608567",
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastUpdateTimestamp": 1713900495656,
+                    "lastTradeTimestamp": null,
+                    "status": "closed",
+                    "symbol": "ETH/USDT",
+                    "type": "market",
+                    "timeInForce": "GTC",
+                    "side": "buy",
+                    "price": 3218.53,
+                    "stopPrice": null,
+                    "triggerPrice": null,
+                    "average": 3218.53,
+                    "amount": 0.0096,
+                    "cost": 31,
+                    "filled": 0.0096,
+                    "remaining": 0,
+                    "reduceOnly": null,
+                    "fee": null,
+                    "trades": [],
+                    "info": {
+                        "accountId": "1662502620223296001",
+                        "exchangeId": "301",
+                        "symbol": "ETHUSDT",
+                        "symbolName": "ETHUSDT",
+                        "clientOrderId": "1713900495608567",
+                        "orderId": "1670712881241456896",
+                        "price": "0",
+                        "origQty": "31",
+                        "executedQty": "0.0096",
+                        "cummulativeQuoteQty": "30.897888",
+                        "avgPrice": "3218.53",
+                        "status": "FILLED",
+                        "timeInForce": "GTC",
+                        "type": "MARKET",
+                        "side": "BUY",
+                        "stopPrice": "0.0",
+                        "icebergQty": "0.0",
+                        "time": "1713900495618",
+                        "updateTime": "1713900495656",
+                        "isWorking": true
+                    },
+                    "fees": [],
+                    "postOnly": false,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            }
+        ],
+        "fetchAccounts": [
+            {
+                "description": "Fetch accounts",
+                "method": "fetchAccounts",
+                "input": [],
+                "httpResponse": [
+                    {
+                        "accountId": "1662502620223296001",
+                        "accountName": "",
+                        "accountType": "1",
+                        "accountIndex": "0"
+                    },
+                    {
+                        "accountId": "1662502620223296003",
+                        "accountName": "",
+                        "accountType": "3",
+                        "accountIndex": "0"
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "id": "1662502620223296001",
+                        "name": null,
+                        "type": "spot",
+                        "code": null,
+                        "info": {
+                            "accountId": "1662502620223296001",
+                            "accountName": "",
+                            "accountType": "1",
+                            "accountIndex": "0"
+                        }
+                    },
+                    {
+                        "id": "1662502620223296003",
+                        "name": null,
+                        "type": "swap",
+                        "code": null,
+                        "info": {
+                            "accountId": "1662502620223296003",
+                            "accountName": "",
+                            "accountType": "3",
+                            "accountIndex": "0"
+                        }
+                    }
+                ]
+            }
         ]
     }
 }
