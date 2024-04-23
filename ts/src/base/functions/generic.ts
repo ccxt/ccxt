@@ -1,6 +1,7 @@
 
 // ----------------------------------------------------------------------------
 
+import { Collection } from '../types.js';
 import { isObject, isNumber, isDictionary, isArray } from './type.js';
 
 // ----------------------------------------------------------------------------
@@ -23,7 +24,7 @@ const arrayConcat = (a, b) => a.concat (b);
 
 const inArray = (needle, haystack) => haystack.includes (needle);
 
-const toArray = (object: object|any[]) => Object.values (object);
+const toArray = (object: Collection) => Object.values (object);
 
 const isEmpty = (object) => {
     if (!object) {
