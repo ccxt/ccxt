@@ -213,6 +213,9 @@ export default class bitflex extends Exchange {
                     // 400 {"code":-1000,"msg":"An unknown error occured while processing the request."}
                     // 400 {"code":-1187,"msg":"Withdrawal address not in whitelist"}
                     // 400 {"code":-1023,"msg":"Please set IP whitelist before using API"}
+                    // 400 {"code":-1022,"msg":"Signature for this request is not valid."}
+                    // 400 {"code":-10009,"msg":"Invalid period!"}
+                    // 400 {"code":-100002,"msg":"Param startTime should be Long."}
                     // 500 {"code":-9999,"msg":"Server Error"}
                 },
                 'broad': {
