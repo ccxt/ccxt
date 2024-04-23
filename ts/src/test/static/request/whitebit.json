@@ -242,7 +242,7 @@
                         "symbol": "BTC/USDT"
                     }
                 ],
-                "output": "{\"request\":\"/api/v4/order/kill-switch\",\"nonce\":\"1701937579352\",\"market\":\"BTC_USDT\",\"timeout\":null}"
+                "output": "{\"request\":\"/api/v4/order/kill-switch\",\"nonce\":\"1701937579352\",\"market\":\"BTC_USDT\",\"timeout\":\"null\"}"
             }
         ],
         "fetchBalance": [

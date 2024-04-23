@@ -1446,7 +1446,7 @@ export default class whitebit extends Exchange {
         if (isBiggerThanZero) {
             request['timeout'] = this.numberToString (timeout / 1000);
         } else {
-            request['timeout'] = undefined;
+            request['timeout'] = 'null';
         }
         const response = await this.v4PrivatePostOrderKillSwitch (this.extend (request, params));
         //
