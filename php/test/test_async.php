@@ -617,6 +617,9 @@ class testMainClass extends baseMainTestClass {
         if ((is_array($final_skips) && array_key_exists('bid', $final_skips)) && !(is_array($final_skips) && array_key_exists('ask', $final_skips))) {
             $final_skips['ask'] = $final_skips['bid'];
         }
+        if ((is_array($final_skips) && array_key_exists('baseVolume', $final_skips)) && !(is_array($final_skips) && array_key_exists('quoteVolume', $final_skips))) {
+            $final_skips['quoteVolume'] = $final_skips['baseVolume'];
+        }
         return $final_skips;
     }
 

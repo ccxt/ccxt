@@ -187,6 +187,9 @@ abstract class bingx extends \ccxt\Exchange {
     public function swap_v2_private_post_trade_closeallpositions($params = array()) {
         return $this->request('trade/closeAllPositions', array('swap', 'v2', 'private'), 'POST', $params, null, null, array("cost" => 3));
     }
+    public function swap_v2_private_post_trade_cancelallafter($params = array()) {
+        return $this->request('trade/cancelAllAfter', array('swap', 'v2', 'private'), 'POST', $params, null, null, array("cost" => 3));
+    }
     public function swap_v2_private_post_trade_margintype($params = array()) {
         return $this->request('trade/marginType', array('swap', 'v2', 'private'), 'POST', $params, null, null, array("cost" => 3));
     }
@@ -489,6 +492,9 @@ abstract class bingx extends \ccxt\Exchange {
     }
     public function swapV2PrivatePostTradeCloseAllPositions($params = array()) {
         return $this->request('trade/closeAllPositions', array('swap', 'v2', 'private'), 'POST', $params, null, null, array("cost" => 3));
+    }
+    public function swapV2PrivatePostTradeCancelAllAfter($params = array()) {
+        return $this->request('trade/cancelAllAfter', array('swap', 'v2', 'private'), 'POST', $params, null, null, array("cost" => 3));
     }
     public function swapV2PrivatePostTradeMarginType($params = array()) {
         return $this->request('trade/marginType', array('swap', 'v2', 'private'), 'POST', $params, null, null, array("cost" => 3));

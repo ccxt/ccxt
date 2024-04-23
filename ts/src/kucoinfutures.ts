@@ -2214,8 +2214,8 @@ export default class kucoinfutures extends kucoin {
             // symbol (String) [optional] Symbol of the contract
             // side (String) [optional] buy or sell
             // type (String) [optional] limit, market, limit_stop or market_stop
-            // startAt (long) [optional] Start time (milisecond)
-            // endAt (long) [optional] End time (milisecond)
+            // startAt (long) [optional] Start time (millisecond)
+            // endAt (long) [optional] End time (millisecond)
         };
         let market = undefined;
         if (symbol !== undefined) {

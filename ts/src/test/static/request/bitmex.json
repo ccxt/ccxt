@@ -522,6 +522,26 @@
                 "output": "{\"symbol\":\"XBT_USDT\"}"
             }
         ],
+        "cancelAllOrdersAfter": [
+            {
+                "description": "Cancel all orders after",
+                "method": "cancelAllOrdersAfter",
+                "url": "https://testnet.bitmex.com/api/v1/order/cancelAllAfter",
+                "input": [
+                    100000
+                ],
+                "output": "{\"timeout\":100}"
+            },
+            {
+                "description": "Close cancel all orders after",
+                "method": "cancelAllOrdersAfter",
+                "url": "https://testnet.bitmex.com/api/v1/order/cancelAllAfter",
+                "input": [
+                    0
+                ],
+                "output": "{\"timeout\":0}"
+            }
+        ],
         "fetchFundingRates": [
             {
                 "description": "Fetch funding rates",
