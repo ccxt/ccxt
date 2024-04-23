@@ -7,8 +7,8 @@ namespace ccxt\pro;
 
 use Exception; // a common import
 use ccxt\ExchangeError;
-use ccxt\NotSupported;
 use ccxt\AuthenticationError;
+use ccxt\NotSupported;
 use React\Async;
 use React\Promise\PromiseInterface;
 
@@ -775,20 +775,22 @@ class blockchaincom extends \ccxt\async\blockchaincom {
     }
 
     public function authenticate($params = array ()) {
-        $url = $this->urls['api']['ws'];
-        $client = $this->client($url);
-        $messageHash = 'authenticated';
-        $future = $client->future ($messageHash);
-        $isAuthenticated = $this->safe_value($client->subscriptions, $messageHash);
-        if ($isAuthenticated === null) {
-            $this->check_required_credentials();
-            $request = array(
-                'action' => 'subscribe',
-                'channel' => 'auth',
-                'token' => $this->secret,
-            );
-            return $this->watch($url, $messageHash, array_merge($request, $params), $messageHash);
-        }
-        return $future;
+        return Async\async(function () use ($params) {
+            $url = $this->urls['api']['ws'];
+            $client = $this->client($url);
+            $messageHash = 'authenticated';
+            $future = $client->future ($messageHash);
+            $isAuthenticated = $this->safe_value($client->subscriptions, $messageHash);
+            if ($isAuthenticated === null) {
+                $this->check_required_credentials();
+                $request = array(
+                    'action' => 'subscribe',
+                    'channel' => 'auth',
+                    'token' => $this->secret,
+                );
+                return $this->watch($url, $messageHash, array_merge($request, $params), $messageHash);
+            }
+            return Async\await($future);
+        }) ();
     }
 }

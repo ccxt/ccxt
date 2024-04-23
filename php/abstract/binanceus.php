@@ -262,6 +262,9 @@ abstract class binanceus extends \ccxt\binance {
     public function sapi_get_capital_withdraw_history($params = array()) {
         return $this->request('capital/withdraw/history', 'sapi', 'GET', $params, null, null, array("cost" => 1800));
     }
+    public function sapi_get_capital_withdraw_address_list($params = array()) {
+        return $this->request('capital/withdraw/address/list', 'sapi', 'GET', $params, null, null, array("cost" => 10));
+    }
     public function sapi_get_capital_contract_convertible_coins($params = array()) {
         return $this->request('capital/contract/convertible-coins', 'sapi', 'GET', $params, null, null, array("cost" => 4.0002));
     }
@@ -1981,6 +1984,9 @@ abstract class binanceus extends \ccxt\binance {
     public function private_post_order_oco($params = array()) {
         return $this->request('order/oco', 'private', 'POST', $params, null, null, array("cost" => 0.2));
     }
+    public function private_post_orderlist_oco($params = array()) {
+        return $this->request('orderList/oco', 'private', 'POST', $params, null, null, array("cost" => 0.2));
+    }
     public function private_post_sor_order($params = array()) {
         return $this->request('sor/order', 'private', 'POST', $params, null, null, array("cost" => 0.2));
     }
@@ -2511,6 +2517,9 @@ abstract class binanceus extends \ccxt\binance {
     }
     public function sapiGetCapitalWithdrawHistory($params = array()) {
         return $this->request('capital/withdraw/history', 'sapi', 'GET', $params, null, null, array("cost" => 1800));
+    }
+    public function sapiGetCapitalWithdrawAddressList($params = array()) {
+        return $this->request('capital/withdraw/address/list', 'sapi', 'GET', $params, null, null, array("cost" => 10));
     }
     public function sapiGetCapitalContractConvertibleCoins($params = array()) {
         return $this->request('capital/contract/convertible-coins', 'sapi', 'GET', $params, null, null, array("cost" => 4.0002));
@@ -4230,6 +4239,9 @@ abstract class binanceus extends \ccxt\binance {
     }
     public function privatePostOrderOco($params = array()) {
         return $this->request('order/oco', 'private', 'POST', $params, null, null, array("cost" => 0.2));
+    }
+    public function privatePostOrderListOco($params = array()) {
+        return $this->request('orderList/oco', 'private', 'POST', $params, null, null, array("cost" => 0.2));
     }
     public function privatePostSorOrder($params = array()) {
         return $this->request('sor/order', 'private', 'POST', $params, null, null, array("cost" => 0.2));

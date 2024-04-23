@@ -70,6 +70,26 @@ public partial class coinbase
         return ((IList<object>)res).Select(item => new Account(item)).ToList<Account>();
     }
     /// <summary>
+    /// fetch all the portfolios
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getportfolios"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type.</returns>
+    public async Task<List<Account>> FetchPortfolios(Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchPortfolios(parameters);
+        return ((IList<object>)res).Select(item => new Account(item)).ToList<Account>();
+    }
+    /// <summary>
     /// create a currency deposit address
     /// </summary>
     /// <remarks>
@@ -249,10 +269,10 @@ public partial class coinbase
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> an array of objects representing market data.</returns>
-    public async Task<Dictionary<string, object>> FetchMarkets(Dictionary<string, object> parameters = null)
+    public async Task<List<MarketInterface>> FetchMarkets(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchMarkets(parameters);
-        return ((Dictionary<string, object>)res);
+        return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
     }
     public async Task<List<Dictionary<string, object>>> FetchMarketsV2(Dictionary<string, object> parameters = null)
     {
@@ -339,6 +359,7 @@ public partial class coinbase
     /// <remarks>
     /// See <see href="https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getaccounts"/>  <br/>
     /// See <see href="https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-accounts#list-accounts"/>  <br/>
+    /// See <see href="https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getfcmbalancesummary"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -355,7 +376,7 @@ public partial class coinbase
     /// <item>
     /// <term>params.type</term>
     /// <description>
-    /// object : "spot" (default) or "swap"
+    /// object : "spot" (default) or "swap" or "future"
     /// </description>
     /// </item>
     /// </list>
@@ -477,7 +498,7 @@ public partial class coinbase
     /// <item>
     /// <term>params.timeInForce</term>
     /// <description>
-    /// string : 'GTC', 'IOC', 'GTD' or 'PO'
+    /// string : 'GTC', 'IOC', 'GTD' or 'PO', 'FOK'
     /// </description>
     /// </item>
     /// <item>
@@ -502,6 +523,36 @@ public partial class coinbase
     /// <term>params.preview</term>
     /// <description>
     /// boolean : default to false, wether to use the test/preview endpoint or not
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.leverage</term>
+    /// <description>
+    /// float : default to 1, the leverage to use for the order
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.marginMode</term>
+    /// <description>
+    /// string : 'cross' or 'isolated'
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.retail_portfolio_id</term>
+    /// <description>
+    /// string : portfolio uid
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.is_max</term>
+    /// <description>
+    /// boolean : Used in conjunction with tradable_balance to indicate the user wants to use their entire tradable balance
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.tradable_balance</term>
+    /// <description>
+    /// string : amount of tradable balance
     /// </description>
     /// </item>
     /// </list>
@@ -1020,5 +1071,70 @@ public partial class coinbase
     {
         var res = await this.fetchDeposit(id, code, parameters);
         return new Transaction(res);
+    }
+    /// <summary>
+    /// fetch all open positions
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getfcmpositions"/>  <br/>
+    /// See <see href="https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getintxpositions"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.portfolio</term>
+    /// <description>
+    /// string : the portfolio UUID to fetch positions for
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object[]</term> a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}.</returns>
+    public async Task<List<Position>> FetchPositions(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchPositions(symbols, parameters);
+        return ((IList<object>)res).Select(item => new Position(item)).ToList<Position>();
+    }
+    /// <summary>
+    /// fetch data on a single open contract trade position
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getintxposition"/>  <br/>
+    /// See <see href="https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getfcmposition"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.product_id</term>
+    /// <description>
+    /// string : *futures only* the product id of the position to fetch, required for futures markets only
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.portfolio</term>
+    /// <description>
+    /// string : *perpetual/swaps only* the portfolio UUID to fetch the position for, required for perpetual/swaps markets only
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}.</returns>
+    public async Task<Position> FetchPosition(string symbol, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchPosition(symbol, parameters);
+        return new Position(res);
+    }
+    public string CreateAuthToken(Int64 seconds, string method = null, string url = null)
+    {
+        var res = this.createAuthToken(seconds, method, url);
+        return ((string)res);
     }
 }

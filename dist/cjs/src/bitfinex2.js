@@ -1380,6 +1380,9 @@ class bitfinex2 extends bitfinex2$1 {
         if (limit === undefined) {
             limit = 10000;
         }
+        else {
+            limit = Math.min(limit, 10000);
+        }
         let request = {
             'symbol': market['id'],
             'timeframe': this.safeString(this.timeframes, timeframe, timeframe),
@@ -1782,7 +1785,7 @@ class bitfinex2 extends bitfinex2$1 {
             'all': 1,
         };
         const response = await this.privatePostAuthWOrderCancelMulti(this.extend(request, params));
-        const orders = this.safeValue(response, 4, []);
+        const orders = this.safeList(response, 4, []);
         return this.parseOrders(orders);
     }
     async cancelOrder(id, symbol = undefined, params = {}) {
@@ -3501,15 +3504,28 @@ class bitfinex2 extends bitfinex2$1 {
         return this.parseMarginModification(data, market);
     }
     parseMarginModification(data, market = undefined) {
+        //
+        // setMargin
+        //
+        //     [
+        //         [
+        //             1
+        //         ]
+        //     ]
+        //
         const marginStatusRaw = data[0];
         const marginStatus = (marginStatusRaw === 1) ? 'ok' : 'failed';
         return {
             'info': data,
-            'type': undefined,
-            'amount': undefined,
-            'code': undefined,
             'symbol': market['symbol'],
+            'type': undefined,
+            'marginMode': 'isolated',
+            'amount': undefined,
+            'total': undefined,
+            'code': undefined,
             'status': marginStatus,
+            'timestamp': undefined,
+            'datetime': undefined,
         };
     }
     async fetchOrder(id, symbol = undefined, params = {}) {

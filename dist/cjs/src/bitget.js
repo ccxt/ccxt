@@ -37,6 +37,7 @@ class bitget extends bitget$1 {
                 'cancelOrders': true,
                 'closeAllPositions': true,
                 'closePosition': true,
+                'createConvertTrade': true,
                 'createDepositAddress': false,
                 'createMarketBuyOrderWithCost': true,
                 'createMarketOrderWithCost': false,
@@ -63,6 +64,10 @@ class bitget extends bitget$1 {
                 'fetchCanceledAndClosedOrders': true,
                 'fetchCanceledOrders': true,
                 'fetchClosedOrders': true,
+                'fetchConvertCurrencies': true,
+                'fetchConvertQuote': true,
+                'fetchConvertTrade': false,
+                'fetchConvertTradeHistory': true,
                 'fetchCrossBorrowRate': true,
                 'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
@@ -84,6 +89,7 @@ class bitget extends bitget$1 {
                 'fetchLeverage': true,
                 'fetchLeverageTiers': false,
                 'fetchLiquidations': false,
+                'fetchMarginAdjustmentHistory': false,
                 'fetchMarginMode': true,
                 'fetchMarketLeverageTiers': true,
                 'fetchMarkets': true,
@@ -1219,6 +1225,7 @@ class bitget extends bitget$1 {
                     '40768': errors.OrderNotFound,
                     '41114': errors.OnMaintenance,
                     '43011': errors.InvalidOrder,
+                    '43012': errors.InsufficientFunds,
                     '43025': errors.InvalidOrder,
                     '43115': errors.OnMaintenance,
                     '45110': errors.InvalidOrder,
@@ -1293,6 +1300,8 @@ class bitget extends bitget$1 {
             'precisionMode': number.TICK_SIZE,
             'commonCurrencies': {
                 'JADE': 'Jade Protocol',
+                'DEGEN': 'DegenReborn',
+                'TONCOIN': 'TON',
             },
             'options': {
                 'timeframes': {
@@ -1872,8 +1881,8 @@ class bitget extends bitget$1 {
         const data = this.safeValue(response, 'data', []);
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
-            const id = this.safeString(entry, 'coinId');
-            const code = this.safeCurrencyCode(this.safeString(entry, 'coin'));
+            const id = this.safeString(entry, 'coin'); // we don't use 'coinId' as it has no use. it is 'coin' field that needs to be used in currency related endpoints (deposit, withdraw, etc..)
+            const code = this.safeCurrencyCode(id);
             const chains = this.safeValue(entry, 'chains', []);
             const networks = {};
             let deposit = false;
@@ -2002,7 +2011,7 @@ class bitget extends bitget$1 {
             }
             params = this.omit(params, 'code');
             const currency = this.currency(code);
-            request['coin'] = currency['code'];
+            request['coin'] = currency['id'];
             response = await this.privateMarginGetV2MarginCrossedTierData(this.extend(request, params));
         }
         else {
@@ -2158,7 +2167,7 @@ class bitget extends bitget$1 {
             since = this.milliseconds() - 7776000000; // 90 days
         }
         let request = {
-            'coin': currency['code'],
+            'coin': currency['id'],
             'startTime': since,
             'endTime': this.milliseconds(),
         };
@@ -2190,7 +2199,7 @@ class bitget extends bitget$1 {
         //         ]
         //     }
         //
-        const rawTransactions = this.safeValue(response, 'data', []);
+        const rawTransactions = this.safeList(response, 'data', []);
         return this.parseTransactions(rawTransactions, currency, since, limit);
     }
     async withdraw(code, amount, address, tag = undefined, params = {}) {
@@ -2217,7 +2226,7 @@ class bitget extends bitget$1 {
         const currency = this.currency(code);
         const networkId = this.networkCodeToId(chain);
         const request = {
-            'coin': currency['code'],
+            'coin': currency['id'],
             'address': address,
             'chain': networkId,
             'size': amount,
@@ -2303,7 +2312,7 @@ class bitget extends bitget$1 {
             since = this.milliseconds() - 7776000000; // 90 days
         }
         let request = {
-            'coin': currency['code'],
+            'coin': currency['id'],
             'startTime': since,
             'endTime': this.milliseconds(),
         };
@@ -2338,7 +2347,7 @@ class bitget extends bitget$1 {
         //         ]
         //     }
         //
-        const rawTransactions = this.safeValue(response, 'data', []);
+        const rawTransactions = this.safeList(response, 'data', []);
         return this.parseTransactions(rawTransactions, currency, since, limit);
     }
     parseTransaction(transaction, currency = undefined) {
@@ -2446,7 +2455,7 @@ class bitget extends bitget$1 {
         }
         const currency = this.currency(code);
         const request = {
-            'coin': currency['code'],
+            'coin': currency['id'],
         };
         if (networkId !== undefined) {
             request['chain'] = networkId;
@@ -2466,7 +2475,7 @@ class bitget extends bitget$1 {
         //         }
         //     }
         //
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         return this.parseDepositAddress(data, currency);
     }
     parseDepositAddress(depositAddress, currency = undefined) {
@@ -2621,7 +2630,11 @@ class bitget extends bitget$1 {
         //
         const marketId = this.safeString(ticker, 'symbol');
         const close = this.safeString(ticker, 'lastPr');
-        const timestamp = this.safeInteger(ticker, 'ts');
+        const timestampString = this.omitZero(this.safeString(ticker, 'ts')); // exchange sometimes provided 0
+        let timestamp = undefined;
+        if (timestampString !== undefined) {
+            timestamp = this.parseToInt(timestampString);
+        }
         const change = this.safeString(ticker, 'change24h');
         const open24 = this.safeString(ticker, 'open24');
         const open = this.safeString(ticker, 'open');
@@ -2755,7 +2768,7 @@ class bitget extends bitget$1 {
         //         ]
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseTicker(data[0], market);
     }
     async fetchTickers(symbols = undefined, params = {}) {
@@ -2767,6 +2780,7 @@ class bitget extends bitget$1 {
          * @see https://www.bitget.com/api-doc/contract/market/Get-All-Symbol-Ticker
          * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.subType] *contract only* 'linear', 'inverse'
          * @param {string} [params.productType] *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
@@ -2783,16 +2797,21 @@ class bitget extends bitget$1 {
                 market = this.market(symbol);
             }
         }
+        let response = undefined;
         const request = {};
         let type = undefined;
         [type, params] = this.handleMarketTypeAndParams('fetchTickers', market, params);
-        let response = undefined;
-        if (type === 'spot') {
+        // Calls like `.fetchTickers (undefined, {subType:'inverse'})` should be supported for this exchange, so
+        // as "options.defaultSubType" is also set in exchange options, we should consider `params.subType`
+        // with higher priority and only default to spot, if `subType` is not set in params
+        const passedSubType = this.safeString(params, 'subType');
+        let productType = undefined;
+        [productType, params] = this.handleProductTypeAndParams(market, params);
+        // only if passedSubType && productType is undefined, then use spot
+        if (type === 'spot' && passedSubType === undefined) {
             response = await this.publicSpotGetV2SpotMarketTickers(this.extend(request, params));
         }
         else {
-            let productType = undefined;
-            [productType, params] = this.handleProductTypeAndParams(market, params);
             request['productType'] = productType;
             response = await this.publicMixGetV2MixMarketTickers(this.extend(request, params));
         }
@@ -2853,7 +2872,7 @@ class bitget extends bitget$1 {
         //         ]
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseTickers(data, symbols);
     }
     parseTrade(trade, market = undefined) {
@@ -3093,7 +3112,7 @@ class bitget extends bitget$1 {
         //         ]
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseTrades(data, market, since, limit);
     }
     async fetchTradingFee(symbol, params = {}) {
@@ -3268,6 +3287,8 @@ class bitget extends bitget$1 {
             'symbol': this.safeSymbol(marketId, market),
             'maker': this.safeNumber(data, 'makerFeeRate'),
             'taker': this.safeNumber(data, 'takerFeeRate'),
+            'percentage': undefined,
+            'tierBased': undefined,
         };
     }
     parseOHLCV(ohlcv, market = undefined) {
@@ -4180,7 +4201,7 @@ class bitget extends bitget$1 {
         //         }
         //     }
         //
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         return this.parseOrder(data, market);
     }
     createOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
@@ -4691,7 +4712,7 @@ class bitget extends bitget$1 {
         //         }
         //     }
         //
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         return this.parseOrder(data, market);
     }
     async cancelOrder(id, symbol = undefined, params = {}) {
@@ -4930,7 +4951,7 @@ class bitget extends bitget$1 {
         //     }
         //
         const data = this.safeValue(response, 'data', {});
-        const orders = this.safeValue(data, 'successList', []);
+        const orders = this.safeList(data, 'successList', []);
         return this.parseOrders(orders, market);
     }
     async cancelAllOrders(symbol = undefined, params = {}) {
@@ -5161,9 +5182,15 @@ class bitget extends bitget$1 {
         if (typeof response === 'string') {
             response = JSON.parse(response);
         }
-        const data = this.safeValue(response, 'data');
-        const first = this.safeValue(data, 0, data);
+        const data = this.safeDict(response, 'data');
+        if ((data !== undefined) && !Array.isArray(data)) {
+            return this.parseOrder(data, market);
+        }
+        const dataList = this.safeList(response, 'data', []);
+        const first = this.safeDict(dataList, 0, {});
         return this.parseOrder(first, market);
+        // const first = this.safeDict (data, 0, data);
+        // return this.parseOrder (first, market);
     }
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
@@ -5466,12 +5493,12 @@ class bitget extends bitget$1 {
         const data = this.safeValue(response, 'data');
         if (type === 'spot') {
             if ((marginMode !== undefined) || stop) {
-                const resultList = this.safeValue(data, 'orderList', []);
+                const resultList = this.safeList(data, 'orderList', []);
                 return this.parseOrders(resultList, market, since, limit);
             }
         }
         else {
-            const result = this.safeValue(data, 'entrustedList', []);
+            const result = this.safeList(data, 'entrustedList', []);
             return this.parseOrders(result, market, since, limit);
         }
         return this.parseOrders(data, market, since, limit);
@@ -5838,7 +5865,7 @@ class bitget extends bitget$1 {
         if (typeof response === 'string') {
             response = JSON.parse(response);
         }
-        const orders = this.safeValue(response, 'data', []);
+        const orders = this.safeList(response, 'data', []);
         return this.parseOrders(orders, market, since, limit);
     }
     async fetchLedger(code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -5887,7 +5914,7 @@ class bitget extends bitget$1 {
         let request = {};
         if (code !== undefined) {
             currency = this.currency(code);
-            request['coin'] = currency['code'];
+            request['coin'] = currency['id'];
         }
         [request, params] = this.handleUntilOption('endTime', request, params);
         if (since !== undefined) {
@@ -6242,11 +6269,11 @@ class bitget extends bitget$1 {
         //
         const data = this.safeValue(response, 'data');
         if ((market['swap']) || (market['future'])) {
-            const fillList = this.safeValue(data, 'fillList', []);
+            const fillList = this.safeList(data, 'fillList', []);
             return this.parseTrades(fillList, market, since, limit);
         }
         else if (marginMode !== undefined) {
-            const fills = this.safeValue(data, 'fills', []);
+            const fills = this.safeList(data, 'fills', []);
             return this.parseTrades(fills, market, since, limit);
         }
         return this.parseTrades(data, market, since, limit);
@@ -6309,8 +6336,8 @@ class bitget extends bitget$1 {
         //         ]
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
-        const first = this.safeValue(data, 0, {});
+        const data = this.safeList(response, 'data', []);
+        const first = this.safeDict(data, 0, {});
         return this.parsePosition(first, market);
     }
     async fetchPositions(symbols = undefined, params = {}) {
@@ -6947,15 +6974,29 @@ class bitget extends bitget$1 {
         });
     }
     parseMarginModification(data, market = undefined) {
+        //
+        // addMargin/reduceMargin
+        //
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1700813444618,
+        //         "data": ""
+        //     }
+        //
         const errorCode = this.safeString(data, 'code');
         const status = (errorCode === '00000') ? 'ok' : 'failed';
         return {
             'info': data,
-            'type': undefined,
-            'amount': undefined,
-            'code': market['settle'],
             'symbol': market['symbol'],
+            'type': undefined,
+            'marginMode': 'isolated',
+            'amount': undefined,
+            'total': undefined,
+            'code': market['settle'],
             'status': status,
+            'timestamp': undefined,
+            'datetime': undefined,
         };
     }
     async reduceMargin(symbol, amount, params = {}) {
@@ -7261,7 +7302,7 @@ class bitget extends bitget$1 {
         //         }
         //     }
         //
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         return this.parseOpenInterest(data, market);
     }
     parseOpenInterest(interest, market = undefined) {
@@ -7313,7 +7354,7 @@ class bitget extends bitget$1 {
         type = this.safeString(accountsByType, fromAccount);
         const currency = this.currency(code);
         let request = {
-            'coin': currency['code'],
+            'coin': currency['id'],
             'fromType': type,
         };
         if (since !== undefined) {
@@ -7345,7 +7386,7 @@ class bitget extends bitget$1 {
         //         ]
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseTransfers(data, currency, since, limit);
     }
     async transfer(code, amount, fromAccount, toAccount, params = {}) {
@@ -7372,7 +7413,7 @@ class bitget extends bitget$1 {
             'fromType': fromType,
             'toType': toType,
             'amount': amount,
-            'coin': currency['code'],
+            'coin': currency['id'],
         };
         const symbol = this.safeString(params, 'symbol');
         params = this.omit(params, 'symbol');
@@ -7542,7 +7583,7 @@ class bitget extends bitget$1 {
         //         "requestTime": "1700120731773"
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseDepositWithdrawFees(data, codes, 'coin');
     }
     async borrowCrossMargin(code, amount, params = {}) {
@@ -7559,7 +7600,7 @@ class bitget extends bitget$1 {
         await this.loadMarkets();
         const currency = this.currency(code);
         const request = {
-            'coin': currency['code'],
+            'coin': currency['id'],
             'borrowAmount': this.currencyToPrecision(code, amount),
         };
         const response = await this.privateMarginPostV2MarginCrossedAccountBorrow(this.extend(request, params));
@@ -7594,7 +7635,7 @@ class bitget extends bitget$1 {
         const currency = this.currency(code);
         const market = this.market(symbol);
         const request = {
-            'coin': currency['code'],
+            'coin': currency['id'],
             'borrowAmount': this.currencyToPrecision(code, amount),
             'symbol': market['id'],
         };
@@ -7631,7 +7672,7 @@ class bitget extends bitget$1 {
         const currency = this.currency(code);
         const market = this.market(symbol);
         const request = {
-            'coin': currency['code'],
+            'coin': currency['id'],
             'repayAmount': this.currencyToPrecision(code, amount),
             'symbol': market['id'],
         };
@@ -7667,7 +7708,7 @@ class bitget extends bitget$1 {
         await this.loadMarkets();
         const currency = this.currency(code);
         const request = {
-            'coin': currency['code'],
+            'coin': currency['id'],
             'repayAmount': this.currencyToPrecision(code, amount),
         };
         const response = await this.privateMarginPostV2MarginCrossedAccountRepay(this.extend(request, params));
@@ -7849,7 +7890,7 @@ class bitget extends bitget$1 {
         //     }
         //
         const data = this.safeValue(response, 'data', {});
-        const liquidations = this.safeValue(data, 'resultList', []);
+        const liquidations = this.safeList(data, 'resultList', []);
         return this.parseLiquidations(liquidations, market, since, limit);
     }
     parseLiquidation(liquidation, market = undefined) {
@@ -8029,7 +8070,7 @@ class bitget extends bitget$1 {
         await this.loadMarkets();
         const currency = this.currency(code);
         const request = {
-            'coin': currency['code'],
+            'coin': currency['id'],
         };
         const response = await this.privateMarginGetV2MarginCrossedInterestRateAndLimit(this.extend(request, params));
         //
@@ -8124,7 +8165,7 @@ class bitget extends bitget$1 {
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency(code);
-            request['coin'] = currency['code'];
+            request['coin'] = currency['id'];
         }
         if (since !== undefined) {
             request['startTime'] = since;
@@ -8297,7 +8338,7 @@ class bitget extends bitget$1 {
         //     }
         //
         const data = this.safeValue(response, 'data', {});
-        const order = this.safeValue(data, 'successList', []);
+        const order = this.safeList(data, 'successList', []);
         return this.parseOrder(order[0], market);
     }
     async closeAllPositions(params = {}) {
@@ -8335,7 +8376,7 @@ class bitget extends bitget$1 {
         //     }
         //
         const data = this.safeValue(response, 'data', {});
-        const orderInfo = this.safeValue(data, 'successList', []);
+        const orderInfo = this.safeList(data, 'successList', []);
         return this.parsePositions(orderInfo, undefined, params);
     }
     async fetchMarginMode(symbol, params = {}) {
@@ -8406,12 +8447,285 @@ class bitget extends bitget$1 {
             'marginMode': marginType,
         };
     }
+    async fetchConvertQuote(fromCode, toCode, amount = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitget#fetchConvertQuote
+         * @description fetch a quote for converting from one currency to another
+         * @see https://www.bitget.com/api-doc/common/convert/Get-Quoted-Price
+         * @param {string} fromCode the currency that you want to sell and convert from
+         * @param {string} toCode the currency that you want to buy and convert into
+         * @param {float} [amount] how much you want to trade in units of the from currency
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+         */
+        await this.loadMarkets();
+        const request = {
+            'fromCoin': fromCode,
+            'toCoin': toCode,
+            'fromCoinSize': this.numberToString(amount),
+        };
+        const response = await this.privateConvertGetV2ConvertQuotedPrice(this.extend(request, params));
+        //
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1712121940158,
+        //         "data": {
+        //             "fromCoin": "USDT",
+        //             "fromCoinSize": "5",
+        //             "cnvtPrice": "0.9993007892377704",
+        //             "toCoin": "USDC",
+        //             "toCoinSize": "4.99650394",
+        //             "traceId": "1159288930228187140",
+        //             "fee": "0"
+        //         }
+        //     }
+        //
+        const data = this.safeDict(response, 'data', {});
+        const fromCurrencyId = this.safeString(data, 'fromCoin', fromCode);
+        const fromCurrency = this.currency(fromCurrencyId);
+        const toCurrencyId = this.safeString(data, 'toCoin', toCode);
+        const toCurrency = this.currency(toCurrencyId);
+        return this.parseConversion(data, fromCurrency, toCurrency);
+    }
+    async createConvertTrade(id, fromCode, toCode, amount = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitget#createConvertTrade
+         * @description convert from one currency to another
+         * @see https://www.bitget.com/api-doc/common/convert/Trade
+         * @param {string} id the id of the trade that you want to make
+         * @param {string} fromCode the currency that you want to sell and convert from
+         * @param {string} toCode the currency that you want to buy and convert into
+         * @param {float} amount how much you want to trade in units of the from currency
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} params.price the price of the conversion, obtained from fetchConvertQuote()
+         * @param {string} params.toAmount the amount you want to trade in units of the toCurrency, obtained from fetchConvertQuote()
+         * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+         */
+        await this.loadMarkets();
+        const price = this.safeString2(params, 'price', 'cnvtPrice');
+        if (price === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' createConvertTrade() requires a price parameter');
+        }
+        const toAmount = this.safeString2(params, 'toAmount', 'toCoinSize');
+        if (toAmount === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' createConvertTrade() requires a toAmount parameter');
+        }
+        params = this.omit(params, ['price', 'toAmount']);
+        const request = {
+            'traceId': id,
+            'fromCoin': fromCode,
+            'toCoin': toCode,
+            'fromCoinSize': this.numberToString(amount),
+            'toCoinSize': toAmount,
+            'cnvtPrice': price,
+        };
+        const response = await this.privateConvertPostV2ConvertTrade(this.extend(request, params));
+        //
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1712123746203,
+        //         "data": {
+        //             "cnvtPrice": "0.99940076",
+        //             "toCoin": "USDC",
+        //             "toCoinSize": "4.99700379",
+        //             "ts": "1712123746217"
+        //         }
+        //     }
+        //
+        const data = this.safeDict(response, 'data', {});
+        const toCurrencyId = this.safeString(data, 'toCoin', toCode);
+        const toCurrency = this.currency(toCurrencyId);
+        return this.parseConversion(data, undefined, toCurrency);
+    }
+    async fetchConvertTradeHistory(code = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitget#fetchConvertTradeHistory
+         * @description fetch the users history of conversion trades
+         * @see https://www.bitget.com/api-doc/common/convert/Get-Convert-Record
+         * @param {string} [code] the unified currency code
+         * @param {int} [since] the earliest time in ms to fetch conversions for
+         * @param {int} [limit] the maximum number of conversion structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [conversion structures]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+         */
+        await this.loadMarkets();
+        const request = {};
+        const msInDay = 86400000;
+        const now = this.milliseconds();
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        else {
+            request['startTime'] = now - msInDay;
+        }
+        const endTime = this.safeString2(params, 'endTime', 'until');
+        if (endTime !== undefined) {
+            request['endTime'] = endTime;
+        }
+        else {
+            request['endTime'] = now;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        params = this.omit(params, 'until');
+        const response = await this.privateConvertGetV2ConvertConvertRecord(this.extend(request, params));
+        //
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1712124371799,
+        //         "data": {
+        //             "dataList": [
+        //                 {
+        //                     "id": "1159296505255219205",
+        //                     "fromCoin": "USDT",
+        //                     "fromCoinSize": "5",
+        //                     "cnvtPrice": "0.99940076",
+        //                     "toCoin": "USDC",
+        //                     "toCoinSize": "4.99700379",
+        //                     "ts": "1712123746217",
+        //                     "fee": "0"
+        //                 }
+        //             ],
+        //             "endId": "1159296505255219205"
+        //         }
+        //     }
+        //
+        const data = this.safeDict(response, 'data', {});
+        const dataList = this.safeList(data, 'dataList', []);
+        return this.parseConversions(dataList, 'fromCoin', 'toCoin', since, limit);
+    }
+    parseConversion(conversion, fromCurrency = undefined, toCurrency = undefined) {
+        //
+        // fetchConvertQuote
+        //
+        //     {
+        //         "fromCoin": "USDT",
+        //         "fromCoinSize": "5",
+        //         "cnvtPrice": "0.9993007892377704",
+        //         "toCoin": "USDC",
+        //         "toCoinSize": "4.99650394",
+        //         "traceId": "1159288930228187140",
+        //         "fee": "0"
+        //     }
+        //
+        // createConvertTrade
+        //
+        //     {
+        //         "cnvtPrice": "0.99940076",
+        //         "toCoin": "USDC",
+        //         "toCoinSize": "4.99700379",
+        //         "ts": "1712123746217"
+        //     }
+        //
+        // fetchConvertTradeHistory
+        //
+        //     {
+        //         "id": "1159296505255219205",
+        //         "fromCoin": "USDT",
+        //         "fromCoinSize": "5",
+        //         "cnvtPrice": "0.99940076",
+        //         "toCoin": "USDC",
+        //         "toCoinSize": "4.99700379",
+        //         "ts": "1712123746217",
+        //         "fee": "0"
+        //     }
+        //
+        const timestamp = this.safeInteger(conversion, 'ts');
+        const fromCoin = this.safeString(conversion, 'fromCoin');
+        const fromCode = this.safeCurrencyCode(fromCoin, fromCurrency);
+        const to = this.safeString(conversion, 'toCoin');
+        const toCode = this.safeCurrencyCode(to, toCurrency);
+        return {
+            'info': conversion,
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
+            'id': this.safeString2(conversion, 'id', 'traceId'),
+            'fromCurrency': fromCode,
+            'fromAmount': this.safeNumber(conversion, 'fromCoinSize'),
+            'toCurrency': toCode,
+            'toAmount': this.safeNumber(conversion, 'toCoinSize'),
+            'price': this.safeNumber(conversion, 'cnvtPrice'),
+            'fee': this.safeNumber(conversion, 'fee'),
+        };
+    }
+    async fetchConvertCurrencies(params = {}) {
+        /**
+         * @method
+         * @name bitget#fetchConvertCurrencies
+         * @description fetches all available currencies that can be converted
+         * @see https://www.bitget.com/api-doc/common/convert/Get-Convert-Currencies
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an associative dictionary of currencies
+         */
+        await this.loadMarkets();
+        const response = await this.privateConvertGetV2ConvertCurrencies(params);
+        //
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1712121755897,
+        //         "data": [
+        //             {
+        //                 "coin": "BTC",
+        //                 "available": "0.00009850",
+        //                 "maxAmount": "0.756266",
+        //                 "minAmount": "0.00001"
+        //             },
+        //         ]
+        //     }
+        //
+        const result = {};
+        const data = this.safeList(response, 'data', []);
+        for (let i = 0; i < data.length; i++) {
+            const entry = data[i];
+            const id = this.safeString(entry, 'coin');
+            const code = this.safeCurrencyCode(id);
+            result[code] = {
+                'info': entry,
+                'id': id,
+                'code': code,
+                'networks': undefined,
+                'type': undefined,
+                'name': undefined,
+                'active': undefined,
+                'deposit': undefined,
+                'withdraw': this.safeNumber(entry, 'available'),
+                'fee': undefined,
+                'precision': undefined,
+                'limits': {
+                    'amount': {
+                        'min': this.safeNumber(entry, 'minAmount'),
+                        'max': this.safeNumber(entry, 'maxAmount'),
+                    },
+                    'withdraw': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'deposit': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
+                'created': undefined,
+            };
+        }
+        return result;
+    }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (!response) {
             return undefined; // fallback to default error handler
         }
         //
         // spot
+        //
+        //     {"code":"00000","msg":"success","requestTime":1713294492511,"data":[...]}"
         //
         //     {"status":"fail","err_code":"01001","err_msg":"系统异常，请稍后重试"}
         //     {"status":"error","ts":1595594160149,"err_code":"invalid-parameter","err_msg":"invalid size, valid range: [1,2000]"}
@@ -8434,14 +8748,14 @@ class bitget extends bitget$1 {
         //     {"code":"40108","msg":"","requestTime":1595885064600,"data":null}
         //     {"order_id":"513468410013679613","client_oid":null,"symbol":"ethusd","result":false,"err_code":"order_no_exist_error","err_msg":"订单不存在！"}
         //
-        const message = this.safeString(response, 'err_msg');
-        const errorCode = this.safeString2(response, 'code', 'err_code');
+        const message = this.safeString2(response, 'err_msg', 'msg');
         const feedback = this.id + ' ' + body;
-        const nonEmptyMessage = ((message !== undefined) && (message !== ''));
+        const nonEmptyMessage = ((message !== undefined) && (message !== '') && (message !== 'success'));
         if (nonEmptyMessage) {
             this.throwExactlyMatchedException(this.exceptions['exact'], message, feedback);
             this.throwBroadlyMatchedException(this.exceptions['broad'], message, feedback);
         }
+        const errorCode = this.safeString2(response, 'code', 'err_code');
         const nonZeroErrorCode = (errorCode !== undefined) && (errorCode !== '00000');
         if (nonZeroErrorCode) {
             this.throwExactlyMatchedException(this.exceptions['exact'], errorCode, feedback);

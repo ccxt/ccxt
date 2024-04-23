@@ -456,6 +456,11 @@ public partial class gateio : gate
         return await this.callAsync ("privateUnifiedGetEstimateRate",parameters);
     }
 
+    public async Task<object> privateUnifiedGetCurrencyDiscountTiers (object parameters = null)
+    {
+        return await this.callAsync ("privateUnifiedGetCurrencyDiscountTiers",parameters);
+    }
+
     public async Task<object> privateUnifiedPostAccountMode (object parameters = null)
     {
         return await this.callAsync ("privateUnifiedPostAccountMode",parameters);

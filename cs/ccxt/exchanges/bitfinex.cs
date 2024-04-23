@@ -404,7 +404,7 @@ public partial class bitfinex : Exchange
         //        }
         //    }
         //
-        object withdraw = this.safeValue(response, "withdraw");
+        object withdraw = this.safeList(response, "withdraw");
         return this.parseDepositWithdrawFees(withdraw, codes);
     }
 
@@ -1376,6 +1376,9 @@ public partial class bitfinex : Exchange
         if (isTrue(isEqual(limit, null)))
         {
             limit = 100;
+        } else
+        {
+            limit = mathMin(limit, 10000);
         }
         object market = this.market(symbol);
         object v2id = add("t", getValue(market, "id"));

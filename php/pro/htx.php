@@ -7,11 +7,11 @@ namespace ccxt\pro;
 
 use Exception; // a common import
 use ccxt\ExchangeError;
+use ccxt\AuthenticationError;
 use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
 use ccxt\NetworkError;
 use ccxt\InvalidNonce;
-use ccxt\AuthenticationError;
 use React\Async;
 use React\Promise\PromiseInterface;
 
@@ -2325,74 +2325,76 @@ class htx extends \ccxt\async\htx {
     }
 
     public function authenticate($params = array ()) {
-        $url = $this->safe_string($params, 'url');
-        $hostname = $this->safe_string($params, 'hostname');
-        $type = $this->safe_string($params, 'type');
-        if ($url === null || $hostname === null || $type === null) {
-            throw new ArgumentsRequired($this->id . ' authenticate requires a $url, $hostname and $type argument');
-        }
-        $this->check_required_credentials();
-        $messageHash = 'authenticated';
-        $relativePath = str_replace('wss://' . $hostname, '', $url);
-        $client = $this->client($url);
-        $future = $client->future ($messageHash);
-        $authenticated = $this->safe_value($client->subscriptions, $messageHash);
-        if ($authenticated === null) {
-            $timestamp = $this->ymdhms($this->milliseconds(), 'T');
-            $signatureParams = null;
-            if ($type === 'spot') {
-                $signatureParams = array(
-                    'accessKey' => $this->apiKey,
-                    'signatureMethod' => 'HmacSHA256',
-                    'signatureVersion' => '2.1',
-                    'timestamp' => $timestamp,
-                );
-            } else {
-                $signatureParams = array(
-                    'AccessKeyId' => $this->apiKey,
-                    'SignatureMethod' => 'HmacSHA256',
-                    'SignatureVersion' => '2',
-                    'Timestamp' => $timestamp,
-                );
+        return Async\async(function () use ($params) {
+            $url = $this->safe_string($params, 'url');
+            $hostname = $this->safe_string($params, 'hostname');
+            $type = $this->safe_string($params, 'type');
+            if ($url === null || $hostname === null || $type === null) {
+                throw new ArgumentsRequired($this->id . ' authenticate requires a $url, $hostname and $type argument');
             }
-            $signatureParams = $this->keysort($signatureParams);
-            $auth = $this->urlencode($signatureParams);
-            $payload = implode("\n", array('GET', $hostname, $relativePath, $auth)); // eslint-disable-line quotes
-            $signature = $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha256', 'base64');
-            $request = null;
-            if ($type === 'spot') {
-                $newParams = array(
-                    'authType' => 'api',
-                    'accessKey' => $this->apiKey,
-                    'signatureMethod' => 'HmacSHA256',
-                    'signatureVersion' => '2.1',
-                    'timestamp' => $timestamp,
-                    'signature' => $signature,
+            $this->check_required_credentials();
+            $messageHash = 'authenticated';
+            $relativePath = str_replace('wss://' . $hostname, '', $url);
+            $client = $this->client($url);
+            $future = $client->future ($messageHash);
+            $authenticated = $this->safe_value($client->subscriptions, $messageHash);
+            if ($authenticated === null) {
+                $timestamp = $this->ymdhms($this->milliseconds(), 'T');
+                $signatureParams = null;
+                if ($type === 'spot') {
+                    $signatureParams = array(
+                        'accessKey' => $this->apiKey,
+                        'signatureMethod' => 'HmacSHA256',
+                        'signatureVersion' => '2.1',
+                        'timestamp' => $timestamp,
+                    );
+                } else {
+                    $signatureParams = array(
+                        'AccessKeyId' => $this->apiKey,
+                        'SignatureMethod' => 'HmacSHA256',
+                        'SignatureVersion' => '2',
+                        'Timestamp' => $timestamp,
+                    );
+                }
+                $signatureParams = $this->keysort($signatureParams);
+                $auth = $this->urlencode($signatureParams);
+                $payload = implode("\n", array('GET', $hostname, $relativePath, $auth)); // eslint-disable-line quotes
+                $signature = $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha256', 'base64');
+                $request = null;
+                if ($type === 'spot') {
+                    $newParams = array(
+                        'authType' => 'api',
+                        'accessKey' => $this->apiKey,
+                        'signatureMethod' => 'HmacSHA256',
+                        'signatureVersion' => '2.1',
+                        'timestamp' => $timestamp,
+                        'signature' => $signature,
+                    );
+                    $request = array(
+                        'params' => $newParams,
+                        'action' => 'req',
+                        'ch' => 'auth',
+                    );
+                } else {
+                    $request = array(
+                        'op' => 'auth',
+                        'type' => 'api',
+                        'AccessKeyId' => $this->apiKey,
+                        'SignatureMethod' => 'HmacSHA256',
+                        'SignatureVersion' => '2',
+                        'Timestamp' => $timestamp,
+                        'Signature' => $signature,
+                    );
+                }
+                $requestId = $this->request_id();
+                $subscription = array(
+                    'id' => $requestId,
+                    'messageHash' => $messageHash,
+                    'params' => $params,
                 );
-                $request = array(
-                    'params' => $newParams,
-                    'action' => 'req',
-                    'ch' => 'auth',
-                );
-            } else {
-                $request = array(
-                    'op' => 'auth',
-                    'type' => 'api',
-                    'AccessKeyId' => $this->apiKey,
-                    'SignatureMethod' => 'HmacSHA256',
-                    'SignatureVersion' => '2',
-                    'Timestamp' => $timestamp,
-                    'Signature' => $signature,
-                );
+                $this->watch($url, $messageHash, $request, $messageHash, $subscription);
             }
-            $requestId = $this->request_id();
-            $subscription = array(
-                'id' => $requestId,
-                'messageHash' => $messageHash,
-                'params' => $params,
-            );
-            $this->watch($url, $messageHash, $request, $messageHash, $subscription);
-        }
-        return $future;
+            return Async\await($future);
+        }) ();
     }
 }

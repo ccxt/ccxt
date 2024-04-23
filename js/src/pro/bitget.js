@@ -86,6 +86,7 @@ export default class bitget extends bitgetRest {
                         '30015': AuthenticationError,
                         '30016': BadRequest, // { event: 'error', code: 30016, msg: 'Param error' }
                     },
+                    'broad': {},
                 },
             },
         });
@@ -1006,7 +1007,7 @@ export default class bitget extends bitgetRest {
         }
         return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
     }
-    handleOrder(client, message, subscription = undefined) {
+    handleOrder(client, message) {
         //
         // spot
         //
@@ -1610,7 +1611,7 @@ export default class bitget extends bitgetRest {
             const message = this.extend(request, params);
             this.watch(url, messageHash, message, messageHash);
         }
-        return future;
+        return await future;
     }
     async watchPrivate(messageHash, subscriptionHash, args, params = {}) {
         await this.authenticate();
@@ -1724,6 +1725,8 @@ export default class bitget extends bitgetRest {
             'ordersAlgo': this.handleOrder,
             'account': this.handleBalance,
             'positions': this.handlePositions,
+            'account-isolated': this.handleBalance,
+            'account-crossed': this.handleBalance,
         };
         const arg = this.safeValue(message, 'arg', {});
         const topic = this.safeValue(arg, 'channel', '');

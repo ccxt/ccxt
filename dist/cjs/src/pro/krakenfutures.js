@@ -25,9 +25,12 @@ class krakenfutures extends krakenfutures$1 {
                 'fetchTradesWs': false,
                 'watchOHLCV': false,
                 'watchOrderBook': true,
+                'watchOrderBookForSymbols': true,
                 'watchTicker': true,
                 'watchTickers': true,
+                'watchBidsAsks': true,
                 'watchTrades': true,
+                'watchTradesForSymbols': true,
                 'watchBalance': true,
                 // 'watchStatus': true, // https://docs.futures.kraken.com/#websocket-api-public-feeds-heartbeat
                 'watchOrders': true,
@@ -48,12 +51,6 @@ class krakenfutures extends krakenfutures$1 {
                 'OHLCVLimit': 1000,
                 'connectionLimit': 100,
                 'requestLimit': 100,
-                'watchTicker': {
-                    'method': 'ticker', // or ticker_lite
-                },
-                'watchTickers': {
-                    'method': 'ticker', // or ticker_lite
-                },
                 'fetchBalance': {
                     'type': undefined,
                 },
@@ -86,10 +83,24 @@ class krakenfutures extends krakenfutures$1 {
                 'api_key': this.apiKey,
             };
             const message = this.extend(request, params);
-            future = await this.watch(url, messageHash, message);
+            future = await this.watch(url, messageHash, message, messageHash);
             client.subscriptions[messageHash] = future;
         }
         return future;
+    }
+    async watchOrderBookForSymbols(symbols, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name krakenfutures#watchOrderBookForSymbols
+         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://docs.futures.kraken.com/#websocket-api-public-feeds-challenge
+         * @param {string[]} symbols unified array of symbols
+         * @param {int} [limit] the maximum amount of order book entries to return
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+         */
+        const orderbook = await this.watchMultiHelper('orderbook', 'book', symbols, { 'limit': limit }, params);
+        return orderbook.limit();
     }
     async subscribePublic(name, symbols, params = {}) {
         /**
@@ -158,33 +169,48 @@ class krakenfutures extends krakenfutures$1 {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
-        const options = this.safeValue(this.options, 'watchTicker');
-        const method = this.safeString(options, 'method', 'ticker'); // or ticker_lite
-        const name = this.safeString(params, 'method', method);
-        params = this.omit(params, ['method']);
-        return await this.subscribePublic(name, [symbol], params);
+        await this.loadMarkets();
+        symbol = this.symbol(symbol);
+        const tickers = await this.watchTickers([symbol], params);
+        return tickers[symbol];
     }
     async watchTickers(symbols = undefined, params = {}) {
         /**
          * @method
-         * @name krakenfutures#watchTicker
+         * @name krakenfutures#watchTickers
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-         * @see https://docs.futures.kraken.com/#websocket-api-public-feeds-ticker-lite
+         * @see https://docs.futures.kraken.com/#websocket-api-public-feeds-ticker
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
-        const method = this.safeString(this.options, 'watchTickerMethod', 'ticker'); // or ticker_lite
-        const name = this.safeString2(params, 'method', 'watchTickerMethod', method);
-        params = this.omit(params, ['watchTickerMethod', 'method']);
+        await this.loadMarkets();
         symbols = this.marketSymbols(symbols, undefined, false);
-        const ticker = await this.subscribePublic(name, symbols, params);
+        const ticker = await this.watchMultiHelper('ticker', 'ticker', symbols, undefined, params);
         if (this.newUpdates) {
-            const tickers = {};
-            tickers[ticker['symbol']] = ticker;
-            return tickers;
+            const result = {};
+            result[ticker['symbol']] = ticker;
+            return result;
         }
         return this.filterByArray(this.tickers, 'symbol', symbols);
+    }
+    async watchBidsAsks(symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name krakenfutures#watchBidsAsks
+         * @see https://docs.futures.kraken.com/#websocket-api-public-feeds-ticker-lite
+         * @description watches best bid & ask for symbols
+         * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        const ticker = await this.watchMultiHelper('bidask', 'ticker_lite', symbols, undefined, params);
+        if (this.newUpdates) {
+            const result = {};
+            result[ticker['symbol']] = ticker;
+            return result;
+        }
+        return this.filterByArray(this.bidsasks, 'symbol', symbols);
     }
     async watchTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
@@ -198,11 +224,25 @@ class krakenfutures extends krakenfutures$1 {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
-        await this.loadMarkets();
-        const name = 'trade';
-        const trades = await this.subscribePublic(name, [symbol], params);
+        return await this.watchTradesForSymbols([symbol], since, limit, params);
+    }
+    async watchTradesForSymbols(symbols, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name krakenfutures#watchTradesForSymbols
+         * @see https://docs.futures.kraken.com/#websocket-api-public-feeds-trade
+         * @description get the list of most recent trades for a list of symbols
+         * @param {string[]} symbols unified symbol of the market to fetch trades for
+         * @param {int} [since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [limit] the maximum amount of trades to fetch
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+         */
+        const trades = await this.watchMultiHelper('trade', 'trade', symbols, undefined, params);
         if (this.newUpdates) {
-            limit = trades.getLimit(symbol, limit);
+            const first = this.safeList(trades, 0);
+            const tradeSymbol = this.safeString(first, 'symbol');
+            limit = trades.getLimit(tradeSymbol, limit);
         }
         return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
     }
@@ -217,8 +257,7 @@ class krakenfutures extends krakenfutures$1 {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
-        const orderbook = await this.subscribePublic('book', [symbol], params);
-        return orderbook.limit();
+        return await this.watchOrderBookForSymbols([symbol], limit, params);
     }
     async watchPositions(symbols = undefined, since = undefined, limit = undefined, params = {}) {
         /**
@@ -466,7 +505,7 @@ class krakenfutures extends krakenfutures$1 {
         if (marketId !== undefined) {
             const market = this.market(marketId);
             const symbol = market['symbol'];
-            const messageHash = 'trade:' + symbol;
+            const messageHash = this.getMessageHash('trade', undefined, symbol);
             if (this.safeList(this.trades, symbol) === undefined) {
                 const tradesLimit = this.safeInteger(this.options, 'tradesLimit', 1000);
                 this.trades[symbol] = new Cache.ArrayCache(tradesLimit);
@@ -488,7 +527,6 @@ class krakenfutures extends krakenfutures$1 {
             }
             client.resolve(tradesArray, messageHash);
         }
-        return message;
     }
     parseWsTrade(trade, market = undefined) {
         //
@@ -914,7 +952,16 @@ class krakenfutures extends krakenfutures$1 {
         //        "volumeQuote": 19628180
         //    }
         //
-        // ticker_lite
+        const marketId = this.safeString(message, 'product_id');
+        if (marketId !== undefined) {
+            const ticker = this.parseWsTicker(message);
+            const symbol = ticker['symbol'];
+            this.tickers[symbol] = ticker;
+            const messageHash = this.getMessageHash('ticker', undefined, symbol);
+            client.resolve(ticker, messageHash);
+        }
+    }
+    handleBidAsk(client, message) {
         //
         //    {
         //        "feed": "ticker_lite",
@@ -932,16 +979,13 @@ class krakenfutures extends krakenfutures$1 {
         //    }
         //
         const marketId = this.safeString(message, 'product_id');
-        const feed = this.safeString(message, 'feed');
         if (marketId !== undefined) {
             const ticker = this.parseWsTicker(message);
             const symbol = ticker['symbol'];
-            this.tickers[symbol] = ticker;
-            const messageHash = feed + ':' + symbol;
+            this.bidsasks[symbol] = ticker;
+            const messageHash = this.getMessageHash('bidask', undefined, symbol);
             client.resolve(ticker, messageHash);
         }
-        client.resolve(this.tickers, feed);
-        return message;
     }
     parseWsTicker(ticker, market = undefined) {
         //
@@ -1053,14 +1097,14 @@ class krakenfutures extends krakenfutures$1 {
         const marketId = this.safeString(message, 'product_id');
         const market = this.safeMarket(marketId);
         const symbol = market['symbol'];
-        const messageHash = 'book:' + symbol;
-        const subscription = this.safeValue(client.subscriptions, messageHash, {});
+        const messageHash = this.getMessageHash('orderbook', undefined, symbol);
+        const subscription = this.safeDict(client.subscriptions, messageHash, {});
         const limit = this.safeInteger(subscription, 'limit');
         const timestamp = this.safeInteger(message, 'timestamp');
         this.orderbooks[symbol] = this.orderBook({}, limit);
         const orderbook = this.orderbooks[symbol];
-        const bids = this.safeValue(message, 'bids');
-        const asks = this.safeValue(message, 'asks');
+        const bids = this.safeList(message, 'bids');
+        const asks = this.safeList(message, 'asks');
         for (let i = 0; i < bids.length; i++) {
             const bid = bids[i];
             const price = this.safeNumber(bid, 'price');
@@ -1095,7 +1139,7 @@ class krakenfutures extends krakenfutures$1 {
         const marketId = this.safeString(message, 'product_id');
         const market = this.safeMarket(marketId);
         const symbol = market['symbol'];
-        const messageHash = 'book:' + symbol;
+        const messageHash = this.getMessageHash('orderbook', undefined, symbol);
         const orderbook = this.orderbooks[symbol];
         const side = this.safeString(message, 'side');
         const price = this.safeNumber(message, 'price');
@@ -1422,6 +1466,39 @@ class krakenfutures extends krakenfutures$1 {
             },
         });
     }
+    async watchMultiHelper(unifiedName, channelName, symbols = undefined, subscriptionArgs = undefined, params = {}) {
+        await this.loadMarkets();
+        // symbols are required
+        symbols = this.marketSymbols(symbols, undefined, false, true, false);
+        const messageHashes = [];
+        for (let i = 0; i < symbols.length; i++) {
+            messageHashes.push(this.getMessageHash(unifiedName, undefined, this.symbol(symbols[i])));
+        }
+        const marketIds = this.marketIds(symbols);
+        const request = {
+            'event': 'subscribe',
+            'feed': channelName,
+            'product_ids': marketIds,
+        };
+        const url = this.urls['api']['ws'];
+        return await this.watchMultiple(url, messageHashes, this.extend(request, params), messageHashes, subscriptionArgs);
+    }
+    getMessageHash(unifiedElementName, subChannelName = undefined, symbol = undefined) {
+        // unifiedElementName can be : orderbook, trade, ticker, bidask ...
+        // subChannelName only applies to channel that needs specific variation (i.e. depth_50, depth_100..) to be selected
+        const withSymbol = symbol !== undefined;
+        let messageHash = unifiedElementName;
+        if (!withSymbol) {
+            messageHash += 's';
+        }
+        else {
+            messageHash += ':' + symbol;
+        }
+        if (subChannelName !== undefined) {
+            messageHash += '#' + subChannelName;
+        }
+        return messageHash;
+    }
     handleErrorMessage(client, message) {
         //
         //    {
@@ -1452,10 +1529,10 @@ class krakenfutures extends krakenfutures$1 {
             const feed = this.safeString(message, 'feed');
             const methods = {
                 'ticker': this.handleTicker,
+                'ticker_lite': this.handleBidAsk,
                 'trade': this.handleTrade,
                 'trade_snapshot': this.handleTrade,
                 // 'heartbeat': this.handleStatus,
-                'ticker_lite': this.handleTicker,
                 'book': this.handleOrderBook,
                 'book_snapshot': this.handleOrderBookSnapshot,
                 'open_orders_verbose': this.handleOrder,

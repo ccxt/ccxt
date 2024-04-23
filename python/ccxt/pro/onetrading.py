@@ -1272,4 +1272,4 @@ class onetrading(ccxt.async_support.onetrading):
                 'api_token': self.apiKey,
             }
             self.watch(url, messageHash, self.extend(request, params), messageHash)
-        return future
+        return await future

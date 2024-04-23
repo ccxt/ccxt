@@ -524,7 +524,7 @@ public partial class okx : ccxt.okx
         * @name okx#watchOrderBookForSymbols
         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
         * @param {string[]} symbols unified array of symbols
-        * @param {int} [limit] the maximum amount of order book entries to return
+        * @param {int} [limit] 1,5, 400, 50 (l2-tbt, vip4+) or 40000 (vip5+) the maximum amount of order book entries to return
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
         */
@@ -533,6 +533,25 @@ public partial class okx : ccxt.okx
         symbols = this.marketSymbols(symbols);
         object options = this.safeValue(this.options, "watchOrderBook", new Dictionary<string, object>() {});
         object depth = this.safeString(options, "depth", "books");
+        if (isTrue(!isEqual(limit, null)))
+        {
+            if (isTrue(isEqual(limit, 1)))
+            {
+                depth = "bbo-tbt";
+            } else if (isTrue(isTrue(isGreaterThan(limit, 1)) && isTrue(isLessThanOrEqual(limit, 5))))
+            {
+                depth = "books5";
+            } else if (isTrue(isEqual(limit, 400)))
+            {
+                depth = "books";
+            } else if (isTrue(isEqual(limit, 50)))
+            {
+                depth = "books50-l2-tbt"; // Make sure you have VIP4 and above
+            } else if (isTrue(isEqual(limit, 4000)))
+            {
+                depth = "books-l2-tbt"; // Make sure you have VIP5 and above
+            }
+        }
         if (isTrue(isTrue((isEqual(depth, "books-l2-tbt"))) || isTrue((isEqual(depth, "books50-l2-tbt")))))
         {
             await this.authenticate(new Dictionary<string, object>() {
@@ -1455,7 +1474,8 @@ public partial class okx : ccxt.okx
             this.handleErrors(null, null, client.url, method, null, stringMsg, stringMsg, null, null);
         }
         object orders = this.parseOrders(args, null, null, null);
-        callDynamically(client as WebSocketClient, "resolve", new object[] {orders, messageHash});
+        object first = this.safeDict(orders, 0, new Dictionary<string, object>() {});
+        callDynamically(client as WebSocketClient, "resolve", new object[] {first, messageHash});
     }
 
     public async override Task<object> editOrderWs(object id, object symbol, object type, object side, object amount, object price = null, object parameters = null)

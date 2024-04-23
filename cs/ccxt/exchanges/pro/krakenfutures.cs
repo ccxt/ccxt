@@ -23,9 +23,12 @@ public partial class krakenfutures : ccxt.krakenfutures
                 { "fetchTradesWs", false },
                 { "watchOHLCV", false },
                 { "watchOrderBook", true },
+                { "watchOrderBookForSymbols", true },
                 { "watchTicker", true },
                 { "watchTickers", true },
+                { "watchBidsAsks", true },
                 { "watchTrades", true },
+                { "watchTradesForSymbols", true },
                 { "watchBalance", true },
                 { "watchOrders", true },
                 { "watchMyTrades", true },
@@ -45,12 +48,6 @@ public partial class krakenfutures : ccxt.krakenfutures
                 { "OHLCVLimit", 1000 },
                 { "connectionLimit", 100 },
                 { "requestLimit", 100 },
-                { "watchTicker", new Dictionary<string, object>() {
-                    { "method", "ticker" },
-                } },
-                { "watchTickers", new Dictionary<string, object>() {
-                    { "method", "ticker" },
-                } },
                 { "fetchBalance", new Dictionary<string, object>() {
                     { "type", null },
                 } },
@@ -87,10 +84,29 @@ public partial class krakenfutures : ccxt.krakenfutures
                 { "api_key", this.apiKey },
             };
             object message = this.extend(request, parameters);
-            future = await this.watch(url, messageHash, message);
+            future = await this.watch(url, messageHash, message, messageHash);
             ((IDictionary<string,object>)((WebSocketClient)client).subscriptions)[(string)messageHash] = future;
         }
         return future;
+    }
+
+    public async override Task<object> watchOrderBookForSymbols(object symbols, object limit = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name krakenfutures#watchOrderBookForSymbols
+        * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+        * @see https://docs.futures.kraken.com/#websocket-api-public-feeds-challenge
+        * @param {string[]} symbols unified array of symbols
+        * @param {int} [limit] the maximum amount of order book entries to return
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+        */
+        parameters ??= new Dictionary<string, object>();
+        object orderbook = await this.watchMultiHelper("orderbook", "book", symbols, new Dictionary<string, object>() {
+            { "limit", limit },
+        }, parameters);
+        return (orderbook as IOrderBook).limit();
     }
 
     public async virtual Task<object> subscribePublic(object name, object symbols, object parameters = null)
@@ -171,37 +187,56 @@ public partial class krakenfutures : ccxt.krakenfutures
         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
         */
         parameters ??= new Dictionary<string, object>();
-        object options = this.safeValue(this.options, "watchTicker");
-        object method = this.safeString(options, "method", "ticker"); // or ticker_lite
-        object name = this.safeString(parameters, "method", method);
-        parameters = this.omit(parameters, new List<object>() {"method"});
-        return await this.subscribePublic(name, new List<object>() {symbol}, parameters);
+        await this.loadMarkets();
+        symbol = this.symbol(symbol);
+        object tickers = await this.watchTickers(new List<object>() {symbol}, parameters);
+        return getValue(tickers, symbol);
     }
 
     public async override Task<object> watchTickers(object symbols = null, object parameters = null)
     {
         /**
         * @method
-        * @name krakenfutures#watchTicker
+        * @name krakenfutures#watchTickers
         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        * @see https://docs.futures.kraken.com/#websocket-api-public-feeds-ticker-lite
+        * @see https://docs.futures.kraken.com/#websocket-api-public-feeds-ticker
         * @param {string} symbol unified symbol of the market to fetch the ticker for
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
         */
         parameters ??= new Dictionary<string, object>();
-        object method = this.safeString(this.options, "watchTickerMethod", "ticker"); // or ticker_lite
-        object name = this.safeString2(parameters, "method", "watchTickerMethod", method);
-        parameters = this.omit(parameters, new List<object>() {"watchTickerMethod", "method"});
+        await this.loadMarkets();
         symbols = this.marketSymbols(symbols, null, false);
-        object ticker = await this.subscribePublic(name, symbols, parameters);
+        object ticker = await this.watchMultiHelper("ticker", "ticker", symbols, null, parameters);
         if (isTrue(this.newUpdates))
         {
-            object tickers = new Dictionary<string, object>() {};
-            ((IDictionary<string,object>)tickers)[(string)getValue(ticker, "symbol")] = ticker;
-            return tickers;
+            object result = new Dictionary<string, object>() {};
+            ((IDictionary<string,object>)result)[(string)getValue(ticker, "symbol")] = ticker;
+            return result;
         }
         return this.filterByArray(this.tickers, "symbol", symbols);
+    }
+
+    public async override Task<object> watchBidsAsks(object symbols = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name krakenfutures#watchBidsAsks
+        * @see https://docs.futures.kraken.com/#websocket-api-public-feeds-ticker-lite
+        * @description watches best bid & ask for symbols
+        * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        object ticker = await this.watchMultiHelper("bidask", "ticker_lite", symbols, null, parameters);
+        if (isTrue(this.newUpdates))
+        {
+            object result = new Dictionary<string, object>() {};
+            ((IDictionary<string,object>)result)[(string)getValue(ticker, "symbol")] = ticker;
+            return result;
+        }
+        return this.filterByArray(this.bidsasks, "symbol", symbols);
     }
 
     public async override Task<object> watchTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
@@ -218,12 +253,29 @@ public partial class krakenfutures : ccxt.krakenfutures
         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
         */
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
-        object name = "trade";
-        object trades = await this.subscribePublic(name, new List<object>() {symbol}, parameters);
+        return await this.watchTradesForSymbols(new List<object>() {symbol}, since, limit, parameters);
+    }
+
+    public async override Task<object> watchTradesForSymbols(object symbols, object since = null, object limit = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name krakenfutures#watchTradesForSymbols
+        * @see https://docs.futures.kraken.com/#websocket-api-public-feeds-trade
+        * @description get the list of most recent trades for a list of symbols
+        * @param {string[]} symbols unified symbol of the market to fetch trades for
+        * @param {int} [since] timestamp in ms of the earliest trade to fetch
+        * @param {int} [limit] the maximum amount of trades to fetch
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+        */
+        parameters ??= new Dictionary<string, object>();
+        object trades = await this.watchMultiHelper("trade", "trade", symbols, null, parameters);
         if (isTrue(this.newUpdates))
         {
-            limit = callDynamically(trades, "getLimit", new object[] {symbol, limit});
+            object first = this.safeList(trades, 0);
+            object tradeSymbol = this.safeString(first, "symbol");
+            limit = callDynamically(trades, "getLimit", new object[] {tradeSymbol, limit});
         }
         return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
     }
@@ -241,8 +293,7 @@ public partial class krakenfutures : ccxt.krakenfutures
         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
         */
         parameters ??= new Dictionary<string, object>();
-        object orderbook = await this.subscribePublic("book", new List<object>() {symbol}, parameters);
-        return (orderbook as IOrderBook).limit();
+        return await this.watchOrderBookForSymbols(new List<object>() {symbol}, limit, parameters);
     }
 
     public async override Task<object> watchPositions(object symbols = null, object since = null, object limit = null, object parameters = null)
@@ -479,7 +530,7 @@ public partial class krakenfutures : ccxt.krakenfutures
         return await this.subscribePrivate(name, messageHash, parameters);
     }
 
-    public virtual object handleTrade(WebSocketClient client, object message)
+    public virtual void handleTrade(WebSocketClient client, object message)
     {
         //
         // snapshot
@@ -523,7 +574,7 @@ public partial class krakenfutures : ccxt.krakenfutures
         {
             object market = this.market(marketId);
             object symbol = getValue(market, "symbol");
-            object messageHash = add("trade:", symbol);
+            object messageHash = this.getMessageHash("trade", null, symbol);
             if (isTrue(isEqual(this.safeList(this.trades, symbol), null)))
             {
                 object tradesLimit = this.safeInteger(this.options, "tradesLimit", 1000);
@@ -548,7 +599,6 @@ public partial class krakenfutures : ccxt.krakenfutures
             }
             callDynamically(client as WebSocketClient, "resolve", new object[] {tradesArray, messageHash});
         }
-        return message;
     }
 
     public override object parseWsTrade(object trade, object market = null)
@@ -971,7 +1021,7 @@ public partial class krakenfutures : ccxt.krakenfutures
         });
     }
 
-    public virtual object handleTicker(WebSocketClient client, object message)
+    public virtual void handleTicker(WebSocketClient client, object message)
     {
         //
         //    {
@@ -1004,7 +1054,19 @@ public partial class krakenfutures : ccxt.krakenfutures
         //        "volumeQuote": 19628180
         //    }
         //
-        // ticker_lite
+        object marketId = this.safeString(message, "product_id");
+        if (isTrue(!isEqual(marketId, null)))
+        {
+            object ticker = this.parseWsTicker(message);
+            object symbol = getValue(ticker, "symbol");
+            ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
+            object messageHash = this.getMessageHash("ticker", null, symbol);
+            callDynamically(client as WebSocketClient, "resolve", new object[] {ticker, messageHash});
+        }
+    }
+
+    public virtual void handleBidAsk(WebSocketClient client, object message)
+    {
         //
         //    {
         //        "feed": "ticker_lite",
@@ -1022,17 +1084,14 @@ public partial class krakenfutures : ccxt.krakenfutures
         //    }
         //
         object marketId = this.safeString(message, "product_id");
-        object feed = this.safeString(message, "feed");
         if (isTrue(!isEqual(marketId, null)))
         {
             object ticker = this.parseWsTicker(message);
             object symbol = getValue(ticker, "symbol");
-            ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
-            object messageHash = add(add(feed, ":"), symbol);
+            ((IDictionary<string,object>)this.bidsasks)[(string)symbol] = ticker;
+            object messageHash = this.getMessageHash("bidask", null, symbol);
             callDynamically(client as WebSocketClient, "resolve", new object[] {ticker, messageHash});
         }
-        callDynamically(client as WebSocketClient, "resolve", new object[] {this.tickers, feed});
-        return message;
     }
 
     public virtual object parseWsTicker(object ticker, object market = null)
@@ -1148,14 +1207,14 @@ public partial class krakenfutures : ccxt.krakenfutures
         object marketId = this.safeString(message, "product_id");
         object market = this.safeMarket(marketId);
         object symbol = getValue(market, "symbol");
-        object messageHash = add("book:", symbol);
-        object subscription = this.safeValue(((WebSocketClient)client).subscriptions, messageHash, new Dictionary<string, object>() {});
+        object messageHash = this.getMessageHash("orderbook", null, symbol);
+        object subscription = this.safeDict(((WebSocketClient)client).subscriptions, messageHash, new Dictionary<string, object>() {});
         object limit = this.safeInteger(subscription, "limit");
         object timestamp = this.safeInteger(message, "timestamp");
         ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {}, limit);
         object orderbook = getValue(this.orderbooks, symbol);
-        object bids = this.safeValue(message, "bids");
-        object asks = this.safeValue(message, "asks");
+        object bids = this.safeList(message, "bids");
+        object asks = this.safeList(message, "asks");
         for (object i = 0; isLessThan(i, getArrayLength(bids)); postFixIncrement(ref i))
         {
             object bid = getValue(bids, i);
@@ -1194,7 +1253,7 @@ public partial class krakenfutures : ccxt.krakenfutures
         object marketId = this.safeString(message, "product_id");
         object market = this.safeMarket(marketId);
         object symbol = getValue(market, "symbol");
-        object messageHash = add("book:", symbol);
+        object messageHash = this.getMessageHash("orderbook", null, symbol);
         object orderbook = getValue(this.orderbooks, symbol);
         object side = this.safeString(message, "side");
         object price = this.safeNumber(message, "price");
@@ -1538,6 +1597,47 @@ public partial class krakenfutures : ccxt.krakenfutures
         });
     }
 
+    public async virtual Task<object> watchMultiHelper(object unifiedName, object channelName, object symbols = null, object subscriptionArgs = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        // symbols are required
+        symbols = this.marketSymbols(symbols, null, false, true, false);
+        object messageHashes = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        {
+            ((IList<object>)messageHashes).Add(this.getMessageHash(unifiedName, null, this.symbol(getValue(symbols, i))));
+        }
+        object marketIds = this.marketIds(symbols);
+        object request = new Dictionary<string, object>() {
+            { "event", "subscribe" },
+            { "feed", channelName },
+            { "product_ids", marketIds },
+        };
+        object url = getValue(getValue(this.urls, "api"), "ws");
+        return await this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes, subscriptionArgs);
+    }
+
+    public virtual object getMessageHash(object unifiedElementName, object subChannelName = null, object symbol = null)
+    {
+        // unifiedElementName can be : orderbook, trade, ticker, bidask ...
+        // subChannelName only applies to channel that needs specific variation (i.e. depth_50, depth_100..) to be selected
+        object withSymbol = !isEqual(symbol, null);
+        object messageHash = unifiedElementName;
+        if (!isTrue(withSymbol))
+        {
+            messageHash = add(messageHash, "s");
+        } else
+        {
+            messageHash = add(messageHash, add(":", symbol));
+        }
+        if (isTrue(!isEqual(subChannelName, null)))
+        {
+            messageHash = add(messageHash, add("#", subChannelName));
+        }
+        return messageHash;
+    }
+
     public virtual void handleErrorMessage(WebSocketClient client, object message)
     {
         //
@@ -1573,9 +1673,9 @@ public partial class krakenfutures : ccxt.krakenfutures
             object feed = this.safeString(message, "feed");
             object methods = new Dictionary<string, object>() {
                 { "ticker", this.handleTicker },
+                { "ticker_lite", this.handleBidAsk },
                 { "trade", this.handleTrade },
                 { "trade_snapshot", this.handleTrade },
-                { "ticker_lite", this.handleTicker },
                 { "book", this.handleOrderBook },
                 { "book_snapshot", this.handleOrderBookSnapshot },
                 { "open_orders_verbose", this.handleOrder },

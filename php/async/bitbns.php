@@ -186,7 +186,7 @@ class bitbns extends Exchange {
         }) ();
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * retrieves data on all markets for bitbns
@@ -733,7 +733,7 @@ class bitbns extends Exchange {
             //     }
             //
             $data = $this->safe_value($response, 'data', array());
-            $first = $this->safe_value($data, 0);
+            $first = $this->safe_dict($data, 0);
             return $this->parse_order($first, $market);
         }) ();
     }
@@ -785,7 +785,7 @@ class bitbns extends Exchange {
             //         "code":200
             //     }
             //
-            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_list($response, 'data', array());
             return $this->parse_orders($data, $market, $since, $limit);
         }) ();
     }
@@ -935,7 +935,7 @@ class bitbns extends Exchange {
             //         "code" => 200
             //     }
             //
-            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_list($response, 'data', array());
             return $this->parse_trades($data, $market, $since, $limit);
         }) ();
     }
@@ -1014,7 +1014,7 @@ class bitbns extends Exchange {
             //         "code":200
             //     }
             //
-            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_list($response, 'data', array());
             return $this->parse_transactions($data, $currency, $since, $limit);
         }) ();
     }
@@ -1042,7 +1042,7 @@ class bitbns extends Exchange {
             //
             //     ...
             //
-            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_list($response, 'data', array());
             return $this->parse_transactions($data, $currency, $since, $limit);
         }) ();
     }

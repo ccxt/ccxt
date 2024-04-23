@@ -6,7 +6,7 @@ export declare type Bool = boolean | undefined;
 export declare type IndexType = number | string;
 export declare type OrderSide = 'buy' | 'sell' | string;
 export declare type OrderType = 'limit' | 'market' | string;
-export declare type MarketType = 'spot' | 'margin' | 'swap' | 'future' | 'option';
+export declare type MarketType = 'spot' | 'margin' | 'swap' | 'future' | 'option' | 'delivery' | 'index';
 export declare type SubType = 'linear' | 'inverse' | undefined;
 export interface Dictionary<T> {
     [key: string]: T;
@@ -24,6 +24,14 @@ export interface FeeInterface {
     currency: Str;
     cost: Num;
     rate?: Num;
+}
+export interface TradingFeeInterface {
+    info: any;
+    symbol: Str;
+    maker: Num;
+    taker: Num;
+    percentage: Bool;
+    tierBased: Bool;
 }
 export declare type Fee = FeeInterface | undefined;
 export interface MarketInterface {
@@ -121,6 +129,7 @@ export interface OrderBook {
     datetime: Str;
     timestamp: Int;
     nonce: Int;
+    symbol: Str;
 }
 export interface Ticker {
     symbol: string;
@@ -171,8 +180,29 @@ export interface Tickers extends Dictionary<Ticker> {
 export interface CurrencyInterface {
     id: string;
     code: string;
-    numericId?: number;
+    numericId?: Int;
     precision: number;
+    type?: Str;
+    margin?: Bool;
+    name?: Str;
+    active?: Bool;
+    deposit?: Bool;
+    withdraw?: Bool;
+    fee?: Num;
+    limits: {
+        amount: {
+            min?: Num;
+            max?: Num;
+        };
+        withdraw: {
+            min?: Num;
+            max?: Num;
+        };
+    };
+    networks: {
+        string: any;
+    };
+    info: any;
 }
 export interface Balance {
     free: Num;
@@ -252,7 +282,7 @@ export interface Position {
     liquidationPrice?: number;
     marginMode?: Str;
     hedged?: boolean;
-    maintenenceMargin?: number;
+    maintenanceMargin?: number;
     maintenanceMarginPercentage?: number;
     initialMargin?: number;
     initialMarginPercentage?: number;
@@ -357,11 +387,16 @@ export interface Liquidation {
 }
 export interface OrderRequest {
     symbol: string;
-    type: Str;
-    side: Str;
+    type: OrderType;
+    side: OrderSide;
     amount?: number;
     price?: number | undefined;
     params?: any;
+}
+export interface CancellationRequest {
+    id: string;
+    clientOrderId?: string;
+    symbol: string;
 }
 export interface FundingHistory {
     info: any;
@@ -398,6 +433,37 @@ export interface Greeks {
     underlyingPrice: number;
     info: any;
 }
+export interface Conversion {
+    info: any;
+    timestamp?: number;
+    datetime?: string;
+    id: string;
+    fromCurrency: string;
+    fromAmount: number;
+    toCurrency: string;
+    toAmount: number;
+    price: number;
+    fee: number;
+}
+export interface Option {
+    info: any;
+    currency: string;
+    symbol: string;
+    timestamp?: number;
+    datetime?: Str;
+    impliedVolatility: number;
+    openInterest: number;
+    bidPrice: number;
+    askPrice: number;
+    midPrice: number;
+    markPrice: number;
+    lastPrice: number;
+    underlyingPrice: number;
+    change: number;
+    percentage: number;
+    baseVolume: number;
+    quoteVolume: number;
+}
 export interface LastPrice {
     symbol: string;
     timestamp?: number;
@@ -413,11 +479,29 @@ export interface Leverage {
     longLeverage: number;
     shortLeverage: number;
 }
+export interface MarginModification {
+    'info': any;
+    'symbol': string;
+    'type': 'add' | 'reduce' | 'set' | undefined;
+    'marginMode': 'cross' | 'isolated' | undefined;
+    'amount': Num;
+    'total': Num;
+    'code': Str;
+    'status': Str;
+    'timestamp': Int;
+    'datetime': Str;
+}
 export interface Leverages extends Dictionary<Leverage> {
 }
 export interface LastPrices extends Dictionary<LastPrice> {
 }
+export interface Currencies extends Dictionary<CurrencyInterface> {
+}
+export interface TradingFees extends Dictionary<TradingFeeInterface> {
+}
 export interface MarginModes extends Dictionary<MarginMode> {
+}
+export interface OptionChain extends Dictionary<Option> {
 }
 /** [ timestamp, open, high, low, close, volume ] */
 export declare type OHLCV = [Num, Num, Num, Num, Num, Num];

@@ -467,7 +467,7 @@ class coinsph extends Exchange {
         return $this->safe_integer($response, 'serverTime');
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): array {
         /**
          * retrieves data on all $markets for coinsph
          * @see https://coins-docs.github.io/rest-api/#exchange-information
@@ -1472,7 +1472,7 @@ class coinsph extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function fetch_trading_fee(string $symbol, $params = array ()) {
+    public function fetch_trading_fee(string $symbol, $params = array ()): array {
         /**
          * fetch the trading fees for a $market
          * @see https://coins-docs.github.io/rest-api/#trade-fee-user_data
@@ -1499,7 +1499,7 @@ class coinsph extends Exchange {
         return $this->parse_trading_fee($tradingFee, $market);
     }
 
-    public function fetch_trading_fees($params = array ()) {
+    public function fetch_trading_fees($params = array ()): array {
         /**
          * fetch the trading fees for multiple markets
          * @see https://coins-docs.github.io/rest-api/#trade-$fee-user_data
@@ -1531,7 +1531,7 @@ class coinsph extends Exchange {
         return $result;
     }
 
-    public function parse_trading_fee($fee, ?array $market = null) {
+    public function parse_trading_fee($fee, ?array $market = null): array {
         //
         //     {
         //         "symbol" => "ETHUSDT",
@@ -1547,6 +1547,8 @@ class coinsph extends Exchange {
             'symbol' => $symbol,
             'maker' => $this->safe_number($fee, 'makerCommission'),
             'taker' => $this->safe_number($fee, 'takerCommission'),
+            'percentage' => null,
+            'tierBased' => null,
         );
     }
 

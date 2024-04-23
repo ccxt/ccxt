@@ -698,6 +698,52 @@
                 ]
             }
         ],
+        "cancelAllOrdersAfter": [
+            {
+                "description": "Swap cancel all orders after",
+                "method": "cancelAllOrdersAfter",
+                "url": "https://open-api.bingx.com/openApi/swap/v2/trade/cancelAllAfter?timeOut=100&type=ACTIVATE&timestamp=1699071702130&signature=581d72f82f5c1c7d133bd0556f0513ae5f22445207a9e49babf5d13d70a421b4",
+                "input": [
+                    100000,
+                    {
+                        "type": "swap"
+                    }
+                ]
+            },
+            {
+                "description": "Swap close cancel all orders after",
+                "method": "cancelAllOrdersAfter",
+                "url": "https://open-api.bingx.com/openApi/swap/v2/trade/cancelAllAfter?timeOut=0&type=CLOSE&timestamp=1699071702130&signature=581d72f82f5c1c7d133bd0556f0513ae5f22445207a9e49babf5d13d70a421b4",
+                "input": [
+                    0,
+                    {
+                        "type": "swap"
+                    }
+                ]
+            },
+            {
+                "description": "Spot cancel all orders after",
+                "method": "cancelAllOrdersAfter",
+                "url": "https://open-api.bingx.com/openApi/spot/v1/trade/cancelAllAfter?timeOut=100&type=ACTIVATE&timestamp=1699458295121&signature=c2bdfd0494cee5e13259629af9f815637a9a42ed87fd47a2eb3b552c0574d945",
+                "input": [
+                    100000,
+                    {
+                        "type": "spot"
+                    }
+                ]
+            },
+            {
+                "description": "Spot close cancel all orders after",
+                "method": "cancelAllOrdersAfter",
+                "url": "https://open-api.bingx.com/openApi/spot/v1/trade/cancelAllAfter?timeOut=0&type=CLOSE&timestamp=1699458295121&signature=c2bdfd0494cee5e13259629af9f815637a9a42ed87fd47a2eb3b552c0574d945",
+                "input": [
+                    0,
+                    {
+                        "type": "spot"
+                    }
+                ]
+            }
+        ],
         "fetchOpenOrders": [
             {
                 "description": "Spot open orders",
@@ -757,6 +803,29 @@
                 "url": "https://open-api.bingx.com/openApi/swap/v2/trade/allOrders?symbol=LTC-USDT&timestamp=1699458294851&signature=d1622ab21a981576341cb05abaece32622e00a0b296c69e937e792c157e3e687",
                 "input": [
                     "LTC/USDT:USDT"
+                ]
+            }
+        ],
+        "fetchOrders": [
+            {
+                "description": "Swap orders",
+                "method": "fetchOrders",
+                "url": "https://open-api.bingx.com/openApi/swap/v1/trade/fullOrder?symbol=LTC-USDT&timestamp=1699458294373&signature=0386bcc46ee9b65c4a2b770c9eb8bbdeec387ea6230d8456d37a4c0c103979e0",
+                "input": [
+                    "LTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "Swap orders without symbol",
+                "method": "fetchOrders",
+                "url": "https://open-api.bingx.com/openApi/swap/v1/trade/fullOrder?timestamp=1699458294373&signature=0386bcc46ee9b65c4a2b770c9eb8bbdeec387ea6230d8456d37a4c0c103979e0",
+                "input": [
+                    null,
+                    null,
+                    null,
+                    {
+                        "type": "swap"
+                    }
                 ]
             }
         ],
@@ -1095,6 +1164,39 @@
                 "url": "https://open-api.bingx.com/openApi/swap/v2/quote/premiumIndex?symbol=BTC-USDT&timestamp=1709992987600",
                 "input": [
                     "BTC/USDT:USDT"
+                ]
+            }
+        ],
+        "addMargin": [
+            {
+                "description": "Add Margin",
+                "method": "addMargin",
+                "url": "https://open-api.bingx.com/openApi/swap/v2/trade/positionMargin?amount=1&symbol=BTC-USDT&timestamp=1711660769522&type=1&signature=00b43a627d45679f409ae85edb17d8c457c3dd3c91d8ab1058de7ad004aea448",
+                "input": [
+                  "BTC/USDT:USDT",
+                  1
+                ]
+            }
+        ],
+        "reduceMargin": [
+            {
+                "description": "Fill this with a description of the method call",
+                "method": "reduceMargin",
+                "url": "https://open-api.bingx.com/openApi/swap/v2/trade/positionMargin?amount=1&symbol=BTC-USDT&timestamp=1711660858980&type=2&signature=bde504579e677b43e8450197833dd7992680de74fa1926c4814578dd2b1a5ed9",
+                "input": [
+                  "BTC/USDT:USDT",
+                  1
+                ]
+            }
+        ],
+        "fetchMyLiquidations": [
+            {
+                "disabled": true,
+                "description": "fetch my liquidations",
+                "method": "fetchMyLiquidations",
+                "url": "https://open-api.bingx.com/openApi/swap/v2/trade/forceOrders?autoCloseType=LIQUIDATION&symbol=BTC-USDT&timestamp=1713364573101&signature=f8eb5457ce479316113f59ab7c9be200d7bd2b39e394a480143b0f2ec59a1d91",
+                "input": [
+                  "BTC/USDT:USDT"
                 ]
             }
         ]

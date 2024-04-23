@@ -519,7 +519,7 @@ public partial class mercado : Exchange
         //     }
         //
         object responseData = this.safeValue(response, "response_data", new Dictionary<string, object>() {});
-        object order = this.safeValue(responseData, "order", new Dictionary<string, object>() {});
+        object order = this.safeDict(responseData, "order", new Dictionary<string, object>() {});
         return this.parseOrder(order, market);
     }
 
@@ -631,7 +631,7 @@ public partial class mercado : Exchange
         };
         object response = await this.privatePostGetOrder(this.extend(request, parameters));
         object responseData = this.safeValue(response, "response_data", new Dictionary<string, object>() {});
-        object order = this.safeValue(responseData, "order");
+        object order = this.safeDict(responseData, "order");
         return this.parseOrder(order, market);
     }
 
@@ -709,7 +709,7 @@ public partial class mercado : Exchange
         //     }
         //
         object responseData = this.safeValue(response, "response_data", new Dictionary<string, object>() {});
-        object withdrawal = this.safeValue(responseData, "withdrawal");
+        object withdrawal = this.safeDict(responseData, "withdrawal");
         return this.parseTransaction(withdrawal, currency);
     }
 
@@ -821,7 +821,7 @@ public partial class mercado : Exchange
         };
         object response = await this.privatePostListOrders(this.extend(request, parameters));
         object responseData = this.safeValue(response, "response_data", new Dictionary<string, object>() {});
-        object orders = this.safeValue(responseData, "orders", new List<object>() {});
+        object orders = this.safeList(responseData, "orders", new List<object>() {});
         return this.parseOrders(orders, market, since, limit);
     }
 
@@ -850,7 +850,7 @@ public partial class mercado : Exchange
         };
         object response = await this.privatePostListOrders(this.extend(request, parameters));
         object responseData = this.safeValue(response, "response_data", new Dictionary<string, object>() {});
-        object orders = this.safeValue(responseData, "orders", new List<object>() {});
+        object orders = this.safeList(responseData, "orders", new List<object>() {});
         return this.parseOrders(orders, market, since, limit);
     }
 

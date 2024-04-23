@@ -34,8 +34,19 @@ const ProxyError = ccxt.ProxyError;
 const ExchangeNotAvailable = ccxt.ExchangeNotAvailable;
 const OperationFailed = ccxt.OperationFailed;
 const OnMaintenance = ccxt.OnMaintenance;
-const [processPath, , exchangeIdFromArgv = null, exchangeSymbol = undefined] = process.argv.filter((x) => !x.startsWith('--'));
-// const sanitizedSymnol = exchangeSymbol !== undefined && exchangeSymbol.includes ('/') ? exchangeSymbol : undefined;
+// ############## detect cli arguments ############## //
+const argv = process.argv.slice(2); // remove first two arguments (which is process and script path "js/src/test/test.js")
+function filterArgvs(argsArray, needle, include = true) {
+    return argsArray.filter((x) => (include && x.includes(needle)) || (!include && !x.includes(needle)));
+}
+function selectArgv(argsArray, needle) {
+    const foundArray = argsArray.filter((x) => (x.includes(needle)));
+    return foundArray.length ? foundArray[0] : undefined;
+}
+const argvExchange = filterArgvs(argv, '--', false)[0];
+const argvSymbol = selectArgv(argv, '/');
+const argvMethod = selectArgv(argv, '()');
+// #################################################### //
 // non-transpiled part, but shared names among langs
 function getCliArgValue(arg) {
     return process.argv.includes(arg) || false;
@@ -59,6 +70,7 @@ class baseMainTestClass {
         this.privateTestOnly = false;
         this.loadKeys = false;
         this.sandbox = false;
+        this.skippedSettingsForExchange = {};
         this.skippedMethods = {};
         this.checkedPublicTests = {};
         this.testFiles = {};
@@ -189,7 +201,7 @@ export default class testMainClass extends baseMainTestClass {
         this.loadKeys = getCliArgValue('--loadKeys');
         this.wsTests = getCliArgValue('--ws');
     }
-    async init(exchangeId, symbolArgv) {
+    async init(exchangeId, symbolArgv, methodArgv) {
         this.parseCliArgs();
         if (this.requestTests && this.responseTests) {
             await this.runStaticRequestTests(exchangeId, symbolArgv);
@@ -208,9 +220,7 @@ export default class testMainClass extends baseMainTestClass {
             await this.runBrokerIdTests();
             return;
         }
-        const symbolStr = symbolArgv !== undefined ? symbolArgv : 'all';
-        const exchangeObject = { 'exchange': exchangeId, 'symbol': symbolStr, 'isWs': this.wsTests };
-        dump(this.newLine + '' + this.newLine + '' + '[INFO] TESTING ', this.ext, jsonStringify(exchangeObject), this.newLine);
+        dump(this.newLine + '' + this.newLine + '' + '[INFO] TESTING ', this.ext, { 'exchange': exchangeId, 'symbol': symbolArgv, 'method': methodArgv, 'isWs': this.wsTests }, this.newLine);
         const exchangeArgs = {
             'verbose': this.verbose,
             'debug': this.debug,
@@ -224,31 +234,27 @@ export default class testMainClass extends baseMainTestClass {
         await this.importFiles(exchange);
         assert(Object.keys(this.testFiles).length > 0, 'Test files were not loaded'); // ensure test files are found & filled
         this.expandSettings(exchange);
-        const symbol = this.checkIfSpecificTestIsChosen(symbolArgv);
-        await this.startTest(exchange, symbol);
+        this.checkIfSpecificTestIsChosen(methodArgv);
+        await this.startTest(exchange, symbolArgv);
         exitScript(0); // needed to be explicitly finished for WS tests
     }
-    checkIfSpecificTestIsChosen(symbolArgv) {
-        if (symbolArgv !== undefined) {
+    checkIfSpecificTestIsChosen(methodArgv) {
+        if (methodArgv !== undefined) {
             const testFileNames = Object.keys(this.testFiles);
-            const possibleMethodNames = symbolArgv.split(','); // i.e. `test.ts binance fetchBalance,fetchDeposits`
+            const possibleMethodNames = methodArgv.split(','); // i.e. `test.ts binance fetchBalance,fetchDeposits`
             if (possibleMethodNames.length >= 1) {
                 for (let i = 0; i < testFileNames.length; i++) {
                     const testFileName = testFileNames[i];
                     for (let j = 0; j < possibleMethodNames.length; j++) {
-                        const methodName = possibleMethodNames[j];
+                        let methodName = possibleMethodNames[j];
+                        methodName = methodName.replace('()', '');
                         if (testFileName === methodName) {
                             this.onlySpecificTests.push(testFileName);
                         }
                     }
                 }
             }
-            // if method names were found, then remove them from symbolArgv
-            if (this.onlySpecificTests.length > 0) {
-                return undefined;
-            }
         }
-        return symbolArgv;
     }
     async importFiles(exchange) {
         const properties = Object.keys(exchange.has);
@@ -306,7 +312,8 @@ export default class testMainClass extends baseMainTestClass {
         // skipped tests
         const skippedFile = this.rootDirForSkips + 'skip-tests.json';
         const skippedSettings = ioFileRead(skippedFile);
-        const skippedSettingsForExchange = exchange.safeValue(skippedSettings, exchangeId, {});
+        this.skippedSettingsForExchange = exchange.safeValue(skippedSettings, exchangeId, {});
+        const skippedSettingsForExchange = this.skippedSettingsForExchange;
         // others
         const timeout = exchange.safeValue(skippedSettingsForExchange, 'timeout');
         if (timeout !== undefined) {
@@ -357,10 +364,15 @@ export default class testMainClass extends baseMainTestClass {
         return result;
     }
     async testMethod(methodName, exchange, args, isPublic) {
+        // todo: temporary skip for c#
+        if (methodName.indexOf('OrderBook') >= 0 && this.ext === 'cs') {
+            exchange.options['checksum'] = false;
+        }
         // todo: temporary skip for php
         if (methodName.indexOf('OrderBook') >= 0 && this.ext === 'php') {
             return;
         }
+        const skippedPropertiesForMethod = this.getSkips(exchange, methodName);
         const isLoadMarkets = (methodName === 'loadMarkets');
         const isFetchCurrencies = (methodName === 'fetchCurrencies');
         const isProxyTest = (methodName === this.proxyTestFileName);
@@ -376,7 +388,7 @@ export default class testMainClass extends baseMainTestClass {
         else if (!isLoadMarkets && !supportedByExchange && !isProxyTest) {
             skipMessage = '[INFO] UNSUPPORTED_TEST'; // keep it aligned with the longest message
         }
-        else if ((methodName in this.skippedMethods) && (typeof this.skippedMethods[methodName] === 'string')) {
+        else if (typeof skippedPropertiesForMethod === 'string') {
             skipMessage = '[INFO] SKIPPED_TEST';
         }
         else if (!(methodName in this.testFiles)) {
@@ -396,7 +408,7 @@ export default class testMainClass extends baseMainTestClass {
             const argsStringified = '(' + args.join(',') + ')';
             dump(this.addPadding('[INFO] TESTING', 25), this.exchangeHint(exchange), methodName, argsStringified);
         }
-        await callMethod(this.testFiles, methodName, exchange, this.getSkips(exchange, methodName), args);
+        await callMethod(this.testFiles, methodName, exchange, skippedPropertiesForMethod, args);
         // if it was passed successfully, add to the list of successfull tests
         if (isPublic) {
             this.checkedPublicTests[methodName] = true;
@@ -404,8 +416,21 @@ export default class testMainClass extends baseMainTestClass {
         return;
     }
     getSkips(exchange, methodName) {
-        // get "method-specific" skips
-        const skipsForMethod = exchange.safeValue(this.skippedMethods, methodName, {});
+        let finalSkips = {};
+        // check the exact method (i.e. `fetchTrades`) and language-specific (i.e. `fetchTrades.php`)
+        const methodNames = [methodName, methodName + '.' + this.ext];
+        for (let i = 0; i < methodNames.length; i++) {
+            const mName = methodNames[i];
+            if (mName in this.skippedMethods) {
+                // if whole method is skipped, by assigning a string to it, i.e. "fetchOrders":"blabla"
+                if (typeof this.skippedMethods[mName] === 'string') {
+                    return this.skippedMethods[mName];
+                }
+                else {
+                    finalSkips = exchange.deepExtend(finalSkips, this.skippedMethods[mName]);
+                }
+            }
+        }
         // get "object-specific" skips
         const objectSkips = {
             'orderBook': ['fetchOrderBook', 'fetchOrderBooks', 'fetchL2OrderBook', 'watchOrderBook', 'watchOrderBookForSymbols'],
@@ -421,11 +446,27 @@ export default class testMainClass extends baseMainTestClass {
             const objectName = objectNames[i];
             const objectMethods = objectSkips[objectName];
             if (exchange.inArray(methodName, objectMethods)) {
+                // if whole object is skipped, by assigning a string to it, i.e. "orderBook":"blabla"
+                if ((objectName in this.skippedMethods) && (typeof this.skippedMethods[objectName] === 'string')) {
+                    return this.skippedMethods[objectName];
+                }
                 const extraSkips = exchange.safeDict(this.skippedMethods, objectName, {});
-                return exchange.deepExtend(skipsForMethod, extraSkips);
+                finalSkips = exchange.deepExtend(finalSkips, extraSkips);
             }
         }
-        return skipsForMethod;
+        // extend related skips
+        // - if 'timestamp' is skipped, we should do so for 'datetime' too
+        // - if 'bid' is skipped, skip 'ask' too
+        if (('timestamp' in finalSkips) && !('datetime' in finalSkips)) {
+            finalSkips['datetime'] = finalSkips['timestamp'];
+        }
+        if (('bid' in finalSkips) && !('ask' in finalSkips)) {
+            finalSkips['ask'] = finalSkips['bid'];
+        }
+        if (('baseVolume' in finalSkips) && !('quoteVolume' in finalSkips)) {
+            finalSkips['quoteVolume'] = finalSkips['baseVolume'];
+        }
+        return finalSkips;
     }
     async testSafe(methodName, exchange, args = [], isPublic = false) {
         // `testSafe` method does not throw an exception, instead mutes it. The reason we
@@ -539,10 +580,14 @@ export default class testMainClass extends baseMainTestClass {
             tests = {
                 // @ts-ignore
                 'watchOHLCV': [symbol],
+                'watchOHLCVForSymbols': [symbol],
                 'watchTicker': [symbol],
                 'watchTickers': [symbol],
+                'watchBidsAsks': [symbol],
                 'watchOrderBook': [symbol],
+                'watchOrderBookForSymbols': [[symbol]],
                 'watchTrades': [symbol],
+                'watchTradesForSymbols': [[symbol]],
             };
         }
         const market = exchange.market(symbol);
@@ -597,54 +642,20 @@ export default class testMainClass extends baseMainTestClass {
         if (!result) {
             return false;
         }
-        const symbols = [
-            'BTC/USDT',
-            'BTC/USDC',
-            'BTC/CNY',
-            'BTC/USD',
-            'BTC/EUR',
-            'BTC/ETH',
-            'ETH/BTC',
-            'BTC/JPY',
-            'ETH/EUR',
-            'ETH/JPY',
-            'ETH/CNY',
-            'ETH/USD',
-            'LTC/CNY',
-            'DASH/BTC',
-            'DOGE/BTC',
-            'BTC/AUD',
-            'BTC/PLN',
-            'USD/SLL',
-            'BTC/RUB',
-            'BTC/UAH',
-            'LTC/BTC',
-            'EUR/USD',
-        ];
-        const resultSymbols = [];
-        const exchangeSpecificSymbols = exchange.symbols;
-        for (let i = 0; i < exchangeSpecificSymbols.length; i++) {
-            const symbol = exchangeSpecificSymbols[i];
-            if (exchange.inArray(symbol, symbols)) {
-                resultSymbols.push(symbol);
-            }
-        }
-        let resultMsg = '';
-        const resultLength = resultSymbols.length;
         const exchangeSymbolsLength = exchange.symbols.length;
-        if (resultLength > 0) {
-            if (exchangeSymbolsLength > resultLength) {
-                resultMsg = resultSymbols.join(', ') + ' + more...';
-            }
-            else {
-                resultMsg = resultSymbols.join(', ');
-            }
-        }
-        dump('[INFO:MAIN] Exchange loaded', exchangeSymbolsLength, 'symbols', resultMsg);
+        dump('[INFO:MAIN] Exchange loaded', exchangeSymbolsLength, 'symbols');
         return true;
     }
     getTestSymbol(exchange, isSpot, symbols) {
         let symbol = undefined;
+        const preferredSpotSymbol = exchange.safeString(this.skippedSettingsForExchange, 'preferredSpotSymbol');
+        const preferredSwapSymbol = exchange.safeString(this.skippedSettingsForExchange, 'preferredSwapSymbol');
+        if (isSpot && preferredSpotSymbol) {
+            return preferredSpotSymbol;
+        }
+        else if (!isSpot && preferredSwapSymbol) {
+            return preferredSwapSymbol;
+        }
         for (let i = 0; i < symbols.length; i++) {
             const s = symbols[i];
             const market = exchange.safeValue(exchange.markets, s);
@@ -693,32 +704,20 @@ export default class testMainClass extends baseMainTestClass {
             'ETH',
             'XRP',
             'LTC',
-            'BCH',
-            'EOS',
             'BNB',
-            'BSV',
-            'USDT',
-            'ATOM',
-            'BAT',
-            'BTG',
             'DASH',
             'DOGE',
             'ETC',
-            'IOTA',
-            'LSK',
-            'MKR',
-            'NEO',
-            'PAX',
-            'QTUM',
             'TRX',
-            'TUSD',
-            'USD',
+            // fiats
+            'USDT',
             'USDC',
-            'WAVES',
-            'XEM',
-            'XMR',
-            'ZEC',
-            'ZRX',
+            'USD',
+            'EUR',
+            'TUSD',
+            'CNY',
+            'JPY',
+            'BRL',
         ];
         const spotSymbols = [
             'BTC/USDT',
@@ -726,24 +725,37 @@ export default class testMainClass extends baseMainTestClass {
             'BTC/USD',
             'BTC/CNY',
             'BTC/EUR',
+            'BTC/AUD',
+            'BTC/BRL',
+            'BTC/JPY',
+            'ETH/USDT',
+            'ETH/USDC',
+            'ETH/USD',
+            'ETH/CNY',
+            'ETH/EUR',
+            'ETH/AUD',
+            'ETH/BRL',
+            'ETH/JPY',
+            // fiats
+            'EUR/USDT',
+            'EUR/USD',
+            'EUR/USDC',
+            'USDT/EUR',
+            'USD/EUR',
+            'USDC/EUR',
+            // non-fiats
             'BTC/ETH',
             'ETH/BTC',
-            'ETH/USD',
-            'ETH/USDT',
-            'BTC/JPY',
-            'LTC/BTC',
-            'ZRX/WETH',
-            'EUR/USD',
         ];
         const swapSymbols = [
+            // linear
             'BTC/USDT:USDT',
             'BTC/USDC:USDC',
             'BTC/USD:USD',
             'ETH/USDT:USDT',
+            'ETH/USDC:USDC',
             'ETH/USD:USD',
-            'LTC/USDT:USDT',
-            'DOGE/USDT:USDT',
-            'ADA/USDT:USDT',
+            // inverse
             'BTC/USD:BTC',
             'ETH/USD:ETH',
         ];
@@ -1284,7 +1296,8 @@ export default class testMainClass extends baseMainTestClass {
         // instantiate the exchange and make sure that we sink the requests to avoid an actual request
         const exchange = this.initOfflineExchange(exchangeName);
         const globalOptions = exchange.safeDict(exchangeData, 'options', {});
-        exchange.options = exchange.deepExtend(exchange.options, globalOptions); // custom options to be used in the tests
+        // exchange.options = exchange.deepExtend (exchange.options, globalOptions); // custom options to be used in the tests
+        exchange.extendExchangeOptions(globalOptions);
         const methods = exchange.safeValue(exchangeData, 'methods', {});
         const methodsNames = Object.keys(methods);
         for (let i = 0; i < methodsNames.length; i++) {
@@ -1294,7 +1307,8 @@ export default class testMainClass extends baseMainTestClass {
                 const result = results[j];
                 const oldExchangeOptions = exchange.options; // snapshot options;
                 const testExchangeOptions = exchange.safeValue(result, 'options', {});
-                exchange.options = exchange.deepExtend(oldExchangeOptions, testExchangeOptions); // custom options to be used in the tests
+                // exchange.options = exchange.deepExtend (oldExchangeOptions, testExchangeOptions); // custom options to be used in the tests
+                exchange.extendExchangeOptions(exchange.deepExtend(oldExchangeOptions, testExchangeOptions));
                 const description = exchange.safeValue(result, 'description');
                 if ((testName !== undefined) && (testName !== description)) {
                     continue;
@@ -1307,7 +1321,8 @@ export default class testMainClass extends baseMainTestClass {
                 const skipKeys = exchange.safeValue(exchangeData, 'skipKeys', []);
                 await this.testMethodStatically(exchange, method, result, type, skipKeys);
                 // reset options
-                exchange.options = exchange.deepExtend(oldExchangeOptions, {});
+                // exchange.options = exchange.deepExtend (oldExchangeOptions, {});
+                exchange.extendExchangeOptions(exchange.deepExtend(oldExchangeOptions, {}));
             }
         }
         await close(exchange);
@@ -1317,7 +1332,8 @@ export default class testMainClass extends baseMainTestClass {
         const exchange = this.initOfflineExchange(exchangeName);
         const methods = exchange.safeValue(exchangeData, 'methods', {});
         const options = exchange.safeValue(exchangeData, 'options', {});
-        exchange.options = exchange.deepExtend(exchange.options, options); // custom options to be used in the tests
+        // exchange.options = exchange.deepExtend (exchange.options, options); // custom options to be used in the tests
+        exchange.extendExchangeOptions(options);
         const methodsNames = Object.keys(methods);
         for (let i = 0; i < methodsNames.length; i++) {
             const method = methodsNames[i];
@@ -1327,7 +1343,8 @@ export default class testMainClass extends baseMainTestClass {
                 const description = exchange.safeValue(result, 'description');
                 const oldExchangeOptions = exchange.options; // snapshot options;
                 const testExchangeOptions = exchange.safeValue(result, 'options', {});
-                exchange.options = exchange.deepExtend(oldExchangeOptions, testExchangeOptions); // custom options to be used in the tests
+                // exchange.options = exchange.deepExtend (oldExchangeOptions, testExchangeOptions); // custom options to be used in the tests
+                exchange.extendExchangeOptions(exchange.deepExtend(oldExchangeOptions, testExchangeOptions));
                 const isDisabled = exchange.safeBool(result, 'disabled', false);
                 if (isDisabled) {
                     continue;
@@ -1346,7 +1363,8 @@ export default class testMainClass extends baseMainTestClass {
                 const skipKeys = exchange.safeValue(exchangeData, 'skipKeys', []);
                 await this.testResponseStatically(exchange, method, skipKeys, result);
                 // reset options
-                exchange.options = exchange.deepExtend(oldExchangeOptions, {});
+                // exchange.options = exchange.deepExtend (oldExchangeOptions, {});
+                exchange.extendExchangeOptions(exchange.deepExtend(oldExchangeOptions, {}));
             }
         }
         await close(exchange);
@@ -1435,6 +1453,7 @@ export default class testMainClass extends baseMainTestClass {
             this.testBlofin(),
             this.testHyperliquid(),
             this.testCoinbaseinternational(),
+            this.testCoinbaseAdvanced()
         ];
         await Promise.all(promises);
         const successMessage = '[' + this.lang + '][TEST_SUCCESS] brokerId tests passed.';
@@ -1541,11 +1560,10 @@ export default class testMainClass extends baseMainTestClass {
     async testKucoin() {
         const exchange = this.initOfflineExchange('kucoin');
         let reqHeaders = undefined;
-        const optionsString = exchange.options.toString();
         const spotId = exchange.options['partner']['spot']['id'];
         const spotKey = exchange.options['partner']['spot']['key'];
-        assert(spotId === 'ccxt', 'kucoin - id: ' + spotId + ' not in options: ' + optionsString);
-        assert(spotKey === '9e58cc35-5b5e-4133-92ec-166e3f077cb8', 'kucoin - key: ' + spotKey + ' not in options: ' + optionsString);
+        assert(spotId === 'ccxt', 'kucoin - id: ' + spotId + ' not in options');
+        assert(spotKey === '9e58cc35-5b5e-4133-92ec-166e3f077cb8', 'kucoin - key: ' + spotKey + ' not in options.');
         try {
             await exchange.createOrder('BTC/USDT', 'limit', 'buy', 1, 20000);
         }
@@ -1562,11 +1580,10 @@ export default class testMainClass extends baseMainTestClass {
         const exchange = this.initOfflineExchange('kucoinfutures');
         let reqHeaders = undefined;
         const id = 'ccxtfutures';
-        const optionsString = exchange.options['partner']['future'].toString();
         const futureId = exchange.options['partner']['future']['id'];
         const futureKey = exchange.options['partner']['future']['key'];
-        assert(futureId === id, 'kucoinfutures - id: ' + futureId + ' not in options: ' + optionsString);
-        assert(futureKey === '1b327198-f30c-4f14-a0ac-918871282f15', 'kucoinfutures - key: ' + futureKey + ' not in options: ' + optionsString);
+        assert(futureId === id, 'kucoinfutures - id: ' + futureId + ' not in options.');
+        assert(futureKey === '1b327198-f30c-4f14-a0ac-918871282f15', 'kucoinfutures - key: ' + futureKey + ' not in options.');
         try {
             await exchange.createOrder('BTC/USDT:USDT', 'limit', 'buy', 1, 20000);
         }
@@ -1581,8 +1598,7 @@ export default class testMainClass extends baseMainTestClass {
         const exchange = this.initOfflineExchange('bitget');
         let reqHeaders = undefined;
         const id = 'p4sve';
-        const optionsString = exchange.options.toString();
-        assert(exchange.options['broker'] === id, 'bitget - id: ' + id + ' not in options: ' + optionsString);
+        assert(exchange.options['broker'] === id, 'bitget - id: ' + id + ' not in options');
         try {
             await exchange.createOrder('BTC/USDT', 'limit', 'buy', 1, 20000);
         }
@@ -1597,8 +1613,7 @@ export default class testMainClass extends baseMainTestClass {
         const exchange = this.initOfflineExchange('mexc');
         let reqHeaders = undefined;
         const id = 'CCXT';
-        const optionsString = exchange.options.toString();
-        assert(exchange.options['broker'] === id, 'mexc - id: ' + id + ' not in options: ' + optionsString);
+        assert(exchange.options['broker'] === id, 'mexc - id: ' + id + ' not in options');
         await exchange.loadMarkets();
         try {
             await exchange.createOrder('BTC/USDT', 'limit', 'buy', 1, 20000);
@@ -1606,8 +1621,7 @@ export default class testMainClass extends baseMainTestClass {
         catch (e) {
             reqHeaders = exchange.last_request_headers;
         }
-        const reqHeadersString = reqHeaders !== undefined ? reqHeaders.toString() : 'undefined';
-        assert(reqHeaders['source'] === id, 'mexc - id: ' + id + ' not in headers: ' + reqHeadersString);
+        assert(reqHeaders['source'] === id, 'mexc - id: ' + id + ' not in headers.');
         await close(exchange);
         return true;
     }
@@ -1711,8 +1725,7 @@ export default class testMainClass extends baseMainTestClass {
         const exchange = this.initOfflineExchange('bingx');
         let reqHeaders = undefined;
         const id = 'CCXT';
-        const optionsString = exchange.options.toString();
-        assert(exchange.options['broker'] === id, 'bingx - id: ' + id + ' not in options: ' + optionsString);
+        assert(exchange.options['broker'] === id, 'bingx - id: ' + id + ' not in options');
         try {
             await exchange.createOrder('BTC/USDT', 'limit', 'buy', 1, 20000);
         }
@@ -1720,8 +1733,7 @@ export default class testMainClass extends baseMainTestClass {
             // we expect an error here, we're only interested in the headers
             reqHeaders = exchange.last_request_headers;
         }
-        const reqHeadersString = reqHeaders !== undefined ? reqHeaders.toString() : 'undefined';
-        assert(reqHeaders['X-SOURCE-KEY'] === id, 'bingx - id: ' + id + ' not in headers: ' + reqHeadersString);
+        assert(reqHeaders['X-SOURCE-KEY'] === id, 'bingx - id: ' + id + ' not in headers.');
         await close(exchange);
     }
     async testPhemex() {
@@ -1785,7 +1797,23 @@ export default class testMainClass extends baseMainTestClass {
         await close(exchange);
         return true;
     }
+    async testCoinbaseAdvanced() {
+        const exchange = this.initOfflineExchange('coinbase');
+        const id = 'ccxt';
+        assert(exchange.options['brokerId'] === id, 'id not in options');
+        let request = undefined;
+        try {
+            await exchange.createOrder('BTC/USDC', 'limit', 'buy', 1, 20000);
+        }
+        catch (e) {
+            request = jsonParse(exchange.last_request_body);
+        }
+        const clientOrderId = request['client_order_id'];
+        assert(clientOrderId.startsWith(id.toString()), 'clientOrderId does not start with id');
+        await close(exchange);
+        return true;
+    }
 }
 // ***** AUTO-TRANSPILER-END *****
 // *******************************
-(new testMainClass()).init(exchangeIdFromArgv, exchangeSymbol);
+(new testMainClass()).init(argvExchange, argvSymbol, argvMethod);

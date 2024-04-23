@@ -4,8 +4,8 @@
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
-import testSharedMethods from './base/test.sharedMethods.js';
 import testLedgerEntry from './base/test.ledgerEntry.js';
+import testSharedMethods from './base/test.sharedMethods.js';
 async function testFetchLedger(exchange, skippedProperties, code) {
     const method = 'fetchLedger';
     const items = await exchange.fetchLedger(code);

@@ -376,7 +376,7 @@ class bit2c extends Exchange {
         }) ();
     }
 
-    public function fetch_trading_fees($params = array ()) {
+    public function fetch_trading_fees($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetch the trading $fees for multiple markets
@@ -499,7 +499,7 @@ class bit2c extends Exchange {
             $response = Async\await($this->privateGetOrderMyOrders (array_merge($request, $params)));
             $orders = $this->safe_value($response, $market['id'], array());
             $asks = $this->safe_value($orders, 'ask', array());
-            $bids = $this->safe_value($orders, 'bid', array());
+            $bids = $this->safe_list($orders, 'bid', array());
             return $this->parse_orders($this->array_concat($asks, $bids), $market, $since, $limit);
         }) ();
     }

@@ -234,7 +234,7 @@ export default class p2b extends Exchange {
         });
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name p2b#fetchMarkets
@@ -582,7 +582,7 @@ export default class p2b extends Exchange {
         //        current_time: '1699255571.413828'
         //    }
         //
-        const result = this.safeValue (response, 'result', []);
+        const result = this.safeList (response, 'result', []);
         return this.parseTrades (result, market, since, limit);
     }
 
@@ -700,7 +700,7 @@ export default class p2b extends Exchange {
         //        current_time: '1699256375.030494'
         //    }
         //
-        const result = this.safeValue (response, 'result', []);
+        const result = this.safeList (response, 'result', []);
         return this.parseOHLCVs (result, market, timeframe, since, limit);
     }
 
@@ -839,7 +839,7 @@ export default class p2b extends Exchange {
         //        }
         //    }
         //
-        const result = this.safeValue (response, 'result');
+        const result = this.safeDict (response, 'result');
         return this.parseOrder (result, market);
     }
 
@@ -886,7 +886,7 @@ export default class p2b extends Exchange {
         //        }
         //    }
         //
-        const result = this.safeValue (response, 'result');
+        const result = this.safeDict (response, 'result');
         return this.parseOrder (result);
     }
 
@@ -942,7 +942,7 @@ export default class p2b extends Exchange {
         //        ]
         //    }
         //
-        const result = this.safeValue (response, 'result', []);
+        const result = this.safeList (response, 'result', []);
         return this.parseOrders (result, market, since, limit);
     }
 
@@ -995,7 +995,7 @@ export default class p2b extends Exchange {
         //    }
         //
         const result = this.safeValue (response, 'result', {});
-        const records = this.safeValue (result, 'records', []);
+        const records = this.safeList (result, 'records', []);
         return this.parseTrades (records, market, since, limit);
     }
 
@@ -1071,7 +1071,7 @@ export default class p2b extends Exchange {
         //    }
         //
         const result = this.safeValue (response, 'result', {});
-        const deals = this.safeValue (result, 'deals', []);
+        const deals = this.safeList (result, 'deals', []);
         return this.parseTrades (deals, market, since, limit);
     }
 

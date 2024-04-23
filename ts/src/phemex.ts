@@ -6,7 +6,7 @@ import { ExchangeError, BadSymbol, AuthenticationError, InsufficientFunds, Inval
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { TransferEntry, Balances, Currency, FundingHistory, FundingRateHistory, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import type { TransferEntry, Balances, Currency, FundingHistory, FundingRateHistory, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, MarginModification, Currencies } from './base/types.js';
 
 // ----------------------------------------------------------------------------
 
@@ -739,7 +739,7 @@ export default class phemex extends Exchange {
         });
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name phemex#fetchMarkets
@@ -968,7 +968,7 @@ export default class phemex extends Exchange {
         return result;
     }
 
-    async fetchCurrencies (params = {}) {
+    async fetchCurrencies (params = {}): Promise<Currencies> {
         /**
          * @method
          * @name phemex#fetchCurrencies
@@ -1304,7 +1304,7 @@ export default class phemex extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', {});
-        const rows = this.safeValue (data, 'rows', []);
+        const rows = this.safeList (data, 'rows', []);
         return this.parseOHLCVs (rows, market, timeframe, since, userLimit);
     }
 
@@ -1467,7 +1467,7 @@ export default class phemex extends Exchange {
         //         }
         //     }
         //
-        const result = this.safeValue (response, 'result', {});
+        const result = this.safeDict (response, 'result', {});
         return this.parseTicker (result, market);
     }
 
@@ -1502,7 +1502,7 @@ export default class phemex extends Exchange {
         } else {
             response = await this.v2GetMdV2Ticker24hrAll (query);
         }
-        const result = this.safeValue (response, 'result', []);
+        const result = this.safeList (response, 'result', []);
         return this.parseTickers (result, symbols);
     }
 
@@ -2719,7 +2719,7 @@ export default class phemex extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         return this.parseOrder (data, market);
     }
 
@@ -2792,7 +2792,7 @@ export default class phemex extends Exchange {
         } else {
             response = await this.privatePutSpotOrders (this.extend (request, params));
         }
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         return this.parseOrder (data, market);
     }
 
@@ -2835,7 +2835,7 @@ export default class phemex extends Exchange {
         } else {
             response = await this.privateDeleteSpotOrders (this.extend (request, params));
         }
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         return this.parseOrder (data, market);
     }
 
@@ -2854,11 +2854,16 @@ export default class phemex extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
+        const stop = this.safeValue2 (params, 'stop', 'trigger', false);
+        params = this.omit (params, 'stop', 'trigger');
         const request = {
             'symbol': market['id'],
             // 'untriggerred': false, // false to cancel non-conditional orders, true to cancel conditional orders
             // 'text': 'up to 40 characters max',
         };
+        if (stop) {
+            request['untriggerred'] = stop;
+        }
         let response = undefined;
         if (market['settle'] === 'USDT') {
             response = await this.privateDeleteGOrdersAll (this.extend (request, params));
@@ -2955,7 +2960,7 @@ export default class phemex extends Exchange {
             response = await this.privateGetSpotOrders (this.extend (request, params));
         }
         const data = this.safeValue (response, 'data', {});
-        const rows = this.safeValue (data, 'rows', data);
+        const rows = this.safeList (data, 'rows', data);
         return this.parseOrders (rows, market, since, limit);
     }
 
@@ -3001,7 +3006,7 @@ export default class phemex extends Exchange {
         if (Array.isArray (data)) {
             return this.parseOrders (data, market, since, limit);
         } else {
-            const rows = this.safeValue (data, 'rows', []);
+            const rows = this.safeList (data, 'rows', []);
             return this.parseOrders (rows, market, since, limit);
         }
     }
@@ -3087,7 +3092,7 @@ export default class phemex extends Exchange {
         if (Array.isArray (data)) {
             return this.parseOrders (data, market, since, limit);
         } else {
-            const rows = this.safeValue (data, 'rows', []);
+            const rows = this.safeList (data, 'rows', []);
             return this.parseOrders (rows, market, since, limit);
         }
     }
@@ -3989,7 +3994,7 @@ export default class phemex extends Exchange {
         };
     }
 
-    async setMargin (symbol: string, amount: number, params = {}) {
+    async setMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
         /**
          * @method
          * @name phemex#setMargin
@@ -4026,7 +4031,7 @@ export default class phemex extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseMarginModification (data, market: Market = undefined) {
+    parseMarginModification (data, market: Market = undefined): MarginModification {
         //
         //     {
         //         "code": 0,
@@ -4039,12 +4044,15 @@ export default class phemex extends Exchange {
         const codeCurrency = inverse ? 'base' : 'quote';
         return {
             'info': data,
+            'symbol': this.safeSymbol (undefined, market),
             'type': 'set',
+            'marginMode': 'isolated',
             'amount': undefined,
             'total': undefined,
             'code': market[codeCurrency],
-            'symbol': this.safeSymbol (undefined, market),
             'status': this.parseMarginStatus (this.safeString (data, 'code')),
+            'timestamp': undefined,
+            'datetime': undefined,
         };
     }
 
@@ -4209,7 +4217,7 @@ export default class phemex extends Exchange {
         //
         //
         const data = this.safeValue (response, 'data', {});
-        const riskLimits = this.safeValue (data, 'riskLimits');
+        const riskLimits = this.safeList (data, 'riskLimits');
         return this.parseLeverageTiers (riskLimits, symbols, 'symbol');
     }
 
@@ -4472,7 +4480,7 @@ export default class phemex extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', {});
-        const transfers = this.safeValue (data, 'rows', []);
+        const transfers = this.safeList (data, 'rows', []);
         return this.parseTransfers (transfers, currency, since, limit);
     }
 
@@ -4695,7 +4703,7 @@ export default class phemex extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         return this.parseTransaction (data, currency);
     }
 

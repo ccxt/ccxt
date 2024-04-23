@@ -1348,9 +1348,6 @@ class bitrue extends bitrue$1 {
                 'interval': this.safeString(timeframesFuture, timeframe, '1min'),
             };
             if (limit !== undefined) {
-                if (limit > 300) {
-                    limit = 300;
-                }
                 request['limit'] = limit;
             }
             if (market['linear']) {
@@ -1369,9 +1366,6 @@ class bitrue extends bitrue$1 {
                 'scale': this.safeString(timeframesSpot, timeframe, '1m'),
             };
             if (limit !== undefined) {
-                if (limit > 1440) {
-                    limit = 1440;
-                }
                 request['limit'] = limit;
             }
             if (since !== undefined) {
@@ -2566,7 +2560,7 @@ class bitrue extends bitrue$1 {
         //         ]
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseTransactions(data, currency, since, limit);
     }
     async fetchWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -2819,7 +2813,7 @@ class bitrue extends bitrue$1 {
         //         }
         //     }
         //
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         return this.parseTransaction(data, currency);
     }
     parseDepositWithdrawFee(fee, currency = undefined) {
@@ -2875,7 +2869,7 @@ class bitrue extends bitrue$1 {
          */
         await this.loadMarkets();
         const response = await this.spotV1PublicGetExchangeInfo(params);
-        const coins = this.safeValue(response, 'coins');
+        const coins = this.safeList(response, 'coins');
         return this.parseDepositWithdrawFees(coins, codes, 'coin');
     }
     parseTransfer(transfer, currency = undefined) {
@@ -3003,7 +2997,7 @@ class bitrue extends bitrue$1 {
         //         'data': null
         //     }
         //
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         return this.parseTransfer(data, currency);
     }
     async setLeverage(leverage, symbol = undefined, params = {}) {
@@ -3043,13 +3037,26 @@ class bitrue extends bitrue$1 {
         return response;
     }
     parseMarginModification(data, market = undefined) {
+        //
+        // setMargin
+        //
+        //     {
+        //         "code": 0,
+        //         "msg": "success"
+        //         "data": null
+        //     }
+        //
         return {
             'info': data,
-            'type': undefined,
-            'amount': undefined,
-            'code': undefined,
             'symbol': market['symbol'],
+            'type': undefined,
+            'marginMode': 'isolated',
+            'amount': undefined,
+            'total': undefined,
+            'code': undefined,
             'status': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
         };
     }
     async setMargin(symbol, amount, params = {}) {

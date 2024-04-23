@@ -99,7 +99,7 @@ public partial class hitbtc : ccxt.hitbtc
             };
             this.watch(url, messageHash, request, messageHash);
         }
-        return future;
+        return await (future as Exchange.Future);
     }
 
     public async virtual Task<object> subscribePublic(object name, object messageHashPrefix, object symbols = null, object parameters = null)

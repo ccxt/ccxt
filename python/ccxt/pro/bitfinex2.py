@@ -10,8 +10,8 @@ from ccxt.base.types import Balances, Int, Order, OrderBook, Str, Ticker, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import InvalidNonce
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import InvalidNonce
 from ccxt.base.precise import Precise
 
 
@@ -812,7 +812,7 @@ class bitfinex2(ccxt.async_support.bitfinex2):
             }
             message = self.extend(request, params)
             self.watch(url, messageHash, message, messageHash)
-        return future
+        return await future
 
     def handle_authentication_message(self, client: Client, message):
         messageHash = 'authenticated'

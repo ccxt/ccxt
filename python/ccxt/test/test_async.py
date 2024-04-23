@@ -129,6 +129,7 @@ class baseMainTestClass():
     response_tests = False
     ws_tests = False
     load_keys = False
+    skipped_settings_for_exchange = {}
     skipped_methods = {}
     check_public_tests = {}
     test_files = {}
@@ -277,7 +278,7 @@ class testMainClass(baseMainTestClass):
         self.load_keys = get_cli_arg_value('--loadKeys')
         self.ws_tests = get_cli_arg_value('--ws')
 
-    async def init(self, exchange_id, symbol_argv):
+    async def init(self, exchange_id, symbol_argv, method_argv):
         self.parse_cli_args()
         if self.request_tests and self.response_tests:
             await self.run_static_request_tests(exchange_id, symbol_argv)
@@ -292,13 +293,12 @@ class testMainClass(baseMainTestClass):
         if self.id_tests:
             await self.run_broker_id_tests()
             return
-        symbol_str = symbol_argv if symbol_argv is not None else 'all'
-        exchange_object = {
+        dump(self.new_line + '' + self.new_line + '' + '[INFO] TESTING ', self.ext, {
             'exchange': exchange_id,
-            'symbol': symbol_str,
+            'symbol': symbol_argv,
+            'method': method_argv,
             'isWs': self.ws_tests,
-        }
-        dump(self.new_line + '' + self.new_line + '' + '[INFO] TESTING ', self.ext, json_stringify(exchange_object), self.new_line)
+        }, self.new_line)
         exchange_args = {
             'verbose': self.verbose,
             'debug': self.debug,
@@ -311,25 +311,22 @@ class testMainClass(baseMainTestClass):
         await self.import_files(exchange)
         assert len(list(self.test_files.keys())) > 0, 'Test files were not loaded'  # ensure test files are found & filled
         self.expand_settings(exchange)
-        symbol = self.check_if_specific_test_is_chosen(symbol_argv)
-        await self.start_test(exchange, symbol)
+        self.check_if_specific_test_is_chosen(method_argv)
+        await self.start_test(exchange, symbol_argv)
         exit_script(0)  # needed to be explicitly finished for WS tests
 
-    def check_if_specific_test_is_chosen(self, symbol_argv):
-        if symbol_argv is not None:
+    def check_if_specific_test_is_chosen(self, method_argv):
+        if method_argv is not None:
             test_file_names = list(self.test_files.keys())
-            possible_method_names = symbol_argv.split(',')  # i.e. `test.ts binance fetchBalance,fetchDeposits`
+            possible_method_names = method_argv.split(',')  # i.e. `test.ts binance fetchBalance,fetchDeposits`
             if len(possible_method_names) >= 1:
                 for i in range(0, len(test_file_names)):
                     test_file_name = test_file_names[i]
                     for j in range(0, len(possible_method_names)):
                         method_name = possible_method_names[j]
+                        method_name = method_name.replace('()', '')
                         if test_file_name == method_name:
                             self.only_specific_tests.append(test_file_name)
-            # if method names were found, then remove them from symbolArgv
-            if len(self.only_specific_tests) > 0:
-                return None
-        return symbol_argv
 
     async def import_files(self, exchange):
         properties = list(exchange.has.keys())
@@ -378,7 +375,8 @@ class testMainClass(baseMainTestClass):
         # skipped tests
         skipped_file = self.root_dir_for_skips + 'skip-tests.json'
         skipped_settings = io_file_read(skipped_file)
-        skipped_settings_for_exchange = exchange.safe_value(skipped_settings, exchange_id, {})
+        self.skipped_settings_for_exchange = exchange.safe_value(skipped_settings, exchange_id, {})
+        skipped_settings_for_exchange = self.skipped_settings_for_exchange
         # others
         timeout = exchange.safe_value(skipped_settings_for_exchange, 'timeout')
         if timeout is not None:
@@ -420,9 +418,13 @@ class testMainClass(baseMainTestClass):
         return result
 
     async def test_method(self, method_name, exchange, args, is_public):
+        # todo: temporary skip for c#
+        if 'OrderBook' in method_name and self.ext == 'cs':
+            exchange.options['checksum'] = False
         # todo: temporary skip for php
         if 'OrderBook' in method_name and self.ext == 'php':
             return
+        skipped_properties_for_method = self.get_skips(exchange, method_name)
         is_load_markets = (method_name == 'loadMarkets')
         is_fetch_currencies = (method_name == 'fetchCurrencies')
         is_proxy_test = (method_name == self.proxy_test_file_name)
@@ -435,7 +437,7 @@ class testMainClass(baseMainTestClass):
             skip_message = '[INFO] IGNORED_TEST'
         elif not is_load_markets and not supported_by_exchange and not is_proxy_test:
             skip_message = '[INFO] UNSUPPORTED_TEST'  # keep it aligned with the longest message
-        elif (method_name in self.skipped_methods) and (isinstance(self.skipped_methods[method_name], str)):
+        elif isinstance(skipped_properties_for_method, str):
             skip_message = '[INFO] SKIPPED_TEST'
         elif not (method_name in self.test_files):
             skip_message = '[INFO] UNIMPLEMENTED_TEST'
@@ -449,15 +451,24 @@ class testMainClass(baseMainTestClass):
         if self.info:
             args_stringified = '(' + ','.join(args) + ')'
             dump(self.add_padding('[INFO] TESTING', 25), self.exchange_hint(exchange), method_name, args_stringified)
-        await call_method(self.test_files, method_name, exchange, self.get_skips(exchange, method_name), args)
+        await call_method(self.test_files, method_name, exchange, skipped_properties_for_method, args)
         # if it was passed successfully, add to the list of successfull tests
         if is_public:
             self.checked_public_tests[method_name] = True
         return
 
     def get_skips(self, exchange, method_name):
-        # get "method-specific" skips
-        skips_for_method = exchange.safe_value(self.skipped_methods, method_name, {})
+        final_skips = {}
+        # check the exact method (i.e. `fetchTrades`) and language-specific (i.e. `fetchTrades.php`)
+        method_names = [method_name, method_name + '.' + self.ext]
+        for i in range(0, len(method_names)):
+            m_name = method_names[i]
+            if m_name in self.skipped_methods:
+                # if whole method is skipped, by assigning a string to it, i.e. "fetchOrders":"blabla"
+                if isinstance(self.skipped_methods[m_name], str):
+                    return self.skipped_methods[m_name]
+                else:
+                    final_skips = exchange.deep_extend(final_skips, self.skipped_methods[m_name])
         # get "object-specific" skips
         object_skips = {
             'orderBook': ['fetchOrderBook', 'fetchOrderBooks', 'fetchL2OrderBook', 'watchOrderBook', 'watchOrderBookForSymbols'],
@@ -473,9 +484,21 @@ class testMainClass(baseMainTestClass):
             object_name = object_names[i]
             object_methods = object_skips[object_name]
             if exchange.in_array(method_name, object_methods):
+                # if whole object is skipped, by assigning a string to it, i.e. "orderBook":"blabla"
+                if (object_name in self.skipped_methods) and (isinstance(self.skipped_methods[object_name], str)):
+                    return self.skipped_methods[object_name]
                 extra_skips = exchange.safe_dict(self.skipped_methods, object_name, {})
-                return exchange.deep_extend(skips_for_method, extra_skips)
-        return skips_for_method
+                final_skips = exchange.deep_extend(final_skips, extra_skips)
+        # extend related skips
+        # - if 'timestamp' is skipped, we should do so for 'datetime' too
+        # - if 'bid' is skipped, skip 'ask' too
+        if ('timestamp' in final_skips) and not ('datetime' in final_skips):
+            final_skips['datetime'] = final_skips['timestamp']
+        if ('bid' in final_skips) and not ('ask' in final_skips):
+            final_skips['ask'] = final_skips['bid']
+        if ('baseVolume' in final_skips) and not ('quoteVolume' in final_skips):
+            final_skips['quoteVolume'] = final_skips['baseVolume']
+        return final_skips
 
     async def test_safe(self, method_name, exchange, args=[], is_public=False):
         # `testSafe` method does not throw an exception, instead mutes it. The reason we
@@ -567,10 +590,14 @@ class testMainClass(baseMainTestClass):
         if self.ws_tests:
             tests = {
                 'watchOHLCV': [symbol],
+                'watchOHLCVForSymbols': [symbol],
                 'watchTicker': [symbol],
                 'watchTickers': [symbol],
+                'watchBidsAsks': [symbol],
                 'watchOrderBook': [symbol],
+                'watchOrderBookForSymbols': [[symbol]],
                 'watchTrades': [symbol],
+                'watchTradesForSymbols': [[symbol]],
             }
         market = exchange.market(symbol)
         is_spot = market['spot']
@@ -615,26 +642,18 @@ class testMainClass(baseMainTestClass):
         result = await self.test_safe('loadMarkets', exchange, [], True)
         if not result:
             return False
-        symbols = ['BTC/USDT', 'BTC/USDC', 'BTC/CNY', 'BTC/USD', 'BTC/EUR', 'BTC/ETH', 'ETH/BTC', 'BTC/JPY', 'ETH/EUR', 'ETH/JPY', 'ETH/CNY', 'ETH/USD', 'LTC/CNY', 'DASH/BTC', 'DOGE/BTC', 'BTC/AUD', 'BTC/PLN', 'USD/SLL', 'BTC/RUB', 'BTC/UAH', 'LTC/BTC', 'EUR/USD']
-        result_symbols = []
-        exchange_specific_symbols = exchange.symbols
-        for i in range(0, len(exchange_specific_symbols)):
-            symbol = exchange_specific_symbols[i]
-            if exchange.in_array(symbol, symbols):
-                result_symbols.append(symbol)
-        result_msg = ''
-        result_length = len(result_symbols)
         exchange_symbols_length = len(exchange.symbols)
-        if result_length > 0:
-            if exchange_symbols_length > result_length:
-                result_msg = ', '.join(result_symbols) + ' + more...'
-            else:
-                result_msg = ', '.join(result_symbols)
-        dump('[INFO:MAIN] Exchange loaded', exchange_symbols_length, 'symbols', result_msg)
+        dump('[INFO:MAIN] Exchange loaded', exchange_symbols_length, 'symbols')
         return True
 
     def get_test_symbol(self, exchange, is_spot, symbols):
         symbol = None
+        preferred_spot_symbol = exchange.safe_string(self.skipped_settings_for_exchange, 'preferredSpotSymbol')
+        preferred_swap_symbol = exchange.safe_string(self.skipped_settings_for_exchange, 'preferredSwapSymbol')
+        if is_spot and preferred_spot_symbol:
+            return preferred_spot_symbol
+        elif not is_spot and preferred_swap_symbol:
+            return preferred_swap_symbol
         for i in range(0, len(symbols)):
             s = symbols[i]
             market = exchange.safe_value(exchange.markets, s)
@@ -669,9 +688,9 @@ class testMainClass(baseMainTestClass):
 
     def get_valid_symbol(self, exchange, spot=True):
         current_type_markets = self.get_markets_from_exchange(exchange, spot)
-        codes = ['BTC', 'ETH', 'XRP', 'LTC', 'BCH', 'EOS', 'BNB', 'BSV', 'USDT', 'ATOM', 'BAT', 'BTG', 'DASH', 'DOGE', 'ETC', 'IOTA', 'LSK', 'MKR', 'NEO', 'PAX', 'QTUM', 'TRX', 'TUSD', 'USD', 'USDC', 'WAVES', 'XEM', 'XMR', 'ZEC', 'ZRX']
-        spot_symbols = ['BTC/USDT', 'BTC/USDC', 'BTC/USD', 'BTC/CNY', 'BTC/EUR', 'BTC/ETH', 'ETH/BTC', 'ETH/USD', 'ETH/USDT', 'BTC/JPY', 'LTC/BTC', 'ZRX/WETH', 'EUR/USD']
-        swap_symbols = ['BTC/USDT:USDT', 'BTC/USDC:USDC', 'BTC/USD:USD', 'ETH/USDT:USDT', 'ETH/USD:USD', 'LTC/USDT:USDT', 'DOGE/USDT:USDT', 'ADA/USDT:USDT', 'BTC/USD:BTC', 'ETH/USD:ETH']
+        codes = ['BTC', 'ETH', 'XRP', 'LTC', 'BNB', 'DASH', 'DOGE', 'ETC', 'TRX', 'USDT', 'USDC', 'USD', 'EUR', 'TUSD', 'CNY', 'JPY', 'BRL']
+        spot_symbols = ['BTC/USDT', 'BTC/USDC', 'BTC/USD', 'BTC/CNY', 'BTC/EUR', 'BTC/AUD', 'BTC/BRL', 'BTC/JPY', 'ETH/USDT', 'ETH/USDC', 'ETH/USD', 'ETH/CNY', 'ETH/EUR', 'ETH/AUD', 'ETH/BRL', 'ETH/JPY', 'EUR/USDT', 'EUR/USD', 'EUR/USDC', 'USDT/EUR', 'USD/EUR', 'USDC/EUR', 'BTC/ETH', 'ETH/BTC']
+        swap_symbols = ['BTC/USDT:USDT', 'BTC/USDC:USDC', 'BTC/USD:USD', 'ETH/USDT:USDT', 'ETH/USDC:USDC', 'ETH/USD:USD', 'BTC/USD:BTC', 'ETH/USD:ETH']
         target_symbols = spot_symbols if spot else swap_symbols
         symbol = self.get_test_symbol(exchange, spot, target_symbols)
         # if symbols wasn't found from above hardcoded list, then try to locate any symbol which has our target hardcoded 'base' code
@@ -1121,7 +1140,8 @@ class testMainClass(baseMainTestClass):
         # instantiate the exchange and make sure that we sink the requests to avoid an actual request
         exchange = self.init_offline_exchange(exchange_name)
         global_options = exchange.safe_dict(exchange_data, 'options', {})
-        exchange.options = exchange.deep_extend(exchange.options, global_options)  # custom options to be used in the tests
+        # exchange.options = exchange.deepExtend (exchange.options, globalOptions); # custom options to be used in the tests
+        exchange.extend_exchange_options(global_options)
         methods = exchange.safe_value(exchange_data, 'methods', {})
         methods_names = list(methods.keys())
         for i in range(0, len(methods_names)):
@@ -1131,7 +1151,8 @@ class testMainClass(baseMainTestClass):
                 result = results[j]
                 old_exchange_options = exchange.options  # snapshot options;
                 test_exchange_options = exchange.safe_value(result, 'options', {})
-                exchange.options = exchange.deep_extend(old_exchange_options, test_exchange_options)  # custom options to be used in the tests
+                # exchange.options = exchange.deepExtend (oldExchangeOptions, testExchangeOptions); # custom options to be used in the tests
+                exchange.extend_exchange_options(exchange.deep_extend(old_exchange_options, test_exchange_options))
                 description = exchange.safe_value(result, 'description')
                 if (test_name is not None) and (test_name != description):
                     continue
@@ -1142,7 +1163,8 @@ class testMainClass(baseMainTestClass):
                 skip_keys = exchange.safe_value(exchange_data, 'skipKeys', [])
                 await self.test_method_statically(exchange, method, result, type, skip_keys)
                 # reset options
-                exchange.options = exchange.deep_extend(old_exchange_options, {})
+                # exchange.options = exchange.deepExtend (oldExchangeOptions, {});
+                exchange.extend_exchange_options(exchange.deep_extend(old_exchange_options, {}))
         await close(exchange)
         return True   # in c# methods that will be used with promiseAll need to return something
 
@@ -1150,7 +1172,8 @@ class testMainClass(baseMainTestClass):
         exchange = self.init_offline_exchange(exchange_name)
         methods = exchange.safe_value(exchange_data, 'methods', {})
         options = exchange.safe_value(exchange_data, 'options', {})
-        exchange.options = exchange.deep_extend(exchange.options, options)  # custom options to be used in the tests
+        # exchange.options = exchange.deepExtend (exchange.options, options); # custom options to be used in the tests
+        exchange.extend_exchange_options(options)
         methods_names = list(methods.keys())
         for i in range(0, len(methods_names)):
             method = methods_names[i]
@@ -1160,7 +1183,8 @@ class testMainClass(baseMainTestClass):
                 description = exchange.safe_value(result, 'description')
                 old_exchange_options = exchange.options  # snapshot options;
                 test_exchange_options = exchange.safe_value(result, 'options', {})
-                exchange.options = exchange.deep_extend(old_exchange_options, test_exchange_options)  # custom options to be used in the tests
+                # exchange.options = exchange.deepExtend (oldExchangeOptions, testExchangeOptions); # custom options to be used in the tests
+                exchange.extend_exchange_options(exchange.deep_extend(old_exchange_options, test_exchange_options))
                 is_disabled = exchange.safe_bool(result, 'disabled', False)
                 if is_disabled:
                     continue
@@ -1175,7 +1199,8 @@ class testMainClass(baseMainTestClass):
                 skip_keys = exchange.safe_value(exchange_data, 'skipKeys', [])
                 await self.test_response_statically(exchange, method, skip_keys, result)
                 # reset options
-                exchange.options = exchange.deep_extend(old_exchange_options, {})
+                # exchange.options = exchange.deepExtend (oldExchangeOptions, {});
+                exchange.extend_exchange_options(exchange.deep_extend(old_exchange_options, {}))
         await close(exchange)
         return True   # in c# methods that will be used with promiseAll need to return something
 
@@ -1234,7 +1259,7 @@ class testMainClass(baseMainTestClass):
         #  -----------------------------------------------------------------------------
         #  --- Init of brokerId tests functions-----------------------------------------
         #  -----------------------------------------------------------------------------
-        promises = [self.test_binance(), self.test_okx(), self.test_cryptocom(), self.test_bybit(), self.test_kucoin(), self.test_kucoinfutures(), self.test_bitget(), self.test_mexc(), self.test_htx(), self.test_woo(), self.test_bitmart(), self.test_coinex(), self.test_bingx(), self.test_phemex(), self.test_blofin(), self.test_hyperliquid(), self.test_coinbaseinternational()]
+        promises = [self.test_binance(), self.test_okx(), self.test_cryptocom(), self.test_bybit(), self.test_kucoin(), self.test_kucoinfutures(), self.test_bitget(), self.test_mexc(), self.test_htx(), self.test_woo(), self.test_bitmart(), self.test_coinex(), self.test_bingx(), self.test_phemex(), self.test_blofin(), self.test_hyperliquid(), self.test_coinbaseinternational(), self.test_coinbase_advanced()]
         await asyncio.gather(*promises)
         success_message = '[' + self.lang + '][TEST_SUCCESS] brokerId tests passed.'
         dump('[INFO]' + success_message)
@@ -1326,11 +1351,10 @@ class testMainClass(baseMainTestClass):
     async def test_kucoin(self):
         exchange = self.init_offline_exchange('kucoin')
         req_headers = None
-        options_string = str(exchange.options)
         spot_id = exchange.options['partner']['spot']['id']
         spot_key = exchange.options['partner']['spot']['key']
-        assert spot_id == 'ccxt', 'kucoin - id: ' + spot_id + ' not in options: ' + options_string
-        assert spot_key == '9e58cc35-5b5e-4133-92ec-166e3f077cb8', 'kucoin - key: ' + spot_key + ' not in options: ' + options_string
+        assert spot_id == 'ccxt', 'kucoin - id: ' + spot_id + ' not in options'
+        assert spot_key == '9e58cc35-5b5e-4133-92ec-166e3f077cb8', 'kucoin - key: ' + spot_key + ' not in options.'
         try:
             await exchange.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
         except Exception as e:
@@ -1345,11 +1369,10 @@ class testMainClass(baseMainTestClass):
         exchange = self.init_offline_exchange('kucoinfutures')
         req_headers = None
         id = 'ccxtfutures'
-        options_string = str(exchange.options['partner']['future'])
         future_id = exchange.options['partner']['future']['id']
         future_key = exchange.options['partner']['future']['key']
-        assert future_id == id, 'kucoinfutures - id: ' + future_id + ' not in options: ' + options_string
-        assert future_key == '1b327198-f30c-4f14-a0ac-918871282f15', 'kucoinfutures - key: ' + future_key + ' not in options: ' + options_string
+        assert future_id == id, 'kucoinfutures - id: ' + future_id + ' not in options.'
+        assert future_key == '1b327198-f30c-4f14-a0ac-918871282f15', 'kucoinfutures - key: ' + future_key + ' not in options.'
         try:
             await exchange.create_order('BTC/USDT:USDT', 'limit', 'buy', 1, 20000)
         except Exception as e:
@@ -1362,8 +1385,7 @@ class testMainClass(baseMainTestClass):
         exchange = self.init_offline_exchange('bitget')
         req_headers = None
         id = 'p4sve'
-        options_string = str(exchange.options)
-        assert exchange.options['broker'] == id, 'bitget - id: ' + id + ' not in options: ' + options_string
+        assert exchange.options['broker'] == id, 'bitget - id: ' + id + ' not in options'
         try:
             await exchange.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
         except Exception as e:
@@ -1376,15 +1398,13 @@ class testMainClass(baseMainTestClass):
         exchange = self.init_offline_exchange('mexc')
         req_headers = None
         id = 'CCXT'
-        options_string = str(exchange.options)
-        assert exchange.options['broker'] == id, 'mexc - id: ' + id + ' not in options: ' + options_string
+        assert exchange.options['broker'] == id, 'mexc - id: ' + id + ' not in options'
         await exchange.load_markets()
         try:
             await exchange.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
         except Exception as e:
             req_headers = exchange.last_request_headers
-        req_headers_string = str(req_headers) if req_headers is not None else 'undefined'
-        assert req_headers['source'] == id, 'mexc - id: ' + id + ' not in headers: ' + req_headers_string
+        assert req_headers['source'] == id, 'mexc - id: ' + id + ' not in headers.'
         await close(exchange)
         return True
 
@@ -1476,15 +1496,13 @@ class testMainClass(baseMainTestClass):
         exchange = self.init_offline_exchange('bingx')
         req_headers = None
         id = 'CCXT'
-        options_string = str(exchange.options)
-        assert exchange.options['broker'] == id, 'bingx - id: ' + id + ' not in options: ' + options_string
+        assert exchange.options['broker'] == id, 'bingx - id: ' + id + ' not in options'
         try:
             await exchange.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
         except Exception as e:
             # we expect an error here, we're only interested in the headers
             req_headers = exchange.last_request_headers
-        req_headers_string = str(req_headers) if req_headers is not None else 'undefined'
-        assert req_headers['X-SOURCE-KEY'] == id, 'bingx - id: ' + id + ' not in headers: ' + req_headers_string
+        assert req_headers['X-SOURCE-KEY'] == id, 'bingx - id: ' + id + ' not in headers.'
         await close(exchange)
 
     async def test_phemex(self):
@@ -1540,10 +1558,26 @@ class testMainClass(baseMainTestClass):
         await close(exchange)
         return True
 
+    async def test_coinbase_advanced(self):
+        exchange = self.init_offline_exchange('coinbase')
+        id = 'ccxt'
+        assert exchange.options['brokerId'] == id, 'id not in options'
+        request = None
+        try:
+            await exchange.create_order('BTC/USDC', 'limit', 'buy', 1, 20000)
+        except Exception as e:
+            request = json_parse(exchange.last_request_body)
+        client_order_id = request['client_order_id']
+        assert client_order_id.startswith(str(id)), 'clientOrderId does not start with id'
+        await close(exchange)
+        return True
+
 # ***** AUTO-TRANSPILER-END *****
 # *******************************
 
 
 if __name__ == '__main__':
-    symbol = argv.symbol if argv.symbol else None
-    asyncio.run(testMainClass().init(argv.exchange, symbol))
+    argvSymbol = argv.symbol if argv.symbol and '/' in argv.symbol else None
+    # in python, we check it through "symbol" arg (as opposed to JS/PHP) because argvs were already built above
+    argvMethod = argv.symbol if argv.symbol and '()' in argv.symbol else None
+    asyncio.run(testMainClass().init(argv.exchange, argvSymbol, argvMethod))

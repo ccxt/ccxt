@@ -245,7 +245,7 @@ class coinmetro extends Exchange {
         ));
     }
 
-    public function fetch_currencies($params = array ()) {
+    public function fetch_currencies($params = array ()): ?array {
         /**
          * fetches all available currencies on an exchange
          * @see https://documenter.getpostman.com/view/3653795/SVfWN6KS#d5876d43-a3fe-4479-8c58-24d0f044edfb
@@ -331,7 +331,7 @@ class coinmetro extends Exchange {
         return $result;
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): array {
         /**
          * retrieves data on all markets for coinmetro
          * @see https://documenter.getpostman.com/view/3653795/SVfWN6KS#9fd18008-338e-4863-b07d-722878a46832
@@ -536,7 +536,7 @@ class coinmetro extends Exchange {
         //         )
         //     }
         //
-        $candleHistory = $this->safe_value($response, 'candleHistory', array());
+        $candleHistory = $this->safe_list($response, 'candleHistory', array());
         return $this->parse_ohlcvs($candleHistory, $market, $timeframe, $since, $limit);
     }
 
@@ -601,7 +601,7 @@ class coinmetro extends Exchange {
         //         )
         //     }
         //
-        $tickHistory = $this->safe_value($response, 'tickHistory', array());
+        $tickHistory = $this->safe_list($response, 'tickHistory', array());
         return $this->parse_trades($tickHistory, $market, $since, $limit);
     }
 
@@ -871,7 +871,7 @@ class coinmetro extends Exchange {
          */
         $this->load_markets();
         $response = $this->publicGetExchangePrices ($params);
-        $latestPrices = $this->safe_value($response, 'latestPrices', array());
+        $latestPrices = $this->safe_list($response, 'latestPrices', array());
         return $this->parse_tickers($latestPrices, $symbols);
     }
 

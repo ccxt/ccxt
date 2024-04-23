@@ -9,10 +9,10 @@ import hashlib
 from ccxt.base.types import Balances, Int, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InvalidNonce
-from ccxt.base.errors import AuthenticationError
 
 
 class okx(ccxt.async_support.okx):
@@ -459,7 +459,7 @@ class okx(ccxt.async_support.okx):
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str[] symbols: unified array of symbols
-        :param int [limit]: the maximum amount of order book entries to return
+        :param int [limit]: 1,5, 400, 50(l2-tbt, vip4+) or 40000(vip5+) the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
@@ -467,6 +467,17 @@ class okx(ccxt.async_support.okx):
         symbols = self.market_symbols(symbols)
         options = self.safe_value(self.options, 'watchOrderBook', {})
         depth = self.safe_string(options, 'depth', 'books')
+        if limit is not None:
+            if limit == 1:
+                depth = 'bbo-tbt'
+            elif limit > 1 and limit <= 5:
+                depth = 'books5'
+            elif limit == 400:
+                depth = 'books'
+            elif limit == 50:
+                depth = 'books50-l2-tbt'  # Make sure you have VIP4 and above
+            elif limit == 4000:
+                depth = 'books-l2-tbt'  # Make sure you have VIP5 and above
         if (depth == 'books-l2-tbt') or (depth == 'books50-l2-tbt'):
             await self.authenticate({'access': 'public'})
         topics = []
@@ -1236,7 +1247,8 @@ class okx(ccxt.async_support.okx):
             stringMsg = self.json(message)
             self.handle_errors(None, None, client.url, method, None, stringMsg, stringMsg, None, None)
         orders = self.parse_orders(args, None, None, None)
-        client.resolve(orders, messageHash)
+        first = self.safe_dict(orders, 0, {})
+        client.resolve(first, messageHash)
 
     async def edit_order_ws(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}) -> Order:
         """

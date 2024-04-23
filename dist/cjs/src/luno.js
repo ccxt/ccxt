@@ -485,7 +485,7 @@ class luno extends luno$1 {
             request['pair'] = market['id'];
         }
         const response = await this.privateGetListorders(this.extend(request, params));
-        const orders = this.safeValue(response, 'orders', []);
+        const orders = this.safeList(response, 'orders', []);
         return this.parseOrders(orders, market, since, limit);
     }
     async fetchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -748,7 +748,7 @@ class luno extends luno$1 {
         //          ]
         //      }
         //
-        const trades = this.safeValue(response, 'trades', []);
+        const trades = this.safeList(response, 'trades', []);
         return this.parseTrades(trades, market, since, limit);
     }
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
@@ -794,7 +794,7 @@ class luno extends luno$1 {
         //          "pair": "XBTEUR"
         //     }
         //
-        const ohlcvs = this.safeValue(response, 'candles', []);
+        const ohlcvs = this.safeList(response, 'candles', []);
         return this.parseOHLCVs(ohlcvs, market, timeframe, since, limit);
     }
     parseOHLCV(ohlcv, market = undefined) {
@@ -863,7 +863,7 @@ class luno extends luno$1 {
         //          ]
         //      }
         //
-        const trades = this.safeValue(response, 'trades', []);
+        const trades = this.safeList(response, 'trades', []);
         return this.parseTrades(trades, market, since, limit);
     }
     async fetchTradingFee(symbol, params = {}) {
@@ -894,6 +894,8 @@ class luno extends luno$1 {
             'symbol': symbol,
             'maker': this.safeNumber(response, 'maker_fee'),
             'taker': this.safeNumber(response, 'taker_fee'),
+            'percentage': undefined,
+            'tierBased': undefined,
         };
     }
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
