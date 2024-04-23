@@ -591,8 +591,8 @@ export default class bitflex extends Exchange {
             'expiryDatetime': undefined,
             'strike': undefined,
             'optionType': undefined,
-            'maker': this.safeFloat (this.fees['trading'], 'maker'),
-            'taker': this.safeFloat (this.fees['trading'], 'taker'),
+            'maker': this.safeNumber (this.fees['trading'], 'maker'),
+            'taker': this.safeNumber (this.fees['trading'], 'taker'),
             'precision': {
                 'amount': this.safeFloat (amountPrecisionAndLimits, 'stepSize'),
                 'price': this.safeFloat (pricePrecisionAndLimits, 'tickSize'),
@@ -789,9 +789,9 @@ export default class bitflex extends Exchange {
         if (since !== undefined) {
             request['startTime'] = since;
         }
-        const until = this.safeInteger2 (params, 'till', 'until');
+        const until = this.safeInteger (params, 'until');
         if (until !== undefined) {
-            params = this.omit (params, [ 'till', 'until' ]);
+            params = this.omit (params, 'until');
             request['endTime'] = until;
         }
         let response = undefined;
@@ -1021,9 +1021,9 @@ export default class bitflex extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const until = this.safeInteger2 (params, 'till', 'until');
+        const until = this.safeInteger (params, 'until');
         if (until !== undefined) {
-            params = this.omit (params, [ 'till', 'until' ]);
+            params = this.omit (params, 'until');
             request['endTime'] = until;
         }
         const response = await this.publicGetOpenapiQuoteV1Klines (this.extend (request, params));
@@ -1840,10 +1840,7 @@ export default class bitflex extends Exchange {
         const orderSide = this.safeString (order, 'side');
         const side = this.parseOrderSide (orderSide);
         const reduceOnly = this.parseReduceOnly (orderSide);
-        let price = this.safeString (order, 'price');
-        if (price === '0') { // todo tell ecxhange to fix it
-            price = undefined;
-        }
+        const price = this.omitZero (this.safeString (order, 'price'));
         const triggerPrice = this.safeString (order, 'triggerPrice'); // todo check for swap
         const average = this.safeString (order, 'avgPrice');
         const filled = this.safeString (order, 'executedQty'); // todo check
@@ -2061,9 +2058,9 @@ export default class bitflex extends Exchange {
             if (since !== undefined) {
                 request['startTime'] = since;
             }
-            const until = this.safeInteger2 (params, 'till', 'until');
+            const until = this.safeInteger (params, 'until');
             if (until !== undefined) {
-                params = this.omit (params, [ 'till', 'until' ]);
+                params = this.omit (params, 'until');
                 request['endTime'] = until;
             }
             response = await this.privateGetOpenapiV1HistoryOrders (this.extend (request, params));
@@ -2846,9 +2843,9 @@ export default class bitflex extends Exchange {
         if (since !== undefined) {
             request['startTime'] = since;
         }
-        const until = this.safeInteger2 (params, 'till', 'until');
+        const until = this.safeInteger (params, 'until');
         if (until !== undefined) {
-            params = this.omit (params, [ 'till', 'until' ]);
+            params = this.omit (params, 'until');
             request['endTime'] = until;
         }
         let type = undefined;
