@@ -42,7 +42,7 @@ export default class woofipro extends Exchange {
                 'closePosition': false,
                 'createConvertTrade': true,
                 'createDepositAddress': false,
-                'createMarketBuyOrderWithCost': true,
+                'createMarketBuyOrderWithCost': false,
                 'createMarketOrder': false,
                 'createMarketOrderWithCost': false,
                 'createMarketSellOrderWithCost': false,
