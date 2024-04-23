@@ -36,6 +36,7 @@ export default class woofipro extends Exchange {
                 'addMargin': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
+                'cancelOrders': true,
                 'cancelWithdraw': false, // exchange have that endpoint disabled atm, but was once implemented in ccxt per old docs: https://kronosresearch.github.io/wootrade-documents/#cancel-withdraw-request
                 'closeAllPositions': false,
                 'closePosition': false,
@@ -1394,6 +1395,43 @@ export default class woofipro extends Exchange {
         return this.extend (this.parseOrder (data), extendParams);
     }
 
+	async cancelOrders (ids:string[], symbol: Str = undefined, params = {}) {
+        /**
+         * @method
+         * @name woofipro#cancelOrders
+         * @description cancel multiple orders
+         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/batch-cancel-orders
+         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/batch-cancel-orders-by-client_order_id
+         * @param {string[]} ids order ids
+         * @param {string} [symbol] unified market symbol
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string[]} [params.client_order_ids] max length 10 e.g. ["my_id_1","my_id_2"], encode the double quotes. No space after comma
+         * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+		const clientOrderIds = this.safeListN (params, [ 'clOrdIDs', 'clientOrderIds', 'client_order_ids' ]);
+		params = this.omit (params, [ 'clOrdIDs', 'clientOrderIds', 'client_order_ids' ]);
+        const request = {};
+        let response = undefined;
+        if (clientOrderIds) {
+			request['client_order_ids'] = clientOrderIds.join (',');
+            response = await this.v1PrivateDeleteClientBatchOrder (this.extend (request, params));
+        } else {
+			request['order_ids'] = ids.join (',');
+            response = await this.v1PrivateDeleteBatchOrder (this.extend (request, params));
+        }
+        //
+		// 	{
+		// 		"success": true,
+		// 		"timestamp": 1702989203989,
+		// 		"data": {
+		// 	  	  "status": "CANCEL_ALL_SENT"
+		// 		}
+		// 	}
+        //
+        return response;
+    }
+
 	async cancelAllOrders (symbol: Str = undefined, params = {}) {
         /**
          * @method
@@ -1797,9 +1835,8 @@ export default class woofipro extends Exchange {
 				headers['content-type'] = 'application/json';
 			} else {
 				if (Object.keys (params).length) {
-					const query = this.urlencode (params);
-					url += '?' + query;
-					auth += '?' + query;
+					url += '?' + this.urlencode (params);
+					auth += '?' + this.rawencode (params);
 				}
 				headers['content-type'] = 'application/x-www-form-urlencoded';
 			}
