@@ -475,7 +475,7 @@ class coinex extends Exchange {
         ));
     }
 
-    public function fetch_currencies($params = array ()): array {
+    public function fetch_currencies($params = array ()): ?array {
         $response = $this->v1PublicGetCommonAssetConfig ($params);
         //     {
         //         "code" => 0,
@@ -4400,7 +4400,6 @@ class coinex extends Exchange {
 
     public function fetch_funding_rates(?array $symbols = null, $params = array ()) {
         /**
-         *  @method
          * fetch the current funding rates
          * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http009_market_ticker_all
          * @param {string[]} $symbols unified $market $symbols

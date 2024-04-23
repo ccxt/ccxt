@@ -63,6 +63,8 @@ class bitget extends Exchange {
                 'fetchClosedOrders' => true,
                 'fetchConvertCurrencies' => true,
                 'fetchConvertQuote' => true,
+                'fetchConvertTrade' => false,
+                'fetchConvertTradeHistory' => true,
                 'fetchCrossBorrowRate' => true,
                 'fetchCrossBorrowRates' => false,
                 'fetchCurrencies' => true,
@@ -1822,7 +1824,7 @@ class bitget extends Exchange {
         return $this->parse_markets($data);
     }
 
-    public function fetch_currencies($params = array ()): array {
+    public function fetch_currencies($params = array ()): ?array {
         /**
          * fetches all available currencies on an exchange
          * @see https://www.bitget.com/api-doc/spot/market/Get-Coin-List
@@ -8344,6 +8346,63 @@ class bitget extends Exchange {
         return $this->parse_conversion($data, null, $toCurrency);
     }
 
+    public function fetch_convert_trade_history(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+        /**
+         * fetch the users history of conversion trades
+         * @see https://www.bitget.com/api-doc/common/convert/Get-Convert-Record
+         * @param {string} [$code] the unified currency $code
+         * @param {int} [$since] the earliest time in ms to fetch conversions for
+         * @param {int} [$limit] the maximum number of conversion structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=conversion-structure conversion structures~
+         */
+        $this->load_markets();
+        $request = array();
+        $msInDay = 86400000;
+        $now = $this->milliseconds();
+        if ($since !== null) {
+            $request['startTime'] = $since;
+        } else {
+            $request['startTime'] = $now - $msInDay;
+        }
+        $endTime = $this->safe_string_2($params, 'endTime', 'until');
+        if ($endTime !== null) {
+            $request['endTime'] = $endTime;
+        } else {
+            $request['endTime'] = $now;
+        }
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        $params = $this->omit($params, 'until');
+        $response = $this->privateConvertGetV2ConvertConvertRecord (array_merge($request, $params));
+        //
+        //     {
+        //         "code" => "00000",
+        //         "msg" => "success",
+        //         "requestTime" => 1712124371799,
+        //         "data" => {
+        //             "dataList" => array(
+        //                 {
+        //                     "id" => "1159296505255219205",
+        //                     "fromCoin" => "USDT",
+        //                     "fromCoinSize" => "5",
+        //                     "cnvtPrice" => "0.99940076",
+        //                     "toCoin" => "USDC",
+        //                     "toCoinSize" => "4.99700379",
+        //                     "ts" => "1712123746217",
+        //                     "fee" => "0"
+        //                 }
+        //             ),
+        //             "endId" => "1159296505255219205"
+        //         }
+        //     }
+        //
+        $data = $this->safe_dict($response, 'data', array());
+        $dataList = $this->safe_list($data, 'dataList', array());
+        return $this->parse_conversions($dataList, 'fromCoin', 'toCoin', $since, $limit);
+    }
+
     public function parse_conversion($conversion, ?array $fromCurrency = null, ?array $toCurrency = null): Conversion {
         //
         // fetchConvertQuote
@@ -8367,6 +8426,19 @@ class bitget extends Exchange {
         //         "ts" => "1712123746217"
         //     }
         //
+        // fetchConvertTradeHistory
+        //
+        //     {
+        //         "id" => "1159296505255219205",
+        //         "fromCoin" => "USDT",
+        //         "fromCoinSize" => "5",
+        //         "cnvtPrice" => "0.99940076",
+        //         "toCoin" => "USDC",
+        //         "toCoinSize" => "4.99700379",
+        //         "ts" => "1712123746217",
+        //         "fee" => "0"
+        //     }
+        //
         $timestamp = $this->safe_integer($conversion, 'ts');
         $fromCoin = $this->safe_string($conversion, 'fromCoin');
         $fromCode = $this->safe_currency_code($fromCoin, $fromCurrency);
@@ -8376,7 +8448,7 @@ class bitget extends Exchange {
             'info' => $conversion,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'id' => $this->safe_string($conversion, 'traceId'),
+            'id' => $this->safe_string_2($conversion, 'id', 'traceId'),
             'fromCurrency' => $fromCode,
             'fromAmount' => $this->safe_number($conversion, 'fromCoinSize'),
             'toCurrency' => $toCode,
@@ -8386,7 +8458,7 @@ class bitget extends Exchange {
         );
     }
 
-    public function fetch_convert_currencies($params = array ()): array {
+    public function fetch_convert_currencies($params = array ()): ?array {
         /**
          * fetches all available currencies that can be converted
          * @see https://www.bitget.com/api-doc/common/convert/Get-Convert-Currencies

@@ -1197,7 +1197,7 @@ export default class coinbase extends Exchange {
     }
 
     async fetchMarketsV3 (params = {}) {
-        let spotUnresolvedPromises = [
+        const spotUnresolvedPromises = [
             this.v3PublicGetBrokerageMarketProducts (params),
             //
             //    {
@@ -1246,10 +1246,7 @@ export default class coinbase extends Exchange {
             //
         ];
         if (this.checkRequiredCredentials (false)) {
-            spotUnresolvedPromises = [
-                spotUnresolvedPromises[0],
-                this.v3PrivateGetBrokerageTransactionSummary (params),
-            ];
+            spotUnresolvedPromises.push (this.v3PrivateGetBrokerageTransactionSummary (params));
         }
         //
         //    {
@@ -1278,78 +1275,14 @@ export default class coinbase extends Exchange {
         try {
             unresolvedContractPromises = [
                 this.v3PublicGetBrokerageMarketProducts (this.extend (params, { 'product_type': 'FUTURE' })),
-                //
-                //    {
-                //       products: [
-                //           {
-                //                product_id: 'BIT-26APR24-CDE',
-                //                price: '67125',
-                //                price_percentage_change_24h: '3.46023427866831',
-                //                volume_24h: '69974',
-                //                volume_percentage_change_24h: '866.35823781245684',
-                //                base_increment: '1',
-                //                quote_increment: '0.01',
-                //                quote_min_size: '0',
-                //                quote_max_size: '100000000',
-                //                base_min_size: '1',
-                //                base_max_size: '100000000',
-                //                base_name: '',
-                //                quote_name: 'US Dollar',
-                //                watched: false,
-                //                is_disabled: false,
-                //                new: false,
-                //                status: '',
-                //                cancel_only: false,
-                //                limit_only: false,
-                //                post_only: false,
-                //                trading_disabled: false,
-                //                auction_mode: false,
-                //                product_type: 'FUTURE',
-                //                quote_currency_id: 'USD',
-                //                base_currency_id: '',
-                //                fcm_trading_session_details: {
-                //                    is_session_open: true,
-                //                    open_time: '2024-04-22T22:00:00Z',
-                //                    close_time: '2024-04-23T21:00:00Z'
-                //                },
-                //                mid_market_price: '67112.5',
-                //                alias: '',
-                //                alias_to: [],
-                //                base_display_symbol: '',
-                //                quote_display_symbol: 'USD',
-                //                view_only: false,
-                //                price_increment: '5',
-                //                display_name: 'BTC 26 APR 24',
-                //                product_venue: 'FCM',
-                //                future_product_details: {
-                //                    venue: 'cde',
-                //                    contract_code: 'BIT',
-                //                    contract_expiry: '2024-04-26T15:00:00Z',
-                //                    contract_size: '0.01',
-                //                    contract_root_unit: 'BTC',
-                //                    group_description: 'Nano Bitcoin Futures',
-                //                    contract_expiry_timezone: 'Europe/London',
-                //                    group_short_description: 'Nano BTC',
-                //                    risk_managed_by: 'MANAGED_BY_FCM',
-                //                    contract_expiry_type: 'EXPIRING',
-                //                    contract_display_name: 'BTC 26 APR 24'
-                //                }
-                //            }
-                //        }
-                //    }
-                //
                 this.v3PublicGetBrokerageMarketProducts (this.extend (params, { 'product_type': 'FUTURE', 'contract_expiry_type': 'PERPETUAL' })),
             ];
             if (this.checkRequiredCredentials (false)) {
-                unresolvedContractPromises = [
-                    unresolvedContractPromises[0],
-                    unresolvedContractPromises[1],
-                    this.v3PrivateGetBrokerageTransactionSummary (this.extend (params, { 'product_type': 'FUTURE' })),
-                    this.v3PrivateGetBrokerageTransactionSummary (this.extend (params, { 'product_type': 'FUTURE', 'contract_expiry_type': 'PERPETUAL' })),
-                ];
+                unresolvedContractPromises.push (this.extend (params, { 'product_type': 'FUTURE' }));
+                unresolvedContractPromises.push (this.extend (params, { 'product_type': 'FUTURE', 'contract_expiry_type': 'PERPETUAL' }));
             }
         } catch (e) {
-            unresolvedContractPromises = []; // the sync version of ccxt won't have the promise.all line so the request is made here
+            unresolvedContractPromises = []; // the sync version of ccxt won't have the promise.all line so the request is made here. Some users can't access perpetual products
         }
         const promises = await Promise.all (spotUnresolvedPromises);
         let contractPromises = undefined;
@@ -2761,7 +2694,7 @@ export default class coinbase extends Exchange {
          * @param {float} [params.stopLossPrice] price to trigger stop-loss orders
          * @param {float} [params.takeProfitPrice] price to trigger take-profit orders
          * @param {bool} [params.postOnly] true or false
-         * @param {string} [params.timeInForce] 'GTC', 'IOC', 'GTD' or 'PO'
+         * @param {string} [params.timeInForce] 'GTC', 'IOC', 'GTD' or 'PO', 'FOK'
          * @param {string} [params.stop_direction] 'UNKNOWN_STOP_DIRECTION', 'STOP_DIRECTION_STOP_UP', 'STOP_DIRECTION_STOP_DOWN' the direction the stopPrice is triggered from
          * @param {string} [params.end_time] '2023-05-25T17:01:05.092Z' for 'GTD' orders
          * @param {float} [params.cost] *spot market buy only* the quote quantity that can be used as an alternative for the amount
@@ -2856,6 +2789,13 @@ export default class coinbase extends Exchange {
                 } else if (timeInForce === 'IOC') {
                     request['order_configuration'] = {
                         'sor_limit_ioc': {
+                            'base_size': this.amountToPrecision (symbol, amount),
+                            'limit_price': this.priceToPrecision (symbol, price),
+                        },
+                    };
+                } else if (timeInForce === 'FOK') {
+                    request['order_configuration'] = {
+                        'limit_limit_fok': {
                             'base_size': this.amountToPrecision (symbol, amount),
                             'limit_price': this.priceToPrecision (symbol, price),
                         },
@@ -3587,12 +3527,12 @@ export default class coinbase extends Exchange {
             sinceString = Precise.stringSub (now, requestedDuration.toString ());
         }
         request['start'] = sinceString;
-        let endString = this.numberToString (until);
-        if (until === undefined) {
+        if (until !== undefined) {
+            request['end'] = this.numberToString (this.parseToInt (until / 1000));
+        } else {
             // 300 candles max
-            endString = Precise.stringAdd (sinceString, requestedDuration.toString ());
+            request['end'] = Precise.stringAdd (sinceString, requestedDuration.toString ());
         }
-        request['end'] = endString;
         const response = await this.v3PublicGetBrokerageMarketProductsProductIdCandles (this.extend (request, params));
         //
         //     {

@@ -629,7 +629,7 @@ class kraken extends Exchange {
         return $result;
     }
 
-    public function fetch_currencies($params = array ()): array {
+    public function fetch_currencies($params = array ()): ?array {
         /**
          * fetches all available $currencies on an exchange
          * @see https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getAssetInfo

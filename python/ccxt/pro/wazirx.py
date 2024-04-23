@@ -722,7 +722,8 @@ class wazirx(ccxt.async_support.wazirx):
         }
         streams = list(streamHandlers.keys())
         for i in range(0, len(streams)):
-            if self.in_array(streams[i], stream):
+            streamContains = stream.find(streams[i]) > -1
+            if streamContains:
                 handler = streamHandlers[streams[i]]
                 handler(client, message)
                 return
