@@ -799,6 +799,26 @@
                 "output": "[{\"algoId\":\"663748219972878336\",\"instId\":\"BTC-USDT-SWAP\"}]"
             }
         ],
+        "cancelOrdersForSymbols": [
+            {
+                "description": "cancelOrdersForSymbols",
+                "method": "cancelOrdersForSymbols",
+                "url": "https://www.okx.com/api/v5/trade/cancel-batch-orders",
+                "input": [
+                  [
+                    {
+                      "id": "1388361822563405824",
+                      "symbol": "LTC/USDT:USDT"
+                    },
+                    {
+                      "id": "1388360134171496448",
+                      "symbol": "ADA/USDT"
+                    }
+                  ]
+                ],
+                "output": "[{\"instId\":\"LTC-USDT-SWAP\",\"ordId\":\"1388361822563405824\"},{\"instId\":\"ADA-USDT\",\"ordId\":\"1388360134171496448\"}]"
+            }
+        ],
         "closePosition": [
             {
                 "description": "Closing positiion in net mode",
