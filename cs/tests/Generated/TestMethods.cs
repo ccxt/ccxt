@@ -21,7 +21,7 @@ public partial class testMainClass : BaseTest
         this.wsTests = getCliArgValue("--ws");
     }
 
-    public async virtual Task init(object exchangeId, object symbolArgv)
+    public async virtual Task init(object exchangeId, object symbolArgv, object methodArgv)
     {
         this.parseCliArgs();
         if (isTrue(isTrue(this.requestTests) && isTrue(this.responseTests)))
@@ -45,13 +45,12 @@ public partial class testMainClass : BaseTest
             await this.runBrokerIdTests();
             return;
         }
-        object symbolStr = ((bool) isTrue(!isEqual(symbolArgv, null))) ? symbolArgv : "all";
-        object exchangeObject = new Dictionary<string, object>() {
+        dump(add(add(add(add(this.newLine, ""), this.newLine), ""), "[INFO] TESTING "), this.ext, new Dictionary<string, object>() {
             { "exchange", exchangeId },
-            { "symbol", symbolStr },
+            { "symbol", symbolArgv },
+            { "method", methodArgv },
             { "isWs", this.wsTests },
-        };
-        dump(add(add(add(add(this.newLine, ""), this.newLine), ""), "[INFO] TESTING "), this.ext, jsonStringify(exchangeObject), this.newLine);
+        }, this.newLine);
         object exchangeArgs = new Dictionary<string, object>() {
             { "verbose", this.verbose },
             { "debug", this.debug },
@@ -66,17 +65,17 @@ public partial class testMainClass : BaseTest
         await this.importFiles(exchange);
         assert(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)this.testFiles).Keys)), 0), "Test files were not loaded"); // ensure test files are found & filled
         this.expandSettings(exchange);
-        object symbol = this.checkIfSpecificTestIsChosen(symbolArgv);
-        await this.startTest(exchange, symbol);
+        this.checkIfSpecificTestIsChosen(methodArgv);
+        await this.startTest(exchange, symbolArgv);
         exitScript(0); // needed to be explicitly finished for WS tests
     }
 
-    public virtual object checkIfSpecificTestIsChosen(object symbolArgv)
+    public virtual void checkIfSpecificTestIsChosen(object methodArgv)
     {
-        if (isTrue(!isEqual(symbolArgv, null)))
+        if (isTrue(!isEqual(methodArgv, null)))
         {
             object testFileNames = new List<object>(((IDictionary<string,object>)this.testFiles).Keys);
-            object possibleMethodNames = ((string)symbolArgv).Split(new [] {((string)",")}, StringSplitOptions.None).ToList<object>(); // i.e. `test.ts binance fetchBalance,fetchDeposits`
+            object possibleMethodNames = ((string)methodArgv).Split(new [] {((string)",")}, StringSplitOptions.None).ToList<object>(); // i.e. `test.ts binance fetchBalance,fetchDeposits`
             if (isTrue(isGreaterThanOrEqual(getArrayLength(possibleMethodNames), 1)))
             {
                 for (object i = 0; isLessThan(i, getArrayLength(testFileNames)); postFixIncrement(ref i))
@@ -85,6 +84,7 @@ public partial class testMainClass : BaseTest
                     for (object j = 0; isLessThan(j, getArrayLength(possibleMethodNames)); postFixIncrement(ref j))
                     {
                         object methodName = getValue(possibleMethodNames, j);
+                        methodName = ((string)methodName).Replace((string)"()", (string)"");
                         if (isTrue(isEqual(testFileName, methodName)))
                         {
                             ((IList<object>)this.onlySpecificTests).Add(testFileName);
@@ -92,13 +92,7 @@ public partial class testMainClass : BaseTest
                     }
                 }
             }
-            // if method names were found, then remove them from symbolArgv
-            if (isTrue(isGreaterThan(getArrayLength(this.onlySpecificTests), 0)))
-            {
-                return null;
-            }
         }
-        return symbolArgv;
     }
 
     public async virtual Task importFiles(Exchange exchange)

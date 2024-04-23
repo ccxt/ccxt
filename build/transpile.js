@@ -346,6 +346,7 @@ class Transpiler {
             [ /\.fetchIsolatedBorrowRates\s/g, '.fetch_isolated_borrow_rates'],
             [ /\.extendExchangeOptions\s/g, '.extend_exchange_options'],
             [ /\.createSafeDictionary\s/g, '.create_safe_dictionary'],
+            [ /\.setTakeProfitAndStopLossParams\s/g, '.set_take_profit_and_stop_loss_params'],
             [ /\.randomBytes\s/g, '.random_bytes'],
             [ /\.createAuthToken\s/g, '.create_auth_token'],
             [ /\ssha(1|256|384|512)([,)])/g, ' \'sha$1\'$2'], // from js imports to this
@@ -1017,6 +1018,7 @@ class Transpiler {
             'Order': /-> (?:List\[)?Order\]?:/,
             'OrderBook': /-> OrderBook:/,
             'OrderRequest': /: (?:List\[)?OrderRequest/,
+            'CancellationRequest': /: (?:List\[)?CancellationRequest/,
             'OrderSide': /: OrderSide/,
             'OrderType': /: OrderType/,
             'Position': /-> (?:List\[)?Position/,
@@ -1719,7 +1721,9 @@ class Transpiler {
             if (returnType) {
                 promiseReturnTypeMatch = returnType.match (/^Promise<([^>]+)>$/)
                 syncReturnType = promiseReturnTypeMatch ? promiseReturnTypeMatch[1] : returnType
-                if (syncReturnType.match (phpArrayRegex)) {
+                if (syncReturnType === 'Currencies') {
+                    syncPhpReturnType = ': ?array'; // since for now `fetchCurrencies` returns null or Currencies
+                } else if (syncReturnType.match (phpArrayRegex)) {
                     syncPhpReturnType = ': array'
                 } else {
                     syncPhpReturnType = ': ' + (phpTypes[syncReturnType] ?? syncReturnType)

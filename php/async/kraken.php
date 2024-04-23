@@ -1409,7 +1409,7 @@ class kraken extends Exchange {
                 'ordertype' => $type,
                 'volume' => $this->amount_to_precision($symbol, $amount),
             );
-            $orderRequest = $this->order_request('createOrder()', $symbol, $type, $request, $price, $params);
+            $orderRequest = $this->order_request('createOrder', $symbol, $type, $request, $price, $params);
             $response = Async\await($this->privatePostAddOrder (array_merge($orderRequest[0], $orderRequest[1])));
             //
             //     {
@@ -1768,7 +1768,11 @@ class kraken extends Exchange {
             }
         }
         if ($reduceOnly) {
-            $request['reduce_only'] = 'true'; // not using property_exists($this, boolean) case, because the urlencodedNested transforms it into 'True' string
+            if ($method === 'createOrderWs') {
+                $request['reduce_only'] = true; // ws $request can't have stringified bool
+            } else {
+                $request['reduce_only'] = 'true'; // not using property_exists($this, boolean) case, because the urlencodedNested transforms it into 'True' string
+            }
         }
         $close = $this->safe_value($params, 'close');
         if ($close !== null) {
@@ -1829,7 +1833,7 @@ class kraken extends Exchange {
             if ($amount !== null) {
                 $request['volume'] = $this->amount_to_precision($symbol, $amount);
             }
-            $orderRequest = $this->order_request('editOrder()', $symbol, $type, $request, $price, $params);
+            $orderRequest = $this->order_request('editOrder', $symbol, $type, $request, $price, $params);
             $response = Async\await($this->privatePostEditOrder (array_merge($orderRequest[0], $orderRequest[1])));
             //
             //     {

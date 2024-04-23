@@ -384,7 +384,7 @@ class bingx extends bingx$1 {
                     '100400': errors.BadRequest,
                     '100421': errors.BadSymbol,
                     '100440': errors.ExchangeError,
-                    '100500': errors.ExchangeError,
+                    '100500': errors.OperationFailed,
                     '100503': errors.ExchangeError,
                     '80001': errors.BadRequest,
                     '80012': errors.InsufficientFunds,
@@ -394,7 +394,7 @@ class bingx extends bingx$1 {
                     '100414': errors.AccountSuspended,
                     '100419': errors.PermissionDenied,
                     '100437': errors.BadRequest,
-                    '101204': errors.InsufficientFunds, // bingx {"code":101204,"msg":"","data":{}}
+                    '101204': errors.InsufficientFunds, // {"code":101204,"msg":"","data":{}}
                 },
                 'broad': {},
             },
@@ -3976,7 +3976,7 @@ class bingx extends bingx$1 {
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
-            request['symbol'] = symbol;
+            request['symbol'] = market['id'];
         }
         if (since !== undefined) {
             request['startTime'] = since;
