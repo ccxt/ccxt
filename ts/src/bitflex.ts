@@ -22,7 +22,7 @@ export default class bitflex extends Exchange {
             'countries': [ 'SC' ], // Seychelles
             'version': 'v1', // todo
             'rateLimit': 300, // todo: find out the real ratelimit
-            'pro': false,
+            'pro': true,
             'has': {
                 'CORS': undefined,
                 'spot': true,
