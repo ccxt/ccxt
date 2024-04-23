@@ -607,33 +607,17 @@
             {
                 "description": "Spot fetch trades",
                 "method": "fetchTrades",
-                "url": "https://api.coinex.com/v1/market/deals?market=BTCUSDT",
+                "url": "https://api.coinex.com/v2/spot/deals?market=BTCUSDT",
                 "input": [
-                    "BTC/USDT"
+                  "BTC/USDT"
                 ]
             },
             {
                 "description": "Swap fetch trades",
                 "method": "fetchTrades",
-                "url": "https://api.coinex.com/perpetual/v1/market/deals?market=BTCUSDT",
+                "url": "https://api.coinex.com/v2/futures/deals?market=BTCUSDT",
                 "input": [
-                    "BTC/USDT:USDT"
-                ]
-            },
-            {
-                "description": "spot fetchTrades",
-                "method": "fetchTrades",
-                "url": "https://api.coinex.com/v1/market/deals?market=BTCUSDT",
-                "input": [
-                    "BTC/USDT"
-                ]
-            },
-            {
-                "description": "swap fetchTrades",
-                "method": "fetchTrades",
-                "url": "https://api.coinex.com/perpetual/v1/market/deals?market=BTCUSDT",
-                "input": [
-                    "BTC/USDT:USDT"
+                  "BTC/USDT:USDT"
                 ]
             }
         ],
