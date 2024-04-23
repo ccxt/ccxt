@@ -366,6 +366,20 @@
                 "input": [
                     "BTC/USDT"
                 ]
+            },
+            {
+                "description": "with since and until",
+                "method": "fetchOHLCV",
+                "url": "https://api.coinbase.com/api/v3/brokerage/products/BTC-USDT/candles?granularity=ONE_HOUR&start=1711929600&end=1712016000",
+                "input": [
+                  "BTC/USDT",
+                  "1h",
+                  1711929600000,
+                  null,
+                  {
+                    "until": 1712016000000
+                  }
+                ]
             }
         ],
         "editOrder": [
