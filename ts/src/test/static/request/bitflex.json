@@ -64,6 +64,96 @@
                   3
                 ]
             }
-        ]
+        ],
+        "fetchTrades": [
+            {
+                "description": "Fetch trades for spot",
+                "method": "fetchTrades",
+                "url": "https://api.bitflex.com/openapi/quote/v1/trades?symbol=ETHUSDT",
+                "input": [
+                  "ETH/USDT"
+                ]
+            },
+            {
+                "description": "Fetch trades for swap",
+                "method": "fetchTrades",
+                "url": "https://api.bitflex.com/openapi/quote/v1/contract/trades?symbol=ETH-SWAP-USDT",
+                "input": [
+                  "ETH/USDT:USDT"
+                ]
+            },
+            {
+                "description": "Fetch trades for spot with timestamp 1713887085730",
+                "method": "fetchTrades",
+                "url": "https://api.bitflex.com/openapi/quote/v1/trades?symbol=ETHUSDT",
+                "input": [
+                  "ETH/USDT",
+                  1713887085730
+                ]
+            },
+            {
+                "description": "Fetch trades for swap with timestamp 1713887085730 and limit 3",
+                "method": "fetchTrades",
+                "url": "https://api.bitflex.com/openapi/quote/v1/trades?symbol=ETHUSDT&limit=3",
+                "input": [
+                  "ETH/USDT",
+                  1713887085730,
+                  3
+                ]
+            },
+            {
+                "description": "Fetch trades for swap with timestamp 1713887262370 limit 48",
+                "method": "fetchTrades",
+                "url": "https://api.bitflex.com/openapi/quote/v1/contract/trades?symbol=ETH-SWAP-USDT&limit=48",
+                "input": [
+                  "ETH/USDT:USDT",
+                  1713887262370,
+                  48
+                ]
+            }
+        ],
+        "fetchMyTrades": [
+            {
+                "description": "Fetch my trades",
+                "method": "fetchMyTrades",
+                "url": "https://api.bitflex.com/openapi/v1/myTrades?timestamp=1713888110834&signature=5c7fd5c4cfe8b94e97ec547fd64ffa4b5287a368ceba34859aff8b7e592e43b1",
+                "input": []
+            },
+            {
+                "description": "Fetch my trades for spot",
+                "method": "fetchMyTrades",
+                "url": "https://api.bitflex.com/openapi/v1/myTrades?symbol=ETHUSDT&timestamp=1713888241247&signature=46a7557908b4abd1db3de54be1b9e43bb195b0d2e3f27cd2a239e43dfb4bb8d2",
+                "input": [
+                  "ETH/USDT"
+                ]
+            },
+            {
+                "description": "Fetch my trades for swap",
+                "method": "fetchMyTrades",
+                "url": "https://api.bitflex.com/openapi/contract/v1/myTrades?symbol=ETH-SWAP-USDT&timestamp=1713888265573&signature=2e9a79388a3f86307963d2b9e28fc9c3163c7d71b9a9bdb071a1d5862035d9f9",
+                "input": [
+                  "ETH/USDT:USDT"
+                ]
+            },
+            {
+                "description": "Fetch my trades for spot with timestamp 1713525400088",
+                "method": "fetchMyTrades",
+                "url": "https://api.bitflex.com/openapi/v1/myTrades?symbol=ETHUSDT&startTime=1713525400088&timestamp=1713888307219&signature=720203afd39b25ecbc32905c9c70cb8aae89120169f56a05ec97e8cd5ade9d2c",
+                "input": [
+                  "ETH/USDT",
+                  1713525400088
+                ]
+            },
+            {
+                "description": "Fetch my trades for swap with timestamp 1668428379035160576 and limit 4",
+                "method": "fetchMyTrades",
+                "url": "https://api.bitflex.com/openapi/contract/v1/myTrades?symbol=ETH-SWAP-USDT&limit=4&startTime=1668428379035160576&timestamp=1713888433023&signature=e6fc3adfc6049098b5daed31eff31545423bf2d05488ca5b5880a1a21aec0d9c",
+                "input": [
+                  "ETH/USDT:USDT",
+                  "1668428379035160576",
+                  4
+                ]
+            }
+        ],
     }
 }
