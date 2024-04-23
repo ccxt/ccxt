@@ -511,7 +511,7 @@ class kucoin extends Exchange {
                     '400006' => '\\ccxt\\AuthenticationError',
                     '400007' => '\\ccxt\\AuthenticationError',
                     '400008' => '\\ccxt\\NotSupported',
-                    '400100' => '\\ccxt\\InsufficientFunds', // array("msg":"account.available.amount","code":"400100")
+                    '400100' => '\\ccxt\\InsufficientFunds', // array("msg":"account.available.amount","code":"400100") or array("msg":"Withdrawal amount is below the minimum requirement.","code":"400100")
                     '400200' => '\\ccxt\\InvalidOrder', // array("code":"400200","msg":"Forbidden to place an order")
                     '400350' => '\\ccxt\\InvalidOrder', // array("code":"400350","msg":"Upper limit for holding => 10,000USDT, you can still buy 10,000USDT worth of coin.")
                     '400370' => '\\ccxt\\InvalidOrder', // array("code":"400370","msg":"Max. price => 0.02500000000000000000")
@@ -584,6 +584,8 @@ class kucoin extends Exchange {
                 'BIFI' => 'BIFIF',
                 'VAI' => 'VAIOT',
                 'WAX' => 'WAXP',
+                'ALT' => 'APTOSLAUNCHTOKEN',
+                'KALT' => 'ALT', // ALTLAYER
             ),
             'options' => array(
                 'version' => 'v1',
@@ -1116,7 +1118,7 @@ class kucoin extends Exchange {
         return $result;
     }
 
-    public function fetch_currencies($params = array ()): array {
+    public function fetch_currencies($params = array ()): ?array {
         /**
          * fetches all available currencies on an exchange
          * @see https://docs.kucoin.com/#get-currencies
@@ -1141,8 +1143,10 @@ class kucoin extends Exchange {
         //              "chains":[
         //                 array(
         //                    "chainName":"ERC20",
-        //                    "chain":"eth",
+        //                    "chainId" => "eth"
         //                    "withdrawalMinSize":"2999",
+        //                    "depositMinSize":null,
+        //                    "withdrawFeeRate":"0",
         //                    "withdrawalMinFee":"2999",
         //                    "isWithdrawEnabled":false,
         //                    "isDepositEnabled":false,
@@ -1248,7 +1252,7 @@ class kucoin extends Exchange {
                             'max' => null,
                         ),
                         'deposit' => array(
-                            'min' => $this->safe_number($chainExtraData, 'depositMinSize'),
+                            'min' => $this->safe_number($chain, 'depositMinSize'),
                             'max' => null,
                         ),
                     ),
@@ -1795,7 +1799,7 @@ class kucoin extends Exchange {
         }
         $code = null;
         if ($currency !== null) {
-            $code = $currency['id'];
+            $code = $this->safe_currency_code($currency['id']);
             if ($code !== 'NIM') {
                 // contains spaces
                 $this->check_address($address);
@@ -1844,7 +1848,7 @@ class kucoin extends Exchange {
         $this->options['versions']['private']['GET']['deposit-addresses'] = $version;
         $chains = $this->safe_list($response, 'data', array());
         $parsed = $this->parse_deposit_addresses($chains, [ $currency['code'] ], false, array(
-            'currency' => $currency['id'],
+            'currency' => $currency['code'],
         ));
         return $this->index_by($parsed, 'network');
     }
@@ -2907,7 +2911,7 @@ class kucoin extends Exchange {
     public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * get the list of most recent $trades for a particular $symbol
-         * @see https://docs.kucoin.com/#get-trade-histories
+         * @see https://www.kucoin.com/docs/rest/spot-trading/market-data/get-trade-histories
          * @param {string} $symbol unified $symbol of the $market to fetch $trades for
          * @param {int} [$since] timestamp in ms of the earliest trade to fetch
          * @param {int} [$limit] the maximum amount of $trades to fetch
@@ -3079,7 +3083,7 @@ class kucoin extends Exchange {
     public function fetch_trading_fee(string $symbol, $params = array ()): array {
         /**
          * fetch the trading fees for a $market
-         * @see https://docs.kucoin.com/#actual-fee-rate-of-the-trading-pair
+         * @see https://www.kucoin.com/docs/rest/funding/trade-fee/trading-pair-actual-fee-spot-margin-trade_hf
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=fee-structure fee structure~
@@ -3118,7 +3122,7 @@ class kucoin extends Exchange {
     public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
         /**
          * make a withdrawal
-         * @see https://docs.kucoin.com/#apply-withdraw-2
+         * @see https://www.kucoin.com/docs/rest/funding/withdrawals/apply-withdraw
          * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw
          * @param {string} $address the $address to withdraw to
@@ -3133,7 +3137,6 @@ class kucoin extends Exchange {
         $request = array(
             'currency' => $currency['id'],
             'address' => $address,
-            'amount' => $amount,
             // 'memo' => $tag,
             // 'isInner' => false, // internal transfer or external withdrawal
             // 'remark' => 'optional',
@@ -3147,6 +3150,8 @@ class kucoin extends Exchange {
         if ($networkCode !== null) {
             $request['chain'] = strtolower($this->network_code_to_id($networkCode));
         }
+        $this->load_currency_precision($currency, $networkCode);
+        $request['amount'] = $this->currency_to_precision($code, $amount, $networkCode);
         $includeFee = null;
         list($includeFee, $params) = $this->handle_option_and_params($params, 'withdraw', 'includeFee', false);
         if ($includeFee) {
@@ -3165,6 +3170,54 @@ class kucoin extends Exchange {
         //
         $data = $this->safe_dict($response, 'data', array());
         return $this->parse_transaction($data, $currency);
+    }
+
+    public function load_currency_precision($currency, ?string $networkCode = null) {
+        // might not have $network specific precisions defined in fetchCurrencies (because of webapi failure)
+        // we should check and refetch $precision once-per-instance for that specific $currency & $network
+        // so avoids thorwing exceptions and burden to users
+        // Note => this needs to be executed only if $networkCode was provided
+        if ($networkCode !== null) {
+            $networks = $currency['networks'];
+            $network = $this->safe_dict($networks, $networkCode);
+            if ($this->safe_number($network, 'precision') !== null) {
+                // if $precision exists, no need to refetch
+                return;
+            }
+            // otherwise try to fetch and store in instance
+            $request = array(
+                'currency' => $currency['id'],
+                'chain' => strtolower($this->network_code_to_id($networkCode)),
+            );
+            $response = $this->privateGetWithdrawalsQuotas ($request);
+            //
+            //    {
+            //        "code" => "200000",
+            //        "data" => {
+            //            "currency" => "USDT",
+            //            "limitBTCAmount" => "14.24094850",
+            //            "usedBTCAmount" => "0.00000000",
+            //            "quotaCurrency" => "USDT",
+            //            "limitQuotaCurrencyAmount" => "999999.00000000",
+            //            "usedQuotaCurrencyAmount" => "0",
+            //            "remainAmount" => "999999.0000",
+            //            "availableAmount" => "10.77545071",
+            //            "withdrawMinFee" => "1",
+            //            "innerWithdrawMinFee" => "0",
+            //            "withdrawMinSize" => "10",
+            //            "isWithdrawEnabled" => true,
+            //            "precision" => 4,
+            //            "chain" => "EOS",
+            //            "reason" => null,
+            //            "lockedAmount" => "0"
+            //        }
+            //    }
+            //
+            $data = $this->safe_dict($response, 'data', array());
+            $precision = $this->parse_number($this->parse_precision($this->safe_string($data, 'precision')));
+            $code = $currency['code'];
+            $this->currencies[$code]['networks'][$networkCode]['precision'] = $precision;
+        }
     }
 
     public function parse_transaction_status($status) {
@@ -3294,8 +3347,8 @@ class kucoin extends Exchange {
     public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch all deposits made to an account
-         * @see https://docs.kucoin.com/#get-deposit-list
-         * @see https://docs.kucoin.com/#get-v1-historical-deposits-list
+         * @see https://www.kucoin.com/docs/rest/funding/deposit/get-deposit-list
+         * @see https://www.kucoin.com/docs/rest/funding/deposit/get-v1-historical-deposits-list
          * @param {string} $code unified $currency $code
          * @param {int} [$since] the earliest time in ms to fetch deposits for
          * @param {int} [$limit] the maximum number of deposits structures to retrieve
@@ -3376,8 +3429,8 @@ class kucoin extends Exchange {
     public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch all withdrawals made from an account
-         * @see https://docs.kucoin.com/#get-withdrawals-list
-         * @see https://docs.kucoin.com/#get-v1-historical-withdrawals-list
+         * @see https://www.kucoin.com/docs/rest/funding/withdrawals/get-withdrawals-list
+         * @see https://www.kucoin.com/docs/rest/funding/withdrawals/get-v1-historical-withdrawals-list
          * @param {string} $code unified $currency $code
          * @param {int} [$since] the earliest time in ms to fetch withdrawals for
          * @param {int} [$limit] the maximum number of withdrawals structures to retrieve
@@ -3645,7 +3698,7 @@ class kucoin extends Exchange {
     public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): array {
         /**
          * transfer $currency internally between wallets on the same account
-         * @see https://docs.kucoin.com/#inner-transfer
+         * @see https://www.kucoin.com/docs/rest/funding/transfer/inner-transfer
          * @see https://docs.kucoin.com/futures/#transfer-funds-to-kucoin-main-account-2
          * @see https://docs.kucoin.com/spot-hf/#internal-funds-transfers-in-high-frequency-trading-accounts
          * @param {string} $code unified $currency $code
@@ -3928,7 +3981,7 @@ class kucoin extends Exchange {
 
     public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
-         * @see https://docs.kucoin.com/#get-account-ledgers
+         * @see https://www.kucoin.com/docs/rest/account/basic-info/get-account-ledgers-spot-margin
          * @see https://www.kucoin.com/docs/rest/account/basic-info/get-account-ledgers-trade_hf
          * @see https://www.kucoin.com/docs/rest/account/basic-info/get-account-ledgers-margin_hf
          * fetch the history of changes, actions done by the user or operations that altered balance of the user

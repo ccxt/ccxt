@@ -325,7 +325,7 @@ class ndax extends Exchange {
         return $response;
     }
 
-    public function fetch_currencies($params = array ()): array {
+    public function fetch_currencies($params = array ()): ?array {
         /**
          * fetches all available currencies on an exchange
          * @see https://apidoc.ndax.io/#getproduct

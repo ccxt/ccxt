@@ -1744,7 +1744,7 @@ public partial class cryptocom : Exchange
         tag = ((IList<object>)tagparametersVariable)[0];
         parameters = ((IList<object>)tagparametersVariable)[1];
         await this.loadMarkets();
-        object currency = this.currency(code);
+        object currency = this.safeCurrency(code); // for instance, USDC is not inferred from markets but it's still available
         object request = new Dictionary<string, object>() {
             { "currency", getValue(currency, "id") },
             { "amount", amount },
@@ -1797,7 +1797,7 @@ public partial class cryptocom : Exchange
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object currency = this.currency(code);
+        object currency = this.safeCurrency(code);
         object request = new Dictionary<string, object>() {
             { "currency", getValue(currency, "id") },
         };
@@ -1910,7 +1910,7 @@ public partial class cryptocom : Exchange
         object request = new Dictionary<string, object>() {};
         if (isTrue(!isEqual(code, null)))
         {
-            currency = this.currency(code);
+            currency = this.safeCurrency(code);
             ((IDictionary<string,object>)request)["currency"] = getValue(currency, "id");
         }
         if (isTrue(!isEqual(since, null)))
@@ -1976,7 +1976,7 @@ public partial class cryptocom : Exchange
         object request = new Dictionary<string, object>() {};
         if (isTrue(!isEqual(code, null)))
         {
-            currency = this.currency(code);
+            currency = this.safeCurrency(code);
             ((IDictionary<string,object>)request)["currency"] = getValue(currency, "id");
         }
         if (isTrue(!isEqual(since, null)))
@@ -2543,7 +2543,7 @@ public partial class cryptocom : Exchange
         object currency = null;
         if (isTrue(!isEqual(code, null)))
         {
-            currency = this.currency(code);
+            currency = this.safeCurrency(code);
         }
         if (isTrue(!isEqual(since, null)))
         {
