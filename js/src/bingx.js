@@ -6,7 +6,7 @@
 
 //  ---------------------------------------------------------------------------
 import Exchange from './abstract/bingx.js';
-import { AuthenticationError, PermissionDenied, AccountSuspended, ExchangeError, InsufficientFunds, BadRequest, OrderNotFound, DDoSProtection, BadSymbol, ArgumentsRequired, NotSupported } from './base/errors.js';
+import { AuthenticationError, PermissionDenied, AccountSuspended, ExchangeError, InsufficientFunds, BadRequest, OrderNotFound, DDoSProtection, BadSymbol, ArgumentsRequired, NotSupported, OperationFailed } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { DECIMAL_PLACES } from './base/functions/number.js';
@@ -387,7 +387,7 @@ export default class bingx extends Exchange {
                     '100400': BadRequest,
                     '100421': BadSymbol,
                     '100440': ExchangeError,
-                    '100500': ExchangeError,
+                    '100500': OperationFailed,
                     '100503': ExchangeError,
                     '80001': BadRequest,
                     '80012': InsufficientFunds,
@@ -397,7 +397,7 @@ export default class bingx extends Exchange {
                     '100414': AccountSuspended,
                     '100419': PermissionDenied,
                     '100437': BadRequest,
-                    '101204': InsufficientFunds, // bingx {"code":101204,"msg":"","data":{}}
+                    '101204': InsufficientFunds, // {"code":101204,"msg":"","data":{}}
                 },
                 'broad': {},
             },
@@ -3979,7 +3979,7 @@ export default class bingx extends Exchange {
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
-            request['symbol'] = symbol;
+            request['symbol'] = market['id'];
         }
         if (since !== undefined) {
             request['startTime'] = since;

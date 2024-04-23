@@ -498,7 +498,7 @@ public partial class coinbase
     /// <item>
     /// <term>params.timeInForce</term>
     /// <description>
-    /// string : 'GTC', 'IOC', 'GTD' or 'PO'
+    /// string : 'GTC', 'IOC', 'GTD' or 'PO', 'FOK'
     /// </description>
     /// </item>
     /// <item>
@@ -1131,5 +1131,10 @@ public partial class coinbase
     {
         var res = await this.fetchPosition(symbol, parameters);
         return new Position(res);
+    }
+    public string CreateAuthToken(Int64 seconds, string method = null, string url = null)
+    {
+        var res = this.createAuthToken(seconds, method, url);
+        return ((string)res);
     }
 }

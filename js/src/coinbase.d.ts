@@ -108,6 +108,7 @@ export default class coinbase extends Exchange {
     fetchPositions(symbols?: Strings, params?: {}): Promise<import("./base/types.js").Position[]>;
     fetchPosition(symbol: string, params?: {}): Promise<import("./base/types.js").Position>;
     parsePosition(position: any, market?: Market): import("./base/types.js").Position;
+    createAuthToken(seconds: Int, method?: Str, url?: Str): string;
     sign(path: any, api?: any[], method?: string, params?: {}, headers?: any, body?: any): {
         url: string;
         method: string;

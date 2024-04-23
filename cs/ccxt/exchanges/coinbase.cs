@@ -9,9 +9,10 @@ public partial class coinbase : Exchange
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "id", "coinbase" },
-            { "name", "Coinbase" },
+            { "name", "Coinbase Advanced" },
             { "countries", new List<object>() {"US"} },
             { "pro", true },
+            { "certified", true },
             { "rateLimit", 34 },
             { "version", "v2" },
             { "userAgent", getValue(this.userAgents, "chrome") },
@@ -1494,6 +1495,7 @@ public partial class coinbase : Exchange
         object contractExpiryType = this.safeString(futureProductDetails, "contract_expiry_type");
         object contractSize = this.safeNumber(futureProductDetails, "contract_size");
         object contractExpire = this.safeString(futureProductDetails, "contract_expiry");
+        object expireTimestamp = this.parse8601(contractExpire);
         object isSwap = (isEqual(contractExpiryType, "PERPETUAL"));
         object baseId = this.safeString(futureProductDetails, "contract_root_unit");
         object quoteId = this.safeString(market, "quote_currency_id");
@@ -1509,7 +1511,7 @@ public partial class coinbase : Exchange
         } else
         {
             type = "future";
-            symbol = add(add(add(add(symbol, ":"), quote), "-"), this.yymmdd(contractExpire));
+            symbol = add(add(add(add(symbol, ":"), quote), "-"), this.yymmdd(expireTimestamp));
         }
         object takerFeeRate = this.safeNumber(feeTier, "taker_fee_rate");
         object makerFeeRate = this.safeNumber(feeTier, "maker_fee_rate");
@@ -1537,7 +1539,7 @@ public partial class coinbase : Exchange
             { "taker", taker },
             { "maker", maker },
             { "contractSize", contractSize },
-            { "expiry", this.parse8601(contractExpire) },
+            { "expiry", expireTimestamp },
             { "expiryDatetime", contractExpire },
             { "strike", null },
             { "optionType", null },
@@ -2715,7 +2717,7 @@ public partial class coinbase : Exchange
         * @param {float} [params.stopLossPrice] price to trigger stop-loss orders
         * @param {float} [params.takeProfitPrice] price to trigger take-profit orders
         * @param {bool} [params.postOnly] true or false
-        * @param {string} [params.timeInForce] 'GTC', 'IOC', 'GTD' or 'PO'
+        * @param {string} [params.timeInForce] 'GTC', 'IOC', 'GTD' or 'PO', 'FOK'
         * @param {string} [params.stop_direction] 'UNKNOWN_STOP_DIRECTION', 'STOP_DIRECTION_STOP_UP', 'STOP_DIRECTION_STOP_DOWN' the direction the stopPrice is triggered from
         * @param {string} [params.end_time] '2023-05-25T17:01:05.092Z' for 'GTD' orders
         * @param {float} [params.cost] *spot market buy only* the quote quantity that can be used as an alternative for the amount
@@ -2826,6 +2828,14 @@ public partial class coinbase : Exchange
                 {
                     ((IDictionary<string,object>)request)["order_configuration"] = new Dictionary<string, object>() {
                         { "sor_limit_ioc", new Dictionary<string, object>() {
+                            { "base_size", this.amountToPrecision(symbol, amount) },
+                            { "limit_price", this.priceToPrecision(symbol, price) },
+                        } },
+                    };
+                } else if (isTrue(isEqual(timeInForce, "FOK")))
+                {
+                    ((IDictionary<string,object>)request)["order_configuration"] = new Dictionary<string, object>() {
+                        { "limit_limit_fok", new Dictionary<string, object>() {
                             { "base_size", this.amountToPrecision(symbol, amount) },
                             { "limit_price", this.priceToPrecision(symbol, price) },
                         } },
@@ -4593,6 +4603,42 @@ public partial class coinbase : Exchange
         });
     }
 
+    public virtual object createAuthToken(object seconds, object method = null, object url = null)
+    {
+        // it may not work for v2
+        object uri = null;
+        if (isTrue(!isEqual(url, null)))
+        {
+            uri = add(add(method, " "), ((string)url).Replace((string)"https://", (string)""));
+            object quesPos = getIndexOf(uri, "?");
+            // Due to we use mb_strpos, quesPos could be false in php. In that case, the quesPos >= 0 is true
+            // Also it's not possible that the question mark is first character, only check > 0 here.
+            if (isTrue(isGreaterThan(quesPos, 0)))
+            {
+                uri = slice(uri, 0, quesPos);
+            }
+        }
+        object nonce = this.randomBytes(16);
+        object request = new Dictionary<string, object>() {
+            { "aud", new List<object>() {"retail_rest_api_proxy"} },
+            { "iss", "coinbase-cloud" },
+            { "nbf", seconds },
+            { "exp", add(seconds, 120) },
+            { "sub", this.apiKey },
+            { "iat", seconds },
+        };
+        if (isTrue(!isEqual(uri, null)))
+        {
+            ((IDictionary<string,object>)request)["uri"] = uri;
+        }
+        object token = jwt(request, this.encode(this.secret), sha256, false, new Dictionary<string, object>() {
+            { "kid", this.apiKey },
+            { "nonce", nonce },
+            { "alg", "ES256" },
+        });
+        return token;
+    }
+
     public override object sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= new List<object>();
@@ -4656,30 +4702,26 @@ public partial class coinbase : Exchange
                     {
                         throw new ArgumentsRequired ((string)add(this.id, " apiKey should contain the name (eg: organizations/3b910e93....) and not the public key")) ;
                     }
-                    // it may not work for v2
-                    object uri = add(add(method, " "), ((string)url).Replace((string)"https://", (string)""));
-                    object quesPos = getIndexOf(uri, "?");
-                    // Due to we use mb_strpos, quesPos could be false in php. In that case, the quesPos >= 0 is true
-                    // Also it's not possible that the question mark is first character, only check > 0 here.
-                    if (isTrue(isGreaterThan(quesPos, 0)))
-                    {
-                        uri = slice(uri, 0, quesPos);
-                    }
-                    object nonce = this.randomBytes(16);
-                    object request = new Dictionary<string, object>() {
-                        { "aud", new List<object>() {"retail_rest_api_proxy"} },
-                        { "iss", "coinbase-cloud" },
-                        { "nbf", seconds },
-                        { "exp", add(seconds, 120) },
-                        { "sub", this.apiKey },
-                        { "uri", uri },
-                        { "iat", seconds },
-                    };
-                    object token = jwt(request, this.encode(this.secret), sha256, false, new Dictionary<string, object>() {
-                        { "kid", this.apiKey },
-                        { "nonce", nonce },
-                        { "alg", "ES256" },
-                    });
+                    // // it may not work for v2
+                    // let uri = method + ' ' + url.replace ('https://', '');
+                    // const quesPos = uri.indexOf ('?');
+                    // // Due to we use mb_strpos, quesPos could be false in php. In that case, the quesPos >= 0 is true
+                    // // Also it's not possible that the question mark is first character, only check > 0 here.
+                    // if (quesPos > 0) {
+                    //     uri = uri.slice (0, quesPos);
+                    // }
+                    // const nonce = this.randomBytes (16);
+                    // const request = {
+                    //     'aud': [ 'retail_rest_api_proxy' ],
+                    //     'iss': 'coinbase-cloud',
+                    //     'nbf': seconds,
+                    //     'exp': seconds + 120,
+                    //     'sub': this.apiKey,
+                    //     'uri': uri,
+                    //     'iat': seconds,
+                    // };
+                    object token = this.createAuthToken(seconds, method, url);
+                    // const token = jwt (request, this.encode (this.secret), sha256, false, { 'kid': this.apiKey, 'nonce': nonce, 'alg': 'ES256' });
                     authorizationString = add("Bearer ", token);
                 } else
                 {

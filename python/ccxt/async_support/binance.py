@@ -8,7 +8,7 @@ from ccxt.abstract.binance import ImplicitAPI
 import asyncio
 import hashlib
 import json
-from ccxt.base.types import Balances, Currencies, Currency, Greeks, Int, Leverage, Leverages, MarginMode, MarginModes, MarginModification, Market, MarketInterface, Num, Option, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
+from ccxt.base.types import Balances, Conversion, Currencies, Currency, Greeks, Int, Leverage, Leverages, MarginMode, MarginModes, MarginModification, Market, MarketInterface, Num, Option, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -63,6 +63,7 @@ class binance(Exchange, ImplicitAPI):
                 'cancelOrders': True,  # contract only
                 'closeAllPositions': False,
                 'closePosition': False,  # exchange specific closePosition parameter for binance createOrder is not synonymous with how CCXT uses closePositions
+                'createConvertTrade': True,
                 'createDepositAddress': False,
                 'createLimitBuyOrder': True,
                 'createLimitSellOrder': True,
@@ -95,7 +96,9 @@ class binance(Exchange, ImplicitAPI):
                 'fetchClosedOrder': False,
                 'fetchClosedOrders': 'emulated',
                 'fetchConvertCurrencies': True,
-                'fetchConvertQuote': False,
+                'fetchConvertQuote': True,
+                'fetchConvertTrade': True,
+                'fetchConvertTradeHistory': True,
                 'fetchCrossBorrowRate': True,
                 'fetchCrossBorrowRates': False,
                 'fetchCurrencies': True,
@@ -4739,6 +4742,24 @@ class binance(Exchange, ImplicitAPI):
         params = self.omit(params, ['quoteOrderQty', 'cost', 'stopPrice', 'newClientOrderId', 'clientOrderId', 'postOnly'])
         return self.extend(request, params)
 
+    def edit_contract_order_request(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
+        market = self.market(symbol)
+        if not market['contract']:
+            raise NotSupported(self.id + ' editContractOrder() does not support ' + market['type'] + ' orders')
+        request = {
+            'symbol': market['id'],
+            'side': side.upper(),
+        }
+        clientOrderId = self.safe_string_n(params, ['newClientOrderId', 'clientOrderId', 'origClientOrderId'])
+        request['orderId'] = id
+        request['quantity'] = self.amount_to_precision(symbol, amount)
+        if price is not None:
+            request['price'] = self.price_to_precision(symbol, price)
+        if clientOrderId is not None:
+            request['origClientOrderId'] = clientOrderId
+        params = self.omit(params, ['clientOrderId', 'newClientOrderId'])
+        return request
+
     async def edit_contract_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         edit a trade order
@@ -4755,20 +4776,7 @@ class binance(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        if not market['contract']:
-            raise NotSupported(self.id + ' editContractOrder() does not support ' + market['type'] + ' orders')
-        request = {
-            'symbol': market['id'],
-            'side': side.upper(),
-        }
-        clientOrderId = self.safe_string_n(params, ['newClientOrderId', 'clientOrderId', 'origClientOrderId'])
-        request['orderId'] = id
-        request['quantity'] = self.amount_to_precision(symbol, amount)
-        if price is not None:
-            request['price'] = self.price_to_precision(symbol, price)
-        if clientOrderId is not None:
-            request['origClientOrderId'] = clientOrderId
-        params = self.omit(params, ['clientOrderId', 'newClientOrderId'])
+        request = self.edit_contract_order_request(id, symbol, type, side, amount, price, params)
         response = None
         if market['linear']:
             response = await self.fapiPrivatePutOrder(self.extend(request, params))
@@ -11636,3 +11644,329 @@ class binance(Exchange, ImplicitAPI):
                 'created': None,
             }
         return result
+
+    async def fetch_convert_quote(self, fromCode: str, toCode: str, amount: Num = None, params={}) -> Conversion:
+        """
+        fetch a quote for converting from one currency to another
+        :see: https://binance-docs.github.io/apidocs/spot/en/#send-quote-request-user_data
+        :param str fromCode: the currency that you want to sell and convert from
+        :param str toCode: the currency that you want to buy and convert into
+        :param float amount: how much you want to trade in units of the from currency
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.walletType]: either 'SPOT' or 'FUNDING', the default is 'SPOT'
+        :returns dict: a `conversion structure <https://docs.ccxt.com/#/?id=conversion-structure>`
+        """
+        if amount is None:
+            raise ArgumentsRequired(self.id + ' fetchConvertQuote() requires an amount argument')
+        await self.load_markets()
+        request = {
+            'fromAsset': fromCode,
+            'toAsset': toCode,
+            'fromAmount': amount,
+        }
+        response = await self.sapiPostConvertGetQuote(self.extend(request, params))
+        #
+        #     {
+        #         "quoteId":"12415572564",
+        #         "ratio":"38163.7",
+        #         "inverseRatio":"0.0000262",
+        #         "validTimestamp":1623319461670,
+        #         "toAmount":"3816.37",
+        #         "fromAmount":"0.1"
+        #     }
+        #
+        fromCurrency = self.currency(fromCode)
+        toCurrency = self.currency(toCode)
+        return self.parse_conversion(response, fromCurrency, toCurrency)
+
+    async def create_convert_trade(self, id: str, fromCode: str, toCode: str, amount: Num = None, params={}) -> Conversion:
+        """
+        convert from one currency to another
+        :see: https://binance-docs.github.io/apidocs/spot/en/#busd-convert-trade
+        :see: https://binance-docs.github.io/apidocs/spot/en/#accept-quote-trade
+        :param str id: the id of the trade that you want to make
+        :param str fromCode: the currency that you want to sell and convert from
+        :param str toCode: the currency that you want to buy and convert into
+        :param float [amount]: how much you want to trade in units of the from currency
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `conversion structure <https://docs.ccxt.com/#/?id=conversion-structure>`
+        """
+        await self.load_markets()
+        request = {}
+        response = None
+        if (fromCode == 'BUSD') or (toCode == 'BUSD'):
+            if amount is None:
+                raise ArgumentsRequired(self.id + ' createConvertTrade() requires an amount argument')
+            request['clientTranId'] = id
+            request['asset'] = fromCode
+            request['targetAsset'] = toCode
+            request['amount'] = amount
+            response = await self.sapiPostAssetConvertTransfer(self.extend(request, params))
+            #
+            #     {
+            #         "tranId": 118263407119,
+            #         "status": "S"
+            #     }
+            #
+        else:
+            request['quoteId'] = id
+            response = await self.sapiPostConvertAcceptQuote(self.extend(request, params))
+            #
+            #     {
+            #         "orderId":"933256278426274426",
+            #         "createTime":1623381330472,
+            #         "orderStatus":"PROCESS"
+            #     }
+            #
+        fromCurrency = self.currency(fromCode)
+        toCurrency = self.currency(toCode)
+        return self.parse_conversion(response, fromCurrency, toCurrency)
+
+    async def fetch_convert_trade(self, id: str, code: Str = None, params={}) -> Conversion:
+        """
+        fetch the data for a conversion trade
+        :see: https://binance-docs.github.io/apidocs/spot/en/#busd-convert-history-user_data
+        :see: https://binance-docs.github.io/apidocs/spot/en/#order-status-user_data
+        :param str id: the id of the trade that you want to fetch
+        :param str [code]: the unified currency code of the conversion trade
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `conversion structure <https://docs.ccxt.com/#/?id=conversion-structure>`
+        """
+        await self.load_markets()
+        request = {}
+        response = None
+        if code == 'BUSD':
+            msInDay = 86400000
+            now = self.milliseconds()
+            if code is not None:
+                currency = self.currency(code)
+                request['asset'] = currency['id']
+            request['tranId'] = id
+            request['startTime'] = now - msInDay
+            request['endTime'] = now
+            response = await self.sapiGetAssetConvertTransferQueryByPage(self.extend(request, params))
+            #
+            #     {
+            #         "total": 3,
+            #         "rows": [
+            #             {
+            #                 "tranId": 118263615991,
+            #                 "type": 244,
+            #                 "time": 1664442078000,
+            #                 "deductedAsset": "BUSD",
+            #                 "deductedAmount": "1",
+            #                 "targetAsset": "USDC",
+            #                 "targetAmount": "1",
+            #                 "status": "S",
+            #                 "accountType": "MAIN"
+            #             },
+            #         ]
+            #     }
+            #
+        else:
+            request['orderId'] = id
+            response = await self.sapiGetConvertOrderStatus(self.extend(request, params))
+            #
+            #     {
+            #         "orderId":933256278426274426,
+            #         "orderStatus":"SUCCESS",
+            #         "fromAsset":"BTC",
+            #         "fromAmount":"0.00054414",
+            #         "toAsset":"USDT",
+            #         "toAmount":"20",
+            #         "ratio":"36755",
+            #         "inverseRatio":"0.00002721",
+            #         "createTime":1623381330472
+            #     }
+            #
+        data = response
+        if code == 'BUSD':
+            rows = self.safe_list(response, 'rows', [])
+            data = self.safe_dict(rows, 0, {})
+        fromCurrencyId = self.safe_string_2(data, 'deductedAsset', 'fromAsset')
+        toCurrencyId = self.safe_string_2(data, 'targetAsset', 'toAsset')
+        fromCurrency = None
+        toCurrency = None
+        if fromCurrencyId is not None:
+            fromCurrency = self.currency(fromCurrencyId)
+        if toCurrencyId is not None:
+            toCurrency = self.currency(toCurrencyId)
+        return self.parse_conversion(data, fromCurrency, toCurrency)
+
+    async def fetch_convert_trade_history(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Conversion]:
+        """
+        fetch the users history of conversion trades
+        :see: https://binance-docs.github.io/apidocs/spot/en/#busd-convert-history-user_data
+        :see: https://binance-docs.github.io/apidocs/spot/en/#get-convert-trade-history-user_data
+        :param str [code]: the unified currency code
+        :param int [since]: the earliest time in ms to fetch conversions for
+        :param int [limit]: the maximum number of conversion structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.until]: timestamp in ms of the latest conversion to fetch
+        :returns dict[]: a list of `conversion structures <https://docs.ccxt.com/#/?id=conversion-structure>`
+        """
+        await self.load_markets()
+        request = {}
+        msInThirtyDays = 2592000000
+        now = self.milliseconds()
+        if since is not None:
+            request['startTime'] = since
+        else:
+            request['startTime'] = now - msInThirtyDays
+        endTime = self.safe_string_2(params, 'endTime', 'until')
+        if endTime is not None:
+            request['endTime'] = endTime
+        else:
+            request['endTime'] = now
+        params = self.omit(params, 'until')
+        response = None
+        responseQuery = None
+        fromCurrencyKey = None
+        toCurrencyKey = None
+        if code == 'BUSD':
+            currency = self.currency(code)
+            request['asset'] = currency['id']
+            if limit is not None:
+                request['size'] = limit
+            fromCurrencyKey = 'deductedAsset'
+            toCurrencyKey = 'targetAsset'
+            responseQuery = 'rows'
+            response = await self.sapiGetAssetConvertTransferQueryByPage(self.extend(request, params))
+            #
+            #     {
+            #         "total": 3,
+            #         "rows": [
+            #             {
+            #                 "tranId": 118263615991,
+            #                 "type": 244,
+            #                 "time": 1664442078000,
+            #                 "deductedAsset": "BUSD",
+            #                 "deductedAmount": "1",
+            #                 "targetAsset": "USDC",
+            #                 "targetAmount": "1",
+            #                 "status": "S",
+            #                 "accountType": "MAIN"
+            #             },
+            #         ]
+            #     }
+            #
+        else:
+            if limit is not None:
+                request['limit'] = limit
+            fromCurrencyKey = 'fromAsset'
+            toCurrencyKey = 'toAsset'
+            responseQuery = 'list'
+            response = await self.sapiGetConvertTradeFlow(self.extend(request, params))
+            #
+            #     {
+            #         "list": [
+            #             {
+            #                 "quoteId": "f3b91c525b2644c7bc1e1cd31b6e1aa6",
+            #                 "orderId": 940708407462087195,
+            #                 "orderStatus": "SUCCESS",
+            #                 "fromAsset": "USDT",
+            #                 "fromAmount": "20",
+            #                 "toAsset": "BNB",
+            #                 "toAmount": "0.06154036",
+            #                 "ratio": "0.00307702",
+            #                 "inverseRatio": "324.99",
+            #                 "createTime": 1624248872184
+            #             }
+            #         ],
+            #         "startTime": 1623824139000,
+            #         "endTime": 1626416139000,
+            #         "limit": 100,
+            #         "moreData": False
+            #     }
+            #
+        rows = self.safe_list(response, responseQuery, [])
+        return self.parse_conversions(rows, fromCurrencyKey, toCurrencyKey, since, limit)
+
+    def parse_conversion(self, conversion, fromCurrency: Currency = None, toCurrency: Currency = None) -> Conversion:
+        #
+        # fetchConvertQuote
+        #
+        #     {
+        #         "quoteId":"12415572564",
+        #         "ratio":"38163.7",
+        #         "inverseRatio":"0.0000262",
+        #         "validTimestamp":1623319461670,
+        #         "toAmount":"3816.37",
+        #         "fromAmount":"0.1"
+        #     }
+        #
+        # createConvertTrade
+        #
+        #     {
+        #         "orderId":"933256278426274426",
+        #         "createTime":1623381330472,
+        #         "orderStatus":"PROCESS"
+        #     }
+        #
+        # createConvertTrade BUSD
+        #
+        #     {
+        #         "tranId": 118263407119,
+        #         "status": "S"
+        #     }
+        #
+        # fetchConvertTrade, fetchConvertTradeHistory BUSD
+        #
+        #     {
+        #         "tranId": 118263615991,
+        #         "type": 244,
+        #         "time": 1664442078000,
+        #         "deductedAsset": "BUSD",
+        #         "deductedAmount": "1",
+        #         "targetAsset": "USDC",
+        #         "targetAmount": "1",
+        #         "status": "S",
+        #         "accountType": "MAIN"
+        #     }
+        #
+        # fetchConvertTrade
+        #
+        #     {
+        #         "orderId":933256278426274426,
+        #         "orderStatus":"SUCCESS",
+        #         "fromAsset":"BTC",
+        #         "fromAmount":"0.00054414",
+        #         "toAsset":"USDT",
+        #         "toAmount":"20",
+        #         "ratio":"36755",
+        #         "inverseRatio":"0.00002721",
+        #         "createTime":1623381330472
+        #     }
+        #
+        # fetchConvertTradeHistory
+        #
+        #     {
+        #         "quoteId": "f3b91c525b2644c7bc1e1cd31b6e1aa6",
+        #         "orderId": 940708407462087195,
+        #         "orderStatus": "SUCCESS",
+        #         "fromAsset": "USDT",
+        #         "fromAmount": "20",
+        #         "toAsset": "BNB",
+        #         "toAmount": "0.06154036",
+        #         "ratio": "0.00307702",
+        #         "inverseRatio": "324.99",
+        #         "createTime": 1624248872184
+        #     }
+        #
+        timestamp = self.safe_integer_n(conversion, ['time', 'validTimestamp', 'createTime'])
+        fromCur = self.safe_string_2(conversion, 'deductedAsset', 'fromAsset')
+        fromCode = self.safe_currency_code(fromCur, fromCurrency)
+        to = self.safe_string_2(conversion, 'targetAsset', 'toAsset')
+        toCode = self.safe_currency_code(to, toCurrency)
+        return {
+            'info': conversion,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'id': self.safe_string_n(conversion, ['tranId', 'orderId', 'quoteId']),
+            'fromCurrency': fromCode,
+            'fromAmount': self.safe_number_2(conversion, 'deductedAmount', 'fromAmount'),
+            'toCurrency': toCode,
+            'toAmount': self.safe_number_2(conversion, 'targetAmount', 'toAmount'),
+            'price': None,
+            'fee': None,
+        }
