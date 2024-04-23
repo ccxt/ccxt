@@ -1328,8 +1328,8 @@ export default class woofipro extends Exchange {
          * @param {boolean} [params.stop] whether the order is a stop/algo order
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        const stop = this.safeBool (params, 'stop', false);
-        params = this.omit (params, 'stop');
+        const stop = this.safeBool2 (params, 'stop', 'trigger', false);
+        params = this.omit (params, [ 'stop', 'trigger' ]);
         if (!stop && (symbol === undefined)) {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
         }
@@ -1392,6 +1392,75 @@ export default class woofipro extends Exchange {
         return this.extend (this.parseOrder (data), extendParams);
     }
 
+	async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
+        /**
+         * @method
+         * @name woofipro#fetchOrder
+         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-order-by-order_id
+         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-order-by-client_order_id
+		 * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-algo-order-by-order_id
+		 * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-algo-order-by-client_order_id
+         * @description fetches information on an order made by the user
+         * @param {string} symbol unified symbol of the market the order was made in
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [params.stop] whether the order is a stop/algo order
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        const market = (symbol !== undefined) ? this.market (symbol) : undefined;
+        const stop = this.safeBool2 (params, 'stop', 'trigger', false);
+        const request = {};
+        const clientOrderId = this.safeString2 (params, 'clOrdID', 'clientOrderId');
+		params = this.omit (params, [ 'stop', 'trigger', 'clOrdID', 'clientOrderId' ]);
+        let response = undefined;
+        if (stop) {
+			if (clientOrderId) {
+				request['client_order_id'] = clientOrderId;
+				response = await this.v1PrivateGetAlgoClientOrderClientOrderId (this.extend (request, params));
+			} else {
+				request['oid'] = id;
+				response = await this.v1PrivateGetAlgoOrderOid (this.extend (request, params));
+			}
+        } else {
+			if (clientOrderId) {
+				request['client_order_id'] = clientOrderId;
+				response = await this.v1PrivateGetClientOrderClientOrderId (this.extend (request, params));
+			} else {
+				request['oid'] = id;
+				response = await this.v1PrivateGetOrderOid (this.extend (request, params));
+			}
+		}
+        //
+		// 	{
+		// 		"success": true,
+		// 		"timestamp": 1702989203989,
+		// 		"data": {
+		// 		"order_id": 78151,
+		// 		"user_id": 12345,
+		// 		"price": 0.67772,
+		// 		"type": "LIMIT",
+		// 		"quantity": 20,
+		// 		"amount": 10,
+		// 		"executed_quantity": 20,
+		// 		"total_executed_quantity": 20,
+		// 		"visible_quantity": 1,
+		// 		"symbol": "PERP_WOO_USDC",
+		// 		"side": "BUY",
+		// 		"status": "FILLED",
+		// 		"total_fee": 0.5,
+		// 		"fee_asset": "WOO",
+		// 		"client_order_id": 1,
+		// 		"average_executed_price": 0.67772,
+		// 		"created_time": 1653563963000,
+		// 		"updated_time": 1653564213000,
+		// 		"realized_pnl": 123
+		// 		}
+		// 	}
+        //
+        const orders = this.safeDict (response, 'data', response);
+        return this.parseOrder (orders, market);
+    }
+
 	async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
@@ -1417,7 +1486,7 @@ export default class woofipro extends Exchange {
         }
         const request = {};
         let market: Market = undefined;
-        const stop = this.safeBool2 (params, 'stop', 'trigger');
+        const stop = this.safeBool2 (params, 'stop', 'trigger', false);
         params = this.omit (params, [ 'stop', 'trigger' ]);
         if (symbol !== undefined) {
             market = this.market (symbol);
