@@ -829,65 +829,59 @@ class coinex extends Exchange {
         // Spot fetchTicker, fetchTickers
         //
         //     {
-        //         "vol" => "293.19415130",
-        //         "low" => "38200.00",
-        //         "open" => "39514.99",
-        //         "high" => "39530.00",
-        //         "last" => "38649.57",
-        //         "buy" => "38640.20",
-        //         "buy_amount" => "0.22800000",
-        //         "sell" => "38640.21",
-        //         "sell_amount" => "0.02828439"
+        //         "close" => "62393.47",
+        //         "high" => "64106.41",
+        //         "last" => "62393.47",
+        //         "low" => "59650.01",
+        //         "market" => "BTCUSDT",
+        //         "open" => "61616.15",
+        //         "period" => 86400,
+        //         "value" => "28711273.4065667262",
+        //         "volume" => "461.76557205",
+        //         "volume_buy" => "11.41506354",
+        //         "volume_sell" => "7.3240169"
         //     }
         //
         // Swap fetchTicker, fetchTickers
         //
         //     {
-        //         "vol" => "7714.2175",
-        //         "low" => "38200.00",
-        //         "open" => "39569.23",
-        //         "high" => "39569.23",
-        //         "last" => "38681.37",
-        //         "buy" => "38681.36",
+        //         "close" => "62480.08",
+        //         "high" => "64100",
+        //         "index_price" => "62443.05",
+        //         "last" => "62480.08",
+        //         "low" => "59600",
+        //         "mark_price" => "62443.05",
+        //         "market" => "BTCUSDT",
+        //         "open" => "61679.98",
         //         "period" => 86400,
-        //         "funding_time" => 462,
-        //         "position_amount" => "296.7552",
-        //         "funding_rate_last" => "0.00009395",
-        //         "funding_rate_next" => "0.00000649",
-        //         "funding_rate_predict" => "-0.00007176",
-        //         "insurance" => "16464465.09431942163278132918",
-        //         "sign_price" => "38681.93",
-        //         "index_price" => "38681.69500000",
-        //         "sell_total" => "16.6039",
-        //         "buy_total" => "19.8481",
-        //         "buy_amount" => "4.6315",
-        //         "sell" => "38681.37",
-        //         "sell_amount" => "11.4044"
+        //         "value" => "180226025.69791713065326633165",
+        //         "volume" => "2900.2218",
+        //         "volume_buy" => "7.3847",
+        //         "volume_sell" => "6.1249"
         //     }
         //
-        $timestamp = $this->safe_integer($ticker, 'date');
-        $symbol = $this->safe_symbol(null, $market);
-        $ticker = $this->safe_value($ticker, 'ticker', array());
-        $last = $this->safe_string($ticker, 'last');
+        $marketType = (is_array($ticker) && array_key_exists('mark_price', $ticker)) ? 'swap' : 'spot';
+        $marketId = $this->safe_string($ticker, 'market');
+        $symbol = $this->safe_symbol($marketId, $market, null, $marketType);
         return $this->safe_ticker(array(
             'symbol' => $symbol,
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
+            'timestamp' => null,
+            'datetime' => null,
             'high' => $this->safe_string($ticker, 'high'),
             'low' => $this->safe_string($ticker, 'low'),
-            'bid' => $this->safe_string($ticker, 'buy'),
-            'bidVolume' => $this->safe_string($ticker, 'buy_amount'),
-            'ask' => $this->safe_string($ticker, 'sell'),
-            'askVolume' => $this->safe_string($ticker, 'sell_amount'),
+            'bid' => null,
+            'bidVolume' => $this->safe_string($ticker, 'volume_buy'),
+            'ask' => null,
+            'askVolume' => $this->safe_string($ticker, 'volume_sell'),
             'vwap' => null,
             'open' => $this->safe_string($ticker, 'open'),
-            'close' => $last,
-            'last' => $last,
+            'close' => $this->safe_string($ticker, 'close'),
+            'last' => $this->safe_string($ticker, 'last'),
             'previousClose' => null,
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => $this->safe_string_2($ticker, 'vol', 'volume'),
+            'baseVolume' => $this->safe_string($ticker, 'volume'),
             'quoteVolume' => null,
             'info' => $ticker,
         ), $market);
@@ -897,8 +891,8 @@ class coinex extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
-             * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot001_market007_single_market_ticker
-             * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http008_market_ticker
+             * @see https://docs.coinex.com/api/v2/spot/market/http/list-$market-ticker
+             * @see https://docs.coinex.com/api/v2/futures/market/http/list-$market-ticker
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
@@ -910,27 +904,28 @@ class coinex extends Exchange {
             );
             $response = null;
             if ($market['swap']) {
-                $response = Async\await($this->v1PerpetualPublicGetMarketTicker (array_merge($request, $params)));
+                $response = Async\await($this->v2PublicGetFuturesTicker (array_merge($request, $params)));
             } else {
-                $response = Async\await($this->v1PublicGetMarketTicker (array_merge($request, $params)));
+                $response = Async\await($this->v2PublicGetSpotTicker (array_merge($request, $params)));
             }
             //
             // Spot
             //
             //     {
             //         "code" => 0,
-            //         "data" => {
-            //             "date" => 1651306913414,
-            //             "ticker" => array(
-            //                 "vol" => "293.19415130",
-            //                 "low" => "38200.00",
-            //                 "open" => "39514.99",
-            //                 "high" => "39530.00",
-            //                 "last" => "38649.57",
-            //                 "buy" => "38640.20",
-            //                 "buy_amount" => "0.22800000",
-            //                 "sell" => "38640.21",
-            //                 "sell_amount" => "0.02828439"
+            //         "data" => array(
+            //             {
+            //                 "close" => "62393.47",
+            //                 "high" => "64106.41",
+            //                 "last" => "62393.47",
+            //                 "low" => "59650.01",
+            //                 "market" => "BTCUSDT",
+            //                 "open" => "61616.15",
+            //                 "period" => 86400,
+            //                 "value" => "28711273.4065667262",
+            //                 "volume" => "461.76557205",
+            //                 "volume_buy" => "11.41506354",
+            //                 "volume_sell" => "7.3240169"
             //             }
             //         ),
             //         "message" => "OK"
@@ -940,47 +935,41 @@ class coinex extends Exchange {
             //
             //     {
             //         "code" => 0,
-            //         "data" => {
-            //             "date" => 1651306641500,
-            //             "ticker" => array(
-            //                 "vol" => "7714.2175",
-            //                 "low" => "38200.00",
-            //                 "open" => "39569.23",
-            //                 "high" => "39569.23",
-            //                 "last" => "38681.37",
-            //                 "buy" => "38681.36",
+            //         "data" => array(
+            //             {
+            //                 "close" => "62480.08",
+            //                 "high" => "64100",
+            //                 "index_price" => "62443.05",
+            //                 "last" => "62480.08",
+            //                 "low" => "59600",
+            //                 "mark_price" => "62443.05",
+            //                 "market" => "BTCUSDT",
+            //                 "open" => "61679.98",
             //                 "period" => 86400,
-            //                 "funding_time" => 462,
-            //                 "position_amount" => "296.7552",
-            //                 "funding_rate_last" => "0.00009395",
-            //                 "funding_rate_next" => "0.00000649",
-            //                 "funding_rate_predict" => "-0.00007176",
-            //                 "insurance" => "16464465.09431942163278132918",
-            //                 "sign_price" => "38681.93",
-            //                 "index_price" => "38681.69500000",
-            //                 "sell_total" => "16.6039",
-            //                 "buy_total" => "19.8481",
-            //                 "buy_amount" => "4.6315",
-            //                 "sell" => "38681.37",
-            //                 "sell_amount" => "11.4044"
+            //                 "value" => "180226025.69791713065326633165",
+            //                 "volume" => "2900.2218",
+            //                 "volume_buy" => "7.3847",
+            //                 "volume_sell" => "6.1249"
             //             }
             //         ),
             //         "message" => "OK"
             //     }
             //
-            return $this->parse_ticker($response['data'], $market);
+            $data = $this->safe_list($response, 'data', array());
+            $result = $this->safe_dict($data, 0, array());
+            return $this->parse_ticker($result, $market);
         }) ();
     }
 
     public function fetch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
-             * fetches price $tickers for multiple markets, statistical information calculated over the past 24 hours for each $market
-             * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot001_market008_all_market_ticker
-             * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http009_market_ticker_all
-             * @param {string[]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all $market $tickers are returned if not assigned
+             * fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each $market
+             * @see https://docs.coinex.com/api/v2/spot/market/http/list-$market-ticker
+             * @see https://docs.coinex.com/api/v2/futures/market/http/list-$market-ticker
+             * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all $market tickers are returned if not assigned
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structures~
+             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
              */
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols);
@@ -992,85 +981,59 @@ class coinex extends Exchange {
             list($marketType, $query) = $this->handle_market_type_and_params('fetchTickers', $market, $params);
             $response = null;
             if ($marketType === 'swap') {
-                $response = Async\await($this->v1PerpetualPublicGetMarketTickerAll ($query));
+                $response = Async\await($this->v2PublicGetFuturesTicker ($query));
             } else {
-                $response = Async\await($this->v1PublicGetMarketTickerAll ());
+                $response = Async\await($this->v2PublicGetSpotTicker ($query));
             }
             //
             // Spot
             //
             //     {
             //         "code" => 0,
-            //         "data" => {
-            //             "date" => 1651519857284,
-            //             "ticker" => array(
-            //                 "PSPUSDT" => array(
-            //                     "vol" => "127131.55227034",
-            //                     "low" => "0.0669",
-            //                     "open" => "0.0688",
-            //                     "high" => "0.0747",
-            //                     "last" => "0.0685",
-            //                     "buy" => "0.0676",
-            //                     "buy_amount" => "702.70117866",
-            //                     "sell" => "0.0690",
-            //                     "sell_amount" => "686.76861562"
-            //                 ),
+            //         "data" => array(
+            //             {
+            //                 "close" => "62393.47",
+            //                 "high" => "64106.41",
+            //                 "last" => "62393.47",
+            //                 "low" => "59650.01",
+            //                 "market" => "BTCUSDT",
+            //                 "open" => "61616.15",
+            //                 "period" => 86400,
+            //                 "value" => "28711273.4065667262",
+            //                 "volume" => "461.76557205",
+            //                 "volume_buy" => "11.41506354",
+            //                 "volume_sell" => "7.3240169"
             //             }
             //         ),
-            //         "message" => "Ok"
+            //         "message" => "OK"
             //     }
             //
             // Swap
             //
             //     {
             //         "code" => 0,
-            //         "data" => {
-            //             "date" => 1651520268644,
-            //             "ticker" => array(
-            //                 "KAVAUSDT" => array(
-            //                     "vol" => "834924",
-            //                     "low" => "3.9418",
-            //                     "open" => "4.1834",
-            //                     "high" => "4.4328",
-            //                     "last" => "4.0516",
-            //                     "buy" => "4.0443",
-            //                     "period" => 86400,
-            //                     "funding_time" => 262,
-            //                     "position_amount" => "16111",
-            //                     "funding_rate_last" => "-0.00069514",
-            //                     "funding_rate_next" => "-0.00061009",
-            //                     "funding_rate_predict" => "-0.00055812",
-            //                     "insurance" => "16532425.53026084124483989548",
-            //                     "sign_price" => "4.0516",
-            //                     "index_price" => "4.0530",
-            //                     "sell_total" => "59446",
-            //                     "buy_total" => "62423",
-            //                     "buy_amount" => "959",
-            //                     "sell" => "4.0466",
-            //                     "sell_amount" => "141"
-            //                 ),
+            //         "data" => array(
+            //             {
+            //                 "close" => "62480.08",
+            //                 "high" => "64100",
+            //                 "index_price" => "62443.05",
+            //                 "last" => "62480.08",
+            //                 "low" => "59600",
+            //                 "mark_price" => "62443.05",
+            //                 "market" => "BTCUSDT",
+            //                 "open" => "61679.98",
+            //                 "period" => 86400,
+            //                 "value" => "180226025.69791713065326633165",
+            //                 "volume" => "2900.2218",
+            //                 "volume_buy" => "7.3847",
+            //                 "volume_sell" => "6.1249"
             //             }
             //         ),
-            //         "message" => "Ok"
+            //         "message" => "OK"
             //     }
             //
-            $data = $this->safe_value($response, 'data');
-            $timestamp = $this->safe_integer($data, 'date');
-            $tickers = $this->safe_value($data, 'ticker', array());
-            $marketIds = is_array($tickers) ? array_keys($tickers) : array();
-            $result = array();
-            for ($i = 0; $i < count($marketIds); $i++) {
-                $marketId = $marketIds[$i];
-                $marketInner = $this->safe_market($marketId, null, null, $marketType);
-                $symbol = $marketInner['symbol'];
-                $ticker = $this->parse_ticker(array(
-                    'date' => $timestamp,
-                    'ticker' => $tickers[$marketId],
-                ), $marketInner);
-                $ticker['symbol'] = $symbol;
-                $result[$symbol] = $ticker;
-            }
-            return $this->filter_by_array_tickers($result, 'symbol', $symbols);
+            $data = $this->safe_list($response, 'data', array());
+            return $this->parse_tickers($data, $symbols);
         }) ();
     }
 
@@ -4530,7 +4493,6 @@ class coinex extends Exchange {
     public function fetch_funding_rates(?array $symbols = null, $params = array ()) {
         return Async\async(function () use ($symbols, $params) {
             /**
-             *  @method
              * fetch the current funding rates
              * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http009_market_ticker_all
              * @param {string[]} $symbols unified $market $symbols

@@ -41,12 +41,26 @@ use React\Promise;
 //     throw $e;
 // } );
 
-$filetered_args = array_filter(array_map (function ($x) { return stripos($x,'--')===false? $x : null;} , $argv));
-$exchangeId = array_key_exists(1, $filetered_args) ? $filetered_args[1] : null; // this should be different than JS
-$exchangeSymbol = null; // todo: this should be different than JS
+// ############## detect cli arguments ############## //
+array_shift($argv); // remove first argument (which is script path "ccxt/php/test/test_async.php")
+
+function filter_argvs($argsArray, $needle, $include = true) {
+    return array_filter($argsArray, function ($x) use ($needle, $include) { return ($include && str_contains($x, $needle) || (!$include && !str_contains($x, $needle))); });
+};
+
+function select_argv ($argsArray, $needle) {
+    $foundArray = array_filter($argsArray, function ($x) use ($needle) { return str_contains($x, $needle); });
+    return count($foundArray) > 0 ? $foundArray : null;
+}
+
+$argvExchange = filter_argvs ($argv, '--', false)[0];
+$argvSymbol   = select_argv ($argv, '/');
+$argvMethod   = select_argv ($argv, '()');
+// #################################################### //
+
+
 
 // non-transpiled part, but shared names among langs
-
 function get_cli_arg_value ($arg) {
     return in_array($arg, $GLOBALS['argv']);
 }
@@ -329,7 +343,7 @@ class testMainClass extends baseMainTestClass {
         $this->ws_tests = get_cli_arg_value('--ws');
     }
 
-    public function init($exchange_id, $symbol_argv) {
+    public function init($exchange_id, $symbol_argv, $method_argv) {
         $this->parse_cli_args();
         if ($this->request_tests && $this->response_tests) {
             $this->run_static_request_tests($exchange_id, $symbol_argv);
@@ -348,13 +362,12 @@ class testMainClass extends baseMainTestClass {
             $this->run_broker_id_tests();
             return;
         }
-        $symbol_str = $symbol_argv !== null ? $symbol_argv : 'all';
-        $exchange_object = array(
+        dump($this->new_line . '' . $this->new_line . '' . '[INFO] TESTING ', $this->ext, array(
             'exchange' => $exchange_id,
-            'symbol' => $symbol_str,
+            'symbol' => $symbol_argv,
+            'method' => $method_argv,
             'isWs' => $this->ws_tests,
-        );
-        dump($this->new_line . '' . $this->new_line . '' . '[INFO] TESTING ', $this->ext, json_stringify($exchange_object), $this->new_line);
+        ), $this->new_line);
         $exchange_args = array(
             'verbose' => $this->verbose,
             'debug' => $this->debug,
@@ -368,32 +381,28 @@ class testMainClass extends baseMainTestClass {
         $this->import_files($exchange);
         assert(count(is_array($this->test_files) ? array_keys($this->test_files) : array()) > 0, 'Test files were not loaded'); // ensure test files are found & filled
         $this->expand_settings($exchange);
-        $symbol = $this->check_if_specific_test_is_chosen($symbol_argv);
-        $this->start_test($exchange, $symbol);
+        $this->check_if_specific_test_is_chosen($method_argv);
+        $this->start_test($exchange, $symbol_argv);
         exit_script(0); // needed to be explicitly finished for WS tests
     }
 
-    public function check_if_specific_test_is_chosen($symbol_argv) {
-        if ($symbol_argv !== null) {
+    public function check_if_specific_test_is_chosen($method_argv) {
+        if ($method_argv !== null) {
             $test_file_names = is_array($this->test_files) ? array_keys($this->test_files) : array();
-            $possible_method_names = explode(',', $symbol_argv); // i.e. `test.ts binance fetchBalance,fetchDeposits`
+            $possible_method_names = explode(',', $method_argv); // i.e. `test.ts binance fetchBalance,fetchDeposits`
             if (count($possible_method_names) >= 1) {
                 for ($i = 0; $i < count($test_file_names); $i++) {
                     $test_file_name = $test_file_names[$i];
                     for ($j = 0; $j < count($possible_method_names); $j++) {
                         $method_name = $possible_method_names[$j];
+                        $method_name = str_replace('()', '', $method_name);
                         if ($test_file_name === $method_name) {
                             $this->only_specific_tests[] = $test_file_name;
                         }
                     }
                 }
             }
-            // if method names were found, then remove them from symbolArgv
-            if (count($this->only_specific_tests) > 0) {
-                return null;
-            }
         }
-        return $symbol_argv;
     }
 
     public function import_files($exchange) {
@@ -1875,7 +1884,7 @@ class testMainClass extends baseMainTestClass {
 
 // ***** AUTO-TRANSPILER-END *****
 // *******************************
-$promise = (new testMainClass())->init($exchangeId, $exchangeSymbol);
+$promise = (new testMainClass())->init($argvExchange, $argvSymbol, $argvMethod);
 if (!is_synchronous) {
     Async\await($promise);
 }

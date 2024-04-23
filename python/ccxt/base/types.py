@@ -149,6 +149,10 @@ class OrderRequest(TypedDict):
     price: Union[None, float]
     params: Dict[str, Any]
 
+class CancellationRequest(TypedDict):
+    id: Str
+    symbol: Str
+    clientOrderId: Str
 
 class Order(TypedDict):
     info: Dict[str, Any]

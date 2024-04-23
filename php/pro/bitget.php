@@ -1024,7 +1024,7 @@ class bitget extends \ccxt\async\bitget {
         }) ();
     }
 
-    public function handle_order(Client $client, $message, $subscription = null) {
+    public function handle_order(Client $client, $message) {
         //
         // spot
         //

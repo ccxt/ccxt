@@ -581,6 +581,16 @@
                 "url": "https://api.staging.woo.org/v1/orders?size=500&status=COMPLETED",
                 "input": []
             }
+        ],
+        "fetchConvertTrade": [
+            {
+                "description": "Fetch a conversion trade",
+                "method": "fetchConvertTrade",
+                "url": "https://api.staging.woo.org/v3/convert/trade?quoteId=12",
+                "input": [
+                  "12"
+                ]
+            }
         ]
     }
 }
