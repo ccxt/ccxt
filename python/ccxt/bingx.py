@@ -46,6 +46,7 @@ class bingx(Exchange, ImplicitAPI):
                 'option': False,
                 'addMargin': True,
                 'cancelAllOrders': True,
+                'cancelAllOrdersAfter': True,
                 'cancelOrder': True,
                 'cancelOrders': True,
                 'closeAllPositions': True,
@@ -242,6 +243,7 @@ class bingx(Exchange, ImplicitAPI):
                                 'trade/order': 3,
                                 'trade/batchOrders': 3,
                                 'trade/closeAllPositions': 3,
+                                'trade/cancelAllAfter': 3,
                                 'trade/marginType': 3,
                                 'trade/leverage': 3,
                                 'trade/positionMargin': 3,
@@ -2578,6 +2580,44 @@ class bingx(Exchange, ImplicitAPI):
         #          "failed": null
         #        }
         #    }
+        #
+        return response
+
+    def cancel_all_orders_after(self, timeout: Int, params={}):
+        """
+        dead man's switch, cancel all orders after the given timeout
+        :see: https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Cancel%20all%20orders%20in%20countdown
+        :see: https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Cancel%20all%20orders%20in%20countdown
+        :param number timeout: time in milliseconds, 0 represents cancel the timer
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.type]: spot or swap market
+        :returns dict: the api result
+        """
+        self.load_markets()
+        isActive = (timeout > 0)
+        request: dict = {
+            'type': 'ACTIVATE' if (isActive) else 'CLOSE',
+            'timeOut': (self.parse_to_int(timeout / 1000)) if (isActive) else 0,
+        }
+        response = None
+        type = None
+        type, params = self.handle_market_type_and_params('cancelAllOrdersAfter', None, params)
+        if type == 'spot':
+            response = self.spotV1PrivatePostTradeCancelAllAfter(self.extend(request, params))
+        elif type == 'swap':
+            response = self.swapV2PrivatePostTradeCancelAllAfter(self.extend(request, params))
+        else:
+            raise NotSupported(self.id + ' cancelAllOrdersAfter() is not supported for ' + type + ' markets')
+        #
+        #     {
+        #         code: '0',
+        #         msg: '',
+        #         data: {
+        #             triggerTime: '1712645434',
+        #             status: 'ACTIVATED',
+        #             note: 'All your perpetual pending orders will be closed automatically at 2024-04-09 06:50:34 UTC(+0),before that you can cancel the timer, or self.extend triggerTime time by self request'
+        #         }
+        #     }
         #
         return response
 

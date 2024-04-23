@@ -1116,14 +1116,13 @@ class coinex(Exchange, ImplicitAPI):
         #
         # Spot and Swap fetchTrades(public)
         #
-        #      {
-        #          "id":  2611511379,
-        #          "type": "buy",
-        #          "price": "192.63",
-        #          "amount": "0.02266931",
-        #          "date":  1638990110,
-        #          "date_ms":  1638990110518
-        #      },
+        #     {
+        #         "amount": "0.00049432",
+        #         "created_at": 1713849825667,
+        #         "deal_id": 4137517302,
+        #         "price": "66251",
+        #         "side": "buy"
+        #     }
         #
         # Spot and Margin fetchMyTrades(private)
         #
@@ -1177,8 +1176,8 @@ class coinex(Exchange, ImplicitAPI):
         #
         timestamp = self.safe_timestamp_2(trade, 'create_time', 'time')
         if timestamp is None:
-            timestamp = self.safe_integer(trade, 'date_ms')
-        tradeId = self.safe_string(trade, 'id')
+            timestamp = self.safe_integer(trade, 'created_at')
+        tradeId = self.safe_string_2(trade, 'id', 'deal_id')
         orderId = self.safe_string(trade, 'order_id')
         priceString = self.safe_string(trade, 'price')
         amountString = self.safe_string(trade, 'amount')
@@ -1210,9 +1209,9 @@ class coinex(Exchange, ImplicitAPI):
             elif rawSide == 2:
                 side = 'buy'
             if side is None:
-                side = self.safe_string(trade, 'type')
+                side = self.safe_string_2(trade, 'type', 'side')
         else:
-            side = self.safe_string(trade, 'type')
+            side = self.safe_string_2(trade, 'type', 'side')
         return self.safe_trade({
             'info': trade,
             'timestamp': timestamp,
@@ -1231,9 +1230,9 @@ class coinex(Exchange, ImplicitAPI):
 
     async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
-        get the list of most recent trades for a particular symbol
-        :see: https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot001_market005_market_deals
-        :see: https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http011_market_deals
+        get the list of the most recent trades for a particular symbol
+        :see: https://docs.coinex.com/api/v2/spot/market/http/list-market-deals
+        :see: https://docs.coinex.com/api/v2/futures/market/http/list-market-deals
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
@@ -1250,26 +1249,25 @@ class coinex(Exchange, ImplicitAPI):
             request['limit'] = limit
         response = None
         if market['swap']:
-            response = await self.v1PerpetualPublicGetMarketDeals(self.extend(request, params))
+            response = await self.v2PublicGetFuturesDeals(self.extend(request, params))
         else:
-            response = await self.v1PublicGetMarketDeals(self.extend(request, params))
+            response = await self.v2PublicGetSpotDeals(self.extend(request, params))
         #
         # Spot and Swap
         #
-        #      {
-        #          "code":    0,
-        #          "data": [
-        #              {
-        #                  "id":  2611511379,
-        #                  "type": "buy",
-        #                  "price": "192.63",
-        #                  "amount": "0.02266931",
-        #                  "date":  1638990110,
-        #                  "date_ms":  1638990110518
-        #                  },
-        #              ],
-        #          "message": "OK"
-        #      }
+        #     {
+        #         "code": 0,
+        #         "data": [
+        #             {
+        #                 "amount": "0.00049432",
+        #                 "created_at": 1713849825667,
+        #                 "deal_id": 4137517302,
+        #                 "price": "66251",
+        #                 "side": "buy"
+        #             },
+        #         ],
+        #         "message": "OK"
+        #     }
         #
         return self.parse_trades(response['data'], market, since, limit)
 

@@ -931,6 +931,7 @@ export default class Exchange {
     cancelOrderWs(id: string, symbol?: Str, params?: {}): Promise<{}>;
     cancelOrdersWs(ids: string[], symbol?: Str, params?: {}): Promise<{}>;
     cancelAllOrders(symbol?: Str, params?: {}): Promise<{}>;
+    cancelAllOrdersAfter(timeout: Int, params?: {}): Promise<{}>;
     cancelOrdersForSymbols(orders: CancellationRequest[], params?: {}): Promise<{}>;
     cancelAllOrdersWs(symbol?: Str, params?: {}): Promise<{}>;
     cancelUnifiedOrder(order: any, params?: {}): Promise<{}>;

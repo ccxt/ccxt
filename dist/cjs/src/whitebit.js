@@ -29,6 +29,7 @@ class whitebit extends whitebit$1 {
                 'future': false,
                 'option': false,
                 'cancelAllOrders': true,
+                'cancelAllOrdersAfter': true,
                 'cancelOrder': true,
                 'cancelOrders': false,
                 'createOrder': true,
@@ -1406,6 +1407,47 @@ class whitebit extends whitebit$1 {
         const response = await this.v4PrivatePostOrderCancelAll(this.extend(request, params));
         //
         // []
+        //
+        return response;
+    }
+    async cancelAllOrdersAfter(timeout, params = {}) {
+        /**
+         * @method
+         * @name whitebit#cancelAllOrdersAfter
+         * @description dead man's switch, cancel all orders after the given timeout
+         * @see https://docs.whitebit.com/private/http-trade-v4/#sync-kill-switch-timer
+         * @param {number} timeout time in milliseconds, 0 represents cancel the timer
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.types] Order types value. Example: "spot", "margin", "futures" or null
+         * @param {string} [params.symbol] symbol unified symbol of the market the order was made in
+         * @returns {object} the api result
+         */
+        await this.loadMarkets();
+        const symbol = this.safeString(params, 'symbol');
+        if (symbol === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' cancelAllOrdersAfter() requires a symbol argument in params');
+        }
+        const market = this.market(symbol);
+        params = this.omit(params, 'symbol');
+        const isBiggerThanZero = (timeout > 0);
+        const request = {
+            'market': market['id'],
+            // 'timeout': (timeout > 0) ? this.numberToString (timeout / 1000) : null,
+        };
+        if (isBiggerThanZero) {
+            request['timeout'] = this.numberToString(timeout / 1000);
+        }
+        else {
+            request['timeout'] = 'null';
+        }
+        const response = await this.v4PrivatePostOrderKillSwitch(this.extend(request, params));
+        //
+        //     {
+        //         "market": "BTC_USDT", // currency market,
+        //         "startTime": 1662478154, // now timestamp,
+        //         "cancellationTime": 1662478154, // now + timer_value,
+        //         "types": ["spot", "margin"]
+        //     }
         //
         return response;
     }
