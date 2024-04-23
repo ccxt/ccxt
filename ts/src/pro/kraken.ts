@@ -50,7 +50,7 @@ export default class kraken extends krakenRest {
                 'OHLCVLimit': 1000,
                 'ordersLimit': 1000,
                 'symbolsByOrderId': {},
-                'checksum': true,
+                'validateOrderBookSequences': true,
             },
             'exceptions': {
                 'ws': {

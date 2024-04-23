@@ -28,7 +28,7 @@ export default class independentreserve extends independentreserveRest {
                 },
             },
             'options': {
-                'checksum': false, // TODO: currently only working for snapshot
+                'validateOrderBookSequences': false, // TODO: currently only working for snapshot
             },
             'streaming': {
             },

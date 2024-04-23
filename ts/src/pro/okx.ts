@@ -90,7 +90,7 @@ export default class okx extends okxRest {
                 'ws': {
                     // 'inflate': true,
                 },
-                'checksum': true,
+                'validateOrderBookSequences': true,
             },
             'streaming': {
                 // okex does not support built-in ws protocol-level ping-pong

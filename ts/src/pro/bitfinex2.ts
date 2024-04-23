@@ -39,7 +39,7 @@ export default class bitfinex2 extends bitfinex2Rest {
                     'freq': 'F0',
                 },
                 'ordersLimit': 1000,
-                'checksum': true,
+                'validateOrderBookSequences': true,
             },
         });
     }

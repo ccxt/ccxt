@@ -55,7 +55,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
                 'streamLimit': 5, // called tunnels by poloniexfutures docs
                 'streamBySubscriptionsHash': {},
                 'streamIndex': -1,
-                'checksum': true,
+                'validateOrderBookSequences': true,
             },
             'streaming': {
                 'keepAlive': 30000,
