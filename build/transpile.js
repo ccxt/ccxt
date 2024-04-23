@@ -415,11 +415,11 @@ class Transpiler {
             [ /\!\=\=?/g, '!=' ],
             [ /this\.stringToBinary\s*\((.*)\)/g, '$1' ],
             [ /\.shift\s*\(\)/g, '.pop(0)' ],
-            // beware of .reverse() in python, because opposed to JS, python does in-place, so 
-            // only cases like `x = x.reverse ()` should be transpiled, which will resul as 
+            // beware of .reverse() in python, because opposed to JS, python does in-place, so
+            // only cases like `x = x.reverse ()` should be transpiled, which will resul as
             // `x.reverse()` in python. otherwise, if transpiling `x = y.reverse()`, then the
             // left side `x = `will be removed and only `y.reverse()` will end up in python
-            [ /\s+(\w+)\s\=\s(.*?)\.reverse\s\(/g, '$2.reverse(' ], 
+            [ /\s+(\w+)\s\=\s(.*?)\.reverse\s\(/g, '$2.reverse(' ],
             [ /Number\.MAX_SAFE_INTEGER/g, 'float(\'inf\')'],
             [ /function\s*(\w+\s*\([^)]+\))\s*{/g, 'def $1:'],
             // [ /\.replaceAll\s*\(([^)]+)\)/g, '.replace($1)' ], // still not a part of the standard
@@ -998,7 +998,6 @@ class Transpiler {
             'Greeks': /-> Greeks:/,
             'IndexType': /: IndexType/,
             'Int': /: Int =/,
-            'Liquidation': /-> (?:List\[)?Liquidation/,
             'LastPrice': /-> LastPrice:/,
             'LastPrices': /-> LastPrices:/,
             'Leverage': /-> Leverage:/,
@@ -2372,7 +2371,7 @@ class Transpiler {
 
 
         // ########### PHP ###########
-        
+
         const existinPhpBody = fs.readFileSync (files.phpFileAsync).toString ();
         const phpReform = (cont) => {
             const partBeforClass =  existinPhpBody.split(commentStartLine)[0] + commentStartLine + '\n';
@@ -2534,10 +2533,10 @@ class Transpiler {
             const phpDirsAmount = getDirLevelForPath('php', test.phpFileAsync || test.phpFileSync, 2);
             const pythonPreamble = this.getPythonPreamble(pyDirsAmount);
             // In PHP preable, for specifically WS tests, we need to avoid php namespace differences for tests, for example, if WATCH methods use ccxt\\pro, then the inlcuded non-pro test methods (like "test_trade" etc) are under ccxt, causing the purely transpiled code to have namespace conflicts specifically in PHP. so, for now, let's just leave all watch method tests under `ccxt` namespace, not `ccxt\pro`
-            // let phpPreamble = this.getPHPPreamble (false, phpDirsAmount, isWs); 
+            // let phpPreamble = this.getPHPPreamble (false, phpDirsAmount, isWs);
             const includePath = isWs && test.base;
             const addProNs = isWs && test.base; // only for base CACHE and ORDERBOOK tests
-            let phpPreamble = this.getPHPPreamble (includePath, phpDirsAmount, addProNs); 
+            let phpPreamble = this.getPHPPreamble (includePath, phpDirsAmount, addProNs);
 
 
             let pythonHeaderSync = []
