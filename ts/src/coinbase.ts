@@ -1824,7 +1824,7 @@ export default class coinbase extends Exchange {
         if (symbols !== undefined) {
             request['product_ids'] = this.marketIds (symbols);
         }
-        const response = await this.v3PrivateGetBrokerageProducts (this.extend (request, params));
+        const response = await this.v3PublicGetBrokerageMarketProducts (this.extend (request, params));
         //
         //     {
         //         "products": [
@@ -3605,7 +3605,7 @@ export default class coinbase extends Exchange {
         } else if (since !== undefined) {
             throw new ArgumentsRequired (this.id + ' fetchTrades() requires a `until` parameter when you use `since` argument');
         }
-        const response = await this.v3PrivateGetBrokerageProductsProductIdTicker (this.extend (request, params));
+        const response = await this.v3PublicGetBrokerageMarketProductsProductIdTicker (this.extend (request, params));
         //
         //     {
         //         "trades": [
