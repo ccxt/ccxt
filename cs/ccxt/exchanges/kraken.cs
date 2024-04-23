@@ -24,6 +24,7 @@ public partial class kraken : Exchange
                 { "option", false },
                 { "addMargin", false },
                 { "cancelAllOrders", true },
+                { "cancelAllOrdersAfter", true },
                 { "cancelOrder", true },
                 { "cancelOrders", true },
                 { "createDepositAddress", true },
@@ -2294,6 +2295,39 @@ public partial class kraken : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         return await this.privatePostCancelAll(parameters);
+    }
+
+    public async override Task<object> cancelAllOrdersAfter(object timeout, object parameters = null)
+    {
+        /**
+        * @method
+        * @name kraken#cancelAllOrdersAfter
+        * @description dead man's switch, cancel all orders after the given timeout
+        * @see https://docs.kraken.com/rest/#tag/Spot-Trading/operation/cancelAllOrdersAfter
+        * @param {number} timeout time in milliseconds, 0 represents cancel the timer
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} the api result
+        */
+        parameters ??= new Dictionary<string, object>();
+        if (isTrue(isGreaterThan(timeout, 86400000)))
+        {
+            throw new BadRequest ((string)add(this.id, "cancelAllOrdersAfter timeout should be less than 86400000 milliseconds")) ;
+        }
+        await this.loadMarkets();
+        object request = new Dictionary<string, object>() {
+            { "timeout", ((bool) isTrue((isGreaterThan(timeout, 0)))) ? (this.parseToInt(divide(timeout, 1000))) : 0 },
+        };
+        object response = await this.privatePostCancelAllOrdersAfter(this.extend(request, parameters));
+        //
+        //     {
+        //         "error": [ ],
+        //         "result": {
+        //             "currentTime": "2023-03-24T17:41:56Z",
+        //             "triggerTime": "2023-03-24T17:42:56Z"
+        //         }
+        //     }
+        //
+        return response;
     }
 
     public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)

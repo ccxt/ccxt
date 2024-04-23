@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.cryptocom import ImplicitAPI
 import hashlib
-from ccxt.base.types import Account, Balances, Currency, Int, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Account, Balances, Currency, Int, Market, Num, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -47,6 +47,7 @@ class cryptocom(Exchange, ImplicitAPI):
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'cancelOrders': True,
+                'cancelOrdersForSymbols': True,
                 'closeAllPositions': False,
                 'closePosition': True,
                 'createMarketBuyOrderWithCost': False,
@@ -1352,6 +1353,34 @@ class cryptocom(Exchange, ImplicitAPI):
         response = await self.v1PrivatePostPrivateCancelOrderList(self.extend(request, params))
         result = self.safe_list(response, 'result', [])
         return self.parse_orders(result, market, None, None, params)
+
+    async def cancel_orders_for_symbols(self, orders: List[CancellationRequest], params={}):
+        """
+        cancel multiple orders for multiple symbols
+        :see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-cancel-order-list-list
+        :param CancellationRequest[] orders: each order should contain the parameters required by cancelOrder namely id and symbol
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        await self.load_markets()
+        orderRequests = []
+        for i in range(0, len(orders)):
+            order = orders[i]
+            id = self.safe_string(order, 'id')
+            symbol = self.safe_string(order, 'symbol')
+            market = self.market(symbol)
+            orderItem = {
+                'instrument_name': market['id'],
+                'order_id': str(id),
+            }
+            orderRequests.append(orderItem)
+        request = {
+            'contingency_type': 'LIST',
+            'order_list': orderRequests,
+        }
+        response = await self.v1PrivatePostPrivateCancelOrderList(self.extend(request, params))
+        result = self.safe_list(response, 'result', [])
+        return self.parse_orders(result, None, None, None, params)
 
     async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """

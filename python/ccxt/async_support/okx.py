@@ -7,7 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.okx import ImplicitAPI
 import asyncio
 import hashlib
-from ccxt.base.types import Account, Balances, Conversion, Currencies, Currency, Greeks, Int, Leverage, MarginModification, Market, MarketInterface, Num, Option, OptionChain, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry
+from ccxt.base.types import Account, Balances, Conversion, Currencies, Currency, Greeks, Int, Leverage, MarginModification, Market, MarketInterface, Num, Option, OptionChain, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry
 from typing import List
 from typing import Any
 from ccxt.base.errors import ExchangeError
@@ -55,8 +55,10 @@ class okx(Exchange, ImplicitAPI):
                 'option': True,
                 'addMargin': True,
                 'cancelAllOrders': False,
+                'cancelAllOrdersAfter': True,
                 'cancelOrder': True,
                 'cancelOrders': True,
+                'cancelOrdersForSymbols': True,
                 'closeAllPositions': False,
                 'closePosition': True,
                 'createConvertTrade': True,
@@ -3083,6 +3085,107 @@ class okx(Exchange, ImplicitAPI):
         #
         ordersData = self.safe_list(response, 'data', [])
         return self.parse_orders(ordersData, market, None, None, params)
+
+    async def cancel_orders_for_symbols(self, orders: List[CancellationRequest], params={}):
+        """
+        cancel multiple orders for multiple symbols
+        :see: https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-cancel-multiple-orders
+        :see: https://www.okx.com/docs-v5/en/#order-book-trading-algo-trading-post-cancel-algo-order
+        :param CancellationRequest[] orders: each order should contain the parameters required by cancelOrder namely id and symbol
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param boolean [params.trigger]: whether the order is a stop/trigger order
+        :param boolean [params.trailing]: set to True if you want to cancel trailing orders
+        :returns dict: an list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        await self.load_markets()
+        request = []
+        options = self.safe_dict(self.options, 'cancelOrders', {})
+        defaultMethod = self.safe_string(options, 'method', 'privatePostTradeCancelBatchOrders')
+        method = self.safe_string(params, 'method', defaultMethod)
+        stop = self.safe_bool_2(params, 'stop', 'trigger')
+        trailing = self.safe_bool(params, 'trailing', False)
+        isStopOrTrailing = stop or trailing
+        if isStopOrTrailing:
+            method = 'privatePostTradeCancelAlgos'
+        for i in range(0, len(orders)):
+            order = orders[i]
+            id = self.safe_string(order, 'id')
+            clientOrderId = self.safe_string_2(order, 'clOrdId', 'clientOrderId')
+            symbol = self.safe_string(order, 'symbol')
+            market = self.market(symbol)
+            idKey = 'ordId'
+            if isStopOrTrailing:
+                idKey = 'algoId'
+            elif clientOrderId is not None:
+                idKey = 'clOrdId'
+            requestItem = {
+                'instId': market['id'],
+            }
+            requestItem[idKey] = clientOrderId if (clientOrderId is not None) else id
+            request.append(requestItem)
+        response = None
+        if method == 'privatePostTradeCancelAlgos':
+            response = await self.privatePostTradeCancelAlgos(request)  # * dont self.extend with params, otherwise ARRAY will be turned into OBJECT
+        else:
+            response = await self.privatePostTradeCancelBatchOrders(request)  # * dont self.extend with params, otherwise ARRAY will be turned into OBJECT
+        #
+        #     {
+        #         "code": "0",
+        #         "data": [
+        #             {
+        #                 "clOrdId": "e123456789ec4dBC1123456ba123b45e",
+        #                 "ordId": "405071912345641543",
+        #                 "sCode": "0",
+        #                 "sMsg": ""
+        #             },
+        #             ...
+        #         ],
+        #         "msg": ""
+        #     }
+        #
+        # Algo order
+        #
+        #     {
+        #         "code": "0",
+        #         "data": [
+        #             {
+        #                 "algoId": "431375349042380800",
+        #                 "sCode": "0",
+        #                 "sMsg": ""
+        #             }
+        #         ],
+        #         "msg": ""
+        #     }
+        #
+        ordersData = self.safe_list(response, 'data', [])
+        return self.parse_orders(ordersData, None, None, None, params)
+
+    async def cancel_all_orders_after(self, timeout: Int, params={}):
+        """
+        dead man's switch, cancel all orders after the given timeout
+        :see: https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-cancel-all-after
+        :param number timeout: time in milliseconds, 0 represents cancel the timer
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: the api result
+        """
+        await self.load_markets()
+        request: dict = {
+            'timeOut': self.parse_to_int(timeout / 1000) if (timeout > 0) else 0,
+        }
+        response = await self.privatePostTradeCancelAllAfter(self.extend(request, params))
+        #
+        #     {
+        #         "code":"0",
+        #         "msg":"",
+        #         "data":[
+        #             {
+        #                 "triggerTime":"1587971460",
+        #                 "ts":"1587971400"
+        #             }
+        #         ]
+        #     }
+        #
+        return response
 
     def parse_order_status(self, status):
         statuses = {

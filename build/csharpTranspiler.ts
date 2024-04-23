@@ -302,7 +302,7 @@ class NewTranspiler {
     }
 
     isBooleanType(type: string) {
-        return (type === 'boolean') || (type === 'BooleanLiteral') || (type === 'BooleanLiteralType')
+        return (type === 'boolean') || (type === 'BooleanLiteral') || (type === 'BooleanLiteralType') || (type === 'Bool')
     }
 
     convertJavascriptTypeToCsharpType(name: string, type: string, isReturn = false): string | undefined {

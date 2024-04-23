@@ -22,6 +22,7 @@ public partial class whitebit : Exchange
                 { "future", false },
                 { "option", false },
                 { "cancelAllOrders", true },
+                { "cancelAllOrdersAfter", true },
                 { "cancelOrder", true },
                 { "cancelOrders", false },
                 { "createOrder", true },
@@ -1409,6 +1410,51 @@ public partial class whitebit : Exchange
         object response = await this.v4PrivatePostOrderCancelAll(this.extend(request, parameters));
         //
         // []
+        //
+        return response;
+    }
+
+    public async override Task<object> cancelAllOrdersAfter(object timeout, object parameters = null)
+    {
+        /**
+        * @method
+        * @name whitebit#cancelAllOrdersAfter
+        * @description dead man's switch, cancel all orders after the given timeout
+        * @see https://docs.whitebit.com/private/http-trade-v4/#sync-kill-switch-timer
+        * @param {number} timeout time in milliseconds, 0 represents cancel the timer
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string} [params.types] Order types value. Example: "spot", "margin", "futures" or null
+        * @param {string} [params.symbol] symbol unified symbol of the market the order was made in
+        * @returns {object} the api result
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object symbol = this.safeString(parameters, "symbol");
+        if (isTrue(isEqual(symbol, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " cancelAllOrdersAfter() requires a symbol argument in params")) ;
+        }
+        object market = this.market(symbol);
+        parameters = this.omit(parameters, "symbol");
+        object isBiggerThanZero = (isGreaterThan(timeout, 0));
+        object request = new Dictionary<string, object>() {
+            { "market", getValue(market, "id") },
+        };
+        if (isTrue(isBiggerThanZero))
+        {
+            ((IDictionary<string,object>)request)["timeout"] = this.numberToString(divide(timeout, 1000));
+        } else
+        {
+            ((IDictionary<string,object>)request)["timeout"] = "null";
+        }
+        object response = await this.v4PrivatePostOrderKillSwitch(this.extend(request, parameters));
+        //
+        //     {
+        //         "market": "BTC_USDT", // currency market,
+        //         "startTime": 1662478154, // now timestamp,
+        //         "cancellationTime": 1662478154, // now + timer_value,
+        //         "types": ["spot", "margin"]
+        //     }
         //
         return response;
     }

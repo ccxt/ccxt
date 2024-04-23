@@ -38,8 +38,10 @@ class okx extends Exchange {
                 'option' => true,
                 'addMargin' => true,
                 'cancelAllOrders' => false,
+                'cancelAllOrdersAfter' => true,
                 'cancelOrder' => true,
                 'cancelOrders' => true,
+                'cancelOrdersForSymbols' => true,
                 'closeAllPositions' => false,
                 'closePosition' => true,
                 'createConvertTrade' => true,
@@ -3271,6 +3273,117 @@ class okx extends Exchange {
             //
             $ordersData = $this->safe_list($response, 'data', array());
             return $this->parse_orders($ordersData, $market, null, null, $params);
+        }) ();
+    }
+
+    public function cancel_orders_for_symbols(array $orders, $params = array ()) {
+        return Async\async(function () use ($orders, $params) {
+            /**
+             * cancel multiple $orders for multiple symbols
+             * @see https://www.okx.com/docs-v5/en/#$order-book-trading-trade-post-cancel-multiple-$orders
+             * @see https://www.okx.com/docs-v5/en/#$order-book-trading-algo-trading-post-cancel-algo-$order
+             * @param {CancellationRequest[]} $orders each $order should contain the parameters required by cancelOrder namely $id and $symbol
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {boolean} [$params->trigger] whether the $order is a stop/trigger $order
+             * @param {boolean} [$params->trailing] set to true if you want to cancel $trailing $orders
+             * @return {array} an list of ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structures~
+             */
+            Async\await($this->load_markets());
+            $request = array();
+            $options = $this->safe_dict($this->options, 'cancelOrders', array());
+            $defaultMethod = $this->safe_string($options, 'method', 'privatePostTradeCancelBatchOrders');
+            $method = $this->safe_string($params, 'method', $defaultMethod);
+            $stop = $this->safe_bool_2($params, 'stop', 'trigger');
+            $trailing = $this->safe_bool($params, 'trailing', false);
+            $isStopOrTrailing = $stop || $trailing;
+            if ($isStopOrTrailing) {
+                $method = 'privatePostTradeCancelAlgos';
+            }
+            for ($i = 0; $i < count($orders); $i++) {
+                $order = $orders[$i];
+                $id = $this->safe_string($order, 'id');
+                $clientOrderId = $this->safe_string_2($order, 'clOrdId', 'clientOrderId');
+                $symbol = $this->safe_string($order, 'symbol');
+                $market = $this->market($symbol);
+                $idKey = 'ordId';
+                if ($isStopOrTrailing) {
+                    $idKey = 'algoId';
+                } elseif ($clientOrderId !== null) {
+                    $idKey = 'clOrdId';
+                }
+                $requestItem = array(
+                    'instId' => $market['id'],
+                );
+                $requestItem[$idKey] = ($clientOrderId !== null) ? $clientOrderId : $id;
+                $request[] = $requestItem;
+            }
+            $response = null;
+            if ($method === 'privatePostTradeCancelAlgos') {
+                $response = Async\await($this->privatePostTradeCancelAlgos ($request)); // * dont extend with $params, otherwise ARRAY will be turned into OBJECT
+            } else {
+                $response = Async\await($this->privatePostTradeCancelBatchOrders ($request)); // * dont extend with $params, otherwise ARRAY will be turned into OBJECT
+            }
+            //
+            //     {
+            //         "code" => "0",
+            //         "data" => array(
+            //             array(
+            //                 "clOrdId" => "e123456789ec4dBC1123456ba123b45e",
+            //                 "ordId" => "405071912345641543",
+            //                 "sCode" => "0",
+            //                 "sMsg" => ""
+            //             ),
+            //             ...
+            //         ),
+            //         "msg" => ""
+            //     }
+            //
+            // Algo $order
+            //
+            //     {
+            //         "code" => "0",
+            //         "data" => array(
+            //             {
+            //                 "algoId" => "431375349042380800",
+            //                 "sCode" => "0",
+            //                 "sMsg" => ""
+            //             }
+            //         ),
+            //         "msg" => ""
+            //     }
+            //
+            $ordersData = $this->safe_list($response, 'data', array());
+            return $this->parse_orders($ordersData, null, null, null, $params);
+        }) ();
+    }
+
+    public function cancel_all_orders_after(?int $timeout, $params = array ()) {
+        return Async\async(function () use ($timeout, $params) {
+            /**
+             * dead man's switch, cancel all orders after the given $timeout
+             * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-cancel-all-after
+             * @param {number} $timeout time in milliseconds, 0 represents cancel the timer
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} the api result
+             */
+            Async\await($this->load_markets());
+            $request = array(
+                'timeOut' => ($timeout > 0) ? $this->parse_to_int($timeout / 1000) : 0,
+            );
+            $response = Async\await($this->privatePostTradeCancelAllAfter (array_merge($request, $params)));
+            //
+            //     {
+            //         "code":"0",
+            //         "msg":"",
+            //         "data":array(
+            //             {
+            //                 "triggerTime":"1587971460",
+            //                 "ts":"1587971400"
+            //             }
+            //         )
+            //     }
+            //
+            return $response;
         }) ();
     }
 

@@ -42,11 +42,11 @@ use React\EventLoop\Loop;
 
 use Exception;
 
-$version = '4.3.5';
+$version = '4.3.6';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.3.5';
+    const VERSION = '4.3.6';
 
     public $browser;
     public $marketsLoading = null;
@@ -3738,6 +3738,10 @@ class Exchange extends \ccxt\Exchange {
 
     public function cancel_all_orders(?string $symbol = null, $params = array ()) {
         throw new NotSupported($this->id . ' cancelAllOrders() is not supported yet');
+    }
+
+    public function cancel_all_orders_after(?int $timeout, $params = array ()) {
+        throw new NotSupported($this->id . ' cancelAllOrdersAfter() is not supported yet');
     }
 
     public function cancel_orders_for_symbols(array $orders, $params = array ()) {

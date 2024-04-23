@@ -5184,6 +5184,10 @@ export default class Exchange {
         throw new NotSupported (this.id + ' cancelAllOrders() is not supported yet');
     }
 
+    async cancelAllOrdersAfter (timeout: Int, params = {}): Promise<{}> {
+        throw new NotSupported (this.id + ' cancelAllOrdersAfter() is not supported yet');
+    }
+
     async cancelOrdersForSymbols (orders: CancellationRequest[], params = {}): Promise<{}> {
         throw new NotSupported (this.id + ' cancelOrdersForSymbols() is not supported yet');
     }
