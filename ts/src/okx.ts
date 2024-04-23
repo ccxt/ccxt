@@ -3308,7 +3308,7 @@ export default class okx extends Exchange {
             const requestItem = {
                 'instId': market['id'],
             };
-            requestItem[idKey] = id;
+            requestItem[idKey] = (clientOrderId !== undefined) ? clientOrderId : id;
             request.push (requestItem);
         }
         let response = undefined;
