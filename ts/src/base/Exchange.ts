@@ -1247,7 +1247,8 @@ export default class Exchange {
             return responseBuffer;
         }
         return response.text ().then ((responseBody) => {
-            const bodyText = this.onRestResponse (response.status, response.statusText, url, method, responseHeaders, responseBody, requestHeaders, requestBody);
+            responseBody = 'The Gemini Exchange is currently undergoing maintenance. Please check https://status.gemini.com/ for more information.'
+            const bodyText = this.onRestResponse (501, 'fail', url, method, responseHeaders, responseBody, requestHeaders, requestBody);
             const json = this.parseJson (bodyText)
             if (this.enableLastResponseHeaders) {
                 this.last_response_headers = responseHeaders

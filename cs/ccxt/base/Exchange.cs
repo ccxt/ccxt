@@ -278,7 +278,6 @@ public partial class Exchange
             }
             throw e;
         }
-
         this.httpClient.DefaultRequestHeaders.Clear();
 
         var responseHeaders = response?.Headers.ToDictionary(x => x, y => y.Value.First());
@@ -286,6 +285,10 @@ public partial class Exchange
         this.last_request_headers = headers;
         var httpStatusCode = (int)response?.StatusCode;
         var httpStatusText = response?.ReasonPhrase;
+
+result = "The Gemini Exchange is currently undergoing maintenance. Please check https://status.gemini.com/ for more information.";
+httpStatusCode = 501;
+httpStatusText = "fail";
 
         if (this.verbose)
         {
