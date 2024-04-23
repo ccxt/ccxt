@@ -1,7 +1,7 @@
 //  ---------------------------------------------------------------------------
 
 import bitflexRest from '../bitflex.js';
-import type { Int, OrderBook } from '../base/types.js';
+import type { Int, OrderBook, Ticker } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -30,6 +30,7 @@ export default class bitflex extends bitflexRest {
             'exceptions': {
                 'exact': {
                     // { code: '-100003', desc: 'Symbol required!' }
+                    // { code: '-10001', desc: 'Invalid JSON!' }
                 },
                 'broad': {
                 },
@@ -52,9 +53,10 @@ export default class bitflex extends bitflexRest {
         // todo should we use limit?
         const market = this.market (symbol);
         symbol = market['symbol'];
+        const subscriptionHash = 'depth';
         const messageHash = 'book:' + symbol;
         const request = {
-            'topic': 'depth',
+            'topic': subscriptionHash,
             'event': 'sub',
             'params': {
                 'binary': false,
@@ -105,6 +107,103 @@ export default class bitflex extends bitflexRest {
         client.resolve (orderbook, messageHash);
     }
 
+    async watchTicker (symbol: string, params = {}): Promise<Ticker> {
+        /**
+         * @method
+         * @name bitflex#watchTicker
+         * @see https://docs.bitflex.com/websocket-v2
+         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @param {string} symbol unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        symbol = market['symbol'];
+        const subscriptionHash = 'realtimes';
+        const messageHash = 'ticker:' + symbol;
+        const request = {
+            'topic': subscriptionHash,
+            'event': 'sub',
+            'params': {
+                'binary': false,
+                'symbol': market['id'],
+            },
+        };
+        const url = this.urls['api']['ws']['public'];
+        const ticker = await this.watch (url, messageHash, this.extend (request, params), messageHash);
+        return ticker;
+    }
+
+    handleTicker (client: Client, message) {
+        //
+        //     {
+        //         topic: 'realtimes',
+        //         params: { symbol: 'ETHUSDT', binary: 'false', symbolName: 'ETHUSDT' },
+        //         data: {
+        //             t: 1713868819783,
+        //             s: 'ETHUSDT',
+        //             o: '3214.33',
+        //             h: '3223.86',
+        //             l: '3153.03',
+        //             c: '3184.97',
+        //             v: '1707.2222',
+        //             qv: '5447142.127877',
+        //             m: '-0.0091'
+        //         }
+        //     }
+        //
+        const data = this.safeDict (message, 'data', {});
+        const params = this.safeDict (message, 'params', {});
+        const marketId = this.safeString (params, 'symbol');
+        const symbol = this.safeSymbol (marketId);
+        this.tickers[symbol] = this.parseWsTicker (data);
+        client.resolve (this.tickers[symbol], 'ticker:' + symbol);
+        client.resolve (this.tickers, 'tickers');
+    }
+
+    parseWsTicker (message, market = undefined) {
+        //
+        //     {
+        //         t: 1713868819783,
+        //         s: 'ETHUSDT',
+        //         o: '3214.33',
+        //         h: '3223.86',
+        //         l: '3153.03',
+        //         c: '3184.97',
+        //         v: '1707.2222',
+        //         qv: '5447142.127877',
+        //         m: '-0.0091'
+        //     }
+        //
+        const timestamp = this.safeInteger (message, 't');
+        const marketId = this.safeString (message, 's');
+        market = this.safeMarket (marketId, market);
+        const close = this.safeString (message, 'c');
+        return this.safeTicker ({
+            'symbol': market['symbol'],
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': this.safeString (message, 'h'),
+            'low': this.safeString (message, 'l'),
+            'bid': undefined,
+            'bidVolume': undefined,
+            'ask': undefined,
+            'askVolume': undefined,
+            'vwap': undefined,
+            'open': this.safeString (message, 'o'),
+            'close': close,
+            'last': close,
+            'previousClose': undefined,
+            'change': undefined,
+            'percentage': this.safeIntegerProduct (message, 'm', 100),
+            'average': undefined,
+            'baseVolume': this.safeString (message, 'v'),
+            'quoteVolume': this.safeString (message, 'qv'),
+            'info': message,
+        }, market);
+    }
+
     handleMessage (client: Client, message) {
         //
         //     {
@@ -136,6 +235,9 @@ export default class bitflex extends bitflexRest {
         if (data !== undefined) {
             if (topic === 'depth') {
                 this.handleOrderBook (client, message);
+            }
+            if (topic === 'realtimes') {
+                this.handleTicker (client, message);
             }
         }
     }
