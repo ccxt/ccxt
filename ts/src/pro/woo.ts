@@ -76,7 +76,6 @@ export default class woo extends wooRest {
     }
 
     async watchPublic (messageHash, message) {
-        this.checkRequiredUid ();
         const url = this.urls['api']['ws']['public'] + '/' + this.uid;
         const requestId = this.requestId (url);
         const subscribe = {

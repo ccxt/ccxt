@@ -6,9 +6,10 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.cryptocom import ImplicitAPI
 import hashlib
-from ccxt.base.types import Account, Balances, Currency, Int, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Account, Balances, Currency, Int, Market, Num, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import AccountNotEnabled
 from ccxt.base.errors import ArgumentsRequired
@@ -20,7 +21,6 @@ from ccxt.base.errors import NotSupported
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import InvalidNonce
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -47,6 +47,7 @@ class cryptocom(Exchange, ImplicitAPI):
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'cancelOrders': True,
+                'cancelOrdersForSymbols': True,
                 'closeAllPositions': False,
                 'closePosition': True,
                 'createMarketBuyOrderWithCost': False,
@@ -81,6 +82,7 @@ class cryptocom(Exchange, ImplicitAPI):
                 'fetchLedger': True,
                 'fetchLeverage': False,
                 'fetchLeverageTiers': False,
+                'fetchMarginAdjustmentHistory': False,
                 'fetchMarginMode': False,
                 'fetchMarketLeverageTiers': False,
                 'fetchMarkets': True,
@@ -1352,6 +1354,34 @@ class cryptocom(Exchange, ImplicitAPI):
         result = self.safe_list(response, 'result', [])
         return self.parse_orders(result, market, None, None, params)
 
+    async def cancel_orders_for_symbols(self, orders: List[CancellationRequest], params={}):
+        """
+        cancel multiple orders for multiple symbols
+        :see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-cancel-order-list-list
+        :param CancellationRequest[] orders: each order should contain the parameters required by cancelOrder namely id and symbol
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        await self.load_markets()
+        orderRequests = []
+        for i in range(0, len(orders)):
+            order = orders[i]
+            id = self.safe_string(order, 'id')
+            symbol = self.safe_string(order, 'symbol')
+            market = self.market(symbol)
+            orderItem = {
+                'instrument_name': market['id'],
+                'order_id': str(id),
+            }
+            orderRequests.append(orderItem)
+        request = {
+            'contingency_type': 'LIST',
+            'order_list': orderRequests,
+        }
+        response = await self.v1PrivatePostPrivateCancelOrderList(self.extend(request, params))
+        result = self.safe_list(response, 'result', [])
+        return self.parse_orders(result, None, None, None, params)
+
     async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
@@ -1499,7 +1529,7 @@ class cryptocom(Exchange, ImplicitAPI):
         """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         await self.load_markets()
-        currency = self.currency(code)
+        currency = self.safe_currency(code)  # for instance, USDC is not inferred from markets but it's still available
         request = {
             'currency': currency['id'],
             'amount': amount,
@@ -1541,7 +1571,7 @@ class cryptocom(Exchange, ImplicitAPI):
         :returns dict: a dictionary of `address structures <https://docs.ccxt.com/#/?id=address-structure>` indexed by the network
         """
         await self.load_markets()
-        currency = self.currency(code)
+        currency = self.safe_currency(code)
         request = {
             'currency': currency['id'],
         }
@@ -1632,7 +1662,7 @@ class cryptocom(Exchange, ImplicitAPI):
         currency = None
         request = {}
         if code is not None:
-            currency = self.currency(code)
+            currency = self.safe_currency(code)
             request['currency'] = currency['id']
         if since is not None:
             # 90 days date range
@@ -1685,7 +1715,7 @@ class cryptocom(Exchange, ImplicitAPI):
         currency = None
         request = {}
         if code is not None:
-            currency = self.currency(code)
+            currency = self.safe_currency(code)
             request['currency'] = currency['id']
         if since is not None:
             # 90 days date range
@@ -2178,7 +2208,7 @@ class cryptocom(Exchange, ImplicitAPI):
         request = {}
         currency = None
         if code is not None:
-            currency = self.currency(code)
+            currency = self.safe_currency(code)
         if since is not None:
             request['start_time'] = since
         if limit is not None:
@@ -2565,7 +2595,7 @@ class cryptocom(Exchange, ImplicitAPI):
         #
         result = self.safe_dict(response, 'result', {})
         data = self.safe_list(result, 'data', [])
-        return self.parse_position(data[0], market)
+        return self.parse_position(self.safe_dict(data, 0), market)
 
     async def fetch_positions(self, symbols: Strings = None, params={}):
         """

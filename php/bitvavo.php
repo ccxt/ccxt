@@ -401,7 +401,7 @@ class bitvavo extends Exchange {
         return $result;
     }
 
-    public function fetch_currencies($params = array ()) {
+    public function fetch_currencies($params = array ()): ?array {
         /**
          * @see https://docs.bitvavo.com/#tag/General/paths/~1assets/get
          * fetches all available currencies on an exchange
@@ -806,7 +806,7 @@ class bitvavo extends Exchange {
         ), $market);
     }
 
-    public function fetch_trading_fees($params = array ()) {
+    public function fetch_trading_fees($params = array ()): array {
         /**
          * @see https://docs.bitvavo.com/#tag/Account/paths/~1account/get
          * fetch the trading fees for multiple markets

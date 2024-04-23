@@ -76,6 +76,7 @@ class coinbaseinternational extends coinbaseinternational$1 {
                 'fetchLedger': false,
                 'fetchLeverage': false,
                 'fetchLeverageTiers': false,
+                'fetchMarginAdjustmentHistory': false,
                 'fetchMarginMode': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,

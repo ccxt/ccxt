@@ -403,7 +403,7 @@ class delta extends Exchange {
         );
     }
 
-    public function fetch_currencies($params = array ()) {
+    public function fetch_currencies($params = array ()): ?array {
         /**
          * fetches all available $currencies on an exchange
          * @see https://docs.delta.exchange/#get-list-of-all-assets
@@ -2644,6 +2644,7 @@ class delta extends Exchange {
             'info' => $data,
             'symbol' => $market['symbol'],
             'type' => null,
+            'marginMode' => 'isolated',
             'amount' => null,
             'total' => $this->safe_number($data, 'margin'),
             'code' => null,

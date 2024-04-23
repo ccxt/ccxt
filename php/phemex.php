@@ -961,7 +961,7 @@ class phemex extends Exchange {
         return $result;
     }
 
-    public function fetch_currencies($params = array ()) {
+    public function fetch_currencies($params = array ()): ?array {
         /**
          * fetches all available $currencies on an exchange
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -2821,11 +2821,16 @@ class phemex extends Exchange {
         }
         $this->load_markets();
         $market = $this->market($symbol);
+        $stop = $this->safe_value_2($params, 'stop', 'trigger', false);
+        $params = $this->omit($params, 'stop', 'trigger');
         $request = array(
             'symbol' => $market['id'],
             // 'untriggerred' => false, // false to cancel non-conditional orders, true to cancel conditional orders
             // 'text' => 'up to 40 characters max',
         );
+        if ($stop) {
+            $request['untriggerred'] = $stop;
+        }
         $response = null;
         if ($market['settle'] === 'USDT') {
             $response = $this->privateDeleteGOrdersAll (array_merge($request, $params));
@@ -3984,6 +3989,7 @@ class phemex extends Exchange {
             'info' => $data,
             'symbol' => $this->safe_symbol(null, $market),
             'type' => 'set',
+            'marginMode' => 'isolated',
             'amount' => null,
             'total' => null,
             'code' => $market[$codeCurrency],

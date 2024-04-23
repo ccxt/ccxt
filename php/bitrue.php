@@ -576,7 +576,7 @@ class bitrue extends Exchange {
         return $this->safe_string_2($networksById, $networkId, $uppercaseNetworkId, $networkId);
     }
 
-    public function fetch_currencies($params = array ()) {
+    public function fetch_currencies($params = array ()): ?array {
         /**
          * fetches all available currencies on an exchange
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -2982,6 +2982,7 @@ class bitrue extends Exchange {
             'info' => $data,
             'symbol' => $market['symbol'],
             'type' => null,
+            'marginMode' => 'isolated',
             'amount' => null,
             'total' => null,
             'code' => null,

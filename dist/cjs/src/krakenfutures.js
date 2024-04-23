@@ -31,6 +31,7 @@ class krakenfutures extends krakenfutures$1 {
                 'future': true,
                 'option': false,
                 'cancelAllOrders': true,
+                'cancelAllOrdersAfter': true,
                 'cancelOrder': true,
                 'cancelOrders': true,
                 'createMarketOrder': false,
@@ -352,7 +353,8 @@ class krakenfutures extends krakenfutures$1 {
             // swap == perpetual
             let settle = undefined;
             let settleId = undefined;
-            const amountPrecision = this.parseNumber(this.parsePrecision(this.safeString(market, 'contractValueTradePrecision', '0')));
+            const cvtp = this.safeString(market, 'contractValueTradePrecision');
+            const amountPrecision = this.parseNumber(this.integerPrecisionToAmount(cvtp));
             const pricePrecision = this.safeNumber(market, 'tickSize');
             const contract = (swap || future || index);
             const swapOrFutures = (swap || future);
@@ -1266,6 +1268,33 @@ class krakenfutures extends krakenfutures$1 {
             request['symbol'] = this.marketId(symbol);
         }
         const response = await this.privatePostCancelallorders(this.extend(request, params));
+        return response;
+    }
+    async cancelAllOrdersAfter(timeout, params = {}) {
+        /**
+         * @method
+         * @name krakenfutures#cancelAllOrdersAfter
+         * @description dead man's switch, cancel all orders after the given timeout
+         * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-order-management-dead-man-39-s-switch
+         * @param {number} timeout time in milliseconds, 0 represents cancel the timer
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} the api result
+         */
+        await this.loadMarkets();
+        const request = {
+            'timeout': (timeout > 0) ? (this.parseToInt(timeout / 1000)) : 0,
+        };
+        const response = await this.privatePostCancelallordersafter(this.extend(request, params));
+        //
+        //     {
+        //         "result": "success",
+        //         "serverTime": "2018-06-19T16:51:23.839Z",
+        //         "status": {
+        //             "currentTime": "2018-06-19T16:51:23.839Z",
+        //             "triggerTime": "0"
+        //         }
+        //     }
+        //
         return response;
     }
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {

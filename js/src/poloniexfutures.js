@@ -375,7 +375,20 @@ export default class poloniexfutures extends Exchange {
         //
         const marketId = this.safeString(ticker, 'symbol');
         const symbol = this.safeSymbol(marketId, market);
-        const timestamp = this.safeIntegerProduct(ticker, 'ts', 0.000001);
+        const timestampString = this.safeString(ticker, 'ts');
+        // check timestamp bcz bug: https://app.travis-ci.com/github/ccxt/ccxt/builds/269959181#L4011 and also 17 digits occured
+        let multiplier = undefined;
+        if (timestampString.length === 17) {
+            multiplier = 0.0001;
+        }
+        else if (timestampString.length === 18) {
+            multiplier = 0.00001;
+        }
+        else {
+            // 19 length default
+            multiplier = 0.000001;
+        }
+        const timestamp = this.safeIntegerProduct(ticker, 'ts', multiplier);
         const last = this.safeString2(ticker, 'price', 'lastPrice');
         const percentage = Precise.stringMul(this.safeString(ticker, 'priceChgPct'), '100');
         return this.safeTicker({

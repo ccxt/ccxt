@@ -703,6 +703,24 @@ abstract class bitstamp extends \ccxt\async\Exchange {
     public function private_post_vext_address($params = array()) {
         return $this->request('vext_address/', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
+    public function private_post_cspr_withdrawal($params = array()) {
+        return $this->request('cspr_withdrawal/', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_cspr_address($params = array()) {
+        return $this->request('cspr_address/', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_vchf_withdrawal($params = array()) {
+        return $this->request('vchf_withdrawal/', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_vchf_address($params = array()) {
+        return $this->request('vchf_address/', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_veur_withdrawal($params = array()) {
+        return $this->request('veur_withdrawal/', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_veur_address($params = array()) {
+        return $this->request('veur_address/', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
     public function publicGetOhlcPair($params = array()) {
         return $this->request('ohlc/{pair}/', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -1398,5 +1416,23 @@ abstract class bitstamp extends \ccxt\async\Exchange {
     }
     public function privatePostVextAddress($params = array()) {
         return $this->request('vext_address/', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostCsprWithdrawal($params = array()) {
+        return $this->request('cspr_withdrawal/', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostCsprAddress($params = array()) {
+        return $this->request('cspr_address/', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostVchfWithdrawal($params = array()) {
+        return $this->request('vchf_withdrawal/', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostVchfAddress($params = array()) {
+        return $this->request('vchf_address/', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostVeurWithdrawal($params = array()) {
+        return $this->request('veur_withdrawal/', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostVeurAddress($params = array()) {
+        return $this->request('veur_address/', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
 }

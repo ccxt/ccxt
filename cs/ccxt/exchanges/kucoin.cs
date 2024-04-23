@@ -66,6 +66,7 @@ public partial class kucoin : Exchange
                 { "fetchL3OrderBook", true },
                 { "fetchLedger", true },
                 { "fetchLeverageTiers", false },
+                { "fetchMarginAdjustmentHistory", false },
                 { "fetchMarginMode", false },
                 { "fetchMarketLeverageTiers", false },
                 { "fetchMarkets", true },
@@ -519,6 +520,8 @@ public partial class kucoin : Exchange
                 { "BIFI", "BIFIF" },
                 { "VAI", "VAIOT" },
                 { "WAX", "WAXP" },
+                { "ALT", "APTOSLAUNCHTOKEN" },
+                { "KALT", "ALT" },
             } },
             { "options", new Dictionary<string, object>() {
                 { "version", "v1" },
@@ -1007,8 +1010,10 @@ public partial class kucoin : Exchange
         //              "chains":[
         //                 {
         //                    "chainName":"ERC20",
-        //                    "chain":"eth",
+        //                    "chainId": "eth"
         //                    "withdrawalMinSize":"2999",
+        //                    "depositMinSize":null,
+        //                    "withdrawFeeRate":"0",
         //                    "withdrawalMinFee":"2999",
         //                    "isWithdrawEnabled":false,
         //                    "isDepositEnabled":false,
@@ -1057,10 +1062,10 @@ public partial class kucoin : Exchange
         //    }
         //
         object responses = await promiseAll(promises);
-        object currenciesResponse = this.safeValue(responses, 0, new Dictionary<string, object>() {});
-        object currenciesData = this.safeValue(currenciesResponse, "data", new List<object>() {});
-        object additionalResponse = this.safeValue(responses, 1, new Dictionary<string, object>() {});
-        object additionalData = this.safeValue(additionalResponse, "data", new List<object>() {});
+        object currenciesResponse = this.safeDict(responses, 0, new Dictionary<string, object>() {});
+        object currenciesData = this.safeList(currenciesResponse, "data", new List<object>() {});
+        object additionalResponse = this.safeDict(responses, 1, new Dictionary<string, object>() {});
+        object additionalData = this.safeList(additionalResponse, "data", new List<object>() {});
         object additionalDataGrouped = this.groupBy(additionalData, "currency");
         object result = new Dictionary<string, object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(currenciesData)); postFixIncrement(ref i))
@@ -1073,7 +1078,7 @@ public partial class kucoin : Exchange
             object isDepositEnabled = null;
             object networks = new Dictionary<string, object>() {};
             object chains = this.safeList(entry, "chains", new List<object>() {});
-            object extraChainsData = this.indexBy(this.safeValue(additionalDataGrouped, id, new List<object>() {}), "chain");
+            object extraChainsData = this.indexBy(this.safeList(additionalDataGrouped, id, new List<object>() {}), "chain");
             object rawPrecision = this.safeString(entry, "precision");
             object precision = this.parseNumber(this.parsePrecision(rawPrecision));
             object chainsLength = getArrayLength(chains);
@@ -1121,7 +1126,7 @@ public partial class kucoin : Exchange
                             { "max", null },
                         } },
                         { "deposit", new Dictionary<string, object>() {
-                            { "min", this.safeNumber(chainExtraData, "depositMinSize") },
+                            { "min", this.safeNumber(chain, "depositMinSize") },
                             { "max", null },
                         } },
                     } },
@@ -1228,7 +1233,7 @@ public partial class kucoin : Exchange
             ((IDictionary<string,object>)request)["chain"] = ((string)this.networkCodeToId(networkCode)).ToLower();
         }
         object response = await this.privateGetWithdrawalsQuotas(this.extend(request, parameters));
-        object data = this.safeValue(response, "data");
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         object withdrawFees = new Dictionary<string, object>() {};
         ((IDictionary<string,object>)withdrawFees)[(string)code] = this.safeNumber(data, "withdrawMinFee");
         return new Dictionary<string, object>() {
@@ -1724,7 +1729,7 @@ public partial class kucoin : Exchange
         object code = null;
         if (isTrue(!isEqual(currency, null)))
         {
-            code = getValue(currency, "id");
+            code = this.safeCurrencyCode(getValue(currency, "id"));
             if (isTrue(!isEqual(code, "NIM")))
             {
                 // contains spaces
@@ -1778,7 +1783,7 @@ public partial class kucoin : Exchange
         ((IDictionary<string,object>)getValue(getValue(getValue(this.options, "versions"), "private"), "GET"))["deposit-addresses"] = version;
         object chains = this.safeList(response, "data", new List<object>() {});
         object parsed = this.parseDepositAddresses(chains, new List<object>() {getValue(currency, "code")}, false, new Dictionary<string, object>() {
-            { "currency", getValue(currency, "id") },
+            { "currency", getValue(currency, "code") },
         });
         return this.indexBy(parsed, "network");
     }
@@ -3038,7 +3043,7 @@ public partial class kucoin : Exchange
         * @method
         * @name kucoin#fetchTrades
         * @description get the list of most recent trades for a particular symbol
-        * @see https://docs.kucoin.com/#get-trade-histories
+        * @see https://www.kucoin.com/docs/rest/spot-trading/market-data/get-trade-histories
         * @param {string} symbol unified symbol of the market to fetch trades for
         * @param {int} [since] timestamp in ms of the earliest trade to fetch
         * @param {int} [limit] the maximum amount of trades to fetch
@@ -3221,7 +3226,7 @@ public partial class kucoin : Exchange
         * @method
         * @name kucoin#fetchTradingFee
         * @description fetch the trading fees for a market
-        * @see https://docs.kucoin.com/#actual-fee-rate-of-the-trading-pair
+        * @see https://www.kucoin.com/docs/rest/funding/trade-fee/trading-pair-actual-fee-spot-margin-trade_hf
         * @param {string} symbol unified market symbol
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
@@ -3264,7 +3269,7 @@ public partial class kucoin : Exchange
         * @method
         * @name kucoin#withdraw
         * @description make a withdrawal
-        * @see https://docs.kucoin.com/#apply-withdraw-2
+        * @see https://www.kucoin.com/docs/rest/funding/withdrawals/apply-withdraw
         * @param {string} code unified currency code
         * @param {float} amount the amount to withdraw
         * @param {string} address the address to withdraw to
@@ -3282,7 +3287,6 @@ public partial class kucoin : Exchange
         object request = new Dictionary<string, object>() {
             { "currency", getValue(currency, "id") },
             { "address", address },
-            { "amount", amount },
         };
         if (isTrue(!isEqual(tag, null)))
         {
@@ -3296,6 +3300,8 @@ public partial class kucoin : Exchange
         {
             ((IDictionary<string,object>)request)["chain"] = ((string)this.networkCodeToId(networkCode)).ToLower();
         }
+        await this.loadCurrencyPrecision(currency, networkCode);
+        ((IDictionary<string,object>)request)["amount"] = this.currencyToPrecision(code, amount, networkCode);
         object includeFee = null;
         var includeFeeparametersVariable = this.handleOptionAndParams(parameters, "withdraw", "includeFee", false);
         includeFee = ((IList<object>)includeFeeparametersVariable)[0];
@@ -3317,6 +3323,57 @@ public partial class kucoin : Exchange
         //
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return this.parseTransaction(data, currency);
+    }
+
+    public async virtual Task loadCurrencyPrecision(object currency, object networkCode = null)
+    {
+        // as kucoin might not have network specific precisions defined in fetchCurrencies (because of webapi failure)
+        // we should check and refetch precision once-per-instance for that specific currency & network
+        // so avoids thorwing exceptions and burden to users
+        // Note: this needs to be executed only if networkCode was provided
+        if (isTrue(!isEqual(networkCode, null)))
+        {
+            object networks = getValue(currency, "networks");
+            object network = this.safeDict(networks, networkCode);
+            if (isTrue(!isEqual(this.safeNumber(network, "precision"), null)))
+            {
+                // if precision exists, no need to refetch
+                return;
+            }
+            // otherwise try to fetch and store in instance
+            object request = new Dictionary<string, object>() {
+                { "currency", getValue(currency, "id") },
+                { "chain", ((string)this.networkCodeToId(networkCode)).ToLower() },
+            };
+            object response = await this.privateGetWithdrawalsQuotas(request);
+            //
+            //    {
+            //        "code": "200000",
+            //        "data": {
+            //            "currency": "USDT",
+            //            "limitBTCAmount": "14.24094850",
+            //            "usedBTCAmount": "0.00000000",
+            //            "quotaCurrency": "USDT",
+            //            "limitQuotaCurrencyAmount": "999999.00000000",
+            //            "usedQuotaCurrencyAmount": "0",
+            //            "remainAmount": "999999.0000",
+            //            "availableAmount": "10.77545071",
+            //            "withdrawMinFee": "1",
+            //            "innerWithdrawMinFee": "0",
+            //            "withdrawMinSize": "10",
+            //            "isWithdrawEnabled": true,
+            //            "precision": 4,
+            //            "chain": "EOS",
+            //            "reason": null,
+            //            "lockedAmount": "0"
+            //        }
+            //    }
+            //
+            object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+            object precision = this.parseNumber(this.parsePrecision(this.safeString(data, "precision")));
+            object code = getValue(currency, "code");
+            ((IDictionary<string,object>)getValue(getValue(getValue(this.currencies, code), "networks"), networkCode))["precision"] = precision;
+        }
     }
 
     public virtual object parseTransactionStatus(object status)
@@ -3460,8 +3517,8 @@ public partial class kucoin : Exchange
         * @method
         * @name kucoin#fetchDeposits
         * @description fetch all deposits made to an account
-        * @see https://docs.kucoin.com/#get-deposit-list
-        * @see https://docs.kucoin.com/#get-v1-historical-deposits-list
+        * @see https://www.kucoin.com/docs/rest/funding/deposit/get-deposit-list
+        * @see https://www.kucoin.com/docs/rest/funding/deposit/get-v1-historical-deposits-list
         * @param {string} code unified currency code
         * @param {int} [since] the earliest time in ms to fetch deposits for
         * @param {int} [limit] the maximum number of deposits structures to retrieve
@@ -3558,8 +3615,8 @@ public partial class kucoin : Exchange
         * @method
         * @name kucoin#fetchWithdrawals
         * @description fetch all withdrawals made from an account
-        * @see https://docs.kucoin.com/#get-withdrawals-list
-        * @see https://docs.kucoin.com/#get-v1-historical-withdrawals-list
+        * @see https://www.kucoin.com/docs/rest/funding/withdrawals/get-withdrawals-list
+        * @see https://www.kucoin.com/docs/rest/funding/withdrawals/get-v1-historical-withdrawals-list
         * @param {string} code unified currency code
         * @param {int} [since] the earliest time in ms to fetch withdrawals for
         * @param {int} [limit] the maximum number of withdrawals structures to retrieve
@@ -3654,9 +3711,9 @@ public partial class kucoin : Exchange
     public virtual object parseBalanceHelper(object entry)
     {
         object account = this.account();
-        ((IDictionary<string,object>)account)["used"] = this.safeString(entry, "holdBalance");
-        ((IDictionary<string,object>)account)["free"] = this.safeString(entry, "availableBalance");
-        ((IDictionary<string,object>)account)["total"] = this.safeString(entry, "totalBalance");
+        ((IDictionary<string,object>)account)["used"] = this.safeString2(entry, "holdBalance", "hold");
+        ((IDictionary<string,object>)account)["free"] = this.safeString2(entry, "availableBalance", "available");
+        ((IDictionary<string,object>)account)["total"] = this.safeString2(entry, "totalBalance", "total");
         object debt = this.safeString(entry, "liability");
         object interest = this.safeString(entry, "interest");
         ((IDictionary<string,object>)account)["debt"] = Precise.stringAdd(debt, interest);
@@ -3669,9 +3726,9 @@ public partial class kucoin : Exchange
         * @method
         * @name kucoin#fetchBalance
         * @description query for balance and get the amount of funds available for trading or funds locked in orders
-        * @see https://docs.kucoin.com/#list-accounts
         * @see https://www.kucoin.com/docs/rest/account/basic-info/get-account-list-spot-margin-trade_hf
-        * @see https://docs.kucoin.com/#query-isolated-margin-account-info
+        * @see https://www.kucoin.com/docs/rest/funding/funding-overview/get-account-detail-margin
+        * @see https://www.kucoin.com/docs/rest/funding/funding-overview/get-account-detail-isolated-margin
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {object} [params.marginMode] 'cross' or 'isolated', margin type for fetching margin balance
         * @param {object} [params.type] extra parameters specific to the exchange API endpoint
@@ -3703,7 +3760,7 @@ public partial class kucoin : Exchange
         object response = null;
         object request = new Dictionary<string, object>() {};
         object isolated = isTrue((isEqual(marginMode, "isolated"))) || isTrue((isEqual(type, "isolated")));
-        object cross = isTrue((isEqual(marginMode, "cross"))) || isTrue((isEqual(type, "cross")));
+        object cross = isTrue((isEqual(marginMode, "cross"))) || isTrue((isEqual(type, "margin")));
         if (isTrue(isolated))
         {
             if (isTrue(!isEqual(currency, null)))
@@ -3724,7 +3781,7 @@ public partial class kucoin : Exchange
             response = await this.privateGetAccounts(this.extend(request, query));
         }
         //
-        // Spot and Cross
+        // Spot
         //
         //    {
         //        "code": "200000",
@@ -3740,35 +3797,59 @@ public partial class kucoin : Exchange
         //        ]
         //    }
         //
+        // Cross
+        //
+        //     {
+        //         "code": "200000",
+        //         "data": {
+        //             "debtRatio": "0",
+        //             "accounts": [
+        //                 {
+        //                     "currency": "USDT",
+        //                     "totalBalance": "5",
+        //                     "availableBalance": "5",
+        //                     "holdBalance": "0",
+        //                     "liability": "0",
+        //                     "maxBorrowSize": "20"
+        //                 },
+        //             ]
+        //         }
+        //     }
+        //
         // Isolated
         //
         //    {
         //        "code": "200000",
         //        "data": {
-        //            "totalConversionBalance": "0",
-        //            "liabilityConversionBalance": "0",
+        //            "totalAssetOfQuoteCurrency": "0",
+        //            "totalLiabilityOfQuoteCurrency": "0",
+        //            "timestamp": 1712085661155,
         //            "assets": [
         //                {
         //                    "symbol": "MANA-USDT",
-        //                    "status": "CLEAR",
+        //                    "status": "EFFECTIVE",
         //                    "debtRatio": "0",
         //                    "baseAsset": {
         //                        "currency": "MANA",
-        //                        "totalBalance": "0",
-        //                        "holdBalance": "0",
-        //                        "availableBalance": "0",
+        //                        "borrowEnabled": true,
+        //                        "transferInEnabled": true,
+        //                        "total": "0",
+        //                        "hold": "0",
+        //                        "available": "0",
         //                        "liability": "0",
         //                        "interest": "0",
-        //                        "borrowableAmount": "0"
+        //                        "maxBorrowSize": "0"
         //                    },
         //                    "quoteAsset": {
         //                        "currency": "USDT",
-        //                        "totalBalance": "0",
-        //                        "holdBalance": "0",
-        //                        "availableBalance": "0",
+        //                        "borrowEnabled": true,
+        //                        "transferInEnabled": true,
+        //                        "total": "0",
+        //                        "hold": "0",
+        //                        "available": "0",
         //                        "liability": "0",
         //                        "interest": "0",
-        //                        "borrowableAmount": "0"
+        //                        "maxBorrowSize": "0"
         //                    }
         //                },
         //                ...
@@ -3776,7 +3857,7 @@ public partial class kucoin : Exchange
         //        }
         //    }
         //
-        object data = this.safeList(response, "data", new List<object>() {});
+        object data = null;
         object result = new Dictionary<string, object>() {
             { "info", response },
             { "timestamp", null },
@@ -3784,6 +3865,7 @@ public partial class kucoin : Exchange
         };
         if (isTrue(isolated))
         {
+            data = this.safeDict(response, "data", new Dictionary<string, object>() {});
             object assets = this.safeValue(data, "assets", data);
             for (object i = 0; isLessThan(i, getArrayLength(assets)); postFixIncrement(ref i))
             {
@@ -3801,6 +3883,7 @@ public partial class kucoin : Exchange
             }
         } else if (isTrue(cross))
         {
+            data = this.safeDict(response, "data", new Dictionary<string, object>() {});
             object accounts = this.safeList(data, "accounts", new List<object>() {});
             for (object i = 0; isLessThan(i, getArrayLength(accounts)); postFixIncrement(ref i))
             {
@@ -3811,6 +3894,7 @@ public partial class kucoin : Exchange
             }
         } else
         {
+            data = this.safeList(response, "data", new List<object>() {});
             for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
             {
                 object balance = getValue(data, i);
@@ -3837,7 +3921,7 @@ public partial class kucoin : Exchange
         * @method
         * @name kucoin#transfer
         * @description transfer currency internally between wallets on the same account
-        * @see https://docs.kucoin.com/#inner-transfer
+        * @see https://www.kucoin.com/docs/rest/funding/transfer/inner-transfer
         * @see https://docs.kucoin.com/futures/#transfer-funds-to-kucoin-main-account-2
         * @see https://docs.kucoin.com/spot-hf/#internal-funds-transfers-in-high-frequency-trading-accounts
         * @param {string} code unified currency code
@@ -4127,7 +4211,7 @@ public partial class kucoin : Exchange
         /**
         * @method
         * @name kucoin#fetchLedger
-        * @see https://docs.kucoin.com/#get-account-ledgers
+        * @see https://www.kucoin.com/docs/rest/account/basic-info/get-account-ledgers-spot-margin
         * @see https://www.kucoin.com/docs/rest/account/basic-info/get-account-ledgers-trade_hf
         * @see https://www.kucoin.com/docs/rest/account/basic-info/get-account-ledgers-margin_hf
         * @description fetch the history of changes, actions done by the user or operations that altered balance of the user

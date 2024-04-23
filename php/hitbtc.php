@@ -791,7 +791,7 @@ class hitbtc extends Exchange {
         return $result;
     }
 
-    public function fetch_currencies($params = array ()) {
+    public function fetch_currencies($params = array ()): ?array {
         /**
          * fetches all available $currencies on an exchange
          * @see https://api.hitbtc.com/#$currencies
@@ -1590,7 +1590,7 @@ class hitbtc extends Exchange {
         return $this->parse_order_book($response, $symbol, $timestamp, 'bid', 'ask');
     }
 
-    public function parse_trading_fee($fee, ?array $market = null) {
+    public function parse_trading_fee($fee, ?array $market = null): array {
         //
         //     {
         //         "symbol":"ARVUSDT", // returned from fetchTradingFees only
@@ -1607,10 +1607,12 @@ class hitbtc extends Exchange {
             'symbol' => $symbol,
             'taker' => $taker,
             'maker' => $maker,
+            'percentage' => null,
+            'tierBased' => null,
         );
     }
 
-    public function fetch_trading_fee(string $symbol, $params = array ()) {
+    public function fetch_trading_fee(string $symbol, $params = array ()): array {
         /**
          * fetch the trading fees for a $market
          * @see https://api.hitbtc.com/#get-trading-commission
@@ -1641,7 +1643,7 @@ class hitbtc extends Exchange {
         return $this->parse_trading_fee($response, $market);
     }
 
-    public function fetch_trading_fees($params = array ()) {
+    public function fetch_trading_fees($params = array ()): array {
         /**
          * fetch the trading fees for multiple markets
          * @see https://api.hitbtc.com/#get-all-trading-commissions
@@ -3240,6 +3242,7 @@ class hitbtc extends Exchange {
             'info' => $data,
             'symbol' => $market['symbol'],
             'type' => null,
+            'marginMode' => 'isolated',
             'amount' => null,
             'total' => null,
             'code' => $this->safe_string($currencyInfo, 'code'),

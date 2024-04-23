@@ -7,7 +7,7 @@ import { AuthenticationError, ExchangeError, ArgumentsRequired, PermissionDenied
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { rsa } from './base/functions/rsa.js';
-import type { Int, OrderSide, OrderType, Trade, Order, OHLCV, FundingRateHistory, OpenInterest, OrderRequest, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Greeks, Strings, Market, Currency, MarketInterface, TransferEntry, Liquidation, Leverage, Num, FundingHistory, Option, OptionChain } from './base/types.js';
+import type { Int, OrderSide, OrderType, Trade, Order, OHLCV, FundingRateHistory, OpenInterest, OrderRequest, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Greeks, Strings, Market, Currency, MarketInterface, TransferEntry, Liquidation, Leverage, Num, FundingHistory, Option, OptionChain, TradingFeeInterface, Currencies, TradingFees, CancellationRequest } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -37,6 +37,8 @@ export default class bybit extends Exchange {
                 'borrowCrossMargin': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
+                'cancelOrders': true,
+                'cancelOrdersForSymbols': true,
                 'closeAllPositions': false,
                 'closePosition': false,
                 'createMarketBuyOrderWithCost': true,
@@ -83,6 +85,7 @@ export default class bybit extends Exchange {
                 'fetchLedger': true,
                 'fetchLeverage': true,
                 'fetchLeverageTiers': true,
+                'fetchMarginAdjustmentHistory': false,
                 'fetchMarketLeverageTiers': true,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': true,
@@ -152,6 +155,13 @@ export default class bybit extends Exchange {
                     'v2': 'https://api.{hostname}',
                     'public': 'https://api.{hostname}',
                     'private': 'https://api.{hostname}',
+                },
+                'demotrading': {
+                    'spot': 'https://api-demo.{hostname}',
+                    'futures': 'https://api-demo.{hostname}',
+                    'v2': 'https://api-demo.{hostname}',
+                    'public': 'https://api-demo.{hostname}',
+                    'private': 'https://api-demo.{hostname}',
                 },
                 'www': 'https://www.bybit.com',
                 'doc': [
@@ -341,6 +351,7 @@ export default class bybit extends Exchange {
                         'v5/user/get-member-type': 5,
                         'v5/user/aff-customer-info': 5,
                         'v5/user/del-submember': 5,
+                        'v5/user/submembers': 5,
                         // spot leverage token
                         'v5/spot-lever-token/order-record': 1, // 50/s => cost = 50 / 50 = 1
                         // spot margin trade
@@ -363,6 +374,7 @@ export default class bybit extends Exchange {
                         'v5/broker/earning-record': 5,
                         'v5/broker/earnings-info': 5,
                         'v5/broker/account-info': 5,
+                        'v5/broker/asset/query-sub-member-deposit-record': 10,
                     },
                     'post': {
                         // Legacy option USDC
@@ -501,6 +513,8 @@ export default class bybit extends Exchange {
                         'v5/lending/redeem-cancel': 5,
                         'v5/account/set-collateral-switch': 5,
                         'v5/account/set-collateral-switch-batch': 5,
+                        // demo trading
+                        'v5/account/demo-apply-money': 5,
                     },
                 },
             },
@@ -967,6 +981,8 @@ export default class bybit extends Exchange {
             },
             'precisionMode': TICK_SIZE,
             'options': {
+                'sandboxMode': false,
+                'enableDemoTrading': false,
                 'fetchMarkets': [ 'spot', 'linear', 'inverse', 'option' ],
                 'createOrder': {
                     'method': 'privatePostV5OrderCreate', // 'privatePostV5PositionTradingStop'
@@ -1051,6 +1067,40 @@ export default class bybit extends Exchange {
         });
     }
 
+    setSandboxMode (enable: boolean) {
+        /**
+         * @method
+         * @name bybit#setSandboxMode
+         * @description enables or disables sandbox mode
+         * @param {boolean} [enable] true if demo trading should be enabled, false otherwise
+         */
+        super.setSandboxMode (enable);
+        this.options['sandboxMode'] = enable;
+    }
+
+    enableDemoTrading (enable: boolean) {
+        /**
+         * @method
+         * @name bybit#enableDemoTrading
+         * @description enables or disables demo trading mode
+         * @see https://bybit-exchange.github.io/docs/v5/demo
+         * @param {boolean} [enable] true if demo trading should be enabled, false otherwise
+         */
+        if (this.options['sandboxMode']) {
+            throw new NotSupported (this.id + ' demo trading does not support in sandbox environment');
+        }
+        // enable demo trading in bybit, see: https://bybit-exchange.github.io/docs/v5/demo
+        if (enable) {
+            this.urls['apiBackupDemoTrading'] = this.urls['api'];
+            this.urls['api'] = this.urls['demotrading'];
+        } else if ('apiBackupDemoTrading' in this.urls) {
+            this.urls['api'] = this.urls['apiBackupDemoTrading'] as any;
+            const newUrls = this.omit (this.urls, 'apiBackupDemoTrading');
+            this.urls = newUrls;
+        }
+        this.options['enableDemoTrading'] = enable;
+    }
+
     nonce () {
         return this.milliseconds () - this.options['timeDifference'];
     }
@@ -1069,12 +1119,24 @@ export default class bybit extends Exchange {
     }
 
     async isUnifiedEnabled (params = {}) {
+        /**
+         * @method
+         * @name bybit#isUnifiedEnabled
+         * @description returns [enableUnifiedMargin, enableUnifiedAccount] so the user can check if unified account is enabled
+         */
         // The API key of user id must own one of permissions will be allowed to call following API endpoints.
         // SUB UID: "Account Transfer"
         // MASTER UID: "Account Transfer", "Subaccount Transfer", "Withdrawal"
         const enableUnifiedMargin = this.safeValue (this.options, 'enableUnifiedMargin');
         const enableUnifiedAccount = this.safeValue (this.options, 'enableUnifiedAccount');
         if (enableUnifiedMargin === undefined || enableUnifiedAccount === undefined) {
+            if (this.options['enableDemoTrading']) {
+                // info endpoint is not available in demo trading
+                // so we're assuming UTA is enabled
+                this.options['enableUnifiedMargin'] = false;
+                this.options['enableUnifiedAccount'] = true;
+                return [ this.options['enableUnifiedMargin'], this.options['enableUnifiedAccount'] ];
+            }
             const response = await this.privateGetV5UserQueryApi (params);
             //
             //     {
@@ -1237,7 +1299,7 @@ export default class bybit extends Exchange {
         return this.safeInteger (response, 'time');
     }
 
-    async fetchCurrencies (params = {}) {
+    async fetchCurrencies (params = {}): Promise<Currencies> {
         /**
          * @method
          * @name bybit#fetchCurrencies
@@ -1247,6 +1309,9 @@ export default class bybit extends Exchange {
          * @returns {object} an associative dictionary of currencies
          */
         if (!this.checkRequiredCredentials (false)) {
+            return undefined;
+        }
+        if (this.options['enableDemoTrading']) {
             return undefined;
         }
         const response = await this.privateGetV5AssetCoinQueryInfo (params);
@@ -4286,6 +4351,91 @@ export default class bybit extends Exchange {
         return this.parseOrders (row, market);
     }
 
+    async cancelOrdersForSymbols (orders: CancellationRequest[], params = {}) {
+        /**
+         * @method
+         * @name bybit#cancelOrdersForSymbols
+         * @description cancel multiple orders for multiple symbols
+         * @see https://bybit-exchange.github.io/docs/v5/order/batch-cancel
+         * @param {string[]} ids order ids
+         * @param {string} symbol unified symbol of the market the order was made in
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string[]} [params.clientOrderIds] client order ids
+         * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        const ordersRequests = [];
+        let category = undefined;
+        for (let i = 0; i < orders.length; i++) {
+            const order = orders[i];
+            const symbol = this.safeString (order, 'symbol');
+            const market = this.market (symbol);
+            let currentCategory = undefined;
+            [ currentCategory, params ] = this.getBybitType ('cancelOrders', market, params);
+            if (currentCategory === 'inverse') {
+                throw new NotSupported (this.id + ' cancelOrdersForSymbols does not allow inverse orders');
+            }
+            if ((category !== undefined) && (category !== currentCategory)) {
+                throw new ExchangeError (this.id + ' cancelOrdersForSymbols requires all orders to be of the same category (linear, spot or option))');
+            }
+            category = currentCategory;
+            const id = this.safeString (order, 'id');
+            const clientOrderId = this.safeString (order, 'clientOrderId');
+            let idKey = 'orderId';
+            if (clientOrderId !== undefined) {
+                idKey = 'orderLinkId';
+            }
+            const orderItem = {
+                'symbol': market['id'],
+            };
+            orderItem[idKey] = (idKey === 'orderId') ? id : clientOrderId;
+            ordersRequests.push (orderItem);
+        }
+        const request = {
+            'category': category,
+            'request': ordersRequests,
+        };
+        const response = await this.privatePostV5OrderCancelBatch (this.extend (request, params));
+        //
+        //     {
+        //         "retCode": "0",
+        //         "retMsg": "OK",
+        //         "result": {
+        //             "list": [
+        //                 {
+        //                     "category": "spot",
+        //                     "symbol": "BTCUSDT",
+        //                     "orderId": "1636282505818800896",
+        //                     "orderLinkId": "1636282505818800897"
+        //                 },
+        //                 {
+        //                     "category": "spot",
+        //                     "symbol": "BTCUSDT",
+        //                     "orderId": "1636282505818800898",
+        //                     "orderLinkId": "1636282505818800899"
+        //                 }
+        //             ]
+        //         },
+        //         "retExtInfo": {
+        //             "list": [
+        //                 {
+        //                     "code": "0",
+        //                     "msg": "OK"
+        //                 },
+        //                 {
+        //                     "code": "0",
+        //                     "msg": "OK"
+        //                 }
+        //             ]
+        //         },
+        //         "time": "1709796158501"
+        //     }
+        //
+        const result = this.safeDict (response, 'result', {});
+        const row = this.safeList (result, 'list', []);
+        return this.parseOrders (row, undefined);
+    }
+
     async cancelAllUsdcOrders (symbol: Str = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelAllUsdcOrders() requires a symbol argument');
@@ -5295,7 +5445,7 @@ export default class bybit extends Exchange {
         const coin = this.safeString (result, 'coin');
         currency = this.currency (coin);
         const parsed = this.parseDepositAddresses (chains, [ currency['code'] ], false, {
-            'currency': currency['id'],
+            'currency': currency['code'],
         });
         return this.indexBy (parsed, 'network');
     }
@@ -7239,7 +7389,7 @@ export default class bybit extends Exchange {
         return await this.fetchDerivativesMarketLeverageTiers (symbol, params);
     }
 
-    parseTradingFee (fee, market: Market = undefined) {
+    parseTradingFee (fee, market: Market = undefined): TradingFeeInterface {
         //
         //     {
         //         "symbol": "ETHUSDT",
@@ -7255,10 +7405,12 @@ export default class bybit extends Exchange {
             'symbol': symbol,
             'maker': this.safeNumber (fee, 'makerFeeRate'),
             'taker': this.safeNumber (fee, 'takerFeeRate'),
+            'percentage': undefined,
+            'tierBased': undefined,
         };
     }
 
-    async fetchTradingFee (symbol: string, params = {}) {
+    async fetchTradingFee (symbol: string, params = {}): Promise<TradingFeeInterface> {
         /**
          * @method
          * @name bybit#fetchTradingFee
@@ -7308,7 +7460,7 @@ export default class bybit extends Exchange {
         return this.parseTradingFee (first, market);
     }
 
-    async fetchTradingFees (params = {}) {
+    async fetchTradingFees (params = {}): Promise<TradingFees> {
         /**
          * @method
          * @name bybit#fetchTradingFees

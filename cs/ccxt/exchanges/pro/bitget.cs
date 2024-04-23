@@ -1109,7 +1109,7 @@ public partial class bitget : ccxt.bitget
         return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
     }
 
-    public virtual void handleOrder(WebSocketClient client, object message, object subscription = null)
+    public virtual void handleOrder(WebSocketClient client, object message)
     {
         //
         // spot
@@ -1895,6 +1895,8 @@ public partial class bitget : ccxt.bitget
             { "ordersAlgo", this.handleOrder },
             { "account", this.handleBalance },
             { "positions", this.handlePositions },
+            { "account-isolated", this.handleBalance },
+            { "account-crossed", this.handleBalance },
         };
         object arg = this.safeValue(message, "arg", new Dictionary<string, object>() {});
         object topic = this.safeValue(arg, "channel", "");

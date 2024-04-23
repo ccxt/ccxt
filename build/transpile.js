@@ -205,6 +205,7 @@ class Transpiler {
             [ /\.fetchTicker\s/g, '.fetch_ticker'],
             [ /\.fetchCurrencies\s/g, '.fetch_currencies'],
             [ /\.fetchStatus\s/g, '.fetch_status'],
+            [ /\.fetchMarginAdjustmentHistory\s/g, '.fetch_margin_adjustment_history'],
             [ /\.numberToString\s/g, '.number_to_string' ],
             [ /\.decimalToPrecision\s/g, '.decimal_to_precision'],
             [ /\.priceToPrecision\s/g, '.price_to_precision'],
@@ -345,6 +346,9 @@ class Transpiler {
             [ /\.fetchIsolatedBorrowRates\s/g, '.fetch_isolated_borrow_rates'],
             [ /\.extendExchangeOptions\s/g, '.extend_exchange_options'],
             [ /\.createSafeDictionary\s/g, '.create_safe_dictionary'],
+            [ /\.setTakeProfitAndStopLossParams\s/g, '.set_take_profit_and_stop_loss_params'],
+            [ /\.randomBytes\s/g, '.random_bytes'],
+            [ /\.createAuthToken\s/g, '.create_auth_token'],
             [ /\ssha(1|256|384|512)([,)])/g, ' \'sha$1\'$2'], // from js imports to this
             [ /\s(md5|secp256k1|ed25519|keccak)([,)])/g, ' \'$1\'$2'], // from js imports to this
 
@@ -987,6 +991,8 @@ class Transpiler {
             'BalanceAccount': /-> BalanceAccount:/,
             'Balances': /-> Balances:/,
             'Bool': /: Bool =/,
+            'Conversion': /-> Conversion:/,
+            'Currencies': /-> Currencies:/,
             'Currency': /(-> Currency:|: Currency)/,
             'FundingHistory': /\[FundingHistory/,
             'Greeks': /-> Greeks:/,
@@ -1010,6 +1016,7 @@ class Transpiler {
             'Order': /-> (?:List\[)?Order\]?:/,
             'OrderBook': /-> OrderBook:/,
             'OrderRequest': /: (?:List\[)?OrderRequest/,
+            'CancellationRequest': /: (?:List\[)?CancellationRequest/,
             'OrderSide': /: OrderSide/,
             'OrderType': /: OrderType/,
             'Position': /-> (?:List\[)?Position/,
@@ -1019,6 +1026,8 @@ class Transpiler {
             'Ticker': /-> Ticker:/,
             'Tickers': /-> Tickers:/,
             'Trade': /-> (?:List\[)?Trade/,
+            'TradingFeeInterface': /-> TradingFeeInterface:/,
+            'TradingFees': /-> TradingFees:/,
             'Transaction': /-> (?:List\[)?Transaction/,
             'TransferEntry': /-> TransferEntry:/,
         }
@@ -1672,7 +1681,7 @@ class Transpiler {
                 'Dictionary<any>': 'array',
                 'Dict': 'array',
             }
-            const phpArrayRegex = /^(?:Market|Currency|Account|AccountStructure|BalanceAccount|object|OHLCV|Order|OrderBook|Tickers?|Trade|Transaction|Balances?|MarketInterface|TransferEntry|Leverages|Leverage|Greeks|MarginModes|MarginMode|MarginModification|LastPrice|LastPrices)( \| undefined)?$|\w+\[\]/
+            const phpArrayRegex = /^(?:Market|Currency|Account|AccountStructure|BalanceAccount|object|OHLCV|Order|OrderBook|Tickers?|Trade|Transaction|Balances?|MarketInterface|TransferEntry|Leverages|Leverage|Greeks|MarginModes|MarginMode|MarginModification|LastPrice|LastPrices|TradingFeeInterface|Currencies|TradingFees)( \| undefined)?$|\w+\[\]/
             let phpArgs = args.map (x => {
                 const parts = x.split (':')
                 if (parts.length === 1) {
@@ -1710,7 +1719,9 @@ class Transpiler {
             if (returnType) {
                 promiseReturnTypeMatch = returnType.match (/^Promise<([^>]+)>$/)
                 syncReturnType = promiseReturnTypeMatch ? promiseReturnTypeMatch[1] : returnType
-                if (syncReturnType.match (phpArrayRegex)) {
+                if (syncReturnType === 'Currencies') {
+                    syncPhpReturnType = ': ?array'; // since for now `fetchCurrencies` returns null or Currencies
+                } else if (syncReturnType.match (phpArrayRegex)) {
                     syncPhpReturnType = ': array'
                 } else {
                     syncPhpReturnType = ': ' + (phpTypes[syncReturnType] ?? syncReturnType)

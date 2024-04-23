@@ -38,17 +38,10 @@ export default class kucoinfutures extends kucoin {
     cancelOrder(id: string, symbol?: Str, params?: {}): Promise<any>;
     cancelAllOrders(symbol?: Str, params?: {}): Promise<any>;
     addMargin(symbol: string, amount: any, params?: {}): Promise<MarginModification>;
-    parseMarginModification(info: any, market?: Market): {
-        info: any;
-        direction: any;
-        mode: string;
-        amount: any;
-        code: string;
-        symbol: string;
-        status: any;
-    };
+    parseMarginModification(info: any, market?: Market): MarginModification;
     fetchOrdersByStatus(status: any, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchClosedOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchOrder(id?: Str, symbol?: Str, params?: {}): Promise<Order>;
     parseOrder(order: any, market?: Market): Order;
     fetchFundingRate(symbol: string, params?: {}): Promise<{

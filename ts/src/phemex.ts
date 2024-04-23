@@ -6,7 +6,7 @@ import { ExchangeError, BadSymbol, AuthenticationError, InsufficientFunds, Inval
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { TransferEntry, Balances, Currency, FundingHistory, FundingRateHistory, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, MarginModification } from './base/types.js';
+import type { TransferEntry, Balances, Currency, FundingHistory, FundingRateHistory, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, MarginModification, Currencies } from './base/types.js';
 
 // ----------------------------------------------------------------------------
 
@@ -968,7 +968,7 @@ export default class phemex extends Exchange {
         return result;
     }
 
-    async fetchCurrencies (params = {}) {
+    async fetchCurrencies (params = {}): Promise<Currencies> {
         /**
          * @method
          * @name phemex#fetchCurrencies
@@ -2854,11 +2854,16 @@ export default class phemex extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
+        const stop = this.safeValue2 (params, 'stop', 'trigger', false);
+        params = this.omit (params, 'stop', 'trigger');
         const request = {
             'symbol': market['id'],
             // 'untriggerred': false, // false to cancel non-conditional orders, true to cancel conditional orders
             // 'text': 'up to 40 characters max',
         };
+        if (stop) {
+            request['untriggerred'] = stop;
+        }
         let response = undefined;
         if (market['settle'] === 'USDT') {
             response = await this.privateDeleteGOrdersAll (this.extend (request, params));
@@ -4041,6 +4046,7 @@ export default class phemex extends Exchange {
             'info': data,
             'symbol': this.safeSymbol (undefined, market),
             'type': 'set',
+            'marginMode': 'isolated',
             'amount': undefined,
             'total': undefined,
             'code': market[codeCurrency],

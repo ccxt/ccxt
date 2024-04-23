@@ -1,5 +1,5 @@
 import Exchange from './abstract/onetrading.js';
-import type { Balances, Currency, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import type { Balances, Currencies, Currency, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction } from './base/types.js';
 /**
  * @class onetrading
  * @augments Exchange
@@ -7,10 +7,10 @@ import type { Balances, Currency, Int, Market, Num, OHLCV, Order, OrderBook, Ord
 export default class onetrading extends Exchange {
     describe(): any;
     fetchTime(params?: {}): Promise<number>;
-    fetchCurrencies(params?: {}): Promise<{}>;
+    fetchCurrencies(params?: {}): Promise<Currencies>;
     fetchMarkets(params?: {}): Promise<Market[]>;
     parseMarket(market: any): Market;
-    fetchTradingFees(params?: {}): Promise<any>;
+    fetchTradingFees(params?: {}): Promise<TradingFees>;
     fetchPublicTradingFees(params?: {}): Promise<{}>;
     fetchPrivateTradingFees(params?: {}): Promise<{}>;
     parseFeeTiers(feeTiers: any, market?: Market): {

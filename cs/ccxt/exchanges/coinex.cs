@@ -63,6 +63,7 @@ public partial class coinex : Exchange
                 { "fetchLeverage", "emulated" },
                 { "fetchLeverages", true },
                 { "fetchLeverageTiers", true },
+                { "fetchMarginAdjustmentHistory", true },
                 { "fetchMarketLeverageTiers", "emulated" },
                 { "fetchMarkets", true },
                 { "fetchMarkOHLCV", false },
@@ -604,14 +605,14 @@ public partial class coinex : Exchange
         * @method
         * @name coinex#fetchMarkets
         * @description retrieves data on all markets for coinex
-        * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot001_market002_all_market_info
-        * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http006_market_list
+        * @see https://docs.coinex.com/api/v2/spot/market/http/list-market
+        * @see https://docs.coinex.com/api/v2/futures/market/http/list-market
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object[]} an array of objects representing market data
         */
         parameters ??= new Dictionary<string, object>();
-        object promises = ((object)new List<object> {this.fetchSpotMarkets(parameters), this.fetchContractMarkets(parameters)});
-        promises = ((object)await promiseAll(promises));
+        object promisesUnresolved = new List<object> {this.fetchSpotMarkets(parameters), this.fetchContractMarkets(parameters)};
+        object promises = await promiseAll(promisesUnresolved);
         object spotMarkets = getValue(promises, 0);
         object swapMarkets = getValue(promises, 1);
         return this.arrayConcat(spotMarkets, swapMarkets);
@@ -619,42 +620,38 @@ public partial class coinex : Exchange
 
     public async virtual Task<object> fetchSpotMarkets(object parameters)
     {
-        object response = await this.v1PublicGetMarketInfo(parameters);
+        object response = await this.v2PublicGetSpotMarket(parameters);
         //
         //     {
         //         "code": 0,
-        //         "data": {
-        //             "WAVESBTC": {
-        //                 "name": "WAVESBTC",
-        //                 "min_amount": "1",
-        //                 "maker_fee_rate": "0.001",
-        //                 "taker_fee_rate": "0.001",
-        //                 "pricing_name": "BTC",
-        //                 "pricing_decimal": 8,
-        //                 "trading_name": "WAVES",
-        //                 "trading_decimal": 8
-        //             }
-        //         }
+        //         "data": [
+        //             {
+        //                 "base_ccy": "SORA",
+        //                 "base_ccy_precision": 8,
+        //                 "is_amm_available": true,
+        //                 "is_margin_available": false,
+        //                 "maker_fee_rate": "0.003",
+        //                 "market": "SORAUSDT",
+        //                 "min_amount": "500",
+        //                 "quote_ccy": "USDT",
+        //                 "quote_ccy_precision": 6,
+        //                 "taker_fee_rate": "0.003"
+        //             },
+        //         ],
+        //         "message": "OK"
         //     }
         //
-        object markets = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        object markets = this.safeList(response, "data", new List<object>() {});
         object result = new List<object>() {};
-        object keys = new List<object>(((IDictionary<string,object>)markets).Keys);
-        for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
+        for (object i = 0; isLessThan(i, getArrayLength(markets)); postFixIncrement(ref i))
         {
-            object key = getValue(keys, i);
-            object market = getValue(markets, key);
-            object id = this.safeString(market, "name");
-            object tradingName = this.safeString(market, "trading_name");
-            object baseId = tradingName;
-            object quoteId = this.safeString(market, "pricing_name");
+            object market = getValue(markets, i);
+            object id = this.safeString(market, "market");
+            object baseId = this.safeString(market, "base_ccy");
+            object quoteId = this.safeString(market, "quote_ccy");
             object bs = this.safeCurrencyCode(baseId);
             object quote = this.safeCurrencyCode(quoteId);
             object symbol = add(add(bs, "/"), quote);
-            if (isTrue(isEqual(tradingName, id)))
-            {
-                symbol = id;
-            }
             ((IList<object>)result).Add(new Dictionary<string, object>() {
                 { "id", id },
                 { "symbol", symbol },
@@ -682,8 +679,8 @@ public partial class coinex : Exchange
                 { "strike", null },
                 { "optionType", null },
                 { "precision", new Dictionary<string, object>() {
-                    { "amount", this.parseNumber(this.parsePrecision(this.safeString(market, "trading_decimal"))) },
-                    { "price", this.parseNumber(this.parsePrecision(this.safeString(market, "pricing_decimal"))) },
+                    { "amount", this.parseNumber(this.parsePrecision(this.safeString(market, "base_ccy_precision"))) },
+                    { "price", this.parseNumber(this.parsePrecision(this.safeString(market, "quote_ccy_precision"))) },
                 } },
                 { "limits", new Dictionary<string, object>() {
                     { "leverage", new Dictionary<string, object>() {
@@ -712,46 +709,44 @@ public partial class coinex : Exchange
 
     public async virtual Task<object> fetchContractMarkets(object parameters)
     {
-        object response = await this.v1PerpetualPublicGetMarketList(parameters);
+        object response = await this.v2PublicGetFuturesMarket(parameters);
         //
         //     {
         //         "code": 0,
         //         "data": [
         //             {
-        //                 "name": "BTCUSD",
-        //                 "type": 2, // 1: USDT-M Contracts, 2: Coin-M Contracts
-        //                 "leverages": ["3", "5", "8", "10", "15", "20", "30", "50", "100"],
-        //                 "stock": "BTC",
-        //                 "money": "USD",
-        //                 "fee_prec": 5,
-        //                 "stock_prec": 8,
-        //                 "money_prec": 1,
-        //                 "amount_prec": 0,
-        //                 "amount_min": "10",
-        //                 "multiplier": "1",
-        //                 "tick_size": "0.1", // Min. Price Increment
-        //                 "available": true
+        //                 "base_ccy": "BTC",
+        //                 "base_ccy_precision": 8,
+        //                 "contract_type": "inverse",
+        //                 "leverage": ["1","2","3","5","8","10","15","20","30","50","100"],
+        //                 "maker_fee_rate": "0",
+        //                 "market": "BTCUSD",
+        //                 "min_amount": "10",
+        //                 "open_interest_volume": "2566879",
+        //                 "quote_ccy": "USD",
+        //                 "quote_ccy_precision": 2,
+        //                 "taker_fee_rate": "0"
         //             },
         //         ],
         //         "message": "OK"
         //     }
         //
-        object markets = this.safeValue(response, "data", new List<object>() {});
+        object markets = this.safeList(response, "data", new List<object>() {});
         object result = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(markets)); postFixIncrement(ref i))
         {
             object entry = getValue(markets, i);
             object fees = this.fees;
-            object leverages = this.safeValue(entry, "leverages", new List<object>() {});
-            object subType = this.safeInteger(entry, "type");
-            object linear = (isEqual(subType, 1));
-            object inverse = (isEqual(subType, 2));
-            object id = this.safeString(entry, "name");
-            object baseId = this.safeString(entry, "stock");
-            object quoteId = this.safeString(entry, "money");
+            object leverages = this.safeList(entry, "leverage", new List<object>() {});
+            object subType = this.safeString(entry, "contract_type");
+            object linear = (isEqual(subType, "linear"));
+            object inverse = (isEqual(subType, "inverse"));
+            object id = this.safeString(entry, "market");
+            object baseId = this.safeString(entry, "base_ccy");
+            object quoteId = this.safeString(entry, "quote_ccy");
             object bs = this.safeCurrencyCode(baseId);
             object quote = this.safeCurrencyCode(quoteId);
-            object settleId = ((bool) isTrue((isEqual(subType, 1)))) ? "USDT" : baseId;
+            object settleId = ((bool) isTrue((isEqual(subType, "linear")))) ? "USDT" : baseId;
             object settle = this.safeCurrencyCode(settleId);
             object symbol = add(add(add(add(bs, "/"), quote), ":"), settle);
             object leveragesLength = getArrayLength(leverages);
@@ -770,20 +765,20 @@ public partial class coinex : Exchange
                 { "swap", true },
                 { "future", false },
                 { "option", false },
-                { "active", this.safeValue(entry, "available") },
+                { "active", null },
                 { "contract", true },
                 { "linear", linear },
                 { "inverse", inverse },
                 { "taker", getValue(getValue(fees, "trading"), "taker") },
                 { "maker", getValue(getValue(fees, "trading"), "maker") },
-                { "contractSize", this.safeNumber(entry, "multiplier") },
+                { "contractSize", this.parseNumber("1") },
                 { "expiry", null },
                 { "expiryDatetime", null },
                 { "strike", null },
                 { "optionType", null },
                 { "precision", new Dictionary<string, object>() {
-                    { "amount", this.parseNumber(this.parsePrecision(this.safeString(entry, "amount_prec"))) },
-                    { "price", this.parseNumber(this.parsePrecision(this.safeString(entry, "money_prec"))) },
+                    { "amount", this.parseNumber(this.parsePrecision(this.safeString(entry, "base_ccy_precision"))) },
+                    { "price", this.parseNumber(this.parsePrecision(this.safeString(entry, "quote_ccy_precision"))) },
                 } },
                 { "limits", new Dictionary<string, object>() {
                     { "leverage", new Dictionary<string, object>() {
@@ -791,7 +786,7 @@ public partial class coinex : Exchange
                         { "max", this.safeNumber(leverages, subtract(leveragesLength, 1)) },
                     } },
                     { "amount", new Dictionary<string, object>() {
-                        { "min", this.safeNumber(entry, "amount_min") },
+                        { "min", this.safeNumber(entry, "min_amount") },
                         { "max", null },
                     } },
                     { "price", new Dictionary<string, object>() {
@@ -816,65 +811,59 @@ public partial class coinex : Exchange
         // Spot fetchTicker, fetchTickers
         //
         //     {
-        //         "vol": "293.19415130",
-        //         "low": "38200.00",
-        //         "open": "39514.99",
-        //         "high": "39530.00",
-        //         "last": "38649.57",
-        //         "buy": "38640.20",
-        //         "buy_amount": "0.22800000",
-        //         "sell": "38640.21",
-        //         "sell_amount": "0.02828439"
+        //         "close": "62393.47",
+        //         "high": "64106.41",
+        //         "last": "62393.47",
+        //         "low": "59650.01",
+        //         "market": "BTCUSDT",
+        //         "open": "61616.15",
+        //         "period": 86400,
+        //         "value": "28711273.4065667262",
+        //         "volume": "461.76557205",
+        //         "volume_buy": "11.41506354",
+        //         "volume_sell": "7.3240169"
         //     }
         //
         // Swap fetchTicker, fetchTickers
         //
         //     {
-        //         "vol": "7714.2175",
-        //         "low": "38200.00",
-        //         "open": "39569.23",
-        //         "high": "39569.23",
-        //         "last": "38681.37",
-        //         "buy": "38681.36",
+        //         "close": "62480.08",
+        //         "high": "64100",
+        //         "index_price": "62443.05",
+        //         "last": "62480.08",
+        //         "low": "59600",
+        //         "mark_price": "62443.05",
+        //         "market": "BTCUSDT",
+        //         "open": "61679.98",
         //         "period": 86400,
-        //         "funding_time": 462,
-        //         "position_amount": "296.7552",
-        //         "funding_rate_last": "0.00009395",
-        //         "funding_rate_next": "0.00000649",
-        //         "funding_rate_predict": "-0.00007176",
-        //         "insurance": "16464465.09431942163278132918",
-        //         "sign_price": "38681.93",
-        //         "index_price": "38681.69500000",
-        //         "sell_total": "16.6039",
-        //         "buy_total": "19.8481",
-        //         "buy_amount": "4.6315",
-        //         "sell": "38681.37",
-        //         "sell_amount": "11.4044"
+        //         "value": "180226025.69791713065326633165",
+        //         "volume": "2900.2218",
+        //         "volume_buy": "7.3847",
+        //         "volume_sell": "6.1249"
         //     }
         //
-        object timestamp = this.safeInteger(ticker, "date");
-        object symbol = this.safeSymbol(null, market);
-        ticker = this.safeValue(ticker, "ticker", new Dictionary<string, object>() {});
-        object last = this.safeString(ticker, "last");
+        object marketType = ((bool) isTrue((inOp(ticker, "mark_price")))) ? "swap" : "spot";
+        object marketId = this.safeString(ticker, "market");
+        object symbol = this.safeSymbol(marketId, market, null, marketType);
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },
-            { "timestamp", timestamp },
-            { "datetime", this.iso8601(timestamp) },
+            { "timestamp", null },
+            { "datetime", null },
             { "high", this.safeString(ticker, "high") },
             { "low", this.safeString(ticker, "low") },
-            { "bid", this.safeString(ticker, "buy") },
-            { "bidVolume", this.safeString(ticker, "buy_amount") },
-            { "ask", this.safeString(ticker, "sell") },
-            { "askVolume", this.safeString(ticker, "sell_amount") },
+            { "bid", null },
+            { "bidVolume", this.safeString(ticker, "volume_buy") },
+            { "ask", null },
+            { "askVolume", this.safeString(ticker, "volume_sell") },
             { "vwap", null },
             { "open", this.safeString(ticker, "open") },
-            { "close", last },
-            { "last", last },
+            { "close", this.safeString(ticker, "close") },
+            { "last", this.safeString(ticker, "last") },
             { "previousClose", null },
             { "change", null },
             { "percentage", null },
             { "average", null },
-            { "baseVolume", this.safeString2(ticker, "vol", "volume") },
+            { "baseVolume", this.safeString(ticker, "volume") },
             { "quoteVolume", null },
             { "info", ticker },
         }, market);
@@ -886,8 +875,8 @@ public partial class coinex : Exchange
         * @method
         * @name coinex#fetchTicker
         * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot001_market007_single_market_ticker
-        * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http008_market_ticker
+        * @see https://docs.coinex.com/api/v2/spot/market/http/list-market-ticker
+        * @see https://docs.coinex.com/api/v2/futures/market/http/list-market-ticker
         * @param {string} symbol unified symbol of the market to fetch the ticker for
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -901,30 +890,31 @@ public partial class coinex : Exchange
         object response = null;
         if (isTrue(getValue(market, "swap")))
         {
-            response = await this.v1PerpetualPublicGetMarketTicker(this.extend(request, parameters));
+            response = await this.v2PublicGetFuturesTicker(this.extend(request, parameters));
         } else
         {
-            response = await this.v1PublicGetMarketTicker(this.extend(request, parameters));
+            response = await this.v2PublicGetSpotTicker(this.extend(request, parameters));
         }
         //
         // Spot
         //
         //     {
         //         "code": 0,
-        //         "data": {
-        //             "date": 1651306913414,
-        //             "ticker": {
-        //                 "vol": "293.19415130",
-        //                 "low": "38200.00",
-        //                 "open": "39514.99",
-        //                 "high": "39530.00",
-        //                 "last": "38649.57",
-        //                 "buy": "38640.20",
-        //                 "buy_amount": "0.22800000",
-        //                 "sell": "38640.21",
-        //                 "sell_amount": "0.02828439"
+        //         "data": [
+        //             {
+        //                 "close": "62393.47",
+        //                 "high": "64106.41",
+        //                 "last": "62393.47",
+        //                 "low": "59650.01",
+        //                 "market": "BTCUSDT",
+        //                 "open": "61616.15",
+        //                 "period": 86400,
+        //                 "value": "28711273.4065667262",
+        //                 "volume": "461.76557205",
+        //                 "volume_buy": "11.41506354",
+        //                 "volume_sell": "7.3240169"
         //             }
-        //         },
+        //         ],
         //         "message": "OK"
         //     }
         //
@@ -932,35 +922,29 @@ public partial class coinex : Exchange
         //
         //     {
         //         "code": 0,
-        //         "data": {
-        //             "date": 1651306641500,
-        //             "ticker": {
-        //                 "vol": "7714.2175",
-        //                 "low": "38200.00",
-        //                 "open": "39569.23",
-        //                 "high": "39569.23",
-        //                 "last": "38681.37",
-        //                 "buy": "38681.36",
+        //         "data": [
+        //             {
+        //                 "close": "62480.08",
+        //                 "high": "64100",
+        //                 "index_price": "62443.05",
+        //                 "last": "62480.08",
+        //                 "low": "59600",
+        //                 "mark_price": "62443.05",
+        //                 "market": "BTCUSDT",
+        //                 "open": "61679.98",
         //                 "period": 86400,
-        //                 "funding_time": 462,
-        //                 "position_amount": "296.7552",
-        //                 "funding_rate_last": "0.00009395",
-        //                 "funding_rate_next": "0.00000649",
-        //                 "funding_rate_predict": "-0.00007176",
-        //                 "insurance": "16464465.09431942163278132918",
-        //                 "sign_price": "38681.93",
-        //                 "index_price": "38681.69500000",
-        //                 "sell_total": "16.6039",
-        //                 "buy_total": "19.8481",
-        //                 "buy_amount": "4.6315",
-        //                 "sell": "38681.37",
-        //                 "sell_amount": "11.4044"
+        //                 "value": "180226025.69791713065326633165",
+        //                 "volume": "2900.2218",
+        //                 "volume_buy": "7.3847",
+        //                 "volume_sell": "6.1249"
         //             }
-        //         },
+        //         ],
         //         "message": "OK"
         //     }
         //
-        return this.parseTicker(getValue(response, "data"), market);
+        object data = this.safeList(response, "data", new List<object>() {});
+        object result = this.safeDict(data, 0, new Dictionary<string, object>() {});
+        return this.parseTicker(result, market);
     }
 
     public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
@@ -969,8 +953,8 @@ public partial class coinex : Exchange
         * @method
         * @name coinex#fetchTickers
         * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-        * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot001_market008_all_market_ticker
-        * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http009_market_ticker_all
+        * @see https://docs.coinex.com/api/v2/spot/market/http/list-market-ticker
+        * @see https://docs.coinex.com/api/v2/futures/market/http/list-market-ticker
         * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -990,87 +974,60 @@ public partial class coinex : Exchange
         object response = null;
         if (isTrue(isEqual(marketType, "swap")))
         {
-            response = await this.v1PerpetualPublicGetMarketTickerAll(query);
+            response = await this.v2PublicGetFuturesTicker(query);
         } else
         {
-            response = await this.v1PublicGetMarketTickerAll();
+            response = await this.v2PublicGetSpotTicker(query);
         }
         //
         // Spot
         //
         //     {
         //         "code": 0,
-        //         "data": {
-        //             "date": 1651519857284,
-        //             "ticker": {
-        //                 "PSPUSDT": {
-        //                     "vol": "127131.55227034",
-        //                     "low": "0.0669",
-        //                     "open": "0.0688",
-        //                     "high": "0.0747",
-        //                     "last": "0.0685",
-        //                     "buy": "0.0676",
-        //                     "buy_amount": "702.70117866",
-        //                     "sell": "0.0690",
-        //                     "sell_amount": "686.76861562"
-        //                 },
+        //         "data": [
+        //             {
+        //                 "close": "62393.47",
+        //                 "high": "64106.41",
+        //                 "last": "62393.47",
+        //                 "low": "59650.01",
+        //                 "market": "BTCUSDT",
+        //                 "open": "61616.15",
+        //                 "period": 86400,
+        //                 "value": "28711273.4065667262",
+        //                 "volume": "461.76557205",
+        //                 "volume_buy": "11.41506354",
+        //                 "volume_sell": "7.3240169"
         //             }
-        //         },
-        //         "message": "Ok"
+        //         ],
+        //         "message": "OK"
         //     }
         //
         // Swap
         //
         //     {
         //         "code": 0,
-        //         "data": {
-        //             "date": 1651520268644,
-        //             "ticker": {
-        //                 "KAVAUSDT": {
-        //                     "vol": "834924",
-        //                     "low": "3.9418",
-        //                     "open": "4.1834",
-        //                     "high": "4.4328",
-        //                     "last": "4.0516",
-        //                     "buy": "4.0443",
-        //                     "period": 86400,
-        //                     "funding_time": 262,
-        //                     "position_amount": "16111",
-        //                     "funding_rate_last": "-0.00069514",
-        //                     "funding_rate_next": "-0.00061009",
-        //                     "funding_rate_predict": "-0.00055812",
-        //                     "insurance": "16532425.53026084124483989548",
-        //                     "sign_price": "4.0516",
-        //                     "index_price": "4.0530",
-        //                     "sell_total": "59446",
-        //                     "buy_total": "62423",
-        //                     "buy_amount": "959",
-        //                     "sell": "4.0466",
-        //                     "sell_amount": "141"
-        //                 },
+        //         "data": [
+        //             {
+        //                 "close": "62480.08",
+        //                 "high": "64100",
+        //                 "index_price": "62443.05",
+        //                 "last": "62480.08",
+        //                 "low": "59600",
+        //                 "mark_price": "62443.05",
+        //                 "market": "BTCUSDT",
+        //                 "open": "61679.98",
+        //                 "period": 86400,
+        //                 "value": "180226025.69791713065326633165",
+        //                 "volume": "2900.2218",
+        //                 "volume_buy": "7.3847",
+        //                 "volume_sell": "6.1249"
         //             }
-        //         },
-        //         "message": "Ok"
+        //         ],
+        //         "message": "OK"
         //     }
         //
-        object data = this.safeValue(response, "data");
-        object timestamp = this.safeInteger(data, "date");
-        object tickers = this.safeValue(data, "ticker", new Dictionary<string, object>() {});
-        object marketIds = new List<object>(((IDictionary<string,object>)tickers).Keys);
-        object result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
-        {
-            object marketId = getValue(marketIds, i);
-            object marketInner = this.safeMarket(marketId, null, null, marketType);
-            object symbol = getValue(marketInner, "symbol");
-            object ticker = this.parseTicker(new Dictionary<string, object>() {
-                { "date", timestamp },
-                { "ticker", getValue(tickers, marketId) },
-            }, marketInner);
-            ((IDictionary<string,object>)ticker)["symbol"] = symbol;
-            ((IDictionary<string,object>)result)[(string)symbol] = ticker;
-        }
-        return this.filterByArrayTickers(result, "symbol", symbols);
+        object data = this.safeList(response, "data", new List<object>() {});
+        return this.parseTickers(data, symbols);
     }
 
     public async override Task<object> fetchTime(object parameters = null)
@@ -1104,8 +1061,8 @@ public partial class coinex : Exchange
         * @method
         * @name coinex#fetchOrderBook
         * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-        * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot001_market004_market_depth
-        * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http010_market_depth
+        * @see https://docs.coinex.com/api/v2/spot/market/http/list-market-depth
+        * @see https://docs.coinex.com/api/v2/futures/market/http/list-market-depth
         * @param {string} symbol unified symbol of the market to fetch the order book for
         * @param {int} [limit] the maximum amount of order book entries to return
         * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1120,66 +1077,22 @@ public partial class coinex : Exchange
             limit = 20; // default
         }
         object request = new Dictionary<string, object>() {
-            { "market", this.marketId(symbol) },
-            { "merge", "0" },
-            { "limit", ((object)limit).ToString() },
+            { "market", getValue(market, "id") },
+            { "limit", limit },
+            { "interval", "0" },
         };
         object response = null;
         if (isTrue(getValue(market, "swap")))
         {
-            response = await this.v1PerpetualPublicGetMarketDepth(this.extend(request, parameters));
+            response = await this.v2PublicGetFuturesDepth(this.extend(request, parameters));
         } else
         {
-            response = await this.v1PublicGetMarketDepth(this.extend(request, parameters));
+            response = await this.v2PublicGetSpotDepth(this.extend(request, parameters));
         }
-        //
-        // Spot
-        //
-        //     {
-        //         "code": 0,
-        //         "data": {
-        //             "asks": [
-        //                 ["41056.33", "0.31727613"],
-        //                 ["41056.34", "1.05657294"],
-        //                 ["41056.35", "0.02346648"]
-        //             ],
-        //             "bids": [
-        //                 ["41050.61", "0.40618608"],
-        //                 ["41046.98", "0.13800000"],
-        //                 ["41046.56", "0.22579234"]
-        //             ],
-        //             "last": "41050.61",
-        //             "time": 1650573220346
-        //         },
-        //         "message": "OK"
-        //     }
-        //
-        // Swap
-        //
-        //     {
-        //         "code": 0,
-        //         "data": {
-        //             "asks": [
-        //                 ["40620.90", "0.0384"],
-        //                 ["40625.50", "0.0219"],
-        //                 ["40625.90", "0.3506"]
-        //             ],
-        //             "bids": [
-        //                 ["40620.89", "19.6861"],
-        //                 ["40620.80", "0.0012"],
-        //                 ["40619.87", "0.0365"]
-        //             ],
-        //             "last": "40620.89",
-        //             "time": 1650587672406,
-        //             "sign_price": "40619.32",
-        //             "index_price": "40609.93"
-        //         },
-        //         "message": "OK"
-        //     }
-        //
-        object result = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object timestamp = this.safeInteger(result, "time");
-        return this.parseOrderBook(result, symbol, timestamp);
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        object depth = this.safeDict(data, "depth", new Dictionary<string, object>() {});
+        object timestamp = this.safeInteger(depth, "updated_at");
+        return this.parseOrderBook(depth, symbol, timestamp);
     }
 
     public override object parseTrade(object trade, object market = null)
@@ -1187,14 +1100,13 @@ public partial class coinex : Exchange
         //
         // Spot and Swap fetchTrades (public)
         //
-        //      {
-        //          "id":  2611511379,
-        //          "type": "buy",
-        //          "price": "192.63",
-        //          "amount": "0.02266931",
-        //          "date":  1638990110,
-        //          "date_ms":  1638990110518
-        //      },
+        //     {
+        //         "amount": "0.00049432",
+        //         "created_at": 1713849825667,
+        //         "deal_id": 4137517302,
+        //         "price": "66251",
+        //         "side": "buy"
+        //     }
         //
         // Spot and Margin fetchMyTrades (private)
         //
@@ -1249,9 +1161,9 @@ public partial class coinex : Exchange
         object timestamp = this.safeTimestamp2(trade, "create_time", "time");
         if (isTrue(isEqual(timestamp, null)))
         {
-            timestamp = this.safeInteger(trade, "date_ms");
+            timestamp = this.safeInteger(trade, "created_at");
         }
-        object tradeId = this.safeString(trade, "id");
+        object tradeId = this.safeString2(trade, "id", "deal_id");
         object orderId = this.safeString(trade, "order_id");
         object priceString = this.safeString(trade, "price");
         object amountString = this.safeString(trade, "amount");
@@ -1293,11 +1205,11 @@ public partial class coinex : Exchange
             }
             if (isTrue(isEqual(side, null)))
             {
-                side = this.safeString(trade, "type");
+                side = this.safeString2(trade, "type", "side");
             }
         } else
         {
-            side = this.safeString(trade, "type");
+            side = this.safeString2(trade, "type", "side");
         }
         return this.safeTrade(new Dictionary<string, object>() {
             { "info", trade },
@@ -1321,9 +1233,9 @@ public partial class coinex : Exchange
         /**
         * @method
         * @name coinex#fetchTrades
-        * @description get the list of most recent trades for a particular symbol
-        * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot001_market005_market_deals
-        * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http011_market_deals
+        * @description get the list of the most recent trades for a particular symbol
+        * @see https://docs.coinex.com/api/v2/spot/market/http/list-market-deals
+        * @see https://docs.coinex.com/api/v2/futures/market/http/list-market-deals
         * @param {string} symbol unified symbol of the market to fetch trades for
         * @param {int} [since] timestamp in ms of the earliest trade to fetch
         * @param {int} [limit] the maximum amount of trades to fetch
@@ -1343,28 +1255,27 @@ public partial class coinex : Exchange
         object response = null;
         if (isTrue(getValue(market, "swap")))
         {
-            response = await this.v1PerpetualPublicGetMarketDeals(this.extend(request, parameters));
+            response = await this.v2PublicGetFuturesDeals(this.extend(request, parameters));
         } else
         {
-            response = await this.v1PublicGetMarketDeals(this.extend(request, parameters));
+            response = await this.v2PublicGetSpotDeals(this.extend(request, parameters));
         }
         //
         // Spot and Swap
         //
-        //      {
-        //          "code":    0,
-        //          "data": [
-        //              {
-        //                  "id":  2611511379,
-        //                  "type": "buy",
-        //                  "price": "192.63",
-        //                  "amount": "0.02266931",
-        //                  "date":  1638990110,
-        //                  "date_ms":  1638990110518
-        //                  },
-        //              ],
-        //          "message": "OK"
-        //      }
+        //     {
+        //         "code": 0,
+        //         "data": [
+        //             {
+        //                 "amount": "0.00049432",
+        //                 "created_at": 1713849825667,
+        //                 "deal_id": 4137517302,
+        //                 "price": "66251",
+        //                 "side": "buy"
+        //             },
+        //         ],
+        //         "message": "OK"
+        //     }
         //
         return this.parseTrades(getValue(response, "data"), market, since, limit);
     }
@@ -4321,41 +4232,6 @@ public partial class coinex : Exchange
         return this.parseLeverageTiers(data, symbols, null);
     }
 
-    public override object parseLeverageTiers(object response, object symbols = null, object marketIdKey = null)
-    {
-        //
-        //     {
-        //         "BTCUSD": [
-        //             ["500001", "100", "0.005"],
-        //             ["1000001", "50", "0.01"],
-        //             ["2000001", "30", "0.015"],
-        //             ["5000001", "20", "0.02"],
-        //             ["10000001", "15", "0.025"],
-        //             ["20000001", "10", "0.03"]
-        //         ],
-        //         ...
-        //     }
-        //
-        object tiers = new Dictionary<string, object>() {};
-        object marketIds = new List<object>(((IDictionary<string,object>)response).Keys);
-        for (object i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
-        {
-            object marketId = getValue(marketIds, i);
-            object market = this.safeMarket(marketId, null, null, "spot");
-            object symbol = this.safeString(market, "symbol");
-            object symbolsLength = 0;
-            if (isTrue(!isEqual(symbols, null)))
-            {
-                symbolsLength = getArrayLength(symbols);
-            }
-            if (isTrue(isTrue(!isEqual(symbol, null)) && isTrue((isTrue(isEqual(symbolsLength, 0)) || isTrue(this.inArray(symbols, symbol))))))
-            {
-                ((IDictionary<string,object>)tiers)[(string)symbol] = this.parseMarketLeverageTiers(getValue(response, marketId), market);
-            }
-        }
-        return tiers;
-    }
-
     public override object parseMarketLeverageTiers(object item, object market = null)
     {
         object tiers = new List<object>() {};
@@ -4446,16 +4322,15 @@ public partial class coinex : Exchange
         //         "message":"OK"
         //     }
         //
+        object data = this.safeDict(response, "data");
         object status = this.safeString(response, "message");
-        object type = ((bool) isTrue((isEqual(addOrReduce, 1)))) ? "add" : "reduce";
-        return this.extend(this.parseMarginModification(response, market), new Dictionary<string, object>() {
+        return this.extend(this.parseMarginModification(data, market), new Dictionary<string, object>() {
             { "amount", this.parseNumber(amount) },
-            { "type", type },
             { "status", status },
         });
     }
 
-    public virtual object parseMarginModification(object data, object market = null)
+    public override object parseMarginModification(object data, object market = null)
     {
         //
         // addMargin/reduceMargin
@@ -4512,13 +4387,34 @@ public partial class coinex : Exchange
         //        "user_id": 3620173
         //    }
         //
-        object timestamp = this.safeIntegerProduct(data, "update_time", 1000);
+        // fetchMarginAdjustmentHistory
+        //
+        //    {
+        //        bkr_price: '0',
+        //        leverage: '3',
+        //        liq_price: '0',
+        //        margin_amount: '5.33236666666666666666',
+        //        margin_change: '3',
+        //        market: 'XRPUSDT',
+        //        position_amount: '11',
+        //        position_id: '297155652',
+        //        position_type: '2',
+        //        settle_price: '0.6361',
+        //        time: '1711050906.382891',
+        //        type: '1',
+        //        user_id: '3685860'
+        //    }
+        //
+        object marketId = this.safeString(data, "market");
+        object type = this.safeString(data, "type");
+        object timestamp = this.safeIntegerProduct2(data, "time", "update_time", 1000);
         return new Dictionary<string, object>() {
             { "info", data },
-            { "symbol", this.safeSymbol(null, market) },
-            { "type", null },
-            { "amount", this.safeNumber(data, "margin_amount") },
-            { "total", null },
+            { "symbol", this.safeSymbol(marketId, market, null, "swap") },
+            { "type", ((bool) isTrue((isEqual(type, "1")))) ? "add" : "reduce" },
+            { "marginMode", "isolated" },
+            { "amount", this.safeNumber(data, "margin_change") },
+            { "total", this.safeNumber(data, "position_amount") },
             { "code", getValue(market, "quote") },
             { "status", null },
             { "timestamp", timestamp },
@@ -4755,7 +4651,7 @@ public partial class coinex : Exchange
     public async override Task<object> fetchFundingRates(object symbols = null, object parameters = null)
     {
         /**
-        *  @method
+        * @method
         * @name coinex#fetchFundingRates
         * @description fetch the current funding rates
         * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http009_market_ticker_all
@@ -5227,6 +5123,7 @@ public partial class coinex : Exchange
         object currencyId = this.safeString(transfer, "asset");
         object currencyCode = this.safeCurrencyCode(currencyId, currency);
         return new Dictionary<string, object>() {
+            { "info", transfer },
             { "id", this.safeInteger(transfer, "id") },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
@@ -6153,5 +6050,84 @@ public partial class coinex : Exchange
             throw new ExchangeError ((string)feedback) ;
         }
         return null;
+    }
+
+    public async override Task<object> fetchMarginAdjustmentHistory(object symbol = null, object type = null, object since = null, object limit = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name coinex#fetchMarginAdjustmentHistory
+        * @description fetches the history of margin added or reduced from contract isolated positions
+        * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http046_position_margin_history
+        * @param {string} [symbol] unified market symbol
+        * @param {string} [type] not used by coinex fetchMarginAdjustmentHistory
+        * @param {int} [since] timestamp in ms of the earliest change to fetch
+        * @param {int} [limit] the maximum amount of changes to fetch, default=100, max=100
+        * @param {object} params extra parameters specific to the exchange api endpoint
+        * @param {int} [params.until] timestamp in ms of the latest change to fetch
+        *
+        * EXCHANGE SPECIFIC PARAMETERS
+        * @param {int} [params.offset] offset
+        * @returns {object[]} a list of [margin structures]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object until = this.safeInteger(parameters, "until");
+        parameters = this.omit(parameters, "until");
+        if (isTrue(isEqual(limit, null)))
+        {
+            limit = 100;
+        }
+        object request = new Dictionary<string, object>() {
+            { "market", "" },
+            { "position_id", 0 },
+            { "offset", 0 },
+            { "limit", limit },
+        };
+        if (isTrue(!isEqual(symbol, null)))
+        {
+            object market = this.market(symbol);
+            ((IDictionary<string,object>)request)["market"] = getValue(market, "id");
+        }
+        if (isTrue(!isEqual(since, null)))
+        {
+            ((IDictionary<string,object>)request)["start_time"] = since;
+        }
+        if (isTrue(!isEqual(until, null)))
+        {
+            ((IDictionary<string,object>)request)["end_time"] = until;
+        }
+        object response = await this.v1PerpetualPrivateGetPositionMarginHistory(this.extend(request, parameters));
+        //
+        //    {
+        //        code: '0',
+        //        data: {
+        //            limit: '100',
+        //            offset: '0',
+        //            records: [
+        //                {
+        //                    bkr_price: '0',
+        //                    leverage: '3',
+        //                    liq_price: '0',
+        //                    margin_amount: '5.33236666666666666666',
+        //                    margin_change: '3',
+        //                    market: 'XRPUSDT',
+        //                    position_amount: '11',
+        //                    position_id: '297155652',
+        //                    position_type: '2',
+        //                    settle_price: '0.6361',
+        //                    time: '1711050906.382891',
+        //                    type: '1',
+        //                    user_id: '3685860'
+        //                }
+        //            ]
+        //        },
+        //        message: 'OK'
+        //    }
+        //
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        object records = this.safeList(data, "records", new List<object>() {});
+        object modifications = this.parseMarginModifications(records, null, "market", "swap");
+        return this.filterBySymbolSinceLimit(modifications, symbol, since, limit);
     }
 }

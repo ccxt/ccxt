@@ -31,6 +31,8 @@ class bybit extends Exchange {
                 'borrowCrossMargin' => true,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
+                'cancelOrders' => true,
+                'cancelOrdersForSymbols' => true,
                 'closeAllPositions' => false,
                 'closePosition' => false,
                 'createMarketBuyOrderWithCost' => true,
@@ -77,6 +79,7 @@ class bybit extends Exchange {
                 'fetchLedger' => true,
                 'fetchLeverage' => true,
                 'fetchLeverageTiers' => true,
+                'fetchMarginAdjustmentHistory' => false,
                 'fetchMarketLeverageTiers' => true,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => true,
@@ -146,6 +149,13 @@ class bybit extends Exchange {
                     'v2' => 'https://api.{hostname}',
                     'public' => 'https://api.{hostname}',
                     'private' => 'https://api.{hostname}',
+                ),
+                'demotrading' => array(
+                    'spot' => 'https://api-demo.{hostname}',
+                    'futures' => 'https://api-demo.{hostname}',
+                    'v2' => 'https://api-demo.{hostname}',
+                    'public' => 'https://api-demo.{hostname}',
+                    'private' => 'https://api-demo.{hostname}',
                 ),
                 'www' => 'https://www.bybit.com',
                 'doc' => array(
@@ -335,6 +345,7 @@ class bybit extends Exchange {
                         'v5/user/get-member-type' => 5,
                         'v5/user/aff-customer-info' => 5,
                         'v5/user/del-submember' => 5,
+                        'v5/user/submembers' => 5,
                         // spot leverage token
                         'v5/spot-lever-token/order-record' => 1, // 50/s => cost = 50 / 50 = 1
                         // spot margin trade
@@ -357,6 +368,7 @@ class bybit extends Exchange {
                         'v5/broker/earning-record' => 5,
                         'v5/broker/earnings-info' => 5,
                         'v5/broker/account-info' => 5,
+                        'v5/broker/asset/query-sub-member-deposit-record' => 10,
                     ),
                     'post' => array(
                         // Legacy option USDC
@@ -495,6 +507,8 @@ class bybit extends Exchange {
                         'v5/lending/redeem-cancel' => 5,
                         'v5/account/set-collateral-switch' => 5,
                         'v5/account/set-collateral-switch-batch' => 5,
+                        // demo trading
+                        'v5/account/demo-apply-money' => 5,
                     ),
                 ),
             ),
@@ -961,6 +975,8 @@ class bybit extends Exchange {
             ),
             'precisionMode' => TICK_SIZE,
             'options' => array(
+                'sandboxMode' => false,
+                'enableDemoTrading' => false,
                 'fetchMarkets' => array( 'spot', 'linear', 'inverse', 'option' ),
                 'createOrder' => array(
                     'method' => 'privatePostV5OrderCreate', // 'privatePostV5PositionTradingStop'
@@ -1045,6 +1061,36 @@ class bybit extends Exchange {
         ));
     }
 
+    public function set_sandbox_mode(bool $enable) {
+        /**
+         * enables or disables sandbox mode
+         * @param {boolean} [$enable] true if demo trading should be enabled, false otherwise
+         */
+        parent::set_sandbox_mode($enable);
+        $this->options['sandboxMode'] = $enable;
+    }
+
+    public function enable_demo_trading(bool $enable) {
+        /**
+         * enables or disables demo trading mode
+         * @see https://bybit-exchange.github.io/docs/v5/demo
+         * @param {boolean} [$enable] true if demo trading should be enabled, false otherwise
+         */
+        if ($this->options['sandboxMode']) {
+            throw new NotSupported($this->id . ' demo trading does not support in sandbox environment');
+        }
+        // $enable demo trading in bybit, see => https://bybit-exchange.github.io/docs/v5/demo
+        if ($enable) {
+            $this->urls['apiBackupDemoTrading'] = $this->urls['api'];
+            $this->urls['api'] = $this->urls['demotrading'];
+        } elseif (is_array($this->urls) && array_key_exists('apiBackupDemoTrading', $this->urls)) {
+            $this->urls['api'] = $this->urls['apiBackupDemoTrading'];
+            $newUrls = $this->omit($this->urls, 'apiBackupDemoTrading');
+            $this->urls = $newUrls;
+        }
+        $this->options['enableDemoTrading'] = $enable;
+    }
+
     public function nonce() {
         return $this->milliseconds() - $this->options['timeDifference'];
     }
@@ -1063,12 +1109,22 @@ class bybit extends Exchange {
     }
 
     public function is_unified_enabled($params = array ()) {
+        /**
+         * returns [$enableUnifiedMargin, $enableUnifiedAccount] so the user can check if unified account is enabled
+         */
         // The API key of user id must own one of permissions will be allowed to call following API endpoints.
         // SUB UID => "Account Transfer"
         // MASTER UID => "Account Transfer", "Subaccount Transfer", "Withdrawal"
         $enableUnifiedMargin = $this->safe_value($this->options, 'enableUnifiedMargin');
         $enableUnifiedAccount = $this->safe_value($this->options, 'enableUnifiedAccount');
         if ($enableUnifiedMargin === null || $enableUnifiedAccount === null) {
+            if ($this->options['enableDemoTrading']) {
+                // info endpoint is not available in demo trading
+                // so we're assuming UTA is enabled
+                $this->options['enableUnifiedMargin'] = false;
+                $this->options['enableUnifiedAccount'] = true;
+                return [ $this->options['enableUnifiedMargin'], $this->options['enableUnifiedAccount'] ];
+            }
             $response = $this->privateGetV5UserQueryApi ($params);
             //
             //     {
@@ -1229,7 +1285,7 @@ class bybit extends Exchange {
         return $this->safe_integer($response, 'time');
     }
 
-    public function fetch_currencies($params = array ()) {
+    public function fetch_currencies($params = array ()): ?array {
         /**
          * fetches all available currencies on an exchange
          * @see https://bybit-exchange.github.io/docs/v5/asset/coin-info
@@ -1237,6 +1293,9 @@ class bybit extends Exchange {
          * @return {array} an associative dictionary of currencies
          */
         if (!$this->check_required_credentials(false)) {
+            return null;
+        }
+        if ($this->options['enableDemoTrading']) {
             return null;
         }
         $response = $this->privateGetV5AssetCoinQueryInfo ($params);
@@ -4244,6 +4303,89 @@ class bybit extends Exchange {
         return $this->parse_orders($row, $market);
     }
 
+    public function cancel_orders_for_symbols(array $orders, $params = array ()) {
+        /**
+         * cancel multiple $orders for multiple symbols
+         * @see https://bybit-exchange.github.io/docs/v5/order/batch-cancel
+         * @param {string[]} ids $order ids
+         * @param {string} $symbol unified $symbol of the $market the $order was made in
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string[]} [$params->clientOrderIds] client $order ids
+         * @return {array} an list of ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structures~
+         */
+        $this->load_markets();
+        $ordersRequests = array();
+        $category = null;
+        for ($i = 0; $i < count($orders); $i++) {
+            $order = $orders[$i];
+            $symbol = $this->safe_string($order, 'symbol');
+            $market = $this->market($symbol);
+            $currentCategory = null;
+            list($currentCategory, $params) = $this->get_bybit_type('cancelOrders', $market, $params);
+            if ($currentCategory === 'inverse') {
+                throw new NotSupported($this->id . ' cancelOrdersForSymbols does not allow inverse orders');
+            }
+            if (($category !== null) && ($category !== $currentCategory)) {
+                throw new ExchangeError($this->id . ' cancelOrdersForSymbols requires all $orders to be of the same $category (linear, spot or option))');
+            }
+            $category = $currentCategory;
+            $id = $this->safe_string($order, 'id');
+            $clientOrderId = $this->safe_string($order, 'clientOrderId');
+            $idKey = 'orderId';
+            if ($clientOrderId !== null) {
+                $idKey = 'orderLinkId';
+            }
+            $orderItem = array(
+                'symbol' => $market['id'],
+            );
+            $orderItem[$idKey] = ($idKey === 'orderId') ? $id : $clientOrderId;
+            $ordersRequests[] = $orderItem;
+        }
+        $request = array(
+            'category' => $category,
+            'request' => $ordersRequests,
+        );
+        $response = $this->privatePostV5OrderCancelBatch (array_merge($request, $params));
+        //
+        //     {
+        //         "retCode" => "0",
+        //         "retMsg" => "OK",
+        //         "result" => {
+        //             "list" => array(
+        //                 array(
+        //                     "category" => "spot",
+        //                     "symbol" => "BTCUSDT",
+        //                     "orderId" => "1636282505818800896",
+        //                     "orderLinkId" => "1636282505818800897"
+        //                 ),
+        //                 array(
+        //                     "category" => "spot",
+        //                     "symbol" => "BTCUSDT",
+        //                     "orderId" => "1636282505818800898",
+        //                     "orderLinkId" => "1636282505818800899"
+        //                 }
+        //             )
+        //         ),
+        //         "retExtInfo" => {
+        //             "list" => array(
+        //                 array(
+        //                     "code" => "0",
+        //                     "msg" => "OK"
+        //                 ),
+        //                 array(
+        //                     "code" => "0",
+        //                     "msg" => "OK"
+        //                 }
+        //             )
+        //         ),
+        //         "time" => "1709796158501"
+        //     }
+        //
+        $result = $this->safe_dict($response, 'result', array());
+        $row = $this->safe_list($result, 'list', array());
+        return $this->parse_orders($row, null);
+    }
+
     public function cancel_all_usdc_orders(?string $symbol = null, $params = array ()) {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' cancelAllUsdcOrders() requires a $symbol argument');
@@ -5225,7 +5367,7 @@ class bybit extends Exchange {
         $coin = $this->safe_string($result, 'coin');
         $currency = $this->currency($coin);
         $parsed = $this->parse_deposit_addresses($chains, [ $currency['code'] ], false, array(
-            'currency' => $currency['id'],
+            'currency' => $currency['code'],
         ));
         return $this->index_by($parsed, 'network');
     }
@@ -7129,7 +7271,7 @@ class bybit extends Exchange {
         return $this->fetch_derivatives_market_leverage_tiers($symbol, $params);
     }
 
-    public function parse_trading_fee($fee, ?array $market = null) {
+    public function parse_trading_fee($fee, ?array $market = null): array {
         //
         //     {
         //         "symbol" => "ETHUSDT",
@@ -7145,10 +7287,12 @@ class bybit extends Exchange {
             'symbol' => $symbol,
             'maker' => $this->safe_number($fee, 'makerFeeRate'),
             'taker' => $this->safe_number($fee, 'takerFeeRate'),
+            'percentage' => null,
+            'tierBased' => null,
         );
     }
 
-    public function fetch_trading_fee(string $symbol, $params = array ()) {
+    public function fetch_trading_fee(string $symbol, $params = array ()): array {
         /**
          * fetch the trading $fees for a $market
          * @see https://bybit-exchange.github.io/docs/v5/account/fee-rate
@@ -7196,7 +7340,7 @@ class bybit extends Exchange {
         return $this->parse_trading_fee($first, $market);
     }
 
-    public function fetch_trading_fees($params = array ()) {
+    public function fetch_trading_fees($params = array ()): array {
         /**
          * fetch the trading $fees for multiple markets
          * @see https://bybit-exchange.github.io/docs/v5/account/fee-rate
