@@ -216,6 +216,62 @@
                   }
                 ]
             }
+        ],
+        "createOrder": [
+            {
+                "description": "create spot market order",
+                "method": "createOrder",
+                "url": "https://api.bitflex.com/openapi/v1/order?symbol=ETHUSDT&side=BUY&type=MARKET&quantity=31&timestamp=1713900495454&signature=d12ab9d9e67faeac1c5da1c6334b1ba5193edc97d0ea63289d8e5f9a34265045",
+                "input": [
+                  "ETH/USDT",
+                  "market",
+                  "buy",
+                  0.01,
+                  3100
+                ]
+              }
+        ],
+        "fetchOrder": [
+            {
+                "description": "fetch spot market order",
+                "method": "fetchOrder",
+                "url": "https://api.bitflex.com/openapi/v1/order?orderId=1670712881241456896&timestamp=1713900744784&signature=ec94cb9f8aad4628f1b1289d27bac4ffb1d148caf19f6f2da74072456583ec9c",
+                "input": [
+                  "1670712881241456896"
+                ]
+            }
+        ],
+        "fetchCanceledAndClosedOrders": [
+            {
+                "description": "Fetch canceled and closed spot orders",
+                "method": "fetchCanceledAndClosedOrders",
+                "url": "https://api.bitflex.com/openapi/v1/historyOrders?timestamp=1713901286584&signature=4f709b450e7dd8adeefc482f0f55e48bf3d9cd51d373d493dbaf268f759c86d9",
+                "input": []
+            },
+            {
+                "description": "Fetch canceled and closed swap orders",
+                "method": "fetchCanceledAndClosedOrders",
+                "url": "https://api.bitflex.com/openapi/contract/v1/historyOrders?symbol=ETH-SWAP-USDT&timestamp=1713902008774&signature=071be87de335668d904c042fd8bc7a404179edb0da0e59ef12eb5873df6b7dbd",
+                "input": [
+                  "ETH/USDT:USDT"
+                ]
+            }
+        ],
+        "fetchAccounts": [
+            {
+                "description": "Fetch accounts",
+                "method": "fetchAccounts",
+                "url": "https://api.bitflex.com/openapi/v1/subAccount/query?timestamp=1713902129526&signature=33bd79620ec7b248ab3ef114ff9fe95b2d0f1d474ab8bd3420104903286548ce",
+                "input": []
+            }
+        ],
+        "fetchDeposits": [
+            {
+                "description": "Fetch deposits",
+                "method": "fetchDeposits",
+                "url": "https://api.bitflex.com/openapi/v1/depositOrders?timestamp=1713902412450&signature=797725dce32c693092ad99542d452f226daa60b31df6fa9d330a5c77fe726655",
+                "input": []
+            }
         ]
     }
 }
