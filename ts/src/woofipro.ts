@@ -65,7 +65,7 @@ export default class woofipro extends Exchange {
                 'fetchConvertCurrencies': true,
                 'fetchConvertQuote': true,
                 'fetchCurrencies': true,
-                'fetchDepositAddress': true,
+                'fetchDepositAddress': false,
                 'fetchDeposits': true,
                 'fetchDepositsWithdrawals': true,
                 'fetchFundingHistory': true,
@@ -1951,6 +1951,216 @@ export default class woofipro extends Exchange {
         //
         const data = this.safeDict (response, 'data');
         return this.parseBalance (data);
+    }
+
+	async getAssetHistoryRows (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = { };
+        let currency: Currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['balance_token'] = currency['id'];
+        }
+        if (since !== undefined) {
+            request['start_t'] = since;
+        }
+        if (limit !== undefined) {
+            request['pageSize'] = limit;
+        }
+        const transactionType = this.safeString (params, 'type');
+        params = this.omit (params, 'type');
+        if (transactionType !== undefined) {
+            request['type'] = transactionType;
+        }
+        const response = await this.v1PrivateGetAssetHistory (this.extend (request, params));
+        //
+		// 	{
+		// 		"success": true,
+		// 		"timestamp": 1702989203989,
+		// 		"data": {
+		// 		  "meta": {
+		// 			"total": 9,
+		// 			"records_per_page": 25,
+		// 			"current_page": 1
+		// 		  },
+		// 		  "rows": [{
+		// 			"id": "230707030600002",
+		// 			"tx_id": "0x4b0714c63cc7abae72bf68e84e25860b88ca651b7d27dad1e32bf4c027fa5326",
+		// 			"side": "WITHDRAW",
+		// 			"token": "USDC",
+		// 			"amount": 555,
+		// 			"fee": 123,
+		// 			"trans_status": "FAILED",
+		// 			"created_time": 1688699193034,
+		// 			"updated_time": 1688699193096,
+		// 			"chain_id": "986532"
+		// 		  }]
+		// 		}
+		// 	}
+		//
+		const data = this.safeDict (response, 'data', {});
+        return [ currency, this.safeList (data, 'rows', []) ];
+    }
+
+	parseLedgerEntry (item, currency: Currency = undefined) {
+        const code = this.safeString (item, 'token');
+        const amount = this.safeNumber (item, 'amount');
+        const side = this.safeString (item, 'token_side');
+        const direction = (side === 'DEPOSIT') ? 'in' : 'out';
+        const timestamp = this.safeInteger (item, 'created_time');
+        const fee = this.parseTokenAndFeeTemp (item, 'fee_token', 'fee_amount');
+        return {
+            'id': this.safeString (item, 'id'),
+            'currency': code,
+            'account': this.safeString (item, 'account'),
+            'referenceAccount': undefined,
+            'referenceId': this.safeString (item, 'tx_id'),
+            'status': this.parseTransactionStatus (this.safeString (item, 'status')),
+            'amount': amount,
+            'before': undefined,
+            'after': undefined,
+            'fee': fee,
+            'direction': direction,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'type': this.parseLedgerEntryType (this.safeString (item, 'type')),
+            'info': item,
+        };
+    }
+
+    parseLedgerEntryType (type) {
+        const types = {
+            'BALANCE': 'transaction', // Funds moved in/out wallet
+            'COLLATERAL': 'transfer', // Funds moved between portfolios
+        };
+        return this.safeString (types, type, type);
+    }
+
+    async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        /**
+         * @method
+         * @name woofipro#fetchLedger
+         * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
+         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-asset-history
+		 * @param {string} code unified currency code, default is undefined
+         * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
+         * @param {int} [limit] max number of ledger entrys to return, default is undefined
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
+         */
+        const [ currency, rows ] = await this.getAssetHistoryRows (code, since, limit, params);
+        return this.parseLedger (rows, currency, since, limit, params);
+    }
+	
+
+	parseTransaction (transaction, currency: Currency = undefined): Transaction {
+        // example in fetchLedger
+        const code = this.safeString (transaction, 'token');
+        let movementDirection = this.safeStringLower (transaction, 'token_side');
+        if (movementDirection === 'withdraw') {
+            movementDirection = 'withdrawal';
+        }
+        const fee = this.parseTokenAndFeeTemp (transaction, 'fee_token', 'fee_amount');
+        const addressTo = this.safeString (transaction, 'target_address');
+        const addressFrom = this.safeString (transaction, 'source_address');
+        const timestamp = this.safeInteger (transaction, 'created_time');
+        return {
+            'info': transaction,
+            'id': this.safeString2 (transaction, 'id', 'withdraw_id'),
+            'txid': this.safeString (transaction, 'tx_id'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'address': undefined,
+            'addressFrom': addressFrom,
+            'addressTo': addressTo,
+            'tag': this.safeString (transaction, 'extra'),
+            'tagFrom': undefined,
+            'tagTo': undefined,
+            'type': movementDirection,
+            'amount': this.safeNumber (transaction, 'amount'),
+            'currency': code,
+            'status': this.parseTransactionStatus (this.safeString (transaction, 'status')),
+            'updated': this.safeInteger (transaction, 'updated_time'),
+            'comment': undefined,
+            'internal': undefined,
+            'fee': fee,
+            'network': undefined,
+        };
+    }
+
+    parseTransactionStatus (status) {
+        const statuses = {
+            'NEW': 'pending',
+            'CONFIRMING': 'pending',
+            'PROCESSING': 'pending',
+            'COMPLETED': 'ok',
+            'CANCELED': 'canceled',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+	async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+        /**
+         * @method
+         * @name woofipro#fetchDeposits
+         * @description fetch all deposits made to an account
+		 * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-asset-history
+         * @param {string} code unified currency code
+         * @param {int} [since] the earliest time in ms to fetch deposits for
+         * @param {int} [limit] the maximum number of deposits structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+         */
+        const request = {
+            'side': 'DEPOSIT',
+        };
+        return await this.fetchDepositsWithdrawals (code, since, limit, this.extend (request, params));
+    }
+
+    async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+        /**
+         * @method
+         * @name woofipro#fetchWithdrawals
+         * @description fetch all withdrawals made from an account
+		 * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-asset-history
+         * @param {string} code unified currency code
+         * @param {int} [since] the earliest time in ms to fetch withdrawals for
+         * @param {int} [limit] the maximum number of withdrawals structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+         */
+        const request = {
+            'side': 'WITHDRAW',
+        };
+        return await this.fetchDepositsWithdrawals (code, since, limit, this.extend (request, params));
+    }
+
+    async fetchDepositsWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+        /**
+         * @method
+         * @name woofipro#fetchDepositsWithdrawals
+         * @description fetch history of deposits and withdrawals
+		 * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-asset-history
+         * @param {string} [code] unified currency code for the currency of the deposit/withdrawals, default is undefined
+         * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
+         * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+         */
+        const request = {};
+        const [ currency, rows ] = await this.getAssetHistoryRows (code, since, limit, this.extend (request, params));
+        //
+        //     {
+        //         "rows":[],
+        //         "meta":{
+        //             "total":0,
+        //             "records_per_page":25,
+        //             "current_page":1
+        //         },
+        //         "success":true
+        //     }
+        //
+        return this.parseTransactions (rows, currency, since, limit, params);
     }
 
     nonce () {
