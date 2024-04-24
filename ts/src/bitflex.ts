@@ -1652,7 +1652,6 @@ export default class bitflex extends Exchange {
     parseOrder (order, market: Market = undefined): Order {
         //
         // spot: createOrder
-        //
         //     {
         //         "accountId": "1662502620223296001",
         //         "symbol": "ETHUSDT",
@@ -1670,8 +1669,6 @@ export default class bitflex extends Exchange {
         //     }
         //
         // swap: createOrder
-        //
-        //
         //     {
         //         "time": "1713648762414",
         //         "updateTime": "1713648762414",
@@ -1694,7 +1691,6 @@ export default class bitflex extends Exchange {
         //     }
         //
         // spot: fetchOrder
-        //
         //     {
         //         "accountId": "1662502620223296001",
         //         "exchangeId": "301",
@@ -1719,7 +1715,6 @@ export default class bitflex extends Exchange {
         //     }
         //
         // swap: fetchOrder
-        //
         //     {
         //         "time": "1713644180835",
         //         "updateTime": "1713644180876",
@@ -1742,62 +1737,52 @@ export default class bitflex extends Exchange {
         //     }
         //
         // spot: fetchCanceledAndCloseOrders
-        //
-        //     [
-        //         {
-        //             "accountId": "1662502620223296001",
-        //             "exchangeId": "301",
-        //             "symbol": "ETHUSDT",
-        //             "symbolName": "ETHUSDT",
-        //             "clientOrderId": "1713531483905247",
-        //             "orderId": "1667617386700800256",
-        //             "price": "0",
-        //             "origQty": "0.001",
-        //             "executedQty": "0.001",
-        //             "cummulativeQuoteQty": "3.09928",
-        //             "avgPrice": "3099.28",
-        //             "status": "FILLED",
-        //             "timeInForce": "GTC",
-        //             "type": "MARKET",
-        //             "side": "SELL",
-        //             "stopPrice": "0.0",
-        //             "icebergQty": "0.0",
-        //             "time": "1713531483914",
-        //             "updateTime": "1713531483961",
-        //             "isWorking": true
-        //         },
-        //         ...
-        //     ]
+        //     {
+        //         "accountId": "1662502620223296001",
+        //         "exchangeId": "301",
+        //         "symbol": "ETHUSDT",
+        //         "symbolName": "ETHUSDT",
+        //         "clientOrderId": "1713531483905247",
+        //         "orderId": "1667617386700800256",
+        //         "price": "0",
+        //         "origQty": "0.001",
+        //         "executedQty": "0.001",
+        //         "cummulativeQuoteQty": "3.09928",
+        //         "avgPrice": "3099.28",
+        //         "status": "FILLED",
+        //         "timeInForce": "GTC",
+        //         "type": "MARKET",
+        //         "side": "SELL",
+        //         "stopPrice": "0.0",
+        //         "icebergQty": "0.0",
+        //         "time": "1713531483914",
+        //         "updateTime": "1713531483961",
+        //         "isWorking": true
+        //     }
         //
         // swap: fetchCanceledAndCloseOrders
-        //
-        //
-        //     [
-        //         {
-        //             "time": "1713644180835",
-        //             "updateTime": "1713644180876",
-        //             "orderId": "1668562756977053184",
-        //             "clientOrderId": "123ss443335",
-        //             "symbol": "ETH-SWAP-USDT",
-        //             "price": "0",
-        //             "leverage": "0",
-        //             "origQty": "0.1",
-        //             "executedQty": "0.1",
-        //             "executeQty": "0.1",
-        //             "avgPrice": "3162.28",
-        //             "marginLocked": "0",
-        //             "orderType": "MARKET",
-        //             "side": "BUY_CLOSE",
-        //             "fees": [],
-        //             "timeInForce": "IOC",
-        //             "status": "FILLED",
-        //             "priceType": "MARKET"
-        //         },
-        //         ...
-        //     ]
+        //     {
+        //         "time": "1713644180835",
+        //         "updateTime": "1713644180876",
+        //         "orderId": "1668562756977053184",
+        //         "clientOrderId": "123ss443335",
+        //         "symbol": "ETH-SWAP-USDT",
+        //         "price": "0",
+        //         "leverage": "0",
+        //         "origQty": "0.1",
+        //         "executedQty": "0.1",
+        //         "executeQty": "0.1",
+        //         "avgPrice": "3162.28",
+        //         "marginLocked": "0",
+        //         "orderType": "MARKET",
+        //         "side": "BUY_CLOSE",
+        //         "fees": [],
+        //         "timeInForce": "IOC",
+        //         "status": "FILLED",
+        //         "priceType": "MARKET"
+        //     }
         //
         // spot: cancelOrder
-        //
         //     {
         //         "accountId": "1662502620223296001",
         //         "symbol": "ETHUSDT",
@@ -1814,7 +1799,6 @@ export default class bitflex extends Exchange {
         //     }
         //
         // swap: cancelOrder
-        //
         //     {
         //         "time": "1713648762414",
         //         "updateTime": "1713649270107",
@@ -1857,7 +1841,7 @@ export default class bitflex extends Exchange {
         const filled = this.safeString (order, 'executedQty'); // todo check
         market = this.safeMarket (marketId, market);
         let amount = this.safeString (order, 'origQty');
-        let cost = undefined;
+        let cost = this.safeString (order, 'cummulativeQuoteQty');
         if (market['spot']) {
             if ((type === 'market') && (side === 'buy')) {
                 cost = this.safeString (order, 'origQty');
