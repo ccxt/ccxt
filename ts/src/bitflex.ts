@@ -216,6 +216,7 @@ export default class bitflex extends Exchange {
                     // 400 {"code":-1022,"msg":"Signature for this request is not valid."}
                     // 400 {"code":-10009,"msg":"Invalid period!"}
                     // 400 {"code":-100002,"msg":"Param startTime should be Long."}
+                    // 400 {"code":-1173,"msg":"Withdraw address illegal."}
                     // 500 {"code":-9999,"msg":"Server Error"}
                 },
                 'broad': {
@@ -2426,7 +2427,7 @@ export default class bitflex extends Exchange {
         //         }
         //     ]
         //
-        return this.parseTransactions (response, currency, since, limit);
+        return this.parseTransactions (response, currency, since, limit, 'deposit');
     }
 
     async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
@@ -2508,7 +2509,7 @@ export default class bitflex extends Exchange {
         //         }
         //     ]
         //
-        return this.parseTransactions (response, currency, since, limit);
+        return this.parseTransactions (response, currency, since, limit, 'withdrawal');
     }
 
     async fetchWithdrawal (id: string, code: Str = undefined, params = {}) {
@@ -2527,7 +2528,7 @@ export default class bitflex extends Exchange {
          */
         await this.loadMarkets ();
         const request = {
-            'id': id,
+            'orderId': id,
         };
         let currency = undefined;
         if (code !== undefined) {
@@ -2537,52 +2538,44 @@ export default class bitflex extends Exchange {
         const response = await this.privateGetOpenapiV1WithdrawDetail (this.extend (request, params));
         //
         //     {
-        //         "time":"1536232111669",
-        //         "orderId":"90161227158286336",
-        //         "accountId":"517256161325920",
-        //         "tokenId":"BHC",
-        //         "tokenName":"BHC",
-        //         "address":"0x815bF1c3cc0f49b8FC66B21A7e48fCb476051209",
-        //         "addressExt":"address tag",
-        //         "quantity":"14", // Withdrawal qty
-        //         "arriveQuantity":"14", // Arrived qty
-        //         "statusCode":"PROCESSING_STATUS",
-        //         "status":3,
-        //         "txid":"",
-        //         "txidUrl":"",
-        //         "walletHandleTime":"1536232111669",
-        //         "feeTokenId":"BHC",
-        //         "feeTokenName":"BHC",
-        //         "fee":"0.1",
-        //         "requiredConfirmNum":0, // Required confirmations
-        //         "confirmNum":0, // Confirmations
-        //         "kernelId":"", // BEAM and GRIN only
-        //         "isInternalTransfer": false // True if this transfer is internal
-        //         }
+        //         "time": "1713957600743",
+        //         "orderId": "1671191913766650112",
+        //         "accountId": "1662502620223296001",
+        //         "token": "USDT",
+        //         "tokenId": "USDT",
+        //         "tokenName": "USDT",
+        //         "address": "TQNrcFhioqCit8SvDhuCTMsBPPC4hzSrwQ",
+        //         "addressExt": "",
+        //         "quantity": "8.999533",
+        //         "arriveQuantity": "8.999533",
+        //         "status": 6,
+        //         "statusCode": "WITHDRAWAL_SUCCESS_STATUS",
+        //         "txid": "27ae582c3166160448e78d18f703a2330b8055f35fbb607bfab0ba014e91797f",
+        //         "txidUrl": "https://tronscan.org/#/transaction/27ae582c3166160448e78d18f703a2330b8055f35fbb607bfab0ba014e91797f",
+        //         "walletHandleTime": "1713958080199",
+        //         "requiredConfirmNum": 0,
+        //         "confirmNum": 0,
+        //         "kernelId": "",
+        //         "isInternalTransfer": false,
+        //         "feeTokenId": "USDT",
+        //         "feeTokenName": "USDT",
+        //         "fee": "1.000467"
+        //     }
         //
-        return this.parseTransaction (response);
+        response['type'] = 'withdrawal';
+        return this.parseTransaction (response, currency);
     }
 
-    parseWithdrawTransactionStatus (status) {
-        const statuses = {
-            '1': 'pending', // Processing by broker
-            '2': 'canceled', // Rejected by broker
-            '3': 'pending', // Processing by platform
-            '4': 'canceled', // Reject by platfor
-            '5': 'pending', // Processing by wallet
-            '6': 'ok', // Withdrawal success
-            '7': 'failed', // Withdrawal failed
-            '8': 'pending', // Blockchain mining
-        };
-        return this.safeString (statuses, status, status);
-    }
-
-    parseDepositTransactionStatus (status) { // todo check
-        const statuses = {
-            '1': 'failed', // failed
-            '2': 'ok', // deposit can withdraw
-        };
-        return this.safeString (statuses, status, status);
+    parseTransactions (transactions: any[], currency: Currency = undefined, since: Int = undefined, limit: Int = undefined, type: Str = undefined): Transaction[] {
+        let result = [];
+        for (let i = 0; i < transactions.length; i++) {
+            transactions[i] = this.extend (transactions[i], { 'type': type });
+            const transaction = this.parseTransaction (transactions[i], currency);
+            result.push (transaction);
+        }
+        result = this.sortBy (result, 'timestamp');
+        const code = (currency !== undefined) ? currency['code'] : undefined;
+        return this.filterByCurrencySinceLimit (result, code, since, limit);
     }
 
     parseTransaction (transaction, currency: Currency = undefined): Transaction {
@@ -2609,42 +2602,71 @@ export default class bitflex extends Exchange {
         //     ]
         //
         // fetchWithdrawals
-        //
         //     [
         //         {
-        //             "time":"1536232111669",
-        //             "orderId":"90161227158286336",
-        //             "accountId":"517256161325920",
-        //             "tokenId":"BHC",
-        //             "tokenName":"BHC",
-        //             "address":"0x815bF1c3cc0f49b8FC66B21A7e48fCb476051209",
-        //             "addressExt":"address tag",
-        //             "quantity":"14", // Withdrawal qty
-        //             "arriveQuantity":"14", // Arrived qty
-        //             "statusCode":"PROCESSING_STATUS",
-        //             "status":3,
-        //             "txid":"",
-        //             "txidUrl":"",
-        //             "walletHandleTime":"1536232111669",
-        //             "feeTokenId":"BHC",
-        //             "feeTokenName":"BHC",
-        //             "fee":"0.1",
-        //             "requiredConfirmNum":0, // Required confirmations
-        //             "confirmNum":0, // Confirmations
-        //             "kernelId":"", // BEAM and GRIN only
-        //             "isInternalTransfer": false // True if this transfer is internal
-        //         },
+        //             "time": "1713957600743",
+        //             "orderId": "1671191913766650112",
+        //             "accountId": "1662502620223296001",
+        //             "token": "USDT",
+        //             "tokenId": "USDT",
+        //             "tokenName": "USDT",
+        //             "address": "TQNrcFhioqCit8SvDhuCTMsBPPC4hzSrwQ",
+        //             "addressExt": "",
+        //             "quantity": "8.999533",
+        //             "arriveQuantity": "8.999533",
+        //             "status": 3,
+        //             "statusCode": "AUDITING_STATUS",
+        //             "txid": "",
+        //             "txidUrl": "",
+        //             "walletHandleTime": "1713957600804",
+        //             "requiredConfirmNum": 0,
+        //             "confirmNum": 0,
+        //             "kernelId": "",
+        //             "isInternalTransfer": false,
+        //             "feeTokenId": "USDT",
+        //             "feeTokenName": "USDT",
+        //             "fee": "1.000467"
+        //         }
         //         ...
         //     ]
         //
-        // withdraw
+        // fetchWithdrawal
         //     {
-        //         "status": 0,
-        //         "success": true,
-        //         "needBrokerAudit": false, // Whether this request needs broker auit
-        //         "orderId": "423885103582776064" // Id for successful withdrawal
+        //         "time": "1713957600743",
+        //         "orderId": "1671191913766650112",
+        //         "accountId": "1662502620223296001",
+        //         "token": "USDT",
+        //         "tokenId": "USDT",
+        //         "tokenName": "USDT",
+        //         "address": "TQNrcFhioqCit8SvDhuCTMsBPPC4hzSrwQ",
+        //         "addressExt": "",
+        //         "quantity": "8.999533",
+        //         "arriveQuantity": "8.999533",
+        //         "status": 6,
+        //         "statusCode": "WITHDRAWAL_SUCCESS_STATUS",
+        //         "txid": "27ae582c3166160448e78d18f703a2330b8055f35fbb607bfab0ba014e91797f",
+        //         "txidUrl": "https://tronscan.org/#/transaction/27ae582c3166160448e78d18f703a2330b8055f35fbb607bfab0ba014e91797f",
+        //         "walletHandleTime": "1713958080199",
+        //         "requiredConfirmNum": 0,
+        //         "confirmNum": 0,
+        //         "kernelId": "",
+        //         "isInternalTransfer": false,
+        //         "feeTokenId": "USDT",
+        //         "feeTokenName": "USDT",
+        //         "fee": "1.000467"
         //     }
         //
+        // withdraw
+        //     {
+        //         "success": true,
+        //         "needBrokerAudit": false,
+        //         "orderId": "1671191913766650112",
+        //         "allowWithdraw": true,
+        //         "refuseReason": "0"
+        //     }
+        //
+        const type = this.safeString (transaction, 'type');
+        transaction = this.omit (transaction, 'type'); // we extend the transaction with the 'type' in parseTransactions
         const id = this.safeString (transaction, 'orderId');
         const txid = this.safeString (transaction, 'txid');
         const timestamp = this.safeInteger (transaction, 'time');
@@ -2661,26 +2683,22 @@ export default class bitflex extends Exchange {
             tag = ext;
         }
         const tagFrom = this.safeString (transaction, 'fromAddressTag');
-        let type = undefined;
-        if ('adressExt' in transaction) {
-            type = 'withdrawal';
-        } else {
-            type = 'deposit';
-        }
         const amount = this.safeNumber (transaction, 'quantity');
-        const code = this.safeString (transaction, 'tokenId');
+        const currencyId = this.safeString (transaction, 'token');
+        const currencyCode = this.safeCurrencyCode (currencyId, currency);
+        const statusType = this.safeString (transaction, 'status');
         let status = undefined;
         if (type === 'withdrawal') {
-            status = this.parseWithdrawTransactionStatus (this.safeString (transaction, 'status'));
+            status = this.parseWithdrawTransactionStatus (statusType);
         } else {
-            status = this.parseDepositTransactionStatus (this.safeString (transaction, 'status'));
+            status = this.parseDepositTransactionStatus (statusType);
         }
         const feeCost = this.safeNumber (transaction, 'fee');
         let fee = undefined;
         if (feeCost !== undefined) {
             fee = {
                 'cost': feeCost,
-                'currency': code,
+                'currency': currencyCode,
             };
         }
         const internal = this.safeBool (transaction, 'isInternalTransfer');
@@ -2699,13 +2717,35 @@ export default class bitflex extends Exchange {
             'tagFrom': tagFrom,
             'type': type,
             'amount': amount,
-            'currency': code,
+            'currency': currencyCode,
             'status': status,
             'updated': undefined,
             'internal': internal,
             'comment': undefined,
             'fee': fee,
         };
+    }
+
+    parseWithdrawTransactionStatus (status) {
+        const statuses = {
+            '1': 'pending', // Processing by broker
+            '2': 'canceled', // Rejected by broker
+            '3': 'pending', // Processing by platform
+            '4': 'canceled', // Reject by platfor
+            '5': 'pending', // Processing by wallet
+            '6': 'ok', // Withdrawal success
+            '7': 'failed', // Withdrawal failed
+            '8': 'pending', // Blockchain mining
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    parseDepositTransactionStatus (status) { // todo check
+        const statuses = {
+            '1': 'failed', // failed
+            '2': 'ok', // deposit can withdraw
+        };
+        return this.safeString (statuses, status, status);
     }
 
     async transfer (code: string, amount: number, fromAccount: string, toAccount: string, params = {}): Promise<TransferEntry> { // todo transfer to account with special index subaccount
@@ -2807,12 +2847,14 @@ export default class bitflex extends Exchange {
         const response = await this.privatePostOpenapiV1Withdraw (this.extend (request, params));
         //
         //     {
-        //         "status": 0,
         //         "success": true,
-        //         "needBrokerAudit": false, // Whether this request needs broker auit
-        //         "orderId": "423885103582776064" // Id for successful withdrawal
+        //         "needBrokerAudit": false,
+        //         "orderId": "1671191913766650112",
+        //         "allowWithdraw": true,
+        //         "refuseReason": "0"
         //     }
         //
+        response['type'] = 'withdrawal';
         return this.parseTransaction (response, currency);
     }
 
