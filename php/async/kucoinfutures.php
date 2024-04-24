@@ -2215,8 +2215,8 @@ class kucoinfutures extends kucoin {
                 // $symbol ('strval') [optional] Symbol of the contract
                 // side ('strval') [optional] buy or sell
                 // type ('strval') [optional] $limit, $market, limit_stop or market_stop
-                // startAt (long) [optional] Start time (milisecond)
-                // endAt (long) [optional] End time (milisecond)
+                // startAt (long) [optional] Start time (millisecond)
+                // endAt (long) [optional] End time (millisecond)
             );
             $market = null;
             if ($symbol !== null) {

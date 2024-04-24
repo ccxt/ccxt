@@ -328,6 +328,7 @@ class binance extends Exchange {
                         'capital/deposit/subAddress' => 0.1,
                         'capital/deposit/subHisrec' => 0.1,
                         'capital/withdraw/history' => 1800, // Weight(IP) => 18000 => cost = 0.1 * 18000 = 1800
+                        'capital/withdraw/address/list' => 10,
                         'capital/contract/convertible-coins' => 4.0002, // Weight(UID) => 600 => cost = 0.006667 * 600 = 4.0002
                         'convert/tradeFlow' => 20.001, // Weight(UID) => 3000 => cost = 0.006667 * 3000 = 20.001
                         'convert/exchangeInfo' => 50,
@@ -4083,6 +4084,7 @@ class binance extends Exchange {
              * @param {string[]} [$symbols] unified $symbols of the markets to fetch the ticker for, all $market tickers are returned if not assigned
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->subType] "linear" or "inverse"
+             * @param {string} [$params->type] 'spot', 'option', use $params["subType"] for swap and future markets
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
              */
             Async\await($this->load_markets());
@@ -4899,6 +4901,28 @@ class binance extends Exchange {
         return array_merge($request, $params);
     }
 
+    public function edit_contract_order_request(string $id, string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
+        $market = $this->market($symbol);
+        if (!$market['contract']) {
+            throw new NotSupported($this->id . ' editContractOrder() does not support ' . $market['type'] . ' orders');
+        }
+        $request = array(
+            'symbol' => $market['id'],
+            'side' => strtoupper($side),
+        );
+        $clientOrderId = $this->safe_string_n($params, array( 'newClientOrderId', 'clientOrderId', 'origClientOrderId' ));
+        $request['orderId'] = $id;
+        $request['quantity'] = $this->amount_to_precision($symbol, $amount);
+        if ($price !== null) {
+            $request['price'] = $this->price_to_precision($symbol, $price);
+        }
+        if ($clientOrderId !== null) {
+            $request['origClientOrderId'] = $clientOrderId;
+        }
+        $params = $this->omit($params, array( 'clientOrderId', 'newClientOrderId' ));
+        return $request;
+    }
+
     public function edit_contract_order(string $id, string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $type, $side, $amount, $price, $params) {
             /**
@@ -4916,23 +4940,7 @@ class binance extends Exchange {
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
-            if (!$market['contract']) {
-                throw new NotSupported($this->id . ' editContractOrder() does not support ' . $market['type'] . ' orders');
-            }
-            $request = array(
-                'symbol' => $market['id'],
-                'side' => strtoupper($side),
-            );
-            $clientOrderId = $this->safe_string_n($params, array( 'newClientOrderId', 'clientOrderId', 'origClientOrderId' ));
-            $request['orderId'] = $id;
-            $request['quantity'] = $this->amount_to_precision($symbol, $amount);
-            if ($price !== null) {
-                $request['price'] = $this->price_to_precision($symbol, $price);
-            }
-            if ($clientOrderId !== null) {
-                $request['origClientOrderId'] = $clientOrderId;
-            }
-            $params = $this->omit($params, array( 'clientOrderId', 'newClientOrderId' ));
+            $request = $this->edit_contract_order_request($id, $symbol, $type, $side, $amount, $price, $params);
             $response = null;
             if ($market['linear']) {
                 $response = Async\await($this->fapiPrivatePutOrder (array_merge($request, $params)));

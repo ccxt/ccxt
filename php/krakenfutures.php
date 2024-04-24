@@ -27,6 +27,7 @@ class krakenfutures extends Exchange {
                 'future' => true,
                 'option' => false,
                 'cancelAllOrders' => true,
+                'cancelAllOrdersAfter' => true,
                 'cancelOrder' => true,
                 'cancelOrders' => true,
                 'createMarketOrder' => false,
@@ -1242,6 +1243,32 @@ class krakenfutures extends Exchange {
             $request['symbol'] = $this->market_id($symbol);
         }
         $response = $this->privatePostCancelallorders (array_merge($request, $params));
+        return $response;
+    }
+
+    public function cancel_all_orders_after(?int $timeout, $params = array ()) {
+        /**
+         * dead man's switch, cancel all orders after the given $timeout
+         * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-order-management-dead-man-39-s-switch
+         * @param {number} $timeout time in milliseconds, 0 represents cancel the timer
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} the api result
+         */
+        $this->load_markets();
+        $request = array(
+            'timeout' => ($timeout > 0) ? ($this->parse_to_int($timeout / 1000)) : 0,
+        );
+        $response = $this->privatePostCancelallordersafter (array_merge($request, $params));
+        //
+        //     {
+        //         "result" => "success",
+        //         "serverTime" => "2018-06-19T16:51:23.839Z",
+        //         "status" => {
+        //             "currentTime" => "2018-06-19T16:51:23.839Z",
+        //             "triggerTime" => "0"
+        //         }
+        //     }
+        //
         return $response;
     }
 

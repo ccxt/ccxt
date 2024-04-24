@@ -34,6 +34,7 @@ export default class bingx extends Exchange {
                 'option': false,
                 'addMargin': true,
                 'cancelAllOrders': true,
+                'cancelAllOrdersAfter': true,
                 'cancelOrder': true,
                 'cancelOrders': true,
                 'closeAllPositions': true,
@@ -73,8 +74,10 @@ export default class bingx extends Exchange {
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': true,
+                'fetchPositionHistory': false,
                 'fetchPositionMode': true,
                 'fetchPositions': true,
+                'fetchPositionsHistory': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': true,
@@ -230,6 +233,7 @@ export default class bingx extends Exchange {
                                 'trade/order': 3,
                                 'trade/batchOrders': 3,
                                 'trade/closeAllPositions': 3,
+                                'trade/cancelAllAfter': 3,
                                 'trade/marginType': 3,
                                 'trade/leverage': 3,
                                 'trade/positionMargin': 3,
@@ -2753,6 +2757,48 @@ export default class bingx extends Exchange {
         return response;
     }
 
+    async cancelAllOrdersAfter (timeout: Int, params = {}) {
+        /**
+         * @method
+         * @name bingx#cancelAllOrdersAfter
+         * @description dead man's switch, cancel all orders after the given timeout
+         * @see https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Cancel%20all%20orders%20in%20countdown
+         * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Cancel%20all%20orders%20in%20countdown
+         * @param {number} timeout time in milliseconds, 0 represents cancel the timer
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.type] spot or swap market
+         * @returns {object} the api result
+         */
+        await this.loadMarkets ();
+        const isActive = (timeout > 0);
+        const request: Dict = {
+            'type': (isActive) ? 'ACTIVATE' : 'CLOSE',
+            'timeOut': (isActive) ? (this.parseToInt (timeout / 1000)) : 0,
+        };
+        let response = undefined;
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('cancelAllOrdersAfter', undefined, params);
+        if (type === 'spot') {
+            response = await this.spotV1PrivatePostTradeCancelAllAfter (this.extend (request, params));
+        } else if (type === 'swap') {
+            response = await this.swapV2PrivatePostTradeCancelAllAfter (this.extend (request, params));
+        } else {
+            throw new NotSupported (this.id + ' cancelAllOrdersAfter() is not supported for ' + type + ' markets');
+        }
+        //
+        //     {
+        //         code: '0',
+        //         msg: '',
+        //         data: {
+        //             triggerTime: '1712645434',
+        //             status: 'ACTIVATED',
+        //             note: 'All your perpetual pending orders will be closed automatically at 2024-04-09 06:50:34 UTC(+0),before that you can cancel the timer, or extend triggerTime time by this request'
+        //         }
+        //     }
+        //
+        return response;
+    }
+
     async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
@@ -3911,7 +3957,7 @@ export default class bingx extends Exchange {
         return this.parseDepositWithdrawFees (coins, codes, 'coin');
     }
 
-    async withdraw (code: string, amount: number, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {
         /**
          * @method
          * @name bingx#withdraw

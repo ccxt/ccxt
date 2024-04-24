@@ -42,6 +42,7 @@ class whitebit(Exchange, ImplicitAPI):
                 'future': False,
                 'option': False,
                 'cancelAllOrders': True,
+                'cancelAllOrdersAfter': True,
                 'cancelOrder': True,
                 'cancelOrders': False,
                 'createOrder': True,
@@ -1329,6 +1330,42 @@ class whitebit(Exchange, ImplicitAPI):
         response = self.v4PrivatePostOrderCancelAll(self.extend(request, params))
         #
         # []
+        #
+        return response
+
+    def cancel_all_orders_after(self, timeout: Int, params={}):
+        """
+        dead man's switch, cancel all orders after the given timeout
+        :see: https://docs.whitebit.com/private/http-trade-v4/#sync-kill-switch-timer
+        :param number timeout: time in milliseconds, 0 represents cancel the timer
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.types]: Order types value. Example: "spot", "margin", "futures" or None
+        :param str [params.symbol]: symbol unified symbol of the market the order was made in
+        :returns dict: the api result
+        """
+        self.load_markets()
+        symbol = self.safe_string(params, 'symbol')
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' cancelAllOrdersAfter() requires a symbol argument in params')
+        market = self.market(symbol)
+        params = self.omit(params, 'symbol')
+        isBiggerThanZero = (timeout > 0)
+        request: dict = {
+            'market': market['id'],
+            # 'timeout': self.number_to_string(timeout / 1000) if (timeout > 0) else null,
+        }
+        if isBiggerThanZero:
+            request['timeout'] = self.number_to_string(timeout / 1000)
+        else:
+            request['timeout'] = 'null'
+        response = self.v4PrivatePostOrderKillSwitch(self.extend(request, params))
+        #
+        #     {
+        #         "market": "BTC_USDT",  # currency market,
+        #         "startTime": 1662478154,  # now timestamp,
+        #         "cancellationTime": 1662478154,  # now + timer_value,
+        #         "types": ["spot", "margin"]
+        #     }
         #
         return response
 

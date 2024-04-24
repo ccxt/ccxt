@@ -3881,6 +3881,7 @@ The exchanges' order management APIs differ by design. The user has to understan
 - `cancelOrder()` – used for canceling a single order
 - `cancelOrders()` - used for canceling multiple orders
 - `cancelAllOrders()` - used for canceling all orders
+- `cancelAllOrdersAfter()` - used for canceling all orders after the given timeout
 
 The majority of the exchanges will have a way of fetching currently-open orders. Thus, the `exchange.has['fetchOpenOrders']`. If that method is not available, then most likely the `exchange.has['fetchOrders']` that will provide a list of all orders. The exchange will return a list of open orders either from `fetchOpenOrders()` or from `fetchOrders()`. One of the two methods is usually available from any exchange.
 
@@ -4760,6 +4761,7 @@ To cancel an existing order use
 - `cancelOrder ()` for a single order
 - `cancelOrders ()` for multiple orders
 - `cancelAllOrders ()` for all open orders
+- `cancelAllOrdersAfter ()` for all open orders after the given timeout
 
 ```javascript
 cancelOrder (id, symbol = undefined, params = {})
@@ -4801,6 +4803,19 @@ Parameters
 Returns
 
 - An array of [order structures](#order-structure)
+
+```javascript
+async cancelAllOrdersAfter (timeout, params = {})
+```
+
+Parameters
+
+- **timeout** (number) countdown time in milliseconds **required** on some exchanges, 0 represents cancel the timer (e.g. ``10``\ )
+- **params** (Dictionary) Extra parameters specific to the exchange API endpoint (e.g. ``{"type": "spot"}``\ )
+
+Returns
+
+- An object
 
 #### Exceptions Upon Canceling Orders
 
@@ -6131,6 +6146,8 @@ To get information about positions currently held in contract markets, use
 - fetchPosition ()            // for a single market
 - fetchPositions ()           // for all positions
 - fetchAccountPositions ()    // TODO
+- fetchPositionHistory ()     // for single historical position
+- fetchPositionsHistory ()     // for historical positions
 
 ```javascript
 fetchPosition (symbol, params = {})                         // for a single market
@@ -6153,6 +6170,21 @@ fetchAccountPositions (symbols = undefined, params = {})
 Parameters
 
 - **symbols** (\[String\]) Unified CCXT market symbols, do not set to retrieve all positions (e.g. `["BTC/USDT:USDT"]`)
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
+
+Returns
+
+- An array of [position structures](#position-structure)
+
+```javascript
+fetchPositionHistory (symbol = undefined, since = undefined, limit = undefined, params = {})
+```
+
+Parameters
+
+- **symbol** (\[String\]) Unified CCXT market symbols, do not set to retrieve all positions (e.g. `["BTC/USDT:USDT"]`)
+- **since** (Integer) Timestamp (ms) of the earliest time to retrieve positions for (e.g. `1646940314000`)
+- **limit** (Integer) The number of [position structures](#position-structure) to retrieve (e.g. `5`)
 - **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
 
 Returns

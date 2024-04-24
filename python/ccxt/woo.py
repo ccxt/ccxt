@@ -41,6 +41,7 @@ class woo(Exchange, ImplicitAPI):
                 'option': False,
                 'addMargin': False,
                 'cancelAllOrders': True,
+                'cancelAllOrdersAfter': True,
                 'cancelOrder': True,
                 'cancelWithdraw': False,  # exchange have that endpoint disabled atm, but was once implemented in ccxt per old docs: https://kronosresearch.github.io/wootrade-documents/#cancel-withdraw-request
                 'closeAllPositions': False,
@@ -208,6 +209,7 @@ class woo(Exchange, ImplicitAPI):
                         },
                         'post': {
                             'order': 5,  # 2 requests per 1 second per symbol
+                            'order/cancel_all_after': 1,
                             'asset/main_sub_transfer': 30,  # 20 requests per 60 seconds
                             'asset/ltv': 30,
                             'asset/withdraw': 30,  # implemented in ccxt, disabled on the exchange side https://kronosresearch.github.io/wootrade-documents/#token-withdraw
@@ -1199,6 +1201,31 @@ class woo(Exchange, ImplicitAPI):
         #     {
         #         "success":true,
         #         "status":"CANCEL_ALL_SENT"
+        #     }
+        #
+        return response
+
+    def cancel_all_orders_after(self, timeout: Int, params={}):
+        """
+        dead man's switch, cancel all orders after the given timeout
+        :see: https://docs.woo.org/#cancel-all-after
+        :param number timeout: time in milliseconds, 0 represents cancel the timer
+        :param boolean activated: countdown
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: the api result
+        """
+        self.load_markets()
+        request: dict = {
+            'trigger_after': timeout if (timeout > 0) else 0,
+        }
+        response = self.v1PrivatePostOrderCancelAllAfter(self.extend(request, params))
+        #
+        #     {
+        #         "success": True,
+        #         "data": {
+        #             "expected_trigger_time": 1711534302938
+        #         },
+        #         "timestamp": 1711534302943
         #     }
         #
         return response

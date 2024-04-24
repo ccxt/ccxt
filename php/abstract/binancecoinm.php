@@ -262,6 +262,9 @@ abstract class binancecoinm extends \ccxt\binance {
     public function sapi_get_capital_withdraw_history($params = array()) {
         return $this->request('capital/withdraw/history', 'sapi', 'GET', $params, null, null, array("cost" => 1800));
     }
+    public function sapi_get_capital_withdraw_address_list($params = array()) {
+        return $this->request('capital/withdraw/address/list', 'sapi', 'GET', $params, null, null, array("cost" => 10));
+    }
     public function sapi_get_capital_contract_convertible_coins($params = array()) {
         return $this->request('capital/contract/convertible-coins', 'sapi', 'GET', $params, null, null, array("cost" => 4.0002));
     }
@@ -2358,6 +2361,9 @@ abstract class binancecoinm extends \ccxt\binance {
     }
     public function sapiGetCapitalWithdrawHistory($params = array()) {
         return $this->request('capital/withdraw/history', 'sapi', 'GET', $params, null, null, array("cost" => 1800));
+    }
+    public function sapiGetCapitalWithdrawAddressList($params = array()) {
+        return $this->request('capital/withdraw/address/list', 'sapi', 'GET', $params, null, null, array("cost" => 10));
     }
     public function sapiGetCapitalContractConvertibleCoins($params = array()) {
         return $this->request('capital/contract/convertible-coins', 'sapi', 'GET', $params, null, null, array("cost" => 4.0002));

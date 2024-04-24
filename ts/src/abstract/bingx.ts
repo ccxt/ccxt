@@ -69,6 +69,7 @@ interface Exchange {
     swapV2PrivatePostTradeOrder (params?: {}): Promise<implicitReturnType>;
     swapV2PrivatePostTradeBatchOrders (params?: {}): Promise<implicitReturnType>;
     swapV2PrivatePostTradeCloseAllPositions (params?: {}): Promise<implicitReturnType>;
+    swapV2PrivatePostTradeCancelAllAfter (params?: {}): Promise<implicitReturnType>;
     swapV2PrivatePostTradeMarginType (params?: {}): Promise<implicitReturnType>;
     swapV2PrivatePostTradeLeverage (params?: {}): Promise<implicitReturnType>;
     swapV2PrivatePostTradePositionMargin (params?: {}): Promise<implicitReturnType>;
