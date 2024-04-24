@@ -968,8 +968,8 @@ export default class woofipro extends Exchange {
 		// 	}
         //
         const data = this.safeDict (response, 'data', {});
-        const maker = this.safeString (data, 'makerFeeRate');
-        const taker = this.safeString (data, 'takerFeeRate');
+        const maker = this.safeString (data, 'futures_maker_fee_rate');
+        const taker = this.safeString (data, 'futures_taker_fee_rate');
         const result = {};
         for (let i = 0; i < this.symbols.length; i++) {
             const symbol = this.symbols[i];
