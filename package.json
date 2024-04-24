@@ -168,6 +168,7 @@
     "rollup-plugin-execute": "1.1.1",
     "terser-webpack-plugin": "^5.3.9",
     "ts-loader": "^9.4.2",
+    "tsx": "^4.7.2",
     "typescript": "4.7.4",
     "webpack": "^5.76.2",
     "webpack-cli": "^5.0.1"
@@ -268,7 +269,6 @@
   },
   "ethereum": "0x26a3CB49578F07000575405a57888681249c35Fd",
   "dependencies": {
-    "tsx": "^4.7.2",
     "ws": "^8.8.1"
   }
 }
