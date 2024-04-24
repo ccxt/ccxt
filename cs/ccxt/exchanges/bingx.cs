@@ -2642,7 +2642,7 @@ public partial class bingx : Exchange
         return this.safeOrder(new Dictionary<string, object>() {
             { "info", info },
             { "id", this.safeString2(order, "orderId", "i") },
-            { "clientOrderId", this.safeStringN(order, new List<object>() {"clientOrderID", "origClientOrderId", "c"}) },
+            { "clientOrderId", this.safeStringN(order, new List<object>() {"clientOrderID", "clientOrderId", "origClientOrderId", "c"}) },
             { "symbol", this.safeSymbol(marketId, market, "-", marketType) },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },

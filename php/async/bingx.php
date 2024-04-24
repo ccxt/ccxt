@@ -2473,7 +2473,7 @@ class bingx extends Exchange {
         return $this->safe_order(array(
             'info' => $info,
             'id' => $this->safe_string_2($order, 'orderId', 'i'),
-            'clientOrderId' => $this->safe_string_n($order, array( 'clientOrderID', 'origClientOrderId', 'c' )),
+            'clientOrderId' => $this->safe_string_n($order, array( 'clientOrderID', 'clientOrderId', 'origClientOrderId', 'c' )),
             'symbol' => $this->safe_symbol($marketId, $market, '-', $marketType),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),

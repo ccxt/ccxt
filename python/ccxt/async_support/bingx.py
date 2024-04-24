@@ -2318,7 +2318,7 @@ class bingx(Exchange, ImplicitAPI):
         return self.safe_order({
             'info': info,
             'id': self.safe_string_2(order, 'orderId', 'i'),
-            'clientOrderId': self.safe_string_n(order, ['clientOrderID', 'origClientOrderId', 'c']),
+            'clientOrderId': self.safe_string_n(order, ['clientOrderID', 'clientOrderId', 'origClientOrderId', 'c']),
             'symbol': self.safe_symbol(marketId, market, '-', marketType),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
