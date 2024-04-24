@@ -428,7 +428,7 @@ export default class bitflex extends bitflexRest {
          */
         await this.loadMarkets ();
         const messageHash = 'balance';
-        return await this.watchPrivate (messageHash, params);
+        return await this.watchPrivate (messageHash, params); // todo only returnes changes in balance
     }
 
     handleBalance (client: Client, message) {
@@ -440,27 +440,26 @@ export default class bitflex extends bitflexRest {
         //         W: true,
         //         D: true,
         //         B: [
-        //             {
-        //                 "a": "LTC",
-        //                 "f": "17366.18538083",
-        //                 "l": "0.00000000"
-        //             },
+        //             { a: 'USDT', f: '80.746342492', l: '0' }
         //             ...
         //         ]
         //     }
         //
         const messageHash = 'balance';
-        const data = this.safeValue (message, 'B');
-        const timestamp = this.safeInteger (data, 'E');
-        this.balance['info'] = data;
+        const balances = this.safeList (message, 'B', []);
+        const timestamp = this.safeInteger (message, 'E');
+        this.balance['info'] = balances;
         this.balance['timestamp'] = timestamp;
         this.balance['datetime'] = this.iso8601 (timestamp);
-        const currencyId = this.safeString (data, 'a');
-        const code = this.safeCurrencyCode (currencyId);
-        const account = this.account ();
-        account['free'] = this.safeString (data, 'f');
-        account['used'] = this.safeString (data, 'l');
-        this.balance[code] = account;
+        for (let i = 0; i < balances.length; i++) {
+            const balanceEntry = balances[i];
+            const currencyId = this.safeString (balanceEntry, 'a');
+            const code = this.safeCurrencyCode (currencyId);
+            const account = this.account ();
+            account['free'] = this.safeString (balanceEntry, 'f');
+            account['used'] = this.safeString (balanceEntry, 'l');
+            this.balance[code] = account;
+        }
         this.balance = this.safeBalance (this.balance);
         client.resolve (this.balance, messageHash);
     }
@@ -656,15 +655,14 @@ export default class bitflex extends bitflexRest {
         //     }
         //
         const timestamp = this.safeInteger (order, 'E');
-        let type = this.safeString (order, 'o');
+        const type = this.safeString (order, 'o');
         let amount = this.safeString (order, 'q');
         if (type === 'MARKET_OF_QUOTE') {
             amount = undefined; // market spot orders return cost instead of amount
         }
         let reduceOnly = undefined;
         if (market['swap']) {
-            type = undefined; // swap orders are LIMIT and STOP, we can't define their type in ws
-            reduceOnly = this.safeBool (order, 'C', false); // todo check - looks like the exchange returns false for all orders
+            reduceOnly = this.safeBool (order, 'C', false);
         }
         const orderTimeInForce = this.safeString (order, 'f');
         let timeInForce = this.parseOrderTimeInForce (orderTimeInForce);
@@ -710,6 +708,7 @@ export default class bitflex extends bitflexRest {
         const statuses = {
             'MARKET': 'market',
             'MARKET_OF_QUOTE': 'market',
+            'MARKET_OF_BASE': 'market',
             'LIMIT': 'limit',
             'LIMIT_MAKER': 'limit',
             // todo check
