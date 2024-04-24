@@ -2,8 +2,8 @@
 //  ---------------------------------------------------------------------------
 
 import bitflexRest from '../bitflex.js';
-import { ArrayCache, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import type { Balances, Int, Market, OHLCV, OrderBook, Position, Strings, Ticker, Trade } from '../base/types.js';
+import { ArrayCache, ArrayCacheBySymbolBySide, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
+import type { Balances, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -12,14 +12,15 @@ export default class bitflex extends bitflexRest {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
-                'watchBalance': false,
+                'watchBalance': true,
                 'watchTicker': true,
                 'watchTickers': false,
-                'watchTrades': false,
+                'watchTrades': true,
                 'watchMyTrades': false,
-                'watchOrders': false,
+                'watchOrders': true,
                 'watchOrderBook': true,
-                'watchOHLCV': false,
+                'watchOHLCV': true,
+                'watchPositions': true,
             },
             'urls': {
                 'api': {
@@ -30,7 +31,7 @@ export default class bitflex extends bitflexRest {
                 },
             },
             'options': {
-                'listenKeyRefreshRate': 3600000, // todo check
+                'listenKeyRefreshRate': 3600000,
                 'watchOrderBook': {
                     'snapshotDelay': 25,
                     'snapshotMaxRetries': 3,
@@ -38,13 +39,12 @@ export default class bitflex extends bitflexRest {
                 'listenKey': undefined,
             },
             'streaming': {
-                'ping': this.ping,
                 'keepAlive': 10000,
             },
             'exceptions': {
                 'exact': {
-                    // { code: '-100003', desc: 'Symbol required!' }
-                    // { code: '-10001', desc: 'Invalid JSON!' }
+                    // { "code": '-100003', "desc": 'Symbol required!' }
+                    // { "code": '-10001', "desc": 'Invalid JSON!' }
                 },
                 'broad': {
                 },
@@ -581,6 +581,142 @@ export default class bitflex extends bitflexRest {
         });
     }
 
+    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        /**
+         * @method
+         * @name bitflex#watchOrders
+         * @see https://docs.bitflex.com/user-data-stream
+         * @description watches information on multiple orders made by the user
+         * @param {string} symbol unified market symbol of the market orders were made in
+         * @param {int} [since] the earliest time in ms to fetch orders for
+         * @param {int} [limit] the maximum number of order structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        let messageHash = 'orders';
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            symbol = market['symbol'];
+            messageHash = messageHash + ':' + symbol;
+        }
+        const orders = await this.watchPrivate (messageHash, params);
+        if (this.newUpdates) {
+            limit = orders.getLimit (symbol, limit);
+        }
+        return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
+    }
+
+    handleOrder (client: Client, message) {
+        const marketId = this.safeString (message, 's');
+        const market = this.safeMarket (marketId);
+        const symbol = market['symbol'];
+        const order = this.parseWsOrder (message, market);
+        if (this.orders === undefined) {
+            const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
+            this.orders = new ArrayCacheBySymbolById (limit);
+        }
+        const stored = this.orders;
+        stored.append (order);
+        const messageHash = 'orders';
+        client.resolve (stored, messageHash);
+        const symbolSpecificMessageHash = messageHash + ':' + symbol;
+        client.resolve (stored, symbolSpecificMessageHash);
+    }
+
+    parseWsOrder (order, market = undefined) {
+        //
+        //     {
+        //         e: 'executionReport',
+        //         E: '1713969654752',
+        //         s: 'ETHUSDT',
+        //         c: '1713969654676406',
+        //         S: 'BUY',
+        //         o: 'MARKET_OF_QUOTE',
+        //         f: 'GTC',
+        //         q: '33',
+        //         p: '0',
+        //         X: 'FILLED',
+        //         i: '1671293029561028608',
+        //         M: '1671293004546199552',
+        //         l: '0.0103',
+        //         z: '0.0103',
+        //         L: '3200.5',
+        //         n: '0.00000618',
+        //         N: 'ETH',
+        //         u: true,
+        //         w: true,
+        //         m: false,
+        //         O: '1713969654687',
+        //         Z: '32.96515',
+        //         A: '0',
+        //         C: false,
+        //         v: '0'
+        //     }
+        //
+        const timestamp = this.safeInteger (order, 'E');
+        let type = this.safeString (order, 'o');
+        let amount = this.safeString (order, 'q');
+        if (type === 'MARKET_OF_QUOTE') {
+            amount = undefined; // market spot orders return cost instead of amount
+        }
+        let reduceOnly = undefined;
+        if (market['swap']) {
+            type = undefined; // swap orders are LIMIT and STOP, we can't define their type in ws
+            reduceOnly = this.safeBool (order, 'C', false); // todo check - looks like the exchange returns false for all orders
+        }
+        const orderTimeInForce = this.safeString (order, 'f');
+        let timeInForce = this.parseOrderTimeInForce (orderTimeInForce);
+        if (type === 'LIMIT_MAKER') {
+            timeInForce = 'PO';
+        }
+        const feeCost = this.safeString (order, 'n');
+        const feeCurrency = this.safeString (order, 'N');
+        const fee = {
+            'cost': feeCost,
+            'currency': feeCurrency,
+        };
+        return this.safeOrder ({
+            'id': this.safeString (order, 'i'),
+            'clientOrderId': this.safeString (order, 'c'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': this.safeSymbol (undefined, market),
+            'type': this.parseWsOrderType (type),
+            'side': this.safeStringLower (order, 'S'),
+            'lastTradeTimestamp': undefined,
+            'lastUpdateTimestamp': undefined,
+            'price': this.omitZero (this.safeString (order, 'price')),
+            'amount': amount,
+            'cost': this.safeString (order, 'Z'),
+            'average': undefined,
+            'filled': this.safeString (order, 'z'),
+            'remaining': undefined,
+            'timeInForce': timeInForce,
+            'trades': undefined,
+            'reduceOnly': reduceOnly,
+            'stopPrice': undefined,
+            'triggerPrice': this.safeNumber (order, 'P'),
+            'takeProfitPrice': undefined,
+            'stopLossPrice': undefined,
+            'status': this.parseOrderStatus (this.safeString (order, 'X')),
+            'fee': fee,
+            'info': order,
+        }, market);
+    }
+
+    parseWsOrderType (status) {
+        const statuses = {
+            'MARKET': 'market',
+            'MARKET_OF_QUOTE': 'market',
+            'LIMIT': 'limit',
+            'LIMIT_MAKER': 'limit',
+            // todo check
+        };
+        return this.safeString (statuses, status, status);
+    }
+
     async watchPrivate (messageHash, params = {}) {
         this.checkRequiredCredentials ();
         const listenKey = await this.authenticate (params);
@@ -727,7 +863,7 @@ export default class bitflex extends bitflexRest {
         const topic = this.safeString (message, 'topic');
         const data = this.safeDict (message, 'data');
         const event = this.safeString (message, 'e');
-        if ((topic !== undefined) && (data !== undefined)) {
+        if ((topic !== undefined) && (data !== undefined)) { // for public methods
             if (topic === 'depth') {
                 this.handleOrderBook (client, message);
             }
@@ -740,9 +876,16 @@ export default class bitflex extends bitflexRest {
             if (topic === 'kline') {
                 this.handleOHLCV (client, message);
             }
-        } else if (event !== undefined) {
+        }
+        if (event !== undefined) { // for private methods
             if (event === 'outboundAccountInfo') {
                 this.handleBalance (client, message);
+            }
+            if (event === 'outboundContractPositionInfo') {
+                this.handlePositions (client, message);
+            }
+            if ((event === 'executionReport') || (event === 'contractExecutionReport')) {
+                this.handleOrder (client, message);
             }
         }
     }
