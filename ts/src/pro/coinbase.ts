@@ -48,7 +48,7 @@ export default class coinbase extends coinbaseRest {
         });
     }
 
-    async subscribe (name: string, isPrivate: boolean, symbol = undefined, params = {}) {
+    async subscribe (name: string, isPrivate: boolean, symbol: string = undefined, params = {}) {
         /**
          * @ignore
          * @method
