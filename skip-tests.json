@@ -617,9 +617,11 @@
         }
     },
     "coinbase": {
-        "skip": "private endpoints",
         "skipWs": "needs auth",
         "skipMethods": {
+            "fetchTicker": "private",
+            "fetchTickers": "private",
+            "fetchBidsAsks": "private",
             "fetchCurrencies": {
                 "precision": "not provided"
             },
