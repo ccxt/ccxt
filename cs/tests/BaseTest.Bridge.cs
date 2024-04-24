@@ -80,6 +80,7 @@ public partial class BaseTest
     // bridges to make auxiliary methods available in tests
     //
 
+    public static object callDynamically(object obj, object methodName, object[] args = null) => Exchange.callDynamically(obj, methodName, args);
     public static object mod(object a, object b) => Exchange.mod(a, b);
 
     public string decimalToPrecision(object a, object b, object c = null, object d = null, object e = null) => Exchange.DecimalToPrecision(a, b, c, d, e);
