@@ -25,17 +25,20 @@ async function example_socksProxy () {
 
 async function example_webSockets () {
     const myEx = new ccxt.pro.kucoin ();
-    myEx.httpProxy = 'http://5.75.153.75:8002'; // even though you are using WebSockets, you might also need to set up proxy for the exchange's REST requests
-    myEx.wsProxy = 'http://5.75.153.75:8002'; // "wsProxy" or "wssProxy" or "wsSocksProxy" (depending on your proxy protocol)
+    myEx.httpsProxy = 'http://5.75.153.75:8002'; // httpProxy or httpsProxy for REST requests ( even though you are using WebSockets, you might also need to set up proxy for the exchange's REST requests)
     await myEx.loadMarkets ();
+    myEx.wssProxy = 'http://5.75.153.75:8002'; // "wsProxy" or "wssProxy" or "wsSocksProxy" (depending on your proxy protocol)
     while (true) {
         const ticker = await myEx.watchTicker ('BTC/USDT');
         console.log (ticker);
+        break;
     }
+    // ### to ensure that ws-proxy works correctly and how remote test server sees your IP, use below and check output ###
+    // myEx.verbose = true;
+    // await myEx.loadHttpProxyAgent (); // only in js, if ws:// protocol is used
+    // await myEx.watch ('ws://5.75.153.75:9876', 'test', 'test');
 }
 
 
-await example_proxyUrl ();
-// await example_httpProxy ();
-// await example_socksProxy ();
-// await example_webSockets ();
+// test any from: example_proxyUrl(), example_httpProxy(), example_socksProxy(), example_webSockets()
+await example_httpProxy ();
