@@ -2238,52 +2238,6 @@ export default class woofipro extends Exchange {
         return await this.v1PrivatePostClientLeverage (this.extend (request, params));
     }
 
-	async fetchPosition (symbol: Str = undefined, params = {}) {
-		/**
-         * @method
-         * @name woofipro#fetchPosition
-         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-one-position-info
-         * @description fetch data on an open position
-         * @param {string} symbol unified market symbol of the market the position is held in
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
-         */
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request = {
-            'symbol': market['id'],
-        };
-        const response = await this.v1PrivateGetPositionSymbol (this.extend (request, params));
-        //
-		// 	{
-		// 		"success": true,
-		// 		"timestamp": 1702989203989,
-		// 		"data": {
-		// 		"IMR_withdraw_orders": 0.1,
-		// 		"MMR_with_orders": 0.05,
-		// 		"average_open_price": 27908.14386047,
-		// 		"cost_position": -139329.358492,
-		// 		"est_liq_price": 117335.92899428,
-		// 		"fee_24_h": 123,
-		// 		"imr": 0.1,
-		// 		"last_sum_unitary_funding": 70.38,
-		// 		"mark_price": 27794.9,
-		// 		"mmr": 0.05,
-		// 		"pending_long_qty": 123,
-		// 		"pending_short_qty": 123,
-		// 		"pnl_24_h": 123,
-		// 		"position_qty": -5,
-		// 		"settle_price": 27865.8716984,
-		// 		"symbol": "PERP_BTC_USDC",
-		// 		"timestamp": 1685429350571,
-		// 		"unsettled_pnl": 354.858492
-		// 		}
-		// 	}
-        //
-		const data = this.safeDict (response, 'data');
-        return this.parsePosition (data, market);
-    }
-
     parsePosition (position, market: Market = undefined) {
         //
 		// 	{
@@ -2353,6 +2307,108 @@ export default class woofipro extends Exchange {
             'stopLossPrice': undefined,
             'takeProfitPrice': undefined,
         });
+    }
+
+	async fetchPosition (symbol: Str = undefined, params = {}) {
+		/**
+         * @method
+         * @name woofipro#fetchPosition
+         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-one-position-info
+         * @description fetch data on an open position
+         * @param {string} symbol unified market symbol of the market the position is held in
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this.v1PrivateGetPositionSymbol (this.extend (request, params));
+        //
+		// 	{
+		// 		"success": true,
+		// 		"timestamp": 1702989203989,
+		// 		"data": {
+		// 		"IMR_withdraw_orders": 0.1,
+		// 		"MMR_with_orders": 0.05,
+		// 		"average_open_price": 27908.14386047,
+		// 		"cost_position": -139329.358492,
+		// 		"est_liq_price": 117335.92899428,
+		// 		"fee_24_h": 123,
+		// 		"imr": 0.1,
+		// 		"last_sum_unitary_funding": 70.38,
+		// 		"mark_price": 27794.9,
+		// 		"mmr": 0.05,
+		// 		"pending_long_qty": 123,
+		// 		"pending_short_qty": 123,
+		// 		"pnl_24_h": 123,
+		// 		"position_qty": -5,
+		// 		"settle_price": 27865.8716984,
+		// 		"symbol": "PERP_BTC_USDC",
+		// 		"timestamp": 1685429350571,
+		// 		"unsettled_pnl": 354.858492
+		// 		}
+		// 	}
+        //
+		const data = this.safeDict (response, 'data');
+        return this.parsePosition (data, market);
+    }
+
+	async fetchPositions (symbols: Strings = undefined, params = {}) {
+		/**
+         * @method
+         * @name woofipro#fetchPositions
+         * @description fetch all open positions
+         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-all-positions-info
+         * @param {string[]} [symbols] list of unified market symbols
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [method] method name to call, "positionRisk", "account" or "option", default is "positionRisk"
+         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+         */
+        await this.loadMarkets ();
+        const response = await this.v1PrivateGetPositions (params);
+        //
+		// 	{
+		// 		"success": true,
+		// 		"timestamp": 1702989203989,
+		// 		"data": {
+		// 			"current_margin_ratio_with_orders": 1.2385,
+		// 			"free_collateral": 450315.09115,
+		// 			"initial_margin_ratio": 0.1,
+		// 			"initial_margin_ratio_with_orders": 0.1,
+		// 			"maintenance_margin_ratio": 0.05,
+		// 			"maintenance_margin_ratio_with_orders": 0.05,
+		// 			"margin_ratio": 1.2385,
+		// 			"open_margin_ratio": 1.2102,
+		// 			"total_collateral_value": 489865.71329,
+		// 			"total_pnl_24_h": 123,
+		// 			"rows": [{
+		// 				"IMR_withdraw_orders": 0.1,
+		// 				"MMR_with_orders": 0.05,
+		// 				"average_open_price": 27908.14386047,
+		// 				"cost_position": -139329.358492,
+		// 				"est_liq_price": 117335.92899428,
+		// 				"fee_24_h": 123,
+		// 				"imr": 0.1,
+		// 				"last_sum_unitary_funding": 70.38,
+		// 				"mark_price": 27794.9,
+		// 				"mmr": 0.05,
+		// 				"pending_long_qty": 123,
+		// 				"pending_short_qty": 123,
+		// 				"pnl_24_h": 123,
+		// 				"position_qty": -5,
+		// 				"settle_price": 27865.8716984,
+		// 				"symbol": "PERP_BTC_USDC",
+		// 				"timestamp": 1685429350571,
+		// 				"unsettled_pnl": 354.858492
+		// 			}]
+		// 		}
+		// 	}
+        //
+        const result = this.safeDict (response, 'data', {});
+        const positions = this.safeList (result, 'rows', []);
+        return this.parsePositions (positions, symbols);
     }
 
     nonce () {
