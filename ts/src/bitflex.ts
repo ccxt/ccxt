@@ -2514,7 +2514,7 @@ export default class bitflex extends Exchange {
         //         }
         //     ]
         //
-        return this.parseTransactions (response, currency, since, limit, { 'type': 'deposit' });
+        return this.parseTransactions (response, currency, since, limit, { 'type': 'withdrawal' });
     }
 
     async fetchWithdrawal (id: string, code: Str = undefined, params = {}) {
