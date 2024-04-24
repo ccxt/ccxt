@@ -6146,7 +6146,8 @@ To get information about positions currently held in contract markets, use
 - fetchPosition ()            // for a single market
 - fetchPositions ()           // for all positions
 - fetchAccountPositions ()    // TODO
-- fetchPositionHistory ()     // for historical positions
+- fetchPositionHistory ()     // for single historical position
+- fetchPositionsHistory ()     // for historical positions
 
 ```javascript
 fetchPosition (symbol, params = {})                         // for a single market
