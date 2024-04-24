@@ -1844,7 +1844,7 @@ export default class bitflex extends Exchange {
         let cost = this.safeString (order, 'cummulativeQuoteQty');
         if (market['spot']) {
             if ((type === 'market') && (side === 'buy')) {
-                cost = this.safeString (order, 'origQty');
+                cost = amount;
                 amount = undefined;
             }
         }
@@ -2555,17 +2555,17 @@ export default class bitflex extends Exchange {
         return this.parseTransaction (response, currency);
     }
 
-    // parseTransactions (transactions, currency: Currency = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Transaction[] {
-    //     let result = [];
-    //     for (let i = 0; i < transactions.length; i++) {
-    //         transactions[i] = this.extend (transactions[i], params);
-    //         const transaction = this.parseTransaction (transactions[i], currency);
-    //         result.push (transaction);
-    //     }
-    //     result = this.sortBy (result, 'timestamp');
-    //     const code = (currency !== undefined) ? currency['code'] : undefined;
-    //     return this.filterByCurrencySinceLimit (result, code, since, limit);
-    // }
+    parseTransactions (transactions, currency: Currency = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Transaction[] {
+        let result = [];
+        for (let i = 0; i < transactions.length; i++) {
+            transactions[i] = this.extend (transactions[i], params);
+            const transaction = this.parseTransaction (transactions[i], currency);
+            result.push (transaction);
+        }
+        result = this.sortBy (result, 'timestamp');
+        const code = (currency !== undefined) ? currency['code'] : undefined;
+        return this.filterByCurrencySinceLimit (result, code, since, limit);
+    }
 
     parseTransaction (transaction, currency: Currency = undefined): Transaction {
         //
