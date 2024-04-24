@@ -2571,7 +2571,7 @@ export default class bitflex extends Exchange {
         return this.parseTransaction (response, currency);
     }
 
-    parseTransactions (transactions: any[], currency: Currency = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Transaction[] {
+    parseTransactions (transactions, currency: Currency = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Transaction[] {
         let result = [];
         for (let i = 0; i < transactions.length; i++) {
             transactions[i] = this.extend (transactions[i], params);
