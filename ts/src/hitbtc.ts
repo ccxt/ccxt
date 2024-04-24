@@ -3232,8 +3232,9 @@ export default class hitbtc extends Exchange {
                 throw new ArgumentsRequired (this.id + ' modifyMarginHelper() requires a leverage parameter for swap markets');
             }
         }
-        if (amount !== 0) {
-            amount = this.amountToPrecision (symbol, amount);
+        const stringAmount = this.numberToString (amount);
+        if (stringAmount !== '0') {
+            amount = this.amountToPrecision (symbol, stringAmount);
         } else {
             amount = '0';
         }
