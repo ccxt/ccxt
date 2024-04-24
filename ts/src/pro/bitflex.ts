@@ -2,8 +2,8 @@
 //  ---------------------------------------------------------------------------
 
 import bitflexRest from '../bitflex.js';
-import { ArrayCache, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import type { Balances, Int, Market, OHLCV, OrderBook, Ticker, Trade } from '../base/types.js';
+import { ArrayCache, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
+import type { Balances, Int, Market, OHLCV, OrderBook, Position, Strings, Ticker, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -463,6 +463,122 @@ export default class bitflex extends bitflexRest {
         this.balance[code] = account;
         this.balance = this.safeBalance (this.balance);
         client.resolve (this.balance, messageHash);
+    }
+
+    async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
+        /**
+         * @method
+         * @name bitflex#watchPositions
+         * @description watch all open positions
+         * @see https://docs.bitflex.com/user-data-stream
+         * @param {string[]|undefined} symbols list of unified market symbols
+         * @param {object} params extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
+         */
+        await this.loadMarkets ();
+        let messageHash = 'positions';
+        symbols = this.marketSymbols (symbols, 'swap', true, true, false);
+        if (symbols !== undefined) {
+            messageHash += ':' + symbols.join (',');
+        }
+        const newPositions = await this.watchPrivate (messageHash, params);
+        if (this.newUpdates) {
+            return newPositions;
+        }
+        return this.filterBySymbolsSinceLimit (newPositions, symbols, since, limit, true);
+    }
+
+    handlePositions (client: Client, message) {
+        //
+        //     {
+        //         e: 'outboundContractPositionInfo',
+        //         E: '1713970091904',
+        //         A: '1662502620223296003',
+        //         s: 'ETH-SWAP-USDT',
+        //         S: 'LONG',
+        //         p: '3211.99',
+        //         P: '0.01',
+        //         a: '0.01',
+        //         f: '1608.1',
+        //         m: '16.1192',
+        //         r: '-0.0192'
+        //     }
+        //
+        if (this.positions === undefined) {
+            this.positions = new ArrayCacheBySymbolBySide ();
+        }
+        const cache = this.positions;
+        const newPositions = [];
+        const position = this.parseWsPosition (message);
+        newPositions.push (position);
+        cache.append (position);
+        const messageHashes = this.findMessageHashes (client, 'positions:');
+        for (let i = 0; i < messageHashes.length; i++) {
+            const messageHash = messageHashes[i];
+            const parts = messageHash.split (':');
+            const symbolsString = parts[1];
+            const symbols = symbolsString.split (',');
+            const positions = this.filterByArray (newPositions, 'symbol', symbols, false);
+            if (!this.isEmpty (positions)) {
+                client.resolve (positions, messageHash);
+            }
+        }
+        client.resolve (newPositions, 'positions');
+    }
+
+    parseWsPosition (position, market = undefined) {
+        //
+        //     {
+        //         e: 'outboundContractPositionInfo',
+        //         E: '1713970091904',
+        //         A: '1662502620223296003',
+        //         s: 'ETH-SWAP-USDT',
+        //         S: 'LONG',
+        //         p: '3211.99',
+        //         P: '0.01',
+        //         a: '0.01', // todo check
+        //         f: '1608.1',
+        //         m: '16.1192',
+        //         r: '-0.0192'
+        //     }
+        //
+        const marketId = this.safeString (position, 's');
+        let marginMode = 'cross';
+        if (position === undefined) {
+            marginMode = undefined;
+        }
+        market = this.safeMarket (marketId, market);
+        const timestamp = this.safeInteger (position, 'E');
+        return this.safePosition ({
+            'info': position,
+            'id': undefined,
+            'symbol': market['symbol'],
+            'notional': undefined,
+            'marginMode': marginMode,
+            'liquidationPrice': this.safeNumber (position, 'f'),
+            'entryPrice': this.safeNumber (position, 'p'),
+            'unrealizedPnl': undefined,
+            'realizedPnl': this.safeNumber (position, 'r'),
+            'percentage': undefined,
+            'contracts': this.safeNumber (position, 'P'),
+            'contractSize': undefined,
+            'markPrice': undefined,
+            'lastPrice': undefined,
+            'side': this.safeStringLower (position, 'S'),
+            'hedged': undefined, // todo check
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastUpdateTimestamp': undefined,
+            'maintenanceMargin': undefined,
+            'maintenanceMarginPercentage': undefined,
+            'collateral': undefined,
+            'initialMargin': this.safeNumber (position, 'm'),
+            'initialMarginPercentage': undefined,
+            'leverage': undefined,
+            'marginRatio': undefined,
+            'stopLossPrice': undefined,
+            'takeProfitPrice': undefined,
+        });
     }
 
     async watchPrivate (messageHash, params = {}) {
