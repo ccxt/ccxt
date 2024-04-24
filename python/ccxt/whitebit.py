@@ -1809,7 +1809,7 @@ class whitebit(Exchange, ImplicitAPI):
             'status': None,
         }
 
-    def withdraw(self, code: str, amount: float, address, tag=None, params={}):
+    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
         """
         make a withdrawal
         :see: https://docs.whitebit.com/private/http-main-v4/#create-withdraw-request

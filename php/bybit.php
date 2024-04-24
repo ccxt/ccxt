@@ -98,7 +98,9 @@ class bybit extends Exchange {
                 'fetchOrders' => false,
                 'fetchOrderTrades' => true,
                 'fetchPosition' => true,
+                'fetchPositionHistory' => 'emulated',
                 'fetchPositions' => true,
+                'fetchPositionsHistory' => true,
                 'fetchPremiumIndexOHLCV' => true,
                 'fetchSettlementHistory' => true,
                 'fetchTicker' => true,
@@ -5930,7 +5932,7 @@ class bybit extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
         /**
          * make a withdrawal
          * @see https://bybit-exchange.github.io/docs/v5/asset/withdraw
@@ -6352,35 +6354,62 @@ class bybit extends Exchange {
         //         "tradeMode" => 0
         //     }
         //
+        // fetchPositionsHistory
+        //
+        //    {
+        //        symbol => 'XRPUSDT',
+        //        orderType => 'Market',
+        //        $leverage => '10',
+        //        updatedTime => '1712717265572',
+        //        $side => 'Sell',
+        //        orderId => '071749f3-a9fa-427b-b5ca-27b2f52b81de',
+        //        closedPnl => '-0.00049568',
+        //        avgEntryPrice => '0.6045',
+        //        qty => '3',
+        //        cumEntryValue => '1.8135',
+        //        createdTime => '1712717265566',
+        //        orderPrice => '0.5744',
+        //        $closedSize => '3',
+        //        avgExitPrice => '0.605',
+        //        execType => 'Trade',
+        //        fillCount => '1',
+        //        cumExitValue => '1.815'
+        //    }
+        //
+        $closedSize = $this->safe_string($position, 'closedSize');
+        $isHistory = ($closedSize !== null);
         $contract = $this->safe_string($position, 'symbol');
         $market = $this->safe_market($contract, $market, null, 'contract');
-        $size = Precise::string_abs($this->safe_string($position, 'size'));
+        $size = Precise::string_abs($this->safe_string_2($position, 'size', 'qty'));
         $side = $this->safe_string($position, 'side');
         if ($side !== null) {
             if ($side === 'Buy') {
-                $side = 'long';
+                $side = $isHistory ? 'short' : 'long';
             } elseif ($side === 'Sell') {
-                $side = 'short';
+                $side = $isHistory ? 'long' : 'short';
             } else {
                 $side = null;
             }
         }
-        $notional = $this->safe_string($position, 'positionValue');
+        $notional = $this->safe_string_2($position, 'positionValue', 'cumExitValue');
         $unrealisedPnl = $this->omit_zero($this->safe_string($position, 'unrealisedPnl'));
-        $initialMarginString = $this->safe_string($position, 'positionIM');
+        $initialMarginString = $this->safe_string_n($position, array( 'positionIM', 'cumEntryValue' ));
         $maintenanceMarginString = $this->safe_string($position, 'positionMM');
-        $timestamp = $this->parse8601($this->safe_string($position, 'updated_at'));
-        if ($timestamp === null) {
-            $timestamp = $this->safe_integer_n($position, array( 'updatedTime', 'updatedAt' ));
+        $timestamp = $this->safe_integer_n($position, array( 'createdTime', 'createdAt' ));
+        $lastUpdateTimestamp = $this->parse8601($this->safe_string($position, 'updated_at'));
+        if ($lastUpdateTimestamp === null) {
+            $lastUpdateTimestamp = $this->safe_integer_n($position, array( 'updatedTime', 'updatedAt', 'updatedTime' ));
         }
         $tradeMode = $this->safe_integer($position, 'tradeMode', 0);
         $marginMode = null;
         if ((!$this->options['enableUnifiedAccount']) || ($this->options['enableUnifiedAccount'] && $market['inverse'])) {
             // $tradeMode would work for classic and UTA(inverse)
-            $marginMode = ($tradeMode === 1) ? 'isolated' : 'cross';
+            if (!$isHistory) {     // cannot tell $marginMode for fetchPositionsHistory, and $closedSize will only be defined for fetchPositionsHistory response
+                $marginMode = ($tradeMode === 1) ? 'isolated' : 'cross';
+            }
         }
         $collateralString = $this->safe_string($position, 'positionBalance');
-        $entryPrice = $this->omit_zero($this->safe_string_2($position, 'entryPrice', 'avgPrice'));
+        $entryPrice = $this->omit_zero($this->safe_string_n($position, array( 'entryPrice', 'avgPrice', 'avgEntryPrice' )));
         $liquidationPrice = $this->omit_zero($this->safe_string($position, 'liqPrice'));
         $leverage = $this->safe_string($position, 'leverage');
         if ($liquidationPrice !== null) {
@@ -6424,7 +6453,7 @@ class bybit extends Exchange {
             'symbol' => $market['symbol'],
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'lastUpdateTimestamp' => null,
+            'lastUpdateTimestamp' => $lastUpdateTimestamp,
             'initialMargin' => $this->parse_number($initialMarginString),
             'initialMarginPercentage' => $this->parse_number(Precise::string_div($initialMarginString, $notional)),
             'maintenanceMargin' => $this->parse_number($maintenanceMarginString),
@@ -6433,12 +6462,13 @@ class bybit extends Exchange {
             'notional' => $this->parse_number($notional),
             'leverage' => $this->parse_number($leverage),
             'unrealizedPnl' => $this->parse_number($unrealisedPnl),
+            'realizedPnl' => $this->safe_number($position, 'closedPnl'),
             'contracts' => $this->parse_number($size), // in USD for inverse swaps
             'contractSize' => $this->safe_number($market, 'contractSize'),
             'marginRatio' => $this->parse_number($marginRatio),
             'liquidationPrice' => $this->parse_number($liquidationPrice),
             'markPrice' => $this->safe_number($position, 'markPrice'),
-            'lastPrice' => null,
+            'lastPrice' => $this->safe_number($position, 'avgExitPrice'),
             'collateral' => $this->parse_number($collateralString),
             'marginMode' => $marginMode,
             'side' => $side,
@@ -8338,6 +8368,86 @@ class bybit extends Exchange {
             'baseVolume' => $this->safe_number($chain, 'totalVolume'),
             'quoteVolume' => null,
         );
+    }
+
+    public function fetch_positions_history(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+        /**
+         * fetches historical $positions
+         * @see https://bybit-exchange.github.io/docs/v5/position/close-pnl
+         * @param {string} [symbol] unified $market $symbols, $symbols must have the same $subType (must all be linear or all be inverse)
+         * @param {int} [$since] timestamp in ms of the earliest position to fetch, $params["until"] - $since <= 7 days
+         * @param {int} [$limit] the maximum amount of records to fetch, default=50, max=100
+         * @param {array} $params extra parameters specific to the exchange api endpoint
+         * @param {int} [$params->until] timestamp in ms of the latest position to fetch, $params["until"] - $since <= 7 days
+         * @param {string} [$params->subType] 'linear' or 'inverse'
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=position-structure position structures~
+         */
+        $this->load_markets();
+        $market = null;
+        $subType = null;
+        $symbolsLength = 0;
+        if ($symbols !== null) {
+            $symbolsLength = count($symbols);
+            if ($symbolsLength > 0) {
+                $market = $this->market($symbols[0]);
+            }
+        }
+        $until = $this->safe_integer($params, 'until');
+        list($subType, $params) = $this->handle_sub_type_and_params('fetchPositionsHistory', $market, $params, 'linear');
+        $params = $this->omit($params, 'until');
+        $request = array(
+            'category' => $subType,
+        );
+        if (($symbols !== null) && ($symbolsLength === 1)) {
+            $request['symbol'] = $market['id'];
+        }
+        if ($since !== null) {
+            $request['startTime'] = $since;
+        }
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        if ($until !== null) {
+            $request['endTime'] = $until;
+        }
+        $response = $this->privateGetV5PositionClosedPnl (array_merge($request, $params));
+        //
+        //    {
+        //        retCode => '0',
+        //        retMsg => 'OK',
+        //        $result => {
+        //            nextPageCursor => '071749f3-a9fa-427b-b5ca-27b2f52b81de%3A1712717265566520788%2C071749f3-a9fa-427b-b5ca-27b2f52b81de%3A1712717265566520788',
+        //            category => 'linear',
+        //            list => array(
+        //                array(
+        //                    symbol => 'XRPUSDT',
+        //                    orderType => 'Market',
+        //                    leverage => '10',
+        //                    updatedTime => '1712717265572',
+        //                    side => 'Sell',
+        //                    orderId => '071749f3-a9fa-427b-b5ca-27b2f52b81de',
+        //                    closedPnl => '-0.00049568',
+        //                    avgEntryPrice => '0.6045',
+        //                    qty => '3',
+        //                    cumEntryValue => '1.8135',
+        //                    createdTime => '1712717265566',
+        //                    orderPrice => '0.5744',
+        //                    closedSize => '3',
+        //                    avgExitPrice => '0.605',
+        //                    execType => 'Trade',
+        //                    fillCount => '1',
+        //                    cumExitValue => '1.815'
+        //                }
+        //            )
+        //        ),
+        //        retExtInfo => array(),
+        //        time => '1712717286073'
+        //    }
+        //
+        $result = $this->safe_dict($response, 'result');
+        $rawPositions = $this->safe_list($result, 'list');
+        $positions = $this->parse_positions($rawPositions, $symbols, $params);
+        return $this->filter_by_since_limit($positions, $since, $limit);
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
