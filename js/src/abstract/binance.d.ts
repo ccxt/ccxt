@@ -86,6 +86,7 @@ interface Exchange {
     sapiGetCapitalDepositSubAddress(params?: {}): Promise<implicitReturnType>;
     sapiGetCapitalDepositSubHisrec(params?: {}): Promise<implicitReturnType>;
     sapiGetCapitalWithdrawHistory(params?: {}): Promise<implicitReturnType>;
+    sapiGetCapitalWithdrawAddressList(params?: {}): Promise<implicitReturnType>;
     sapiGetCapitalContractConvertibleCoins(params?: {}): Promise<implicitReturnType>;
     sapiGetConvertTradeFlow(params?: {}): Promise<implicitReturnType>;
     sapiGetConvertExchangeInfo(params?: {}): Promise<implicitReturnType>;
@@ -496,6 +497,7 @@ interface Exchange {
     fapiPrivateGetUserTrades(params?: {}): Promise<implicitReturnType>;
     fapiPrivateGetIncome(params?: {}): Promise<implicitReturnType>;
     fapiPrivateGetCommissionRate(params?: {}): Promise<implicitReturnType>;
+    fapiPrivateGetRateLimitOrder(params?: {}): Promise<implicitReturnType>;
     fapiPrivateGetApiTradingStatus(params?: {}): Promise<implicitReturnType>;
     fapiPrivateGetMultiAssetsMargin(params?: {}): Promise<implicitReturnType>;
     fapiPrivateGetApiReferralIfNewUser(params?: {}): Promise<implicitReturnType>;
@@ -606,6 +608,7 @@ interface Exchange {
     privateGetMyAllocations(params?: {}): Promise<implicitReturnType>;
     privateGetAccountCommission(params?: {}): Promise<implicitReturnType>;
     privatePostOrderOco(params?: {}): Promise<implicitReturnType>;
+    privatePostOrderListOco(params?: {}): Promise<implicitReturnType>;
     privatePostSorOrder(params?: {}): Promise<implicitReturnType>;
     privatePostSorOrderTest(params?: {}): Promise<implicitReturnType>;
     privatePostOrder(params?: {}): Promise<implicitReturnType>;

@@ -179,7 +179,7 @@ class lykke extends Exchange {
         ));
     }
 
-    public function fetch_currencies($params = array ()) {
+    public function fetch_currencies($params = array ()): ?array {
         /**
          * fetches all available $currencies on an exchange
          * @see https://lykkecity.github.io/Trading-API/#get-all-assets
@@ -257,7 +257,7 @@ class lykke extends Exchange {
         return $result;
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): array {
         /**
          * retrieves data on all $markets for lykke
          * @see https://lykkecity.github.io/Trading-API/#get-asset-by-$id

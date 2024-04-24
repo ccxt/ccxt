@@ -7,6 +7,7 @@ namespace ccxt\pro;
 
 use Exception; // a common import
 use ccxt\ExchangeError;
+use ccxt\ArgumentsRequired;
 use React\Async;
 use React\Promise\PromiseInterface;
 
@@ -79,15 +80,35 @@ class coinbase extends \ccxt\async\coinbase {
             }
             $url = $this->urls['api']['ws'];
             $timestamp = $this->number_to_string($this->seconds());
+            $isCloudAPiKey = (mb_strpos($this->apiKey, 'organizations/') !== false) || (str_starts_with($this->secret, '-----BEGIN'));
             $auth = $timestamp . $name . implode(',', $productIds);
             $subscribe = array(
                 'type' => 'subscribe',
                 'product_ids' => $productIds,
                 'channel' => $name,
-                'api_key' => $this->apiKey,
-                'timestamp' => $timestamp,
-                'signature' => $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256'),
+                // 'api_key' => $this->apiKey,
+                // 'timestamp' => $timestamp,
+                // 'signature' => $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256'),
             );
+            if (!$isCloudAPiKey) {
+                $subscribe['api_key'] = $this->apiKey;
+                $subscribe['timestamp'] = $timestamp;
+                $subscribe['signature'] = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256');
+            } else {
+                if (str_starts_with($this->apiKey, '-----BEGIN')) {
+                    throw new ArgumentsRequired($this->id . ' apiKey should contain the $name (eg => organizations/3b910e93....) and not the public key');
+                }
+                $currentToken = $this->safe_string($this->options, 'wsToken');
+                $tokenTimestamp = $this->safe_integer($this->options, 'wsTokenTimestamp', 0);
+                $seconds = $this->seconds();
+                if ($currentToken === null || $tokenTimestamp + 120 < $seconds) {
+                    // we should generate new $token
+                    $token = $this->create_auth_token($seconds);
+                    $this->options['wsToken'] = $token;
+                    $this->options['wsTokenTimestamp'] = $seconds;
+                }
+                $subscribe['jwt'] = $this->safe_string($this->options, 'wsToken');
+            }
             return Async\await($this->watch($url, $messageHash, $subscribe, $messageHash));
         }) ();
     }
@@ -148,6 +169,11 @@ class coinbase extends \ccxt\async\coinbase {
         //                        "low_52_w" => "15460",
         //                        "high_52_w" => "48240",
         //                        "price_percent_chg_24_h" => "-4.15775596190603"
+        // new 2024-04-12
+        //                        "best_bid":"21835.29",
+        //                        "best_bid_quantity" => "0.02000000",
+        //                        "best_ask":"23011.18",
+        //                        "best_ask_quantity" => "0.01500000"
         //                    }
         //                )
         //            }
@@ -173,6 +199,11 @@ class coinbase extends \ccxt\async\coinbase {
         //                        "low_52_w" => "0.04908",
         //                        "high_52_w" => "0.1801",
         //                        "price_percent_chg_24_h" => "0.50177456859626"
+        // new 2024-04-12
+        //                        "best_bid":"0.07989",
+        //                        "best_bid_quantity" => "500.0",
+        //                        "best_ask":"0.08308",
+        //                        "best_ask_quantity" => "300.0"
         //                    }
         //                )
         //            }
@@ -194,6 +225,9 @@ class coinbase extends \ccxt\async\coinbase {
                 $messageHash = $channel . '::' . $wsMarketId;
                 $newTickers[] = $result;
                 $client->resolve ($result, $messageHash);
+                if (str_ends_with($messageHash, 'USD')) {
+                    $client->resolve ($result, $messageHash . 'C'); // sometimes we subscribe to BTC/USDC and coinbase returns BTC/USD
+                }
             }
         }
         $messageHashes = $this->find_message_hashes($client, 'ticker_batch::');
@@ -205,6 +239,9 @@ class coinbase extends \ccxt\async\coinbase {
             $tickers = $this->filter_by_array($newTickers, 'symbol', $symbols);
             if (!$this->is_empty($tickers)) {
                 $client->resolve ($tickers, $messageHash);
+                if (str_ends_with($messageHash, 'USD')) {
+                    $client->resolve ($tickers, $messageHash . 'C'); // sometimes we subscribe to BTC/USDC and coinbase returns BTC/USD
+                }
             }
         }
         return $message;
@@ -222,6 +259,11 @@ class coinbase extends \ccxt\async\coinbase {
         //         "low_52_w" => "0.04908",
         //         "high_52_w" => "0.1801",
         //         "price_percent_chg_24_h" => "0.50177456859626"
+        // new 2024-04-12
+        //         "best_bid":"0.07989",
+        //         "best_bid_quantity" => "500.0",
+        //         "best_ask":"0.08308",
+        //         "best_ask_quantity" => "300.0"
         //     }
         //
         $marketId = $this->safe_string($ticker, 'product_id');
@@ -234,10 +276,10 @@ class coinbase extends \ccxt\async\coinbase {
             'datetime' => $this->iso8601($timestamp),
             'high' => $this->safe_string($ticker, 'high_24_h'),
             'low' => $this->safe_string($ticker, 'low_24_h'),
-            'bid' => null,
-            'bidVolume' => null,
-            'ask' => null,
-            'askVolume' => null,
+            'bid' => $this->safe_string($ticker, 'best_bid'),
+            'bidVolume' => $this->safe_string($ticker, 'best_bid_quantity'),
+            'ask' => $this->safe_string($ticker, 'best_ask'),
+            'askVolume' => $this->safe_string($ticker, 'best_ask_quantity'),
             'vwap' => null,
             'open' => null,
             'close' => $last,
@@ -359,6 +401,9 @@ class coinbase extends \ccxt\async\coinbase {
             }
         }
         $client->resolve ($tradesArray, $messageHash);
+        if (str_ends_with($marketId, 'USD')) {
+            $client->resolve ($tradesArray, $messageHash . 'C'); // sometimes we subscribe to BTC/USDC and coinbase returns BTC/USD
+        }
         return $message;
     }
 
@@ -415,6 +460,9 @@ class coinbase extends \ccxt\async\coinbase {
             $marketId = $marketIds[$i];
             $messageHash = 'user::' . $marketId;
             $client->resolve ($this->orders, $messageHash);
+            if (str_ends_with($messageHash, 'USD')) {
+                $client->resolve ($this->orders, $messageHash . 'C'); // sometimes we subscribe to BTC/USDC and coinbase returns BTC/USD
+            }
         }
         $client->resolve ($this->orders, 'user');
         return $message;
@@ -530,6 +578,9 @@ class coinbase extends \ccxt\async\coinbase {
                 $orderbook['datetime'] = null;
                 $orderbook['symbol'] = $symbol;
                 $client->resolve ($orderbook, $messageHash);
+                if (str_ends_with($messageHash, 'USD')) {
+                    $client->resolve ($orderbook, $messageHash . 'C'); // sometimes we subscribe to BTC/USDC and coinbase returns BTC/USD
+                }
             } elseif ($type === 'update') {
                 $orderbook = $this->orderbooks[$symbol];
                 $this->handle_order_book_helper($orderbook, $updates);
@@ -537,6 +588,9 @@ class coinbase extends \ccxt\async\coinbase {
                 $orderbook['timestamp'] = $this->parse8601($datetime);
                 $orderbook['symbol'] = $symbol;
                 $client->resolve ($orderbook, $messageHash);
+                if (str_ends_with($messageHash, 'USD')) {
+                    $client->resolve ($orderbook, $messageHash . 'C'); // sometimes we subscribe to BTC/USDC and coinbase returns BTC/USD
+                }
             }
         }
         return $message;

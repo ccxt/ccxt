@@ -707,10 +707,10 @@ export default class bitmart extends bitmartRest {
         //    }
         //
         const data = this.safeValue(message, 'data', []);
-        const cache = this.positions;
         if (this.positions === undefined) {
             this.positions = new ArrayCacheBySymbolBySide();
         }
+        const cache = this.positions;
         const newPositions = [];
         for (let i = 0; i < data.length; i++) {
             const rawPosition = data[i];
@@ -1409,7 +1409,7 @@ export default class bitmart extends bitmartRest {
             const message = this.extend(request, params);
             this.watch(url, messageHash, message, messageHash);
         }
-        return future;
+        return await future;
     }
     handleSubscriptionStatus(client, message) {
         //

@@ -654,7 +654,7 @@
                         "stopLossPrice": null,
                         "takeProfitPrice": null,
                         "average": 70.17,
-                        "cost": 0.7017,
+                        "cost": 7.017,
                         "amount": 0.1,
                         "filled": 0.1,
                         "remaining": 0,
@@ -893,7 +893,7 @@
                         "side": null,
                         "takerOrMaker": null,
                         "price": 65.2965,
-                        "amount": 10,
+                        "amount": 1,
                         "cost": 65.2965,
                         "fee": {
                             "cost": 0.0326,
@@ -1298,6 +1298,74 @@
                         "bidQty": "5.93812"
                     }
                 }
+            },
+            {
+                "description": "swap ticker",
+                "method": "fetchTicker",
+                "input": [
+                  "BTC/USDT:USDT"
+                ],
+                "httpResponse": {
+                  "code": "0",
+                  "msg": "",
+                  "data": {
+                    "symbol": "BTC-USDT",
+                    "priceChange": "-392.1",
+                    "priceChangePercent": "-0.56",
+                    "lastPrice": "69938.9",
+                    "lastQty": "0.3018",
+                    "highPrice": "71619.4",
+                    "lowPrice": "69320.3",
+                    "volume": "74183.8679",
+                    "quoteVolume": "5237383426.37",
+                    "openPrice": "70331.0",
+                    "openTime": "1711491305590",
+                    "closeTime": "1711491283474",
+                    "askPrice": "69943.0",
+                    "askQty": "1.5921",
+                    "bidPrice": "69942.2",
+                    "bidQty": "1.3346"
+                  }
+                },
+                "parsedResponse": {
+                  "symbol": "BTC/USDT:USDT",
+                  "timestamp": 1711491283474,
+                  "datetime": "2024-03-26T22:14:43.474Z",
+                  "high": 71619.4,
+                  "low": 69320.3,
+                  "bid": 69942.2,
+                  "bidVolume": 1.3346,
+                  "ask": 69943,
+                  "askVolume": 1.5921,
+                  "vwap": 70600.03171349873,
+                  "open": 70331,
+                  "close": 69938.9,
+                  "last": 69938.9,
+                  "previousClose": null,
+                  "change": -392.1,
+                  "percentage": -0.56,
+                  "average": 70134.95,
+                  "baseVolume": 74183.8679,
+                  "quoteVolume": 5237383426.37,
+                  "info": {
+                    "symbol": "BTC-USDT",
+                    "priceChange": "-392.1",
+                    "priceChangePercent": "-0.56",
+                    "lastPrice": "69938.9",
+                    "lastQty": "0.3018",
+                    "highPrice": "71619.4",
+                    "lowPrice": "69320.3",
+                    "volume": "74183.8679",
+                    "quoteVolume": "5237383426.37",
+                    "openPrice": "70331.0",
+                    "openTime": "1711491305590",
+                    "closeTime": "1711491283474",
+                    "askPrice": "69943.0",
+                    "askQty": "1.5921",
+                    "bidPrice": "69942.2",
+                    "bidQty": "1.3346"
+                  }
+                }
             }
         ],
         "fetchOHLCV": [
@@ -1335,6 +1403,236 @@
                         73413.77,
                         85.04
                     ]
+                ]
+            }
+        ],
+        "fetchOrder": [
+            {
+                "description": "fetch swap order",
+                "method": "fetchOrder",
+                "input": [
+                  "1770683446830788608",
+                  "LTC/USDT:USDT"
+                ],
+                "httpResponse": {
+                  "code": "0",
+                  "msg": "",
+                  "data": {
+                    "order": {
+                      "symbol": "LTC-USDT",
+                      "orderId": "1770683446830788608",
+                      "side": "SELL",
+                      "positionSide": "LONG",
+                      "type": "MARKET",
+                      "origQty": "0.1",
+                      "price": "83.69",
+                      "executedQty": "0.1",
+                      "avgPrice": "83.71",
+                      "cumQuote": "8",
+                      "stopPrice": "",
+                      "profit": "0.0000",
+                      "commission": "-0.004186",
+                      "status": "FILLED",
+                      "time": "1710998806000",
+                      "updateTime": "1710998806000",
+                      "clientOrderId": "",
+                      "leverage": "5X",
+                      "takeProfit": {
+                        "type": "",
+                        "quantity": "0",
+                        "stopPrice": "0",
+                        "price": "0",
+                        "workingType": ""
+                      },
+                      "stopLoss": {
+                        "type": "",
+                        "quantity": "0",
+                        "stopPrice": "0",
+                        "price": "0",
+                        "workingType": ""
+                      },
+                      "advanceAttr": "0",
+                      "positionID": "0",
+                      "takeProfitEntrustPrice": "0",
+                      "stopLossEntrustPrice": "0",
+                      "orderType": "",
+                      "workingType": "MARK_PRICE",
+                      "onlyOnePosition": false,
+                      "reduceOnly": true,
+                      "stopGuaranteed": "false",
+                      "triggerOrderId": "0"
+                    }
+                  }
+                },
+                "parsedResponse": {
+                  "info": {
+                    "symbol": "LTC-USDT",
+                    "orderId": "1770683446830788608",
+                    "side": "SELL",
+                    "positionSide": "LONG",
+                    "type": "MARKET",
+                    "origQty": "0.1",
+                    "price": "83.69",
+                    "executedQty": "0.1",
+                    "avgPrice": "83.71",
+                    "cumQuote": "8",
+                    "stopPrice": "",
+                    "profit": "0.0000",
+                    "commission": "-0.004186",
+                    "status": "FILLED",
+                    "time": "1710998806000",
+                    "updateTime": "1710998806000",
+                    "clientOrderId": "",
+                    "leverage": "5X",
+                    "takeProfit": {
+                      "type": "",
+                      "quantity": "0",
+                      "stopPrice": "0",
+                      "price": "0",
+                      "workingType": ""
+                    },
+                    "stopLoss": {
+                      "type": "",
+                      "quantity": "0",
+                      "stopPrice": "0",
+                      "price": "0",
+                      "workingType": ""
+                    },
+                    "advanceAttr": "0",
+                    "positionID": "0",
+                    "takeProfitEntrustPrice": "0",
+                    "stopLossEntrustPrice": "0",
+                    "orderType": "",
+                    "workingType": "MARK_PRICE",
+                    "onlyOnePosition": false,
+                    "reduceOnly": true,
+                    "stopGuaranteed": "false",
+                    "triggerOrderId": "0"
+                  },
+                  "id": "1770683446830788608",
+                  "clientOrderId": null,
+                  "symbol": "LTC/USDT:USDT",
+                  "timestamp": 1710998806000,
+                  "datetime": "2024-03-21T05:26:46.000Z",
+                  "lastTradeTimestamp": 1710998806000,
+                  "lastUpdateTimestamp": 1710998806000,
+                  "type": "market",
+                  "timeInForce": "IOC",
+                  "postOnly": null,
+                  "side": "sell",
+                  "price": 83.69,
+                  "stopPrice": null,
+                  "triggerPrice": null,
+                  "stopLossPrice": 0,
+                  "takeProfitPrice": 0,
+                  "average": 83.71,
+                  "cost": 8.371,
+                  "amount": 0.1,
+                  "filled": 0.1,
+                  "remaining": 0,
+                  "status": "closed",
+                  "fee": {
+                    "currency": "USDT",
+                    "cost": "0.004186"
+                  },
+                  "trades": [],
+                  "reduceOnly": true,
+                  "fees": [
+                    {
+                      "currency": "USDT",
+                      "cost": 0.004186
+                    }
+                  ]
+                }
+              }
+        ],
+        "fetchPositions": [
+            {
+                "description": "fetch position",
+                "method": "fetchPositions",
+                "input": [
+                  [
+                    "LTC/USDT:USDT"
+                  ]
+                ],
+                "httpResponse": {
+                  "code": "0",
+                  "msg": "",
+                  "data": [
+                    {
+                      "positionId": "1773289330136281088",
+                      "symbol": "LTC-USDT",
+                      "currency": "USDT",
+                      "positionAmt": "0.1",
+                      "availableAmt": "0.1",
+                      "positionSide": "LONG",
+                      "isolated": false,
+                      "avgPrice": "95.61",
+                      "initialMargin": "1.9128",
+                      "leverage": "5",
+                      "unrealizedProfit": "0.0005",
+                      "realisedProfit": "-0.0048",
+                      "liquidationPrice": "0",
+                      "pnlRatio": "0.0002",
+                      "maxMarginReduction": "0.0000",
+                      "riskRate": "0.0068",
+                      "markPrice": "95.62",
+                      "positionValue": "9.5616",
+                      "onlyOnePosition": false
+                    }
+                  ]
+                },
+                "parsedResponse": [
+                  {
+                    "info": {
+                      "positionId": "1773289330136281088",
+                      "symbol": "LTC-USDT",
+                      "currency": "USDT",
+                      "positionAmt": "0.1",
+                      "availableAmt": "0.1",
+                      "positionSide": "LONG",
+                      "isolated": false,
+                      "avgPrice": "95.61",
+                      "initialMargin": "1.9128",
+                      "leverage": "5",
+                      "unrealizedProfit": "0.0005",
+                      "realisedProfit": "-0.0048",
+                      "liquidationPrice": "0",
+                      "pnlRatio": "0.0002",
+                      "maxMarginReduction": "0.0000",
+                      "riskRate": "0.0068",
+                      "markPrice": "95.62",
+                      "positionValue": "9.5616",
+                      "onlyOnePosition": false
+                    },
+                    "id": "1773289330136281088",
+                    "symbol": "LTC/USDT:USDT",
+                    "notional": 9.5616,
+                    "marginMode": "cross",
+                    "liquidationPrice": null,
+                    "entryPrice": 95.61,
+                    "unrealizedPnl": 0.0005,
+                    "realizedPnl": -0.0048,
+                    "percentage": null,
+                    "contracts": 0.1,
+                    "contractSize": 1,
+                    "markPrice": null,
+                    "lastPrice": null,
+                    "side": "long",
+                    "hedged": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastUpdateTimestamp": null,
+                    "maintenanceMargin": null,
+                    "maintenanceMarginPercentage": null,
+                    "collateral": null,
+                    "initialMargin": 1.9128,
+                    "initialMarginPercentage": null,
+                    "leverage": 5,
+                    "marginRatio": null,
+                    "stopLossPrice": null,
+                    "takeProfitPrice": null
+                  }
                 ]
             }
         ]

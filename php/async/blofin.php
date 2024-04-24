@@ -350,7 +350,7 @@ class blofin extends Exchange {
         ));
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * retrieves $data on all markets for blofin
@@ -952,13 +952,15 @@ class blofin extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function parse_trading_fee($fee, ?array $market = null) {
+    public function parse_trading_fee($fee, ?array $market = null): array {
         return array(
             'info' => $fee,
             'symbol' => $this->safe_symbol(null, $market),
             // blofin returns the fees values opposed to other exchanges, so the sign needs to be flipped
             'maker' => $this->parse_number(Precise::string_neg($this->safe_string_2($fee, 'maker', 'makerU'))),
             'taker' => $this->parse_number(Precise::string_neg($this->safe_string_2($fee, 'taker', 'takerU'))),
+            'percentage' => null,
+            'tierBased' => null,
         );
     }
 
@@ -1268,6 +1270,7 @@ class blofin extends Exchange {
              * @param {string} $id $order $id
              * @param {string} $symbol unified $symbol of the $market the $order was made in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {boolean} [$params->trigger] True if cancelling a trigger/conditional order/tp sl orders
              * @return {array} An ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structure~
              */
             if ($symbol === null) {
@@ -1278,13 +1281,23 @@ class blofin extends Exchange {
             $request = array(
                 'instId' => $market['id'],
             );
+            $isTrigger = $this->safe_bool_n($params, array( 'stop', 'trigger', 'tpsl' ), false);
             $clientOrderId = $this->safe_string($params, 'clientOrderId');
             if ($clientOrderId !== null) {
                 $request['clientOrderId'] = $clientOrderId;
             } else {
-                $request['orderId'] = $id;
+                if (!$isTrigger) {
+                    $request['orderId'] = (string) $id;
+                } else {
+                    $request['tpslId'] = (string) $id;
+                }
             }
-            $query = $this->omit($params, array( 'orderId', 'clientOrderId' ));
+            $query = $this->omit($params, array( 'orderId', 'clientOrderId', 'stop', 'trigger', 'tpsl' ));
+            if ($isTrigger) {
+                $tpslResponse = Async\await($this->cancel_orders(array( $id ), $symbol, $params));
+                $first = $this->safe_dict($tpslResponse, 0);
+                return $first;
+            }
             $response = Async\await($this->privatePostTradeCancelOrder (array_merge($request, $query)));
             $data = $this->safe_list($response, 'data', array());
             $order = $this->safe_dict($data, 0);
@@ -2011,7 +2024,7 @@ class blofin extends Exchange {
         }) ();
     }
 
-    public function parse_leverage($leverage, $market = null): Leverage {
+    public function parse_leverage($leverage, $market = null): array {
         $marketId = $this->safe_string($leverage, 'instId');
         $leverageValue = $this->safe_integer($leverage, 'leverage');
         return array(
@@ -2167,7 +2180,7 @@ class blofin extends Exchange {
         }) ();
     }
 
-    public function parse_margin_mode($marginMode, $market = null): MarginMode {
+    public function parse_margin_mode($marginMode, $market = null): array {
         return array(
             'info' => $marginMode,
             'symbol' => $market['symbol'],

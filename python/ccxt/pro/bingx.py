@@ -713,20 +713,39 @@ class bingx(ccxt.async_support.bingx):
             client.reject(e)
         return True
 
-    async def authenticate(self, params={}):
-        time = self.milliseconds()
+    async def keep_alive_listen_key(self, params={}):
         listenKey = self.safe_string(self.options, 'listenKey')
         if listenKey is None:
-            response = await self.userAuthPrivatePostUserDataStream()
-            self.options['listenKey'] = self.safe_string(response, 'listenKey')
-            self.options['lastAuthenticatedTime'] = time
+            # A network error happened: we can't renew a listen key that does not exist.
             return
+        try:
+            await self.userAuthPrivatePutUserDataStream({'listenKey': listenKey})  # self.extend the expiry
+        except Exception as error:
+            types = ['spot', 'swap']
+            for i in range(0, len(types)):
+                type = types[i]
+                url = self.urls['api']['ws'][type] + '?listenKey=' + listenKey
+                client = self.client(url)
+                messageHashes = list(client.futures.keys())
+                for j in range(0, len(messageHashes)):
+                    messageHash = messageHashes[j]
+                    client.reject(error, messageHash)
+            self.options['listenKey'] = None
+            self.options['lastAuthenticatedTime'] = 0
+            return
+        # whether or not to schedule another listenKey keepAlive request
+        listenKeyRefreshRate = self.safe_integer(self.options, 'listenKeyRefreshRate', 3600000)
+        self.delay(listenKeyRefreshRate, self.keep_alive_listen_key, params)
+
+    async def authenticate(self, params={}):
+        time = self.milliseconds()
         lastAuthenticatedTime = self.safe_integer(self.options, 'lastAuthenticatedTime', 0)
         listenKeyRefreshRate = self.safe_integer(self.options, 'listenKeyRefreshRate', 3600000)  # 1 hour
         if time - lastAuthenticatedTime > listenKeyRefreshRate:
-            response = await self.userAuthPrivatePutUserDataStream({'listenKey': listenKey})  # self.extend the expiry
+            response = await self.userAuthPrivatePostUserDataStream()
             self.options['listenKey'] = self.safe_string(response, 'listenKey')
             self.options['lastAuthenticatedTime'] = time
+            self.delay(listenKeyRefreshRate, self.keep_alive_listen_key, params)
 
     async def pong(self, client, message):
         #

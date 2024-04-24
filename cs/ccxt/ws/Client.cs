@@ -46,7 +46,7 @@ public partial class Exchange
 
         public object lastPong = null;
 
-        public object keepAlive = null;
+        public object keepAlive = 30000;
 
         public int maxPingPongMisses = 3;
 
@@ -54,7 +54,7 @@ public partial class Exchange
 
         public bool error = false;
 
-        public WebSocketClient(string url, string proxy, handleMessageDelegate handleMessage, pingDelegate ping = null, onCloseDelegate onClose = null, onErrorDelegate onError = null, bool isVerbose = false)
+        public WebSocketClient(string url, string proxy, handleMessageDelegate handleMessage, pingDelegate ping = null, onCloseDelegate onClose = null, onErrorDelegate onError = null, bool isVerbose = false, Int64 keepA = 30000)
         {
             this.url = url;
             var tcs = new TaskCompletionSource<bool>();
@@ -64,6 +64,7 @@ public partial class Exchange
             this.verbose = isVerbose;
             this.onClose = onClose;
             this.onError = onError;
+            this.keepAlive = keepA;
 
             if (proxy != null)
             {
@@ -167,7 +168,10 @@ public partial class Exchange
 
         public async void PingLoop()
         {
-
+            if (keepAlive != null)
+            {
+                await Task.Delay(Convert.ToInt32(keepAlive));
+            }
             var now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
             if (this.verbose)
             {
@@ -195,7 +199,19 @@ public partial class Exchange
                         var pingResult = this.ping(this);
                         if (pingResult != null)
                         {
-                            await this.send(pingResult);
+                            // if (this.verbose)
+                            // {
+                            //     Console.WriteLine("Sending ping: " + pingResult);
+                            // }
+                            if (pingResult is string)
+                            {
+                                await this.send((string)pingResult);
+                            }
+                            else
+                            {
+                                await this.send(pingResult);
+
+                            }
                         }
                     }
                     else
@@ -204,18 +220,33 @@ public partial class Exchange
 
                     }
                 }
-                await Task.Delay((int)convertedKeepAlive);
+                await Task.Delay(Convert.ToInt32(convertedKeepAlive));
             }
         }
+
+
+        private static readonly SemaphoreSlim _connectSemaphore = new SemaphoreSlim(1, 1);
 
         public void Connect()
         {
             var tcs = this.connected;
             // Run the connection logic in a background task
+
+            if (this.webSocket.State == WebSocketState.Open)
+            {
+                return; // already connected, return. Might happen when we call connect multiple times in a row
+
+            }
             Task.Run(async () =>
             {
                 try
                 {
+                    await _connectSemaphore.WaitAsync();
+                    if (this.webSocket.State == WebSocketState.Open)
+                    {
+                        return; // already connected, return. Might happen when we call connect multiple times in a row
+
+                    }
                     await webSocket.ConnectAsync(new Uri(url), CancellationToken.None);
                     if (this.verbose)
                     {
@@ -231,21 +262,44 @@ public partial class Exchange
                 {
                     tcs.SetException(ex); // Set the exception if something goes wrong
                 }
+                finally
+                {
+                    _connectSemaphore.Release();
+                }
             });
 
             // return tcs.Task;
         }
 
+
+        private static readonly SemaphoreSlim _sendSemaphore = new SemaphoreSlim(1, 1);
+
+        protected static async Task sendAsyncWrapper(ClientWebSocket webSocket, ArraySegment<byte> ArraySegment, WebSocketMessageType WebSocketMessageType, bool endOnMessage, CancellationToken CancellationToken)
+        {
+            await _sendSemaphore.WaitAsync();
+            try
+            {
+                if (webSocket.State == WebSocketState.Open)
+                {
+                    await webSocket.SendAsync(ArraySegment, WebSocketMessageType, endOnMessage, CancellationToken);
+                }
+            }
+            finally
+            {
+                _sendSemaphore.Release();
+            }
+        }
+
         public async Task send(object message)
         {
-            var jsonMessage = Exchange.Json(message).ToString();
+            var jsonMessage = (message is string) ? ((string)message) : Exchange.Json(message);
             if (this.verbose)
             {
                 Console.WriteLine($"Sending message: {jsonMessage}");
             }
             var bytes = Encoding.UTF8.GetBytes(jsonMessage);
             var arraySegment = new ArraySegment<byte>(bytes, 0, bytes.Length);
-            await this.webSocket.SendAsync(arraySegment,
+            await sendAsyncWrapper(this.webSocket, arraySegment,
                                 WebSocketMessageType.Text,
                                 true,
                                 CancellationToken.None);
@@ -262,7 +316,7 @@ public partial class Exchange
                     if (!string.IsNullOrEmpty(message))
                     {
                         var bytes = Encoding.UTF8.GetBytes(message);
-                        await webSocket.SendAsync(new ArraySegment<byte>(bytes), WebSocketMessageType.Text, true, CancellationToken.None);
+                        await sendAsyncWrapper(webSocket, new ArraySegment<byte>(bytes), WebSocketMessageType.Text, true, CancellationToken.None);
                     }
                 }
             }
@@ -294,7 +348,16 @@ public partial class Exchange
                     {
                         // var message = Encoding.UTF8.GetString(buffer, 0, result.Count);
                         var message = Encoding.UTF8.GetString(memory.ToArray(), 0, (int)memory.Length);
-                        var deserializedMessages = JsonHelper.Deserialize(message);
+                        object deserializedMessages = message;
+
+                        try
+                        {
+                            deserializedMessages = JsonHelper.Deserialize(message);
+                        }
+                        catch (Exception e)
+                        {
+                            // Console.WriteLine(e);
+                        }
 
                         if (this.verbose)
                         {
@@ -352,6 +415,30 @@ public partial class Exchange
                 }
                 this.isConnected = false;
                 this.onError(this, ex);
+            }
+        }
+
+        public async Task Close()
+        {
+            if (this.webSocket.State == WebSocketState.Open)
+            {
+                try
+                {
+                    await this.webSocket.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, "Close", CancellationToken.None);
+                }
+                catch (Exception e)
+                {
+                    // Console.WriteLine(e);
+                }
+
+            }
+            foreach (var future in this.futures.Values)
+            {
+                if (!future.task.IsCompleted)
+                {
+                    future.reject(new ExchangeClosedByUser("Connection closed by the user"));
+
+                }
             }
         }
     }

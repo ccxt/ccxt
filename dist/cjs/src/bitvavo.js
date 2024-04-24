@@ -932,6 +932,9 @@ class bitvavo extends bitvavo$1 {
             if (limit === undefined) {
                 limit = 1440;
             }
+            else {
+                limit = Math.min(limit, 1440);
+            }
             request['end'] = this.sum(since, limit * duration * 1000);
         }
         [request, params] = this.handleUntilOption('end', request, params);

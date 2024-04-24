@@ -181,7 +181,7 @@ public partial class testMainClass : BaseTest
         }
         public void assertCurrencyCode(Exchange exchange, object skippedProperties, object method, object entry, object actualCode, object expectedCode = null)
         {
-            if (isTrue(inOp(skippedProperties, "currency")))
+            if (isTrue(isTrue((inOp(skippedProperties, "currency"))) || isTrue((inOp(skippedProperties, "currencyIdAndCode")))))
             {
                 return;
             }
@@ -199,7 +199,7 @@ public partial class testMainClass : BaseTest
         public void assertValidCurrencyIdAndCode(Exchange exchange, object skippedProperties, object method, object entry, object currencyId, object currencyCode)
         {
             // this is exclusive exceptional key name to be used in `skip-tests.json`, to skip check for currency id and code
-            if (isTrue(inOp(skippedProperties, "currencyIdAndCode")))
+            if (isTrue(isTrue((inOp(skippedProperties, "currency"))) || isTrue((inOp(skippedProperties, "currencyIdAndCode")))))
             {
                 return;
             }
@@ -439,6 +439,30 @@ public partial class testMainClass : BaseTest
             exchange.httpProxy = httpProxy;
             exchange.httpsProxy = httpsProxy;
             exchange.socksProxy = socksProxy;
+        }
+        public void assertNonEmtpyArray(Exchange exchange, object skippedProperties, object method, object entry, object hint = null)
+        {
+            object logText = logTemplate(exchange, method, entry);
+            if (isTrue(!isEqual(hint, null)))
+            {
+                logText = add(add(logText, " "), hint);
+            }
+            assert(((entry is IList<object>) || (entry.GetType().IsGenericType && entry.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))), add("response is expected to be an array", logText));
+            if (!isTrue((inOp(skippedProperties, "emptyResponse"))))
+            {
+                return;
+            }
+            assert(isGreaterThan(getArrayLength(entry), 0), add(add("response is expected to be a non-empty array", logText), " (add \"emptyResponse\" in skip-tests.json to skip this check)"));
+        }
+        public void assertRoundMinuteTimestamp(Exchange exchange, object skippedProperties, object method, object entry, object key)
+        {
+            if (isTrue(inOp(skippedProperties, key)))
+            {
+                return;
+            }
+            object logText = logTemplate(exchange, method, entry);
+            object ts = exchange.safeString(entry, key);
+            assert(isEqual(Precise.stringMod(ts, "60000"), "0"), add("timestamp should be a multiple of 60 seconds (1 minute)", logText));
         }
 
     }

@@ -1154,7 +1154,7 @@ public partial class onetrading : Exchange
         //         "cursor": "eyJhY2NvdW50X2lkIjp7InMiOiJlMzY5YWM4MC00NTc3LTExZTktYWUwOC05YmVkYzQ3OTBiODQiLCJzcyI6W10sIm5zIjpbXSwiYnMiOltdLCJtIjp7fSwibCI6W119LCJpdGVtX2tleSI6eyJzIjoiV0lUSERSQVdBTDo6MmFlMjYwY2ItOTk3MC00YmNiLTgxNmEtZGY4MDVmY2VhZTY1Iiwic3MiOltdLCJucyI6W10sImJzIjpbXSwibSI6e30sImwiOltdfSwiZ2xvYmFsX3dpdGhkcmF3YWxfaW5kZXhfaGFzaF9rZXkiOnsicyI6ImUzNjlhYzgwLTQ1NzctMTFlOS1hZTA4LTliZWRjNDc5MGI4NCIsInNzIjpbXSwibnMiOltdLCJicyI6W10sIm0iOnt9LCJsIjpbXX0sInRpbWVzdGFtcCI6eyJuIjoiMTU4ODA1ODc2Nzk0OCIsInNzIjpbXSwibnMiOltdLCJicyI6W10sIm0iOnt9LCJsIjpbXX19"
         //     }
         //
-        object depositHistory = this.safeValue(response, "deposit_history", new List<object>() {});
+        object depositHistory = this.safeList(response, "deposit_history", new List<object>() {});
         return this.parseTransactions(depositHistory, currency, since, limit, new Dictionary<string, object>() {
             { "type", "deposit" },
         });
@@ -1226,7 +1226,7 @@ public partial class onetrading : Exchange
         //         "max_page_size": 2
         //     }
         //
-        object withdrawalHistory = this.safeValue(response, "withdrawal_history", new List<object>() {});
+        object withdrawalHistory = this.safeList(response, "withdrawal_history", new List<object>() {});
         return this.parseTransactions(withdrawalHistory, currency, since, limit, new Dictionary<string, object>() {
             { "type", "withdrawal" },
         });
@@ -1848,7 +1848,7 @@ public partial class onetrading : Exchange
         //         "max_page_size": 100
         //     }
         //
-        object orderHistory = this.safeValue(response, "order_history", new List<object>() {});
+        object orderHistory = this.safeList(response, "order_history", new List<object>() {});
         return this.parseOrders(orderHistory, market, since, limit);
     }
 
@@ -1998,7 +1998,7 @@ public partial class onetrading : Exchange
         //         "cursor": "string"
         //     }
         //
-        object tradeHistory = this.safeValue(response, "trade_history", new List<object>() {});
+        object tradeHistory = this.safeList(response, "trade_history", new List<object>() {});
         return this.parseTrades(tradeHistory, market, since, limit);
     }
 

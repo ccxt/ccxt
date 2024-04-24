@@ -60,6 +60,13 @@ class woo extends \ccxt\async\woo {
                 'ping' => array($this, 'ping'),
                 'keepAlive' => 10000,
             ),
+            'exceptions' => array(
+                'ws' => array(
+                    'exact' => array(
+                        'Auth is needed.' => '\\ccxt\\AuthenticationError',
+                    ),
+                ),
+            ),
         ));
     }
 
@@ -73,7 +80,6 @@ class woo extends \ccxt\async\woo {
 
     public function watch_public($messageHash, $message) {
         return Async\async(function () use ($messageHash, $message) {
-            $this->check_required_uid();
             $url = $this->urls['api']['ws']['public'] . '/' . $this->uid;
             $requestId = $this->request_id($url);
             $subscribe = array(
@@ -86,6 +92,13 @@ class woo extends \ccxt\async\woo {
 
     public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
+            /**
+             * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+             * @param {string} $symbol unified $symbol of the $market to fetch the order book for
+             * @param {int} [$limit] the maximum amount of order book entries to return.
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
+             */
             Async\await($this->load_markets());
             $name = 'orderbook';
             $market = $this->market($symbol);
@@ -139,9 +152,16 @@ class woo extends \ccxt\async\woo {
 
     public function watch_ticker(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
+            /**
+             * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+             * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+             */
             Async\await($this->load_markets());
             $name = 'ticker';
             $market = $this->market($symbol);
+            $symbol = $market['symbol'];
             $topic = $market['id'] . '@' . $name;
             $request = array(
                 'event' => 'subscribe',
@@ -221,7 +241,14 @@ class woo extends \ccxt\async\woo {
 
     public function watch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
+            /**
+             * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+             * @param {string[]} $symbols unified symbol of the market to fetch the ticker for
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+             */
             Async\await($this->load_markets());
+            $symbols = $this->market_symbols($symbols);
             $name = 'tickers';
             $topic = $name;
             $request = array(
@@ -348,8 +375,17 @@ class woo extends \ccxt\async\woo {
 
     public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * watches information on multiple $trades made in a $market
+             * @param {string} $symbol unified $market $symbol of the $market $trades were made in
+             * @param {int} [$since] the earliest time in ms to fetch $trades for
+             * @param {int} [$limit] the maximum number of trade structures to retrieve
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+             */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
+            $symbol = $market['symbol'];
             $topic = $market['id'] . '@trade';
             $request = array(
                 'event' => 'subscribe',
@@ -443,29 +479,31 @@ class woo extends \ccxt\async\woo {
     }
 
     public function authenticate($params = array ()) {
-        $this->check_required_credentials();
-        $url = $this->urls['api']['ws']['private'] . '/' . $this->uid;
-        $client = $this->client($url);
-        $messageHash = 'authenticated';
-        $event = 'auth';
-        $future = $this->safe_value($client->subscriptions, $messageHash);
-        if ($future === null) {
-            $ts = (string) $this->nonce();
-            $auth = '|' . $ts;
-            $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256');
-            $request = array(
-                'event' => $event,
-                'params' => array(
-                    'apikey' => $this->apiKey,
-                    'sign' => $signature,
-                    'timestamp' => $ts,
-                ),
-            );
-            $message = array_merge($request, $params);
-            $future = $this->watch($url, $messageHash, $message);
-            $client->subscriptions[$messageHash] = $future;
-        }
-        return $future;
+        return Async\async(function () use ($params) {
+            $this->check_required_credentials();
+            $url = $this->urls['api']['ws']['private'] . '/' . $this->uid;
+            $client = $this->client($url);
+            $messageHash = 'authenticated';
+            $event = 'auth';
+            $future = $client->future ($messageHash);
+            $authenticated = $this->safe_value($client->subscriptions, $messageHash);
+            if ($authenticated === null) {
+                $ts = (string) $this->nonce();
+                $auth = '|' . $ts;
+                $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256');
+                $request = array(
+                    'event' => $event,
+                    'params' => array(
+                        'apikey' => $this->apiKey,
+                        'sign' => $signature,
+                        'timestamp' => $ts,
+                    ),
+                );
+                $message = array_merge($request, $params);
+                $this->watch($url, $messageHash, $message, $messageHash);
+            }
+            return Async\await($future);
+        }) ();
     }
 
     public function watch_private($messageHash, $message, $params = array ()) {
@@ -483,6 +521,14 @@ class woo extends \ccxt\async\woo {
 
     public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * watches information on multiple $orders made by the user
+             * @param {string} $symbol unified $market $symbol of the $market $orders were made in
+             * @param {int} [$since] the earliest time in ms to fetch $orders for
+             * @param {int} [$limit] the maximum number of order structures to retrieve
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             */
             Async\await($this->load_markets());
             $topic = 'executionreport';
             $messageHash = $topic;
@@ -847,7 +893,42 @@ class woo extends \ccxt\async\woo {
         $client->resolve ($this->balance, 'balance');
     }
 
+    public function handle_error_message(Client $client, $message) {
+        //
+        // array("id":"1","event":"subscribe","success":false,"ts":1710780997216,"errorMsg":"Auth is needed.")
+        //
+        if (!(is_array($message) && array_key_exists('success', $message))) {
+            return false;
+        }
+        $success = $this->safe_bool($message, 'success');
+        if ($success) {
+            return false;
+        }
+        $errorMessage = $this->safe_string($message, 'errorMsg');
+        try {
+            if ($errorMessage !== null) {
+                $feedback = $this->id . ' ' . $this->json($message);
+                $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorMessage, $feedback);
+            }
+            return false;
+        } catch (Exception $error) {
+            if ($error instanceof AuthenticationError) {
+                $messageHash = 'authenticated';
+                $client->reject ($error, $messageHash);
+                if (is_array($client->subscriptions) && array_key_exists($messageHash, $client->subscriptions)) {
+                    unset($client->subscriptions[$messageHash]);
+                }
+            } else {
+                $client->reject ($error);
+            }
+            return true;
+        }
+    }
+
     public function handle_message(Client $client, $message) {
+        if ($this->handle_error_message($client, $message)) {
+            return;
+        }
         $methods = array(
             'ping' => array($this, 'handle_ping'),
             'pong' => array($this, 'handle_pong'),
@@ -935,7 +1016,9 @@ class woo extends \ccxt\async\woo {
         $messageHash = 'authenticated';
         $success = $this->safe_value($message, 'success');
         if ($success) {
-            $client->resolve ($message, $messageHash);
+            // $client->resolve ($message, $messageHash);
+            $future = $this->safe_value($client->futures, 'authenticated');
+            $future->resolve (true);
         } else {
             $error = new AuthenticationError ($this->json($message));
             $client->reject ($error, $messageHash);

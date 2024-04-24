@@ -541,8 +541,8 @@ class bitmex extends bitmex$1 {
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
             const market = this.safeMarket(marketId);
-            const messageHash = table + ':' + marketId;
             const symbol = market['symbol'];
+            const messageHash = table + ':' + symbol;
             const trades = this.parseTrades(dataByMarketIds[marketId], market);
             let stored = this.safeValue(this.trades, symbol);
             if (stored === undefined) {
@@ -567,23 +567,7 @@ class bitmex extends bitmex$1 {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
-        await this.loadMarkets();
-        const market = this.market(symbol);
-        symbol = market['symbol'];
-        const table = 'trade';
-        const messageHash = table + ':' + market['id'];
-        const url = this.urls['api']['ws'];
-        const request = {
-            'op': 'subscribe',
-            'args': [
-                messageHash,
-            ],
-        };
-        const trades = await this.watch(url, messageHash, this.extend(request, params), messageHash);
-        if (this.newUpdates) {
-            limit = trades.getLimit(symbol, limit);
-        }
-        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
+        return await this.watchTradesForSymbols([symbol], since, limit, params);
     }
     async authenticate(params = {}) {
         const url = this.urls['api']['ws'];
@@ -607,7 +591,7 @@ class bitmex extends bitmex$1 {
             const message = this.extend(request, params);
             this.watch(url, messageHash, message, messageHash);
         }
-        return future;
+        return await future;
     }
     handleAuthenticationMessage(client, message) {
         const authenticated = this.safeBool(message, 'success', false);
@@ -1215,6 +1199,43 @@ class bitmex extends bitmex$1 {
         };
         const orderbook = await this.watchMultiple(url, messageHashes, this.deepExtend(request, params), topics);
         return orderbook.limit();
+    }
+    async watchTradesForSymbols(symbols, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitmex#watchTradesForSymbols
+         * @description get the list of most recent trades for a list of symbols
+         * @param {string[]} symbols unified symbol of the market to fetch trades for
+         * @param {int} [since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [limit] the maximum amount of trades to fetch
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+         */
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols, undefined, false);
+        const table = 'trade';
+        const topics = [];
+        const messageHashes = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            const market = this.market(symbol);
+            const topic = table + ':' + market['id'];
+            topics.push(topic);
+            const messageHash = table + ':' + symbol;
+            messageHashes.push(messageHash);
+        }
+        const url = this.urls['api']['ws'];
+        const request = {
+            'op': 'subscribe',
+            'args': topics,
+        };
+        const trades = await this.watchMultiple(url, messageHashes, this.deepExtend(request, params), topics);
+        if (this.newUpdates) {
+            const first = this.safeValue(trades, 0);
+            const tradeSymbol = this.safeString(first, 'symbol');
+            limit = trades.getLimit(tradeSymbol, limit);
+        }
+        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
     }
     async watchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         /**

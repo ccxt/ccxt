@@ -9,6 +9,7 @@ class ImplicitAPI:
     public_get_candles_minutes_1 = publicGetCandlesMinutes1 = Entry('candles/minutes/1', 'public', 'GET', {})
     public_get_candles_minutes_3 = publicGetCandlesMinutes3 = Entry('candles/minutes/3', 'public', 'GET', {})
     public_get_candles_minutes_5 = publicGetCandlesMinutes5 = Entry('candles/minutes/5', 'public', 'GET', {})
+    public_get_candles_minutes_10 = publicGetCandlesMinutes10 = Entry('candles/minutes/10', 'public', 'GET', {})
     public_get_candles_minutes_15 = publicGetCandlesMinutes15 = Entry('candles/minutes/15', 'public', 'GET', {})
     public_get_candles_minutes_30 = publicGetCandlesMinutes30 = Entry('candles/minutes/30', 'public', 'GET', {})
     public_get_candles_minutes_60 = publicGetCandlesMinutes60 = Entry('candles/minutes/60', 'public', 'GET', {})

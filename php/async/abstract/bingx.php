@@ -7,6 +7,9 @@ namespace ccxt\async\abstract;
 
 
 abstract class bingx extends \ccxt\async\Exchange {
+    public function spot_v1_public_get_server_time($params = array()) {
+        return $this->request('server/time', array('spot', 'v1', 'public'), 'GET', $params, null, null, array("cost" => 3));
+    }
     public function spot_v1_public_get_common_symbols($params = array()) {
         return $this->request('common/symbols', array('spot', 'v1', 'public'), 'GET', $params, null, null, array("cost" => 3));
     }
@@ -58,6 +61,9 @@ abstract class bingx extends \ccxt\async\Exchange {
     public function spot_v1_private_post_trade_cancelopenorders($params = array()) {
         return $this->request('trade/cancelOpenOrders', array('spot', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 3));
     }
+    public function spot_v1_private_post_trade_cancelallafter($params = array()) {
+        return $this->request('trade/cancelAllAfter', array('spot', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
     public function spot_v3_private_get_get_asset_transfer($params = array()) {
         return $this->request('get/asset/transfer', array('spot', 'v3', 'private'), 'GET', $params, null, null, array("cost" => 3));
     }
@@ -85,11 +91,17 @@ abstract class bingx extends \ccxt\async\Exchange {
     public function swap_v1_private_get_trade_batchcancelreplace($params = array()) {
         return $this->request('trade/batchCancelReplace', array('swap', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
+    public function swap_v1_private_get_trade_fullorder($params = array()) {
+        return $this->request('trade/fullOrder', array('swap', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
     public function swap_v1_private_post_trade_cancelreplace($params = array()) {
         return $this->request('trade/cancelReplace', array('swap', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
     public function swap_v1_private_post_positionside_dual($params = array()) {
         return $this->request('positionSide/dual', array('swap', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function swap_v1_private_post_trade_closeposition($params = array()) {
+        return $this->request('trade/closePosition', array('swap', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
     public function swap_v2_public_get_server_time($params = array()) {
         return $this->request('server/time', array('swap', 'v2', 'public'), 'GET', $params, null, null, array("cost" => 3));
@@ -174,6 +186,9 @@ abstract class bingx extends \ccxt\async\Exchange {
     }
     public function swap_v2_private_post_trade_closeallpositions($params = array()) {
         return $this->request('trade/closeAllPositions', array('swap', 'v2', 'private'), 'POST', $params, null, null, array("cost" => 3));
+    }
+    public function swap_v2_private_post_trade_cancelallafter($params = array()) {
+        return $this->request('trade/cancelAllAfter', array('swap', 'v2', 'private'), 'POST', $params, null, null, array("cost" => 3));
     }
     public function swap_v2_private_post_trade_margintype($params = array()) {
         return $this->request('trade/marginType', array('swap', 'v2', 'private'), 'POST', $params, null, null, array("cost" => 3));
@@ -283,6 +298,9 @@ abstract class bingx extends \ccxt\async\Exchange {
     public function copytrading_v1_private_post_swap_trace_settpsl($params = array()) {
         return $this->request('swap/trace/setTPSL', array('copyTrading', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
+    public function copytrading_v1_private_post_spot_trader_sellorder($params = array()) {
+        return $this->request('spot/trader/sellOrder', array('copyTrading', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
     public function api_v3_private_get_asset_transfer($params = array()) {
         return $this->request('asset/transfer', array('api', 'v3', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
@@ -294,6 +312,9 @@ abstract class bingx extends \ccxt\async\Exchange {
     }
     public function api_v3_private_post_post_asset_transfer($params = array()) {
         return $this->request('post/asset/transfer', array('api', 'v3', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function spotV1PublicGetServerTime($params = array()) {
+        return $this->request('server/time', array('spot', 'v1', 'public'), 'GET', $params, null, null, array("cost" => 3));
     }
     public function spotV1PublicGetCommonSymbols($params = array()) {
         return $this->request('common/symbols', array('spot', 'v1', 'public'), 'GET', $params, null, null, array("cost" => 3));
@@ -346,6 +367,9 @@ abstract class bingx extends \ccxt\async\Exchange {
     public function spotV1PrivatePostTradeCancelOpenOrders($params = array()) {
         return $this->request('trade/cancelOpenOrders', array('spot', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 3));
     }
+    public function spotV1PrivatePostTradeCancelAllAfter($params = array()) {
+        return $this->request('trade/cancelAllAfter', array('spot', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
     public function spotV3PrivateGetGetAssetTransfer($params = array()) {
         return $this->request('get/asset/transfer', array('spot', 'v3', 'private'), 'GET', $params, null, null, array("cost" => 3));
     }
@@ -373,11 +397,17 @@ abstract class bingx extends \ccxt\async\Exchange {
     public function swapV1PrivateGetTradeBatchCancelReplace($params = array()) {
         return $this->request('trade/batchCancelReplace', array('swap', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
+    public function swapV1PrivateGetTradeFullOrder($params = array()) {
+        return $this->request('trade/fullOrder', array('swap', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
     public function swapV1PrivatePostTradeCancelReplace($params = array()) {
         return $this->request('trade/cancelReplace', array('swap', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
     public function swapV1PrivatePostPositionSideDual($params = array()) {
         return $this->request('positionSide/dual', array('swap', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function swapV1PrivatePostTradeClosePosition($params = array()) {
+        return $this->request('trade/closePosition', array('swap', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
     public function swapV2PublicGetServerTime($params = array()) {
         return $this->request('server/time', array('swap', 'v2', 'public'), 'GET', $params, null, null, array("cost" => 3));
@@ -462,6 +492,9 @@ abstract class bingx extends \ccxt\async\Exchange {
     }
     public function swapV2PrivatePostTradeCloseAllPositions($params = array()) {
         return $this->request('trade/closeAllPositions', array('swap', 'v2', 'private'), 'POST', $params, null, null, array("cost" => 3));
+    }
+    public function swapV2PrivatePostTradeCancelAllAfter($params = array()) {
+        return $this->request('trade/cancelAllAfter', array('swap', 'v2', 'private'), 'POST', $params, null, null, array("cost" => 3));
     }
     public function swapV2PrivatePostTradeMarginType($params = array()) {
         return $this->request('trade/marginType', array('swap', 'v2', 'private'), 'POST', $params, null, null, array("cost" => 3));
@@ -570,6 +603,9 @@ abstract class bingx extends \ccxt\async\Exchange {
     }
     public function copyTradingV1PrivatePostSwapTraceSetTPSL($params = array()) {
         return $this->request('swap/trace/setTPSL', array('copyTrading', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function copyTradingV1PrivatePostSpotTraderSellOrder($params = array()) {
+        return $this->request('spot/trader/sellOrder', array('copyTrading', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
     public function apiV3PrivateGetAssetTransfer($params = array()) {
         return $this->request('asset/transfer', array('api', 'v3', 'private'), 'GET', $params, null, null, array("cost" => 1));

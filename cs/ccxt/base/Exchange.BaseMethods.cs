@@ -743,6 +743,24 @@ public partial class Exchange
         throw new NotSupported ((string)add(this.id, " fetchFundingRates() is not supported yet")) ;
     }
 
+    public async virtual Task<object> watchFundingRate(object symbol, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " watchFundingRate() is not supported yet")) ;
+    }
+
+    public async virtual Task<object> watchFundingRates(object symbols, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " watchFundingRates() is not supported yet")) ;
+    }
+
+    public async virtual Task<object> watchFundingRatesForSymbols(object symbols, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        return await this.watchFundingRates(symbols, parameters);
+    }
+
     public async virtual Task<object> transfer(object code, object amount, object fromAccount, object toAccount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
@@ -810,6 +828,12 @@ public partial class Exchange
         throw new NotSupported ((string)add(this.id, " setMargin() is not supported yet")) ;
     }
 
+    public async virtual Task<object> fetchMarginAdjustmentHistory(object symbol = null, object type = null, object since = null, object limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " fetchMarginAdjustmentHistory() is not supported yet")) ;
+    }
+
     public async virtual Task<object> setMarginMode(object marginMode, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
@@ -851,7 +875,7 @@ public partial class Exchange
     {
         // Solve Common parseInt misuse ex: parseInt ((since / 1000).toString ())
         // using a number as parameter which is not valid in ts
-        object stringifiedNumber = ((object)number).ToString();
+        object stringifiedNumber = this.numberToString(number);
         object convertedNumber = ((object)parseFloat(stringifiedNumber));
         return parseInt(convertedNumber);
     }
@@ -2150,7 +2174,7 @@ public partial class Exchange
         }
     }
 
-    public virtual object marketIds(object symbols)
+    public virtual object marketIds(object symbols = null)
     {
         if (isTrue(isEqual(symbols, null)))
         {
@@ -2164,7 +2188,21 @@ public partial class Exchange
         return result;
     }
 
-    public virtual object marketSymbols(object symbols, object type = null, object allowEmpty = null, object sameTypeOnly = null, object sameSubTypeOnly = null)
+    public virtual object marketsForSymbols(object symbols = null)
+    {
+        if (isTrue(isEqual(symbols, null)))
+        {
+            return symbols;
+        }
+        object result = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        {
+            ((IList<object>)result).Add(this.market(getValue(symbols, i)));
+        }
+        return result;
+    }
+
+    public virtual object marketSymbols(object symbols = null, object type = null, object allowEmpty = null, object sameTypeOnly = null, object sameSubTypeOnly = null)
     {
         allowEmpty ??= true;
         sameTypeOnly ??= false;
@@ -2221,7 +2259,7 @@ public partial class Exchange
         return result;
     }
 
-    public virtual object marketCodes(object codes)
+    public virtual object marketCodes(object codes = null)
     {
         if (isTrue(isEqual(codes, null)))
         {
@@ -2308,11 +2346,21 @@ public partial class Exchange
         {
             if (isTrue(isEqual(currencyCode, null)))
             {
-                // if currencyCode was not provided, then we just set passed value to networkId
-                networkId = networkCode;
+                object currencies = new List<object>(((IDictionary<string,object>)this.currencies).Values);
+                for (object i = 0; isLessThan(i, getArrayLength(currencies)); postFixIncrement(ref i))
+                {
+                    object currency = new List<object>() {i};
+                    object networks = this.safeDict(currency, "networks");
+                    object network = this.safeDict(networks, networkCode);
+                    networkId = this.safeString(network, "id");
+                    if (isTrue(!isEqual(networkId, null)))
+                    {
+                        break;
+                    }
+                }
             } else
             {
-                // if currencyCode was provided, then we try to find if that currencyCode has a replacement (i.e. ERC20 for ETH)
+                // if currencyCode was provided, then we try to find if that currencyCode has a replacement (i.e. ERC20 for ETH) or is in the currency
                 object defaultNetworkCodeReplacements = this.safeValue(this.options, "defaultNetworkCodeReplacements", new Dictionary<string, object>() {});
                 if (isTrue(inOp(defaultNetworkCodeReplacements, currencyCode)))
                 {
@@ -2330,12 +2378,19 @@ public partial class Exchange
                             break;
                         }
                     }
-                }
-                // if it wasn't found, we just set the provided value to network-id
-                if (isTrue(isEqual(networkId, null)))
+                } else
                 {
-                    networkId = networkCode;
+                    // serach for network inside currency
+                    object currency = this.safeDict(this.currencies, currencyCode);
+                    object networks = this.safeDict(currency, "networks");
+                    object network = this.safeDict(networks, networkCode);
+                    networkId = this.safeString(network, "id");
                 }
+            }
+            // if it wasn't found, we just set the provided value to network-id
+            if (isTrue(isEqual(networkId, null)))
+            {
+                networkId = networkCode;
             }
         }
         return networkId;
@@ -2494,16 +2549,40 @@ public partial class Exchange
         // marketIdKey should only be undefined when response is a dictionary
         symbols = this.marketSymbols(symbols);
         object tiers = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        object symbolsLength = 0;
+        if (isTrue(!isEqual(symbols, null)))
         {
-            object item = getValue(response, i);
-            object id = this.safeString(item, marketIdKey);
-            object market = this.safeMarket(id, null, null, "swap");
-            object symbol = getValue(market, "symbol");
-            object contract = this.safeBool(market, "contract", false);
-            if (isTrue(isTrue(contract) && isTrue((isTrue((isEqual(symbols, null))) || isTrue(this.inArray(symbol, symbols))))))
+            symbolsLength = getArrayLength(symbols);
+        }
+        object noSymbols = isTrue((isEqual(symbols, null))) || isTrue((isEqual(symbolsLength, 0)));
+        if (isTrue(((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+        {
+            for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
             {
-                ((IDictionary<string,object>)tiers)[(string)symbol] = this.parseMarketLeverageTiers(item, market);
+                object item = getValue(response, i);
+                object id = this.safeString(item, marketIdKey);
+                object market = this.safeMarket(id, null, null, "swap");
+                object symbol = getValue(market, "symbol");
+                object contract = this.safeBool(market, "contract", false);
+                if (isTrue(isTrue(contract) && isTrue((isTrue(noSymbols) || isTrue(this.inArray(symbol, symbols))))))
+                {
+                    ((IDictionary<string,object>)tiers)[(string)symbol] = this.parseMarketLeverageTiers(item, market);
+                }
+            }
+        } else
+        {
+            object keys = new List<object>(((IDictionary<string,object>)response).Keys);
+            for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
+            {
+                object marketId = getValue(keys, i);
+                object item = getValue(response, marketId);
+                object market = this.safeMarket(marketId, null, null, "swap");
+                object symbol = getValue(market, "symbol");
+                object contract = this.safeBool(market, "contract", false);
+                if (isTrue(isTrue(contract) && isTrue((isTrue(noSymbols) || isTrue(this.inArray(symbol, symbols))))))
+                {
+                    ((IDictionary<string,object>)tiers)[(string)symbol] = this.parseMarketLeverageTiers(item, market);
+                }
             }
         }
         return tiers;
@@ -2915,6 +2994,12 @@ public partial class Exchange
         throw new NotSupported ((string)add(this.id, " fetchPosition() is not supported yet")) ;
     }
 
+    public async virtual Task<object> fetchPositionWs(object symbol, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " fetchPositionWs() is not supported yet")) ;
+    }
+
     public async virtual Task<object> watchPosition(object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
@@ -2939,7 +3024,19 @@ public partial class Exchange
         throw new NotSupported ((string)add(this.id, " fetchPositionsForSymbol() is not supported yet")) ;
     }
 
+    public async virtual Task<object> fetchPositionsForSymbolWs(object symbol, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " fetchPositionsForSymbol() is not supported yet")) ;
+    }
+
     public async virtual Task<object> fetchPositions(object symbols = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " fetchPositions() is not supported yet")) ;
+    }
+
+    public async virtual Task<object> fetchPositionsWs(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " fetchPositions() is not supported yet")) ;
@@ -3006,11 +3103,11 @@ public partial class Exchange
         {
             code = this.commonCurrencyCode(((string)currencyId).ToUpper());
         }
-        return new Dictionary<string, object>() {
+        return this.safeCurrencyStructure(new Dictionary<string, object>() {
             { "id", currencyId },
             { "code", code },
             { "precision", null },
-        };
+        });
     }
 
     public virtual object safeMarket(object marketId, object market = null, object delimiter = null, object marketType = null)
@@ -3076,6 +3173,12 @@ public partial class Exchange
 
     public virtual object checkRequiredCredentials(object error = null)
     {
+        /**
+        * @ignore
+        * @method
+        * @param {boolean} error throw an error that a credential is required if true
+        * @returns {boolean} true if all required credentials have been set, otherwise false or an error is thrown is param error=true
+        */
         error ??= true;
         object keys = new List<object>(((IDictionary<string,object>)this.requiredCredentials).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
@@ -3158,28 +3261,6 @@ public partial class Exchange
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " fetchStatus() is not supported yet")) ;
-    }
-
-    public async virtual Task<object> fetchFundingFee(object code, object parameters = null)
-    {
-        parameters ??= new Dictionary<string, object>();
-        object warnOnFetchFundingFee = this.safeBool(this.options, "warnOnFetchFundingFee", true);
-        if (isTrue(warnOnFetchFundingFee))
-        {
-            throw new NotSupported ((string)add(this.id, " fetchFundingFee() method is deprecated, it will be removed in July 2022, please, use fetchTransactionFee() or set exchange.options[\"warnOnFetchFundingFee\"] = false to suppress this warning")) ;
-        }
-        return await this.fetchTransactionFee(code, parameters);
-    }
-
-    public async virtual Task<object> fetchFundingFees(object codes = null, object parameters = null)
-    {
-        parameters ??= new Dictionary<string, object>();
-        object warnOnFetchFundingFees = this.safeBool(this.options, "warnOnFetchFundingFees", true);
-        if (isTrue(warnOnFetchFundingFees))
-        {
-            throw new NotSupported ((string)add(this.id, " fetchFundingFees() method is deprecated, it will be removed in July 2022. Please, use fetchTransactionFees() or set exchange.options[\"warnOnFetchFundingFees\"] = false to suppress this warning")) ;
-        }
-        return await this.fetchTransactionFees(codes, parameters);
     }
 
     public async virtual Task<object> fetchTransactionFee(object code, object parameters = null)
@@ -3332,12 +3413,28 @@ public partial class Exchange
         return result;
     }
 
-    public virtual object handleMarketTypeAndParams(object methodName, object market = null, object parameters = null)
+    public virtual object handleMarketTypeAndParams(object methodName, object market = null, object parameters = null, object defaultValue = null)
     {
+        /**
+        * @ignore
+        * @method
+        * @name exchange#handleMarketTypeAndParams
+        * @param methodName the method calling handleMarketTypeAndParams
+        * @param {Market} market
+        * @param {object} params
+        * @param {string} [params.type] type assigned by user
+        * @param {string} [params.defaultType] same as params.type
+        * @param {string} [defaultValue] assigned programatically in the method calling handleMarketTypeAndParams
+        * @returns {[string, object]} the market type and params with type and defaultType omitted
+        */
         parameters ??= new Dictionary<string, object>();
         object defaultType = this.safeString2(this.options, "defaultType", "type", "spot");
+        if (isTrue(isEqual(defaultValue, null)))
+        {
+            defaultValue = defaultType;
+        }
         object methodOptions = this.safeDict(this.options, methodName);
-        object methodType = defaultType;
+        object methodType = defaultValue;
         if (isTrue(!isEqual(methodOptions, null)))
         {
             if (isTrue((methodOptions is string)))
@@ -3475,6 +3572,29 @@ public partial class Exchange
         }
     }
 
+    public async virtual Task<object> fetchTickerWs(object symbol, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        if (isTrue(getValue(this.has, "fetchTickersWs")))
+        {
+            await this.loadMarkets();
+            object market = this.market(symbol);
+            symbol = getValue(market, "symbol");
+            object tickers = await this.fetchTickerWs(symbol, parameters);
+            object ticker = this.safeDict(tickers, symbol);
+            if (isTrue(isEqual(ticker, null)))
+            {
+                throw new NullResponse ((string)add(add(this.id, " fetchTickers() could not find a ticker for "), symbol)) ;
+            } else
+            {
+                return ticker;
+            }
+        } else
+        {
+            throw new NotSupported ((string)add(this.id, " fetchTicker() is not supported yet")) ;
+        }
+    }
+
     public async virtual Task<object> watchTicker(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
@@ -3487,10 +3607,22 @@ public partial class Exchange
         throw new NotSupported ((string)add(this.id, " fetchTickers() is not supported yet")) ;
     }
 
+    public async virtual Task<object> fetchTickersWs(object symbols = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " fetchTickers() is not supported yet")) ;
+    }
+
     public async virtual Task<object> fetchOrderBooks(object symbols = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " fetchOrderBooks() is not supported yet")) ;
+    }
+
+    public async virtual Task<object> watchBidsAsks(object symbols = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " watchBidsAsks() is not supported yet")) ;
     }
 
     public async virtual Task<object> watchTickers(object symbols = null, object parameters = null)
@@ -3565,6 +3697,39 @@ public partial class Exchange
         throw new NotSupported ((string)add(this.id, " createTrailingAmountOrder() is not supported yet")) ;
     }
 
+    public async virtual Task<object> createTrailingAmountOrderWs(object symbol, object type, object side, object amount, object price = null, object trailingAmount = null, object trailingTriggerPrice = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name createTrailingAmountOrderWs
+        * @description create a trailing order by providing the symbol, type, side, amount, price and trailingAmount
+        * @param {string} symbol unified symbol of the market to create an order in
+        * @param {string} type 'market' or 'limit'
+        * @param {string} side 'buy' or 'sell'
+        * @param {float} amount how much you want to trade in units of the base currency, or number of contracts
+        * @param {float} [price] the price for the order to be filled at, in units of the quote currency, ignored in market orders
+        * @param {float} trailingAmount the quote amount to trail away from the current market price
+        * @param {float} [trailingTriggerPrice] the price to activate a trailing order, default uses the price argument
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(trailingAmount, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " createTrailingAmountOrderWs() requires a trailingAmount argument")) ;
+        }
+        ((IDictionary<string,object>)parameters)["trailingAmount"] = trailingAmount;
+        if (isTrue(!isEqual(trailingTriggerPrice, null)))
+        {
+            ((IDictionary<string,object>)parameters)["trailingTriggerPrice"] = trailingTriggerPrice;
+        }
+        if (isTrue(getValue(this.has, "createTrailingAmountOrderWs")))
+        {
+            return await this.createOrderWs(symbol, type, side, amount, price, parameters);
+        }
+        throw new NotSupported ((string)add(this.id, " createTrailingAmountOrderWs() is not supported yet")) ;
+    }
+
     public async virtual Task<object> createTrailingPercentOrder(object symbol, object type, object side, object amount, object price = null, object trailingPercent = null, object trailingTriggerPrice = null, object parameters = null)
     {
         /**
@@ -3596,6 +3761,39 @@ public partial class Exchange
             return await this.createOrder(symbol, type, side, amount, price, parameters);
         }
         throw new NotSupported ((string)add(this.id, " createTrailingPercentOrder() is not supported yet")) ;
+    }
+
+    public async virtual Task<object> createTrailingPercentOrderWs(object symbol, object type, object side, object amount, object price = null, object trailingPercent = null, object trailingTriggerPrice = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name createTrailingPercentOrderWs
+        * @description create a trailing order by providing the symbol, type, side, amount, price and trailingPercent
+        * @param {string} symbol unified symbol of the market to create an order in
+        * @param {string} type 'market' or 'limit'
+        * @param {string} side 'buy' or 'sell'
+        * @param {float} amount how much you want to trade in units of the base currency, or number of contracts
+        * @param {float} [price] the price for the order to be filled at, in units of the quote currency, ignored in market orders
+        * @param {float} trailingPercent the percent to trail away from the current market price
+        * @param {float} [trailingTriggerPrice] the price to activate a trailing order, default uses the price argument
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(trailingPercent, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " createTrailingPercentOrderWs() requires a trailingPercent argument")) ;
+        }
+        ((IDictionary<string,object>)parameters)["trailingPercent"] = trailingPercent;
+        if (isTrue(!isEqual(trailingTriggerPrice, null)))
+        {
+            ((IDictionary<string,object>)parameters)["trailingTriggerPrice"] = trailingTriggerPrice;
+        }
+        if (isTrue(getValue(this.has, "createTrailingPercentOrderWs")))
+        {
+            return await this.createOrderWs(symbol, type, side, amount, price, parameters);
+        }
+        throw new NotSupported ((string)add(this.id, " createTrailingPercentOrderWs() is not supported yet")) ;
     }
 
     public async virtual Task<object> createMarketOrderWithCost(object symbol, object side, object cost, object parameters = null)
@@ -3656,6 +3854,26 @@ public partial class Exchange
         throw new NotSupported ((string)add(this.id, " createMarketSellOrderWithCost() is not supported yet")) ;
     }
 
+    public async virtual Task<object> createMarketOrderWithCostWs(object symbol, object side, object cost, object parameters = null)
+    {
+        /**
+        * @method
+        * @name createMarketOrderWithCostWs
+        * @description create a market order by providing the symbol, side and cost
+        * @param {string} symbol unified symbol of the market to create an order in
+        * @param {string} side 'buy' or 'sell'
+        * @param {float} cost how much you want to trade in units of the quote currency
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        if (isTrue(isTrue(getValue(this.has, "createMarketOrderWithCostWs")) || isTrue((isTrue(getValue(this.has, "createMarketBuyOrderWithCostWs")) && isTrue(getValue(this.has, "createMarketSellOrderWithCostWs"))))))
+        {
+            return await this.createOrderWs(symbol, "market", side, cost, 1, parameters);
+        }
+        throw new NotSupported ((string)add(this.id, " createMarketOrderWithCostWs() is not supported yet")) ;
+    }
+
     public async virtual Task<object> createTriggerOrder(object symbol, object type, object side, object amount, object price = null, object triggerPrice = null, object parameters = null)
     {
         /**
@@ -3682,6 +3900,34 @@ public partial class Exchange
             return await this.createOrder(symbol, type, side, amount, price, parameters);
         }
         throw new NotSupported ((string)add(this.id, " createTriggerOrder() is not supported yet")) ;
+    }
+
+    public async virtual Task<object> createTriggerOrderWs(object symbol, object type, object side, object amount, object price = null, object triggerPrice = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name createTriggerOrderWs
+        * @description create a trigger stop order (type 1)
+        * @param {string} symbol unified symbol of the market to create an order in
+        * @param {string} type 'market' or 'limit'
+        * @param {string} side 'buy' or 'sell'
+        * @param {float} amount how much you want to trade in units of the base currency or the number of contracts
+        * @param {float} [price] the price to fulfill the order, in units of the quote currency, ignored in market orders
+        * @param {float} triggerPrice the price to trigger the stop order, in units of the quote currency
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(triggerPrice, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " createTriggerOrderWs() requires a triggerPrice argument")) ;
+        }
+        ((IDictionary<string,object>)parameters)["triggerPrice"] = triggerPrice;
+        if (isTrue(getValue(this.has, "createTriggerOrderWs")))
+        {
+            return await this.createOrderWs(symbol, type, side, amount, price, parameters);
+        }
+        throw new NotSupported ((string)add(this.id, " createTriggerOrderWs() is not supported yet")) ;
     }
 
     public async virtual Task<object> createStopLossOrder(object symbol, object type, object side, object amount, object price = null, object stopLossPrice = null, object parameters = null)
@@ -3712,6 +3958,34 @@ public partial class Exchange
         throw new NotSupported ((string)add(this.id, " createStopLossOrder() is not supported yet")) ;
     }
 
+    public async virtual Task<object> createStopLossOrderWs(object symbol, object type, object side, object amount, object price = null, object stopLossPrice = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name createStopLossOrderWs
+        * @description create a trigger stop loss order (type 2)
+        * @param {string} symbol unified symbol of the market to create an order in
+        * @param {string} type 'market' or 'limit'
+        * @param {string} side 'buy' or 'sell'
+        * @param {float} amount how much you want to trade in units of the base currency or the number of contracts
+        * @param {float} [price] the price to fulfill the order, in units of the quote currency, ignored in market orders
+        * @param {float} stopLossPrice the price to trigger the stop loss order, in units of the quote currency
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(stopLossPrice, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " createStopLossOrderWs() requires a stopLossPrice argument")) ;
+        }
+        ((IDictionary<string,object>)parameters)["stopLossPrice"] = stopLossPrice;
+        if (isTrue(getValue(this.has, "createStopLossOrderWs")))
+        {
+            return await this.createOrderWs(symbol, type, side, amount, price, parameters);
+        }
+        throw new NotSupported ((string)add(this.id, " createStopLossOrderWs() is not supported yet")) ;
+    }
+
     public async virtual Task<object> createTakeProfitOrder(object symbol, object type, object side, object amount, object price = null, object takeProfitPrice = null, object parameters = null)
     {
         /**
@@ -3740,6 +4014,34 @@ public partial class Exchange
         throw new NotSupported ((string)add(this.id, " createTakeProfitOrder() is not supported yet")) ;
     }
 
+    public async virtual Task<object> createTakeProfitOrderWs(object symbol, object type, object side, object amount, object price = null, object takeProfitPrice = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name createTakeProfitOrderWs
+        * @description create a trigger take profit order (type 2)
+        * @param {string} symbol unified symbol of the market to create an order in
+        * @param {string} type 'market' or 'limit'
+        * @param {string} side 'buy' or 'sell'
+        * @param {float} amount how much you want to trade in units of the base currency or the number of contracts
+        * @param {float} [price] the price to fulfill the order, in units of the quote currency, ignored in market orders
+        * @param {float} takeProfitPrice the price to trigger the take profit order, in units of the quote currency
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(takeProfitPrice, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " createTakeProfitOrderWs() requires a takeProfitPrice argument")) ;
+        }
+        ((IDictionary<string,object>)parameters)["takeProfitPrice"] = takeProfitPrice;
+        if (isTrue(getValue(this.has, "createTakeProfitOrderWs")))
+        {
+            return await this.createOrderWs(symbol, type, side, amount, price, parameters);
+        }
+        throw new NotSupported ((string)add(this.id, " createTakeProfitOrderWs() is not supported yet")) ;
+    }
+
     public async virtual Task<object> createOrderWithTakeProfitAndStopLoss(object symbol, object type, object side, object amount, object price = null, object takeProfit = null, object stopLoss = null, object parameters = null)
     {
         /**
@@ -3764,6 +4066,17 @@ public partial class Exchange
         * @param {float} [params.stopLossAmount] *not available on all exchanges* the amount for a stop loss
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
+        parameters ??= new Dictionary<string, object>();
+        parameters = this.setTakeProfitAndStopLossParams(symbol, type, side, amount, price, takeProfit, stopLoss, parameters);
+        if (isTrue(getValue(this.has, "createOrderWithTakeProfitAndStopLoss")))
+        {
+            return await this.createOrder(symbol, type, side, amount, price, parameters);
+        }
+        throw new NotSupported ((string)add(this.id, " createOrderWithTakeProfitAndStopLoss() is not supported yet")) ;
+    }
+
+    public virtual object setTakeProfitAndStopLossParams(object symbol, object type, object side, object amount, object price = null, object takeProfit = null, object stopLoss = null, object parameters = null)
+    {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isTrue((isEqual(takeProfit, null))) && isTrue((isEqual(stopLoss, null)))))
         {
@@ -3822,11 +4135,40 @@ public partial class Exchange
             ((IDictionary<string,object>)getValue(parameters, "stopLoss"))["amount"] = this.parseToNumeric(stopLossAmount);
         }
         parameters = this.omit(parameters, new List<object>() {"takeProfitType", "takeProfitPriceType", "takeProfitLimitPrice", "takeProfitAmount", "stopLossType", "stopLossPriceType", "stopLossLimitPrice", "stopLossAmount"});
-        if (isTrue(getValue(this.has, "createOrderWithTakeProfitAndStopLoss")))
+        return parameters;
+    }
+
+    public async virtual Task<object> createOrderWithTakeProfitAndStopLossWs(object symbol, object type, object side, object amount, object price = null, object takeProfit = null, object stopLoss = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name createOrderWithTakeProfitAndStopLossWs
+        * @description create an order with a stop loss or take profit attached (type 3)
+        * @param {string} symbol unified symbol of the market to create an order in
+        * @param {string} type 'market' or 'limit'
+        * @param {string} side 'buy' or 'sell'
+        * @param {float} amount how much you want to trade in units of the base currency or the number of contracts
+        * @param {float} [price] the price to fulfill the order, in units of the quote currency, ignored in market orders
+        * @param {float} [takeProfit] the take profit price, in units of the quote currency
+        * @param {float} [stopLoss] the stop loss price, in units of the quote currency
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string} [params.takeProfitType] *not available on all exchanges* 'limit' or 'market'
+        * @param {string} [params.stopLossType] *not available on all exchanges* 'limit' or 'market'
+        * @param {string} [params.takeProfitPriceType] *not available on all exchanges* 'last', 'mark' or 'index'
+        * @param {string} [params.stopLossPriceType] *not available on all exchanges* 'last', 'mark' or 'index'
+        * @param {float} [params.takeProfitLimitPrice] *not available on all exchanges* limit price for a limit take profit order
+        * @param {float} [params.stopLossLimitPrice] *not available on all exchanges* stop loss for a limit stop loss order
+        * @param {float} [params.takeProfitAmount] *not available on all exchanges* the amount for a take profit
+        * @param {float} [params.stopLossAmount] *not available on all exchanges* the amount for a stop loss
+        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        parameters = this.setTakeProfitAndStopLossParams(symbol, type, side, amount, price, takeProfit, stopLoss, parameters);
+        if (isTrue(getValue(this.has, "createOrderWithTakeProfitAndStopLossWs")))
         {
-            return await this.createOrder(symbol, type, side, amount, price, parameters);
+            return await this.createOrderWs(symbol, type, side, amount, price, parameters);
         }
-        throw new NotSupported ((string)add(this.id, " createOrderWithTakeProfitAndStopLoss() is not supported yet")) ;
+        throw new NotSupported ((string)add(this.id, " createOrderWithTakeProfitAndStopLossWs() is not supported yet")) ;
     }
 
     public async virtual Task<object> createOrders(object orders, object parameters = null)
@@ -3863,6 +4205,18 @@ public partial class Exchange
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " cancelAllOrders() is not supported yet")) ;
+    }
+
+    public async virtual Task<object> cancelAllOrdersAfter(object timeout, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " cancelAllOrdersAfter() is not supported yet")) ;
+    }
+
+    public async virtual Task<object> cancelOrdersForSymbols(object orders, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " cancelOrdersForSymbols() is not supported yet")) ;
     }
 
     public async virtual Task<object> cancelAllOrdersWs(object symbol = null, object parameters = null)
@@ -3991,6 +4345,24 @@ public partial class Exchange
         throw new NotSupported ((string)add(this.id, " fetchGreeks() is not supported yet")) ;
     }
 
+    public async virtual Task<object> fetchOptionChain(object code, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " fetchOptionChain() is not supported yet")) ;
+    }
+
+    public async virtual Task<object> fetchOption(object symbol, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " fetchOption() is not supported yet")) ;
+    }
+
+    public async virtual Task<object> fetchConvertQuote(object fromCode, object toCode, object amount = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " fetchConvertQuote() is not supported yet")) ;
+    }
+
     public async virtual Task<object> fetchDepositsWithdrawals(object code = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
@@ -4099,13 +4471,13 @@ public partial class Exchange
         };
     }
 
-    public virtual object commonCurrencyCode(object currency)
+    public virtual object commonCurrencyCode(object code)
     {
         if (!isTrue(this.substituteCommonCurrencyCodes))
         {
-            return currency;
+            return code;
         }
-        return this.safeString(this.commonCurrencies, currency, currency);
+        return this.safeString(this.commonCurrencies, code, code);
     }
 
     public virtual object currency(object code)
@@ -4185,10 +4557,22 @@ public partial class Exchange
         return await this.createOrder(symbol, "limit", side, amount, price, parameters);
     }
 
+    public async virtual Task<object> createLimitOrderWs(object symbol, object side, object amount, object price, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        return await this.createOrderWs(symbol, "limit", side, amount, price, parameters);
+    }
+
     public async virtual Task<object> createMarketOrder(object symbol, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         return await this.createOrder(symbol, "market", side, amount, price, parameters);
+    }
+
+    public async virtual Task<object> createMarketOrderWs(object symbol, object side, object amount, object price = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        return await this.createOrderWs(symbol, "market", side, amount, price, parameters);
     }
 
     public async virtual Task<object> createLimitBuyOrder(object symbol, object amount, object price, object parameters = null)
@@ -4197,10 +4581,22 @@ public partial class Exchange
         return await this.createOrder(symbol, "limit", "buy", amount, price, parameters);
     }
 
+    public async virtual Task<object> createLimitBuyOrderWs(object symbol, object amount, object price, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        return await this.createOrderWs(symbol, "limit", "buy", amount, price, parameters);
+    }
+
     public async virtual Task<object> createLimitSellOrder(object symbol, object amount, object price, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         return await this.createOrder(symbol, "limit", "sell", amount, price, parameters);
+    }
+
+    public async virtual Task<object> createLimitSellOrderWs(object symbol, object amount, object price, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        return await this.createOrderWs(symbol, "limit", "sell", amount, price, parameters);
     }
 
     public async virtual Task<object> createMarketBuyOrder(object symbol, object amount, object parameters = null)
@@ -4209,10 +4605,22 @@ public partial class Exchange
         return await this.createOrder(symbol, "market", "buy", amount, null, parameters);
     }
 
+    public async virtual Task<object> createMarketBuyOrderWs(object symbol, object amount, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        return await this.createOrderWs(symbol, "market", "buy", amount, null, parameters);
+    }
+
     public async virtual Task<object> createMarketSellOrder(object symbol, object amount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         return await this.createOrder(symbol, "market", "sell", amount, null, parameters);
+    }
+
+    public async virtual Task<object> createMarketSellOrderWs(object symbol, object amount, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        return await this.createOrderWs(symbol, "market", "sell", amount, null, parameters);
     }
 
     public virtual object costToPrecision(object symbol, object cost)
@@ -4329,6 +4737,35 @@ public partial class Exchange
         return add(parsedPrecision, "1");
     }
 
+    public virtual object integerPrecisionToAmount(object precision)
+    {
+        /**
+         * @ignore
+         * @method
+         * @description handles positive & negative numbers too. parsePrecision() does not handle negative numbers, but this method handles
+         * @param {string} precision The number of digits to the right of the decimal
+         * @returns {string} a string number equal to 1e-precision
+         */
+        if (isTrue(isEqual(precision, null)))
+        {
+            return null;
+        }
+        if (isTrue(Precise.stringGe(precision, "0")))
+        {
+            return this.parsePrecision(precision);
+        } else
+        {
+            object positivePrecisionString = Precise.stringAbs(precision);
+            object positivePrecision = parseInt(positivePrecisionString);
+            object parsedPrecision = "1";
+            for (object i = 0; isLessThan(i, subtract(positivePrecision, 1)); postFixIncrement(ref i))
+            {
+                parsedPrecision = add(parsedPrecision, "0");
+            }
+            return add(parsedPrecision, "0");
+        }
+    }
+
     public async virtual Task<object> loadTimeDifference(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
@@ -4376,6 +4813,19 @@ public partial class Exchange
         return await this.createOrder(symbol, type, side, amount, price, query);
     }
 
+    public async virtual Task<object> createPostOnlyOrderWs(object symbol, object type, object side, object amount, object price = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        if (!isTrue(getValue(this.has, "createPostOnlyOrderWs")))
+        {
+            throw new NotSupported ((string)add(this.id, "createPostOnlyOrderWs() is not supported yet")) ;
+        }
+        object query = this.extend(parameters, new Dictionary<string, object>() {
+            { "postOnly", true },
+        });
+        return await this.createOrderWs(symbol, type, side, amount, price, query);
+    }
+
     public async virtual Task<object> createReduceOnlyOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
@@ -4387,6 +4837,19 @@ public partial class Exchange
             { "reduceOnly", true },
         });
         return await this.createOrder(symbol, type, side, amount, price, query);
+    }
+
+    public async virtual Task<object> createReduceOnlyOrderWs(object symbol, object type, object side, object amount, object price = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        if (!isTrue(getValue(this.has, "createReduceOnlyOrderWs")))
+        {
+            throw new NotSupported ((string)add(this.id, "createReduceOnlyOrderWs() is not supported yet")) ;
+        }
+        object query = this.extend(parameters, new Dictionary<string, object>() {
+            { "reduceOnly", true },
+        });
+        return await this.createOrderWs(symbol, type, side, amount, price, query);
     }
 
     public async virtual Task<object> createStopOrder(object symbol, object type, object side, object amount, object price = null, object stopPrice = null, object parameters = null)
@@ -4406,6 +4869,23 @@ public partial class Exchange
         return await this.createOrder(symbol, type, side, amount, price, query);
     }
 
+    public async virtual Task<object> createStopOrderWs(object symbol, object type, object side, object amount, object price = null, object stopPrice = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        if (!isTrue(getValue(this.has, "createStopOrderWs")))
+        {
+            throw new NotSupported ((string)add(this.id, " createStopOrderWs() is not supported yet")) ;
+        }
+        if (isTrue(isEqual(stopPrice, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " createStopOrderWs() requires a stopPrice argument")) ;
+        }
+        object query = this.extend(parameters, new Dictionary<string, object>() {
+            { "stopPrice", stopPrice },
+        });
+        return await this.createOrderWs(symbol, type, side, amount, price, query);
+    }
+
     public async virtual Task<object> createStopLimitOrder(object symbol, object side, object amount, object price, object stopPrice, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
@@ -4419,6 +4899,19 @@ public partial class Exchange
         return await this.createOrder(symbol, "limit", side, amount, price, query);
     }
 
+    public async virtual Task<object> createStopLimitOrderWs(object symbol, object side, object amount, object price, object stopPrice, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        if (!isTrue(getValue(this.has, "createStopLimitOrderWs")))
+        {
+            throw new NotSupported ((string)add(this.id, " createStopLimitOrderWs() is not supported yet")) ;
+        }
+        object query = this.extend(parameters, new Dictionary<string, object>() {
+            { "stopPrice", stopPrice },
+        });
+        return await this.createOrderWs(symbol, "limit", side, amount, price, query);
+    }
+
     public async virtual Task<object> createStopMarketOrder(object symbol, object side, object amount, object stopPrice, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
@@ -4430,6 +4923,19 @@ public partial class Exchange
             { "stopPrice", stopPrice },
         });
         return await this.createOrder(symbol, "market", side, amount, null, query);
+    }
+
+    public async virtual Task<object> createStopMarketOrderWs(object symbol, object side, object amount, object stopPrice, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        if (!isTrue(getValue(this.has, "createStopMarketOrderWs")))
+        {
+            throw new NotSupported ((string)add(this.id, " createStopMarketOrderWs() is not supported yet")) ;
+        }
+        object query = this.extend(parameters, new Dictionary<string, object>() {
+            { "stopPrice", stopPrice },
+        });
+        return await this.createOrderWs(symbol, "market", side, amount, null, query);
     }
 
     public virtual object safeCurrencyCode(object currencyId, object currency = null)
@@ -4725,7 +5231,14 @@ public partial class Exchange
         {
             throw new NotSupported ((string)add(this.id, " fetchTradingFee() is not supported yet")) ;
         }
-        return await this.fetchTradingFees(parameters);
+        object fees = await this.fetchTradingFees(parameters);
+        return this.safeDict(fees, symbol);
+    }
+
+    public async virtual Task<object> fetchConvertCurrencies(object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " fetchConvertCurrencies() is not supported yet")) ;
     }
 
     public virtual object parseOpenInterest(object interest, object market = null)
@@ -4955,7 +5468,6 @@ public partial class Exchange
          * @returns {object} objects with withdraw and deposit fees, indexed by currency codes
          */
         object depositWithdrawFees = new Dictionary<string, object>() {};
-        codes = this.marketCodes(codes);
         object isArray = ((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))));
         object responseKeys = response;
         if (!isTrue(isArray))
@@ -4967,8 +5479,8 @@ public partial class Exchange
             object entry = getValue(responseKeys, i);
             object dictionary = ((bool) isTrue(isArray)) ? entry : getValue(response, entry);
             object currencyId = ((bool) isTrue(isArray)) ? this.safeString(dictionary, currencyIdKey) : entry;
-            object currency = this.safeValue(this.currencies_by_id, currencyId);
-            object code = this.safeString(currency, "code", currencyId);
+            object currency = this.safeCurrency(currencyId);
+            object code = this.safeString(currency, "code");
             if (isTrue(isTrue((isEqual(codes, null))) || isTrue((this.inArray(code, codes)))))
             {
                 ((IDictionary<string,object>)depositWithdrawFees)[(string)code] = this.parseDepositWithdrawFee(dictionary, currency);
@@ -5577,6 +6089,26 @@ public partial class Exchange
         throw new NotSupported ((string)add(this.id, " parseGreeks () is not supported yet")) ;
     }
 
+    public virtual object parseOption(object chain, object currency = null, object market = null)
+    {
+        throw new NotSupported ((string)add(this.id, " parseOption () is not supported yet")) ;
+    }
+
+    public virtual object parseOptionChain(object response, object currencyKey = null, object symbolKey = null)
+    {
+        object optionStructures = new Dictionary<string, object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        {
+            object info = getValue(response, i);
+            object currencyId = this.safeString(info, currencyKey);
+            object currency = this.safeCurrency(currencyId);
+            object marketId = this.safeString(info, symbolKey);
+            object market = this.safeMarket(marketId, null, null, "option");
+            ((IDictionary<string,object>)optionStructures)[(string)getValue(market, "symbol")] = this.parseOption(info, currency, market);
+        }
+        return optionStructures;
+    }
+
     public virtual object parseMarginModes(object response, object symbols = null, object symbolKey = null, object marketType = null)
     {
         object marginModeStructures = new Dictionary<string, object>() {};
@@ -5616,7 +6148,149 @@ public partial class Exchange
 
     public virtual object parseLeverage(object leverage, object market = null)
     {
-        throw new NotSupported ((string)add(this.id, " parseLeverage() is not supported yet")) ;
+        throw new NotSupported ((string)add(this.id, " parseLeverage () is not supported yet")) ;
+    }
+
+    public virtual object parseConversions(object conversions, object fromCurrencyKey = null, object toCurrencyKey = null, object since = null, object limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        conversions = this.toArray(conversions);
+        object result = new List<object>() {};
+        object fromCurrency = null;
+        object toCurrency = null;
+        for (object i = 0; isLessThan(i, getArrayLength(conversions)); postFixIncrement(ref i))
+        {
+            object entry = getValue(conversions, i);
+            object fromId = this.safeString(entry, fromCurrencyKey);
+            object toId = this.safeString(entry, toCurrencyKey);
+            if (isTrue(!isEqual(fromId, null)))
+            {
+                fromCurrency = this.currency(fromId);
+            }
+            if (isTrue(!isEqual(toId, null)))
+            {
+                toCurrency = this.currency(toId);
+            }
+            object conversion = this.extend(this.parseConversion(entry, fromCurrency, toCurrency), parameters);
+            ((IList<object>)result).Add(conversion);
+        }
+        object sorted = this.sortBy(result, "timestamp");
+        object code = ((bool) isTrue((!isEqual(fromCurrency, null)))) ? getValue(fromCurrency, "code") : null;
+        return this.filterByCurrencySinceLimit(sorted, code, since, limit);
+    }
+
+    public virtual object parseConversion(object conversion, object fromCurrency = null, object toCurrency = null)
+    {
+        throw new NotSupported ((string)add(this.id, " parseConversion () is not supported yet")) ;
+    }
+
+    public virtual object convertExpireDate(object date)
+    {
+        // parse YYMMDD to datetime string
+        object year = slice(date, 0, 2);
+        object month = slice(date, 2, 4);
+        object day = slice(date, 4, 6);
+        object reconstructedDate = add(add(add(add(add(add("20", year), "-"), month), "-"), day), "T00:00:00Z");
+        return reconstructedDate;
+    }
+
+    public virtual object convertExpireDateToMarketIdDate(object date)
+    {
+        // parse 240119 to 19JAN24
+        object year = slice(date, 0, 2);
+        object monthRaw = slice(date, 2, 4);
+        object month = null;
+        object day = slice(date, 4, 6);
+        if (isTrue(isEqual(monthRaw, "01")))
+        {
+            month = "JAN";
+        } else if (isTrue(isEqual(monthRaw, "02")))
+        {
+            month = "FEB";
+        } else if (isTrue(isEqual(monthRaw, "03")))
+        {
+            month = "MAR";
+        } else if (isTrue(isEqual(monthRaw, "04")))
+        {
+            month = "APR";
+        } else if (isTrue(isEqual(monthRaw, "05")))
+        {
+            month = "MAY";
+        } else if (isTrue(isEqual(monthRaw, "06")))
+        {
+            month = "JUN";
+        } else if (isTrue(isEqual(monthRaw, "07")))
+        {
+            month = "JUL";
+        } else if (isTrue(isEqual(monthRaw, "08")))
+        {
+            month = "AUG";
+        } else if (isTrue(isEqual(monthRaw, "09")))
+        {
+            month = "SEP";
+        } else if (isTrue(isEqual(monthRaw, "10")))
+        {
+            month = "OCT";
+        } else if (isTrue(isEqual(monthRaw, "11")))
+        {
+            month = "NOV";
+        } else if (isTrue(isEqual(monthRaw, "12")))
+        {
+            month = "DEC";
+        }
+        object reconstructedDate = add(add(day, month), year);
+        return reconstructedDate;
+    }
+
+    public virtual object convertMarketIdExpireDate(object date)
+    {
+        // parse 03JAN24 to 240103
+        object monthMappping = new Dictionary<string, object>() {
+            { "JAN", "01" },
+            { "FEB", "02" },
+            { "MAR", "03" },
+            { "APR", "04" },
+            { "MAY", "05" },
+            { "JUN", "06" },
+            { "JUL", "07" },
+            { "AUG", "08" },
+            { "SEP", "09" },
+            { "OCT", "10" },
+            { "NOV", "11" },
+            { "DEC", "12" },
+        };
+        // if exchange omits first zero and provides i.e. '3JAN24' instead of '03JAN24'
+        if (isTrue(isEqual(((string)date).Length, 6)))
+        {
+            date = add("0", date);
+        }
+        object year = slice(date, 0, 2);
+        object monthName = slice(date, 2, 5);
+        object month = this.safeString(monthMappping, monthName);
+        object day = slice(date, 5, 7);
+        object reconstructedDate = add(add(day, month), year);
+        return reconstructedDate;
+    }
+
+    public virtual object parseMarginModification(object data, object market = null)
+    {
+        throw new NotSupported ((string)add(this.id, " parseMarginModification() is not supported yet")) ;
+    }
+
+    public virtual object parseMarginModifications(object response, object symbols = null, object symbolKey = null, object marketType = null)
+    {
+        object marginModifications = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        {
+            object info = getValue(response, i);
+            object marketId = this.safeString(info, symbolKey);
+            object market = this.safeMarket(marketId, null, null, marketType);
+            if (isTrue(isTrue((isEqual(symbols, null))) || isTrue(this.inArray(getValue(market, "symbol"), symbols))))
+            {
+                ((IList<object>)marginModifications).Add(this.parseMarginModification(info, market));
+            }
+        }
+        return marginModifications;
     }
 }
 

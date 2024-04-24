@@ -6,7 +6,7 @@
 
 import assert from 'assert';
 import Precise from '../../../base/Precise.js';
-import { OperationFailed, OnMaintenance } from '../../../base/errors.js';
+import { OnMaintenance, OperationFailed } from '../../../base/errors.js';
 function logTemplate(exchange, method, entry) {
     return ' <<< ' + exchange.id + ' ' + method + ' ::: ' + exchange.json(entry) + ' >>> ';
 }
@@ -150,7 +150,7 @@ function assertTimestampAndDatetime(exchange, skippedProperties, method, entry, 
     }
 }
 function assertCurrencyCode(exchange, skippedProperties, method, entry, actualCode, expectedCode = undefined) {
-    if ('currency' in skippedProperties) {
+    if (('currency' in skippedProperties) || ('currencyIdAndCode' in skippedProperties)) {
         return;
     }
     const logText = logTemplate(exchange, method, entry);
@@ -164,7 +164,7 @@ function assertCurrencyCode(exchange, skippedProperties, method, entry, actualCo
 }
 function assertValidCurrencyIdAndCode(exchange, skippedProperties, method, entry, currencyId, currencyCode) {
     // this is exclusive exceptional key name to be used in `skip-tests.json`, to skip check for currency id and code
-    if ('currencyIdAndCode' in skippedProperties) {
+    if (('currency' in skippedProperties) || ('currencyIdAndCode' in skippedProperties)) {
         return;
     }
     const logText = logTemplate(exchange, method, entry);
@@ -358,6 +358,25 @@ function setProxyOptions(exchange, skippedProperties, proxyUrl, httpProxy, https
     exchange.httpsProxy = httpsProxy;
     exchange.socksProxy = socksProxy;
 }
+function assertNonEmtpyArray(exchange, skippedProperties, method, entry, hint = undefined) {
+    let logText = logTemplate(exchange, method, entry);
+    if (hint !== undefined) {
+        logText = logText + ' ' + hint;
+    }
+    assert(Array.isArray(entry), 'response is expected to be an array' + logText);
+    if (!('emptyResponse' in skippedProperties)) {
+        return;
+    }
+    assert(entry.length > 0, 'response is expected to be a non-empty array' + logText + ' (add "emptyResponse" in skip-tests.json to skip this check)');
+}
+function assertRoundMinuteTimestamp(exchange, skippedProperties, method, entry, key) {
+    if (key in skippedProperties) {
+        return;
+    }
+    const logText = logTemplate(exchange, method, entry);
+    const ts = exchange.safeString(entry, key);
+    assert(Precise.stringMod(ts, '60000') === '0', 'timestamp should be a multiple of 60 seconds (1 minute)' + logText);
+}
 export default {
     logTemplate,
     isTemporaryFailure,
@@ -382,4 +401,6 @@ export default {
     assertType,
     removeProxyOptions,
     setProxyOptions,
+    assertNonEmtpyArray,
+    assertRoundMinuteTimestamp,
 };

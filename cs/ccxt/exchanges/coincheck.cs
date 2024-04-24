@@ -503,7 +503,7 @@ public partial class coincheck : Exchange
         //                  ]
         //      }
         //
-        object transactions = this.safeValue(response, "data", new List<object>() {});
+        object transactions = this.safeList(response, "data", new List<object>() {});
         return this.parseTrades(transactions, market, since, limit);
     }
 
@@ -541,7 +541,7 @@ public partial class coincheck : Exchange
         //          "created_at": "2021-12-08T14:10:33.000Z"
         //      }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseTrades(data, market, since, limit);
     }
 
@@ -706,7 +706,7 @@ public partial class coincheck : Exchange
         //     }
         //   ]
         // }
-        object data = this.safeValue(response, "deposits", new List<object>() {});
+        object data = this.safeList(response, "deposits", new List<object>() {});
         return this.parseTransactions(data, currency, since, limit, new Dictionary<string, object>() {
             { "type", "deposit" },
         });
@@ -759,7 +759,7 @@ public partial class coincheck : Exchange
         //     }
         //   ]
         // }
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseTransactions(data, currency, since, limit, new Dictionary<string, object>() {
             { "type", "withdrawal" },
         });

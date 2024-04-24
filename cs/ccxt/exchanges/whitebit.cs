@@ -21,7 +21,8 @@ public partial class whitebit : Exchange
                 { "swap", false },
                 { "future", false },
                 { "option", false },
-                { "cancelAllOrders", false },
+                { "cancelAllOrders", true },
+                { "cancelAllOrdersAfter", true },
                 { "cancelOrder", true },
                 { "cancelOrders", false },
                 { "createOrder", true },
@@ -129,10 +130,10 @@ public partial class whitebit : Exchange
                 } },
                 { "v4", new Dictionary<string, object>() {
                     { "public", new Dictionary<string, object>() {
-                        { "get", new List<object>() {"assets", "collateral/markets", "fee", "orderbook/{market}", "ticker", "trades/{market}", "time", "ping", "markets", "futures"} },
+                        { "get", new List<object>() {"assets", "collateral/markets", "fee", "orderbook/{market}", "ticker", "trades/{market}", "time", "ping", "markets", "futures", "platform/status"} },
                     } },
                     { "private", new Dictionary<string, object>() {
-                        { "post", new List<object>() {"collateral-account/balance", "collateral-account/positions/history", "collateral-account/leverage", "collateral-account/positions/open", "collateral-account/summary", "main-account/address", "main-account/balance", "main-account/create-new-address", "main-account/codes", "main-account/codes/apply", "main-account/codes/my", "main-account/codes/history", "main-account/fiat-deposit-url", "main-account/history", "main-account/withdraw", "main-account/withdraw-pay", "main-account/transfer", "trade-account/balance", "trade-account/executed-history", "trade-account/order", "trade-account/order/history", "order/collateral/limit", "order/collateral/market", "order/collateral/trigger_market", "order/new", "order/market", "order/stock_market", "order/stop_limit", "order/stop_market", "order/cancel", "orders", "profile/websocket_token"} },
+                        { "post", new List<object>() {"collateral-account/balance", "collateral-account/balance-summary", "collateral-account/positions/history", "collateral-account/leverage", "collateral-account/positions/open", "collateral-account/summary", "main-account/address", "main-account/balance", "main-account/create-new-address", "main-account/codes", "main-account/codes/apply", "main-account/codes/my", "main-account/codes/history", "main-account/fiat-deposit-url", "main-account/history", "main-account/withdraw", "main-account/withdraw-pay", "main-account/transfer", "main-account/smart/plans", "main-account/smart/investment", "main-account/smart/investment/close", "main-account/smart/investments", "main-account/fee", "main-account/smart/interest-payment-history", "trade-account/balance", "trade-account/executed-history", "trade-account/order", "trade-account/order/history", "order/collateral/limit", "order/collateral/market", "order/collateral/stop-limit", "order/collateral/trigger-market", "order/new", "order/market", "order/stock_market", "order/stop_limit", "order/stop_market", "order/cancel", "order/cancel/all", "order/kill-switch", "order/kill-switch/status", "order/bulk", "order/modify", "orders", "oco-orders", "order/collateral/oco", "order/oco-cancel", "order/oto-cancel", "profile/websocket_token", "convert/estimate", "convert/confirm", "convert/history"} },
                     } },
                 } },
             } },
@@ -692,7 +693,7 @@ public partial class whitebit : Exchange
         //         },
         //     }
         //
-        object ticker = this.safeValue(response, "result", new Dictionary<string, object>() {});
+        object ticker = this.safeDict(response, "result", new Dictionary<string, object>() {});
         return this.parseTicker(ticker, market);
     }
 
@@ -1084,7 +1085,7 @@ public partial class whitebit : Exchange
         //         ]
         //     }
         //
-        object result = this.safeValue(response, "result", new List<object>() {});
+        object result = this.safeList(response, "result", new List<object>() {});
         return this.parseOHLCVs(result, market, timeframe, since, limit);
     }
 
@@ -1258,6 +1259,80 @@ public partial class whitebit : Exchange
         return this.parseOrder(response);
     }
 
+    public async override Task<object> editOrder(object id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name whitebit#editOrder
+        * @description edit a trade order
+        * @see https://docs.whitebit.com/private/http-trade-v4/#modify-order
+        * @param {string} id cancel order id
+        * @param {string} symbol unified symbol of the market to create an order in
+        * @param {string} type 'market' or 'limit'
+        * @param {string} side 'buy' or 'sell'
+        * @param {float} amount how much of currency you want to trade in units of base currency
+        * @param {float} price the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(id, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " editOrder() requires a id argument")) ;
+        }
+        if (isTrue(isEqual(symbol, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " editOrder() requires a symbol argument")) ;
+        }
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        object request = new Dictionary<string, object>() {
+            { "orderId", id },
+            { "market", getValue(market, "id") },
+        };
+        object clientOrderId = this.safeString2(parameters, "clOrdId", "clientOrderId");
+        if (isTrue(!isEqual(clientOrderId, null)))
+        {
+            // Update clientOrderId of the order
+            ((IDictionary<string,object>)request)["clientOrderId"] = clientOrderId;
+        }
+        object isLimitOrder = isEqual(type, "limit");
+        object stopPrice = this.safeNumberN(parameters, new List<object>() {"triggerPrice", "stopPrice", "activation_price"});
+        object isStopOrder = (!isEqual(stopPrice, null));
+        parameters = this.omit(parameters, new List<object>() {"clOrdId", "clientOrderId", "triggerPrice", "stopPrice"});
+        if (isTrue(isStopOrder))
+        {
+            ((IDictionary<string,object>)request)["activation_price"] = this.priceToPrecision(symbol, stopPrice);
+            if (isTrue(isLimitOrder))
+            {
+                // stop limit order
+                ((IDictionary<string,object>)request)["amount"] = this.amountToPrecision(symbol, amount);
+                ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
+            } else
+            {
+                // stop market order
+                if (isTrue(isEqual(side, "buy")))
+                {
+                    // Use total parameter instead of amount for modify buy stop market order
+                    ((IDictionary<string,object>)request)["total"] = this.amountToPrecision(symbol, amount);
+                } else
+                {
+                    ((IDictionary<string,object>)request)["amount"] = this.amountToPrecision(symbol, amount);
+                }
+            }
+        } else
+        {
+            ((IDictionary<string,object>)request)["amount"] = this.amountToPrecision(symbol, amount);
+            if (isTrue(isLimitOrder))
+            {
+                // limit order
+                ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
+            }
+        }
+        object response = await this.v4PrivatePostOrderModify(this.extend(request, parameters));
+        return this.parseOrder(response);
+    }
+
     public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
     {
         /**
@@ -1282,6 +1357,106 @@ public partial class whitebit : Exchange
             { "orderId", parseInt(id) },
         };
         return await this.v4PrivatePostOrderCancel(this.extend(request, parameters));
+    }
+
+    public async override Task<object> cancelAllOrders(object symbol = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name whitebit#cancelAllOrders
+        * @description cancel all open orders
+        * @see https://docs.whitebit.com/private/http-trade-v4/#cancel-all-orders
+        * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string} [params.type] market type, ['swap', 'spot']
+        * @param {boolean} [params.isMargin] cancel all margin orders
+        * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = null;
+        object request = new Dictionary<string, object>() {};
+        if (isTrue(!isEqual(symbol, null)))
+        {
+            market = this.market(symbol);
+            ((IDictionary<string,object>)request)["market"] = getValue(market, "id");
+        }
+        object type = null;
+        var typeparametersVariable = this.handleMarketTypeAndParams("cancelAllOrders", market, parameters);
+        type = ((IList<object>)typeparametersVariable)[0];
+        parameters = ((IList<object>)typeparametersVariable)[1];
+        object requestType = new List<object>() {};
+        if (isTrue(isEqual(type, "spot")))
+        {
+            object isMargin = null;
+            var isMarginparametersVariable = this.handleOptionAndParams(parameters, "cancelAllOrders", "isMargin", false);
+            isMargin = ((IList<object>)isMarginparametersVariable)[0];
+            parameters = ((IList<object>)isMarginparametersVariable)[1];
+            if (isTrue(isMargin))
+            {
+                ((IList<object>)requestType).Add("margin");
+            } else
+            {
+                ((IList<object>)requestType).Add("spot");
+            }
+        } else if (isTrue(isEqual(type, "swap")))
+        {
+            ((IList<object>)requestType).Add("futures");
+        } else
+        {
+            throw new NotSupported ((string)add(add(add(this.id, " cancelAllOrders() does not support "), type), " type")) ;
+        }
+        ((IDictionary<string,object>)request)["type"] = requestType;
+        object response = await this.v4PrivatePostOrderCancelAll(this.extend(request, parameters));
+        //
+        // []
+        //
+        return response;
+    }
+
+    public async override Task<object> cancelAllOrdersAfter(object timeout, object parameters = null)
+    {
+        /**
+        * @method
+        * @name whitebit#cancelAllOrdersAfter
+        * @description dead man's switch, cancel all orders after the given timeout
+        * @see https://docs.whitebit.com/private/http-trade-v4/#sync-kill-switch-timer
+        * @param {number} timeout time in milliseconds, 0 represents cancel the timer
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string} [params.types] Order types value. Example: "spot", "margin", "futures" or null
+        * @param {string} [params.symbol] symbol unified symbol of the market the order was made in
+        * @returns {object} the api result
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object symbol = this.safeString(parameters, "symbol");
+        if (isTrue(isEqual(symbol, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " cancelAllOrdersAfter() requires a symbol argument in params")) ;
+        }
+        object market = this.market(symbol);
+        parameters = this.omit(parameters, "symbol");
+        object isBiggerThanZero = (isGreaterThan(timeout, 0));
+        object request = new Dictionary<string, object>() {
+            { "market", getValue(market, "id") },
+        };
+        if (isTrue(isBiggerThanZero))
+        {
+            ((IDictionary<string,object>)request)["timeout"] = this.numberToString(divide(timeout, 1000));
+        } else
+        {
+            ((IDictionary<string,object>)request)["timeout"] = "null";
+        }
+        object response = await this.v4PrivatePostOrderKillSwitch(this.extend(request, parameters));
+        //
+        //     {
+        //         "market": "BTC_USDT", // currency market,
+        //         "startTime": 1662478154, // now timestamp,
+        //         "cancellationTime": 1662478154, // now + timer_value,
+        //         "types": ["spot", "margin"]
+        //     }
+        //
+        return response;
     }
 
     public override object parseBalance(object response)
@@ -1649,7 +1824,7 @@ public partial class whitebit : Exchange
         //         "limit": 100
         //     }
         //
-        object data = this.safeValue(response, "records", new List<object>() {});
+        object data = this.safeList(response, "records", new List<object>() {});
         return this.parseTrades(data, market);
     }
 
@@ -2021,7 +2196,7 @@ public partial class whitebit : Exchange
         //     }
         //
         object records = this.safeValue(response, "records", new List<object>() {});
-        object first = this.safeValue(records, 0, new Dictionary<string, object>() {});
+        object first = this.safeDict(records, 0, new Dictionary<string, object>() {});
         return this.parseTransaction(first, currency);
     }
 
@@ -2093,7 +2268,7 @@ public partial class whitebit : Exchange
         //         "total": 300                                                                                             // total number of  transactions, use this for calculating ‘limit’ and ‘offset'
         //     }
         //
-        object records = this.safeValue(response, "records", new List<object>() {});
+        object records = this.safeList(response, "records", new List<object>() {});
         return this.parseTransactions(records, currency, since, limit);
     }
 

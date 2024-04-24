@@ -302,7 +302,7 @@ class NewTranspiler {
     }
 
     isBooleanType(type: string) {
-        return (type === 'boolean') || (type === 'BooleanLiteral') || (type === 'BooleanLiteralType')
+        return (type === 'boolean') || (type === 'BooleanLiteral') || (type === 'BooleanLiteralType') || (type === 'Bool')
     }
 
     convertJavascriptTypeToCsharpType(name: string, type: string, isReturn = false): string | undefined {
@@ -1359,6 +1359,7 @@ class NewTranspiler {
                 // add ws-tests specific regeces
                 regexes = regexes.concat([
                     [/await exchange.watchOrderBook\(symbol\)/g, '((IOrderBook)(await exchange.watchOrderBook(symbol))).Copy()'],
+                    [/await exchange.watchOrderBookForSymbols\((.*?)\)/g, '((IOrderBook)(await exchange.watchOrderBookForSymbols($1))).Copy()'],
                 ]);
             }
 

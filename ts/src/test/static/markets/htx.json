@@ -1085,5 +1085,119 @@
         "tierBased": false,
         "percentage": true,
         "feeSide": "get"
+    },
+    "BTC/USDT:USDT-240329": {
+        "id": "BTC-USDT-240329",
+        "lowercaseId": "btc-usdt-240329",
+        "symbol": "BTC/USDT:USDT-240329",
+        "base": "BTC",
+        "quote": "USDT",
+        "settle": "USDT",
+        "baseId": "btc",
+        "quoteId": "usdt",
+        "settleId": "usdt",
+        "type": "future",
+        "spot": false,
+        "margin": false,
+        "swap": false,
+        "future": true,
+        "option": false,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "taker": 0.0005,
+        "maker": 0.0002,
+        "contractSize": 0.001,
+        "expiry": 1711699200000,
+        "expiryDatetime": "2024-03-29T08:00:00.000Z",
+        "precision": {
+            "amount": 1,
+            "price": 0.1
+        },
+        "limits": {
+            "leverage": {
+                "min": 1,
+                "max": 1,
+                "superMax": 1
+            },
+            "amount": {
+                "min": 0.001
+            },
+            "price": {},
+            "cost": {}
+        },
+        "created": 1702598400000,
+        "info": {
+            "symbol": "BTC",
+            "contract_code": "BTC-USDT-240329",
+            "contract_size": "0.001000000000000000",
+            "price_tick": "0.100000000000000000",
+            "delivery_date": "20240329",
+            "delivery_time": "1711699200000",
+            "create_date": "20231215",
+            "contract_status": "1",
+            "settlement_date": "1711699200000",
+            "support_margin_mode": "cross",
+            "business_type": "futures",
+            "pair": "BTC-USDT",
+            "contract_type": "next_week",
+            "trade_partition": "USDT"
+        }
+    },
+    "BTC/USD:BTC-240628":{
+        "id": "BTC240628",
+        "lowercaseId": "btc240628",
+        "symbol": "BTC/USD:BTC-240628",
+        "base": "BTC",
+        "quote": "USD",
+        "settle": "BTC",
+        "baseId": "btc",
+        "quoteId": "USD",
+        "settleId": "btc",
+        "type": "future",
+        "spot": false,
+        "margin": false,
+        "swap": false,
+        "future": true,
+        "option": false,
+        "active": true,
+        "contract": true,
+        "linear": false,
+        "inverse": true,
+        "taker": 0.0005,
+        "maker": 0.0002,
+        "contractSize": 100,
+        "expiry": 1719561600000,
+        "expiryDatetime": "2024-06-28T08:00:00.000Z",
+        "precision": {
+            "amount": 1,
+            "price": 0.01
+        },
+        "limits": {
+            "leverage": {
+                "min": 1,
+                "max": 1,
+                "superMax": 1
+            },
+            "amount": {},
+            "price": {},
+            "cost": {
+                "min": 100
+            }
+        },
+        "created": 1710460800000,
+        "info": {
+            "symbol": "BTC",
+            "contract_code": "BTC240628",
+            "contract_type": "quarter",
+            "contract_size": "100.000000000000000000",
+            "price_tick": "0.010000000000000000",
+            "delivery_date": "20240628",
+            "delivery_time": "1719561600000",
+            "create_date": "20240315",
+            "contract_status": "1",
+            "settlement_time": "1710921600000"
+        }
     }
 }

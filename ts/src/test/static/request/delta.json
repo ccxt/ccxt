@@ -144,6 +144,26 @@
                     "BTC/USDT:USDT"
                 ]
             }
+        ],
+        "fetchDepositAddress": [
+            {
+                "description": "fetch deposit address",
+                "method": "fetchDepositAddress",
+                "url": "https://api.delta.exchange/v2/deposits/address?asset_symbol=BTC",
+                "input": [
+                  "BTC"
+                ]
+            }
+        ],
+        "fetchOption": [
+            {
+                "description": "Fetch an option contract",
+                "method": "fetchOption",
+                "url": "https://api.delta.exchange/v2/tickers/P-BTC-65000-290324",
+                "input": [
+                  "BTC/USDT:USDT-240329-65000-P"
+                ]
+            }
         ]
     }
 }

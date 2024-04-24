@@ -327,7 +327,7 @@ class bigone extends Exchange {
         ));
     }
 
-    public function fetch_currencies($params = array ()) {
+    public function fetch_currencies($params = array ()): ?array {
         /**
          * fetches all available currencies on an exchange
          * @param {dict} [$params] extra parameters specific to the exchange API endpoint
@@ -510,7 +510,7 @@ class bigone extends Exchange {
         return $result;
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): array {
         /**
          * retrieves data on all $markets for bigone
          * @see https://open.big.one/docs/spot_asset_pair.html
@@ -806,7 +806,7 @@ class bigone extends Exchange {
             //         }
             //     }
             //
-            $ticker = $this->safe_value($response, 'data', array());
+            $ticker = $this->safe_dict($response, 'data', array());
             return $this->parse_ticker($ticker, $market);
         } else {
             $tickers = $this->fetch_tickers(array( $symbol ), $params);
@@ -987,7 +987,7 @@ class bigone extends Exchange {
             //         }
             //     }
             //
-            $orderbook = $this->safe_value($response, 'data', array());
+            $orderbook = $this->safe_dict($response, 'data', array());
             return $this->parse_order_book($orderbook, $market['symbol'], null, 'bids', 'asks', 'price', 'quantity');
         }
     }
@@ -1193,7 +1193,7 @@ class bigone extends Exchange {
         //         )
         //     }
         //
-        $trades = $this->safe_value($response, 'data', array());
+        $trades = $this->safe_list($response, 'data', array());
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
@@ -1272,7 +1272,7 @@ class bigone extends Exchange {
         //         )
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_list($response, 'data', array());
         return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
     }
 
@@ -1533,7 +1533,7 @@ class bigone extends Exchange {
         //        "updated_at":"2019-01-29T06:05:56Z"
         //    }
         //
-        $order = $this->safe_value($response, 'data');
+        $order = $this->safe_dict($response, 'data');
         return $this->parse_order($order, $market);
     }
 
@@ -1561,7 +1561,7 @@ class bigone extends Exchange {
         //        "created_at":"2019-01-29T06:05:56Z",
         //        "updated_at":"2019-01-29T06:05:56Z"
         //    }
-        $order = $this->safe_value($response, 'data');
+        $order = $this->safe_dict($response, 'data');
         return $this->parse_order($order);
     }
 
@@ -1605,7 +1605,7 @@ class bigone extends Exchange {
         $this->load_markets();
         $request = array( 'id' => $id );
         $response = $this->privateGetOrdersId (array_merge($request, $params));
-        $order = $this->safe_value($response, 'data', array());
+        $order = $this->safe_dict($response, 'data', array());
         return $this->parse_order($order);
     }
 
@@ -1655,7 +1655,7 @@ class bigone extends Exchange {
         //        "page_token":"dxzef",
         //    }
         //
-        $orders = $this->safe_value($response, 'data', array());
+        $orders = $this->safe_list($response, 'data', array());
         return $this->parse_orders($orders, $market, $since, $limit);
     }
 
@@ -1716,7 +1716,7 @@ class bigone extends Exchange {
         //         "page_token":"dxfv"
         //     }
         //
-        $trades = $this->safe_value($response, 'data', array());
+        $trades = $this->safe_list($response, 'data', array());
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
@@ -1998,7 +1998,7 @@ class bigone extends Exchange {
         //         )
         //     }
         //
-        $deposits = $this->safe_value($response, 'data', array());
+        $deposits = $this->safe_list($response, 'data', array());
         return $this->parse_transactions($deposits, $currency, $since, $limit);
     }
 
@@ -2049,11 +2049,11 @@ class bigone extends Exchange {
         //         "page_token":"dxvf"
         //     }
         //
-        $withdrawals = $this->safe_value($response, 'data', array());
+        $withdrawals = $this->safe_list($response, 'data', array());
         return $this->parse_transactions($withdrawals, $currency, $since, $limit);
     }
 
-    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): TransferEntry {
+    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): array {
         /**
          * $transfer $currency internally between wallets on the same account
          * @see https://open.big.one/docs/spot_transfer.html#$transfer-of-user
@@ -2176,7 +2176,7 @@ class bigone extends Exchange {
         //         }
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_dict($response, 'data', array());
         return $this->parse_transaction($data, $currency);
     }
 
