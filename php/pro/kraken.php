@@ -141,7 +141,7 @@ class kraken extends \ccxt\async\kraken {
                 'pair' => $market['wsId'],
                 'volume' => $this->amount_to_precision($symbol, $amount),
             );
-            list($request, $params) = $this->orderRequest ('createOrderWs()', $symbol, $type, $request, $price, $params);
+            list($request, $params) = $this->orderRequest ('createOrderWs', $symbol, $type, $request, $price, $params);
             return Async\await($this->watch($url, $messageHash, array_merge($request, $params), $messageHash));
         }) ();
     }
@@ -199,7 +199,7 @@ class kraken extends \ccxt\async\kraken {
                 'pair' => $market['wsId'],
                 'volume' => $this->amount_to_precision($symbol, $amount),
             );
-            list($request, $params) = $this->orderRequest ('editOrderWs()', $symbol, $type, $request, $price, $params);
+            list($request, $params) = $this->orderRequest ('editOrderWs', $symbol, $type, $request, $price, $params);
             return Async\await($this->watch($url, $messageHash, array_merge($request, $params), $messageHash));
         }) ();
     }
@@ -1366,7 +1366,7 @@ class kraken extends \ccxt\async\kraken {
                 ),
             );
             $url = $this->urls['api']['ws']['public'];
-            return Async\await($this->watch_multiple($url, $messageHashes, array_merge($request, $params), $messageHashes, $subscriptionArgs));
+            return Async\await($this->watch_multiple($url, $messageHashes, $this->deep_extend($request, $params), $messageHashes, $subscriptionArgs));
         }) ();
     }
 

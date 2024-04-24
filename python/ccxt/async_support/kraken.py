@@ -54,6 +54,7 @@ class kraken(Exchange, ImplicitAPI):
                 'option': False,
                 'addMargin': False,
                 'cancelAllOrders': True,
+                'cancelAllOrdersAfter': True,
                 'cancelOrder': True,
                 'cancelOrders': True,
                 'createDepositAddress': True,
@@ -1333,7 +1334,7 @@ class kraken(Exchange, ImplicitAPI):
             'ordertype': type,
             'volume': self.amount_to_precision(symbol, amount),
         }
-        orderRequest = self.order_request('createOrder()', symbol, type, request, price, params)
+        orderRequest = self.order_request('createOrder', symbol, type, request, price, params)
         response = await self.privatePostAddOrder(self.extend(orderRequest[0], orderRequest[1]))
         #
         #     {
@@ -1501,9 +1502,10 @@ class kraken(Exchange, ImplicitAPI):
         #  }
         #
         description = self.safe_dict(order, 'descr', {})
+        orderDescriptionObj = self.safe_dict(order, 'descr')  # can be null
         orderDescription = None
-        if description is not None:
-            orderDescription = self.safe_string(description, 'order')
+        if orderDescriptionObj is not None:
+            orderDescription = self.safe_string(orderDescriptionObj, 'order')
         else:
             orderDescription = self.safe_string(order, 'descr')
         side = None
@@ -1564,8 +1566,8 @@ class kraken(Exchange, ImplicitAPI):
                     fee['currency'] = market['base']
         status = self.parse_order_status(self.safe_string(order, 'status'))
         id = self.safe_string_2(order, 'id', 'txid')
-        if (id is None) or (id[0:1] == '['):
-            txid = self.safe_value(order, 'txid')
+        if (id is None) or (id.startswith('[')):
+            txid = self.safe_list(order, 'txid')
             id = self.safe_string(txid, 0)
         clientOrderId = self.safe_string(order, 'userref')
         rawTrades = self.safe_value(order, 'trades', [])
@@ -1658,7 +1660,10 @@ class kraken(Exchange, ImplicitAPI):
                 request['price'] = trailingAmountString
                 request['ordertype'] = 'trailing-stop'
         if reduceOnly:
-            request['reduce_only'] = 'true'  # not using hasattr(self, boolean) case, because the urlencodedNested transforms it into 'True' string
+            if method == 'createOrderWs':
+                request['reduce_only'] = True  # ws request can't have stringified bool
+            else:
+                request['reduce_only'] = 'true'  # not using hasattr(self, boolean) case, because the urlencodedNested transforms it into 'True' string
         close = self.safe_value(params, 'close')
         if close is not None:
             close = self.extend({}, close)
@@ -1709,7 +1714,7 @@ class kraken(Exchange, ImplicitAPI):
         }
         if amount is not None:
             request['volume'] = self.amount_to_precision(symbol, amount)
-        orderRequest = self.order_request('editOrder()', symbol, type, request, price, params)
+        orderRequest = self.order_request('editOrder', symbol, type, request, price, params)
         response = await self.privatePostEditOrder(self.extend(orderRequest[0], orderRequest[1]))
         #
         #     {
@@ -2001,6 +2006,32 @@ class kraken(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         return await self.privatePostCancelAll(params)
+
+    async def cancel_all_orders_after(self, timeout: Int, params={}):
+        """
+        dead man's switch, cancel all orders after the given timeout
+        :see: https://docs.kraken.com/rest/#tag/Spot-Trading/operation/cancelAllOrdersAfter
+        :param number timeout: time in milliseconds, 0 represents cancel the timer
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: the api result
+        """
+        if timeout > 86400000:
+            raise BadRequest(self.id + 'cancelAllOrdersAfter timeout should be less than 86400000 milliseconds')
+        await self.load_markets()
+        request: dict = {
+            'timeout': (self.parse_to_int(timeout / 1000)) if (timeout > 0) else 0,
+        }
+        response = await self.privatePostCancelAllOrdersAfter(self.extend(request, params))
+        #
+        #     {
+        #         "error": [],
+        #         "result": {
+        #             "currentTime": "2023-03-24T17:41:56Z",
+        #             "triggerTime": "2023-03-24T17:42:56Z"
+        #         }
+        #     }
+        #
+        return response
 
     async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """

@@ -41,6 +41,8 @@ class bybit extends Exchange {
                 'borrowCrossMargin' => true,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
+                'cancelOrders' => true,
+                'cancelOrdersForSymbols' => true,
                 'closeAllPositions' => false,
                 'closePosition' => false,
                 'createMarketBuyOrderWithCost' => true,
@@ -4363,6 +4365,91 @@ class bybit extends Exchange {
         }) ();
     }
 
+    public function cancel_orders_for_symbols(array $orders, $params = array ()) {
+        return Async\async(function () use ($orders, $params) {
+            /**
+             * cancel multiple $orders for multiple symbols
+             * @see https://bybit-exchange.github.io/docs/v5/order/batch-cancel
+             * @param {string[]} ids $order ids
+             * @param {string} $symbol unified $symbol of the $market the $order was made in
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string[]} [$params->clientOrderIds] client $order ids
+             * @return {array} an list of ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structures~
+             */
+            Async\await($this->load_markets());
+            $ordersRequests = array();
+            $category = null;
+            for ($i = 0; $i < count($orders); $i++) {
+                $order = $orders[$i];
+                $symbol = $this->safe_string($order, 'symbol');
+                $market = $this->market($symbol);
+                $currentCategory = null;
+                list($currentCategory, $params) = $this->get_bybit_type('cancelOrders', $market, $params);
+                if ($currentCategory === 'inverse') {
+                    throw new NotSupported($this->id . ' cancelOrdersForSymbols does not allow inverse orders');
+                }
+                if (($category !== null) && ($category !== $currentCategory)) {
+                    throw new ExchangeError($this->id . ' cancelOrdersForSymbols requires all $orders to be of the same $category (linear, spot or option))');
+                }
+                $category = $currentCategory;
+                $id = $this->safe_string($order, 'id');
+                $clientOrderId = $this->safe_string($order, 'clientOrderId');
+                $idKey = 'orderId';
+                if ($clientOrderId !== null) {
+                    $idKey = 'orderLinkId';
+                }
+                $orderItem = array(
+                    'symbol' => $market['id'],
+                );
+                $orderItem[$idKey] = ($idKey === 'orderId') ? $id : $clientOrderId;
+                $ordersRequests[] = $orderItem;
+            }
+            $request = array(
+                'category' => $category,
+                'request' => $ordersRequests,
+            );
+            $response = Async\await($this->privatePostV5OrderCancelBatch (array_merge($request, $params)));
+            //
+            //     {
+            //         "retCode" => "0",
+            //         "retMsg" => "OK",
+            //         "result" => {
+            //             "list" => array(
+            //                 array(
+            //                     "category" => "spot",
+            //                     "symbol" => "BTCUSDT",
+            //                     "orderId" => "1636282505818800896",
+            //                     "orderLinkId" => "1636282505818800897"
+            //                 ),
+            //                 array(
+            //                     "category" => "spot",
+            //                     "symbol" => "BTCUSDT",
+            //                     "orderId" => "1636282505818800898",
+            //                     "orderLinkId" => "1636282505818800899"
+            //                 }
+            //             )
+            //         ),
+            //         "retExtInfo" => {
+            //             "list" => array(
+            //                 array(
+            //                     "code" => "0",
+            //                     "msg" => "OK"
+            //                 ),
+            //                 array(
+            //                     "code" => "0",
+            //                     "msg" => "OK"
+            //                 }
+            //             )
+            //         ),
+            //         "time" => "1709796158501"
+            //     }
+            //
+            $result = $this->safe_dict($response, 'result', array());
+            $row = $this->safe_list($result, 'list', array());
+            return $this->parse_orders($row, null);
+        }) ();
+    }
+
     public function cancel_all_usdc_orders(?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($symbol, $params) {
             if ($symbol === null) {
@@ -5379,7 +5466,7 @@ class bybit extends Exchange {
             $coin = $this->safe_string($result, 'coin');
             $currency = $this->currency($coin);
             $parsed = $this->parse_deposit_addresses($chains, [ $currency['code'] ], false, array(
-                'currency' => $currency['id'],
+                'currency' => $currency['code'],
             ));
             return $this->index_by($parsed, 'network');
         }) ();

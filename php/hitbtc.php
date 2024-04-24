@@ -791,7 +791,7 @@ class hitbtc extends Exchange {
         return $result;
     }
 
-    public function fetch_currencies($params = array ()): array {
+    public function fetch_currencies($params = array ()): ?array {
         /**
          * fetches all available $currencies on an exchange
          * @see https://api.hitbtc.com/#$currencies

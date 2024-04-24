@@ -19,9 +19,10 @@ export default class coinbase extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'coinbase',
-            'name': 'Coinbase',
+            'name': 'Coinbase Advanced',
             'countries': [ 'US' ],
             'pro': true,
+            'certified': true,
             // rate-limits:
             // ADVANCED API: https://docs.cloud.coinbase.com/advanced-trade-api/docs/rest-api-rate-limits
             // - max 30 req/second for private data, 10 req/s for public data
@@ -203,6 +204,11 @@ export default class coinbase extends Exchange {
                     'public': {
                         'get': {
                             'brokerage/time': 3,
+                            'brokerage/market/product_book': 3,
+                            'brokerage/market/products': 3,
+                            'brokerage/market/products/{product_id}': 3,
+                            'brokerage/market/products/{product_id}/candles': 3,
+                            'brokerage/market/products/{product_id}/ticker': 3,
                         },
                     },
                     'private': {
@@ -1103,7 +1109,7 @@ export default class coinbase extends Exchange {
         /**
          * @method
          * @name coinbase#fetchMarkets
-         * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getproducts
+         * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getpublicproducts
          * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-currencies#get-fiat-currencies
          * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-exchange-rates#get-exchange-rates
          * @description retrieves data on all markets for coinbase
@@ -1192,15 +1198,92 @@ export default class coinbase extends Exchange {
 
     async fetchMarketsV3 (params = {}) {
         const spotUnresolvedPromises = [
-            this.v3PrivateGetBrokerageProducts (params),
-            this.v3PrivateGetBrokerageTransactionSummary (params),
+            this.v3PublicGetBrokerageMarketProducts (params),
+            //
+            //    {
+            //        products: [
+            //            {
+            //                product_id: 'BTC-USD',
+            //                price: '67060',
+            //                price_percentage_change_24h: '3.30054960636883',
+            //                volume_24h: '10967.87426597',
+            //                volume_percentage_change_24h: '141.73048325503036',
+            //                base_increment: '0.00000001',
+            //                quote_increment: '0.01',
+            //                quote_min_size: '1',
+            //                quote_max_size: '150000000',
+            //                base_min_size: '0.00000001',
+            //                base_max_size: '3400',
+            //                base_name: 'Bitcoin',
+            //                quote_name: 'US Dollar',
+            //                watched: false,
+            //                is_disabled: false,
+            //                new: false,
+            //                status: 'online',
+            //                cancel_only: false,
+            //                limit_only: false,
+            //                post_only: false,
+            //                trading_disabled: false,
+            //                auction_mode: false,
+            //                product_type: 'SPOT',
+            //                quote_currency_id: 'USD',
+            //                base_currency_id: 'BTC',
+            //                fcm_trading_session_details: null,
+            //                mid_market_price: '',
+            //                alias: '',
+            //                alias_to: [ 'BTC-USDC' ],
+            //                base_display_symbol: 'BTC',
+            //                quote_display_symbol: 'USD',
+            //                view_only: false,
+            //                price_increment: '0.01',
+            //                display_name: 'BTC-USD',
+            //                product_venue: 'CBE'
+            //            },
+            //            ...
+            //        ],
+            //        num_products: '646'
+            //    }
+            //
         ];
-        const unresolvedContractPromises = [
-            this.v3PrivateGetBrokerageProducts (this.extend (params, { 'product_type': 'FUTURE' })),
-            this.v3PrivateGetBrokerageProducts (this.extend (params, { 'product_type': 'FUTURE', 'contract_expiry_type': 'PERPETUAL' })),
-            this.v3PrivateGetBrokerageTransactionSummary (this.extend (params, { 'product_type': 'FUTURE' })),
-            this.v3PrivateGetBrokerageTransactionSummary (this.extend (params, { 'product_type': 'FUTURE', 'contract_expiry_type': 'PERPETUAL' })),
-        ];
+        if (this.checkRequiredCredentials (false)) {
+            spotUnresolvedPromises.push (this.v3PrivateGetBrokerageTransactionSummary (params));
+        }
+        //
+        //    {
+        //        total_volume: '9.995989116664404',
+        //        total_fees: '0.07996791093331522',
+        //        fee_tier: {
+        //            pricing_tier: 'Advanced 1',
+        //            usd_from: '0',
+        //            usd_to: '1000',
+        //            taker_fee_rate: '0.008',
+        //            maker_fee_rate: '0.006',
+        //            aop_from: '',
+        //            aop_to: ''
+        //        },
+        //        margin_rate: null,
+        //        goods_and_services_tax: null,
+        //        advanced_trade_only_volume: '9.995989116664404',
+        //        advanced_trade_only_fees: '0.07996791093331522',
+        //        coinbase_pro_volume: '0',
+        //        coinbase_pro_fees: '0',
+        //        total_balance: '',
+        //        has_promo_fee: false
+        //    }
+        //
+        let unresolvedContractPromises = [];
+        try {
+            unresolvedContractPromises = [
+                this.v3PublicGetBrokerageMarketProducts (this.extend (params, { 'product_type': 'FUTURE' })),
+                this.v3PublicGetBrokerageMarketProducts (this.extend (params, { 'product_type': 'FUTURE', 'contract_expiry_type': 'PERPETUAL' })),
+            ];
+            if (this.checkRequiredCredentials (false)) {
+                unresolvedContractPromises.push (this.extend (params, { 'product_type': 'FUTURE' }));
+                unresolvedContractPromises.push (this.extend (params, { 'product_type': 'FUTURE', 'contract_expiry_type': 'PERPETUAL' }));
+            }
+        } catch (e) {
+            unresolvedContractPromises = []; // the sync version of ccxt won't have the promise.all line so the request is made here. Some users can't access perpetual products
+        }
         const promises = await Promise.all (spotUnresolvedPromises);
         let contractPromises = undefined;
         try {
@@ -1468,6 +1551,8 @@ export default class coinbase extends Exchange {
         const contractExpiryType = this.safeString (futureProductDetails, 'contract_expiry_type');
         const contractSize = this.safeNumber (futureProductDetails, 'contract_size');
         const contractExpire = this.safeString (futureProductDetails, 'contract_expiry');
+        const expireTimestamp = this.parse8601 (contractExpire);
+        const expireDateTime = this.iso8601 (expireTimestamp);
         const isSwap = (contractExpiryType === 'PERPETUAL');
         const baseId = this.safeString (futureProductDetails, 'contract_root_unit');
         const quoteId = this.safeString (market, 'quote_currency_id');
@@ -1481,7 +1566,7 @@ export default class coinbase extends Exchange {
             symbol = symbol + ':' + quote;
         } else {
             type = 'future';
-            symbol = symbol + ':' + quote + '-' + this.yymmdd (contractExpire);
+            symbol = symbol + ':' + quote + '-' + this.yymmdd (expireTimestamp);
         }
         const takerFeeRate = this.safeNumber (feeTier, 'taker_fee_rate');
         const makerFeeRate = this.safeNumber (feeTier, 'maker_fee_rate');
@@ -1509,8 +1594,8 @@ export default class coinbase extends Exchange {
             'taker': taker,
             'maker': maker,
             'contractSize': contractSize,
-            'expiry': this.parse8601 (contractExpire),
-            'expiryDatetime': contractExpire,
+            'expiry': expireTimestamp,
+            'expiryDatetime': expireDateTime,
             'strike': undefined,
             'optionType': undefined,
             'precision': {
@@ -1740,7 +1825,7 @@ export default class coinbase extends Exchange {
         if (symbols !== undefined) {
             request['product_ids'] = this.marketIds (symbols);
         }
-        const response = await this.v3PrivateGetBrokerageProducts (this.extend (request, params));
+        const response = await this.v3PublicGetBrokerageMarketProducts (this.extend (request, params));
         //
         //     {
         //         "products": [
@@ -1846,7 +1931,7 @@ export default class coinbase extends Exchange {
             'product_id': market['id'],
             'limit': 1,
         };
-        const response = await this.v3PrivateGetBrokerageProductsProductIdTicker (this.extend (request, params));
+        const response = await this.v3PublicGetBrokerageMarketProductsProductIdTicker (this.extend (request, params));
         //
         //     {
         //         "trades": [
@@ -2610,7 +2695,7 @@ export default class coinbase extends Exchange {
          * @param {float} [params.stopLossPrice] price to trigger stop-loss orders
          * @param {float} [params.takeProfitPrice] price to trigger take-profit orders
          * @param {bool} [params.postOnly] true or false
-         * @param {string} [params.timeInForce] 'GTC', 'IOC', 'GTD' or 'PO'
+         * @param {string} [params.timeInForce] 'GTC', 'IOC', 'GTD' or 'PO', 'FOK'
          * @param {string} [params.stop_direction] 'UNKNOWN_STOP_DIRECTION', 'STOP_DIRECTION_STOP_UP', 'STOP_DIRECTION_STOP_DOWN' the direction the stopPrice is triggered from
          * @param {string} [params.end_time] '2023-05-25T17:01:05.092Z' for 'GTD' orders
          * @param {float} [params.cost] *spot market buy only* the quote quantity that can be used as an alternative for the amount
@@ -2705,6 +2790,13 @@ export default class coinbase extends Exchange {
                 } else if (timeInForce === 'IOC') {
                     request['order_configuration'] = {
                         'sor_limit_ioc': {
+                            'base_size': this.amountToPrecision (symbol, amount),
+                            'limit_price': this.priceToPrecision (symbol, price),
+                        },
+                    };
+                } else if (timeInForce === 'FOK') {
+                    request['order_configuration'] = {
+                        'limit_limit_fok': {
                             'base_size': this.amountToPrecision (symbol, amount),
                             'limit_price': this.priceToPrecision (symbol, price),
                         },
@@ -3401,7 +3493,7 @@ export default class coinbase extends Exchange {
          * @method
          * @name coinbase#fetchOHLCV
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-         * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getcandles
+         * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getpubliccandles
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -3436,13 +3528,13 @@ export default class coinbase extends Exchange {
             sinceString = Precise.stringSub (now, requestedDuration.toString ());
         }
         request['start'] = sinceString;
-        let endString = this.numberToString (until);
-        if (until === undefined) {
+        if (until !== undefined) {
+            request['end'] = this.numberToString (this.parseToInt (until / 1000));
+        } else {
             // 300 candles max
-            endString = Precise.stringAdd (sinceString, requestedDuration.toString ());
+            request['end'] = Precise.stringAdd (sinceString, requestedDuration.toString ());
         }
-        request['end'] = endString;
-        const response = await this.v3PrivateGetBrokerageProductsProductIdCandles (this.extend (request, params));
+        const response = await this.v3PublicGetBrokerageMarketProductsProductIdCandles (this.extend (request, params));
         //
         //     {
         //         "candles": [
@@ -3489,7 +3581,7 @@ export default class coinbase extends Exchange {
          * @method
          * @name coinbase#fetchTrades
          * @description get the list of most recent trades for a particular symbol
-         * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getmarkettrades
+         * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getpublicmarkettrades
          * @param {string} symbol unified market symbol of the trades
          * @param {int} [since] not used by coinbase fetchTrades
          * @param {int} [limit] the maximum number of trade structures to fetch
@@ -3514,7 +3606,7 @@ export default class coinbase extends Exchange {
         } else if (since !== undefined) {
             throw new ArgumentsRequired (this.id + ' fetchTrades() requires a `until` parameter when you use `since` argument');
         }
-        const response = await this.v3PrivateGetBrokerageProductsProductIdTicker (this.extend (request, params));
+        const response = await this.v3PublicGetBrokerageMarketProductsProductIdTicker (this.extend (request, params));
         //
         //     {
         //         "trades": [
@@ -3613,7 +3705,7 @@ export default class coinbase extends Exchange {
          * @method
          * @name coinbase#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getproductbook
+         * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getpublicproductbook
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -3627,7 +3719,7 @@ export default class coinbase extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.v3PrivateGetBrokerageProductBook (this.extend (request, params));
+        const response = await this.v3PublicGetBrokerageMarketProductBook (this.extend (request, params));
         //
         //     {
         //         "pricebook": {
@@ -3697,7 +3789,7 @@ export default class coinbase extends Exchange {
         return this.parseTickers (tickers, symbols);
     }
 
-    async withdraw (code: string, amount: number, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {
         /**
          * @method
          * @name coinbase#withdraw
@@ -4317,6 +4409,34 @@ export default class coinbase extends Exchange {
         });
     }
 
+    createAuthToken (seconds: Int, method: Str = undefined, url: Str = undefined) {
+        // it may not work for v2
+        let uri = undefined;
+        if (url !== undefined) {
+            uri = method + ' ' + url.replace ('https://', '');
+            const quesPos = uri.indexOf ('?');
+            // Due to we use mb_strpos, quesPos could be false in php. In that case, the quesPos >= 0 is true
+            // Also it's not possible that the question mark is first character, only check > 0 here.
+            if (quesPos > 0) {
+                uri = uri.slice (0, quesPos);
+            }
+        }
+        const nonce = this.randomBytes (16);
+        const request = {
+            'aud': [ 'retail_rest_api_proxy' ],
+            'iss': 'coinbase-cloud',
+            'nbf': seconds,
+            'exp': seconds + 120,
+            'sub': this.apiKey,
+            'iat': seconds,
+        };
+        if (uri !== undefined) {
+            request['uri'] = uri;
+        }
+        const token = jwt (request, this.encode (this.secret), sha256, false, { 'kid': this.apiKey, 'nonce': nonce, 'alg': 'ES256' });
+        return token;
+    }
+
     sign (path, api = [], method = 'GET', params = {}, headers = undefined, body = undefined) {
         const version = api[0];
         const signed = api[1] === 'private';
@@ -4363,25 +4483,26 @@ export default class coinbase extends Exchange {
                     if (this.apiKey.startsWith ('-----BEGIN')) {
                         throw new ArgumentsRequired (this.id + ' apiKey should contain the name (eg: organizations/3b910e93....) and not the public key');
                     }
-                    // it may not work for v2
-                    let uri = method + ' ' + url.replace ('https://', '');
-                    const quesPos = uri.indexOf ('?');
-                    // Due to we use mb_strpos, quesPos could be false in php. In that case, the quesPos >= 0 is true
-                    // Also it's not possible that the question mark is first character, only check > 0 here.
-                    if (quesPos > 0) {
-                        uri = uri.slice (0, quesPos);
-                    }
-                    const nonce = this.randomBytes (16);
-                    const request = {
-                        'aud': [ 'retail_rest_api_proxy' ],
-                        'iss': 'coinbase-cloud',
-                        'nbf': seconds,
-                        'exp': seconds + 120,
-                        'sub': this.apiKey,
-                        'uri': uri,
-                        'iat': seconds,
-                    };
-                    const token = jwt (request, this.encode (this.secret), sha256, false, { 'kid': this.apiKey, 'nonce': nonce, 'alg': 'ES256' });
+                    // // it may not work for v2
+                    // let uri = method + ' ' + url.replace ('https://', '');
+                    // const quesPos = uri.indexOf ('?');
+                    // // Due to we use mb_strpos, quesPos could be false in php. In that case, the quesPos >= 0 is true
+                    // // Also it's not possible that the question mark is first character, only check > 0 here.
+                    // if (quesPos > 0) {
+                    //     uri = uri.slice (0, quesPos);
+                    // }
+                    // const nonce = this.randomBytes (16);
+                    // const request = {
+                    //     'aud': [ 'retail_rest_api_proxy' ],
+                    //     'iss': 'coinbase-cloud',
+                    //     'nbf': seconds,
+                    //     'exp': seconds + 120,
+                    //     'sub': this.apiKey,
+                    //     'uri': uri,
+                    //     'iat': seconds,
+                    // };
+                    const token = this.createAuthToken (seconds, method, url);
+                    // const token = jwt (request, this.encode (this.secret), sha256, false, { 'kid': this.apiKey, 'nonce': nonce, 'alg': 'ES256' });
                     authorizationString = 'Bearer ' + token;
                 } else {
                     const timestampString = this.seconds ().toString ();

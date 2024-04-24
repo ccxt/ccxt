@@ -6,8 +6,9 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.okx import ImplicitAPI
 import hashlib
-from ccxt.base.types import Account, Balances, Conversion, Currencies, Currency, Greeks, Int, Leverage, MarginModification, Market, MarketInterface, Num, Option, OptionChain, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry
+from ccxt.base.types import Account, Balances, Conversion, Currencies, Currency, Greeks, Int, Leverage, MarginModification, Market, MarketInterface, Num, Option, OptionChain, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry
 from typing import List
+from typing import Any
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -53,10 +54,13 @@ class okx(Exchange, ImplicitAPI):
                 'option': True,
                 'addMargin': True,
                 'cancelAllOrders': False,
+                'cancelAllOrdersAfter': True,
                 'cancelOrder': True,
                 'cancelOrders': True,
+                'cancelOrdersForSymbols': True,
                 'closeAllPositions': False,
                 'closePosition': True,
+                'createConvertTrade': True,
                 'createDepositAddress': False,
                 'createMarketBuyOrderWithCost': True,
                 'createMarketSellOrderWithCost': True,
@@ -84,6 +88,8 @@ class okx(Exchange, ImplicitAPI):
                 'fetchClosedOrders': True,
                 'fetchConvertCurrencies': True,
                 'fetchConvertQuote': True,
+                'fetchConvertTrade': True,
+                'fetchConvertTradeHistory': True,
                 'fetchCrossBorrowRate': True,
                 'fetchCrossBorrowRates': True,
                 'fetchCurrencies': True,
@@ -1129,13 +1135,13 @@ class okx(Exchange, ImplicitAPI):
             },
         })
 
-    def handle_market_type_and_params(self, methodName, market=None, params={}):
+    def handle_market_type_and_params(self, methodName: str, market: Market = None, params={}, defaultValue=None) -> Any:
         instType = self.safe_string(params, 'instType')
         params = self.omit(params, 'instType')
         type = self.safe_string(params, 'type')
         if (type is None) and (instType is not None):
             params['type'] = instType
-        return super(okx, self).handle_market_type_and_params(methodName, market, params)
+        return super(okx, self).handle_market_type_and_params(methodName, market, params, defaultValue)
 
     def convert_to_instrument_type(self, type):
         exchangeTypes = self.safe_dict(self.options, 'exchangeType', {})
@@ -3078,6 +3084,107 @@ class okx(Exchange, ImplicitAPI):
         #
         ordersData = self.safe_list(response, 'data', [])
         return self.parse_orders(ordersData, market, None, None, params)
+
+    def cancel_orders_for_symbols(self, orders: List[CancellationRequest], params={}):
+        """
+        cancel multiple orders for multiple symbols
+        :see: https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-cancel-multiple-orders
+        :see: https://www.okx.com/docs-v5/en/#order-book-trading-algo-trading-post-cancel-algo-order
+        :param CancellationRequest[] orders: each order should contain the parameters required by cancelOrder namely id and symbol
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param boolean [params.trigger]: whether the order is a stop/trigger order
+        :param boolean [params.trailing]: set to True if you want to cancel trailing orders
+        :returns dict: an list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        self.load_markets()
+        request = []
+        options = self.safe_dict(self.options, 'cancelOrders', {})
+        defaultMethod = self.safe_string(options, 'method', 'privatePostTradeCancelBatchOrders')
+        method = self.safe_string(params, 'method', defaultMethod)
+        stop = self.safe_bool_2(params, 'stop', 'trigger')
+        trailing = self.safe_bool(params, 'trailing', False)
+        isStopOrTrailing = stop or trailing
+        if isStopOrTrailing:
+            method = 'privatePostTradeCancelAlgos'
+        for i in range(0, len(orders)):
+            order = orders[i]
+            id = self.safe_string(order, 'id')
+            clientOrderId = self.safe_string_2(order, 'clOrdId', 'clientOrderId')
+            symbol = self.safe_string(order, 'symbol')
+            market = self.market(symbol)
+            idKey = 'ordId'
+            if isStopOrTrailing:
+                idKey = 'algoId'
+            elif clientOrderId is not None:
+                idKey = 'clOrdId'
+            requestItem = {
+                'instId': market['id'],
+            }
+            requestItem[idKey] = clientOrderId if (clientOrderId is not None) else id
+            request.append(requestItem)
+        response = None
+        if method == 'privatePostTradeCancelAlgos':
+            response = self.privatePostTradeCancelAlgos(request)  # * dont self.extend with params, otherwise ARRAY will be turned into OBJECT
+        else:
+            response = self.privatePostTradeCancelBatchOrders(request)  # * dont self.extend with params, otherwise ARRAY will be turned into OBJECT
+        #
+        #     {
+        #         "code": "0",
+        #         "data": [
+        #             {
+        #                 "clOrdId": "e123456789ec4dBC1123456ba123b45e",
+        #                 "ordId": "405071912345641543",
+        #                 "sCode": "0",
+        #                 "sMsg": ""
+        #             },
+        #             ...
+        #         ],
+        #         "msg": ""
+        #     }
+        #
+        # Algo order
+        #
+        #     {
+        #         "code": "0",
+        #         "data": [
+        #             {
+        #                 "algoId": "431375349042380800",
+        #                 "sCode": "0",
+        #                 "sMsg": ""
+        #             }
+        #         ],
+        #         "msg": ""
+        #     }
+        #
+        ordersData = self.safe_list(response, 'data', [])
+        return self.parse_orders(ordersData, None, None, None, params)
+
+    def cancel_all_orders_after(self, timeout: Int, params={}):
+        """
+        dead man's switch, cancel all orders after the given timeout
+        :see: https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-cancel-all-after
+        :param number timeout: time in milliseconds, 0 represents cancel the timer
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: the api result
+        """
+        self.load_markets()
+        request: dict = {
+            'timeOut': self.parse_to_int(timeout / 1000) if (timeout > 0) else 0,
+        }
+        response = self.privatePostTradeCancelAllAfter(self.extend(request, params))
+        #
+        #     {
+        #         "code":"0",
+        #         "msg":"",
+        #         "data":[
+        #             {
+        #                 "triggerTime":"1587971460",
+        #                 "ts":"1587971400"
+        #             }
+        #         ]
+        #     }
+        #
+        return response
 
     def parse_order_status(self, status):
         statuses = {
@@ -7149,6 +7256,147 @@ class okx(Exchange, ImplicitAPI):
         toCurrency = self.currency(toCurrencyId)
         return self.parse_conversion(result, fromCurrency, toCurrency)
 
+    def create_convert_trade(self, id: str, fromCode: str, toCode: str, amount: Num = None, params={}) -> Conversion:
+        """
+        convert from one currency to another
+        :see: https://www.okx.com/docs-v5/en/#funding-account-rest-api-convert-trade
+        :param str id: the id of the trade that you want to make
+        :param str fromCode: the currency that you want to sell and convert from
+        :param str toCode: the currency that you want to buy and convert into
+        :param float [amount]: how much you want to trade in units of the from currency
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `conversion structure <https://docs.ccxt.com/#/?id=conversion-structure>`
+        """
+        self.load_markets()
+        request = {
+            'quoteId': id,
+            'baseCcy': fromCode,
+            'quoteCcy': toCode,
+            'szCcy': fromCode,
+            'sz': self.number_to_string(amount),
+            'side': 'sell',
+        }
+        response = self.privatePostAssetConvertTrade(self.extend(request, params))
+        #
+        #     {
+        #         "code": "0",
+        #         "data": [
+        #             {
+        #                 "baseCcy": "ETH",
+        #                 "clTReqId": "",
+        #                 "fillBaseSz": "0.01023052",
+        #                 "fillPx": "2932.40104429",
+        #                 "fillQuoteSz": "30",
+        #                 "instId": "ETH-USDT",
+        #                 "quoteCcy": "USDT",
+        #                 "quoteId": "quoterETH-USDT16461885104612381",
+        #                 "side": "buy",
+        #                 "state": "fullyFilled",
+        #                 "tradeId": "trader16461885203381437",
+        #                 "ts": "1646188520338"
+        #             }
+        #         ],
+        #         "msg": ""
+        #     }
+        #
+        data = self.safe_list(response, 'data', [])
+        result = self.safe_dict(data, 0, {})
+        fromCurrencyId = self.safe_string(result, 'baseCcy', fromCode)
+        fromCurrency = self.currency(fromCurrencyId)
+        toCurrencyId = self.safe_string(result, 'quoteCcy', toCode)
+        toCurrency = self.currency(toCurrencyId)
+        return self.parse_conversion(result, fromCurrency, toCurrency)
+
+    def fetch_convert_trade(self, id: str, code: Str = None, params={}) -> Conversion:
+        """
+        fetch the data for a conversion trade
+        :see: https://www.okx.com/docs-v5/en/#funding-account-rest-api-get-convert-history
+        :param str id: the id of the trade that you want to fetch
+        :param str [code]: the unified currency code of the conversion trade
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `conversion structure <https://docs.ccxt.com/#/?id=conversion-structure>`
+        """
+        self.load_markets()
+        request = {
+            'clTReqId': id,
+        }
+        response = self.privateGetAssetConvertHistory(self.extend(request, params))
+        #
+        #     {
+        #         "code": "0",
+        #         "data": [
+        #             {
+        #                 "clTReqId": "",
+        #                 "instId": "ETH-USDT",
+        #                 "side": "buy",
+        #                 "fillPx": "2932.401044",
+        #                 "baseCcy": "ETH",
+        #                 "quoteCcy": "USDT",
+        #                 "fillBaseSz": "0.01023052",
+        #                 "state": "fullyFilled",
+        #                 "tradeId": "trader16461885203381437",
+        #                 "fillQuoteSz": "30",
+        #                 "ts": "1646188520000"
+        #             }
+        #         ],
+        #         "msg": ""
+        #     }
+        #
+        data = self.safe_list(response, 'data', [])
+        result = self.safe_dict(data, 0, {})
+        fromCurrencyId = self.safe_string(result, 'baseCcy')
+        toCurrencyId = self.safe_string(result, 'quoteCcy')
+        fromCurrency = None
+        toCurrency = None
+        if fromCurrencyId is not None:
+            fromCurrency = self.currency(fromCurrencyId)
+        if toCurrencyId is not None:
+            toCurrency = self.currency(toCurrencyId)
+        return self.parse_conversion(result, fromCurrency, toCurrency)
+
+    def fetch_convert_trade_history(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Conversion]:
+        """
+        fetch the users history of conversion trades
+        :see: https://www.okx.com/docs-v5/en/#funding-account-rest-api-get-convert-history
+        :param str [code]: the unified currency code
+        :param int [since]: the earliest time in ms to fetch conversions for
+        :param int [limit]: the maximum number of conversion structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.until]: timestamp in ms of the latest conversion to fetch
+        :returns dict[]: a list of `conversion structures <https://docs.ccxt.com/#/?id=conversion-structure>`
+        """
+        self.load_markets()
+        request = {}
+        request, params = self.handle_until_option('after', request, params)
+        if since is not None:
+            request['before'] = since
+        if limit is not None:
+            request['limit'] = limit
+        response = self.privateGetAssetConvertHistory(self.extend(request, params))
+        #
+        #     {
+        #         "code": "0",
+        #         "data": [
+        #             {
+        #                 "clTReqId": "",
+        #                 "instId": "ETH-USDT",
+        #                 "side": "buy",
+        #                 "fillPx": "2932.401044",
+        #                 "baseCcy": "ETH",
+        #                 "quoteCcy": "USDT",
+        #                 "fillBaseSz": "0.01023052",
+        #                 "state": "fullyFilled",
+        #                 "tradeId": "trader16461885203381437",
+        #                 "fillQuoteSz": "30",
+        #                 "ts": "1646188520000"
+        #             }
+        #         ],
+        #         "msg": ""
+        #     }
+        #
+        rows = self.safe_list(response, 'data', [])
+        return self.parse_conversions(rows, 'baseCcy', 'quoteCcy', since, limit)
+
     def parse_conversion(self, conversion, fromCurrency: Currency = None, toCurrency: Currency = None) -> Conversion:
         #
         # fetchConvertQuote
@@ -7169,7 +7417,40 @@ class okx(Exchange, ImplicitAPI):
         #         "ttlMs": "10000"
         #     }
         #
-        timestamp = self.safe_integer(conversion, 'quoteTime')
+        # createConvertTrade
+        #
+        #     {
+        #         "baseCcy": "ETH",
+        #         "clTReqId": "",
+        #         "fillBaseSz": "0.01023052",
+        #         "fillPx": "2932.40104429",
+        #         "fillQuoteSz": "30",
+        #         "instId": "ETH-USDT",
+        #         "quoteCcy": "USDT",
+        #         "quoteId": "quoterETH-USDT16461885104612381",
+        #         "side": "buy",
+        #         "state": "fullyFilled",
+        #         "tradeId": "trader16461885203381437",
+        #         "ts": "1646188520338"
+        #     }
+        #
+        # fetchConvertTrade, fetchConvertTradeHistory
+        #
+        #     {
+        #         "clTReqId": "",
+        #         "instId": "ETH-USDT",
+        #         "side": "buy",
+        #         "fillPx": "2932.401044",
+        #         "baseCcy": "ETH",
+        #         "quoteCcy": "USDT",
+        #         "fillBaseSz": "0.01023052",
+        #         "state": "fullyFilled",
+        #         "tradeId": "trader16461885203381437",
+        #         "fillQuoteSz": "30",
+        #         "ts": "1646188520000"
+        #     }
+        #
+        timestamp = self.safe_integer_2(conversion, 'quoteTime', 'ts')
         fromCoin = self.safe_string(conversion, 'baseCcy')
         fromCode = self.safe_currency_code(fromCoin, fromCurrency)
         to = self.safe_string(conversion, 'quoteCcy')
@@ -7178,12 +7459,12 @@ class okx(Exchange, ImplicitAPI):
             'info': conversion,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'id': self.safe_string(conversion, 'clQReqId'),
+            'id': self.safe_string_n(conversion, ['clQReqId', 'tradeId', 'quoteId']),
             'fromCurrency': fromCode,
-            'fromAmount': self.safe_number(conversion, 'baseSz'),
+            'fromAmount': self.safe_number_2(conversion, 'baseSz', 'fillBaseSz'),
             'toCurrency': toCode,
-            'toAmount': self.safe_number(conversion, 'quoteSz'),
-            'price': self.safe_number(conversion, 'cnvtPx'),
+            'toAmount': self.safe_number_2(conversion, 'quoteSz', 'fillQuoteSz'),
+            'price': self.safe_number_2(conversion, 'cnvtPx', 'fillPx'),
             'fee': None,
         }
 

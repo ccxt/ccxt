@@ -46,6 +46,7 @@ class kraken extends Exchange {
                 'option' => false,
                 'addMargin' => false,
                 'cancelAllOrders' => true,
+                'cancelAllOrdersAfter' => true,
                 'cancelOrder' => true,
                 'cancelOrders' => true,
                 'createDepositAddress' => true,
@@ -1409,7 +1410,7 @@ class kraken extends Exchange {
                 'ordertype' => $type,
                 'volume' => $this->amount_to_precision($symbol, $amount),
             );
-            $orderRequest = $this->order_request('createOrder()', $symbol, $type, $request, $price, $params);
+            $orderRequest = $this->order_request('createOrder', $symbol, $type, $request, $price, $params);
             $response = Async\await($this->privatePostAddOrder (array_merge($orderRequest[0], $orderRequest[1])));
             //
             //     {
@@ -1587,9 +1588,10 @@ class kraken extends Exchange {
         //  }
         //
         $description = $this->safe_dict($order, 'descr', array());
+        $orderDescriptionObj = $this->safe_dict($order, 'descr'); // can be null
         $orderDescription = null;
-        if ($description !== null) {
-            $orderDescription = $this->safe_string($description, 'order');
+        if ($orderDescriptionObj !== null) {
+            $orderDescription = $this->safe_string($orderDescriptionObj, 'order');
         } else {
             $orderDescription = $this->safe_string($order, 'descr');
         }
@@ -1660,8 +1662,8 @@ class kraken extends Exchange {
         }
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $id = $this->safe_string_2($order, 'id', 'txid');
-        if (($id === null) || (mb_substr($id, 0, 1 - 0) === '[')) {
-            $txid = $this->safe_value($order, 'txid');
+        if (($id === null) || (str_starts_with($id, '['))) {
+            $txid = $this->safe_list($order, 'txid');
             $id = $this->safe_string($txid, 0);
         }
         $clientOrderId = $this->safe_string($order, 'userref');
@@ -1767,7 +1769,11 @@ class kraken extends Exchange {
             }
         }
         if ($reduceOnly) {
-            $request['reduce_only'] = 'true'; // not using property_exists($this, boolean) case, because the urlencodedNested transforms it into 'True' string
+            if ($method === 'createOrderWs') {
+                $request['reduce_only'] = true; // ws $request can't have stringified bool
+            } else {
+                $request['reduce_only'] = 'true'; // not using property_exists($this, boolean) case, because the urlencodedNested transforms it into 'True' string
+            }
         }
         $close = $this->safe_value($params, 'close');
         if ($close !== null) {
@@ -1828,7 +1834,7 @@ class kraken extends Exchange {
             if ($amount !== null) {
                 $request['volume'] = $this->amount_to_precision($symbol, $amount);
             }
-            $orderRequest = $this->order_request('editOrder()', $symbol, $type, $request, $price, $params);
+            $orderRequest = $this->order_request('editOrder', $symbol, $type, $request, $price, $params);
             $response = Async\await($this->privatePostEditOrder (array_merge($orderRequest[0], $orderRequest[1])));
             //
             //     {
@@ -2158,6 +2164,36 @@ class kraken extends Exchange {
              */
             Async\await($this->load_markets());
             return Async\await($this->privatePostCancelAll ($params));
+        }) ();
+    }
+
+    public function cancel_all_orders_after(?int $timeout, $params = array ()) {
+        return Async\async(function () use ($timeout, $params) {
+            /**
+             * dead man's switch, cancel all orders after the given $timeout
+             * @see https://docs.kraken.com/rest/#tag/Spot-Trading/operation/cancelAllOrdersAfter
+             * @param {number} $timeout time in milliseconds, 0 represents cancel the timer
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} the api result
+             */
+            if ($timeout > 86400000) {
+                throw new BadRequest($this->id . 'cancelAllOrdersAfter $timeout should be less than 86400000 milliseconds');
+            }
+            Async\await($this->load_markets());
+            $request = array(
+                'timeout' => ($timeout > 0) ? ($this->parse_to_int($timeout / 1000)) : 0,
+            );
+            $response = Async\await($this->privatePostCancelAllOrdersAfter (array_merge($request, $params)));
+            //
+            //     {
+            //         "error" => [ ],
+            //         "result" => {
+            //             "currentTime" => "2023-03-24T17:41:56Z",
+            //             "triggerTime" => "2023-03-24T17:42:56Z"
+            //         }
+            //     }
+            //
+            return $response;
         }) ();
     }
 

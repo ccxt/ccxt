@@ -987,7 +987,7 @@ class mexc extends Exchange {
         return null;
     }
 
-    public function fetch_currencies($params = array ()): array {
+    public function fetch_currencies($params = array ()): ?array {
         /**
          * fetches all available currencies on an exchange
          * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#query-the-$currency-information

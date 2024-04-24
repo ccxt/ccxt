@@ -371,7 +371,18 @@ class poloniexfutures extends Exchange {
         //
         $marketId = $this->safe_string($ticker, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market);
-        $timestamp = $this->safe_integer_product($ticker, 'ts', 0.000001);
+        $timestampString = $this->safe_string($ticker, 'ts');
+        // check $timestamp bcz bug => https://app.travis-ci.com/github/ccxt/ccxt/builds/269959181#L4011 and also 17 digits occured
+        $multiplier = null;
+        if (strlen($timestampString) === 17) {
+            $multiplier = 0.0001;
+        } elseif (strlen($timestampString) === 18) {
+            $multiplier = 0.00001;
+        } else {
+            // 19 length default
+            $multiplier = 0.000001;
+        }
+        $timestamp = $this->safe_integer_product($ticker, 'ts', $multiplier);
         $last = $this->safe_string_2($ticker, 'price', 'lastPrice');
         $percentage = Precise::string_mul($this->safe_string($ticker, 'priceChgPct'), '100');
         return $this->safe_ticker(array(

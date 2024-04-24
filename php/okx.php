@@ -28,10 +28,13 @@ class okx extends Exchange {
                 'option' => true,
                 'addMargin' => true,
                 'cancelAllOrders' => false,
+                'cancelAllOrdersAfter' => true,
                 'cancelOrder' => true,
                 'cancelOrders' => true,
+                'cancelOrdersForSymbols' => true,
                 'closeAllPositions' => false,
                 'closePosition' => true,
+                'createConvertTrade' => true,
                 'createDepositAddress' => false,
                 'createMarketBuyOrderWithCost' => true,
                 'createMarketSellOrderWithCost' => true,
@@ -59,6 +62,8 @@ class okx extends Exchange {
                 'fetchClosedOrders' => true,
                 'fetchConvertCurrencies' => true,
                 'fetchConvertQuote' => true,
+                'fetchConvertTrade' => true,
+                'fetchConvertTradeHistory' => true,
                 'fetchCrossBorrowRate' => true,
                 'fetchCrossBorrowRates' => true,
                 'fetchCurrencies' => true,
@@ -1106,14 +1111,14 @@ class okx extends Exchange {
         ));
     }
 
-    public function handle_market_type_and_params($methodName, $market = null, $params = array ()) {
+    public function handle_market_type_and_params(string $methodName, ?array $market = null, $params = array (), $defaultValue = null): mixed {
         $instType = $this->safe_string($params, 'instType');
         $params = $this->omit($params, 'instType');
         $type = $this->safe_string($params, 'type');
         if (($type === null) && ($instType !== null)) {
             $params['type'] = $instType;
         }
-        return parent::handle_market_type_and_params($methodName, $market, $params);
+        return parent::handle_market_type_and_params($methodName, $market, $params, $defaultValue);
     }
 
     public function convert_to_instrument_type($type) {
@@ -1548,7 +1553,7 @@ class okx extends Exchange {
         return $this->safe_string($networksById, $networkId, $networkId);
     }
 
-    public function fetch_currencies($params = array ()): array {
+    public function fetch_currencies($params = array ()): ?array {
         /**
          * fetches all available currencies on an exchange
          * @see https://www.okx.com/docs-v5/en/#rest-api-funding-get-currencies
@@ -3217,6 +3222,113 @@ class okx extends Exchange {
         //
         $ordersData = $this->safe_list($response, 'data', array());
         return $this->parse_orders($ordersData, $market, null, null, $params);
+    }
+
+    public function cancel_orders_for_symbols(array $orders, $params = array ()) {
+        /**
+         * cancel multiple $orders for multiple symbols
+         * @see https://www.okx.com/docs-v5/en/#$order-book-trading-trade-post-cancel-multiple-$orders
+         * @see https://www.okx.com/docs-v5/en/#$order-book-trading-algo-trading-post-cancel-algo-$order
+         * @param {CancellationRequest[]} $orders each $order should contain the parameters required by cancelOrder namely $id and $symbol
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [$params->trigger] whether the $order is a stop/trigger $order
+         * @param {boolean} [$params->trailing] set to true if you want to cancel $trailing $orders
+         * @return {array} an list of ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structures~
+         */
+        $this->load_markets();
+        $request = array();
+        $options = $this->safe_dict($this->options, 'cancelOrders', array());
+        $defaultMethod = $this->safe_string($options, 'method', 'privatePostTradeCancelBatchOrders');
+        $method = $this->safe_string($params, 'method', $defaultMethod);
+        $stop = $this->safe_bool_2($params, 'stop', 'trigger');
+        $trailing = $this->safe_bool($params, 'trailing', false);
+        $isStopOrTrailing = $stop || $trailing;
+        if ($isStopOrTrailing) {
+            $method = 'privatePostTradeCancelAlgos';
+        }
+        for ($i = 0; $i < count($orders); $i++) {
+            $order = $orders[$i];
+            $id = $this->safe_string($order, 'id');
+            $clientOrderId = $this->safe_string_2($order, 'clOrdId', 'clientOrderId');
+            $symbol = $this->safe_string($order, 'symbol');
+            $market = $this->market($symbol);
+            $idKey = 'ordId';
+            if ($isStopOrTrailing) {
+                $idKey = 'algoId';
+            } elseif ($clientOrderId !== null) {
+                $idKey = 'clOrdId';
+            }
+            $requestItem = array(
+                'instId' => $market['id'],
+            );
+            $requestItem[$idKey] = ($clientOrderId !== null) ? $clientOrderId : $id;
+            $request[] = $requestItem;
+        }
+        $response = null;
+        if ($method === 'privatePostTradeCancelAlgos') {
+            $response = $this->privatePostTradeCancelAlgos ($request); // * dont extend with $params, otherwise ARRAY will be turned into OBJECT
+        } else {
+            $response = $this->privatePostTradeCancelBatchOrders ($request); // * dont extend with $params, otherwise ARRAY will be turned into OBJECT
+        }
+        //
+        //     {
+        //         "code" => "0",
+        //         "data" => array(
+        //             array(
+        //                 "clOrdId" => "e123456789ec4dBC1123456ba123b45e",
+        //                 "ordId" => "405071912345641543",
+        //                 "sCode" => "0",
+        //                 "sMsg" => ""
+        //             ),
+        //             ...
+        //         ),
+        //         "msg" => ""
+        //     }
+        //
+        // Algo $order
+        //
+        //     {
+        //         "code" => "0",
+        //         "data" => array(
+        //             {
+        //                 "algoId" => "431375349042380800",
+        //                 "sCode" => "0",
+        //                 "sMsg" => ""
+        //             }
+        //         ),
+        //         "msg" => ""
+        //     }
+        //
+        $ordersData = $this->safe_list($response, 'data', array());
+        return $this->parse_orders($ordersData, null, null, null, $params);
+    }
+
+    public function cancel_all_orders_after(?int $timeout, $params = array ()) {
+        /**
+         * dead man's switch, cancel all orders after the given $timeout
+         * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-cancel-all-after
+         * @param {number} $timeout time in milliseconds, 0 represents cancel the timer
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} the api result
+         */
+        $this->load_markets();
+        $request = array(
+            'timeOut' => ($timeout > 0) ? $this->parse_to_int($timeout / 1000) : 0,
+        );
+        $response = $this->privatePostTradeCancelAllAfter (array_merge($request, $params));
+        //
+        //     {
+        //         "code":"0",
+        //         "msg":"",
+        //         "data":array(
+        //             {
+        //                 "triggerTime":"1587971460",
+        //                 "ts":"1587971400"
+        //             }
+        //         )
+        //     }
+        //
+        return $response;
     }
 
     public function parse_order_status($status) {
@@ -7539,6 +7651,154 @@ class okx extends Exchange {
         return $this->parse_conversion($result, $fromCurrency, $toCurrency);
     }
 
+    public function create_convert_trade(string $id, string $fromCode, string $toCode, ?float $amount = null, $params = array ()): Conversion {
+        /**
+         * convert from one currency to another
+         * @see https://www.okx.com/docs-v5/en/#funding-account-rest-api-convert-trade
+         * @param {string} $id the $id of the trade that you want to make
+         * @param {string} $fromCode the currency that you want to sell and convert from
+         * @param {string} $toCode the currency that you want to buy and convert into
+         * @param {float} [$amount] how much you want to trade in units of the from currency
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/#/?$id=conversion-structure conversion structure~
+         */
+        $this->load_markets();
+        $request = array(
+            'quoteId' => $id,
+            'baseCcy' => $fromCode,
+            'quoteCcy' => $toCode,
+            'szCcy' => $fromCode,
+            'sz' => $this->number_to_string($amount),
+            'side' => 'sell',
+        );
+        $response = $this->privatePostAssetConvertTrade (array_merge($request, $params));
+        //
+        //     {
+        //         "code" => "0",
+        //         "data" => array(
+        //             {
+        //                 "baseCcy" => "ETH",
+        //                 "clTReqId" => "",
+        //                 "fillBaseSz" => "0.01023052",
+        //                 "fillPx" => "2932.40104429",
+        //                 "fillQuoteSz" => "30",
+        //                 "instId" => "ETH-USDT",
+        //                 "quoteCcy" => "USDT",
+        //                 "quoteId" => "quoterETH-USDT16461885104612381",
+        //                 "side" => "buy",
+        //                 "state" => "fullyFilled",
+        //                 "tradeId" => "trader16461885203381437",
+        //                 "ts" => "1646188520338"
+        //             }
+        //         ),
+        //         "msg" => ""
+        //     }
+        //
+        $data = $this->safe_list($response, 'data', array());
+        $result = $this->safe_dict($data, 0, array());
+        $fromCurrencyId = $this->safe_string($result, 'baseCcy', $fromCode);
+        $fromCurrency = $this->currency($fromCurrencyId);
+        $toCurrencyId = $this->safe_string($result, 'quoteCcy', $toCode);
+        $toCurrency = $this->currency($toCurrencyId);
+        return $this->parse_conversion($result, $fromCurrency, $toCurrency);
+    }
+
+    public function fetch_convert_trade(string $id, ?string $code = null, $params = array ()): Conversion {
+        /**
+         * fetch the $data for a conversion trade
+         * @see https://www.okx.com/docs-v5/en/#funding-account-rest-api-get-convert-history
+         * @param {string} $id the $id of the trade that you want to fetch
+         * @param {string} [$code] the unified currency $code of the conversion trade
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/#/?$id=conversion-structure conversion structure~
+         */
+        $this->load_markets();
+        $request = array(
+            'clTReqId' => $id,
+        );
+        $response = $this->privateGetAssetConvertHistory (array_merge($request, $params));
+        //
+        //     {
+        //         "code" => "0",
+        //         "data" => array(
+        //             {
+        //                 "clTReqId" => "",
+        //                 "instId" => "ETH-USDT",
+        //                 "side" => "buy",
+        //                 "fillPx" => "2932.401044",
+        //                 "baseCcy" => "ETH",
+        //                 "quoteCcy" => "USDT",
+        //                 "fillBaseSz" => "0.01023052",
+        //                 "state" => "fullyFilled",
+        //                 "tradeId" => "trader16461885203381437",
+        //                 "fillQuoteSz" => "30",
+        //                 "ts" => "1646188520000"
+        //             }
+        //         ),
+        //         "msg" => ""
+        //     }
+        //
+        $data = $this->safe_list($response, 'data', array());
+        $result = $this->safe_dict($data, 0, array());
+        $fromCurrencyId = $this->safe_string($result, 'baseCcy');
+        $toCurrencyId = $this->safe_string($result, 'quoteCcy');
+        $fromCurrency = null;
+        $toCurrency = null;
+        if ($fromCurrencyId !== null) {
+            $fromCurrency = $this->currency($fromCurrencyId);
+        }
+        if ($toCurrencyId !== null) {
+            $toCurrency = $this->currency($toCurrencyId);
+        }
+        return $this->parse_conversion($result, $fromCurrency, $toCurrency);
+    }
+
+    public function fetch_convert_trade_history(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+        /**
+         * fetch the users history of conversion trades
+         * @see https://www.okx.com/docs-v5/en/#funding-account-rest-api-get-convert-history
+         * @param {string} [$code] the unified currency $code
+         * @param {int} [$since] the earliest time in ms to fetch conversions for
+         * @param {int} [$limit] the maximum number of conversion structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->until] timestamp in ms of the latest conversion to fetch
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=conversion-structure conversion structures~
+         */
+        $this->load_markets();
+        $request = array();
+        list($request, $params) = $this->handle_until_option('after', $request, $params);
+        if ($since !== null) {
+            $request['before'] = $since;
+        }
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        $response = $this->privateGetAssetConvertHistory (array_merge($request, $params));
+        //
+        //     {
+        //         "code" => "0",
+        //         "data" => array(
+        //             {
+        //                 "clTReqId" => "",
+        //                 "instId" => "ETH-USDT",
+        //                 "side" => "buy",
+        //                 "fillPx" => "2932.401044",
+        //                 "baseCcy" => "ETH",
+        //                 "quoteCcy" => "USDT",
+        //                 "fillBaseSz" => "0.01023052",
+        //                 "state" => "fullyFilled",
+        //                 "tradeId" => "trader16461885203381437",
+        //                 "fillQuoteSz" => "30",
+        //                 "ts" => "1646188520000"
+        //             }
+        //         ),
+        //         "msg" => ""
+        //     }
+        //
+        $rows = $this->safe_list($response, 'data', array());
+        return $this->parse_conversions($rows, 'baseCcy', 'quoteCcy', $since, $limit);
+    }
+
     public function parse_conversion($conversion, ?array $fromCurrency = null, ?array $toCurrency = null): Conversion {
         //
         // fetchConvertQuote
@@ -7559,7 +7819,40 @@ class okx extends Exchange {
         //         "ttlMs" => "10000"
         //     }
         //
-        $timestamp = $this->safe_integer($conversion, 'quoteTime');
+        // createConvertTrade
+        //
+        //     {
+        //         "baseCcy" => "ETH",
+        //         "clTReqId" => "",
+        //         "fillBaseSz" => "0.01023052",
+        //         "fillPx" => "2932.40104429",
+        //         "fillQuoteSz" => "30",
+        //         "instId" => "ETH-USDT",
+        //         "quoteCcy" => "USDT",
+        //         "quoteId" => "quoterETH-USDT16461885104612381",
+        //         "side" => "buy",
+        //         "state" => "fullyFilled",
+        //         "tradeId" => "trader16461885203381437",
+        //         "ts" => "1646188520338"
+        //     }
+        //
+        // fetchConvertTrade, fetchConvertTradeHistory
+        //
+        //     {
+        //         "clTReqId" => "",
+        //         "instId" => "ETH-USDT",
+        //         "side" => "buy",
+        //         "fillPx" => "2932.401044",
+        //         "baseCcy" => "ETH",
+        //         "quoteCcy" => "USDT",
+        //         "fillBaseSz" => "0.01023052",
+        //         "state" => "fullyFilled",
+        //         "tradeId" => "trader16461885203381437",
+        //         "fillQuoteSz" => "30",
+        //         "ts" => "1646188520000"
+        //     }
+        //
+        $timestamp = $this->safe_integer_2($conversion, 'quoteTime', 'ts');
         $fromCoin = $this->safe_string($conversion, 'baseCcy');
         $fromCode = $this->safe_currency_code($fromCoin, $fromCurrency);
         $to = $this->safe_string($conversion, 'quoteCcy');
@@ -7568,17 +7861,17 @@ class okx extends Exchange {
             'info' => $conversion,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'id' => $this->safe_string($conversion, 'clQReqId'),
+            'id' => $this->safe_string_n($conversion, array( 'clQReqId', 'tradeId', 'quoteId' )),
             'fromCurrency' => $fromCode,
-            'fromAmount' => $this->safe_number($conversion, 'baseSz'),
+            'fromAmount' => $this->safe_number_2($conversion, 'baseSz', 'fillBaseSz'),
             'toCurrency' => $toCode,
-            'toAmount' => $this->safe_number($conversion, 'quoteSz'),
-            'price' => $this->safe_number($conversion, 'cnvtPx'),
+            'toAmount' => $this->safe_number_2($conversion, 'quoteSz', 'fillQuoteSz'),
+            'price' => $this->safe_number_2($conversion, 'cnvtPx', 'fillPx'),
             'fee' => null,
         );
     }
 
-    public function fetch_convert_currencies($params = array ()): array {
+    public function fetch_convert_currencies($params = array ()): ?array {
         /**
          * fetches all available currencies that can be converted
          * @see https://www.okx.com/docs-v5/en/#funding-account-rest-api-get-convert-currencies
