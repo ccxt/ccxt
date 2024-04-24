@@ -625,33 +625,23 @@
             {
                 "description": "Spot fetch OHLCV",
                 "method": "fetchOHLCV",
-                "url": "https://api.coinex.com/v1/market/kline?market=BTCUSDT&type=1min",
+                "url": "https://api.coinex.com/v2/spot/kline?market=BTCUSDT&period=1min&limit=3",
                 "input": [
-                    "BTC/USDT"
+                  "BTC/USDT",
+                  "1m",
+                  null,
+                  3
                 ]
             },
             {
                 "description": "Swap fetch OHLCV",
                 "method": "fetchOHLCV",
-                "url": "https://api.coinex.com/perpetual/v1/market/kline?market=BTCUSDT&type=1min",
+                "url": "https://api.coinex.com/v2/futures/kline?market=BTCUSDT&period=1min&limit=3",
                 "input": [
-                    "BTC/USDT:USDT"
-                ]
-            },
-            {
-                "description": "spot ohlcv",
-                "method": "fetchOHLCV",
-                "url": "https://api.coinex.com/v1/market/kline?market=BTCUSDT&type=1min",
-                "input": [
-                    "BTC/USDT"
-                ]
-            },
-            {
-                "description": "swap ohlcv",
-                "method": "fetchOHLCV",
-                "url": "https://api.coinex.com/perpetual/v1/market/kline?market=BTCUSDT&type=1min",
-                "input": [
-                    "BTC/USDT:USDT"
+                  "BTC/USDT:USDT",
+                  "1m",
+                  null,
+                  3
                 ]
             }
         ],
