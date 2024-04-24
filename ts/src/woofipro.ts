@@ -1413,11 +1413,11 @@ export default class woofipro extends Exchange {
 		if (isStop) {
 			response = await this.v1PrivatePutAlgoOrder (this.extend (request, params));
 		} else {
-			// const clientOrderId = this.safeStringN (params, [ 'clOrdID', 'clientOrderId', 'client_order_id' ]);
-			// params = this.omit (params, [ 'clOrdID', 'clientOrderId', 'client_order_id' ]);
-			// if (clientOrderId !== undefined) {
-			// 	request['client_order_id'] = clientOrderId;
-			// }
+			const clientOrderId = this.safeStringN (params, [ 'clOrdID', 'clientOrderId', 'client_order_id' ]);
+			params = this.omit (params, [ 'clOrdID', 'clientOrderId', 'client_order_id' ]);
+			if (clientOrderId !== undefined) {
+				request['client_order_id'] = clientOrderId;
+			}
 			// request['side'] = side.toUpperCase ();
 			// request['symbol'] = market['id'];
 			response = await this.v1PrivatePutOrder (this.extend (request, params));
@@ -2161,6 +2161,26 @@ export default class woofipro extends Exchange {
         //     }
         //
         return this.parseTransactions (rows, currency, since, limit, params);
+    }
+
+	async setLeverage (leverage: Int, symbol: Str = undefined, params = {}) {
+		/**
+         * @method
+         * @name woofipro#setLeverage
+         * @description set the level of leverage for a market
+         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/update-leverage-setting
+         * @param {string} symbol unified market symbol
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} response from the exchange
+         */
+        await this.loadMarkets ();
+        if ((leverage < 1) || (leverage > 50)) {
+            throw new BadRequest (this.id + ' leverage should be between 1 and 50');
+        }
+        const request = {
+            'leverage': leverage,
+        };
+        return await this.v1PrivatePostClientLeverage (this.extend (request, params));
     }
 
     nonce () {
