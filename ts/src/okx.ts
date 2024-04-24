@@ -2640,6 +2640,7 @@ export default class okx extends Exchange {
         const takeProfitDefined = (takeProfit !== undefined);
         const trailingPercent = this.safeString2 (params, 'trailingPercent', 'callbackRatio');
         const isTrailingPercentOrder = trailingPercent !== undefined;
+        const isReduceOnly = this.safeValue (params, 'reduceOnly', false);
         const defaultMarginMode = this.safeString2 (this.options, 'defaultMarginMode', 'marginMode', 'cross');
         let marginMode = this.safeString2 (params, 'marginMode', 'tdMode'); // cross or isolated, tdMode not ommited so as to be extended into the request
         let margin = false;
@@ -2824,14 +2825,14 @@ export default class okx extends Exchange {
                 request['slOrdPx'] = (slOrdPx === undefined) ? '-1' : this.priceToPrecision (symbol, slOrdPx);
                 request['slTriggerPxType'] = slTriggerPxType;
             }
-            // for users convenience, automatically set `posSide` (in "hedge" mode) if not set
-            const isSLTP = (takeProfitPrice !== undefined) || (stopLossPrice !== undefined);
-            if (contract && isSLTP) {
-                const isHedge = this.safeBool (params, 'hedged', false);
-                if (isHedge && !('posSide' in request)) {
-                    const isBuy = (side === 'buy');
-                    request['posSide'] = isBuy ? 'short' : 'long';
-                }
+        }
+        // for users convenience, automatically set `posSide` (in "hedge" mode) if not set
+        const isSLTP = (takeProfitPrice !== undefined) || (stopLossPrice !== undefined) || (trigger && isReduceOnly);
+        if (contract && isSLTP) {
+            const isHedge = this.safeBool (params, 'hedged', false);
+            if (isHedge && !('posSide' in request)) {
+                const isBuy = (side === 'buy');
+                request['posSide'] = isBuy ? 'short' : 'long';
             }
         }
         if (clientOrderId === undefined) {
