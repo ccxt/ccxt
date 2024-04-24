@@ -84,14 +84,14 @@ public partial class Exchange
 
     public object safeInteger2(object obj, object key1, object key2, object defaultValue = null) => safeIntegerN(obj, new List<object> { key1, key2 }, defaultValue);
 
-    public object safeFloat(object obj, object key, object defaultValue = null) => safeFloatN(obj, new List<object> { key }, defaultValue);
+    public double? safeFloat(object obj, object key, object defaultValue = null) => safeFloatN(obj, new List<object> { key }, defaultValue);
     public static double? SafeFloat(object obj, object key, object defaultValue = null)
     {
         var res = SafeFloatN(obj, new List<object> { key }, defaultValue);
-        return res == null ? null : Convert.ToDouble(res);
+        return res == null ? null : res;
     }
 
-    public object safeFloat2(object obj, object key1, object key2, object defaultValue = null) => safeFloatN(obj, new List<object> { key1, key2 }, defaultValue);
+    public double? safeFloat2(object obj, object key1, object key2, object defaultValue = null) => safeFloatN(obj, new List<object> { key1, key2 }, defaultValue);
 
     public static string SafeString(object obj, object key, object defaultValue = null)
     {
@@ -290,14 +290,15 @@ public partial class Exchange
     }
 
 
-    public object safeFloatN(object obj, object keys, object defaultValue = null) => SafeFloatN(obj, keys as List<object>, defaultValue);
-    public static object SafeFloatN(object obj, List<object> keys, object defaultValue = null)
+    public double? safeFloatN(object obj, object keys, object defaultValue = null) => SafeFloatN(obj, keys as List<object>, defaultValue);
+    public static double? SafeFloatN(object obj, List<object> keys, object defaultValue = null)
     {
         defaultValue ??= null;
+        double? convertedDefaultValue = (defaultValue == null) ? null : Convert.ToDouble(defaultValue, CultureInfo.InvariantCulture);
         var result = SafeValueN(obj, keys, defaultValue);
         if (result == null)
-            return defaultValue;
-        object parsedValue = null;
+            return convertedDefaultValue;
+        double? parsedValue = null;
         try
         {
             parsedValue = Convert.ToDouble(result, CultureInfo.InvariantCulture); // altough the name is float right now it is double
@@ -306,7 +307,7 @@ public partial class Exchange
         {
 
         }
-        return parsedValue == null ? defaultValue : Convert.ToDouble(result, CultureInfo.InvariantCulture);
+        return parsedValue == null ? convertedDefaultValue : parsedValue;
     }
     public object safeValueN(object obj, object keys2, object defaultValue = null) => SafeValueN(obj, keys2, defaultValue);
     public static object SafeValueN(object obj, object keys2, object defaultValue = null)
