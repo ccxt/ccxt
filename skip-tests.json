@@ -624,7 +624,6 @@
     },
     "coinbase": {
         "skip": "private endpoints",
-        "skipWs": "needs auth",
         "skipMethods": {
             "fetchCurrencies": {
                 "precision": "not provided"
