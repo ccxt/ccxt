@@ -78,8 +78,8 @@ export default class bitflex extends Exchange {
                 'fetchWithdrawal': true,
                 'fetchWithdrawals': true,
                 'reduceMargin': true,
-                'transfer': true,
                 'setLeverage': true,
+                'transfer': true,
                 'withdraw': true,
             },
             'timeframes': {
@@ -159,11 +159,16 @@ export default class bitflex extends Exchange {
                         'openapi/contract/v1/order': 1, // implemented
                         'openapi/contract/v1/modifyMargin': 1, // implemented
                         'openapi/contract/v1/modifyLeverage': 1, // implemented
+                        'openapi/v1/userDataStream': 1,
+                    },
+                    'put': {
+                        'openapi/v1/userDataStream': 1,
                     },
                     'delete': {
                         'openapi/v1/order': 1, // implemented
                         'openapi/contract/v1/order/cancel': 1, // implemented
                         'openapi/contract/v1/order/batchCancel': 1,
+                        'openapi/v1/userDataStream': 1,
                     },
                 },
             },
@@ -2427,7 +2432,7 @@ export default class bitflex extends Exchange {
         //         }
         //     ]
         //
-        return this.parseTransactions (response, currency, since, limit, 'deposit');
+        return this.parseTransactions (response, currency, since, limit, { 'type': 'deposit' });
     }
 
     async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
@@ -2509,7 +2514,7 @@ export default class bitflex extends Exchange {
         //         }
         //     ]
         //
-        return this.parseTransactions (response, currency, since, limit, 'withdrawal');
+        return this.parseTransactions (response, currency, since, limit, { 'type': 'deposit' });
     }
 
     async fetchWithdrawal (id: string, code: Str = undefined, params = {}) {
@@ -2566,10 +2571,10 @@ export default class bitflex extends Exchange {
         return this.parseTransaction (response, currency);
     }
 
-    parseTransactions (transactions: any[], currency: Currency = undefined, since: Int = undefined, limit: Int = undefined, type: Str = undefined): Transaction[] {
+    parseTransactions (transactions: any[], currency: Currency = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Transaction[] {
         let result = [];
         for (let i = 0; i < transactions.length; i++) {
-            transactions[i] = this.extend (transactions[i], { 'type': type });
+            transactions[i] = this.extend (transactions[i], params);
             const transaction = this.parseTransaction (transactions[i], currency);
             result.push (transaction);
         }
