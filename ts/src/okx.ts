@@ -6251,7 +6251,6 @@ export default class okx extends Exchange {
         return response;
     }
 
-
     async fetchPositionMode (symbol: Str = undefined, params = {}) {
         /**
          * @method
