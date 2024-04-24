@@ -2571,17 +2571,17 @@ export default class bitflex extends Exchange {
         return this.parseTransaction (response, currency);
     }
 
-    parseTransactions (transactions, currency: Currency = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Transaction[] {
-        let result = [];
-        for (let i = 0; i < transactions.length; i++) {
-            transactions[i] = this.extend (transactions[i], params);
-            const transaction = this.parseTransaction (transactions[i], currency);
-            result.push (transaction);
-        }
-        result = this.sortBy (result, 'timestamp');
-        const code = (currency !== undefined) ? currency['code'] : undefined;
-        return this.filterByCurrencySinceLimit (result, code, since, limit);
-    }
+    // parseTransactions (transactions, currency: Currency = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Transaction[] {
+    //     let result = [];
+    //     for (let i = 0; i < transactions.length; i++) {
+    //         transactions[i] = this.extend (transactions[i], params);
+    //         const transaction = this.parseTransaction (transactions[i], currency);
+    //         result.push (transaction);
+    //     }
+    //     result = this.sortBy (result, 'timestamp');
+    //     const code = (currency !== undefined) ? currency['code'] : undefined;
+    //     return this.filterByCurrencySinceLimit (result, code, since, limit);
+    // }
 
     parseTransaction (transaction, currency: Currency = undefined): Transaction {
         //
@@ -3114,7 +3114,7 @@ export default class bitflex extends Exchange {
         //             "side": "LONG",
         //             "avgPrice": "66004.8",
         //             "position": "0.001",
-        //             "available": "0.001",
+        //             "available": "0.001", // todo check
         //             "leverage": "10",
         //             "lastPrice": "65998.2",
         //             "positionValue": "66.0223",
@@ -3122,7 +3122,7 @@ export default class bitflex extends Exchange {
         //             "margin": "6.5939",
         //             "marginRate": "0.1001",
         //             "unrealizedPnL": "0.0175",
-        //             "profitRate": "0.0026",
+        //             "profitRate": "0.0026", // todo check
         //             "realizedPnL": "-0.0396"
         //         },
         //         ...
@@ -3161,8 +3161,8 @@ export default class bitflex extends Exchange {
             'maintenanceMargin': undefined,
             'maintenanceMarginPercentage': undefined,
             'collateral': undefined,
-            'initialMargin': undefined,
-            'initialMarginPercentage': undefined,
+            'initialMargin': this.safeNumber (position, 'margin'),
+            'initialMarginPercentage': this.safeNumber (position, 'marginRate'), // todo check
             'leverage': this.safeNumber (position, 'leverage'),
             'marginRatio': undefined,
             'stopLossPrice': undefined,
