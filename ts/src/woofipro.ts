@@ -2163,6 +2163,61 @@ export default class woofipro extends Exchange {
         return this.parseTransactions (rows, currency, since, limit, params);
     }
 
+	async fetchLeverage (symbol: string, params = {}): Promise<Leverage> {
+        /**
+         * @method
+         * @name woofipro#fetchLeverage
+         * @description fetch the set leverage for a market
+         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-account-information
+         * @param {string} symbol unified market symbol
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const response = await this.v1PrivateGetClientInfo (params);
+        //
+		// 	{
+		// 		"success": true,
+		// 		"timestamp": 1702989203989,
+		// 		"data": {
+		// 		"account_id": "<string>",
+		// 		"email": "test@test.com",
+		// 		"account_mode": "FUTURES",
+		// 		"max_leverage": 20,
+		// 		"taker_fee_rate": 123,
+		// 		"maker_fee_rate": 123,
+		// 		"futures_taker_fee_rate": 123,
+		// 		"futures_maker_fee_rate": 123,
+		// 		"maintenance_cancel_orders": true,
+		// 		"imr_factor": {
+		// 			"PERP_BTC_USDC": 123,
+		// 			"PERP_ETH_USDC": 123,
+		// 			"PERP_NEAR_USDC": 123
+		// 		},
+		// 		"max_notional": {
+		// 			"PERP_BTC_USDC": 123,
+		// 			"PERP_ETH_USDC": 123,
+		// 			"PERP_NEAR_USDC": 123
+		// 		}
+		// 		}
+		// 	}
+        //
+        const data = this.safeDict (response, 'data', {});
+        return this.parseLeverage (data, market);
+    }
+
+    parseLeverage (leverage, market = undefined): Leverage {
+        const leverageValue = this.safeInteger (leverage, 'max_leverage');
+        return {
+            'info': leverage,
+            'symbol': market['symbol'],
+            'marginMode': undefined,
+            'longLeverage': leverageValue,
+            'shortLeverage': leverageValue,
+        } as Leverage;
+    }
+
 	async setLeverage (leverage: Int, symbol: Str = undefined, params = {}) {
 		/**
          * @method
