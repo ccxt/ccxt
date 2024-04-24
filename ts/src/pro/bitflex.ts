@@ -15,11 +15,11 @@ export default class bitflex extends bitflexRest {
                 'watchBalance': false,
                 'watchTicker': true,
                 'watchTickers': false,
-                'watchTrades': false,
+                'watchTrades': true,
                 'watchMyTrades': false,
                 'watchOrders': false,
                 'watchOrderBook': true,
-                'watchOHLCV': false,
+                'watchOHLCV': true,
             },
             'urls': {
                 'api': {
