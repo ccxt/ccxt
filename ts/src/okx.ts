@@ -6251,6 +6251,30 @@ export default class okx extends Exchange {
         return response;
     }
 
+
+    async fetchPositionMode (symbol: Str = undefined, params = {}) {
+        /**
+         * @method
+         * @name okx#fetchPositionMode
+         * @description fetchs the position mode, hedged or one way, hedged for binance is set identically for all linear markets or all inverse markets
+         * @param {string} symbol unified symbol of the market to fetch the order book for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an object detailing whether the market is in hedged or one-way mode
+         */
+        const accounts = await this.fetchAccounts ();
+        const length = accounts.length;
+        if (length > 1) {
+            throw new ExchangeError (this.id + ' fetchPositionMode() can not detect position mode, because you have multiple accounts on this exchange. Please use fetchAccounts() to determine position mode');
+        }
+        const mainAccount = accounts[0]['info'];
+        const posMode = this.safeString (mainAccount, 'posMode'); // long_short_mode, net_mode
+        const isHedged = posMode === 'long_short_mode';
+        return {
+            'info': mainAccount,
+            'hedged': isHedged,
+        };
+    }
+
     async setPositionMode (hedged: boolean, symbol: Str = undefined, params = {}) {
         /**
          * @method
