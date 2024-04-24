@@ -1552,6 +1552,7 @@ export default class coinbase extends Exchange {
         const contractSize = this.safeNumber (futureProductDetails, 'contract_size');
         const contractExpire = this.safeString (futureProductDetails, 'contract_expiry');
         const expireTimestamp = this.parse8601 (contractExpire);
+        const expireDateTime = this.iso8601 (expireTimestamp);
         const isSwap = (contractExpiryType === 'PERPETUAL');
         const baseId = this.safeString (futureProductDetails, 'contract_root_unit');
         const quoteId = this.safeString (market, 'quote_currency_id');
@@ -1594,7 +1595,7 @@ export default class coinbase extends Exchange {
             'maker': maker,
             'contractSize': contractSize,
             'expiry': expireTimestamp,
-            'expiryDatetime': contractExpire,
+            'expiryDatetime': expireDateTime,
             'strike': undefined,
             'optionType': undefined,
             'precision': {
