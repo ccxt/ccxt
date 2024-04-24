@@ -48,6 +48,7 @@ class bitmex(Exchange, ImplicitAPI):
                 'option': False,
                 'addMargin': None,
                 'cancelAllOrders': True,
+                'cancelAllOrdersAfter': True,
                 'cancelOrder': True,
                 'cancelOrders': True,
                 'closeAllPositions': False,
@@ -1978,6 +1979,27 @@ class bitmex(Exchange, ImplicitAPI):
         #     ]
         #
         return self.parse_orders(response, market)
+
+    async def cancel_all_orders_after(self, timeout: Int, params={}):
+        """
+        dead man's switch, cancel all orders after the given timeout
+        :see: https://www.bitmex.com/api/explorer/#not /Order/Order_cancelAllAfter
+        :param number timeout: time in milliseconds, 0 represents cancel the timer
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: the api result
+        """
+        await self.load_markets()
+        request: dict = {
+            'timeout': self.parse_to_int(timeout / 1000) if (timeout > 0) else 0,
+        }
+        response = await self.privatePostOrderCancelAllAfter(self.extend(request, params))
+        #
+        #     {
+        #         now: '2024-04-09T09:01:56.560Z',
+        #         cancelTime: '2024-04-09T09:01:56.660Z'
+        #     }
+        #
+        return response
 
     async def fetch_leverages(self, symbols: List[str] = None, params={}) -> Leverages:
         """

@@ -218,7 +218,23 @@
                   }
                 ],
                 "output": "{\"product_id\":\"ADA-PERP-INTX\",\"side\":\"BUY\",\"order_configuration\":{\"market_market_ioc\":{\"base_size\":\"20\"}}}"
-              }
+            },
+            {
+                "description": "timeInForce='FOK'",
+                "method": "createOrder",
+                "url": "https://api.coinbase.com/api/v3/brokerage/orders",
+                "input": [
+                  "XRP/USDC",
+                  "limit",
+                  "buy",
+                  10,
+                  0.5,
+                  {
+                    "timeInForce": "FOK"
+                  }
+                ],
+                "output": "{\"client_order_id\":\"ccxt-4018cbc8-f42a-4c79-b078-b16d838e95d6\",\"product_id\":\"XRP-USDC\",\"side\":\"BUY\",\"order_configuration\":{\"limit_limit_fok\":{\"base_size\":\"10\",\"limit_price\":\"0.5\"}}}"
+            }
         ],
         "createMarketBuyOrderWithCost": [
             {
@@ -288,15 +304,15 @@
             {
                 "description": "without arguments",
                 "method": "fetchTrades",
-                "url": "https://api.coinbase.com/api/v3/brokerage/products/BTC-USDT/ticker",
+                "url": "https://api.coinbase.com/api/v3/brokerage/market/products/BTC-USDT/ticker",
                 "input": [
-                    "BTC/USDT"
+                  "BTC/USDT"
                 ]
             },
             {
                 "description": "with since, limit and until",
                 "method": "fetchTrades",
-                "url": "https://api.coinbase.com/api/v3/brokerage/products/BTC-USDT/ticker?start=1678012344&limit=15&end=1678012744",
+                "url": "https://api.coinbase.com/api/v3/brokerage/market/products/BTC-USDT/ticker?start=1678012344&limit=15&end=1678012744",
                 "input": [
                     "BTC/USDT",
                     1678012344389,
@@ -309,7 +325,7 @@
             {
                 "description": "spot fetchTrades",
                 "method": "fetchTrades",
-                "url": "https://api.coinbase.com/api/v3/brokerage/products/BTC-USDT/ticker",
+                "url": "https://api.coinbase.com/api/v3/brokerage/market/products/BTC-USDT/ticker",
                 "input": [
                     "BTC/USDT"
                 ]
@@ -317,7 +333,7 @@
             {
                 "description": "future trade",
                 "method": "fetchTrades",
-                "url": "https://api.coinbase.com/api/v3/brokerage/products/BIT-26APR24-CDE/ticker",
+                "url": "https://api.coinbase.com/api/v3/brokerage/market/products/BIT-26APR24-CDE/ticker",
                 "input": [
                   "BTC/USD:USD-240426"
                 ]
@@ -325,30 +341,36 @@
         ],
         "fetchOHLCV": [
             {
-                "description": "without aguments",
+                "description": "without arguments",
                 "method": "fetchOHLCV",
-                "url": "https://api.coinbase.com/api/v3/brokerage/products/BTC-USDT/candles?granularity=ONE_MINUTE&start=1709531236&end=1709549236",
+                "url": "https://api.coinbase.com/api/v3/brokerage/market/products/BTC-USDT/candles?granularity=ONE_MINUTE&start=1713819075&end=1713837075",
                 "input": [
-                    "BTC/USDT"
+                  "BTC/USDT"
                 ]
             },
             {
-                "description": "with since and limit",
+                "description": "With since and limit",
                 "method": "fetchOHLCV",
-                "url": "https://api.coinbase.com/api/v3/brokerage/products/BTC-USDT/candles?granularity=ONE_MINUTE&start=1678012344&end=1678013544",
+                "url": "https://api.coinbase.com/api/v3/brokerage/market/products/BTC-USDT/candles?granularity=ONE_MINUTE&start=1678012&end=1679212",
                 "input": [
-                    "BTC/USDT",
-                    "1m",
-                    1678012344389,
-                    20
+                  "BTC/USDT",
+                  "1m",
+                  1678012344,
+                  20
                 ]
             },
             {
-                "description": "spot ohlcv",
+                "description": "with since and until",
                 "method": "fetchOHLCV",
-                "url": "https://api.coinbase.com/api/v3/brokerage/products/BTC-USDT/candles?granularity=ONE_MINUTE&start=1709974985&end=1709992985",
+                "url": "https://api.coinbase.com/api/v3/brokerage/market/products/BTC-USDT/candles?granularity=ONE_HOUR&start=1711929600&end=1712016000",
                 "input": [
-                    "BTC/USDT"
+                  "BTC/USDT",
+                  "1h",
+                  1711929600000,
+                  null,
+                  {
+                    "until": 1712016000000
+                  }
                 ]
             }
         ],
@@ -488,7 +510,7 @@
             {
                 "description": "spot tickers",
                 "method": "fetchTickers",
-                "url": "https://api.coinbase.com/api/v3/brokerage/products?product_ids=BTC-USDT&product_ids=ETH-USDT",
+                "url": "https://api.coinbase.com/api/v3/brokerage/market/products?product_ids=BTC-USDT&product_ids=ETH-USDT",
                 "input": [
                     [
                         "BTC/USDT",
@@ -499,7 +521,7 @@
             {
                 "description": "spot tickers",
                 "method": "fetchTickers",
-                "url": "https://api.coinbase.com/api/v3/brokerage/products?product_ids=BTC-USDT&product_ids=ETH-USDT",
+                "url": "https://api.coinbase.com/api/v3/brokerage/market/products?product_ids=BTC-USDT&product_ids=ETH-USDT",
                 "input": [
                     [
                         "BTC/USDT",
@@ -510,19 +532,11 @@
         ],
         "fetchOrderBook": [
             {
-                "description": "fetch orderbook",
+                "description": "spot order book",
                 "method": "fetchOrderBook",
-                "url": "https://api.coinbase.com/api/v3/brokerage/product_book?product_id=BTC-USD",
+                "url": "https://api.coinbase.com/api/v3/brokerage/market/product_book?product_id=BTC-USDT",
                 "input": [
-                    "BTC/USD"
-                ]
-            },
-            {
-                "description": "spot orderbook",
-                "method": "fetchOrderBook",
-                "url": "https://api.coinbase.com/api/v3/brokerage/product_book?product_id=BTC-USDT",
-                "input": [
-                    "BTC/USDT"
+                  "BTC/USDT"
                 ]
             }
         ],
@@ -530,9 +544,9 @@
             {
                 "description": "spot ticker",
                 "method": "fetchTicker",
-                "url": "https://api.coinbase.com/api/v3/brokerage/products/BTC-USDT/ticker?limit=1",
+                "url": "https://api.coinbase.com/api/v3/brokerage/market/products/BTC-USDT/ticker?limit=1",
                 "input": [
-                    "BTC/USDT"
+                  "BTC/USDT"
                 ]
             }
         ],

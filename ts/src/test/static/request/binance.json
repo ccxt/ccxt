@@ -3014,6 +3014,69 @@
                 ],
                 "output": "timestamp=1712047946547&type=2&symbol=XRPUSDT&amount=0.2&recvWindow=10000&signature=e8c53af6d974c388ca6ff5ec820a4c2ac813fcbaec55b1a50c60779da56be00b"
             }
+        ],
+        "fetchConvertQuote": [
+            {
+                "description": "fetch convert quote",
+                "method": "fetchConvertQuote",
+                "url": "https://api.binance.com/sapi/v1/convert/getQuote",
+                "input": [
+                  "USDC",
+                  "USDT",
+                  3
+                ],
+                "output": "timestamp=1713535948592&fromAsset=USDC&toAsset=USDT&fromAmount=3&recvWindow=10000&signature=e47dafb115d42ceaf14772ee0a2eac2f0a1df50419c676171e21910f46115934"
+            }
+        ],
+        "fetchConvertTrade": [
+            {
+                "description": "Fetch a conversion trade by the id and currency code",
+                "method": "fetchConvertTrade",
+                "url": "https://api.binance.com/sapi/v1/asset/convert-transfer/queryByPage?timestamp=1713422758560&tranId=118263615991&startTime=1713336358514&endTime=1713422758514&asset=BUSD&recvWindow=10000&signature=d00a936e5d2e76c0bc4463429dc0023c09bd49d71c28962bf19737a56fc78323",
+                "input": [
+                  "118263615991",
+                  "BUSD",
+                  {"startTime": 1713336358514, "endTime": 1713422758514}
+                ]
+            }
+        ],
+        "fetchConvertTradeHistory": [
+            {
+                "description": "Fetch the conversion trade history",
+                "method": "fetchConvertTradeHistory",
+                "url": "https://api.binance.com/sapi/v1/convert/tradeFlow?timestamp=1713569838825&startTime=1713336537740&endTime=1713422937740&recvWindow=10000&signature=09af452a10ecf4a9eb0499682df79d4c1a86a2397effda8339a3ff542265ceb2",
+                "input": [
+                    null,
+                    1713336537740,
+                    null,
+                    {"endTime":1713422937740}
+                ]
+            },
+            {
+                "description": "Fetch the conversion trade history for BUSD conversions",
+                "method": "fetchConvertTradeHistory",
+                "url": "https://api.binance.com/sapi/v1/asset/convert-transfer/queryByPage?timestamp=1713569909204&startTime=1713336537740&endTime=1713422937740&asset=BUSD&recvWindow=10000&signature=ee6908b431a1da834ae717ec872ea3f3c6a557e8adeb8a0266fa470aecfbfe99",
+                "input": [
+                  "BUSD",
+                  1713336537740,
+                  null,
+                  {"endTime":1713422937740}
+                ]
+            }
+        ],
+        "createConvertTrade": [
+            {
+                "description": "convert usdc to usdt",
+                "method": "createConvertTrade",
+                "url": "https://api.binance.com/sapi/v1/convert/acceptQuote",
+                "input": [
+                  "844f131de9994643a0b6ce7805d08cfb",
+                  "USDC",
+                  "USDT",
+                  4
+                ],
+                "output": "timestamp=1713536455384&quoteId=844f131de9994643a0b6ce7805d08cfb&recvWindow=10000&signature=39e6351a5061356643aa48f6e335b6d3c903710206f2543bd9443af07885948b"
+            }
         ]
     }
 }

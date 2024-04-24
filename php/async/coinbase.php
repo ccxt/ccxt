@@ -2643,7 +2643,7 @@ class coinbase extends Exchange {
              * @param {float} [$params->stopLossPrice] $price to trigger stop-loss orders
              * @param {float} [$params->takeProfitPrice] $price to trigger take-profit orders
              * @param {bool} [$params->postOnly] true or false
-             * @param {string} [$params->timeInForce] 'GTC', 'IOC', 'GTD' or 'PO'
+             * @param {string} [$params->timeInForce] 'GTC', 'IOC', 'GTD' or 'PO', 'FOK'
              * @param {string} [$params->stop_direction] 'UNKNOWN_STOP_DIRECTION', 'STOP_DIRECTION_STOP_UP', 'STOP_DIRECTION_STOP_DOWN' the direction the $stopPrice is triggered from
              * @param {string} [$params->end_time] '2023-05-25T17:01:05.092Z' for 'GTD' orders
              * @param {float} [$params->cost] *spot $market buy only* the quote quantity that can be used alternative for the $amount
@@ -2738,6 +2738,13 @@ class coinbase extends Exchange {
                     } elseif ($timeInForce === 'IOC') {
                         $request['order_configuration'] = array(
                             'sor_limit_ioc' => array(
+                                'base_size' => $this->amount_to_precision($symbol, $amount),
+                                'limit_price' => $this->price_to_precision($symbol, $price),
+                            ),
+                        );
+                    } elseif ($timeInForce === 'FOK') {
+                        $request['order_configuration'] = array(
+                            'limit_limit_fok' => array(
                                 'base_size' => $this->amount_to_precision($symbol, $amount),
                                 'limit_price' => $this->price_to_precision($symbol, $price),
                             ),
@@ -3471,12 +3478,12 @@ class coinbase extends Exchange {
                 $sinceString = Precise::string_sub($now, (string) $requestedDuration);
             }
             $request['start'] = $sinceString;
-            $endString = $this->number_to_string($until);
-            if ($until === null) {
+            if ($until !== null) {
+                $request['end'] = $this->number_to_string($this->parse_to_int($until / 1000));
+            } else {
                 // 300 $candles max
-                $endString = Precise::string_add($sinceString, (string) $requestedDuration);
+                $request['end'] = Precise::string_add($sinceString, (string) $requestedDuration);
             }
-            $request['end'] = $endString;
             $response = Async\await($this->v3PrivateGetBrokerageProductsProductIdCandles (array_merge($request, $params)));
             //
             //     {

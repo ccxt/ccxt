@@ -1149,8 +1149,10 @@ class kucoin extends kucoin$1 {
         //              "chains":[
         //                 {
         //                    "chainName":"ERC20",
-        //                    "chain":"eth",
+        //                    "chainId": "eth"
         //                    "withdrawalMinSize":"2999",
+        //                    "depositMinSize":null,
+        //                    "withdrawFeeRate":"0",
         //                    "withdrawalMinFee":"2999",
         //                    "isWithdrawEnabled":false,
         //                    "isDepositEnabled":false,
@@ -1258,7 +1260,7 @@ class kucoin extends kucoin$1 {
                             'max': undefined,
                         },
                         'deposit': {
-                            'min': this.safeNumber(chainExtraData, 'depositMinSize'),
+                            'min': this.safeNumber(chain, 'depositMinSize'),
                             'max': undefined,
                         },
                     },
@@ -3201,7 +3203,6 @@ class kucoin extends kucoin$1 {
         const request = {
             'currency': currency['id'],
             'address': address,
-            'amount': amount,
             // 'memo': tag,
             // 'isInner': false, // internal transfer or external withdrawal
             // 'remark': 'optional',
@@ -3215,6 +3216,8 @@ class kucoin extends kucoin$1 {
         if (networkCode !== undefined) {
             request['chain'] = this.networkCodeToId(networkCode).toLowerCase();
         }
+        await this.loadCurrencyPrecision(currency, networkCode);
+        request['amount'] = this.currencyToPrecision(code, amount, networkCode);
         let includeFee = undefined;
         [includeFee, params] = this.handleOptionAndParams(params, 'withdraw', 'includeFee', false);
         if (includeFee) {
@@ -3233,6 +3236,53 @@ class kucoin extends kucoin$1 {
         //
         const data = this.safeDict(response, 'data', {});
         return this.parseTransaction(data, currency);
+    }
+    async loadCurrencyPrecision(currency, networkCode = undefined) {
+        // as kucoin might not have network specific precisions defined in fetchCurrencies (because of webapi failure)
+        // we should check and refetch precision once-per-instance for that specific currency & network
+        // so avoids thorwing exceptions and burden to users
+        // Note: this needs to be executed only if networkCode was provided
+        if (networkCode !== undefined) {
+            const networks = currency['networks'];
+            const network = this.safeDict(networks, networkCode);
+            if (this.safeNumber(network, 'precision') !== undefined) {
+                // if precision exists, no need to refetch
+                return;
+            }
+            // otherwise try to fetch and store in instance
+            const request = {
+                'currency': currency['id'],
+                'chain': this.networkCodeToId(networkCode).toLowerCase(),
+            };
+            const response = await this.privateGetWithdrawalsQuotas(request);
+            //
+            //    {
+            //        "code": "200000",
+            //        "data": {
+            //            "currency": "USDT",
+            //            "limitBTCAmount": "14.24094850",
+            //            "usedBTCAmount": "0.00000000",
+            //            "quotaCurrency": "USDT",
+            //            "limitQuotaCurrencyAmount": "999999.00000000",
+            //            "usedQuotaCurrencyAmount": "0",
+            //            "remainAmount": "999999.0000",
+            //            "availableAmount": "10.77545071",
+            //            "withdrawMinFee": "1",
+            //            "innerWithdrawMinFee": "0",
+            //            "withdrawMinSize": "10",
+            //            "isWithdrawEnabled": true,
+            //            "precision": 4,
+            //            "chain": "EOS",
+            //            "reason": null,
+            //            "lockedAmount": "0"
+            //        }
+            //    }
+            //
+            const data = this.safeDict(response, 'data', {});
+            const precision = this.parseNumber(this.parsePrecision(this.safeString(data, 'precision')));
+            const code = currency['code'];
+            this.currencies[code]['networks'][networkCode]['precision'] = precision;
+        }
     }
     parseTransactionStatus(status) {
         const statuses = {

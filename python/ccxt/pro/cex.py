@@ -297,7 +297,7 @@ class cex(ccxt.async_support.cex):
             return result
         return self.filter_by_array(self.tickers, 'symbol', symbols)
 
-    async def fetch_ticker_ws(self, symbol: str, params={}):
+    async def fetch_ticker_ws(self, symbol: str, params={}) -> Ticker:
         """
         :see: https://docs.cex.io/#ws-api-ticker-deprecated
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market

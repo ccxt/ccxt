@@ -3881,6 +3881,7 @@ The exchanges' order management APIs differ by design. The user has to understan
 - `cancelOrder()` – used for canceling a single order
 - `cancelOrders()` - used for canceling multiple orders
 - `cancelAllOrders()` - used for canceling all orders
+- `cancelAllOrdersAfter()` - used for canceling all orders after the given timeout
 
 The majority of the exchanges will have a way of fetching currently-open orders. Thus, the `exchange.has['fetchOpenOrders']`. If that method is not available, then most likely the `exchange.has['fetchOrders']` that will provide a list of all orders. The exchange will return a list of open orders either from `fetchOpenOrders()` or from `fetchOrders()`. One of the two methods is usually available from any exchange.
 
@@ -4760,6 +4761,7 @@ To cancel an existing order use
 - `cancelOrder ()` for a single order
 - `cancelOrders ()` for multiple orders
 - `cancelAllOrders ()` for all open orders
+- `cancelAllOrdersAfter ()` for all open orders after the given timeout
 
 ```javascript
 cancelOrder (id, symbol = undefined, params = {})
@@ -4801,6 +4803,19 @@ Parameters
 Returns
 
 - An array of [order structures](#order-structure)
+
+```javascript
+async cancelAllOrdersAfter (timeout, params = {})
+```
+
+Parameters
+
+- **timeout** (number) countdown time in milliseconds **required** on some exchanges, 0 represents cancel the timer (e.g. ``10``\ )
+- **params** (Dictionary) Extra parameters specific to the exchange API endpoint (e.g. ``{"type": "spot"}``\ )
+
+Returns
+
+- An object
 
 #### Exceptions Upon Canceling Orders
 
@@ -6336,6 +6351,39 @@ Parameters
 Returns
 
 - A [conversion structure](#conversion-structure)
+
+The `fetchConvertTrade` method can be used to fetch a specific conversion trade using the trades id.
+
+```javascript
+fetchConvertTrade (id, code = undefined, params = {})
+```
+
+Parameters
+
+- **id** (String) *required* Conversion trade id (e.g. `"80794187SDHJ25"`)
+- **code** (String) The unified currency code of the conversion trade (e.g. `"USDT"`)
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"toAmount": 2.9722}`)
+
+Returns
+
+- A [conversion structure](#conversion-structure)
+
+The `fetchConvertTradeHistory` method can be used to fetch the conversion history for a specified currency code.
+
+```javascript
+fetchConvertTradeHistory (code = undefined, since = undefined, limit = undefined, params = {})
+```
+
+Parameters
+
+- **code** (String) The unified currency code to fetch conversion trade history for (e.g. `"USDT"`)
+- **since** (Integer) Timestamp of the earliest conversion (e.g. `1645807945000`)
+- **limit** (Integer) The maximum number of conversion structures to retrieve (e.g. `10`)
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"toAmount": 2.9722}`)
+
+Returns
+
+- An array of [conversion structures](#conversion-structure)
 
 #### Conversion Structure
 

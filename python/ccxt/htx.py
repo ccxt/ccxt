@@ -53,6 +53,7 @@ class htx(Exchange, ImplicitAPI):
                 'borrowCrossMargin': True,
                 'borrowIsolatedMargin': True,
                 'cancelAllOrders': True,
+                'cancelAllOrdersAfter': True,
                 'cancelOrder': True,
                 'cancelOrders': True,
                 'createDepositAddress': None,
@@ -5624,6 +5625,31 @@ class htx(Exchange, ImplicitAPI):
         #             "successes": "1104754904426696704"
         #         },
         #         "ts": "1683435723755"
+        #     }
+        #
+        return response
+
+    def cancel_all_orders_after(self, timeout: Int, params={}):
+        """
+        dead man's switch, cancel all orders after the given timeout
+        :see: https://huobiapi.github.io/docs/spot/v1/en/#dead-man-s-switch
+        :param number timeout: time in milliseconds, 0 represents cancel the timer
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: the api result
+        """
+        self.load_markets()
+        request: dict = {
+            'timeout': self.parse_to_int(timeout / 1000) if (timeout > 0) else 0,
+        }
+        response = self.v2PrivatePostAlgoOrdersCancelAllAfter(self.extend(request, params))
+        #
+        #     {
+        #         "code": 200,
+        #         "message": "success",
+        #         "data": {
+        #             "currentTime": 1630491627230,
+        #             "triggerTime": 1630491637230
+        #         }
         #     }
         #
         return response

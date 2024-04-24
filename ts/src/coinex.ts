@@ -1138,14 +1138,13 @@ export default class coinex extends Exchange {
         //
         // Spot and Swap fetchTrades (public)
         //
-        //      {
-        //          "id":  2611511379,
-        //          "type": "buy",
-        //          "price": "192.63",
-        //          "amount": "0.02266931",
-        //          "date":  1638990110,
-        //          "date_ms":  1638990110518
-        //      },
+        //     {
+        //         "amount": "0.00049432",
+        //         "created_at": 1713849825667,
+        //         "deal_id": 4137517302,
+        //         "price": "66251",
+        //         "side": "buy"
+        //     }
         //
         // Spot and Margin fetchMyTrades (private)
         //
@@ -1199,9 +1198,9 @@ export default class coinex extends Exchange {
         //
         let timestamp = this.safeTimestamp2 (trade, 'create_time', 'time');
         if (timestamp === undefined) {
-            timestamp = this.safeInteger (trade, 'date_ms');
+            timestamp = this.safeInteger (trade, 'created_at');
         }
-        const tradeId = this.safeString (trade, 'id');
+        const tradeId = this.safeString2 (trade, 'id', 'deal_id');
         const orderId = this.safeString (trade, 'order_id');
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString (trade, 'amount');
@@ -1236,10 +1235,10 @@ export default class coinex extends Exchange {
                 side = 'buy';
             }
             if (side === undefined) {
-                side = this.safeString (trade, 'type');
+                side = this.safeString2 (trade, 'type', 'side');
             }
         } else {
-            side = this.safeString (trade, 'type');
+            side = this.safeString2 (trade, 'type', 'side');
         }
         return this.safeTrade ({
             'info': trade,
@@ -1262,9 +1261,9 @@ export default class coinex extends Exchange {
         /**
          * @method
          * @name coinex#fetchTrades
-         * @description get the list of most recent trades for a particular symbol
-         * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot001_market005_market_deals
-         * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http011_market_deals
+         * @description get the list of the most recent trades for a particular symbol
+         * @see https://docs.coinex.com/api/v2/spot/market/http/list-market-deals
+         * @see https://docs.coinex.com/api/v2/futures/market/http/list-market-deals
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
@@ -1282,27 +1281,26 @@ export default class coinex extends Exchange {
         }
         let response = undefined;
         if (market['swap']) {
-            response = await this.v1PerpetualPublicGetMarketDeals (this.extend (request, params));
+            response = await this.v2PublicGetFuturesDeals (this.extend (request, params));
         } else {
-            response = await this.v1PublicGetMarketDeals (this.extend (request, params));
+            response = await this.v2PublicGetSpotDeals (this.extend (request, params));
         }
         //
         // Spot and Swap
         //
-        //      {
-        //          "code":    0,
-        //          "data": [
-        //              {
-        //                  "id":  2611511379,
-        //                  "type": "buy",
-        //                  "price": "192.63",
-        //                  "amount": "0.02266931",
-        //                  "date":  1638990110,
-        //                  "date_ms":  1638990110518
-        //                  },
-        //              ],
-        //          "message": "OK"
-        //      }
+        //     {
+        //         "code": 0,
+        //         "data": [
+        //             {
+        //                 "amount": "0.00049432",
+        //                 "created_at": 1713849825667,
+        //                 "deal_id": 4137517302,
+        //                 "price": "66251",
+        //                 "side": "buy"
+        //             },
+        //         ],
+        //         "message": "OK"
+        //     }
         //
         return this.parseTrades (response['data'], market, since, limit);
     }
@@ -1462,24 +1460,24 @@ export default class coinex extends Exchange {
 
     parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
         //
-        //     [
-        //         1591484400,
-        //         "0.02505349",
-        //         "0.02506988",
-        //         "0.02507000",
-        //         "0.02505304",
-        //         "343.19716223",
-        //         "8.6021323866383196",
-        //         "ETHBTC"
-        //     ]
+        //     {
+        //         "close": "66999.95",
+        //         "created_at": 1713934620000,
+        //         "high": "66999.95",
+        //         "low": "66988.53",
+        //         "market": "BTCUSDT",
+        //         "open": "66988.53",
+        //         "value": "0.1572393",        // base volume
+        //         "volume": "10533.2501364336" // quote volume
+        //     }
         //
         return [
-            this.safeTimestamp (ohlcv, 0),
-            this.safeNumber (ohlcv, 1),
-            this.safeNumber (ohlcv, 3),
-            this.safeNumber (ohlcv, 4),
-            this.safeNumber (ohlcv, 2),
-            this.safeNumber (ohlcv, 5),
+            this.safeInteger (ohlcv, 'created_at'),
+            this.safeNumber (ohlcv, 'open'),
+            this.safeNumber (ohlcv, 'high'),
+            this.safeNumber (ohlcv, 'low'),
+            this.safeNumber (ohlcv, 'close'),
+            this.safeNumber (ohlcv, 'value'),
         ];
     }
 
@@ -1488,8 +1486,8 @@ export default class coinex extends Exchange {
          * @method
          * @name coinex#fetchOHLCV
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-         * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot001_market006_market_kline
-         * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http012_market_kline
+         * @see https://docs.coinex.com/api/v2/spot/market/http/list-market-kline
+         * @see https://docs.coinex.com/api/v2/futures/market/http/list-market-kline
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -1501,38 +1499,33 @@ export default class coinex extends Exchange {
         const market = this.market (symbol);
         const request = {
             'market': market['id'],
-            'type': this.safeString (this.timeframes, timeframe, timeframe),
+            'period': this.safeString (this.timeframes, timeframe, timeframe),
         };
         if (limit !== undefined) {
             request['limit'] = limit;
         }
         let response = undefined;
         if (market['swap']) {
-            response = await this.v1PerpetualPublicGetMarketKline (this.extend (request, params));
+            response = await this.v2PublicGetFuturesKline (this.extend (request, params));
         } else {
-            response = await this.v1PublicGetMarketKline (this.extend (request, params));
+            response = await this.v2PublicGetSpotKline (this.extend (request, params));
         }
         //
-        // Spot
+        // Spot and Swap
         //
         //     {
         //         "code": 0,
         //         "data": [
-        //             [1591484400, "0.02505349", "0.02506988", "0.02507000", "0.02505304", "343.19716223", "8.6021323866383196", "ETHBTC"],
-        //             [1591484700, "0.02506990", "0.02508109", "0.02508109", "0.02506979", "91.59841581", "2.2972047780447000", "ETHBTC"],
-        //             [1591485000, "0.02508106", "0.02507996", "0.02508106", "0.02507500", "65.15307697", "1.6340597822306000", "ETHBTC"],
-        //         ],
-        //         "message": "OK"
-        //     }
-        //
-        // Swap
-        //
-        //     {
-        //         "code": 0,
-        //         "data": [
-        //             [1650569400, "41524.64", "41489.31", "41564.61", "41480.58", "29.7060", "1233907.099562"],
-        //             [1650569700, "41489.31", "41438.29", "41489.31", "41391.87", "42.4115", "1756154.189061"],
-        //             [1650570000, "41438.29", "41482.21", "41485.05", "41427.31", "22.2892", "924000.317861"]
+        //             {
+        //                 "close": "66999.95",
+        //                 "created_at": 1713934620000,
+        //                 "high": "66999.95",
+        //                 "low": "66988.53",
+        //                 "market": "BTCUSDT",
+        //                 "open": "66988.53",
+        //                 "value": "0.1572393",
+        //                 "volume": "10533.2501364336"
+        //             },
         //         ],
         //         "message": "OK"
         //     }
@@ -4470,7 +4463,7 @@ export default class coinex extends Exchange {
 
     async fetchFundingRates (symbols: Strings = undefined, params = {}) {
         /**
-         *  @method
+         * @method
          * @name coinex#fetchFundingRates
          * @description fetch the current funding rates
          * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http009_market_ticker_all

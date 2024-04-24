@@ -322,7 +322,7 @@ export default class cex extends cexRest {
         return this.filterByArray (this.tickers, 'symbol', symbols);
     }
 
-    async fetchTickerWs (symbol: string, params = {}) {
+    async fetchTickerWs (symbol: string, params = {}): Promise<Ticker> {
         /**
          * @method
          * @name cex#fetchTickerWs
@@ -341,7 +341,7 @@ export default class cex extends cexRest {
             'oid': messageHash,
             'data': [ market['base'], market['quote'] ],
         }, params);
-        return await this.watch (url, messageHash, request, messageHash);
+        return await this.watch (url, messageHash, request, messageHash) as Ticker;
     }
 
     handleTicker (client: Client, message) {
