@@ -571,8 +571,8 @@ export default class coinbase extends coinbaseRest {
                 this.orderbooks[symbol] = this.orderBook ({}, limit);
                 const orderbook = this.orderbooks[symbol];
                 this.handleOrderBookHelper (orderbook, updates);
-                orderbook['timestamp'] = undefined;
-                orderbook['datetime'] = undefined;
+                orderbook['timestamp'] = this.parse8601 (datetime);
+                orderbook['datetime'] = datetime;
                 orderbook['symbol'] = symbol;
                 client.resolve (orderbook, messageHash);
                 if (messageHash.endsWith ('USD')) {
@@ -590,7 +590,6 @@ export default class coinbase extends coinbaseRest {
                 }
             }
         }
-        return message;
     }
 
     handleSubscriptionStatus (client, message) {
