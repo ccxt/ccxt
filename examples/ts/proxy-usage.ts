@@ -34,11 +34,10 @@ async function example_webSockets () {
         break;
     }
     // ### to ensure that ws-proxy works correctly and how remote test server sees your IP, use below and check output ###
-    // myEx.verbose = true;
-    // await myEx.loadHttpProxyAgent (); // only in js, if ws:// protocol is used
-    // await myEx.watch ('ws://5.75.153.75:9876', 'test', 'test');
+    myEx.verbose = true;
+    await myEx.watch ('ws://5.75.153.75:9876', 'test', 'test');
 }
 
 
 // test any from: example_proxyUrl(), example_httpProxy(), example_socksProxy(), example_webSockets()
-await example_httpProxy ();
+await example_webSockets ();
