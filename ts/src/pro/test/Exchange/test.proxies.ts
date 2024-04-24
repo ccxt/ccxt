@@ -40,6 +40,7 @@ function ws_helper_callback (client, message) {
             ipString = ipString.replace ('::ffff:', '');
             assert (ipString === testVpsServerIp,  method + ' test failed. Returned response is ' + ipString + ' while it should be "' + testVpsServerIp + '"');
             console.log ('WS proxy test finished');
+            promise.resolve ();
         }
     }
     catch (e) {
