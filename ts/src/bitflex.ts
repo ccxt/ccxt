@@ -223,6 +223,7 @@ export default class bitflex extends Exchange {
                     // 400 {"code":-100002,"msg":"Param startTime should be Long."}
                     // 400 {"code":-1173,"msg":"Withdraw address illegal."}
                     // 500 {"code":-9999,"msg":"Server Error"}
+                    // {"code":-1149,"msg":"Create order failed"}
                 },
                 'broad': {
                 },
