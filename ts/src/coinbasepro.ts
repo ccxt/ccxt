@@ -1375,7 +1375,7 @@ export default class coinbasepro extends Exchange {
         return await this.privateGetPaymentMethods (params);
     }
 
-    async withdraw (code: string, amount: number, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {
         /**
          * @method
          * @name coinbasepro#withdraw

@@ -4014,7 +4014,7 @@ export default class mexc extends Exchange {
         return response;
     }
 
-    async reduceMargin (symbol: string, amount, params = {}): Promise<MarginModification> {
+    async reduceMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
         /**
          * @method
          * @name mexc#reduceMargin
@@ -4027,7 +4027,7 @@ export default class mexc extends Exchange {
         return await this.modifyMarginHelper (symbol, amount, 'SUB', params);
     }
 
-    async addMargin (symbol: string, amount, params = {}): Promise<MarginModification> {
+    async addMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
         /**
          * @method
          * @name mexc#addMargin
@@ -5188,7 +5188,7 @@ export default class mexc extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    async withdraw (code: string, amount: number, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {
         /**
          * @method
          * @name mexc#withdraw

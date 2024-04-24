@@ -1922,7 +1922,7 @@ export default class coinbaseinternational extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    async withdraw (code: string, amount: number, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {
         /**
          * @method
          * @name coinbaseinternational#withdraw
