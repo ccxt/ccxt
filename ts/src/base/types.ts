@@ -446,6 +446,12 @@ export interface OrderRequest {
     params?: any;
 }
 
+export interface CancellationRequest {
+    id: string;
+    clientOrderId?: string;
+    symbol: string;
+}
+
 export interface FundingHistory {
     info: any;
     symbol: string;

@@ -387,7 +387,7 @@ public struct LastPrice
 
 public struct MarginModification
 {
-    public string symbol; 
+    public string symbol;
     public string? type;
     public string? marginMode;
     public double? amount;
@@ -1254,6 +1254,20 @@ public struct OrderRequest
     }
 }
 
+public struct CancellationRequest
+{
+
+    public string? symbol;
+
+    public string? id;
+
+    public CancellationRequest(object request)
+    {
+        id = Exchange.SafeString(request, "id");
+        symbol = Exchange.SafeString(request, "symbol");
+    }
+}
+
 public struct FundingHistory
 {
     public Dictionary<string, object>? info;
@@ -1463,7 +1477,8 @@ public struct MarketInterface
 
 }
 
-public struct CurrencyLimits{
+public struct CurrencyLimits
+{
     public MinMax? amount;
     public MinMax? withdraw;
     public CurrencyLimits(object currencyLimits2)

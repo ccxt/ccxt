@@ -528,49 +528,33 @@
         ],
         "fetchTicker": [
             {
-                "description": "Spot fetch ticker",
+                "description": "Spot fetch a ticker",
                 "method": "fetchTicker",
-                "url": "https://api.coinex.com/v1/market/ticker?market=BTCUSDT",
+                "url": "https://api.coinex.com/v2/spot/ticker?market=BTCUSDT",
                 "input": [
-                    "BTC/USDT"
+                  "BTC/USDT"
                 ]
             },
             {
-                "description": "Swap fetch ticker",
+                "description": "Swap fetch a ticker",
                 "method": "fetchTicker",
-                "url": "https://api.coinex.com/perpetual/v1/market/ticker?market=BTCUSDT",
+                "url": "https://api.coinex.com/v2/futures/ticker?market=BTCUSDT",
                 "input": [
-                    "BTC/USDT:USDT"
-                ]
-            },
-            {
-                "description": "Swap ticker",
-                "method": "fetchTicker",
-                "url": "https://api.coinex.com/perpetual/v1/market/ticker?market=BTCUSDT",
-                "input": [
-                    "BTC/USDT:USDT"
-                ]
-            },
-            {
-                "description": "spot ticker",
-                "method": "fetchTicker",
-                "url": "https://api.coinex.com/v1/market/ticker?market=BTCUSDT",
-                "input": [
-                    "BTC/USDT"
+                  "BTC/USDT:USDT"
                 ]
             }
         ],
         "fetchTickers": [
             {
-                "description": "Spot fetch tickers",
+                "description": "Fetch tickers with no arguments",
                 "method": "fetchTickers",
-                "url": "https://api.coinex.com/v1/market/ticker/all",
+                "url": "https://api.coinex.com/v2/spot/ticker",
                 "input": []
             },
             {
-                "description": "Swap fetch ticker",
+                "description": "Swap fetch tickers by setting the type param to swap",
                 "method": "fetchTickers",
-                "url": "https://api.coinex.com/perpetual/v1/market/ticker/all",
+                "url": "https://api.coinex.com/v2/futures/ticker",
                 "input": [
                     null,
                     {
@@ -579,9 +563,9 @@
                 ]
             },
             {
-                "description": "spot tickers",
+                "description": "Spot fetch multiple tickers at once",
                 "method": "fetchTickers",
-                "url": "https://api.coinex.com/v1/market/ticker/all",
+                "url": "https://api.coinex.com/v2/spot/ticker",
                 "input": [
                     [
                         "BTC/USDT",
@@ -590,9 +574,9 @@
                 ]
             },
             {
-                "description": "swap tickers",
+                "description": "Swap fetch multiple tickers at once",
                 "method": "fetchTickers",
-                "url": "https://api.coinex.com/perpetual/v1/market/ticker/all",
+                "url": "https://api.coinex.com/v2/futures/ticker",
                 "input": [
                     [
                         "BTC/USDT:USDT",
@@ -623,33 +607,17 @@
             {
                 "description": "Spot fetch trades",
                 "method": "fetchTrades",
-                "url": "https://api.coinex.com/v1/market/deals?market=BTCUSDT",
+                "url": "https://api.coinex.com/v2/spot/deals?market=BTCUSDT",
                 "input": [
-                    "BTC/USDT"
+                  "BTC/USDT"
                 ]
             },
             {
                 "description": "Swap fetch trades",
                 "method": "fetchTrades",
-                "url": "https://api.coinex.com/perpetual/v1/market/deals?market=BTCUSDT",
+                "url": "https://api.coinex.com/v2/futures/deals?market=BTCUSDT",
                 "input": [
-                    "BTC/USDT:USDT"
-                ]
-            },
-            {
-                "description": "spot fetchTrades",
-                "method": "fetchTrades",
-                "url": "https://api.coinex.com/v1/market/deals?market=BTCUSDT",
-                "input": [
-                    "BTC/USDT"
-                ]
-            },
-            {
-                "description": "swap fetchTrades",
-                "method": "fetchTrades",
-                "url": "https://api.coinex.com/perpetual/v1/market/deals?market=BTCUSDT",
-                "input": [
-                    "BTC/USDT:USDT"
+                  "BTC/USDT:USDT"
                 ]
             }
         ],

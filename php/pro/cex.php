@@ -326,7 +326,7 @@ class cex extends \ccxt\async\cex {
         }) ();
     }
 
-    public function fetch_ticker_ws(string $symbol, $params = array ()) {
+    public function fetch_ticker_ws(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * @see https://docs.cex.io/#ws-api-ticker-deprecated

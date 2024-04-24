@@ -149,6 +149,12 @@ class OrderRequest(TypedDict):
     params: Dict[str, Any]
 
 
+class CancellationRequest(TypedDict):
+    id: Str
+    symbol: Str
+    clientOrderId: Str
+
+
 class Order(TypedDict):
     info: Dict[str, Any]
     id: Str

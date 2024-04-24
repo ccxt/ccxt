@@ -31,7 +31,8 @@ export default class whitebit extends Exchange {
                 'swap': false,
                 'future': false,
                 'option': false,
-                'cancelAllOrders': false,
+                'cancelAllOrders': true,
+                'cancelAllOrdersAfter': true,
                 'cancelOrder': true,
                 'cancelOrders': false,
                 'createOrder': true,
@@ -176,11 +177,13 @@ export default class whitebit extends Exchange {
                             'ping',
                             'markets',
                             'futures',
+                            'platform/status',
                         ],
                     },
                     'private': {
                         'post': [
                             'collateral-account/balance',
+                            'collateral-account/balance-summary',
                             'collateral-account/positions/history',
                             'collateral-account/leverage',
                             'collateral-account/positions/open',
@@ -197,21 +200,40 @@ export default class whitebit extends Exchange {
                             'main-account/withdraw',
                             'main-account/withdraw-pay',
                             'main-account/transfer',
+                            'main-account/smart/plans',
+                            'main-account/smart/investment',
+                            'main-account/smart/investment/close',
+                            'main-account/smart/investments',
+                            'main-account/fee',
+                            'main-account/smart/interest-payment-history',
                             'trade-account/balance',
                             'trade-account/executed-history',
                             'trade-account/order',
                             'trade-account/order/history',
                             'order/collateral/limit',
                             'order/collateral/market',
-                            'order/collateral/trigger_market',
+                            'order/collateral/stop-limit',
+                            'order/collateral/trigger-market',
                             'order/new',
                             'order/market',
                             'order/stock_market',
                             'order/stop_limit',
                             'order/stop_market',
                             'order/cancel',
+                            'order/cancel/all',
+                            'order/kill-switch',
+                            'order/kill-switch/status',
+                            'order/bulk',
+                            'order/modify',
                             'orders',
+                            'oco-orders',
+                            'order/collateral/oco',
+                            'order/oco-cancel',
+                            'order/oto-cancel',
                             'profile/websocket_token',
+                            'convert/estimate',
+                            'convert/confirm',
+                            'convert/history',
                         ],
                     },
                 },
@@ -1260,6 +1282,70 @@ export default class whitebit extends Exchange {
         }
         return this.parseOrder(response);
     }
+    async editOrder(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
+        /**
+         * @method
+         * @name whitebit#editOrder
+         * @description edit a trade order
+         * @see https://docs.whitebit.com/private/http-trade-v4/#modify-order
+         * @param {string} id cancel order id
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float} price the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        if (id === undefined) {
+            throw new ArgumentsRequired(this.id + ' editOrder() requires a id argument');
+        }
+        if (symbol === undefined) {
+            throw new ArgumentsRequired(this.id + ' editOrder() requires a symbol argument');
+        }
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        const request = {
+            'orderId': id,
+            'market': market['id'],
+        };
+        const clientOrderId = this.safeString2(params, 'clOrdId', 'clientOrderId');
+        if (clientOrderId !== undefined) {
+            // Update clientOrderId of the order
+            request['clientOrderId'] = clientOrderId;
+        }
+        const isLimitOrder = type === 'limit';
+        const stopPrice = this.safeNumberN(params, ['triggerPrice', 'stopPrice', 'activation_price']);
+        const isStopOrder = (stopPrice !== undefined);
+        params = this.omit(params, ['clOrdId', 'clientOrderId', 'triggerPrice', 'stopPrice']);
+        if (isStopOrder) {
+            request['activation_price'] = this.priceToPrecision(symbol, stopPrice);
+            if (isLimitOrder) {
+                // stop limit order
+                request['amount'] = this.amountToPrecision(symbol, amount);
+                request['price'] = this.priceToPrecision(symbol, price);
+            }
+            else {
+                // stop market order
+                if (side === 'buy') {
+                    // Use total parameter instead of amount for modify buy stop market order
+                    request['total'] = this.amountToPrecision(symbol, amount);
+                }
+                else {
+                    request['amount'] = this.amountToPrecision(symbol, amount);
+                }
+            }
+        }
+        else {
+            request['amount'] = this.amountToPrecision(symbol, amount);
+            if (isLimitOrder) {
+                // limit order
+                request['price'] = this.priceToPrecision(symbol, price);
+            }
+        }
+        const response = await this.v4PrivatePostOrderModify(this.extend(request, params));
+        return this.parseOrder(response);
+    }
     async cancelOrder(id, symbol = undefined, params = {}) {
         /**
          * @method
@@ -1281,6 +1367,92 @@ export default class whitebit extends Exchange {
             'orderId': parseInt(id),
         };
         return await this.v4PrivatePostOrderCancel(this.extend(request, params));
+    }
+    async cancelAllOrders(symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name whitebit#cancelAllOrders
+         * @description cancel all open orders
+         * @see https://docs.whitebit.com/private/http-trade-v4/#cancel-all-orders
+         * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.type] market type, ['swap', 'spot']
+         * @param {boolean} [params.isMargin] cancel all margin orders
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets();
+        let market = undefined;
+        const request = {};
+        if (symbol !== undefined) {
+            market = this.market(symbol);
+            request['market'] = market['id'];
+        }
+        let type = undefined;
+        [type, params] = this.handleMarketTypeAndParams('cancelAllOrders', market, params);
+        const requestType = [];
+        if (type === 'spot') {
+            let isMargin = undefined;
+            [isMargin, params] = this.handleOptionAndParams(params, 'cancelAllOrders', 'isMargin', false);
+            if (isMargin) {
+                requestType.push('margin');
+            }
+            else {
+                requestType.push('spot');
+            }
+        }
+        else if (type === 'swap') {
+            requestType.push('futures');
+        }
+        else {
+            throw new NotSupported(this.id + ' cancelAllOrders() does not support ' + type + ' type');
+        }
+        request['type'] = requestType;
+        const response = await this.v4PrivatePostOrderCancelAll(this.extend(request, params));
+        //
+        // []
+        //
+        return response;
+    }
+    async cancelAllOrdersAfter(timeout, params = {}) {
+        /**
+         * @method
+         * @name whitebit#cancelAllOrdersAfter
+         * @description dead man's switch, cancel all orders after the given timeout
+         * @see https://docs.whitebit.com/private/http-trade-v4/#sync-kill-switch-timer
+         * @param {number} timeout time in milliseconds, 0 represents cancel the timer
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.types] Order types value. Example: "spot", "margin", "futures" or null
+         * @param {string} [params.symbol] symbol unified symbol of the market the order was made in
+         * @returns {object} the api result
+         */
+        await this.loadMarkets();
+        const symbol = this.safeString(params, 'symbol');
+        if (symbol === undefined) {
+            throw new ArgumentsRequired(this.id + ' cancelAllOrdersAfter() requires a symbol argument in params');
+        }
+        const market = this.market(symbol);
+        params = this.omit(params, 'symbol');
+        const isBiggerThanZero = (timeout > 0);
+        const request = {
+            'market': market['id'],
+            // 'timeout': (timeout > 0) ? this.numberToString (timeout / 1000) : null,
+        };
+        if (isBiggerThanZero) {
+            request['timeout'] = this.numberToString(timeout / 1000);
+        }
+        else {
+            request['timeout'] = 'null';
+        }
+        const response = await this.v4PrivatePostOrderKillSwitch(this.extend(request, params));
+        //
+        //     {
+        //         "market": "BTC_USDT", // currency market,
+        //         "startTime": 1662478154, // now timestamp,
+        //         "cancellationTime": 1662478154, // now + timer_value,
+        //         "types": ["spot", "margin"]
+        //     }
+        //
+        return response;
     }
     parseBalance(response) {
         const balanceKeys = Object.keys(response);

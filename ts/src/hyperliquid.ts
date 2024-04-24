@@ -2,13 +2,13 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/hyperliquid.js';
-import { ExchangeError, ArgumentsRequired, NotSupported, InvalidOrder, OrderNotFound } from './base/errors.js';
+import { ExchangeError, ArgumentsRequired, NotSupported, InvalidOrder, OrderNotFound, BadRequest } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE, ROUND, SIGNIFICANT_DIGITS, DECIMAL_PLACES } from './base/functions/number.js';
 import { keccak_256 as keccak } from './static_dependencies/noble-hashes/sha3.js';
 import { secp256k1 } from './static_dependencies/noble-curves/secp256k1.js';
 import { ecdsa } from './base/functions/crypto.js';
-import type { Market, TransferEntry, Balances, Int, OrderBook, OHLCV, Str, FundingRateHistory, Order, OrderType, OrderSide, Trade, Strings, Position, OrderRequest, Dict, Num, MarginModification, Currencies } from './base/types.js';
+import type { Market, TransferEntry, Balances, Int, OrderBook, OHLCV, Str, FundingRateHistory, Order, OrderType, OrderSide, Trade, Strings, Position, OrderRequest, Dict, Num, MarginModification, Currencies, CancellationRequest } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -37,8 +37,10 @@ export default class hyperliquid extends Exchange {
                 'borrowCrossMargin': false,
                 'borrowIsolatedMargin': false,
                 'cancelAllOrders': false,
+                'cancelAllOrdersAfter': true,
                 'cancelOrder': true,
                 'cancelOrders': true,
+                'cancelOrdersForSymbols': true,
                 'closeAllPositions': false,
                 'closePosition': false,
                 'createMarketBuyOrderWithCost': false,
@@ -319,6 +321,7 @@ export default class hyperliquid extends Exchange {
         //         ]
         //     ]
         //
+        //
         let meta = this.safeDict (response, 0, {});
         meta = this.safeList (meta, 'universe', []);
         const assetCtxs = this.safeDict (response, 1, {});
@@ -381,10 +384,70 @@ export default class hyperliquid extends Exchange {
         //         },
         //     ],
         // ];
+        // mainnet
+        // [
+        //     {
+        //        "canonical_tokens2":[
+        //           0,
+        //           1
+        //        ],
+        //        "spot_infos":[
+        //           {
+        //              "name":"PURR/USDC",
+        //              "tokens":[
+        //                 1,
+        //                 0
+        //              ]
+        //           }
+        //        ],
+        //        "token_id_to_token":[
+        //           [
+        //              "0x6d1e7cde53ba9467b783cb7c530ce054",
+        //              0
+        //           ],
+        //           [
+        //              "0xc1fb593aeffbeb02f85e0308e9956a90",
+        //              1
+        //           ]
+        //        ],
+        //        "token_infos":[
+        //           {
+        //              "deployer":null,
+        //              "spec":{
+        //                 "name":"USDC",
+        //                 "szDecimals":"8",
+        //                 "weiDecimals":"8"
+        //              },
+        //              "spots":[
+        //              ]
+        //           },
+        //           {
+        //              "deployer":null,
+        //              "spec":{
+        //                 "name":"PURR",
+        //                 "szDecimals":"0",
+        //                 "weiDecimals":"5"
+        //              },
+        //              "spots":[
+        //                 0
+        //              ]
+        //           }
+        //        ]
+        //     },
+        //     [
+        //        {
+        //           "dayNtlVlm":"35001170.16631",
+        //           "markPx":"0.15743",
+        //           "midPx":"0.157555",
+        //           "prevDayPx":"0.158"
+        //        }
+        //     ]
+        // ]
         //
+        // response differs depending on the environment (mainnet vs sandbox)
         const first = this.safeDict (response, 0, {});
-        const meta = this.safeList (first, 'universe', []);
-        const tokens = this.safeList (first, 'tokens', []);
+        const meta = this.safeList2 (first, 'universe', 'spot_infos', []);
+        const tokens = this.safeList2 (first, 'tokens', 'token_infos', []);
         const markets = [];
         for (let i = 0; i < meta.length; i++) {
             const market = this.safeDict (meta, i, {});
@@ -400,14 +463,16 @@ export default class hyperliquid extends Exchange {
             const maker = this.safeNumber (fees, 'maker');
             const tokensPos = this.safeList (market, 'tokens', []);
             const baseTokenPos = this.safeInteger (tokensPos, 0);
-            const quoteTokenPos = this.safeInteger (tokensPos, 1);
+            // const quoteTokenPos = this.safeInteger (tokensPos, 1);
             const baseTokenInfo = this.safeDict (tokens, baseTokenPos, {});
-            const quoteTokenInfo = this.safeDict (tokens, quoteTokenPos, {});
-            const baseDecimals = this.safeString (baseTokenInfo, 'szDecimals');
-            const quoteDecimals = this.safeInteger (quoteTokenInfo, 'szDecimals');
+            // const quoteTokenInfo = this.safeDict (tokens, quoteTokenPos, {});
+            const innerBaseTokenInfo = this.safeDict (baseTokenInfo, 'spec', baseTokenInfo);
+            // const innerQuoteTokenInfo = this.safeDict (quoteTokenInfo, 'spec', quoteTokenInfo);
+            const amountPrecision = this.parseNumber (this.parsePrecision (this.safeString (innerBaseTokenInfo, 'szDecimals')));
+            // const quotePrecision = this.parseNumber (this.parsePrecision (this.safeString (innerQuoteTokenInfo, 'szDecimals')));
             const baseId = this.numberToString (i + 10000);
             markets.push (this.safeMarketStructure ({
-                'id': baseId,
+                'id': marketName,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
@@ -417,14 +482,15 @@ export default class hyperliquid extends Exchange {
                 'settleId': undefined,
                 'type': 'spot',
                 'spot': true,
+                'subType': undefined,
                 'margin': undefined,
                 'swap': false,
                 'future': false,
                 'option': false,
                 'active': true,
                 'contract': false,
-                'linear': true,
-                'inverse': false,
+                'linear': undefined,
+                'inverse': undefined,
                 'taker': taker,
                 'maker': maker,
                 'contractSize': undefined,
@@ -433,8 +499,8 @@ export default class hyperliquid extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': this.parseNumber (this.parsePrecision (baseDecimals)), // decimal places
-                    'price': quoteDecimals, // significant digits
+                    'amount': amountPrecision, // decimal places
+                    'price': 5, // significant digits
                 },
                 'limits': {
                     'leverage': {
@@ -653,7 +719,7 @@ export default class hyperliquid extends Exchange {
         const market = this.market (symbol);
         const request = {
             'type': 'l2Book',
-            'coin': market['base'],
+            'coin': market['swap'] ? market['base'] : market['id'],
         };
         const response = await this.publicPostInfo (this.extend (request, params));
         //
@@ -714,7 +780,7 @@ export default class hyperliquid extends Exchange {
         const request = {
             'type': 'candleSnapshot',
             'req': {
-                'coin': market['base'],
+                'coin': market['swap'] ? market['base'] : market['id'],
                 'interval': timeframe,
                 'startTime': since,
                 'endTime': until,
@@ -824,6 +890,10 @@ export default class hyperliquid extends Exchange {
     }
 
     amountToPrecision (symbol, amount) {
+        const market = this.market (symbol);
+        if (market['spot']) {
+            return super.amountToPrecision (symbol, amount);
+        }
         return this.decimalToPrecision (amount, ROUND, this.markets[symbol]['precision']['amount'], this.precisionMode);
     }
 
@@ -1242,6 +1312,120 @@ export default class hyperliquid extends Exchange {
         //                 ]
         //             }
         //         }
+        //     }
+        //
+        return response;
+    }
+
+    async cancelOrdersForSymbols (orders: CancellationRequest[], params = {}) {
+        /**
+         * @method
+         * @name hyperliquid#cancelOrdersForSymbols
+         * @description cancel multiple orders for multiple symbols
+         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#cancel-order-s
+         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#cancel-order-s-by-cloid
+         * @param {CancellationRequest[]} orders each order should contain the parameters required by cancelOrder namely id and symbol
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.vaultAddress] the vault address
+         * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        this.checkRequiredCredentials ();
+        await this.loadMarkets ();
+        const nonce = this.milliseconds ();
+        const request = {
+            'nonce': nonce,
+            // 'vaultAddress': vaultAddress,
+        };
+        const cancelReq = [];
+        const cancelAction = {
+            'type': '',
+            'cancels': [],
+        };
+        let cancelByCloid = false;
+        for (let i = 0; i < orders.length; i++) {
+            const order = orders[i];
+            const clientOrderId = this.safeString (order, 'clientOrderId');
+            if (clientOrderId !== undefined) {
+                cancelByCloid = true;
+            }
+            const id = this.safeString (order, 'id');
+            const symbol = this.safeString (order, 'symbol');
+            if (symbol === undefined) {
+                throw new ArgumentsRequired (this.id + ' cancelOrdersForSymbols() requires a symbol argument in each order');
+            }
+            if (id !== undefined && cancelByCloid) {
+                throw new BadRequest (this.id + ' cancelOrdersForSymbols() all orders must have either id or clientOrderId');
+            }
+            const assetKey = cancelByCloid ? 'asset' : 'a';
+            const idKey = cancelByCloid ? 'cloid' : 'o';
+            const market = this.market (symbol);
+            const cancelObj = {};
+            cancelObj[assetKey] = this.parseToNumeric (market['baseId']);
+            cancelObj[idKey] = cancelByCloid ? clientOrderId : this.parseToNumeric (id);
+            cancelReq.push (cancelObj);
+        }
+        cancelAction['type'] = cancelByCloid ? 'cancelByCloid' : 'cancel';
+        cancelAction['cancels'] = cancelReq;
+        const vaultAddress = this.formatVaultAddress (this.safeString (params, 'vaultAddress'));
+        const signature = this.signL1Action (cancelAction, nonce, vaultAddress);
+        request['action'] = cancelAction;
+        request['signature'] = signature;
+        if (vaultAddress !== undefined) {
+            params = this.omit (params, 'vaultAddress');
+            request['vaultAddress'] = vaultAddress;
+        }
+        const response = await this.privatePostExchange (this.extend (request, params));
+        //
+        //     {
+        //         "status":"ok",
+        //         "response":{
+        //             "type":"cancel",
+        //             "data":{
+        //                 "statuses":[
+        //                     "success"
+        //                 ]
+        //             }
+        //         }
+        //     }
+        //
+        return response;
+    }
+
+    async cancelAllOrdersAfter (timeout: Int, params = {}) {
+        /**
+         * @method
+         * @name hyperliquid#cancelAllOrdersAfter
+         * @description dead man's switch, cancel all orders after the given timeout
+         * @param {number} timeout time in milliseconds, 0 represents cancel the timer
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.vaultAddress] the vault address
+         * @returns {object} the api result
+         */
+        this.checkRequiredCredentials ();
+        await this.loadMarkets ();
+        params = this.omit (params, [ 'clientOrderId', 'client_id' ]);
+        const nonce = this.milliseconds ();
+        const request = {
+            'nonce': nonce,
+            // 'vaultAddress': vaultAddress,
+        };
+        const cancelAction = {
+            'type': 'scheduleCancel',
+            'time': nonce + timeout,
+        };
+        const vaultAddress = this.formatVaultAddress (this.safeString (params, 'vaultAddress'));
+        const signature = this.signL1Action (cancelAction, nonce, vaultAddress);
+        request['action'] = cancelAction;
+        request['signature'] = signature;
+        if (vaultAddress !== undefined) {
+            params = this.omit (params, 'vaultAddress');
+            request['vaultAddress'] = vaultAddress;
+        }
+        const response = await this.privatePostExchange (this.extend (request, params));
+        //
+        //     {
+        //         "status":"err",
+        //         "response":"Cannot set scheduled cancel time until enough volume traded. Required: $1000000. Traded: $373.47205."
         //     }
         //
         return response;
@@ -2323,6 +2507,13 @@ export default class hyperliquid extends Exchange {
             return [ this.walletAddress, params ];
         }
         throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a user parameter inside \'params\' or the wallet address set');
+    }
+
+    coinToMarketId (coin: Str) {
+        if (coin.indexOf ('/') > -1) {
+            return coin; // spot
+        }
+        return coin + '/USDC:USDC';
     }
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {

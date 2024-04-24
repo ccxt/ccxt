@@ -18,7 +18,7 @@ export default class coinbasepro extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'coinbasepro',
-            'name': 'Coinbase Pro',
+            'name': 'Coinbase Pro(Deprecated)',
             'countries': [ 'US' ],
             'rateLimit': 100,
             'userAgent': this.userAgents['chrome'],

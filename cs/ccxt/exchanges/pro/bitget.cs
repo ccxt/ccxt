@@ -1109,7 +1109,7 @@ public partial class bitget : ccxt.bitget
         return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
     }
 
-    public virtual void handleOrder(WebSocketClient client, object message, object subscription = null)
+    public virtual void handleOrder(WebSocketClient client, object message)
     {
         //
         // spot

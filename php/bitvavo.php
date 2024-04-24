@@ -401,7 +401,7 @@ class bitvavo extends Exchange {
         return $result;
     }
 
-    public function fetch_currencies($params = array ()): array {
+    public function fetch_currencies($params = array ()): ?array {
         /**
          * @see https://docs.bitvavo.com/#tag/General/paths/~1assets/get
          * fetches all available currencies on an exchange

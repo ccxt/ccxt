@@ -33,6 +33,7 @@ class bitmex extends Exchange {
                 'option' => false,
                 'addMargin' => null,
                 'cancelAllOrders' => true,
+                'cancelAllOrdersAfter' => true,
                 'cancelOrder' => true,
                 'cancelOrders' => true,
                 'closeAllPositions' => false,
@@ -277,7 +278,7 @@ class bitmex extends Exchange {
         ));
     }
 
-    public function fetch_currencies($params = array ()): array {
+    public function fetch_currencies($params = array ()): ?array {
         /**
          * fetches all available currencies on an exchange
          * @see https://www.bitmex.com/api/explorer/#!/Wallet/Wallet_getAssetsConfig
@@ -2086,6 +2087,28 @@ class bitmex extends Exchange {
         //     )
         //
         return $this->parse_orders($response, $market);
+    }
+
+    public function cancel_all_orders_after(?int $timeout, $params = array ()) {
+        /**
+         * dead man's switch, cancel all orders after the given $timeout
+         * @see https://www.bitmex.com/api/explorer/#!/Order/Order_cancelAllAfter
+         * @param {number} $timeout time in milliseconds, 0 represents cancel the timer
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} the api result
+         */
+        $this->load_markets();
+        $request = array(
+            'timeout' => ($timeout > 0) ? $this->parse_to_int($timeout / 1000) : 0,
+        );
+        $response = $this->privatePostOrderCancelAllAfter (array_merge($request, $params));
+        //
+        //     {
+        //         now => '2024-04-09T09:01:56.560Z',
+        //         cancelTime => '2024-04-09T09:01:56.660Z'
+        //     }
+        //
+        return $response;
     }
 
     public function fetch_leverages(?array $symbols = null, $params = array ()): array {
