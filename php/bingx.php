@@ -29,6 +29,7 @@ class bingx extends Exchange {
                 'option' => false,
                 'addMargin' => true,
                 'cancelAllOrders' => true,
+                'cancelAllOrdersAfter' => true,
                 'cancelOrder' => true,
                 'cancelOrders' => true,
                 'closeAllPositions' => true,
@@ -225,6 +226,7 @@ class bingx extends Exchange {
                                 'trade/order' => 3,
                                 'trade/batchOrders' => 3,
                                 'trade/closeAllPositions' => 3,
+                                'trade/cancelAllAfter' => 3,
                                 'trade/marginType' => 3,
                                 'trade/leverage' => 3,
                                 'trade/positionMargin' => 3,
@@ -2697,6 +2699,46 @@ class bingx extends Exchange {
         //          "failed" => null
         //        }
         //    }
+        //
+        return $response;
+    }
+
+    public function cancel_all_orders_after(?int $timeout, $params = array ()) {
+        /**
+         * dead man's switch, cancel all orders after the given $timeout
+         * @see https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Cancel%20all%20orders%20in%20countdown
+         * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Cancel%20all%20orders%20in%20countdown
+         * @param {number} $timeout time in milliseconds, 0 represents cancel the timer
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->type] spot or swap market
+         * @return {array} the api result
+         */
+        $this->load_markets();
+        $isActive = ($timeout > 0);
+        $request = array(
+            'type' => ($isActive) ? 'ACTIVATE' : 'CLOSE',
+            'timeOut' => ($isActive) ? ($this->parse_to_int($timeout / 1000)) : 0,
+        );
+        $response = null;
+        $type = null;
+        list($type, $params) = $this->handle_market_type_and_params('cancelAllOrdersAfter', null, $params);
+        if ($type === 'spot') {
+            $response = $this->spotV1PrivatePostTradeCancelAllAfter (array_merge($request, $params));
+        } elseif ($type === 'swap') {
+            $response = $this->swapV2PrivatePostTradeCancelAllAfter (array_merge($request, $params));
+        } else {
+            throw new NotSupported($this->id . ' cancelAllOrdersAfter() is not supported for ' . $type . ' markets');
+        }
+        //
+        //     {
+        //         code => '0',
+        //         msg => '',
+        //         data => {
+        //             triggerTime => '1712645434',
+        //             status => 'ACTIVATED',
+        //             note => 'All your perpetual pending orders will be closed automatically at 2024-04-09 06:50:34 UTC(+0),before that you can cancel the timer, or extend triggerTime time by this request'
+        //         }
+        //     }
         //
         return $response;
     }

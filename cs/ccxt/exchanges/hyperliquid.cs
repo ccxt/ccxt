@@ -26,6 +26,7 @@ public partial class hyperliquid : Exchange
                 { "borrowCrossMargin", false },
                 { "borrowIsolatedMargin", false },
                 { "cancelAllOrders", false },
+                { "cancelAllOrdersAfter", true },
                 { "cancelOrder", true },
                 { "cancelOrders", true },
                 { "cancelOrdersForSymbols", true },
@@ -1461,6 +1462,48 @@ public partial class hyperliquid : Exchange
         //                 ]
         //             }
         //         }
+        //     }
+        //
+        return response;
+    }
+
+    public async override Task<object> cancelAllOrdersAfter(object timeout, object parameters = null)
+    {
+        /**
+        * @method
+        * @name hyperliquid#cancelAllOrdersAfter
+        * @description dead man's switch, cancel all orders after the given timeout
+        * @param {number} timeout time in milliseconds, 0 represents cancel the timer
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string} [params.vaultAddress] the vault address
+        * @returns {object} the api result
+        */
+        parameters ??= new Dictionary<string, object>();
+        this.checkRequiredCredentials();
+        await this.loadMarkets();
+        parameters = this.omit(parameters, new List<object>() {"clientOrderId", "client_id"});
+        object nonce = this.milliseconds();
+        object request = new Dictionary<string, object>() {
+            { "nonce", nonce },
+        };
+        object cancelAction = new Dictionary<string, object>() {
+            { "type", "scheduleCancel" },
+            { "time", add(nonce, timeout) },
+        };
+        object vaultAddress = this.formatVaultAddress(this.safeString(parameters, "vaultAddress"));
+        object signature = this.signL1Action(cancelAction, nonce, vaultAddress);
+        ((IDictionary<string,object>)request)["action"] = cancelAction;
+        ((IDictionary<string,object>)request)["signature"] = signature;
+        if (isTrue(!isEqual(vaultAddress, null)))
+        {
+            parameters = this.omit(parameters, "vaultAddress");
+            ((IDictionary<string,object>)request)["vaultAddress"] = vaultAddress;
+        }
+        object response = await this.privatePostExchange(this.extend(request, parameters));
+        //
+        //     {
+        //         "status":"err",
+        //         "response":"Cannot set scheduled cancel time until enough volume traded. Required: $1000000. Traded: $373.47205."
         //     }
         //
         return response;

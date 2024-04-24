@@ -305,6 +305,7 @@ public partial class binance : Exchange
                         { "capital/deposit/subAddress", 0.1 },
                         { "capital/deposit/subHisrec", 0.1 },
                         { "capital/withdraw/history", 1800 },
+                        { "capital/withdraw/address/list", 10 },
                         { "capital/contract/convertible-coins", 4.0002 },
                         { "convert/tradeFlow", 20.001 },
                         { "convert/exchangeInfo", 50 },
@@ -4107,6 +4108,7 @@ public partial class binance : Exchange
         * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {string} [params.subType] "linear" or "inverse"
+        * @param {string} [params.type] 'spot', 'option', use params["subType"] for swap and future markets
         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
         */
         parameters ??= new Dictionary<string, object>();

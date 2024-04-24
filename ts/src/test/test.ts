@@ -492,6 +492,9 @@ export default class testMainClass extends baseMainTestClass {
         if (('bid' in finalSkips) && !('ask' in finalSkips)) {
             finalSkips['ask'] = finalSkips['bid'];
         }
+        if (('baseVolume' in finalSkips) && !('quoteVolume' in finalSkips)) {
+            finalSkips['quoteVolume'] = finalSkips['baseVolume'];
+        }
         return finalSkips;
     }
 

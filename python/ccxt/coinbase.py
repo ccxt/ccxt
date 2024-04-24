@@ -3244,11 +3244,11 @@ class coinbase(Exchange, ImplicitAPI):
             now = str(self.seconds())
             sinceString = Precise.string_sub(now, str(requestedDuration))
         request['start'] = sinceString
-        endString = self.number_to_string(until)
-        if until is None:
+        if until is not None:
+            request['end'] = self.number_to_string(self.parse_to_int(until / 1000))
+        else:
             # 300 candles max
-            endString = Precise.string_add(sinceString, str(requestedDuration))
-        request['end'] = endString
+            request['end'] = Precise.string_add(sinceString, str(requestedDuration))
         response = self.v3PrivateGetBrokerageProductsProductIdCandles(self.extend(request, params))
         #
         #     {

@@ -668,6 +668,11 @@ public partial class Exchange
         var res = await this.cancelAllOrders(symbol, parameters);
         return ((Dictionary<string, object>)res);
     }
+    public async Task<Dictionary<string, object>> CancelAllOrdersAfter(Int64 timeout, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.cancelAllOrdersAfter(timeout, parameters);
+        return ((Dictionary<string, object>)res);
+    }
     public async Task<Dictionary<string, object>> CancelOrdersForSymbols(List<CancellationRequest> orders, Dictionary<string, object> parameters = null)
     {
         var res = await this.cancelOrdersForSymbols(orders, parameters);

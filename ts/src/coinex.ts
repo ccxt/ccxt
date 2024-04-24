@@ -1460,24 +1460,24 @@ export default class coinex extends Exchange {
 
     parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
         //
-        //     [
-        //         1591484400,
-        //         "0.02505349",
-        //         "0.02506988",
-        //         "0.02507000",
-        //         "0.02505304",
-        //         "343.19716223",
-        //         "8.6021323866383196",
-        //         "ETHBTC"
-        //     ]
+        //     {
+        //         "close": "66999.95",
+        //         "created_at": 1713934620000,
+        //         "high": "66999.95",
+        //         "low": "66988.53",
+        //         "market": "BTCUSDT",
+        //         "open": "66988.53",
+        //         "value": "0.1572393",        // base volume
+        //         "volume": "10533.2501364336" // quote volume
+        //     }
         //
         return [
-            this.safeTimestamp (ohlcv, 0),
-            this.safeNumber (ohlcv, 1),
-            this.safeNumber (ohlcv, 3),
-            this.safeNumber (ohlcv, 4),
-            this.safeNumber (ohlcv, 2),
-            this.safeNumber (ohlcv, 5),
+            this.safeInteger (ohlcv, 'created_at'),
+            this.safeNumber (ohlcv, 'open'),
+            this.safeNumber (ohlcv, 'high'),
+            this.safeNumber (ohlcv, 'low'),
+            this.safeNumber (ohlcv, 'close'),
+            this.safeNumber (ohlcv, 'value'),
         ];
     }
 
@@ -1486,8 +1486,8 @@ export default class coinex extends Exchange {
          * @method
          * @name coinex#fetchOHLCV
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-         * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot001_market006_market_kline
-         * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http012_market_kline
+         * @see https://docs.coinex.com/api/v2/spot/market/http/list-market-kline
+         * @see https://docs.coinex.com/api/v2/futures/market/http/list-market-kline
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -1499,38 +1499,33 @@ export default class coinex extends Exchange {
         const market = this.market (symbol);
         const request = {
             'market': market['id'],
-            'type': this.safeString (this.timeframes, timeframe, timeframe),
+            'period': this.safeString (this.timeframes, timeframe, timeframe),
         };
         if (limit !== undefined) {
             request['limit'] = limit;
         }
         let response = undefined;
         if (market['swap']) {
-            response = await this.v1PerpetualPublicGetMarketKline (this.extend (request, params));
+            response = await this.v2PublicGetFuturesKline (this.extend (request, params));
         } else {
-            response = await this.v1PublicGetMarketKline (this.extend (request, params));
+            response = await this.v2PublicGetSpotKline (this.extend (request, params));
         }
         //
-        // Spot
+        // Spot and Swap
         //
         //     {
         //         "code": 0,
         //         "data": [
-        //             [1591484400, "0.02505349", "0.02506988", "0.02507000", "0.02505304", "343.19716223", "8.6021323866383196", "ETHBTC"],
-        //             [1591484700, "0.02506990", "0.02508109", "0.02508109", "0.02506979", "91.59841581", "2.2972047780447000", "ETHBTC"],
-        //             [1591485000, "0.02508106", "0.02507996", "0.02508106", "0.02507500", "65.15307697", "1.6340597822306000", "ETHBTC"],
-        //         ],
-        //         "message": "OK"
-        //     }
-        //
-        // Swap
-        //
-        //     {
-        //         "code": 0,
-        //         "data": [
-        //             [1650569400, "41524.64", "41489.31", "41564.61", "41480.58", "29.7060", "1233907.099562"],
-        //             [1650569700, "41489.31", "41438.29", "41489.31", "41391.87", "42.4115", "1756154.189061"],
-        //             [1650570000, "41438.29", "41482.21", "41485.05", "41427.31", "22.2892", "924000.317861"]
+        //             {
+        //                 "close": "66999.95",
+        //                 "created_at": 1713934620000,
+        //                 "high": "66999.95",
+        //                 "low": "66988.53",
+        //                 "market": "BTCUSDT",
+        //                 "open": "66988.53",
+        //                 "value": "0.1572393",
+        //                 "volume": "10533.2501364336"
+        //             },
         //         ],
         //         "message": "OK"
         //     }
