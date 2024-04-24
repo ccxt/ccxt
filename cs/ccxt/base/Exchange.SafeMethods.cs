@@ -75,11 +75,11 @@ public partial class Exchange
         return safeTimestampN(obj, new List<object> { key1, key2 }, defaultValue);
     }
 
-    public object safeInteger(object obj, object key, object defaultValue = null) => SafeInteger(obj, key, defaultValue);
+    public Int64? safeInteger(object obj, object key, object defaultValue = null) => SafeInteger(obj, key, defaultValue);
     public static Int64? SafeInteger(object obj, object key, object defaultValue = null)
     {
         var res = SafeIntegerN(obj, new List<object> { key }, defaultValue);
-        return res == null ? null : (Int64)res;
+        return res == null ? null : res;
     }
 
     public object safeInteger2(object obj, object key1, object key2, object defaultValue = null) => safeIntegerN(obj, new List<object> { key1, key2 }, defaultValue);
@@ -201,11 +201,9 @@ public partial class Exchange
     public static Int64? SafeIntegerN(object obj, List<object> keys, object defaultValue = null)
     {
         var result = SafeValueN(obj, keys, defaultValue);
+        Int64? convertedDefaultValue = (defaultValue == null) ? null : Convert.ToInt64(defaultValue);
         if (result == null || result.ToString().Length == 0)
-            if (defaultValue != null)
-                return Convert.ToInt64(defaultValue);
-            else
-                return null;
+            return convertedDefaultValue;
         Int64? parsedValue = null;
         try
         {
@@ -242,7 +240,7 @@ public partial class Exchange
             // }
 
         }
-        return parsedValue == null ? Convert.ToInt64(defaultValue) : parsedValue;
+        return parsedValue == null ? convertedDefaultValue : parsedValue;
     }
 
     public string? safeStringN(object obj, object keys, object defaultValue = null) => SafeStringN(obj, keys, defaultValue);
