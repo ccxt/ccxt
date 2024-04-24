@@ -431,21 +431,151 @@ export default class bitflex extends bitflexRest {
         return await this.watchPrivate (messageHash, params);
     }
 
+    handleBalance (client: Client, message) {
+        //
+        //     {
+        //         e: 'outboundAccountInfo',
+        //         E: '1713969654742',
+        //         T: true,
+        //         W: true,
+        //         D: true,
+        //         B: [
+        //             {
+        //                 "a": "LTC",
+        //                 "f": "17366.18538083",
+        //                 "l": "0.00000000"
+        //             },
+        //             ...
+        //         ]
+        //     }
+        //
+        const messageHash = 'balance';
+        const data = this.safeValue (message, 'B');
+        const timestamp = this.safeInteger (data, 'E');
+        this.balance['info'] = data;
+        this.balance['timestamp'] = timestamp;
+        this.balance['datetime'] = this.iso8601 (timestamp);
+        const currencyId = this.safeString (data, 'a');
+        const code = this.safeCurrencyCode (currencyId);
+        const account = this.account ();
+        account['free'] = this.safeString (data, 'f');
+        account['used'] = this.safeString (data, 'l');
+        this.balance[code] = account;
+        this.balance = this.safeBalance (this.balance);
+        client.resolve (this.balance, messageHash);
+    }
+
     async watchPrivate (messageHash, params = {}) {
         this.checkRequiredCredentials ();
         const listenKey = await this.authenticate (params);
         const url = this.urls['api']['ws']['private'] + '/' + listenKey;
-        return await this.watch (url, messageHash, params, messageHash);
+        const subscriptionHash = 'private';
+        return await this.watch (url, messageHash, params, subscriptionHash);
+        //
+        // balance
+        //     [
+        //         {
+        //             e: 'outboundAccountInfo',
+        //             E: '1713969654742',
+        //             T: true,
+        //             W: true,
+        //             D: true,
+        //             B: [ [Object] ]
+        //         }
+        //     ]
+        //
+        // spot orders
+        //     [
+        //         {
+        //             e: 'executionReport',
+        //             E: '1713969654752',
+        //             s: 'ETHUSDT',
+        //             c: '1713969654676406',
+        //             S: 'BUY',
+        //             o: 'MARKET_OF_QUOTE',
+        //             f: 'GTC',
+        //             q: '33',
+        //             p: '0',
+        //             X: 'FILLED',
+        //             i: '1671293029561028608',
+        //             M: '1671293004546199552',
+        //             l: '0.0103',
+        //             z: '0.0103',
+        //             L: '3200.5',
+        //             n: '0.00000618',
+        //             N: 'ETH',
+        //             u: true,
+        //             w: true,
+        //             m: false,
+        //             O: '1713969654687',
+        //             Z: '32.96515',
+        //             A: '0',
+        //             C: false,
+        //             v: '0'
+        //         }
+        //     ]
+        //
+        //
+        // swap orders
+        //     [
+        //         {
+        //             e: 'contractExecutionReport',
+        //             E: '1713970091902',
+        //             s: 'ETH-SWAP-USDT',
+        //             c: 'wsTest',
+        //             S: 'BUY',
+        //             o: 'LIMIT',
+        //             f: 'IOC',
+        //             q: '0.01',
+        //             p: '3227.71',
+        //             X: 'FILLED',
+        //             i: '1671296696238232320',
+        //             M: '1671296668337852416',
+        //             l: '0.01',
+        //             z: '0.01',
+        //             L: '3211.99',
+        //             n: '0.01927194',
+        //             N: 'ETH-SWAP-USDT',
+        //             u: true,
+        //             w: true,
+        //             m: false,
+        //             O: '1713970091791',
+        //             Z: '32.1199',
+        //             A: '0',
+        //             C: false,
+        //             v: '0'
+        //         }
+        //     ]
+        //
+        // positions
+        //     [
+        //         {
+        //             e: 'outboundContractPositionInfo',
+        //             E: '1713970091904',
+        //             A: '1662502620223296003',
+        //             s: 'ETH-SWAP-USDT',
+        //             S: 'LONG',
+        //             p: '3211.99',
+        //             P: '0.01',
+        //             a: '0.01',
+        //             f: '1608.1',
+        //             m: '16.1192',
+        //             r: '-0.0192'
+        //         }
+        //     ]
+        //
     }
 
     async authenticate (params = {}) {
-        // we only need one listenKey since ccxt shares connections
         let listenKey = this.safeString (this.options, 'listenKey');
         if (listenKey !== undefined) {
             return listenKey;
         }
         const response = await this.privatePostOpenapiV1UserDataStream (params);
         //
+        //     {
+        //         "listenKey": "1A9LWJjuMwKWYP4QQPw34GRm8gz3x5AephXSuqcDef1RnzoBVhEeGE963CoS1Sgj"
+        //     }
         //
         listenKey = this.safeString (response, 'listenKey');
         this.options['listenKey'] = listenKey;
@@ -475,36 +605,13 @@ export default class bitflex extends bitflexRest {
     }
 
     handleMessage (client: Client, message) {
-        //
-        //     {
-        //         topic: 'depth',
-        //         event: 'sub',
-        //         params: { symbol: 'ETHUSDT', binary: 'false', symbolName: 'ETHUSDT' },
-        //         code: '0',
-        //         msg: 'Success'
-        //     }
-        //
-        //     {
-        //         topic: 'depth',
-        //         params: { symbol: 'ETHUSDT', binary: 'false', symbolName: 'ETHUSDT' },
-        //         data: {
-        //             s: 'ETHUSDT',
-        //             t: 1713864203648,
-        //             v: '32619510_2',
-        //             b: [
-        //                 [ '3172.74', '0.12' ],
-        //                  ...
-        //             ],
-        //             a: [
-        //                 [ '3172.74', '0.12' ],
-        //                  ...
-        //             ]
-        //         }
-        //     }
-        //
-        const topic = this.safeString (message, 'topic', '');
+        if (Array.isArray (message)) {
+            message = message[0]; // private messages are returned as arrays
+        }
+        const topic = this.safeString (message, 'topic');
         const data = this.safeDict (message, 'data');
-        if (data !== undefined) {
+        const event = this.safeString (message, 'e');
+        if ((topic !== undefined) && (data !== undefined)) {
             if (topic === 'depth') {
                 this.handleOrderBook (client, message);
             }
@@ -516,6 +623,10 @@ export default class bitflex extends bitflexRest {
             }
             if (topic === 'kline') {
                 this.handleOHLCV (client, message);
+            }
+        } else if (event !== undefined) {
+            if (event === 'outboundAccountInfo') {
+                this.handleBalance (client, message);
             }
         }
     }
