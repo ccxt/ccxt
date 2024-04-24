@@ -98,9 +98,9 @@ public partial class Exchange
         var res = SafeStringN(obj, new List<object> { key });
         return res == null ? null : (string)res;
     }
-    public object safeString(object obj, object key, object defaultValue = null) => safeStringN(obj, new List<object> { key }, defaultValue);
+    public string? safeString(object obj, object key, object defaultValue = null) => safeStringN(obj, new List<object> { key }, defaultValue);
 
-    public object safeString2(object obj, object key1, object key2, object defaultValue = null) => safeStringN(obj, new List<object> { key1, key2 }, defaultValue);
+    public string? safeString2(object obj, object key1, object key2, object defaultValue = null) => safeStringN(obj, new List<object> { key1, key2 }, defaultValue);
 
     public object safeValue2(object obj, object key1, object key2, object defaultValue = null) => safeValueN(obj, new List<object> { key1, key2 }, defaultValue);
 
@@ -244,17 +244,17 @@ public partial class Exchange
         return parsedValue == null ? Convert.ToInt64(defaultValue) : parsedValue;
     }
 
-    public object safeStringN(object obj, object keys, object defaultValue = null) => SafeStringN(obj, keys, defaultValue);
+    public string? safeStringN(object obj, object keys, object defaultValue = null) => SafeStringN(obj, keys, defaultValue);
 
-    public static object SafeStringN(object obj, object keys, object defaultValue = null)
+    public static string? SafeStringN(object obj, object keys, object defaultValue = null)
     {
         var result = SafeValueN(obj, keys, defaultValue);
         if (result == null)
-            return defaultValue;
+            return defaultValue as string;
         string returnResult = null;
         if (result is IList || result is IDictionary)
         {
-            return defaultValue;
+            return defaultValue as string;
         }
         if (result.GetType() == typeof(float))
         {
@@ -285,7 +285,7 @@ public partial class Exchange
                 return stringRest;
             }
         }
-        return defaultValue;
+        return defaultValue as string;
     }
 
 
