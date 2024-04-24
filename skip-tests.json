@@ -617,7 +617,6 @@
         }
     },
     "coinbase": {
-        "skipWs": "needs auth",
         "skipMethods": {
             "loadMarkets": {
                 "taker":"is undefined",
