@@ -782,6 +782,16 @@
                 ]
             }
         ],
+        "fetchPositionHistory": [
+            {
+                "description": "Fetch Position History",
+                "method": "fetchPositionHistory",
+                "url": "https://api.coinex.com/perpetual/v1/position/finished?access_id=3040ECDCE1944E28B9E262446CF3360E&limit=1000&market=XRPUSDT&side=0&timestamp=1711516582191",
+                "input": [
+                  "XRP/USDT:USDT"
+                ]
+            }
+        ],
         "fetchMarginAdjustmentHistory": [
             {
                 "description": "Fetch margin adjustment history",

@@ -7,7 +7,7 @@ import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { md5 } from './static_dependencies/noble-hashes/md5.js';
-import type { Balances, Currency, FundingHistory, FundingRateHistory, Int, Market, OHLCV, Order, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, OrderRequest, TransferEntry, Leverage, Leverages, Num, MarginModification, TradingFeeInterface, Currencies, TradingFees } from './base/types.js';
+import type { Balances, Currency, FundingHistory, FundingRateHistory, Int, Market, OHLCV, Order, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, OrderRequest, TransferEntry, Leverage, Leverages, Num, MarginModification, TradingFeeInterface, Currencies, TradingFees, Position } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -92,7 +92,9 @@ export default class coinex extends Exchange {
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchPosition': true,
+                'fetchPositionHistory': true,
                 'fetchPositions': true,
+                'fetchPositionsHistory': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
@@ -3732,7 +3734,7 @@ export default class coinex extends Exchange {
         //                 "side": 2,
         //                 "stop_loss_price": "0.00000000000000000000",
         //                 "stop_loss_type": 0,
-        //                 "sys": 0,
+        //                 "sy s": 0,
         //                 "take_profit_price": "0.00000000000000000000",
         //                 "take_profit_type": 0,
         //                 "taker_fee": "0.00000000000000000000",
@@ -3815,7 +3817,7 @@ export default class coinex extends Exchange {
         //                 "side": 2,
         //                 "stop_loss_price": "0.00000000000000000000",
         //                 "stop_loss_type": 0,
-        //                 "sys": 0,
+        //                 "s ys": 0,
         //                 "take_profit_price": "0.00000000000000000000",
         //                 "take_profit_type": 0,
         //                 "taker_fee": "0.00000000000000000000",
@@ -3833,6 +3835,8 @@ export default class coinex extends Exchange {
     }
 
     parsePosition (position, market: Market = undefined) {
+        //
+        // fetchPosition
         //
         //     {
         //         "adl_sort": 3396,
@@ -3876,7 +3880,7 @@ export default class coinex extends Exchange {
         //         "side": 2,
         //         "stop_loss_price": "0.00000000000000000000",
         //         "stop_loss_type": 0,
-        //         "sys": 0,
+        //         "s ys": 0,
         //         "take_profit_price": "0.00000000000000000000",
         //         "take_profit_type": 0,
         //         "taker_fee": "0.00000000000000000000",
@@ -3885,6 +3889,40 @@ export default class coinex extends Exchange {
         //         "update_time": 1651294226.111196,
         //         "user_id": 3620173
         //     }
+        //
+        //
+        // fetchPositionHistory
+        //
+        //    {
+        //        amount_max: '10',
+        //        amount_max_margin: '2.03466666666666666666',
+        //        bkr_price: '0',
+        //        create_time: '1711150526.2581',
+        //        deal_all: '12.591',
+        //        deal_asset_fee: '0',
+        //        fee_asset: '',
+        //        finish_type: '5',
+        //        first_price: '0.6104',
+        //        latest_price: '0.6487',
+        //        leverage: '3',
+        //        liq_amount: '0',
+        //        liq_price: '0',
+        //        liq_profit: '0',
+        //        mainten_margin: '0.01',
+        //        market: 'XRPUSDT',
+        //        market_type: '1',
+        //        open_price: '0.6104',
+        //        open_val_max: '6.104',
+        //        position_id: '297371462',
+        //        profit_real: '0.35702107169',
+        //        settle_price: '0.6104',
+        //        settle_val: '0',
+        //        side: '2',
+        //        s ys: "0",
+        //        type: '2',
+        //        update_time: '1711391446.133233',
+        //        user_id: '3685860'
+        //    }
         //
         const marketId = this.safeString (position, 'market');
         market = this.safeMarket (marketId, market, undefined, 'swap');
@@ -3901,7 +3939,7 @@ export default class coinex extends Exchange {
         const timestamp = this.safeTimestamp (position, 'update_time');
         const maintenanceMargin = this.safeString (position, 'mainten_margin_amount');
         const maintenanceMarginPercentage = this.safeString (position, 'mainten_margin');
-        const collateral = this.safeString (position, 'margin_amount');
+        const collateral = this.safeString2 (position, 'margin_amount', 'amount_max_margin');
         const leverage = this.safeString (position, 'leverage');
         const notional = this.safeString (position, 'open_val');
         const initialMargin = Precise.stringDiv (notional, leverage);
@@ -4134,7 +4172,7 @@ export default class coinex extends Exchange {
         //             "side": 2,
         //             "stop_loss_price": "0.00000000000000000000",
         //             "stop_loss_type": 0,
-        //             "sys": 0,
+        //             "s ys": 0,
         //             "take_profit_price": "0.00000000000000000000",
         //             "take_profit_type": 0,
         //             "taker_fee": "0.00000000000000000000",
@@ -4200,7 +4238,7 @@ export default class coinex extends Exchange {
         //        "side": 2,
         //        "stop_loss_price": "0.00000000000000000000",
         //        "stop_loss_type": 0,
-        //        "sys": 0,
+        //        "sy s": 0,
         //        "take_profit_price": "0.00000000000000000000",
         //        "take_profit_type": 0,
         //        "taker_fee": "0.00000000000000000000",
@@ -5601,6 +5639,81 @@ export default class coinex extends Exchange {
             'longLeverage': leverageValue,
             'shortLeverage': leverageValue,
         } as Leverage;
+    }
+
+    async fetchPositionHistory (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position> {
+        /**
+         * @method
+         * @name coinex#fetchPositionHistory
+         * @description fetches historical positions
+         * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http033-0_finished_position
+         * @param {string} symbol unified contract symbol
+         * @param {int} [since] not used by coinex fetchPositionHistory
+         * @param {int} [limit] the maximum amount of records to fetch, default=1000
+         * @param {object} params extra parameters specific to the exchange api endpoint
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+         * @param {int} [params.side] 0: all 1: sell, 2: buy
+         * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (limit === undefined) {
+            limit = 1000;
+        }
+        const request = {
+            'market': market['id'],
+            'side': 0,
+            'limit': limit,
+        };
+        const response = await this.v1PerpetualPrivateGetPositionFinished (this.extend (request, params));
+        //
+        //    {
+        //        code: '0',
+        //        data: {
+        //            limit: '1000',
+        //            offset: '0',
+        //            records: [
+        //                {
+        //                    amount_max: '10',
+        //                    amount_max_margin: '2.03466666666666666666',
+        //                    bkr_price: '0',
+        //                    create_time: '1711150526.2581',
+        //                    deal_all: '12.591',
+        //                    deal_asset_fee: '0',
+        //                    fee_asset: '',
+        //                    finish_type: '5',
+        //                    first_price: '0.6104',
+        //                    latest_price: '0.6487',
+        //                    leverage: '3',
+        //                    liq_amount: '0',
+        //                    liq_price: '0',
+        //                    liq_profit: '0',
+        //                    mainten_margin: '0.01',
+        //                    market: 'XRPUSDT',
+        //                    market_type: '1',
+        //                    open_price: '0.6104',
+        //                    open_val_max: '6.104',
+        //                    position_id: '297371462',
+        //                    profit_real: '0.35702107169',
+        //                    settle_price: '0.6104',
+        //                    settle_val: '0',
+        //                    side: '2',
+        //                    sy s: '0',
+        //                    type: '2',
+        //                    update_time: '1711391446.133233',
+        //                    user_id: '3685860'
+        //                },
+        //                ...
+        //            ]
+        //        },
+        //        message: 'OK'
+        //    }
+        //
+        const data = this.safeDict (response, 'data');
+        const records = this.safeList (data, 'records');
+        const positions = this.parsePositions (records);
+        return this.filterBySymbolSinceLimit (positions, symbol, since, limit);
     }
 
     handleMarginModeAndParams (methodName, params = {}, defaultValue = undefined) {
