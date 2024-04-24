@@ -51,9 +51,12 @@ interface Exchange {
     privatePostOpenapiContractV1Order (params?: {}): Promise<implicitReturnType>;
     privatePostOpenapiContractV1ModifyMargin (params?: {}): Promise<implicitReturnType>;
     privatePostOpenapiContractV1ModifyLeverage (params?: {}): Promise<implicitReturnType>;
+    privatePostOpenapiV1UserDataStream (params?: {}): Promise<implicitReturnType>;
+    privatePutOpenapiV1UserDataStream (params?: {}): Promise<implicitReturnType>;
     privateDeleteOpenapiV1Order (params?: {}): Promise<implicitReturnType>;
     privateDeleteOpenapiContractV1OrderCancel (params?: {}): Promise<implicitReturnType>;
     privateDeleteOpenapiContractV1OrderBatchCancel (params?: {}): Promise<implicitReturnType>;
+    privateDeleteOpenapiV1UserDataStream (params?: {}): Promise<implicitReturnType>;
 }
 abstract class Exchange extends _Exchange {}
 
