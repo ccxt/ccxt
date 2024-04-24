@@ -1579,7 +1579,7 @@ export default class bitflex extends Exchange {
          */
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'newClientOrderId');
         if (clientOrderId === undefined) {
-            throw new ArgumentsRequired (this.id + ' createOrder() requires a params.clientOrderId parameter'); // the exchange requires a unique clientOrderId for each order
+            throw new ArgumentsRequired (this.id + ' createOrder() requires a params.clientOrderId parameter for swap orders'); // the exchange requires a unique clientOrderId for each swap order
         }
         params = this.omit (params, [ 'clientOrderId', 'newClientOrderId' ]);
         const symbol = market['symbol'];
