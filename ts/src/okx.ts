@@ -6262,10 +6262,20 @@ export default class okx extends Exchange {
          */
         const accounts = await this.fetchAccounts ();
         const length = accounts.length;
+        let selectedAccount = undefined;
         if (length > 1) {
-            throw new ExchangeError (this.id + ' fetchPositionMode() can not detect position mode, because you have multiple accounts on this exchange. Please use fetchAccounts() to determine position mode');
+            const accountId = this.safeString (params, 'accountId');
+            if (accountId === undefined) {
+                const accountIds = this.getListFromObjectValues (accounts, 'id');
+                throw new ExchangeError (this.id + ' fetchPositionMode() can not detect position mode, because you have multiple accounts. Set params["accountId"] to desired id from: ' + accountIds.join (', '));
+            } else {
+                const accountsById = this.indexBy (accounts, 'id');
+                selectedAccount = this.safeDict (accountsById, accountId);
+            }
+        } else {
+            selectedAccount = accounts[0];
         }
-        const mainAccount = accounts[0]['info'];
+        const mainAccount = selectedAccount['info'];
         const posMode = this.safeString (mainAccount, 'posMode'); // long_short_mode, net_mode
         const isHedged = posMode === 'long_short_mode';
         return {
