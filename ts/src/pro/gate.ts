@@ -222,13 +222,9 @@ export default class gate extends gateRest {
         } else if (nonce >= deltaStart - 1) {
             this.handleDelta (storedOrderBook, delta);
         } else {
-            const validate = this.safeBool2 (this.options, 'validateOrderBookSequences', 'checksum', true);
-            if (validate) {
-                const error = this.orderBookSequenceError (symbol, nonce, deltaStart);
-                delete client.subscriptions[messageHash];
-                delete this.orderbooks[symbol];
-                client.reject (error, messageHash);
-            }
+            delete client.subscriptions[messageHash];
+            delete this.orderbooks[symbol];
+            this.orderBookSequenceErrorReject (client, messageHash, symbol, nonce, deltaStart);
         }
         client.resolve (storedOrderBook, messageHash);
     }

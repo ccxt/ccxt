@@ -2487,13 +2487,29 @@ export default class Exchange {
         this.createNetworksByIdObject ();
     }
 
-    orderBookSequenceError (symbol:Str, storedNonceOrChecksum, incomingNonceOrChecksum) {
+    orderBookSequenceErrorMessage (symbol:Str, storedNonceOrChecksum, incomingNonceOrChecksum) {
         let msg = this.id + ' incoming orderbook data checksum/nonce validation failed. In such cases you are advised to have a reconnection logic to get in sync of correct orderbook, or temporarily you can mute the error by setting exhcange.options["validateOrderBookSequences"] = false';
         const safeSymbol = (symbol === undefined) ? '' : symbol;
         const storedString = (storedNonceOrChecksum === undefined) ? '' : storedNonceOrChecksum.toString ();
         const incomingString = (incomingNonceOrChecksum === undefined) ? '' : incomingNonceOrChecksum.toString ();
         msg += ' symbol:' + safeSymbol + ', stored: ' + storedString + ', incoming: ' + incomingString;
-        return new InvalidNonce (msg.toString ());
+        return msg;
+    }
+
+    orderBookSequenceErrorThrow (symbol:Str, storedNonceOrChecksum, incomingNonceOrChecksum) {
+        const validate = this.safeBool2 (this.options, 'validateOrderBookSequences', 'checksum', true);
+        if (validate) {
+            const msg = this.orderBookSequenceErrorMessage (symbol, storedNonceOrChecksum, incomingNonceOrChecksum);
+            throw new InvalidNonce (msg.toString ());
+        }
+    }
+
+    orderBookSequenceErrorReject (client, messageHash, symbol:Str, storedNonceOrChecksum, incomingNonceOrChecksum) {
+        const validate = this.safeBool2 (this.options, 'validateOrderBookSequences', 'checksum', true);
+        if (validate) {
+            const msg = this.orderBookSequenceErrorMessage (symbol, storedNonceOrChecksum, incomingNonceOrChecksum);
+            client.reject (new InvalidNonce (msg.toString ()), messageHash);
+        }
     }
 
     createNetworksByIdObject () {

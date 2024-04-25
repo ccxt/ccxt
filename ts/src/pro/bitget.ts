@@ -570,11 +570,7 @@ export default class bitget extends bitgetRest {
                 const calculatedChecksum = this.crc32 (payload, true);
                 const responseChecksum = this.safeInteger (rawOrderBook, 'checksum');
                 if (calculatedChecksum !== responseChecksum) {
-                    const validate = this.safeBool2 (this.options, 'validateOrderBookSequences', 'checksum', true);
-                    if (validate) {
-                        const error = this.orderBookSequenceError (symbol, calculatedChecksum, responseChecksum);
-                        client.reject (error, messageHash);
-                    }
+                    this.orderBookSequenceErrorReject (client, messageHash, symbol, calculatedChecksum, responseChecksum);
                 }
             }
         } else {

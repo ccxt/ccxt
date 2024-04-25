@@ -878,11 +878,8 @@ export default class poloniexfutures extends poloniexfuturesRest {
         const sequence = this.safeInteger (delta, 'sequence');
         const nonce = this.safeInteger (orderbook, 'nonce');
         if (nonce !== sequence - 1) {
-            const validate = this.safeBool2 (this.options, 'validateOrderBookSequences', 'checksum', true);
-            if (validate) {
-                // todo: client.reject from handleOrderBookMessage properly
-                throw this.orderBookSequenceError (orderbook['symbol'], nonce, sequence);
-            }
+            // todo: client.reject from handleOrderBookMessage properly
+            this.orderBookSequenceErrorThrow (orderbook['symbol'], nonce, sequence);
         }
         const change = this.safeString (delta, 'change');
         const splitChange = change.split (',');

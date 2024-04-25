@@ -787,8 +787,7 @@ export default class kraken extends krakenRest {
                 const payload = payloadArray.join ('');
                 const localChecksum = this.crc32 (payload, false);
                 if (localChecksum !== c) {
-                    const error = this.orderBookSequenceError (symbol, localChecksum, c);
-                    client.reject (error, messageHash);
+                    this.orderBookSequenceErrorReject (client, messageHash, symbol, localChecksum, c);
                     return;
                 }
             }

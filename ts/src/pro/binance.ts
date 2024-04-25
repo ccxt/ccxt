@@ -429,11 +429,8 @@ export default class binance extends binanceRest {
                                 client.resolve (orderbook, messageHash);
                             }
                         } else {
-                            const validate = this.safeBool2 (this.options, 'validateOrderBookSequences', 'checksum', true);
-                            if (validate) {
-                                // todo: client.reject from handleOrderBookMessage properly
-                                throw this.orderBookSequenceError (symbol, orderbook['nonce'], U - 1);
-                            }
+                            // todo: client.reject from handleOrderBookMessage properly
+                            this.orderBookSequenceErrorThrow (symbol, orderbook['nonce'], U - 1);
                         }
                     }
                 } else {
@@ -448,11 +445,8 @@ export default class binance extends binanceRest {
                                 client.resolve (orderbook, messageHash);
                             }
                         } else {
-                            const validate = this.safeBool2 (this.options, 'validateOrderBookSequences', 'checksum', true);
-                            if (validate) {
-                                // todo: client.reject from handleOrderBookMessage properly
-                                throw this.orderBookSequenceError (symbol, orderbook['nonce'], pu);
-                            }
+                            // todo: client.reject from handleOrderBookMessage properly
+                            this.orderBookSequenceErrorThrow (symbol, orderbook['nonce'], pu);
                         }
                     }
                 }

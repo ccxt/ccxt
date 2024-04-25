@@ -610,8 +610,7 @@ export default class okx extends okxRest {
             const responseChecksum = this.safeInteger (message, 'checksum');
             const localChecksum = this.crc32 (payload, true);
             if (responseChecksum !== localChecksum) {
-                const error = this.orderBookSequenceError (orderbook['symbol'], localChecksum, responseChecksum);
-                client.reject (error, messageHash);
+                this.orderBookSequenceErrorReject (client, messageHash, orderbook['symbol'], localChecksum, responseChecksum);
             }
         }
         const timestamp = this.safeInteger (message, 'ts');
