@@ -1882,7 +1882,7 @@ export default class bitflex extends Exchange {
             'filled': filled,
             'remaining': remaining,
             'reduceOnly': reduceOnly,
-            'fee': undefined, // todo check for different types of orders
+            'fee': undefined,
             'trades': undefined,
             'info': order,
         }, market);
@@ -1956,7 +1956,7 @@ export default class bitflex extends Exchange {
         return undefined;
     }
 
-    async fetchOrder (id: string, symbol: Str = undefined, params = {}) { // todo fetchOrder for swap
+    async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name bitflex#fetchOrder
@@ -2036,7 +2036,7 @@ export default class bitflex extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async fetchCanceledAndClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) { // todo fetchOrders for swap
+    async fetchCanceledAndClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitflex#fetchCanceledAndClosedOrders
@@ -2139,7 +2139,7 @@ export default class bitflex extends Exchange {
         return this.parseOrders (response, market, since, limit);
     }
 
-    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> { // todo fetchOrders for swap
+    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name bitflex#fetchOpenOrders
@@ -2233,7 +2233,7 @@ export default class bitflex extends Exchange {
         return this.parseOrders (response, market, since, limit);
     }
 
-    async cancelOrder (id: string, symbol: Str = undefined, params = {}) { // todo cancelOrder for swap
+    async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name bitflex#cancelOrder
@@ -2372,7 +2372,7 @@ export default class bitflex extends Exchange {
         //         "accountIndex": 0
         //     },
         //
-        const accountType = this.safeString (account, 'accountType'); // todo check
+        const accountType = this.safeString (account, 'accountType');
         return {
             'id': this.safeString (account, 'accountId'),
             'name': this.safeString (account, 'accountName'),
@@ -2710,7 +2710,7 @@ export default class bitflex extends Exchange {
             }
         }
         const ext = this.safeString (transaction, 'addressExt');
-        if ((ext !== undefined) && (tag === undefined)) { // todo check
+        if ((ext !== undefined) && (tag === undefined)) {
             tag = ext;
         }
         const tagFrom = this.safeString (transaction, 'fromAddressTag');
@@ -2973,19 +2973,19 @@ export default class bitflex extends Exchange {
             '2': 'fee', // trading fees
             '3': 'transfer', // transfer
             '4': 'transaction', // deposit
-            '27': 'reward', // maker reward todo check
-            '28': 'trade', // PnL from contracts todo check
-            '30': 'trade', // settlement todo check
+            '27': 'reward', // maker reward
+            '28': 'trade', // PnL from contracts
+            '30': 'trade', // settlement
             '31': 'trade', // liquidation
-            '32': 'fee', // funding fee settlement todo check
+            '32': 'fee', // funding fee settlement
             '51': 'transfer', // userAccountTransfer Exclusive
             '65': 'trade', // OTC buy coin
             '66': 'trade', // OTC sell coin
-            '67': 'reward', // campaign reward todo check
+            '67': 'reward', // campaign reward
             '68': 'rebate', // user rebates
-            '69': 'reward', // registration reward todo check
+            '69': 'reward', // registration reward
             '70': 'airdrop', // airdrop
-            '71': 'reward', // mining reward todo check
+            '71': 'reward', // mining reward
             '73': 'fee', // OTC fees
             '200': 'trade', // old OTC balance flow
         };
@@ -3015,7 +3015,7 @@ export default class bitflex extends Exchange {
         const account = undefined;
         const referenceId = undefined;
         const referenceAccount = this.safeString (item, 'accountId');
-        const type = this.parseLedgerEntryType (this.safeString (item, 'flowTypeValue')); // todo
+        const type = this.parseLedgerEntryType (this.safeString (item, 'flowTypeValue'));
         const code = this.safeCurrencyCode (this.safeString (item, 'token'), currency);
         let amount = this.safeString (item, 'change');
         const amountIsNegative = Precise.stringLt (amount, '0');
@@ -3287,7 +3287,7 @@ export default class bitflex extends Exchange {
             'info': data,
             'symbol': market['symbol'],
             'type': undefined,
-            'marginMode': 'cross', // todo check
+            'marginMode': 'cross',
             'amount': undefined,
             'total': total,
             'code': market['settle'],
@@ -3389,7 +3389,7 @@ export default class bitflex extends Exchange {
         //
         const marketId = this.safeString (contract, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
-        const nextFundingTimestamp = this.safeInteger (contract, 'intervalEnd'); // todo check
+        const nextFundingTimestamp = this.safeInteger (contract, 'intervalEnd');
         const previousFundingTimestamp = this.safeInteger (contract, 'intervalStart');
         const fundingRate = this.safeNumber (contract, 'rate');
         return {
