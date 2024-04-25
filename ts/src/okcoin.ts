@@ -39,11 +39,8 @@ export default class okcoin extends Exchange {
                 'createOrder': true,
                 'fetchBalance': true,
                 'fetchBorrowInterest': false,
-                'fetchBorrowRate': false,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
-                'fetchBorrowRates': false,
-                'fetchBorrowRatesPerSymbol': false,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true, // see below
                 'fetchDepositAddress': true,

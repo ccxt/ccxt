@@ -2818,7 +2818,6 @@ Data on the borrow rate for a currency can be retrieved using
 - `fetchCrossBorrowRates ()` for all currencies borrow rates
 - `fetchIsolatedBorrowRate ()` for a trading pairs borrow rate
 - `fetchIsolatedBorrowRates ()` for all trading pairs borrow rates
-- `fetchBorrowRatesPerSymbol ()` for the borrow rates of currencies in individual markets
 
 ```javascript
 fetchCrossBorrowRate (code, params = {})
