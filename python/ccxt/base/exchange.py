@@ -38,7 +38,7 @@ from ccxt.base.types import BalanceAccount, Currency, IndexType, OrderSide, Orde
 # rsa jwt signing
 from cryptography.hazmat import backends
 from cryptography.hazmat.primitives import hashes
-from cryptography.hazmat.primitives.asymmetric import padding
+from cryptography.hazmat.primitives.asymmetric import padding, ed25519
 # from cryptography.hazmat.primitives.asymmetric.utils import decode_dss_signature
 from cryptography.hazmat.primitives.serialization import load_pem_private_key
 
@@ -1426,7 +1426,9 @@ class Exchange(object):
 
     @staticmethod
     def eddsa(request, secret, curve='ed25519'):
-        private_key = load_pem_private_key(Exchange.encode(secret), None)
+        if isinstance(secret, str):
+            Exchange.encode(secret)
+        private_key = ed25519.Ed25519PrivateKey.from_private_bytes(secret) if len(secret) == 32 else load_pem_private_key(secret, None)
         return Exchange.binary_to_base64(private_key.sign(request))
 
     @staticmethod
