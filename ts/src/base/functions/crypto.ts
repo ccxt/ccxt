@@ -99,10 +99,10 @@ function axolotl (request: Hex, secret: Hex, curve: CurveFnEDDSA) {
     return base58.encode (signature)
 }
 
-function eddsa (request: Hex, secret: string, curve: CurveFnEDDSA) {
+function eddsa (request: Hex, secret: Input, curve: CurveFnEDDSA) {
     let privateKey = undefined;
     if (secret.length === 32) {
-      // secret is raw bytes
+      // ed25519 secret is 32 bytes
       privateKey = secret
     } else {
       // secret is the base64 pem encoded key

@@ -2466,9 +2466,8 @@ export default class woofipro extends Exchange {
 			}
 			let secret = this.secret;
 			if (secret.indexOf ('ed25519:') >= 0) {
-				secret = secret.slice (secret.indexOf ('ed25519:') + 8);
+				secret = this.base58ToBinary (secret.slice (secret.indexOf ('ed25519:') + 8));
 			}
-			secret = this.base58ToBinary (secret);
 			const signature = eddsa (this.encode (auth), secret, ed25519);
             headers['orderly-signature'] = this.urlencodeBase64 (signature);
         }
