@@ -14,7 +14,7 @@ exchange_name="$1"
 
 # Check if the first argument was provided
 if [ -z "$exchange_name" ]; then
-    echo "Exchange name not provided provided."
+    echo "Exchange name not provided."
     exit 1
 fi
 

@@ -115,10 +115,6 @@ class CCXTProTranspiler extends Transpiler {
         ]
     }
 
-    sortExchangeCapabilities (code) {
-        return false
-    }
-
     exportTypeScriptClassNames (file, classes) {
 
         log.bright.cyan ('Exporting WS TypeScript class names →', file.yellow)
