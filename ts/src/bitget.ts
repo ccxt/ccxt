@@ -8599,7 +8599,7 @@ export default class bitget extends Exchange {
         //
         const data = this.safeDict (response, 'data', {});
         const dataList = this.safeList (data, 'dataList', []);
-        return this.parseConversions (dataList, 'fromCoin', 'toCoin', since, limit);
+        return this.parseConversions (dataList, code, 'fromCoin', 'toCoin', since, limit);
     }
 
     parseConversion (conversion, fromCurrency: Currency = undefined, toCurrency: Currency = undefined): Conversion {
