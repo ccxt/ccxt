@@ -58,7 +58,7 @@ const PAD_WITH_ZERO = 6;
 
 class Exchange {
 
-    const VERSION = '4.2.100';
+    const VERSION = '4.3.0';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -1333,10 +1333,13 @@ class Exchange {
 
     public static function eddsa($request, $secret, $algorithm = 'ed25519') {
         $curve = new EdDSA($algorithm);
-        preg_match('/^-----BEGIN PRIVATE KEY-----\s(\S{64})\s-----END PRIVATE KEY-----$/', $secret, $match);
-        // trim pem header from 48 bytes -> 32 bytes
-        // in hex so 96 chars -> 64 chars
-        $hex_secret = substr(bin2hex(base64_decode($match[1])), 32);
+        if (preg_match('/^-----BEGIN PRIVATE KEY-----\s(\S{64})\s-----END PRIVATE KEY-----$/', $secret, $match) >= 1) {
+            // trim pem header from 48 bytes -> 32 bytes
+            // in hex so 96 chars -> 64 chars
+            $hex_secret = substr(bin2hex(base64_decode($match[1])), 32);
+        } else {
+            $hex_secret = bin2hex($secret);
+        }
         $signature = $curve->sign(bin2hex(static::encode($request)), $hex_secret);
         return static::binary_to_base64(static::base16_to_binary($signature->toHex()));
     }

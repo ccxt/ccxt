@@ -2464,11 +2464,12 @@ export default class woofipro extends Exchange {
 				}
 				headers['content-type'] = 'application/x-www-form-urlencoded';
 			}
-			let secret = this.secret;
-			if (secret.indexOf ('ed25519:') >= 0) {
-				secret = this.base58ToBinary (secret.slice (secret.indexOf ('ed25519:') + 8));
-			}
-			const signature = eddsa (this.encode (auth), secret, ed25519);
+            let secret = this.secret;
+            if (secret.indexOf ('ed25519:') >= 0) {
+                const parts = secret.split ('ed25519:');
+                secret = parts[1];
+            }
+			const signature = eddsa (this.encode (auth), this.base58ToBinary (secret), ed25519);
             headers['orderly-signature'] = this.urlencodeBase64 (signature);
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
