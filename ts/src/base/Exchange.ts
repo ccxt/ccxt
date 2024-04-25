@@ -2493,7 +2493,7 @@ export default class Exchange {
         const storedString = (storedNonceOrChecksum === undefined) ? '' : storedNonceOrChecksum.toString ();
         const incomingString = (incomingNonceOrChecksum === undefined) ? '' : incomingNonceOrChecksum.toString ();
         msg += ' symbol:' + safeSymbol + ', stored: ' + storedString + ', incoming: ' + incomingString;
-        return new InvalidNonce (msg);
+        return new InvalidNonce (msg.toString ());
     }
 
     createNetworksByIdObject () {
