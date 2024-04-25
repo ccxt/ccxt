@@ -42,11 +42,11 @@ use React\EventLoop\Loop;
 
 use Exception;
 
-$version = '4.3.7';
+$version = '4.3.8';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.3.7';
+    const VERSION = '4.3.8';
 
     public $browser;
     public $marketsLoading = null;
@@ -5292,7 +5292,7 @@ class Exchange extends \ccxt\Exchange {
         throw new NotSupported($this->id . ' parseLeverage () is not supported yet');
     }
 
-    public function parse_conversions(array $conversions, ?string $fromCurrencyKey = null, ?string $toCurrencyKey = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function parse_conversions(array $conversions, ?string $code = null, ?string $fromCurrencyKey = null, ?string $toCurrencyKey = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         $conversions = $this->to_array($conversions);
         $result = array();
         $fromCurrency = null;
@@ -5311,8 +5311,18 @@ class Exchange extends \ccxt\Exchange {
             $result[] = $conversion;
         }
         $sorted = $this->sort_by($result, 'timestamp');
-        $code = ($fromCurrency !== null) ? $fromCurrency['code'] : null;
-        return $this->filter_by_currency_since_limit($sorted, $code, $since, $limit);
+        $currency = null;
+        if ($code !== null) {
+            $currency = $this->currency ($code);
+            $code = $currency['code'];
+        }
+        if ($code === null) {
+            return $this->filter_by_since_limit($sorted, $since, $limit);
+        }
+        $fromConversion = $this->filter_by($sorted, 'fromCurrency', $code);
+        $toConversion = $this->filter_by($sorted, 'toCurrency', $code);
+        $both = $this->array_concat($fromConversion, $toConversion);
+        return $this->filter_by_since_limit($both, $since, $limit);
     }
 
     public function parse_conversion($conversion, ?array $fromCurrency = null, ?array $toCurrency = null) {

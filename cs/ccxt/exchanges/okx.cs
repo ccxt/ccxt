@@ -8355,7 +8355,7 @@ public partial class okx : Exchange
         //     }
         //
         object rows = this.safeList(response, "data", new List<object>() {});
-        return this.parseConversions(rows, "baseCcy", "quoteCcy", since, limit);
+        return this.parseConversions(rows, code, "baseCcy", "quoteCcy", since, limit);
     }
 
     public override object parseConversion(object conversion, object fromCurrency = null, object toCurrency = null)

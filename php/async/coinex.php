@@ -1549,82 +1549,56 @@ class coinex extends Exchange {
     public function fetch_margin_balance($params = array ()) {
         return Async\async(function () use ($params) {
             Async\await($this->load_markets());
-            $symbol = $this->safe_string($params, 'symbol');
-            $marketId = $this->safe_string($params, 'market');
-            $market = null;
-            if ($symbol !== null) {
-                $market = $this->market($symbol);
-                $marketId = $market['id'];
-            } elseif ($marketId === null) {
-                throw new ArgumentsRequired($this->id . ' fetchMarginBalance() fetching a margin account requires a $market parameter or a $symbol parameter');
-            }
-            $params = $this->omit($params, array( 'symbol', 'market' ));
-            $request = array(
-                'market' => $marketId,
-            );
-            $response = Async\await($this->v1PrivateGetMarginAccount (array_merge($request, $params)));
+            $response = Async\await($this->v2PrivateGetAssetsMarginBalance ($params));
             //
-            //      {
-            //          "code" =>    0,
-            //           "data" => array(
-            //              "account_id" =>    126,
-            //              "leverage" =>    3,
-            //              "market_type" =>   "AAVEUSDT",
-            //              "sell_asset_type" =>   "AAVE",
-            //              "buy_asset_type" =>   "USDT",
-            //              "balance" => array(
-            //                  "sell_type" => "0.3",     // borrowed
-            //                  "buy_type" => "30"
-            //                  ),
-            //              "frozen" => array(
-            //                  "sell_type" => "0",
-            //                  "buy_type" => "0"
-            //                  ),
-            //              "loan" => array(
-            //                  "sell_type" => "0.3", // $loan
-            //                  "buy_type" => "0"
-            //                  ),
-            //              "interest" => array(
-            //                  "sell_type" => "0.0000125",
-            //                  "buy_type" => "0"
-            //                  ),
-            //              "can_transfer" => array(
-            //                  "sell_type" => "0.02500646",
-            //                  "buy_type" => "4.28635738"
-            //                  ),
-            //              "warn_rate" =>   "",
-            //              "liquidation_price" =>   ""
-            //              ),
-            //          "message" => "Success"
-            //      }
+            //     {
+            //         "data" => array(
+            //             array(
+            //                 "margin_account" => "BTCUSDT",
+            //                 "base_ccy" => "BTC",
+            //                 "quote_ccy" => "USDT",
+            //                 "available" => array(
+            //                     "base_ccy" => "0.00000026",
+            //                     "quote_ccy" => "0"
+            //                 ),
+            //                 "frozen" => array(
+            //                     "base_ccy" => "0",
+            //                     "quote_ccy" => "0"
+            //                 ),
+            //                 "repaid" => array(
+            //                     "base_ccy" => "0",
+            //                     "quote_ccy" => "0"
+            //                 ),
+            //                 "interest" => array(
+            //                     "base_ccy" => "0",
+            //                     "quote_ccy" => "0"
+            //                 ),
+            //                 "rik_rate" => "",
+            //                 "liq_price" => ""
+            //             ),
+            //         ),
+            //         "code" => 0,
+            //         "message" => "OK"
+            //     }
             //
             $result = array( 'info' => $response );
-            $data = $this->safe_value($response, 'data', array());
-            $free = $this->safe_value($data, 'can_transfer', array());
-            $total = $this->safe_value($data, 'balance', array());
-            $loan = $this->safe_value($data, 'loan', array());
-            $interest = $this->safe_value($data, 'interest', array());
-            //
-            $sellAccount = $this->account();
-            $sellCurrencyId = $this->safe_string($data, 'sell_asset_type');
-            $sellCurrencyCode = $this->safe_currency_code($sellCurrencyId);
-            $sellAccount['free'] = $this->safe_string($free, 'sell_type');
-            $sellAccount['total'] = $this->safe_string($total, 'sell_type');
-            $sellDebt = $this->safe_string($loan, 'sell_type');
-            $sellInterest = $this->safe_string($interest, 'sell_type');
-            $sellAccount['debt'] = Precise::string_add($sellDebt, $sellInterest);
-            $result[$sellCurrencyCode] = $sellAccount;
-            //
-            $buyAccount = $this->account();
-            $buyCurrencyId = $this->safe_string($data, 'buy_asset_type');
-            $buyCurrencyCode = $this->safe_currency_code($buyCurrencyId);
-            $buyAccount['free'] = $this->safe_string($free, 'buy_type');
-            $buyAccount['total'] = $this->safe_string($total, 'buy_type');
-            $buyDebt = $this->safe_string($loan, 'buy_type');
-            $buyInterest = $this->safe_string($interest, 'buy_type');
-            $buyAccount['debt'] = Precise::string_add($buyDebt, $buyInterest);
-            $result[$buyCurrencyCode] = $buyAccount;
-            //
+            $balances = $this->safe_list($response, 'data', array());
+            for ($i = 0; $i < count($balances); $i++) {
+                $entry = $balances[$i];
+                $free = $this->safe_dict($entry, 'available', array());
+                $used = $this->safe_dict($entry, 'frozen', array());
+                $loan = $this->safe_dict($entry, 'repaid', array());
+                $interest = $this->safe_dict($entry, 'interest', array());
+                $baseAccount = $this->account();
+                $baseCurrencyId = $this->safe_string($entry, 'base_ccy');
+                $baseCurrencyCode = $this->safe_currency_code($baseCurrencyId);
+                $baseAccount['free'] = $this->safe_string($free, 'base_ccy');
+                $baseAccount['used'] = $this->safe_string($used, 'base_ccy');
+                $baseDebt = $this->safe_string($loan, 'base_ccy');
+                $baseInterest = $this->safe_string($interest, 'base_ccy');
+                $baseAccount['debt'] = Precise::string_add($baseDebt, $baseInterest);
+                $result[$baseCurrencyCode] = $baseAccount;
+            }
             return $this->safe_balance($result);
         }) ();
     }
@@ -1632,37 +1606,29 @@ class coinex extends Exchange {
     public function fetch_spot_balance($params = array ()) {
         return Async\async(function () use ($params) {
             Async\await($this->load_markets());
-            $response = Async\await($this->v1PrivateGetBalanceInfo ($params));
+            $response = Async\await($this->v2PrivateGetAssetsSpotBalance ($params));
             //
             //     {
-            //       "code" => 0,
-            //       "data" => {
-            //         "BCH" => array(                     # BCH $account
-            //           "available" => "13.60109",   # Available BCH
-            //           "frozen" => "0.00000"        # Frozen BCH
+            //         "code" => 0,
+            //         "data" => array(
+            //             {
+            //                 "available" => "0.00000046",
+            //                 "ccy" => "USDT",
+            //                 "frozen" => "0"
+            //             }
             //         ),
-            //         "BTC" => array(                     # BTC $account
-            //           "available" => "32590.16",   # Available BTC
-            //           "frozen" => "7000.00"        # Frozen BTC
-            //         ),
-            //         "ETH" => array(                     # ETH $account
-            //           "available" => "5.06000",    # Available ETH
-            //           "frozen" => "0.00000"        # Frozen ETH
-            //         }
-            //       ),
-            //       "message" => "Ok"
+            //         "message" => "OK"
             //     }
             //
             $result = array( 'info' => $response );
-            $balances = $this->safe_value($response, 'data', array());
-            $currencyIds = is_array($balances) ? array_keys($balances) : array();
-            for ($i = 0; $i < count($currencyIds); $i++) {
-                $currencyId = $currencyIds[$i];
+            $balances = $this->safe_list($response, 'data', array());
+            for ($i = 0; $i < count($balances); $i++) {
+                $entry = $balances[$i];
+                $currencyId = $this->safe_string($entry, 'ccy');
                 $code = $this->safe_currency_code($currencyId);
-                $balance = $this->safe_value($balances, $currencyId, array());
                 $account = $this->account();
-                $account['free'] = $this->safe_string($balance, 'available');
-                $account['used'] = $this->safe_string($balance, 'frozen');
+                $account['free'] = $this->safe_string($entry, 'available');
+                $account['used'] = $this->safe_string($entry, 'frozen');
                 $result[$code] = $account;
             }
             return $this->safe_balance($result);
@@ -1672,34 +1638,32 @@ class coinex extends Exchange {
     public function fetch_swap_balance($params = array ()) {
         return Async\async(function () use ($params) {
             Async\await($this->load_markets());
-            $response = Async\await($this->v1PerpetualPrivateGetAssetQuery ($params));
+            $response = Async\await($this->v2PrivateGetAssetsFuturesBalance ($params));
             //
             //     {
             //         "code" => 0,
-            //         "data" => {
-            //             "USDT" => array(
-            //                 "available" => "37.24817690383456000000",
-            //                 "balance_total" => "37.24817690383456000000",
-            //                 "frozen" => "0.00000000000000000000",
-            //                 "margin" => "0.00000000000000000000",
-            //                 "profit_unreal" => "0.00000000000000000000",
-            //                 "transfer" => "37.24817690383456000000"
+            //         "data" => array(
+            //             {
+            //                 "available" => "0.00000046",
+            //                 "ccy" => "USDT",
+            //                 "frozen" => "0",
+            //                 "margin" => "0",
+            //                 "transferrable" => "0.00000046",
+            //                 "unrealized_pnl" => "0"
             //             }
             //         ),
             //         "message" => "OK"
             //     }
             //
             $result = array( 'info' => $response );
-            $balances = $this->safe_value($response, 'data', array());
-            $currencyIds = is_array($balances) ? array_keys($balances) : array();
-            for ($i = 0; $i < count($currencyIds); $i++) {
-                $currencyId = $currencyIds[$i];
+            $balances = $this->safe_list($response, 'data', array());
+            for ($i = 0; $i < count($balances); $i++) {
+                $entry = $balances[$i];
+                $currencyId = $this->safe_string($entry, 'ccy');
                 $code = $this->safe_currency_code($currencyId);
-                $balance = $this->safe_value($balances, $currencyId, array());
                 $account = $this->account();
-                $account['free'] = $this->safe_string($balance, 'available');
-                $account['used'] = $this->safe_string($balance, 'frozen');
-                $account['total'] = $this->safe_string($balance, 'balance_total');
+                $account['free'] = $this->safe_string($entry, 'available');
+                $account['used'] = $this->safe_string($entry, 'frozen');
                 $result[$code] = $account;
             }
             return $this->safe_balance($result);
@@ -1709,38 +1673,29 @@ class coinex extends Exchange {
     public function fetch_financial_balance($params = array ()) {
         return Async\async(function () use ($params) {
             Async\await($this->load_markets());
-            $response = Async\await($this->v1PrivateGetAccountInvestmentBalance ($params));
+            $response = Async\await($this->v2PrivateGetAssetsFinancialBalance ($params));
             //
             //     {
-            //          "code" => 0,
-            //          "data" => array(
-            //              array(
-            //                  "asset" => "CET",
-            //                  "available" => "0",
-            //                  "frozen" => "0",
-            //                  "lock" => "0",
-            //              ),
-            //              {
-            //                  "asset" => "USDT",
-            //                  "available" => "999900",
-            //                  "frozen" => "0",
-            //                  "lock" => "0"
-            //              }
-            //          ),
-            //          "message" => "Success"
-            //      }
+            //         "code" => 0,
+            //         "data" => array(
+            //             {
+            //                 "available" => "0.00000046",
+            //                 "ccy" => "USDT",
+            //                 "frozen" => "0"
+            //             }
+            //         ),
+            //         "message" => "OK"
+            //     }
             //
             $result = array( 'info' => $response );
-            $balances = $this->safe_value($response, 'data', array());
+            $balances = $this->safe_list($response, 'data', array());
             for ($i = 0; $i < count($balances); $i++) {
-                $balance = $balances[$i];
-                $currencyId = $this->safe_string($balance, 'asset');
+                $entry = $balances[$i];
+                $currencyId = $this->safe_string($entry, 'ccy');
                 $code = $this->safe_currency_code($currencyId);
                 $account = $this->account();
-                $account['free'] = $this->safe_string($balance, 'available');
-                $frozen = $this->safe_string($balance, 'frozen');
-                $locked = $this->safe_string($balance, 'lock');
-                $account['used'] = Precise::string_add($frozen, $locked);
+                $account['free'] = $this->safe_string($entry, 'available');
+                $account['used'] = $this->safe_string($entry, 'frozen');
                 $result[$code] = $account;
             }
             return $this->safe_balance($result);
@@ -1751,10 +1706,10 @@ class coinex extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * query for balance and get the amount of funds available for trading or funds locked in orders
-             * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account001_account_info         // spot
-             * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account004_investment_balance   // financial
-             * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account006_margin_account       // margin
-             * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http016_asset_query       // swap
+             * @see https://docs.coinex.com/api/v2/assets/balance/http/get-spot-balance         // spot
+             * @see https://docs.coinex.com/api/v2/assets/balance/http/get-futures-balance      // swap
+             * @see https://docs.coinex.com/api/v2/assets/balance/http/get-marigin-balance      // margin
+             * @see https://docs.coinex.com/api/v2/assets/balance/http/get-financial-balance    // financial
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->type] 'margin', 'swap', 'financial', or 'spot'
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
@@ -5842,7 +5797,11 @@ class coinex extends Exchange {
                 $this->check_required_credentials();
                 $query = $this->keysort($query);
                 $urlencoded = $this->rawencode($query);
-                $preparedString = $method . '/' . $version . '/' . $path . '?' . $urlencoded . $nonce . $this->secret;
+                $preparedString = $method . '/' . $version . '/' . $path;
+                if ($urlencoded) {
+                    $preparedString .= '?' . $urlencoded;
+                }
+                $preparedString .= $nonce . $this->secret;
                 $signature = $this->hash($this->encode($preparedString), 'sha256');
                 $headers = array(
                     'X-COINEX-KEY' => $this->apiKey,
@@ -5850,7 +5809,9 @@ class coinex extends Exchange {
                     'X-COINEX-TIMESTAMP' => $nonce,
                 );
                 if (($method === 'GET') || ($method === 'DELETE') || ($method === 'PUT')) {
-                    $url .= '?' . $urlencoded;
+                    if ($urlencoded) {
+                        $url .= '?' . $urlencoded;
+                    }
                 } else {
                     $body = $this->json($query);
                 }

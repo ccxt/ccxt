@@ -1487,196 +1487,151 @@ class coinex(Exchange, ImplicitAPI):
 
     def fetch_margin_balance(self, params={}):
         self.load_markets()
-        symbol = self.safe_string(params, 'symbol')
-        marketId = self.safe_string(params, 'market')
-        market: Market = None
-        if symbol is not None:
-            market = self.market(symbol)
-            marketId = market['id']
-        elif marketId is None:
-            raise ArgumentsRequired(self.id + ' fetchMarginBalance() fetching a margin account requires a market parameter or a symbol parameter')
-        params = self.omit(params, ['symbol', 'market'])
-        request = {
-            'market': marketId,
-        }
-        response = self.v1PrivateGetMarginAccount(self.extend(request, params))
+        response = self.v2PrivateGetAssetsMarginBalance(params)
         #
-        #      {
-        #          "code":    0,
-        #           "data": {
-        #              "account_id":    126,
-        #              "leverage":    3,
-        #              "market_type":   "AAVEUSDT",
-        #              "sell_asset_type":   "AAVE",
-        #              "buy_asset_type":   "USDT",
-        #              "balance": {
-        #                  "sell_type": "0.3",     # borrowed
-        #                  "buy_type": "30"
-        #                  },
-        #              "frozen": {
-        #                  "sell_type": "0",
-        #                  "buy_type": "0"
-        #                  },
-        #              "loan": {
-        #                  "sell_type": "0.3",  # loan
-        #                  "buy_type": "0"
-        #                  },
-        #              "interest": {
-        #                  "sell_type": "0.0000125",
-        #                  "buy_type": "0"
-        #                  },
-        #              "can_transfer": {
-        #                  "sell_type": "0.02500646",
-        #                  "buy_type": "4.28635738"
-        #                  },
-        #              "warn_rate":   "",
-        #              "liquidation_price":   ""
-        #              },
-        #          "message": "Success"
-        #      }
+        #     {
+        #         "data": [
+        #             {
+        #                 "margin_account": "BTCUSDT",
+        #                 "base_ccy": "BTC",
+        #                 "quote_ccy": "USDT",
+        #                 "available": {
+        #                     "base_ccy": "0.00000026",
+        #                     "quote_ccy": "0"
+        #                 },
+        #                 "frozen": {
+        #                     "base_ccy": "0",
+        #                     "quote_ccy": "0"
+        #                 },
+        #                 "repaid": {
+        #                     "base_ccy": "0",
+        #                     "quote_ccy": "0"
+        #                 },
+        #                 "interest": {
+        #                     "base_ccy": "0",
+        #                     "quote_ccy": "0"
+        #                 },
+        #                 "rik_rate": "",
+        #                 "liq_price": ""
+        #             },
+        #         ],
+        #         "code": 0,
+        #         "message": "OK"
+        #     }
         #
         result = {'info': response}
-        data = self.safe_value(response, 'data', {})
-        free = self.safe_value(data, 'can_transfer', {})
-        total = self.safe_value(data, 'balance', {})
-        loan = self.safe_value(data, 'loan', {})
-        interest = self.safe_value(data, 'interest', {})
-        #
-        sellAccount = self.account()
-        sellCurrencyId = self.safe_string(data, 'sell_asset_type')
-        sellCurrencyCode = self.safe_currency_code(sellCurrencyId)
-        sellAccount['free'] = self.safe_string(free, 'sell_type')
-        sellAccount['total'] = self.safe_string(total, 'sell_type')
-        sellDebt = self.safe_string(loan, 'sell_type')
-        sellInterest = self.safe_string(interest, 'sell_type')
-        sellAccount['debt'] = Precise.string_add(sellDebt, sellInterest)
-        result[sellCurrencyCode] = sellAccount
-        #
-        buyAccount = self.account()
-        buyCurrencyId = self.safe_string(data, 'buy_asset_type')
-        buyCurrencyCode = self.safe_currency_code(buyCurrencyId)
-        buyAccount['free'] = self.safe_string(free, 'buy_type')
-        buyAccount['total'] = self.safe_string(total, 'buy_type')
-        buyDebt = self.safe_string(loan, 'buy_type')
-        buyInterest = self.safe_string(interest, 'buy_type')
-        buyAccount['debt'] = Precise.string_add(buyDebt, buyInterest)
-        result[buyCurrencyCode] = buyAccount
-        #
+        balances = self.safe_list(response, 'data', [])
+        for i in range(0, len(balances)):
+            entry = balances[i]
+            free = self.safe_dict(entry, 'available', {})
+            used = self.safe_dict(entry, 'frozen', {})
+            loan = self.safe_dict(entry, 'repaid', {})
+            interest = self.safe_dict(entry, 'interest', {})
+            baseAccount = self.account()
+            baseCurrencyId = self.safe_string(entry, 'base_ccy')
+            baseCurrencyCode = self.safe_currency_code(baseCurrencyId)
+            baseAccount['free'] = self.safe_string(free, 'base_ccy')
+            baseAccount['used'] = self.safe_string(used, 'base_ccy')
+            baseDebt = self.safe_string(loan, 'base_ccy')
+            baseInterest = self.safe_string(interest, 'base_ccy')
+            baseAccount['debt'] = Precise.string_add(baseDebt, baseInterest)
+            result[baseCurrencyCode] = baseAccount
         return self.safe_balance(result)
 
     def fetch_spot_balance(self, params={}):
         self.load_markets()
-        response = self.v1PrivateGetBalanceInfo(params)
+        response = self.v2PrivateGetAssetsSpotBalance(params)
         #
         #     {
-        #       "code": 0,
-        #       "data": {
-        #         "BCH": {                    # BCH account
-        #           "available": "13.60109",   # Available BCH
-        #           "frozen": "0.00000"        # Frozen BCH
-        #         },
-        #         "BTC": {                    # BTC account
-        #           "available": "32590.16",   # Available BTC
-        #           "frozen": "7000.00"        # Frozen BTC
-        #         },
-        #         "ETH": {                    # ETH account
-        #           "available": "5.06000",    # Available ETH
-        #           "frozen": "0.00000"        # Frozen ETH
-        #         }
-        #       },
-        #       "message": "Ok"
+        #         "code": 0,
+        #         "data": [
+        #             {
+        #                 "available": "0.00000046",
+        #                 "ccy": "USDT",
+        #                 "frozen": "0"
+        #             }
+        #         ],
+        #         "message": "OK"
         #     }
         #
         result = {'info': response}
-        balances = self.safe_value(response, 'data', {})
-        currencyIds = list(balances.keys())
-        for i in range(0, len(currencyIds)):
-            currencyId = currencyIds[i]
+        balances = self.safe_list(response, 'data', [])
+        for i in range(0, len(balances)):
+            entry = balances[i]
+            currencyId = self.safe_string(entry, 'ccy')
             code = self.safe_currency_code(currencyId)
-            balance = self.safe_value(balances, currencyId, {})
             account = self.account()
-            account['free'] = self.safe_string(balance, 'available')
-            account['used'] = self.safe_string(balance, 'frozen')
+            account['free'] = self.safe_string(entry, 'available')
+            account['used'] = self.safe_string(entry, 'frozen')
             result[code] = account
         return self.safe_balance(result)
 
     def fetch_swap_balance(self, params={}):
         self.load_markets()
-        response = self.v1PerpetualPrivateGetAssetQuery(params)
+        response = self.v2PrivateGetAssetsFuturesBalance(params)
         #
         #     {
         #         "code": 0,
-        #         "data": {
-        #             "USDT": {
-        #                 "available": "37.24817690383456000000",
-        #                 "balance_total": "37.24817690383456000000",
-        #                 "frozen": "0.00000000000000000000",
-        #                 "margin": "0.00000000000000000000",
-        #                 "profit_unreal": "0.00000000000000000000",
-        #                 "transfer": "37.24817690383456000000"
+        #         "data": [
+        #             {
+        #                 "available": "0.00000046",
+        #                 "ccy": "USDT",
+        #                 "frozen": "0",
+        #                 "margin": "0",
+        #                 "transferrable": "0.00000046",
+        #                 "unrealized_pnl": "0"
         #             }
-        #         },
+        #         ],
         #         "message": "OK"
         #     }
         #
         result = {'info': response}
-        balances = self.safe_value(response, 'data', {})
-        currencyIds = list(balances.keys())
-        for i in range(0, len(currencyIds)):
-            currencyId = currencyIds[i]
+        balances = self.safe_list(response, 'data', [])
+        for i in range(0, len(balances)):
+            entry = balances[i]
+            currencyId = self.safe_string(entry, 'ccy')
             code = self.safe_currency_code(currencyId)
-            balance = self.safe_value(balances, currencyId, {})
             account = self.account()
-            account['free'] = self.safe_string(balance, 'available')
-            account['used'] = self.safe_string(balance, 'frozen')
-            account['total'] = self.safe_string(balance, 'balance_total')
+            account['free'] = self.safe_string(entry, 'available')
+            account['used'] = self.safe_string(entry, 'frozen')
             result[code] = account
         return self.safe_balance(result)
 
     def fetch_financial_balance(self, params={}):
         self.load_markets()
-        response = self.v1PrivateGetAccountInvestmentBalance(params)
+        response = self.v2PrivateGetAssetsFinancialBalance(params)
         #
         #     {
-        #          "code": 0,
-        #          "data": [
-        #              {
-        #                  "asset": "CET",
-        #                  "available": "0",
-        #                  "frozen": "0",
-        #                  "lock": "0",
-        #              },
-        #              {
-        #                  "asset": "USDT",
-        #                  "available": "999900",
-        #                  "frozen": "0",
-        #                  "lock": "0"
-        #              }
-        #          ],
-        #          "message": "Success"
-        #      }
+        #         "code": 0,
+        #         "data": [
+        #             {
+        #                 "available": "0.00000046",
+        #                 "ccy": "USDT",
+        #                 "frozen": "0"
+        #             }
+        #         ],
+        #         "message": "OK"
+        #     }
         #
         result = {'info': response}
-        balances = self.safe_value(response, 'data', {})
+        balances = self.safe_list(response, 'data', [])
         for i in range(0, len(balances)):
-            balance = balances[i]
-            currencyId = self.safe_string(balance, 'asset')
+            entry = balances[i]
+            currencyId = self.safe_string(entry, 'ccy')
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['free'] = self.safe_string(balance, 'available')
-            frozen = self.safe_string(balance, 'frozen')
-            locked = self.safe_string(balance, 'lock')
-            account['used'] = Precise.string_add(frozen, locked)
+            account['free'] = self.safe_string(entry, 'available')
+            account['used'] = self.safe_string(entry, 'frozen')
             result[code] = account
         return self.safe_balance(result)
 
     def fetch_balance(self, params={}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
-        :see: https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account001_account_info         # spot
-        :see: https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account004_investment_balance   # financial
-        :see: https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account006_margin_account       # margin
-        :see: https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http016_asset_query       # swap
+        :see: https://docs.coinex.com/api/v2/assets/balance/http/get-spot-balance         # spot
+        :see: https://docs.coinex.com/api/v2/assets/balance/http/get-futures-balance      # swap
+        :see: https://docs.coinex.com/api/v2/assets/balance/http/get-marigin-balance      # margin
+        :see: https://docs.coinex.com/api/v2/assets/balance/http/get-financial-balance    # financial
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.type]: 'margin', 'swap', 'financial', or 'spot'
         :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
@@ -5447,7 +5402,10 @@ class coinex(Exchange, ImplicitAPI):
                 self.check_required_credentials()
                 query = self.keysort(query)
                 urlencoded = self.rawencode(query)
-                preparedString = method + '/' + version + '/' + path + '?' + urlencoded + nonce + self.secret
+                preparedString = method + '/' + version + '/' + path
+                if urlencoded:
+                    preparedString += '?' + urlencoded
+                preparedString += nonce + self.secret
                 signature = self.hash(self.encode(preparedString), 'sha256')
                 headers = {
                     'X-COINEX-KEY': self.apiKey,
@@ -5455,7 +5413,8 @@ class coinex(Exchange, ImplicitAPI):
                     'X-COINEX-TIMESTAMP': nonce,
                 }
                 if (method == 'GET') or (method == 'DELETE') or (method == 'PUT'):
-                    url += '?' + urlencoded
+                    if urlencoded:
+                        url += '?' + urlencoded
                 else:
                     body = self.json(query)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}

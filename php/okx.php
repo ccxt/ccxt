@@ -7798,7 +7798,7 @@ class okx extends Exchange {
         //     }
         //
         $rows = $this->safe_list($response, 'data', array());
-        return $this->parse_conversions($rows, 'baseCcy', 'quoteCcy', $since, $limit);
+        return $this->parse_conversions($rows, $code, 'baseCcy', 'quoteCcy', $since, $limit);
     }
 
     public function parse_conversion($conversion, ?array $fromCurrency = null, ?array $toCurrency = null): Conversion {

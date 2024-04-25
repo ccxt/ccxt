@@ -12565,7 +12565,7 @@ class binance extends Exchange {
             //
         }
         $rows = $this->safe_list($response, $responseQuery, array());
-        return $this->parse_conversions($rows, $fromCurrencyKey, $toCurrencyKey, $since, $limit);
+        return $this->parse_conversions($rows, $code, $fromCurrencyKey, $toCurrencyKey, $since, $limit);
     }
 
     public function parse_conversion($conversion, ?array $fromCurrency = null, ?array $toCurrency = null): Conversion {

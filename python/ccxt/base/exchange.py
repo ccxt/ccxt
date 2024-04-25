@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.3.7'
+__version__ = '4.3.8'
 
 # -----------------------------------------------------------------------------
 
@@ -5683,7 +5683,7 @@ class Exchange(object):
     def parse_leverage(self, leverage, market: Market = None):
         raise NotSupported(self.id + ' parseLeverage() is not supported yet')
 
-    def parse_conversions(self, conversions: List[Any], fromCurrencyKey: Str = None, toCurrencyKey: Str = None, since: Int = None, limit: Int = None, params={}):
+    def parse_conversions(self, conversions: List[Any], code: Str = None, fromCurrencyKey: Str = None, toCurrencyKey: Str = None, since: Int = None, limit: Int = None, params={}):
         conversions = self.to_array(conversions)
         result = []
         fromCurrency = None
@@ -5699,8 +5699,16 @@ class Exchange(object):
             conversion = self.extend(self.parseConversion(entry, fromCurrency, toCurrency), params)
             result.append(conversion)
         sorted = self.sort_by(result, 'timestamp')
-        code = fromCurrency['code'] if (fromCurrency is not None) else None
-        return self.filter_by_currency_since_limit(sorted, code, since, limit)
+        currency = None
+        if code is not None:
+            currency = self.currency(code)
+            code = currency['code']
+        if code is None:
+            return self.filter_by_since_limit(sorted, since, limit)
+        fromConversion = self.filter_by(sorted, 'fromCurrency', code)
+        toConversion = self.filter_by(sorted, 'toCurrency', code)
+        both = self.array_concat(fromConversion, toConversion)
+        return self.filter_by_since_limit(both, since, limit)
 
     def parse_conversion(self, conversion, fromCurrency: Currency = None, toCurrency: Currency = None):
         raise NotSupported(self.id + ' parseConversion() is not supported yet')

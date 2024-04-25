@@ -7397,7 +7397,7 @@ class okx(Exchange, ImplicitAPI):
         #     }
         #
         rows = self.safe_list(response, 'data', [])
-        return self.parse_conversions(rows, 'baseCcy', 'quoteCcy', since, limit)
+        return self.parse_conversions(rows, code, 'baseCcy', 'quoteCcy', since, limit)
 
     def parse_conversion(self, conversion, fromCurrency: Currency = None, toCurrency: Currency = None) -> Conversion:
         #

@@ -8062,7 +8062,7 @@ class bitget(Exchange, ImplicitAPI):
         #
         data = self.safe_dict(response, 'data', {})
         dataList = self.safe_list(data, 'dataList', [])
-        return self.parse_conversions(dataList, 'fromCoin', 'toCoin', since, limit)
+        return self.parse_conversions(dataList, code, 'fromCoin', 'toCoin', since, limit)
 
     def parse_conversion(self, conversion, fromCurrency: Currency = None, toCurrency: Currency = None) -> Conversion:
         #

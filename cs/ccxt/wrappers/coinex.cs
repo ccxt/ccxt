@@ -262,10 +262,10 @@ public partial class coinex
     /// query for balance and get the amount of funds available for trading or funds locked in orders
     /// </summary>
     /// <remarks>
-    /// See <see href="https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account001_account_info"/>  <br/>
-    /// See <see href="https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account004_investment_balance"/>  <br/>
-    /// See <see href="https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account006_margin_account"/>  <br/>
-    /// See <see href="https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http016_asset_query"/>  <br/>
+    /// See <see href="https://docs.coinex.com/api/v2/assets/balance/http/get-spot-balance"/>  <br/>
+    /// See <see href="https://docs.coinex.com/api/v2/assets/balance/http/get-futures-balance"/>  <br/>
+    /// See <see href="https://docs.coinex.com/api/v2/assets/balance/http/get-marigin-balance"/>  <br/>
+    /// See <see href="https://docs.coinex.com/api/v2/assets/balance/http/get-financial-balance"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>

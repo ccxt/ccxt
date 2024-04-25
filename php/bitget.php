@@ -8472,7 +8472,7 @@ class bitget extends Exchange {
         //
         $data = $this->safe_dict($response, 'data', array());
         $dataList = $this->safe_list($data, 'dataList', array());
-        return $this->parse_conversions($dataList, 'fromCoin', 'toCoin', $since, $limit);
+        return $this->parse_conversions($dataList, $code, 'fromCoin', 'toCoin', $since, $limit);
     }
 
     public function parse_conversion($conversion, ?array $fromCurrency = null, ?array $toCurrency = null): Conversion {

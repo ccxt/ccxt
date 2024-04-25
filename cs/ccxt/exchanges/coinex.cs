@@ -1445,86 +1445,59 @@ public partial class coinex : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object symbol = this.safeString(parameters, "symbol");
-        object marketId = this.safeString(parameters, "market");
-        object market = null;
-        if (isTrue(!isEqual(symbol, null)))
-        {
-            market = this.market(symbol);
-            marketId = getValue(market, "id");
-        } else if (isTrue(isEqual(marketId, null)))
-        {
-            throw new ArgumentsRequired ((string)add(this.id, " fetchMarginBalance() fetching a margin account requires a market parameter or a symbol parameter")) ;
-        }
-        parameters = this.omit(parameters, new List<object>() {"symbol", "market"});
-        object request = new Dictionary<string, object>() {
-            { "market", marketId },
-        };
-        object response = await this.v1PrivateGetMarginAccount(this.extend(request, parameters));
+        object response = await this.v2PrivateGetAssetsMarginBalance(parameters);
         //
-        //      {
-        //          "code":    0,
-        //           "data": {
-        //              "account_id":    126,
-        //              "leverage":    3,
-        //              "market_type":   "AAVEUSDT",
-        //              "sell_asset_type":   "AAVE",
-        //              "buy_asset_type":   "USDT",
-        //              "balance": {
-        //                  "sell_type": "0.3",     // borrowed
-        //                  "buy_type": "30"
-        //                  },
-        //              "frozen": {
-        //                  "sell_type": "0",
-        //                  "buy_type": "0"
-        //                  },
-        //              "loan": {
-        //                  "sell_type": "0.3", // loan
-        //                  "buy_type": "0"
-        //                  },
-        //              "interest": {
-        //                  "sell_type": "0.0000125",
-        //                  "buy_type": "0"
-        //                  },
-        //              "can_transfer": {
-        //                  "sell_type": "0.02500646",
-        //                  "buy_type": "4.28635738"
-        //                  },
-        //              "warn_rate":   "",
-        //              "liquidation_price":   ""
-        //              },
-        //          "message": "Success"
-        //      }
+        //     {
+        //         "data": [
+        //             {
+        //                 "margin_account": "BTCUSDT",
+        //                 "base_ccy": "BTC",
+        //                 "quote_ccy": "USDT",
+        //                 "available": {
+        //                     "base_ccy": "0.00000026",
+        //                     "quote_ccy": "0"
+        //                 },
+        //                 "frozen": {
+        //                     "base_ccy": "0",
+        //                     "quote_ccy": "0"
+        //                 },
+        //                 "repaid": {
+        //                     "base_ccy": "0",
+        //                     "quote_ccy": "0"
+        //                 },
+        //                 "interest": {
+        //                     "base_ccy": "0",
+        //                     "quote_ccy": "0"
+        //                 },
+        //                 "rik_rate": "",
+        //                 "liq_price": ""
+        //             },
+        //         ],
+        //         "code": 0,
+        //         "message": "OK"
+        //     }
         //
         object result = new Dictionary<string, object>() {
             { "info", response },
         };
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object free = this.safeValue(data, "can_transfer", new Dictionary<string, object>() {});
-        object total = this.safeValue(data, "balance", new Dictionary<string, object>() {});
-        object loan = this.safeValue(data, "loan", new Dictionary<string, object>() {});
-        object interest = this.safeValue(data, "interest", new Dictionary<string, object>() {});
-        //
-        object sellAccount = this.account();
-        object sellCurrencyId = this.safeString(data, "sell_asset_type");
-        object sellCurrencyCode = this.safeCurrencyCode(sellCurrencyId);
-        ((IDictionary<string,object>)sellAccount)["free"] = this.safeString(free, "sell_type");
-        ((IDictionary<string,object>)sellAccount)["total"] = this.safeString(total, "sell_type");
-        object sellDebt = this.safeString(loan, "sell_type");
-        object sellInterest = this.safeString(interest, "sell_type");
-        ((IDictionary<string,object>)sellAccount)["debt"] = Precise.stringAdd(sellDebt, sellInterest);
-        ((IDictionary<string,object>)result)[(string)sellCurrencyCode] = sellAccount;
-        //
-        object buyAccount = this.account();
-        object buyCurrencyId = this.safeString(data, "buy_asset_type");
-        object buyCurrencyCode = this.safeCurrencyCode(buyCurrencyId);
-        ((IDictionary<string,object>)buyAccount)["free"] = this.safeString(free, "buy_type");
-        ((IDictionary<string,object>)buyAccount)["total"] = this.safeString(total, "buy_type");
-        object buyDebt = this.safeString(loan, "buy_type");
-        object buyInterest = this.safeString(interest, "buy_type");
-        ((IDictionary<string,object>)buyAccount)["debt"] = Precise.stringAdd(buyDebt, buyInterest);
-        ((IDictionary<string,object>)result)[(string)buyCurrencyCode] = buyAccount;
-        //
+        object balances = this.safeList(response, "data", new List<object>() {});
+        for (object i = 0; isLessThan(i, getArrayLength(balances)); postFixIncrement(ref i))
+        {
+            object entry = getValue(balances, i);
+            object free = this.safeDict(entry, "available", new Dictionary<string, object>() {});
+            object used = this.safeDict(entry, "frozen", new Dictionary<string, object>() {});
+            object loan = this.safeDict(entry, "repaid", new Dictionary<string, object>() {});
+            object interest = this.safeDict(entry, "interest", new Dictionary<string, object>() {});
+            object baseAccount = this.account();
+            object baseCurrencyId = this.safeString(entry, "base_ccy");
+            object baseCurrencyCode = this.safeCurrencyCode(baseCurrencyId);
+            ((IDictionary<string,object>)baseAccount)["free"] = this.safeString(free, "base_ccy");
+            ((IDictionary<string,object>)baseAccount)["used"] = this.safeString(used, "base_ccy");
+            object baseDebt = this.safeString(loan, "base_ccy");
+            object baseInterest = this.safeString(interest, "base_ccy");
+            ((IDictionary<string,object>)baseAccount)["debt"] = Precise.stringAdd(baseDebt, baseInterest);
+            ((IDictionary<string,object>)result)[(string)baseCurrencyCode] = baseAccount;
+        }
         return this.safeBalance(result);
     }
 
@@ -1532,40 +1505,32 @@ public partial class coinex : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object response = await this.v1PrivateGetBalanceInfo(parameters);
+        object response = await this.v2PrivateGetAssetsSpotBalance(parameters);
         //
         //     {
-        //       "code": 0,
-        //       "data": {
-        //         "BCH": {                     # BCH account
-        //           "available": "13.60109",   # Available BCH
-        //           "frozen": "0.00000"        # Frozen BCH
-        //         },
-        //         "BTC": {                     # BTC account
-        //           "available": "32590.16",   # Available BTC
-        //           "frozen": "7000.00"        # Frozen BTC
-        //         },
-        //         "ETH": {                     # ETH account
-        //           "available": "5.06000",    # Available ETH
-        //           "frozen": "0.00000"        # Frozen ETH
-        //         }
-        //       },
-        //       "message": "Ok"
+        //         "code": 0,
+        //         "data": [
+        //             {
+        //                 "available": "0.00000046",
+        //                 "ccy": "USDT",
+        //                 "frozen": "0"
+        //             }
+        //         ],
+        //         "message": "OK"
         //     }
         //
         object result = new Dictionary<string, object>() {
             { "info", response },
         };
-        object balances = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object currencyIds = new List<object>(((IDictionary<string,object>)balances).Keys);
-        for (object i = 0; isLessThan(i, getArrayLength(currencyIds)); postFixIncrement(ref i))
+        object balances = this.safeList(response, "data", new List<object>() {});
+        for (object i = 0; isLessThan(i, getArrayLength(balances)); postFixIncrement(ref i))
         {
-            object currencyId = getValue(currencyIds, i);
+            object entry = getValue(balances, i);
+            object currencyId = this.safeString(entry, "ccy");
             object code = this.safeCurrencyCode(currencyId);
-            object balance = this.safeValue(balances, currencyId, new Dictionary<string, object>() {});
             object account = this.account();
-            ((IDictionary<string,object>)account)["free"] = this.safeString(balance, "available");
-            ((IDictionary<string,object>)account)["used"] = this.safeString(balance, "frozen");
+            ((IDictionary<string,object>)account)["free"] = this.safeString(entry, "available");
+            ((IDictionary<string,object>)account)["used"] = this.safeString(entry, "frozen");
             ((IDictionary<string,object>)result)[(string)code] = account;
         }
         return this.safeBalance(result);
@@ -1575,37 +1540,35 @@ public partial class coinex : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object response = await this.v1PerpetualPrivateGetAssetQuery(parameters);
+        object response = await this.v2PrivateGetAssetsFuturesBalance(parameters);
         //
         //     {
         //         "code": 0,
-        //         "data": {
-        //             "USDT": {
-        //                 "available": "37.24817690383456000000",
-        //                 "balance_total": "37.24817690383456000000",
-        //                 "frozen": "0.00000000000000000000",
-        //                 "margin": "0.00000000000000000000",
-        //                 "profit_unreal": "0.00000000000000000000",
-        //                 "transfer": "37.24817690383456000000"
+        //         "data": [
+        //             {
+        //                 "available": "0.00000046",
+        //                 "ccy": "USDT",
+        //                 "frozen": "0",
+        //                 "margin": "0",
+        //                 "transferrable": "0.00000046",
+        //                 "unrealized_pnl": "0"
         //             }
-        //         },
+        //         ],
         //         "message": "OK"
         //     }
         //
         object result = new Dictionary<string, object>() {
             { "info", response },
         };
-        object balances = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object currencyIds = new List<object>(((IDictionary<string,object>)balances).Keys);
-        for (object i = 0; isLessThan(i, getArrayLength(currencyIds)); postFixIncrement(ref i))
+        object balances = this.safeList(response, "data", new List<object>() {});
+        for (object i = 0; isLessThan(i, getArrayLength(balances)); postFixIncrement(ref i))
         {
-            object currencyId = getValue(currencyIds, i);
+            object entry = getValue(balances, i);
+            object currencyId = this.safeString(entry, "ccy");
             object code = this.safeCurrencyCode(currencyId);
-            object balance = this.safeValue(balances, currencyId, new Dictionary<string, object>() {});
             object account = this.account();
-            ((IDictionary<string,object>)account)["free"] = this.safeString(balance, "available");
-            ((IDictionary<string,object>)account)["used"] = this.safeString(balance, "frozen");
-            ((IDictionary<string,object>)account)["total"] = this.safeString(balance, "balance_total");
+            ((IDictionary<string,object>)account)["free"] = this.safeString(entry, "available");
+            ((IDictionary<string,object>)account)["used"] = this.safeString(entry, "frozen");
             ((IDictionary<string,object>)result)[(string)code] = account;
         }
         return this.safeBalance(result);
@@ -1615,41 +1578,32 @@ public partial class coinex : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object response = await this.v1PrivateGetAccountInvestmentBalance(parameters);
+        object response = await this.v2PrivateGetAssetsFinancialBalance(parameters);
         //
         //     {
-        //          "code": 0,
-        //          "data": [
-        //              {
-        //                  "asset": "CET",
-        //                  "available": "0",
-        //                  "frozen": "0",
-        //                  "lock": "0",
-        //              },
-        //              {
-        //                  "asset": "USDT",
-        //                  "available": "999900",
-        //                  "frozen": "0",
-        //                  "lock": "0"
-        //              }
-        //          ],
-        //          "message": "Success"
-        //      }
+        //         "code": 0,
+        //         "data": [
+        //             {
+        //                 "available": "0.00000046",
+        //                 "ccy": "USDT",
+        //                 "frozen": "0"
+        //             }
+        //         ],
+        //         "message": "OK"
+        //     }
         //
         object result = new Dictionary<string, object>() {
             { "info", response },
         };
-        object balances = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        object balances = this.safeList(response, "data", new List<object>() {});
         for (object i = 0; isLessThan(i, getArrayLength(balances)); postFixIncrement(ref i))
         {
-            object balance = getValue(balances, i);
-            object currencyId = this.safeString(balance, "asset");
+            object entry = getValue(balances, i);
+            object currencyId = this.safeString(entry, "ccy");
             object code = this.safeCurrencyCode(currencyId);
             object account = this.account();
-            ((IDictionary<string,object>)account)["free"] = this.safeString(balance, "available");
-            object frozen = this.safeString(balance, "frozen");
-            object locked = this.safeString(balance, "lock");
-            ((IDictionary<string,object>)account)["used"] = Precise.stringAdd(frozen, locked);
+            ((IDictionary<string,object>)account)["free"] = this.safeString(entry, "available");
+            ((IDictionary<string,object>)account)["used"] = this.safeString(entry, "frozen");
             ((IDictionary<string,object>)result)[(string)code] = account;
         }
         return this.safeBalance(result);
@@ -1661,10 +1615,10 @@ public partial class coinex : Exchange
         * @method
         * @name coinex#fetchBalance
         * @description query for balance and get the amount of funds available for trading or funds locked in orders
-        * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account001_account_info         // spot
-        * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account004_investment_balance   // financial
-        * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account006_margin_account       // margin
-        * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http016_asset_query       // swap
+        * @see https://docs.coinex.com/api/v2/assets/balance/http/get-spot-balance         // spot
+        * @see https://docs.coinex.com/api/v2/assets/balance/http/get-futures-balance      // swap
+        * @see https://docs.coinex.com/api/v2/assets/balance/http/get-marigin-balance      // margin
+        * @see https://docs.coinex.com/api/v2/assets/balance/http/get-financial-balance    // financial
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {string} [params.type] 'margin', 'swap', 'financial', or 'spot'
         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
@@ -6120,7 +6074,12 @@ public partial class coinex : Exchange
                 this.checkRequiredCredentials();
                 query = this.keysort(query);
                 object urlencoded = this.rawencode(query);
-                object preparedString = add(add(add(add(add(add(add(add(method, "/"), version), "/"), path), "?"), urlencoded), nonce), this.secret);
+                object preparedString = add(add(add(add(method, "/"), version), "/"), path);
+                if (isTrue(urlencoded))
+                {
+                    preparedString = add(preparedString, add("?", urlencoded));
+                }
+                preparedString = add(preparedString, add(nonce, this.secret));
                 object signature = this.hash(this.encode(preparedString), sha256);
                 headers = new Dictionary<string, object>() {
                     { "X-COINEX-KEY", this.apiKey },
@@ -6129,7 +6088,10 @@ public partial class coinex : Exchange
                 };
                 if (isTrue(isTrue(isTrue((isEqual(method, "GET"))) || isTrue((isEqual(method, "DELETE")))) || isTrue((isEqual(method, "PUT")))))
                 {
-                    url = add(url, add("?", urlencoded));
+                    if (isTrue(urlencoded))
+                    {
+                        url = add(url, add("?", urlencoded));
+                    }
                 } else
                 {
                     body = this.json(query);

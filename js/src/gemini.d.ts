@@ -45,7 +45,7 @@ export default class gemini extends Exchange {
         info: any;
     };
     fetchDepositAddress(code: string, params?: {}): Promise<any>;
-    fetchDepositAddressesByNetwork(code: string, params?: {}): Promise<{}>;
+    fetchDepositAddressesByNetwork(code: string, params?: {}): Promise<import("./base/types.js").Dictionary<any>>;
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;
         method: string;
