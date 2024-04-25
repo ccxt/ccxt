@@ -1134,7 +1134,7 @@ export default class cex extends cexRest {
         const messageHash = 'ohlcv:' + symbol;
         const data = this.safeValue (message, 'data', []);
         const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
-        const stored = new ArrayCacheByTimestamp (limit);
+        const stored = new ArrayCacheByTimestamp<OHLCV> (limit);
         const sorted = this.sortBy (data, 0);
         for (let i = 0; i < sorted.length; i++) {
             stored.append (this.parseOHLCV (sorted[i], market));

@@ -247,12 +247,12 @@ export default class Exchange {
     orderbooks: Dictionary<Ob>   = {}
     tickers: Dictionary<Ticker>      = {}
     bidsasks: Dictionary<Ticker>     = {}
-    orders: ArrayCache       = undefined
-    triggerOrders: ArrayCache = undefined
-    trades: Dictionary<ArrayCache>
+    orders: ArrayCache<Order>       = undefined
+    triggerOrders: ArrayCache<Order> = undefined
+    trades: Dictionary<ArrayCache<Trade>>
     transactions = {}
-    ohlcvs: Dictionary<Dictionary<ArrayCacheByTimestamp>>
-    myTrades: ArrayCache;
+    ohlcvs: Dictionary<Dictionary<ArrayCacheByTimestamp<OHLCV>>>
+    myTrades: ArrayCache<Trade>;
     positions: any;
     urls: {
         logo?: string;

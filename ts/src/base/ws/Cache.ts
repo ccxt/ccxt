@@ -1,11 +1,11 @@
 /* eslint-disable max-classes-per-file */
 // @ts-nocheck
 
-interface CustomArray extends Array {
+interface CustomArray<T> extends Array<T> {
     hashmap: object;
 }
 
-class BaseCache extends Array {
+class BaseCache<T> extends Array<T> {
 
     constructor (maxSize = undefined) {
         super ()
@@ -21,7 +21,7 @@ class BaseCache extends Array {
     }
 }
 
-class ArrayCache extends BaseCache implements CustomArray {
+class ArrayCache<T> extends BaseCache<T> implements CustomArray<T> {
 
     hashmap: object = {};
 
@@ -104,7 +104,7 @@ class ArrayCache extends BaseCache implements CustomArray {
     }
 }
 
-class ArrayCacheByTimestamp extends BaseCache {
+class ArrayCacheByTimestamp<T> extends BaseCache<T> {
 
     constructor (maxSize = undefined) {
         super (maxSize)
@@ -164,7 +164,7 @@ class ArrayCacheByTimestamp extends BaseCache {
     }
 }
 
-class ArrayCacheBySymbolById extends ArrayCache {
+class ArrayCacheBySymbolById<T> extends ArrayCache<T> {
 
     constructor (maxSize = undefined) {
         super (maxSize)
@@ -219,7 +219,7 @@ class ArrayCacheBySymbolById extends ArrayCache {
     }
 }
 
-class ArrayCacheBySymbolBySide extends ArrayCache {
+class ArrayCacheBySymbolBySide<T> extends ArrayCache<T> {
 
     constructor () {
         super ()

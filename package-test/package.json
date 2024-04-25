@@ -2,11 +2,20 @@
   "name": "package-test",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "test.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "test:ts": "tsc",
+    "test:ts:esnext": "tsc -p tsconfig.esnext.json"
   },
   "keywords": [],
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "types": "./test.d.ts",
+  "dependencies": {
+    "ccxt": "file:ccxt-4.3.6.tgz"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.5"
+  }
 }

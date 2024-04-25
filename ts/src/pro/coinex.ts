@@ -401,7 +401,7 @@ export default class coinex extends coinexRest {
         if (keysLength === 0) {
             this.ohlcvs['unknown'] = {};
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
-            const stored = new ArrayCacheByTimestamp (limit);
+            const stored = new ArrayCacheByTimestamp<OHLCV> (limit);
             this.ohlcvs['unknown']['unknown'] = stored;
         }
         const ohlcv = this.ohlcvs['unknown']['unknown'];

@@ -126,7 +126,7 @@ export default class whitebit extends whitebitRest {
             // let stored = this.ohlcvs[symbol]['unknown']; // we don't know the timeframe but we need to respect the type
             if (!('unknown' in this.ohlcvs[symbol])) {
                 const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
-                const stored = new ArrayCacheByTimestamp (limit);
+                const stored = new ArrayCacheByTimestamp<OHLCV> (limit);
                 this.ohlcvs[symbol]['unknown'] = stored;
             }
             const ohlcv = this.ohlcvs[symbol]['unknown'];

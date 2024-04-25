@@ -315,7 +315,7 @@ export default class bithumb extends bithumbRest {
             const symbol = this.safeSymbol (marketId, undefined, '_');
             if (!(symbol in this.trades)) {
                 const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
-                const stored = new ArrayCache (limit);
+                const stored = new ArrayCache<Trade> (limit);
                 this.trades[symbol] = stored;
             }
             const trades = this.trades[symbol];

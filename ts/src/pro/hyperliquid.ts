@@ -275,7 +275,7 @@ export default class hyperliquid extends hyperliquidRest {
         const symbol = market['symbol'];
         if (!(symbol in this.trades)) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
-            const stored = new ArrayCache (limit);
+            const stored = new ArrayCache<Trade> (limit);
             this.trades[symbol] = stored;
         }
         const trades = this.trades[symbol];
@@ -413,7 +413,7 @@ export default class hyperliquid extends hyperliquidRest {
         }
         if (!(timeframe in this.ohlcvs[symbol])) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
-            const stored = new ArrayCacheByTimestamp (limit);
+            const stored = new ArrayCacheByTimestamp<OHLCV> (limit);
             this.ohlcvs[symbol][timeframe] = stored;
         }
         const ohlcv = this.ohlcvs[symbol][timeframe];
