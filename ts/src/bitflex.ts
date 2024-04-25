@@ -21,7 +21,7 @@ export default class bitflex extends Exchange {
             'name': 'Bitflex',
             'countries': [ 'SC' ], // Seychelles
             'version': 'v1', // todo
-            'rateLimit': 300, // todo: find out the real ratelimit
+            'rateLimit': 300, // todo find out the real ratelimit
             'pro': true,
             'has': {
                 'CORS': undefined,
@@ -29,9 +29,9 @@ export default class bitflex extends Exchange {
                 'margin': false,
                 'swap': true,
                 'future': false,
-                'option': true, // todo: check
+                'option': false, // todo check
                 'addMargin': true,
-                'cancelAllOrders': false,
+                'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createDepositAddress': false,
                 'createOrder': true,
@@ -78,8 +78,8 @@ export default class bitflex extends Exchange {
                 'fetchWithdrawal': true,
                 'fetchWithdrawals': true,
                 'reduceMargin': true,
-                'transfer': true,
                 'setLeverage': true,
+                'transfer': true,
                 'withdraw': true,
             },
             'timeframes': {
@@ -159,11 +159,16 @@ export default class bitflex extends Exchange {
                         'openapi/contract/v1/order': 1, // implemented
                         'openapi/contract/v1/modifyMargin': 1, // implemented
                         'openapi/contract/v1/modifyLeverage': 1, // implemented
+                        'openapi/v1/userDataStream': 1,
+                    },
+                    'put': {
+                        'openapi/v1/userDataStream': 1,
                     },
                     'delete': {
                         'openapi/v1/order': 1, // implemented
                         'openapi/contract/v1/order/cancel': 1, // implemented
                         'openapi/contract/v1/order/batchCancel': 1,
+                        'openapi/v1/userDataStream': 1,
                     },
                 },
             },
@@ -198,6 +203,29 @@ export default class bitflex extends Exchange {
             },
             'exceptions': {
                 'exact': {
+                    // 400 {"code":-1130,"msg":"Data sent for paramter \u0027type\u0027 is not valid."}
+                    // 400 {"code":-100012,"msg":"Parameter symbol [String] missing!"}
+                    // 400 {"code":-100012,"msg":"Parameter interval [String] missing!"}
+                    // 400 {"code":-1140,"msg":"Transaction amount lower than the minimum."}
+                    // 400 {"code":-1131,"msg":"Balance insufficient "}
+                    // 400 {"code":-100002,"msg":"Param limit should be int."}
+                    // 400 {"code":-1156,"msg":"Order quantity invalid"} - reduceOnly order for already closed position
+                    // 400 {"code":-1004,"msg":"Missing required parameter \u0027symbol\u0027"}
+                    // 400 {"code":-1001,"msg":"Internal error."}
+                    // 400 {"code":-1130,"msg":"Data sent for paramter \u0027leverage\u0027 is not valid."}
+                    // 400 {"code":-1162,"msg":"Modify position leverage error"}
+                    // 400 {"code":-1155,"msg":"Invalid position side"}
+                    // 400 {"code":-1000,"msg":"An unknown error occured while processing the request."}
+                    // 400 {"code":-1187,"msg":"Withdrawal address not in whitelist"}
+                    // 400 {"code":-1023,"msg":"Please set IP whitelist before using API"}
+                    // 400 {"code":-1022,"msg":"Signature for this request is not valid."}
+                    // 400 {"code":-10009,"msg":"Invalid period!"}
+                    // 400 {"code":-100002,"msg":"Param startTime should be Long."}
+                    // 400 {"code":-1173,"msg":"Withdraw address illegal."}
+                    // 500 {"code":-9999,"msg":"Server Error"}
+                    // {"code":-1149,"msg":"Create order failed"}
+                    // {"code":-1130,"msg":"Data sent for paramter \u0027overPrice\u0027 is not valid."}
+
                     // 400 {"code":-1130,"msg":"Data sent for paramter \u0027type\u0027 is not valid."}
                     // 400 {"code":-100012,"msg":"Parameter symbol [String] missing!"}
                     // 400 {"code":-100012,"msg":"Parameter interval [String] missing!"}
@@ -563,7 +591,7 @@ export default class bitflex extends Exchange {
         //
         const spotMarkets = this.safeList (response, 'symbols', []);
         const parsedSpotMarkets = this.parseMarkets (spotMarkets);
-        const contractMarkets = this.safeList (response, 'contracts', []); // todo check if contracts are futures
+        const contractMarkets = this.safeList (response, 'contracts', []);
         const parsedContractMarkets = this.parseMarkets (contractMarkets);
         const optionMarkets = this.safeList (response, 'options', []); // options are not supported yet, returns empty list
         const parsedOptionMarkets = this.parseMarkets (optionMarkets);
@@ -1166,10 +1194,8 @@ export default class bitflex extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        let type = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
         let response = undefined;
-        if (type === 'spot') {
+        if (market['spot']) {
             response = await this.publicGetOpenapiQuoteV1Ticker24hr (this.extend (request, params));
         //
         //     {
@@ -1185,7 +1211,7 @@ export default class bitflex extends Exchange {
         //         "openPrice": "63364.98"
         //     }
         //
-        } else if (type === 'swap') {
+        } else if (market['swap']) {
             response = await this.publicGetOpenapiQuoteV1ContractTicker24hr (this.extend (request, params));
         }
         //
@@ -1533,6 +1559,7 @@ export default class bitflex extends Exchange {
          * @param {string} [params.newClientOrderId] *spot only* a unique id for the order
          * @param {string} [params.orderType] *swap only* 'LIMIT' or 'STOP'
          * @param {string} [params.priceType] *swap only* 'INPUT' (Default), 'OPPONENT', 'QUEUE', 'OVER' and 'MARKET'
+         * @param {string} [params.overPrice] *swap OVER only* price will be the best opposite quote + overPrice
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -1657,11 +1684,12 @@ export default class bitflex extends Exchange {
          * EXCHANGE SPECIFIC PARAMETERS
          * @param {string} [params.orderType] 'LIMIT' or 'STOP'
          * @param {string} [params.priceType] 'INPUT' (Default), 'OPPONENT', 'QUEUE', 'OVER' and 'MARKET'
+         * @param {string} [params.overPrice] *swap OVER only* price will be the best opposite quote + overPrice
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'newClientOrderId');
         if (clientOrderId === undefined) {
-            throw new ArgumentsRequired (this.id + ' createOrder() requires a params.clientOrderId parameter'); // the exchange requires a unique clientOrderId for each order
+            throw new ArgumentsRequired (this.id + ' createOrder() requires a params.clientOrderId parameter for swap orders'); // the exchange requires a unique clientOrderId for each swap order
         }
         params = this.omit (params, [ 'clientOrderId', 'newClientOrderId' ]);
         const symbol = market['symbol'];
@@ -1734,7 +1762,6 @@ export default class bitflex extends Exchange {
     parseOrder (order, market: Market = undefined): Order {
         //
         // spot: createOrder
-        //
         //     {
         //         "accountId": "1662502620223296001",
         //         "symbol": "ETHUSDT",
@@ -1752,8 +1779,6 @@ export default class bitflex extends Exchange {
         //     }
         //
         // swap: createOrder
-        //
-        //
         //     {
         //         "time": "1713648762414",
         //         "updateTime": "1713648762414",
@@ -1776,7 +1801,6 @@ export default class bitflex extends Exchange {
         //     }
         //
         // spot: fetchOrder
-        //
         //     {
         //         "accountId": "1662502620223296001",
         //         "exchangeId": "301",
@@ -1801,7 +1825,6 @@ export default class bitflex extends Exchange {
         //     }
         //
         // swap: fetchOrder
-        //
         //     {
         //         "time": "1713644180835",
         //         "updateTime": "1713644180876",
@@ -1824,62 +1847,52 @@ export default class bitflex extends Exchange {
         //     }
         //
         // spot: fetchCanceledAndClosedOrders
+        //     {
+        //         "accountId": "1662502620223296001",
+        //         "exchangeId": "301",
+        //         "symbol": "ETHUSDT",
+        //         "symbolName": "ETHUSDT",
+        //         "clientOrderId": "1713531483905247",
+        //         "orderId": "1667617386700800256",
+        //         "price": "0",
+        //         "origQty": "0.001",
+        //         "executedQty": "0.001",
+        //         "cummulativeQuoteQty": "3.09928",
+        //         "avgPrice": "3099.28",
+        //         "status": "FILLED",
+        //         "timeInForce": "GTC",
+        //         "type": "MARKET",
+        //         "side": "SELL",
+        //         "stopPrice": "0.0",
+        //         "icebergQty": "0.0",
+        //         "time": "1713531483914",
+        //         "updateTime": "1713531483961",
+        //         "isWorking": true
+        //     }
         //
-        //     [
-        //         {
-        //             "accountId": "1662502620223296001",
-        //             "exchangeId": "301",
-        //             "symbol": "ETHUSDT",
-        //             "symbolName": "ETHUSDT",
-        //             "clientOrderId": "1713531483905247",
-        //             "orderId": "1667617386700800256",
-        //             "price": "0",
-        //             "origQty": "0.001",
-        //             "executedQty": "0.001",
-        //             "cummulativeQuoteQty": "3.09928",
-        //             "avgPrice": "3099.28",
-        //             "status": "FILLED",
-        //             "timeInForce": "GTC",
-        //             "type": "MARKET",
-        //             "side": "SELL",
-        //             "stopPrice": "0.0",
-        //             "icebergQty": "0.0",
-        //             "time": "1713531483914",
-        //             "updateTime": "1713531483961",
-        //             "isWorking": true
-        //         },
-        //         ...
-        //     ]
-        //
-        // swap: fetchCanceledAndCloseOrders
-        //
-        //
-        //     [
-        //         {
-        //             "time": "1713644180835",
-        //             "updateTime": "1713644180876",
-        //             "orderId": "1668562756977053184",
-        //             "clientOrderId": "123ss443335",
-        //             "symbol": "ETH-SWAP-USDT",
-        //             "price": "0",
-        //             "leverage": "0",
-        //             "origQty": "0.1",
-        //             "executedQty": "0.1",
-        //             "executeQty": "0.1",
-        //             "avgPrice": "3162.28",
-        //             "marginLocked": "0",
-        //             "orderType": "MARKET",
-        //             "side": "BUY_CLOSE",
-        //             "fees": [],
-        //             "timeInForce": "IOC",
-        //             "status": "FILLED",
-        //             "priceType": "MARKET"
-        //         },
-        //         ...
-        //     ]
+        // swap: fetchCanceledAndClosedOrders
+        //     {
+        //         "time": "1713644180835",
+        //         "updateTime": "1713644180876",
+        //         "orderId": "1668562756977053184",
+        //         "clientOrderId": "123ss443335",
+        //         "symbol": "ETH-SWAP-USDT",
+        //         "price": "0",
+        //         "leverage": "0",
+        //         "origQty": "0.1",
+        //         "executedQty": "0.1",
+        //         "executeQty": "0.1",
+        //         "avgPrice": "3162.28",
+        //         "marginLocked": "0",
+        //         "orderType": "MARKET",
+        //         "side": "BUY_CLOSE",
+        //         "fees": [],
+        //         "timeInForce": "IOC",
+        //         "status": "FILLED",
+        //         "priceType": "MARKET"
+        //     }
         //
         // spot: cancelOrder
-        //
         //     {
         //         "accountId": "1662502620223296001",
         //         "symbol": "ETHUSDT",
@@ -1896,7 +1909,6 @@ export default class bitflex extends Exchange {
         //     }
         //
         // swap: cancelOrder
-        //
         //     {
         //         "time": "1713648762414",
         //         "updateTime": "1713649270107",
@@ -1934,25 +1946,27 @@ export default class bitflex extends Exchange {
         const side = this.parseOrderSide (orderSide);
         const reduceOnly = this.parseReduceOnly (orderSide);
         const price = this.omitZero (this.safeString (order, 'price'));
-        const triggerPrice = this.safeString (order, 'triggerPrice'); // todo check for swap
+        const triggerPrice = this.safeString (order, 'triggerPrice');
         const average = this.safeString (order, 'avgPrice');
-        const filled = this.safeString (order, 'executedQty'); // todo check
+        const filled = this.safeString (order, 'executedQty');
         market = this.safeMarket (marketId, market);
         let amount = this.safeString (order, 'origQty');
-        let cost = undefined;
+        let cost = this.safeString (order, 'cummulativeQuoteQty');
         if (market['spot']) {
             if ((type === 'market') && (side === 'buy')) {
-                cost = this.safeString (order, 'origQty');
+                cost = amount;
                 amount = undefined;
             }
-        }
-        if (market['contract']) {
-            const priceType = this.safeString (order, 'priceType');
-            const isMarketOrder = (priceType === 'MARKET') || (priceType === 'OPPONENT') || (priceType === 'QUEUE') || (priceType === 'OVER'); // todo check orders with 'OVER'
-            type = isMarketOrder ? 'market' : type;
+        } else if (market['contract']) { // swap order types of bitflex are LIMIT or STOP
+            if (type === 'STOP') {
+                type = 'limit'; // stop orders are always limit orders at bitflex
+            } else {
+                const priceType = this.safeString (order, 'priceType'); // to define suitable type we use priceType
+                type = this.parsePriceType (priceType);
+            }
         }
         const lastUpdateTimestamp = this.safeString (order, 'updateTime');
-        const remaining = this.safeString (order, 'executeQty'); // todo check
+        const remaining = this.safeString (order, 'executeQty');
         return this.safeOrder ({
             'id': id,
             'clientOrderId': clientOrderId,
@@ -1974,7 +1988,7 @@ export default class bitflex extends Exchange {
             'filled': filled,
             'remaining': remaining,
             'reduceOnly': reduceOnly,
-            'fee': undefined, // todo check for different types of orders
+            'fee': undefined,
             'trades': undefined,
             'info': order,
         }, market);
@@ -1992,13 +2006,24 @@ export default class bitflex extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrderType (status) {
-        const statuses = {
+    parseOrderType (type) {
+        const types = {
             'MARKET': 'market',
             'LIMIT': 'limit',
             'LIMIT_MAKER': 'limit',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (types, type, type);
+    }
+
+    parsePriceType (type) {
+        const types = {
+            'MARKET': 'market',
+            'OPPONENT': 'market',
+            'INPUT': 'limit',
+            'QUEUE': 'limit',
+            'OVER': 'limit',
+        };
+        return this.safeString (types, type, type);
     }
 
     parseOrderTimeInForce (status) {
@@ -2011,8 +2036,8 @@ export default class bitflex extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrderSide (status) {
-        const statuses = {
+    parseOrderSide (side) {
+        const sides = {
             'BUY': 'buy',
             'BUY_OPEN': 'buy',
             'BUY_CLOSE': 'buy',
@@ -2020,7 +2045,7 @@ export default class bitflex extends Exchange {
             'SELL_OPEN': 'sell',
             'SELL_CLOSE': 'sell',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (sides, side, side);
     }
 
     parseReduceOnly (orderSide) {
@@ -2037,7 +2062,7 @@ export default class bitflex extends Exchange {
         return undefined;
     }
 
-    async fetchOrder (id: string, symbol: Str = undefined, params = {}) { // todo fetchOrder for swap
+    async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name bitflex#fetchOrder
@@ -2117,7 +2142,7 @@ export default class bitflex extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async fetchCanceledAndClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) { // todo fetchOrders for swap
+    async fetchCanceledAndClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitflex#fetchCanceledAndClosedOrders
@@ -2220,7 +2245,7 @@ export default class bitflex extends Exchange {
         return this.parseOrders (response, market, since, limit);
     }
 
-    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> { // todo fetchOrders for swap
+    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name bitflex#fetchOpenOrders
@@ -2314,7 +2339,7 @@ export default class bitflex extends Exchange {
         return this.parseOrders (response, market, since, limit);
     }
 
-    async cancelOrder (id: string, symbol: Str = undefined, params = {}) { // todo cancelOrder for swap
+    async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name bitflex#cancelOrder
@@ -2389,6 +2414,31 @@ export default class bitflex extends Exchange {
         return this.parseOrder (response, market);
     }
 
+    async cancelAllOrders (symbol: Str = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitflex#cancelAllOrders
+         * @description cancel all open orders in a market
+         * @see https://docs.bitflex.com/contract#batch-cancel
+         * @param {string} symbol unified market symbol, is mandatory for bitflex
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelAllOrders requires a symbol argument');
+        }
+        const market = this.market (symbol);
+        if (market['type'] === 'spot') {
+            throw new NotSupported (this.id + ' cancelAllOrders does not support spot markets, only swap markets are accepted');
+        }
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this.privateDeleteOpenapiContractV1OrderBatchCancel (this.extend (request, params));
+        return response;
+    }
+
     async fetchAccounts (params = {}): Promise<Account[]> {
         /**
          * @method
@@ -2428,7 +2478,7 @@ export default class bitflex extends Exchange {
         //         "accountIndex": 0
         //     },
         //
-        const accountType = this.safeString (account, 'accountType'); // todo check
+        const accountType = this.safeString (account, 'accountType');
         return {
             'id': this.safeString (account, 'accountId'),
             'name': this.safeString (account, 'accountName'),
@@ -2514,7 +2564,7 @@ export default class bitflex extends Exchange {
         //         }
         //     ]
         //
-        return this.parseTransactions (response, currency, since, limit, 'deposit');
+        return this.parseTransactions (response, currency, since, limit, { 'type': 'deposit' });
     }
 
     async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
@@ -2596,7 +2646,7 @@ export default class bitflex extends Exchange {
         //         }
         //     ]
         //
-        return this.parseTransactions (response, currency, since, limit, 'withdrawal');
+        return this.parseTransactions (response, currency, since, limit, { 'type': 'withdrawal' });
     }
 
     async fetchWithdrawal (id: string, code: Str = undefined, params = {}) {
@@ -2653,10 +2703,10 @@ export default class bitflex extends Exchange {
         return this.parseTransaction (response, currency);
     }
 
-    parseTransactions (transactions: any[], currency: Currency = undefined, since: Int = undefined, limit: Int = undefined, type: Str = undefined): Transaction[] {
+    parseTransactions (transactions, currency: Currency = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Transaction[] {
         let result = [];
         for (let i = 0; i < transactions.length; i++) {
-            transactions[i] = this.extend (transactions[i], { 'type': type });
+            transactions[i] = this.extend (transactions[i], params);
             const transaction = this.parseTransaction (transactions[i], currency);
             result.push (transaction);
         }
@@ -2766,7 +2816,7 @@ export default class bitflex extends Exchange {
             }
         }
         const ext = this.safeString (transaction, 'addressExt');
-        if ((ext !== undefined) && (tag === undefined)) { // todo check
+        if ((ext !== undefined) && (tag === undefined)) {
             tag = ext;
         }
         const tagFrom = this.safeString (transaction, 'fromAddressTag');
@@ -3029,19 +3079,19 @@ export default class bitflex extends Exchange {
             '2': 'fee', // trading fees
             '3': 'transfer', // transfer
             '4': 'transaction', // deposit
-            '27': 'reward', // maker reward todo check
-            '28': 'trade', // PnL from contracts todo check
-            '30': 'trade', // settlement todo check
+            '27': 'reward', // maker reward
+            '28': 'trade', // PnL from contracts
+            '30': 'trade', // settlement
             '31': 'trade', // liquidation
-            '32': 'fee', // funding fee settlement todo check
+            '32': 'fee', // funding fee settlement
             '51': 'transfer', // userAccountTransfer Exclusive
             '65': 'trade', // OTC buy coin
             '66': 'trade', // OTC sell coin
-            '67': 'reward', // campaign reward todo check
+            '67': 'reward', // campaign reward
             '68': 'rebate', // user rebates
-            '69': 'reward', // registration reward todo check
+            '69': 'reward', // registration reward
             '70': 'airdrop', // airdrop
-            '71': 'reward', // mining reward todo check
+            '71': 'reward', // mining reward
             '73': 'fee', // OTC fees
             '200': 'trade', // old OTC balance flow
         };
@@ -3071,7 +3121,7 @@ export default class bitflex extends Exchange {
         const account = undefined;
         const referenceId = undefined;
         const referenceAccount = this.safeString (item, 'accountId');
-        const type = this.parseLedgerEntryType (this.safeString (item, 'flowTypeValue')); // todo
+        const type = this.parseLedgerEntryType (this.safeString (item, 'flowTypeValue'));
         const code = this.safeCurrencyCode (this.safeString (item, 'token'), currency);
         let amount = this.safeString (item, 'change');
         const amountIsNegative = Precise.stringLt (amount, '0');
@@ -3196,7 +3246,7 @@ export default class bitflex extends Exchange {
         //             "side": "LONG",
         //             "avgPrice": "66004.8",
         //             "position": "0.001",
-        //             "available": "0.001",
+        //             "available": "0.001", // todo check
         //             "leverage": "10",
         //             "lastPrice": "65998.2",
         //             "positionValue": "66.0223",
@@ -3204,7 +3254,7 @@ export default class bitflex extends Exchange {
         //             "margin": "6.5939",
         //             "marginRate": "0.1001",
         //             "unrealizedPnL": "0.0175",
-        //             "profitRate": "0.0026",
+        //             "profitRate": "0.0026", // todo check
         //             "realizedPnL": "-0.0396"
         //         },
         //         ...
@@ -3243,8 +3293,8 @@ export default class bitflex extends Exchange {
             'maintenanceMargin': undefined,
             'maintenanceMarginPercentage': undefined,
             'collateral': undefined,
-            'initialMargin': undefined,
-            'initialMarginPercentage': undefined,
+            'initialMargin': this.safeNumber (position, 'margin'),
+            'initialMarginPercentage': this.safeNumber (position, 'marginRate'), // todo check
             'leverage': this.safeNumber (position, 'leverage'),
             'marginRatio': undefined,
             'stopLossPrice': undefined,
@@ -3343,7 +3393,7 @@ export default class bitflex extends Exchange {
             'info': data,
             'symbol': market['symbol'],
             'type': undefined,
-            'marginMode': 'cross', // todo check
+            'marginMode': 'cross',
             'amount': undefined,
             'total': total,
             'code': market['settle'],
@@ -3445,7 +3495,7 @@ export default class bitflex extends Exchange {
         //
         const marketId = this.safeString (contract, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
-        const nextFundingTimestamp = this.safeInteger (contract, 'intervalEnd'); // todo check
+        const nextFundingTimestamp = this.safeInteger (contract, 'intervalEnd');
         const previousFundingTimestamp = this.safeInteger (contract, 'intervalStart');
         const fundingRate = this.safeNumber (contract, 'rate');
         return {
