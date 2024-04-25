@@ -224,6 +224,7 @@ export default class bitflex extends Exchange {
                     // 400 {"code":-1173,"msg":"Withdraw address illegal."}
                     // 500 {"code":-9999,"msg":"Server Error"}
                     // {"code":-1149,"msg":"Create order failed"}
+                    // {"code":-1130,"msg":"Data sent for paramter \u0027overPrice\u0027 is not valid."}
                 },
                 'broad': {
                 },
@@ -1452,6 +1453,7 @@ export default class bitflex extends Exchange {
          * @param {string} [params.newClientOrderId] *spot only* a unique id for the order
          * @param {string} [params.orderType] *swap only* 'LIMIT' or 'STOP'
          * @param {string} [params.priceType] *swap only* 'INPUT' (Default), 'OPPONENT', 'QUEUE', 'OVER' and 'MARKET'
+         * @param {string} [params.overPrice] *swap OVER only* price will be the best opposite quote + overPrice
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -1576,6 +1578,7 @@ export default class bitflex extends Exchange {
          * EXCHANGE SPECIFIC PARAMETERS
          * @param {string} [params.orderType] 'LIMIT' or 'STOP'
          * @param {string} [params.priceType] 'INPUT' (Default), 'OPPONENT', 'QUEUE', 'OVER' and 'MARKET'
+         * @param {string} [params.overPrice] *swap OVER only* price will be the best opposite quote + overPrice
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'newClientOrderId');
@@ -1848,14 +1851,12 @@ export default class bitflex extends Exchange {
                 cost = amount;
                 amount = undefined;
             }
-        }
-        if (market['contract']) {
-            const priceType = this.safeString (order, 'priceType');
-            const isMarketOrder = (priceType === 'MARKET') || (priceType === 'OPPONENT') || (priceType === 'QUEUE') || (priceType === 'OVER'); // todo check orders with 'OVER'
-            if (isMarketOrder) {
-                type = 'market';
-            } else if (type === 'STOP') {
+        } else if (market['contract']) { // swap order types of bitflex are LIMIT or STOP
+            if (type === 'STOP') {
                 type = 'limit'; // stop orders are always limit orders at bitflex
+            } else {
+                const priceType = this.safeString (order, 'priceType'); // to define suitable type we use priceType
+                type = this.parsePriceType (priceType);
             }
         }
         const lastUpdateTimestamp = this.safeString (order, 'updateTime');
@@ -1899,13 +1900,24 @@ export default class bitflex extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrderType (status) {
-        const statuses = {
+    parseOrderType (type) {
+        const types = {
             'MARKET': 'market',
             'LIMIT': 'limit',
             'LIMIT_MAKER': 'limit',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (types, type, type);
+    }
+
+    parsePriceType (type) {
+        const types = {
+            'MARKET': 'market',
+            'OPPONENT': 'market',
+            'INPUT': 'limit',
+            'QUEUE': 'limit',
+            'OVER': 'limit',
+        };
+        return this.safeString (types, type, type);
     }
 
     parseOrderTimeInForce (status) {
@@ -1918,8 +1930,8 @@ export default class bitflex extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrderSide (status) {
-        const statuses = {
+    parseOrderSide (side) {
+        const sides = {
             'BUY': 'buy',
             'BUY_OPEN': 'buy',
             'BUY_CLOSE': 'buy',
@@ -1927,7 +1939,7 @@ export default class bitflex extends Exchange {
             'SELL_OPEN': 'sell',
             'SELL_CLOSE': 'sell',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (sides, side, side);
     }
 
     parseReduceOnly (orderSide) {
