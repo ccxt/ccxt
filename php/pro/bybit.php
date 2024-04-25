@@ -125,7 +125,7 @@ class bybit extends \ccxt\async\bybit {
             ),
             'streaming' => array(
                 'ping' => array($this, 'ping'),
-                'keepAlive' => 20000,
+                'keepAlive' => 19000,
             ),
         ));
     }

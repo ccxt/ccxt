@@ -7945,7 +7945,7 @@ export default class okx extends Exchange {
         //     }
         //
         const rows = this.safeList (response, 'data', []);
-        return this.parseConversions (rows, 'baseCcy', 'quoteCcy', since, limit);
+        return this.parseConversions (rows, code, 'baseCcy', 'quoteCcy', since, limit);
     }
 
     parseConversion (conversion, fromCurrency: Currency = undefined, toCurrency: Currency = undefined): Conversion {

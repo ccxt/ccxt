@@ -2554,7 +2554,7 @@ class delta extends Exchange {
         );
     }
 
-    public function add_margin(string $symbol, $amount, $params = array ()): array {
+    public function add_margin(string $symbol, float $amount, $params = array ()): array {
         /**
          * add margin
          * @see https://docs.delta.exchange/#add-remove-position-margin
@@ -2566,7 +2566,7 @@ class delta extends Exchange {
         return $this->modify_margin_helper($symbol, $amount, 'add', $params);
     }
 
-    public function reduce_margin(string $symbol, $amount, $params = array ()): array {
+    public function reduce_margin(string $symbol, float $amount, $params = array ()): array {
         /**
          * remove margin from a position
          * @see https://docs.delta.exchange/#add-remove-position-margin

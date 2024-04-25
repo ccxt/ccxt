@@ -81,8 +81,10 @@ public partial class woo : Exchange
                 { "fetchOrders", true },
                 { "fetchOrderTrades", true },
                 { "fetchPosition", true },
+                { "fetchPositionHistory", false },
                 { "fetchPositionMode", false },
                 { "fetchPositions", true },
+                { "fetchPositionsHistory", false },
                 { "fetchPremiumIndexOHLCV", false },
                 { "fetchStatus", true },
                 { "fetchTicker", false },
@@ -3443,7 +3445,7 @@ public partial class woo : Exchange
         //
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         object rows = this.safeList(data, "tradeVos", new List<object>() {});
-        return this.parseConversions(rows, "sellAsset", "buyAsset", since, limit);
+        return this.parseConversions(rows, code, "sellAsset", "buyAsset", since, limit);
     }
 
     public override object parseConversion(object conversion, object fromCurrency = null, object toCurrency = null)

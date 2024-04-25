@@ -207,8 +207,8 @@ public partial class coinex
     /// fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot001_market006_market_kline"/>  <br/>
-    /// See <see href="https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http012_market_kline"/>  <br/>
+    /// See <see href="https://docs.coinex.com/api/v2/spot/market/http/list-market-kline"/>  <br/>
+    /// See <see href="https://docs.coinex.com/api/v2/futures/market/http/list-market-kline"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -262,10 +262,10 @@ public partial class coinex
     /// query for balance and get the amount of funds available for trading or funds locked in orders
     /// </summary>
     /// <remarks>
-    /// See <see href="https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account001_account_info"/>  <br/>
-    /// See <see href="https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account004_investment_balance"/>  <br/>
-    /// See <see href="https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account006_margin_account"/>  <br/>
-    /// See <see href="https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http016_asset_query"/>  <br/>
+    /// See <see href="https://docs.coinex.com/api/v2/assets/balance/http/get-spot-balance"/>  <br/>
+    /// See <see href="https://docs.coinex.com/api/v2/assets/balance/http/get-futures-balance"/>  <br/>
+    /// See <see href="https://docs.coinex.com/api/v2/assets/balance/http/get-marigin-balance"/>  <br/>
+    /// See <see href="https://docs.coinex.com/api/v2/assets/balance/http/get-financial-balance"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -893,7 +893,7 @@ public partial class coinex
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}.</returns>
-    public async Task<Transaction> Withdraw(string code, double amount, object address, object tag = null, Dictionary<string, object> parameters = null)
+    public async Task<Transaction> Withdraw(string code, double amount, string address, object tag = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.withdraw(code, amount, address, tag, parameters);
         return new Transaction(res);
@@ -1154,6 +1154,40 @@ public partial class coinex
     {
         var res = await this.fetchLeverages(symbols, parameters);
         return new Leverages(res);
+    }
+    /// <summary>
+    /// fetches historical positions
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http033-0_finished_position"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : not used by coinex fetchPositionHistory
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum amount of records to fetch, default=1000
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.side</term>
+    /// <description>
+    /// int : 0: all 1: sell, 2: buy
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object[]</term> a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}.</returns>
+    public async Task<Position> FetchPositionHistory(string symbol, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.fetchPositionHistory(symbol, since, limit, parameters);
+        return new Position(res);
     }
     /// <summary>
     /// fetches the history of margin added or reduced from contract isolated positions

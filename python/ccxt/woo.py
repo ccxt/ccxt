@@ -97,8 +97,10 @@ class woo(Exchange, ImplicitAPI):
                 'fetchOrders': True,
                 'fetchOrderTrades': True,
                 'fetchPosition': True,
+                'fetchPositionHistory': False,
                 'fetchPositionMode': False,
                 'fetchPositions': True,
+                'fetchPositionsHistory': False,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchStatus': True,
                 'fetchTicker': False,
@@ -2238,7 +2240,7 @@ class woo(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def withdraw(self, code: str, amount: float, address, tag=None, params={}):
+    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code
@@ -2962,7 +2964,7 @@ class woo(Exchange, ImplicitAPI):
         #
         data = self.safe_dict(response, 'data', {})
         rows = self.safe_list(data, 'tradeVos', [])
-        return self.parse_conversions(rows, 'sellAsset', 'buyAsset', since, limit)
+        return self.parse_conversions(rows, code, 'sellAsset', 'buyAsset', since, limit)
 
     def parse_conversion(self, conversion, fromCurrency: Currency = None, toCurrency: Currency = None) -> Conversion:
         #
