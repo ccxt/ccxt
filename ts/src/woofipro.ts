@@ -279,7 +279,7 @@ export default class woofipro extends Exchange {
                     },
                 },
             },
-			'requiredCredentials': {
+            'requiredCredentials': {
                 'apiKey': true,
                 'secret': true,
                 'uid': true,
@@ -351,7 +351,7 @@ export default class woofipro extends Exchange {
         };
     }
 
-	async fetchTime (params = {}) {
+    async fetchTime (params = {}) {
         /**
          * @method
          * @name woofipro#fetchTime
@@ -534,7 +534,7 @@ export default class woofipro extends Exchange {
         return this.parseMarkets (rows);
     }
 
-	async fetchCurrencies (params = {}): Promise<Currencies> {
+    async fetchCurrencies (params = {}): Promise<Currencies> {
         /**
          * @method
          * @name woofipro#fetchCurrencies
@@ -546,31 +546,31 @@ export default class woofipro extends Exchange {
         const result = {};
         const response = await this.v1PublicGetPublicToken (params);
         //
-		// 	{
-		// 		"success": true,
-		// 		"timestamp": 1702989203989,
-		// 		"data": {
-		// 		  "rows": [{
-		// 			"token": "USDC",
-		// 			"decimals": 6,
-		// 			"minimum_withdraw_amount": 0.000001,
-		// 			"token_hash": "0xd6aca1be9729c13d677335161321649cccae6a591554772516700f986f942eaa",
-		// 			"chain_details": [{
-		// 				"chain_id": 43113,
-		// 				"contract_address": "0x5d64c9cfb0197775b4b3ad9be4d3c7976e0d8dc3",
-		// 				"cross_chain_withdrawal_fee": 123,
-		// 				"decimals": 6,
-		// 				"withdraw_fee": 2
-		// 				}]
-		// 			}
-		// 		  ]
-		// 		}
-		// 	}
+        // {
+        //     "success": true,
+        //     "timestamp": 1702989203989,
+        //     "data": {
+        //       "rows": [{
+        //         "token": "USDC",
+        //         "decimals": 6,
+        //         "minimum_withdraw_amount": 0.000001,
+        //         "token_hash": "0xd6aca1be9729c13d677335161321649cccae6a591554772516700f986f942eaa",
+        //         "chain_details": [{
+        //             "chain_id": 43113,
+        //             "contract_address": "0x5d64c9cfb0197775b4b3ad9be4d3c7976e0d8dc3",
+        //             "cross_chain_withdrawal_fee": 123,
+        //             "decimals": 6,
+        //             "withdraw_fee": 2
+        //             }]
+        //         }
+        //       ]
+        //     }
+        // }
         //
-		const data = this.safeDict (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         const tokenRows = this.safeList (data, 'rows', []);
         for (let i = 0; i < tokenRows.length; i++) {
-			const token = tokenRows[i];
+            const token = tokenRows[i];
             const currencyId = this.safeString (token, 'token');
             const networks = this.safeList (token, 'chain_details');
             const code = this.safeCurrencyCode (currencyId);
@@ -578,7 +578,7 @@ export default class woofipro extends Exchange {
             const resultingNetworks = {};
             for (let j = 0; j < networks.length; j++) {
                 const network = networks[j];
-				// TODO: transform chain id to human readable name
+                // TODO: transform chain id to human readable name
                 const networkId = this.safeString (network, 'chain_id');
                 const precision = this.parsePrecision (this.safeString (network, 'decimals'));
                 if (precision !== undefined) {
@@ -631,7 +631,7 @@ export default class woofipro extends Exchange {
         return result;
     }
 
-	parseTokenAndFeeTemp (item, feeTokenKey, feeAmountKey) {
+    parseTokenAndFeeTemp (item, feeTokenKey, feeAmountKey) {
         const feeCost = this.safeString (item, feeAmountKey);
         let fee = undefined;
         if (feeCost !== undefined) {
@@ -645,7 +645,7 @@ export default class woofipro extends Exchange {
         return fee;
     }
 
-	parseTrade (trade, market: Market = undefined): Trade {
+    parseTrade (trade, market: Market = undefined): Trade {
         //
         // public/market_trades
         //
@@ -707,12 +707,12 @@ export default class woofipro extends Exchange {
         }, market);
     }
 
-	async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name woofipro#fetchTrades
          * @description get the list of most recent trades for a particular symbol
-		 * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-market-trades
+         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-market-trades
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
@@ -729,26 +729,26 @@ export default class woofipro extends Exchange {
         }
         const response = await this.v1PublicGetPublicMarketTrades (this.extend (request, params));
         //
-		// 	{
-		// 		"success": true,
-		// 		"timestamp": 1702989203989,
-		// 		"data": {
-		// 		  "rows": [{
-		// 			"symbol": "PERP_ETH_USDC",
-		// 			"side": "BUY",
-		// 			"executed_price": 2050,
-		// 			"executed_quantity": 1,
-		// 			"executed_timestamp": 1683878609166
-		// 		  }]
-		// 		}
-		// 	}
+        // {
+        //     "success": true,
+        //     "timestamp": 1702989203989,
+        //     "data": {
+        //       "rows": [{
+        //         "symbol": "PERP_ETH_USDC",
+        //         "side": "BUY",
+        //         "executed_price": 2050,
+        //         "executed_quantity": 1,
+        //         "executed_timestamp": 1683878609166
+        //       }]
+        //     }
+        // }
         //
         const data = this.safeDict (response, 'data', {});
-		const rows = this.safeList (data, 'rows', []);
+        const rows = this.safeList (data, 'rows', []);
         return this.parseTrades (rows, market, since, limit);
     }
 
-	parseFundingRate (fundingRate, market: Market = undefined) {
+    parseFundingRate (fundingRate, market: Market = undefined) {
         //
         //         {
         //             "symbol":"PERP_AAVE_USDT",
@@ -757,7 +757,7 @@ export default class woofipro extends Exchange {
         //             "last_funding_rate":-0.00002094,
         //             "last_funding_rate_timestamp":1653631200000,
         //             "next_funding_time":1653634800000,
-		// 			   "sum_unitary_funding": 521.367
+        //            "sum_unitary_funding": 521.367
         //         }
         //
         //
@@ -788,7 +788,7 @@ export default class woofipro extends Exchange {
     }
 
     async fetchFundingRate (symbol: string, params = {}) {
-		/**
+        /**
          * @method
          * @name woofipro#fetchFundingRate
          * @description fetch the current funding rate
@@ -804,26 +804,26 @@ export default class woofipro extends Exchange {
         };
         const response = await this.v1PublicGetPublicFundingRateSymbol (this.extend (request, params));
         //
-		// 	{
-		// 		"success": true,
-		// 		"timestamp": 1702989203989,
-		// 		"data": {
-		// 			"symbol": "PERP_ETH_USDC",
-		// 			"est_funding_rate": 123,
-		// 			"est_funding_rate_timestamp": 1683880020000,
-		// 			"last_funding_rate": 0.0001,
-		// 			"last_funding_rate_timestamp": 1683878400000,
-		// 			"next_funding_time": 1683907200000,
-		// 			"sum_unitary_funding": 521.367
-		// 		}
-		// 	}
+        // {
+        //     "success": true,
+        //     "timestamp": 1702989203989,
+        //     "data": {
+        //         "symbol": "PERP_ETH_USDC",
+        //         "est_funding_rate": 123,
+        //         "est_funding_rate_timestamp": 1683880020000,
+        //         "last_funding_rate": 0.0001,
+        //         "last_funding_rate_timestamp": 1683878400000,
+        //         "next_funding_time": 1683907200000,
+        //         "sum_unitary_funding": 521.367
+        //     }
+        // }
         //
-		const data = this.safeDict (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         return this.parseFundingRate (data, market);
     }
 
-	async fetchFundingRates (symbols: Strings = undefined, params = {}) {
-		/**
+    async fetchFundingRates (symbols: Strings = undefined, params = {}) {
+        /**
          * @method
          * @name woofipro#fetchFundingRates
          * @description fetch the current funding rates
@@ -836,31 +836,31 @@ export default class woofipro extends Exchange {
         symbols = this.marketSymbols (symbols);
         const response = await this.v1PublicGetPublicFundingRates (params);
         //
-		// 	{
-		// 		"success": true,
-		// 		"timestamp": 1702989203989,
-		// 		"data": {
-		// 		  "rows": [
-		// 			{
-		// 			"symbol": "PERP_ETH_USDC",
-		// 			"est_funding_rate": 123,
-		// 			"est_funding_rate_timestamp": 1683880020000,
-		// 			"last_funding_rate": 0.0001,
-		// 			"last_funding_rate_timestamp": 1683878400000,
-		// 			"next_funding_time": 1683907200000,
-		// 			"sum_unitary_funding": 521.367
-		// 			}
-		// 		  ]
-		// 		}
-		// 	}
+        // {
+        //     "success": true,
+        //     "timestamp": 1702989203989,
+        //     "data": {
+        //       "rows": [
+        //         {
+        //         "symbol": "PERP_ETH_USDC",
+        //         "est_funding_rate": 123,
+        //         "est_funding_rate_timestamp": 1683880020000,
+        //         "last_funding_rate": 0.0001,
+        //         "last_funding_rate_timestamp": 1683878400000,
+        //         "next_funding_time": 1683907200000,
+        //         "sum_unitary_funding": 521.367
+        //         }
+        //       ]
+        //     }
+        // }
         //
-		const data = this.safeDict (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         const rows = this.safeList (data, 'rows', []);
         const result = this.parseFundingRates (rows);
         return this.filterByArray (result, 'symbol', symbols);
     }
 
-	async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name woofipro#fetchFundingRateHistory
@@ -892,25 +892,25 @@ export default class woofipro extends Exchange {
         [ request, params ] = this.handleUntilOption ('end_t', request, params, 0.001);
         const response = await this.v1PublicGetPublicFundingRateHistory (this.extend (request, params));
         //
-		// 	{
-		// 		"success": true,
-		// 		"timestamp": 1702989203989,
-		// 		"data": {
-		// 		  "rows": [{
-		// 			"symbol": "PERP_ETH_USDC",
-		// 			"funding_rate": 0.0001,
-		// 			"funding_rate_timestamp": 1684224000000,
-		// 			"next_funding_time": 1684252800000
-		// 		  }],
-		// 		  "meta": {
-		// 			"total": 9,
-		// 			"records_per_page": 25,
-		// 			"current_page": 1
-		// 		  }
-		// 	    }
-		// 	}
+        // {
+        //     "success": true,
+        //     "timestamp": 1702989203989,
+        //     "data": {
+        //       "rows": [{
+        //         "symbol": "PERP_ETH_USDC",
+        //         "funding_rate": 0.0001,
+        //         "funding_rate_timestamp": 1684224000000,
+        //         "next_funding_time": 1684252800000
+        //       }],
+        //       "meta": {
+        //         "total": 9,
+        //         "records_per_page": 25,
+        //         "current_page": 1
+        //       }
+        //     }
+        // }
         //
-		const data = this.safeDict (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         const result = this.safeList (data, 'rows', []);
         const rates = [];
         for (let i = 0; i < result.length; i++) {
@@ -929,7 +929,7 @@ export default class woofipro extends Exchange {
         return this.filterBySymbolSinceLimit (sorted, symbol, since, limit) as FundingRateHistory[];
     }
 
-	async fetchTradingFees (params = {}): Promise<TradingFees> {
+    async fetchTradingFees (params = {}): Promise<TradingFees> {
         /**
          * @method
          * @name woofipro#fetchTradingFees
@@ -941,31 +941,31 @@ export default class woofipro extends Exchange {
         await this.loadMarkets ();
         const response = await this.v1PrivateGetClientInfo (params);
         //
-		// 	{
-		// 		"success": true,
-		// 		"timestamp": 1702989203989,
-		// 		"data": {
-		// 		"account_id": "<string>",
-		// 		"email": "test@test.com",
-		// 		"account_mode": "FUTURES",
-		// 		"max_leverage": 20,
-		// 		"taker_fee_rate": 123,
-		// 		"maker_fee_rate": 123,
-		// 		"futures_taker_fee_rate": 123,
-		// 		"futures_maker_fee_rate": 123,
-		// 		"maintenance_cancel_orders": true,
-		// 		"imr_factor": {
-		// 			"PERP_BTC_USDC": 123,
-		// 			"PERP_ETH_USDC": 123,
-		// 			"PERP_NEAR_USDC": 123
-		// 		},
-		// 		"max_notional": {
-		// 			"PERP_BTC_USDC": 123,
-		// 			"PERP_ETH_USDC": 123,
-		// 			"PERP_NEAR_USDC": 123
-		// 		}
-		// 		}
-		// 	}
+        // {
+        //     "success": true,
+        //     "timestamp": 1702989203989,
+        //     "data": {
+        //     "account_id": "<string>",
+        //     "email": "test@test.com",
+        //     "account_mode": "FUTURES",
+        //     "max_leverage": 20,
+        //     "taker_fee_rate": 123,
+        //     "maker_fee_rate": 123,
+        //     "futures_taker_fee_rate": 123,
+        //     "futures_maker_fee_rate": 123,
+        //     "maintenance_cancel_orders": true,
+        //     "imr_factor": {
+        //         "PERP_BTC_USDC": 123,
+        //         "PERP_ETH_USDC": 123,
+        //         "PERP_NEAR_USDC": 123
+        //     },
+        //     "max_notional": {
+        //         "PERP_BTC_USDC": 123,
+        //         "PERP_ETH_USDC": 123,
+        //         "PERP_NEAR_USDC": 123
+        //     }
+        //     }
+        // }
         //
         const data = this.safeDict (response, 'data', {});
         const maker = this.safeString (data, 'futures_maker_fee_rate');
@@ -985,13 +985,13 @@ export default class woofipro extends Exchange {
         return result;
     }
 
-	async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         /**
          * @method
          * @name woofipro#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/orderbook-snapshot
-		 * @param {string} symbol unified symbol of the market to fetch the order book for
+         * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
@@ -1007,28 +1007,28 @@ export default class woofipro extends Exchange {
         }
         const response = await this.v1PrivateGetOrderbookSymbol (this.extend (request, params));
         //
-		// 	{
-		// 		"success": true,
-		// 		"timestamp": 1702989203989,
-		// 		"data": {
-		// 		  "asks": [{
-		// 			"price": 10669.4,
-		// 			"quantity": 1.56263218
-		// 		  }],
-		// 		  "bids": [{
-		// 			"price": 10669.4,
-		// 			"quantity": 1.56263218
-		// 		  }],
-		// 		  "timestamp": 123
-		// 		}
-		// 	}
+        // {
+        //     "success": true,
+        //     "timestamp": 1702989203989,
+        //     "data": {
+        //       "asks": [{
+        //         "price": 10669.4,
+        //         "quantity": 1.56263218
+        //       }],
+        //       "bids": [{
+        //         "price": 10669.4,
+        //         "quantity": 1.56263218
+        //       }],
+        //       "timestamp": 123
+        //     }
+        // }
         //
-		const data = this.safeDict (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         const timestamp = this.safeInteger (data, 'timestamp');
         return this.parseOrderBook (data, symbol, timestamp, 'bids', 'asks', 'price', 'quantity');
     }
 
-	parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
+    parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
         return [
             this.safeInteger (ohlcv, 'start_timestamp'),
             this.safeNumber (ohlcv, 'open'),
@@ -1039,12 +1039,12 @@ export default class woofipro extends Exchange {
         ];
     }
 
-	async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         /**
          * @method
          * @name woofipro#fetchOHLCV
          * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-kline
-		 * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -1062,32 +1062,32 @@ export default class woofipro extends Exchange {
             request['limit'] = Math.min (limit, 1000);
         }
         const response = await this.v1PrivateGetKline (this.extend (request, params));
-		const data = this.safeDict (response, 'data', {});
-		//
-		// 	{
-		// 		"success": true,
-		// 		"timestamp": 1702989203989,
-		// 		"data": {
-		// 		  "rows": [{
-		// 			"open": 66166.23,
-		// 			"close": 66124.56,
-		// 			"low": 66038.06,
-		// 			"high": 66176.97,
-		// 			"volume": 23.45528526,
-		// 			"amount": 1550436.21725288,
-		// 			"symbol": "PERP_BTC_USDC",
-		// 			"type": "1m",
-		// 			"start_timestamp": 1636388220000,
-		// 			"end_timestamp": 1636388280000
-		// 		  }]
-		// 		}
-		// 	}
-		//
+        const data = this.safeDict (response, 'data', {});
+        //
+        // {
+        //     "success": true,
+        //     "timestamp": 1702989203989,
+        //     "data": {
+        //       "rows": [{
+        //         "open": 66166.23,
+        //         "close": 66124.56,
+        //         "low": 66038.06,
+        //         "high": 66176.97,
+        //         "volume": 23.45528526,
+        //         "amount": 1550436.21725288,
+        //         "symbol": "PERP_BTC_USDC",
+        //         "type": "1m",
+        //         "start_timestamp": 1636388220000,
+        //         "end_timestamp": 1636388280000
+        //       }]
+        //     }
+        // }
+        //
         const rows = this.safeList (data, 'rows', []);
         return this.parseOHLCVs (rows, market, timeframe, since, limit);
     }
 
-	parseOrder (order, market: Market = undefined): Order {
+    parseOrder (order, market: Market = undefined): Order {
         //
         // Possible input functions:
         // * createOrder
@@ -1199,7 +1199,7 @@ export default class woofipro extends Exchange {
         }, market);
     }
 
-	parseTimeInForce (timeInForce) {
+    parseTimeInForce (timeInForce) {
         const timeInForces = {
             'ioc': 'IOC',
             'fok': 'FOK',
@@ -1226,7 +1226,7 @@ export default class woofipro extends Exchange {
         return status;
     }
 
-	async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         /**
          * @method
          * @name woofipro#createOrder
@@ -1246,7 +1246,7 @@ export default class woofipro extends Exchange {
          * @param {float} [params.stopLoss.triggerPrice] stop loss trigger price
          * @param {float} [params.algoType] 'STOP'or 'TP_SL' or 'POSITIONAL_TP_SL'
          * @param {float} [params.cost] *spot market buy only* the quote quantity that can be used as an alternative for the amount
-		 * @param {string} [params.clientOrderId] a unique id for the order
+         * @param {string} [params.clientOrderId] a unique id for the order
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         const reduceOnly = this.safeBool2 (params, 'reduceOnly', 'reduce_only');
@@ -1295,9 +1295,9 @@ export default class woofipro extends Exchange {
         if (clientOrderId !== undefined) {
             request['client_order_id'] = clientOrderId;
         }
-		if (stopPrice !== undefined) {
-			request['trigger_price'] = this.priceToPrecision (symbol, stopPrice);
-			request['algo_type'] = 'STOP';
+        if (stopPrice !== undefined) {
+            request['trigger_price'] = this.priceToPrecision (symbol, stopPrice);
+            request['algo_type'] = 'STOP';
         } else if ((stopLoss !== undefined) || (takeProfit !== undefined)) {
             request['algo_type'] = 'TP_SL';
             const outterOrder = {
@@ -1335,35 +1335,35 @@ export default class woofipro extends Exchange {
         let response = undefined;
         if (isStop) {
             response = await this.v1PrivatePostAlgoOrder (this.extend (request, params));
-			//
-			// 	{
-			// 		"success": true,
-			// 		"timestamp": 1702989203989,
-			// 		"data": {
-			// 		  "order_id": 13,
-			// 		  "client_order_id": "testclientid",
-			// 		  "algo_type": "STOP",
-			// 		  "quantity": 100.12
-			// 		}
-			// 	}
-			//
+            //
+            // {
+            //     "success": true,
+            //     "timestamp": 1702989203989,
+            //     "data": {
+            //       "order_id": 13,
+            //       "client_order_id": "testclientid",
+            //       "algo_type": "STOP",
+            //       "quantity": 100.12
+            //     }
+            // }
+            //
         } else {
             response = await this.v1PrivatePostOrder (this.extend (request, params));
-			//
-			// 	{
-			// 		"success": true,
-			// 		"timestamp": 1702989203989,
-			// 		"data": {
-			// 		  "order_id": 13,
-			// 		  "client_order_id": "testclientid",
-			// 		  "order_type": "LIMIT",
-			// 		  "order_price": 100.12,
-			// 		  "order_quantity": 0.987654,
-			// 		  "order_amount": 0.8,
-			// 		  "error_message": "none"
-			// 		}
-			// 	}
-			//
+            //
+            // {
+            //     "success": true,
+            //     "timestamp": 1702989203989,
+            //     "data": {
+            //       "order_id": 13,
+            //       "client_order_id": "testclientid",
+            //       "order_type": "LIMIT",
+            //       "order_price": 100.12,
+            //       "order_quantity": 0.987654,
+            //       "order_amount": 0.8,
+            //       "error_message": "none"
+            //     }
+            // }
+            //
         }
         const data = this.safeDict (response, 'data');
         const order = this.parseOrder (data, market);
@@ -1371,7 +1371,7 @@ export default class woofipro extends Exchange {
         return order;
     }
 
-	async editOrder (id: string, symbol: string, type:OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) {
+    async editOrder (id: string, symbol: string, type:OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) {
         /**
          * @method
          * @name woofipro#editOrder
@@ -1393,14 +1393,14 @@ export default class woofipro extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-			'order_id': id,
+            'order_id': id,
         };
-		const stopPrice = this.safeNumberN (params, [ 'triggerPrice', 'stopPrice', 'takeProfitPrice', 'stopLossPrice' ]);
+        const stopPrice = this.safeNumberN (params, [ 'triggerPrice', 'stopPrice', 'takeProfitPrice', 'stopLossPrice' ]);
         if (stopPrice !== undefined) {
             request['triggerPrice'] = this.priceToPrecision (symbol, stopPrice);
         }
-		const isStop = (stopPrice !== undefined) || (this.safeValue (params, 'childOrders') !== undefined);
-		const orderQtyKey = isStop ? 'quantity' : 'order_quantity';
+        const isStop = (stopPrice !== undefined) || (this.safeValue (params, 'childOrders') !== undefined);
+        const orderQtyKey = isStop ? 'quantity' : 'order_quantity';
         const priceKey = isStop ? 'price' : 'order_price';
         if (price !== undefined) {
             request[priceKey] = this.priceToPrecision (symbol, price);
@@ -1410,37 +1410,37 @@ export default class woofipro extends Exchange {
         }
         params = this.omit (params, [ 'stopPrice', 'triggerPrice', 'takeProfitPrice', 'stopLossPrice', 'trailingTriggerPrice', 'trailingAmount', 'trailingPercent' ]);
         let response = undefined;
-		if (isStop) {
-			response = await this.v1PrivatePutAlgoOrder (this.extend (request, params));
-		} else {
-			const clientOrderId = this.safeStringN (params, [ 'clOrdID', 'clientOrderId', 'client_order_id' ]);
-			params = this.omit (params, [ 'clOrdID', 'clientOrderId', 'client_order_id' ]);
-			if (clientOrderId !== undefined) {
-				request['client_order_id'] = clientOrderId;
-			}
-			// request['side'] = side.toUpperCase ();
-			// request['symbol'] = market['id'];
-			response = await this.v1PrivatePutOrder (this.extend (request, params));
-		}
+        if (isStop) {
+            response = await this.v1PrivatePutAlgoOrder (this.extend (request, params));
+        } else {
+            const clientOrderId = this.safeStringN (params, [ 'clOrdID', 'clientOrderId', 'client_order_id' ]);
+            params = this.omit (params, [ 'clOrdID', 'clientOrderId', 'client_order_id' ]);
+            if (clientOrderId !== undefined) {
+                request['client_order_id'] = clientOrderId;
+            }
+            // request['side'] = side.toUpperCase ();
+            // request['symbol'] = market['id'];
+            response = await this.v1PrivatePutOrder (this.extend (request, params));
+        }
         //
-		// 	{
-		// 		"success": true,
-		// 		"timestamp": 1702989203989,
-		// 		"data": {
-		// 		  "status": "EDIT_SENT"
-		// 		}
-		// 	}
+        // {
+        //     "success": true,
+        //     "timestamp": 1702989203989,
+        //     "data": {
+        //       "status": "EDIT_SENT"
+        //     }
+        // }
         //
         const data = this.safeDict (response, 'data', {});
         return this.parseOrder (data, market);
     }
 
-	async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name woofipro#cancelOrder
          * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/cancel-order
-		 * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/cancel-order-by-client_order_id
+         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/cancel-order-by-client_order_id
          * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/cancel-algo-order
          * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/cancel-algo-order-by-client_order_id
          * @description cancels an open order
@@ -1448,7 +1448,7 @@ export default class woofipro extends Exchange {
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [params.stop] whether the order is a stop/algo order
-		 * @param {string} [params.clientOrderId] a unique id for the order
+         * @param {string} [params.clientOrderId] a unique id for the order
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         const stop = this.safeBool2 (params, 'stop', 'trigger', false);
@@ -1462,21 +1462,21 @@ export default class woofipro extends Exchange {
             market = this.market (symbol);
         }
         const request = {
-			'symbol': market['id'],
-		};
+            'symbol': market['id'],
+        };
         const clientOrderIdUnified = this.safeString2 (params, 'clOrdID', 'clientOrderId');
         const clientOrderIdExchangeSpecific = this.safeString (params, 'client_order_id', clientOrderIdUnified);
         const isByClientOrder = clientOrderIdExchangeSpecific !== undefined;
         let response = undefined;
         if (stop) {
-			if (isByClientOrder) {
-				request['client_order_id'] = clientOrderIdExchangeSpecific;
+            if (isByClientOrder) {
+                request['client_order_id'] = clientOrderIdExchangeSpecific;
                 params = this.omit (params, [ 'clOrdID', 'clientOrderId', 'client_order_id' ]);
                 response = await this.v1PrivateDeleteAlgoClientOrder (this.extend (request, params));
-			} else {
-				request['order_id'] = id;
-				response = await this.v1PrivateDeleteAlgoOrder (this.extend (request, params));
-			}
+            } else {
+                request['order_id'] = id;
+                response = await this.v1PrivateDeleteAlgoOrder (this.extend (request, params));
+            }
         } else {
             if (isByClientOrder) {
                 request['client_order_id'] = clientOrderIdExchangeSpecific;
@@ -1488,19 +1488,19 @@ export default class woofipro extends Exchange {
             }
         }
         //
-		// 	{
-		// 		"success": true,
-		// 		"timestamp": 1702989203989,
-		// 		"data": {
-		// 		  "status": "CANCEL_SENT"
-		// 		}
-		// 	}
-		//
-		// 	{
-		// 		"success": true,
-		// 		"timestamp": 1702989203989,
-		// 		"status": "CANCEL_SENT"
-		// 	}
+        // {
+        //     "success": true,
+        //     "timestamp": 1702989203989,
+        //     "data": {
+        //       "status": "CANCEL_SENT"
+        //     }
+        // }
+        //
+        // {
+        //     "success": true,
+        //     "timestamp": 1702989203989,
+        //     "status": "CANCEL_SENT"
+        // }
         //
         const extendParams = { 'symbol': symbol };
         if (isByClientOrder) {
@@ -1508,14 +1508,14 @@ export default class woofipro extends Exchange {
         } else {
             extendParams['id'] = id;
         }
-		if (stop) {
-			return this.extend (this.parseOrder (response), extendParams);
-		}
-		const data = this.safeDict (response, 'data', {});
+        if (stop) {
+            return this.extend (this.parseOrder (response), extendParams);
+        }
+        const data = this.safeDict (response, 'data', {});
         return this.extend (this.parseOrder (data), extendParams);
     }
 
-	async cancelOrders (ids:string[], symbol: Str = undefined, params = {}) {
+    async cancelOrders (ids:string[], symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name woofipro#cancelOrders
@@ -1529,30 +1529,30 @@ export default class woofipro extends Exchange {
          * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-		const clientOrderIds = this.safeListN (params, [ 'clOrdIDs', 'clientOrderIds', 'client_order_ids' ]);
-		params = this.omit (params, [ 'clOrdIDs', 'clientOrderIds', 'client_order_ids' ]);
+        const clientOrderIds = this.safeListN (params, [ 'clOrdIDs', 'clientOrderIds', 'client_order_ids' ]);
+        params = this.omit (params, [ 'clOrdIDs', 'clientOrderIds', 'client_order_ids' ]);
         const request = {};
         let response = undefined;
         if (clientOrderIds) {
-			request['client_order_ids'] = clientOrderIds.join (',');
+            request['client_order_ids'] = clientOrderIds.join (',');
             response = await this.v1PrivateDeleteClientBatchOrder (this.extend (request, params));
         } else {
-			request['order_ids'] = ids.join (',');
+            request['order_ids'] = ids.join (',');
             response = await this.v1PrivateDeleteBatchOrder (this.extend (request, params));
         }
         //
-		// 	{
-		// 		"success": true,
-		// 		"timestamp": 1702989203989,
-		// 		"data": {
-		// 	  	  "status": "CANCEL_ALL_SENT"
-		// 		}
-		// 	}
+        // {
+        //     "success": true,
+        //     "timestamp": 1702989203989,
+        //     "data": {
+        //     "status": "CANCEL_ALL_SENT"
+        //     }
+        // }
         //
         return response;
     }
 
-	async cancelAllOrders (symbol: Str = undefined, params = {}) {
+    async cancelAllOrders (symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name woo#cancelAllOrders
@@ -1566,49 +1566,49 @@ export default class woofipro extends Exchange {
          */
         await this.loadMarkets ();
         const stop = this.safeBool2 (params, 'stop', 'trigger');
-		params = this.omit (params, [ 'stop', 'trigger' ]);
-		const request = {};
-		if (symbol !== undefined) {
-			const market = this.market (symbol);
-			request['symbol'] = market['id'];
+        params = this.omit (params, [ 'stop', 'trigger' ]);
+        const request = {};
+        if (symbol !== undefined) {
+            const market = this.market (symbol);
+            request['symbol'] = market['id'];
         }
-		let response = undefined;
+        let response = undefined;
         if (stop) {
             response = await this.v1PrivateDeleteAlgoOrders (this.extend (request, params));
         } else {
-			response = await this.v1PrivateDeleteOrders (this.extend (request, params));
-		}
+            response = await this.v1PrivateDeleteOrders (this.extend (request, params));
+        }
         // stop
-		// 	{
-		// 		"success": true,
-		// 		"timestamp": 1702989203989,
-		// 		 "status": "CANCEL_ALL_SENT"
-		// 	}
-		//
-		// 	{
-		// 		"success": true,
-		// 		"timestamp": 1702989203989,
-		// 		"data": {
-		// 		  "status": "CANCEL_ALL_SENT"
-		// 		}
-		// 	}
+        // {
+        //     "success": true,
+        //     "timestamp": 1702989203989,
+        //      "status": "CANCEL_ALL_SENT"
+        // }
+        //
+        // {
+        //     "success": true,
+        //     "timestamp": 1702989203989,
+        //     "data": {
+        //       "status": "CANCEL_ALL_SENT"
+        //     }
+        // }
         //
         return response;
     }
 
-	async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name woofipro#fetchOrder
          * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-order-by-order_id
          * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-order-by-client_order_id
-		 * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-algo-order-by-order_id
-		 * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-algo-order-by-client_order_id
+         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-algo-order-by-order_id
+         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-algo-order-by-client_order_id
          * @description fetches information on an order made by the user
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [params.stop] whether the order is a stop/algo order
-		 * @param {string} [params.clientOrderId] a unique id for the order
+         * @param {string} [params.clientOrderId] a unique id for the order
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -1616,57 +1616,57 @@ export default class woofipro extends Exchange {
         const stop = this.safeBool2 (params, 'stop', 'trigger', false);
         const request = {};
         const clientOrderId = this.safeStringN (params, [ 'clOrdID', 'clientOrderId', 'client_order_id' ]);
-		params = this.omit (params, [ 'stop', 'trigger', 'clOrdID', 'clientOrderId', 'client_order_id' ]);
+        params = this.omit (params, [ 'stop', 'trigger', 'clOrdID', 'clientOrderId', 'client_order_id' ]);
         let response = undefined;
         if (stop) {
-			if (clientOrderId) {
-				request['client_order_id'] = clientOrderId;
-				response = await this.v1PrivateGetAlgoClientOrderClientOrderId (this.extend (request, params));
-			} else {
-				request['oid'] = id;
-				response = await this.v1PrivateGetAlgoOrderOid (this.extend (request, params));
-			}
+            if (clientOrderId) {
+                request['client_order_id'] = clientOrderId;
+                response = await this.v1PrivateGetAlgoClientOrderClientOrderId (this.extend (request, params));
+            } else {
+                request['oid'] = id;
+                response = await this.v1PrivateGetAlgoOrderOid (this.extend (request, params));
+            }
         } else {
-			if (clientOrderId) {
-				request['client_order_id'] = clientOrderId;
-				response = await this.v1PrivateGetClientOrderClientOrderId (this.extend (request, params));
-			} else {
-				request['oid'] = id;
-				response = await this.v1PrivateGetOrderOid (this.extend (request, params));
-			}
-		}
+            if (clientOrderId) {
+                request['client_order_id'] = clientOrderId;
+                response = await this.v1PrivateGetClientOrderClientOrderId (this.extend (request, params));
+            } else {
+                request['oid'] = id;
+                response = await this.v1PrivateGetOrderOid (this.extend (request, params));
+            }
+        }
         //
-		// 	{
-		// 		"success": true,
-		// 		"timestamp": 1702989203989,
-		// 		"data": {
-		// 		"order_id": 78151,
-		// 		"user_id": 12345,
-		// 		"price": 0.67772,
-		// 		"type": "LIMIT",
-		// 		"quantity": 20,
-		// 		"amount": 10,
-		// 		"executed_quantity": 20,
-		// 		"total_executed_quantity": 20,
-		// 		"visible_quantity": 1,
-		// 		"symbol": "PERP_WOO_USDC",
-		// 		"side": "BUY",
-		// 		"status": "FILLED",
-		// 		"total_fee": 0.5,
-		// 		"fee_asset": "WOO",
-		// 		"client_order_id": 1,
-		// 		"average_executed_price": 0.67772,
-		// 		"created_time": 1653563963000,
-		// 		"updated_time": 1653564213000,
-		// 		"realized_pnl": 123
-		// 		}
-		// 	}
+        // {
+        //     "success": true,
+        //     "timestamp": 1702989203989,
+        //     "data": {
+        //     "order_id": 78151,
+        //     "user_id": 12345,
+        //     "price": 0.67772,
+        //     "type": "LIMIT",
+        //     "quantity": 20,
+        //     "amount": 10,
+        //     "executed_quantity": 20,
+        //     "total_executed_quantity": 20,
+        //     "visible_quantity": 1,
+        //     "symbol": "PERP_WOO_USDC",
+        //     "side": "BUY",
+        //     "status": "FILLED",
+        //     "total_fee": 0.5,
+        //     "fee_asset": "WOO",
+        //     "client_order_id": 1,
+        //     "average_executed_price": 0.67772,
+        //     "created_time": 1653563963000,
+        //     "updated_time": 1653564213000,
+        //     "realized_pnl": 123
+        //     }
+        // }
         //
         const orders = this.safeDict (response, 'data', response);
         return this.parseOrder (orders, market);
     }
 
-	async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name woofipro#fetchOrders
@@ -1750,7 +1750,7 @@ export default class woofipro extends Exchange {
         return this.parseOrders (orders, market, since, limit);
     }
 
-	async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name woofipro#fetchOpenOrders
@@ -1772,7 +1772,7 @@ export default class woofipro extends Exchange {
         return await this.fetchOrders (symbol, since, limit, extendedParams);
     }
 
-	async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name woofipro#fetchClosedOrders
@@ -1794,12 +1794,12 @@ export default class woofipro extends Exchange {
         return await this.fetchOrders (symbol, since, limit, extendedParams);
     }
 
-	async fetchOrderTrades (id: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOrderTrades (id: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name woofipro#fetchOrderTrades
          * @description fetch all the trades made from a single order
-		 * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-all-trades-of-specific-order
+         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-all-trades-of-specific-order
          * @param {string} id order id
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch trades for
@@ -1817,32 +1817,32 @@ export default class woofipro extends Exchange {
         };
         const response = await this.v1PrivateGetOrderOidTrades (this.extend (request, params));
         //
-		// 	{
-		// 		"success": true,
-		// 		"timestamp": 1702989203989,
-		// 		"data": {
-		// 		  "rows": [{
-		// 			"id": 2,
-		// 			"symbol": "PERP_BTC_USDC",
-		// 			"fee": 0.0001,
-		// 			"fee_asset": "USDC",
-		// 			"side": "BUY",
-		// 			"order_id": 1,
-		// 			"executed_price": 123,
-		// 			"executed_quantity": 0.05,
-		// 			"executed_timestamp": 1567382401000,
-		// 			"is_maker": 1,
-		// 			"realized_pnl": 123
-		// 		  }]
-		// 		}
-		// 	}
-		//
-		const data = this.safeDict (response, 'data', {});
+        // {
+        //     "success": true,
+        //     "timestamp": 1702989203989,
+        //     "data": {
+        //       "rows": [{
+        //         "id": 2,
+        //         "symbol": "PERP_BTC_USDC",
+        //         "fee": 0.0001,
+        //         "fee_asset": "USDC",
+        //         "side": "BUY",
+        //         "order_id": 1,
+        //         "executed_price": 123,
+        //         "executed_quantity": 0.05,
+        //         "executed_timestamp": 1567382401000,
+        //         "is_maker": 1,
+        //         "realized_pnl": 123
+        //       }]
+        //     }
+        // }
+        //
+        const data = this.safeDict (response, 'data', {});
         const trades = this.safeList (data, 'rows', []);
         return this.parseTrades (trades, market, since, limit, params);
     }
 
-	async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name woofipro#fetchMyTrades
@@ -1876,38 +1876,38 @@ export default class woofipro extends Exchange {
             request['size'] = 500;
         }
         const response = await this.v1PrivateGetTrades (this.extend (request, params));
-		//
-		// 	{
-		// 		"success": true,
-		// 		"timestamp": 1702989203989,
-		// 		"data": {
-		// 		  "meta": {
-		// 			"total": 9,
-		// 			"records_per_page": 25,
-		// 			"current_page": 1
-		// 		  },
-		// 		  "rows": [{
-		// 			"id": 2,
-		// 			"symbol": "PERP_BTC_USDC",
-		// 			"fee": 0.0001,
-		// 			"fee_asset": "USDC",
-		// 			"side": "BUY",
-		// 			"order_id": 1,
-		// 			"executed_price": 123,
-		// 			"executed_quantity": 0.05,
-		// 			"executed_timestamp": 1567382401000,
-		// 			"is_maker": 1,
-		// 			"realized_pnl": 123
-		// 		  }]
-		// 		}
-		// 	}
-		//
-		const data = this.safeDict (response, 'data', {});
+        //
+        // {
+        //     "success": true,
+        //     "timestamp": 1702989203989,
+        //     "data": {
+        //       "meta": {
+        //         "total": 9,
+        //         "records_per_page": 25,
+        //         "current_page": 1
+        //       },
+        //       "rows": [{
+        //         "id": 2,
+        //         "symbol": "PERP_BTC_USDC",
+        //         "fee": 0.0001,
+        //         "fee_asset": "USDC",
+        //         "side": "BUY",
+        //         "order_id": 1,
+        //         "executed_price": 123,
+        //         "executed_quantity": 0.05,
+        //         "executed_timestamp": 1567382401000,
+        //         "is_maker": 1,
+        //         "realized_pnl": 123
+        //       }]
+        //     }
+        // }
+        //
+        const data = this.safeDict (response, 'data', {});
         const trades = this.safeList (data, 'rows', []);
         return this.parseTrades (trades, market, since, limit, params);
     }
 
-	parseBalance (response): Balances {
+    parseBalance (response): Balances {
         const result = {
             'info': response,
         };
@@ -1923,7 +1923,7 @@ export default class woofipro extends Exchange {
         return this.safeBalance (result);
     }
 
-	async fetchBalance (params = {}): Promise<Balances> {
+    async fetchBalance (params = {}): Promise<Balances> {
         /**
          * @method
          * @name woofipro#fetchBalance
@@ -1935,25 +1935,25 @@ export default class woofipro extends Exchange {
         await this.loadMarkets ();
         const response = await this.v1PrivateGetClientHolding (params);
         //
-		// 	{
-		// 		"success": true,
-		// 		"timestamp": 1702989203989,
-		// 		"data": {
-		// 		  "holding": [{
-		// 			"updated_time": 1580794149000,
-		// 			"token": "BTC",
-		// 			"holding": -28.000752,
-		// 			"frozen": 123,
-		// 			"pending_short": -2000
-		// 		  }]
-		// 		}
-		// 	}
+        // {
+        //     "success": true,
+        //     "timestamp": 1702989203989,
+        //     "data": {
+        //       "holding": [{
+        //         "updated_time": 1580794149000,
+        //         "token": "BTC",
+        //         "holding": -28.000752,
+        //         "frozen": 123,
+        //         "pending_short": -2000
+        //       }]
+        //     }
+        // }
         //
         const data = this.safeDict (response, 'data');
         return this.parseBalance (data);
     }
 
-	async getAssetHistoryRows (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async getAssetHistoryRows (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         const request = { };
         let currency: Currency = undefined;
@@ -1974,35 +1974,35 @@ export default class woofipro extends Exchange {
         }
         const response = await this.v1PrivateGetAssetHistory (this.extend (request, params));
         //
-		// 	{
-		// 		"success": true,
-		// 		"timestamp": 1702989203989,
-		// 		"data": {
-		// 		  "meta": {
-		// 			"total": 9,
-		// 			"records_per_page": 25,
-		// 			"current_page": 1
-		// 		  },
-		// 		  "rows": [{
-		// 			"id": "230707030600002",
-		// 			"tx_id": "0x4b0714c63cc7abae72bf68e84e25860b88ca651b7d27dad1e32bf4c027fa5326",
-		// 			"side": "WITHDRAW",
-		// 			"token": "USDC",
-		// 			"amount": 555,
-		// 			"fee": 123,
-		// 			"trans_status": "FAILED",
-		// 			"created_time": 1688699193034,
-		// 			"updated_time": 1688699193096,
-		// 			"chain_id": "986532"
-		// 		  }]
-		// 		}
-		// 	}
-		//
-		const data = this.safeDict (response, 'data', {});
+        // {
+        //     "success": true,
+        //     "timestamp": 1702989203989,
+        //     "data": {
+        //       "meta": {
+        //         "total": 9,
+        //         "records_per_page": 25,
+        //         "current_page": 1
+        //       },
+        //       "rows": [{
+        //         "id": "230707030600002",
+        //         "tx_id": "0x4b0714c63cc7abae72bf68e84e25860b88ca651b7d27dad1e32bf4c027fa5326",
+        //         "side": "WITHDRAW",
+        //         "token": "USDC",
+        //         "amount": 555,
+        //         "fee": 123,
+        //         "trans_status": "FAILED",
+        //         "created_time": 1688699193034,
+        //         "updated_time": 1688699193096,
+        //         "chain_id": "986532"
+        //       }]
+        //     }
+        // }
+        //
+        const data = this.safeDict (response, 'data', {});
         return [ currency, this.safeList (data, 'rows', []) ];
     }
 
-	parseLedgerEntry (item, currency: Currency = undefined) {
+    parseLedgerEntry (item, currency: Currency = undefined) {
         const code = this.safeString (item, 'token');
         const amount = this.safeNumber (item, 'amount');
         const side = this.safeString (item, 'token_side');
@@ -2042,7 +2042,7 @@ export default class woofipro extends Exchange {
          * @name woofipro#fetchLedger
          * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
          * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-asset-history
-		 * @param {string} code unified currency code, default is undefined
+         * @param {string} code unified currency code, default is undefined
          * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
          * @param {int} [limit] max number of ledger entrys to return, default is undefined
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2051,9 +2051,9 @@ export default class woofipro extends Exchange {
         const [ currency, rows ] = await this.getAssetHistoryRows (code, since, limit, params);
         return this.parseLedger (rows, currency, since, limit, params);
     }
-	
+    
 
-	parseTransaction (transaction, currency: Currency = undefined): Transaction {
+    parseTransaction (transaction, currency: Currency = undefined): Transaction {
         // example in fetchLedger
         const code = this.safeString (transaction, 'token');
         let movementDirection = this.safeStringLower (transaction, 'token_side');
@@ -2099,12 +2099,12 @@ export default class woofipro extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-	async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+    async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name woofipro#fetchDeposits
          * @description fetch all deposits made to an account
-		 * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-asset-history
+         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-asset-history
          * @param {string} code unified currency code
          * @param {int} [since] the earliest time in ms to fetch deposits for
          * @param {int} [limit] the maximum number of deposits structures to retrieve
@@ -2122,7 +2122,7 @@ export default class woofipro extends Exchange {
          * @method
          * @name woofipro#fetchWithdrawals
          * @description fetch all withdrawals made from an account
-		 * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-asset-history
+         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-asset-history
          * @param {string} code unified currency code
          * @param {int} [since] the earliest time in ms to fetch withdrawals for
          * @param {int} [limit] the maximum number of withdrawals structures to retrieve
@@ -2140,7 +2140,7 @@ export default class woofipro extends Exchange {
          * @method
          * @name woofipro#fetchDepositsWithdrawals
          * @description fetch history of deposits and withdrawals
-		 * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-asset-history
+         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-asset-history
          * @param {string} [code] unified currency code for the currency of the deposit/withdrawals, default is undefined
          * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
          * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
@@ -2163,7 +2163,7 @@ export default class woofipro extends Exchange {
         return this.parseTransactions (rows, currency, since, limit, params);
     }
 
-	async fetchLeverage (symbol: string, params = {}): Promise<Leverage> {
+    async fetchLeverage (symbol: string, params = {}): Promise<Leverage> {
         /**
          * @method
          * @name woofipro#fetchLeverage
@@ -2177,31 +2177,31 @@ export default class woofipro extends Exchange {
         const market = this.market (symbol);
         const response = await this.v1PrivateGetClientInfo (params);
         //
-		// 	{
-		// 		"success": true,
-		// 		"timestamp": 1702989203989,
-		// 		"data": {
-		// 		"account_id": "<string>",
-		// 		"email": "test@test.com",
-		// 		"account_mode": "FUTURES",
-		// 		"max_leverage": 20,
-		// 		"taker_fee_rate": 123,
-		// 		"maker_fee_rate": 123,
-		// 		"futures_taker_fee_rate": 123,
-		// 		"futures_maker_fee_rate": 123,
-		// 		"maintenance_cancel_orders": true,
-		// 		"imr_factor": {
-		// 			"PERP_BTC_USDC": 123,
-		// 			"PERP_ETH_USDC": 123,
-		// 			"PERP_NEAR_USDC": 123
-		// 		},
-		// 		"max_notional": {
-		// 			"PERP_BTC_USDC": 123,
-		// 			"PERP_ETH_USDC": 123,
-		// 			"PERP_NEAR_USDC": 123
-		// 		}
-		// 		}
-		// 	}
+        // {
+        //     "success": true,
+        //     "timestamp": 1702989203989,
+        //     "data": {
+        //     "account_id": "<string>",
+        //     "email": "test@test.com",
+        //     "account_mode": "FUTURES",
+        //     "max_leverage": 20,
+        //     "taker_fee_rate": 123,
+        //     "maker_fee_rate": 123,
+        //     "futures_taker_fee_rate": 123,
+        //     "futures_maker_fee_rate": 123,
+        //     "maintenance_cancel_orders": true,
+        //     "imr_factor": {
+        //         "PERP_BTC_USDC": 123,
+        //         "PERP_ETH_USDC": 123,
+        //         "PERP_NEAR_USDC": 123
+        //     },
+        //     "max_notional": {
+        //         "PERP_BTC_USDC": 123,
+        //         "PERP_ETH_USDC": 123,
+        //         "PERP_NEAR_USDC": 123
+        //     }
+        //     }
+        // }
         //
         const data = this.safeDict (response, 'data', {});
         return this.parseLeverage (data, market);
@@ -2218,8 +2218,8 @@ export default class woofipro extends Exchange {
         } as Leverage;
     }
 
-	async setLeverage (leverage: Int, symbol: Str = undefined, params = {}) {
-		/**
+    async setLeverage (leverage: Int, symbol: Str = undefined, params = {}) {
+        /**
          * @method
          * @name woofipro#setLeverage
          * @description set the level of leverage for a market
@@ -2240,26 +2240,26 @@ export default class woofipro extends Exchange {
 
     parsePosition (position, market: Market = undefined) {
         //
-		// 	{
-		// 		"IMR_withdraw_orders": 0.1,
-		// 		"MMR_with_orders": 0.05,
-		// 		"average_open_price": 27908.14386047,
-		// 		"cost_position": -139329.358492,
-		// 		"est_liq_price": 117335.92899428,
-		// 		"fee_24_h": 123,
-		// 		"imr": 0.1,
-		// 		"last_sum_unitary_funding": 70.38,
-		// 		"mark_price": 27794.9,
-		// 		"mmr": 0.05,
-		// 		"pending_long_qty": 123,
-		// 		"pending_short_qty": 123,
-		// 		"pnl_24_h": 123,
-		// 		"position_qty": -5,
-		// 		"settle_price": 27865.8716984,
-		// 		"symbol": "PERP_BTC_USDC",
-		// 		"timestamp": 1685429350571,
-		// 		"unsettled_pnl": 354.858492
-		// 	}
+        // {
+        //     "IMR_withdraw_orders": 0.1,
+        //     "MMR_with_orders": 0.05,
+        //     "average_open_price": 27908.14386047,
+        //     "cost_position": -139329.358492,
+        //     "est_liq_price": 117335.92899428,
+        //     "fee_24_h": 123,
+        //     "imr": 0.1,
+        //     "last_sum_unitary_funding": 70.38,
+        //     "mark_price": 27794.9,
+        //     "mmr": 0.05,
+        //     "pending_long_qty": 123,
+        //     "pending_short_qty": 123,
+        //     "pnl_24_h": 123,
+        //     "position_qty": -5,
+        //     "settle_price": 27865.8716984,
+        //     "symbol": "PERP_BTC_USDC",
+        //     "timestamp": 1685429350571,
+        //     "unsettled_pnl": 354.858492
+        // }
         //
         const contract = this.safeString (position, 'symbol');
         market = this.safeMarket (contract, market);
@@ -2309,8 +2309,8 @@ export default class woofipro extends Exchange {
         });
     }
 
-	async fetchPosition (symbol: Str = undefined, params = {}) {
-		/**
+    async fetchPosition (symbol: Str = undefined, params = {}) {
+        /**
          * @method
          * @name woofipro#fetchPosition
          * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-one-position-info
@@ -2326,37 +2326,37 @@ export default class woofipro extends Exchange {
         };
         const response = await this.v1PrivateGetPositionSymbol (this.extend (request, params));
         //
-		// 	{
-		// 		"success": true,
-		// 		"timestamp": 1702989203989,
-		// 		"data": {
-		// 		"IMR_withdraw_orders": 0.1,
-		// 		"MMR_with_orders": 0.05,
-		// 		"average_open_price": 27908.14386047,
-		// 		"cost_position": -139329.358492,
-		// 		"est_liq_price": 117335.92899428,
-		// 		"fee_24_h": 123,
-		// 		"imr": 0.1,
-		// 		"last_sum_unitary_funding": 70.38,
-		// 		"mark_price": 27794.9,
-		// 		"mmr": 0.05,
-		// 		"pending_long_qty": 123,
-		// 		"pending_short_qty": 123,
-		// 		"pnl_24_h": 123,
-		// 		"position_qty": -5,
-		// 		"settle_price": 27865.8716984,
-		// 		"symbol": "PERP_BTC_USDC",
-		// 		"timestamp": 1685429350571,
-		// 		"unsettled_pnl": 354.858492
-		// 		}
-		// 	}
+        // {
+        //     "success": true,
+        //     "timestamp": 1702989203989,
+        //     "data": {
+        //     "IMR_withdraw_orders": 0.1,
+        //     "MMR_with_orders": 0.05,
+        //     "average_open_price": 27908.14386047,
+        //     "cost_position": -139329.358492,
+        //     "est_liq_price": 117335.92899428,
+        //     "fee_24_h": 123,
+        //     "imr": 0.1,
+        //     "last_sum_unitary_funding": 70.38,
+        //     "mark_price": 27794.9,
+        //     "mmr": 0.05,
+        //     "pending_long_qty": 123,
+        //     "pending_short_qty": 123,
+        //     "pnl_24_h": 123,
+        //     "position_qty": -5,
+        //     "settle_price": 27865.8716984,
+        //     "symbol": "PERP_BTC_USDC",
+        //     "timestamp": 1685429350571,
+        //     "unsettled_pnl": 354.858492
+        //     }
+        // }
         //
-		const data = this.safeDict (response, 'data');
+        const data = this.safeDict (response, 'data');
         return this.parsePosition (data, market);
     }
 
-	async fetchPositions (symbols: Strings = undefined, params = {}) {
-		/**
+    async fetchPositions (symbols: Strings = undefined, params = {}) {
+        /**
          * @method
          * @name woofipro#fetchPositions
          * @description fetch all open positions
@@ -2369,42 +2369,42 @@ export default class woofipro extends Exchange {
         await this.loadMarkets ();
         const response = await this.v1PrivateGetPositions (params);
         //
-		// 	{
-		// 		"success": true,
-		// 		"timestamp": 1702989203989,
-		// 		"data": {
-		// 			"current_margin_ratio_with_orders": 1.2385,
-		// 			"free_collateral": 450315.09115,
-		// 			"initial_margin_ratio": 0.1,
-		// 			"initial_margin_ratio_with_orders": 0.1,
-		// 			"maintenance_margin_ratio": 0.05,
-		// 			"maintenance_margin_ratio_with_orders": 0.05,
-		// 			"margin_ratio": 1.2385,
-		// 			"open_margin_ratio": 1.2102,
-		// 			"total_collateral_value": 489865.71329,
-		// 			"total_pnl_24_h": 123,
-		// 			"rows": [{
-		// 				"IMR_withdraw_orders": 0.1,
-		// 				"MMR_with_orders": 0.05,
-		// 				"average_open_price": 27908.14386047,
-		// 				"cost_position": -139329.358492,
-		// 				"est_liq_price": 117335.92899428,
-		// 				"fee_24_h": 123,
-		// 				"imr": 0.1,
-		// 				"last_sum_unitary_funding": 70.38,
-		// 				"mark_price": 27794.9,
-		// 				"mmr": 0.05,
-		// 				"pending_long_qty": 123,
-		// 				"pending_short_qty": 123,
-		// 				"pnl_24_h": 123,
-		// 				"position_qty": -5,
-		// 				"settle_price": 27865.8716984,
-		// 				"symbol": "PERP_BTC_USDC",
-		// 				"timestamp": 1685429350571,
-		// 				"unsettled_pnl": 354.858492
-		// 			}]
-		// 		}
-		// 	}
+        // {
+        //     "success": true,
+        //     "timestamp": 1702989203989,
+        //     "data": {
+        //         "current_margin_ratio_with_orders": 1.2385,
+        //         "free_collateral": 450315.09115,
+        //         "initial_margin_ratio": 0.1,
+        //         "initial_margin_ratio_with_orders": 0.1,
+        //         "maintenance_margin_ratio": 0.05,
+        //         "maintenance_margin_ratio_with_orders": 0.05,
+        //         "margin_ratio": 1.2385,
+        //         "open_margin_ratio": 1.2102,
+        //         "total_collateral_value": 489865.71329,
+        //         "total_pnl_24_h": 123,
+        //         "rows": [{
+        //             "IMR_withdraw_orders": 0.1,
+        //             "MMR_with_orders": 0.05,
+        //             "average_open_price": 27908.14386047,
+        //             "cost_position": -139329.358492,
+        //             "est_liq_price": 117335.92899428,
+        //             "fee_24_h": 123,
+        //             "imr": 0.1,
+        //             "last_sum_unitary_funding": 70.38,
+        //             "mark_price": 27794.9,
+        //             "mmr": 0.05,
+        //             "pending_long_qty": 123,
+        //             "pending_short_qty": 123,
+        //             "pnl_24_h": 123,
+        //             "position_qty": -5,
+        //             "settle_price": 27865.8716984,
+        //             "symbol": "PERP_BTC_USDC",
+        //             "timestamp": 1685429350571,
+        //             "unsettled_pnl": 354.858492
+        //         }]
+        //     }
+        // }
         //
         const result = this.safeDict (response, 'data', {});
         const positions = this.safeList (result, 'rows', []);
@@ -2449,28 +2449,28 @@ export default class woofipro extends Exchange {
             url += pathWithParams;
             headers = {
                 'orderly-account-id': this.uid,
-				'orderly-key':  this.apiKey,
+                'orderly-key':  this.apiKey,
                 'orderly-timestamp': ts,
             };
-			auth = ts + method + '/' + version + '/' + pathWithParams;
-			if (method === 'POST' || method === 'PUT') {
-				body = this.json (params);
-				auth += body;
-				headers['content-type'] = 'application/json';
-			} else {
-				if (Object.keys (params).length) {
-					url += '?' + this.urlencode (params);
-					auth += '?' + this.rawencode (params);
-				}
-				headers['content-type'] = 'application/x-www-form-urlencoded';
-			}
+            auth = ts + method + '/' + version + '/' + pathWithParams;
+            if (method === 'POST' || method === 'PUT') {
+                body = this.json (params);
+                auth += body;
+                headers['content-type'] = 'application/json';
+            } else {
+                if (Object.keys (params).length) {
+                    url += '?' + this.urlencode (params);
+                    auth += '?' + this.rawencode (params);
+                }
+                headers['content-type'] = 'application/x-www-form-urlencoded';
+            }
             let secret = this.secret;
             if (secret.indexOf ('ed25519:') >= 0) {
                 const parts = secret.split ('ed25519:');
                 secret = parts[1];
             }
-			const signature = eddsa (this.encode (auth), this.base58ToBinary (secret), ed25519);
-            headers['orderly-signature'] = this.urlencodeBase64 (signature);
+            const signature = eddsa (this.encode (auth), this.base58ToBinary (secret), ed25519);
+            headers['orderly-signature'] = this.urlencodeBase64 (this.base64ToBinary (signature));
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
