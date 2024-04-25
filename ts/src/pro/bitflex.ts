@@ -115,7 +115,7 @@ export default class bitflex extends bitflexRest {
         orderbook.reset (snapshot);
         const nonceString = this.safeString (data, 'v');
         const parts = nonceString.split ('_');
-        orderbook['nonce'] = this.parseToInt (parts[0]); // todo check
+        orderbook['nonce'] = this.parseToInt (parts[0]);
         this.orderbooks[symbol] = orderbook;
         client.resolve (orderbook, messageHash);
     }
@@ -297,7 +297,6 @@ export default class bitflex extends bitflexRest {
         //     }
         //
         const timestamp = this.safeInteger (trade, 't');
-        const isMaker = this.safeBool (trade, 'm');
         return this.safeTrade ({
             'info': trade,
             'amount': this.safeString (trade, 'q'),
@@ -309,7 +308,7 @@ export default class bitflex extends bitflexRest {
             'type': undefined,
             'side': undefined,
             'symbol': this.safeString (market, 'symbol'),
-            'takerOrMaker': isMaker ? 'maker' : 'taker',
+            'takerOrMaker': undefined,
             'cost': undefined,
             'fee': undefined,
         }, market);
@@ -534,7 +533,7 @@ export default class bitflex extends bitflexRest {
         //         S: 'LONG',
         //         p: '3211.99',
         //         P: '0.01',
-        //         a: '0.01', // todo check
+        //         a: '0.01',
         //         f: '1608.1',
         //         m: '16.1192',
         //         r: '-0.0192'
