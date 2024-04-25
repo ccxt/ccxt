@@ -6702,7 +6702,13 @@ export default class Exchange {
             currency = this.currency (code);
             code = currency['code'];
         }
-        return this.filterByValueSinceLimit (sorted, 'fromCurrency', code, since, limit, 'timestamp', false);
+        if (code === undefined) {
+            return this.filterBySinceLimit (sorted, since, limit);
+        }
+        const fromConversion = this.filterBy (sorted, 'fromCurrency', code);
+        const toConversion = this.filterBy (sorted, 'toCurrency', code);
+        const both = this.arrayConcat (fromConversion, toConversion);
+        return this.filterBySinceLimit (both, since, limit);
     }
 
     parseConversion (conversion, fromCurrency: Currency = undefined, toCurrency: Currency = undefined): Conversion {
