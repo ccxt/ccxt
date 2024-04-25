@@ -617,11 +617,21 @@
         }
     },
     "coinbase": {
-        "skip": "private endpoints",
-        "skipWs": "needs auth",
         "skipMethods": {
+            "loadMarkets": {
+                "taker":"is undefined",
+                "maker":"is undefined",
+                "currencyIdAndCode": "some curr not available",
+                "networks": "not available"
+            },
+            "fetchTicker": "private",
+            "fetchTickers": "private",
+            "fetchBidsAsks": "private",
             "fetchCurrencies": {
-                "precision": "not provided"
+                "precision": "not provided",
+                "networks": "not provided",
+                "deposit":"not provided",
+                "withdraw": "not provided"
             },
             "fetchTrades": "datetime is not same as timestamp"
         }

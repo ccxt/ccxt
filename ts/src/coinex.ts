@@ -7,7 +7,7 @@ import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { md5 } from './static_dependencies/noble-hashes/md5.js';
-import type { Balances, Currency, FundingHistory, FundingRateHistory, Int, Market, OHLCV, Order, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, OrderRequest, TransferEntry, Leverage, Leverages, Num, MarginModification, TradingFeeInterface, Currencies, TradingFees, IsolatedBorrowRates, IsolatedBorrowRate } from './base/types.js';
+import type { Balances, Currency, FundingHistory, FundingRateHistory, Int, Market, OHLCV, Order, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, OrderRequest, TransferEntry, Leverage, Leverages, Num, MarginModification, TradingFeeInterface, Currencies, TradingFees, Position, IsolatedBorrowRates, IsolatedBorrowRate } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -92,7 +92,9 @@ export default class coinex extends Exchange {
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchPosition': true,
+                'fetchPositionHistory': true,
                 'fetchPositions': true,
+                'fetchPositionsHistory': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
@@ -1460,24 +1462,24 @@ export default class coinex extends Exchange {
 
     parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
         //
-        //     [
-        //         1591484400,
-        //         "0.02505349",
-        //         "0.02506988",
-        //         "0.02507000",
-        //         "0.02505304",
-        //         "343.19716223",
-        //         "8.6021323866383196",
-        //         "ETHBTC"
-        //     ]
+        //     {
+        //         "close": "66999.95",
+        //         "created_at": 1713934620000,
+        //         "high": "66999.95",
+        //         "low": "66988.53",
+        //         "market": "BTCUSDT",
+        //         "open": "66988.53",
+        //         "value": "0.1572393",        // base volume
+        //         "volume": "10533.2501364336" // quote volume
+        //     }
         //
         return [
-            this.safeTimestamp (ohlcv, 0),
-            this.safeNumber (ohlcv, 1),
-            this.safeNumber (ohlcv, 3),
-            this.safeNumber (ohlcv, 4),
-            this.safeNumber (ohlcv, 2),
-            this.safeNumber (ohlcv, 5),
+            this.safeInteger (ohlcv, 'created_at'),
+            this.safeNumber (ohlcv, 'open'),
+            this.safeNumber (ohlcv, 'high'),
+            this.safeNumber (ohlcv, 'low'),
+            this.safeNumber (ohlcv, 'close'),
+            this.safeNumber (ohlcv, 'value'),
         ];
     }
 
@@ -1486,8 +1488,8 @@ export default class coinex extends Exchange {
          * @method
          * @name coinex#fetchOHLCV
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-         * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot001_market006_market_kline
-         * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http012_market_kline
+         * @see https://docs.coinex.com/api/v2/spot/market/http/list-market-kline
+         * @see https://docs.coinex.com/api/v2/futures/market/http/list-market-kline
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -1499,38 +1501,33 @@ export default class coinex extends Exchange {
         const market = this.market (symbol);
         const request = {
             'market': market['id'],
-            'type': this.safeString (this.timeframes, timeframe, timeframe),
+            'period': this.safeString (this.timeframes, timeframe, timeframe),
         };
         if (limit !== undefined) {
             request['limit'] = limit;
         }
         let response = undefined;
         if (market['swap']) {
-            response = await this.v1PerpetualPublicGetMarketKline (this.extend (request, params));
+            response = await this.v2PublicGetFuturesKline (this.extend (request, params));
         } else {
-            response = await this.v1PublicGetMarketKline (this.extend (request, params));
+            response = await this.v2PublicGetSpotKline (this.extend (request, params));
         }
         //
-        // Spot
+        // Spot and Swap
         //
         //     {
         //         "code": 0,
         //         "data": [
-        //             [1591484400, "0.02505349", "0.02506988", "0.02507000", "0.02505304", "343.19716223", "8.6021323866383196", "ETHBTC"],
-        //             [1591484700, "0.02506990", "0.02508109", "0.02508109", "0.02506979", "91.59841581", "2.2972047780447000", "ETHBTC"],
-        //             [1591485000, "0.02508106", "0.02507996", "0.02508106", "0.02507500", "65.15307697", "1.6340597822306000", "ETHBTC"],
-        //         ],
-        //         "message": "OK"
-        //     }
-        //
-        // Swap
-        //
-        //     {
-        //         "code": 0,
-        //         "data": [
-        //             [1650569400, "41524.64", "41489.31", "41564.61", "41480.58", "29.7060", "1233907.099562"],
-        //             [1650569700, "41489.31", "41438.29", "41489.31", "41391.87", "42.4115", "1756154.189061"],
-        //             [1650570000, "41438.29", "41482.21", "41485.05", "41427.31", "22.2892", "924000.317861"]
+        //             {
+        //                 "close": "66999.95",
+        //                 "created_at": 1713934620000,
+        //                 "high": "66999.95",
+        //                 "low": "66988.53",
+        //                 "market": "BTCUSDT",
+        //                 "open": "66988.53",
+        //                 "value": "0.1572393",
+        //                 "volume": "10533.2501364336"
+        //             },
         //         ],
         //         "message": "OK"
         //     }
@@ -3737,7 +3734,7 @@ export default class coinex extends Exchange {
         //                 "side": 2,
         //                 "stop_loss_price": "0.00000000000000000000",
         //                 "stop_loss_type": 0,
-        //                 "sys": 0,
+        //                 "sy s": 0,
         //                 "take_profit_price": "0.00000000000000000000",
         //                 "take_profit_type": 0,
         //                 "taker_fee": "0.00000000000000000000",
@@ -3820,7 +3817,7 @@ export default class coinex extends Exchange {
         //                 "side": 2,
         //                 "stop_loss_price": "0.00000000000000000000",
         //                 "stop_loss_type": 0,
-        //                 "sys": 0,
+        //                 "s ys": 0,
         //                 "take_profit_price": "0.00000000000000000000",
         //                 "take_profit_type": 0,
         //                 "taker_fee": "0.00000000000000000000",
@@ -3838,6 +3835,8 @@ export default class coinex extends Exchange {
     }
 
     parsePosition (position, market: Market = undefined) {
+        //
+        // fetchPosition
         //
         //     {
         //         "adl_sort": 3396,
@@ -3881,7 +3880,7 @@ export default class coinex extends Exchange {
         //         "side": 2,
         //         "stop_loss_price": "0.00000000000000000000",
         //         "stop_loss_type": 0,
-        //         "sys": 0,
+        //         "s ys": 0,
         //         "take_profit_price": "0.00000000000000000000",
         //         "take_profit_type": 0,
         //         "taker_fee": "0.00000000000000000000",
@@ -3890,6 +3889,40 @@ export default class coinex extends Exchange {
         //         "update_time": 1651294226.111196,
         //         "user_id": 3620173
         //     }
+        //
+        //
+        // fetchPositionHistory
+        //
+        //    {
+        //        amount_max: '10',
+        //        amount_max_margin: '2.03466666666666666666',
+        //        bkr_price: '0',
+        //        create_time: '1711150526.2581',
+        //        deal_all: '12.591',
+        //        deal_asset_fee: '0',
+        //        fee_asset: '',
+        //        finish_type: '5',
+        //        first_price: '0.6104',
+        //        latest_price: '0.6487',
+        //        leverage: '3',
+        //        liq_amount: '0',
+        //        liq_price: '0',
+        //        liq_profit: '0',
+        //        mainten_margin: '0.01',
+        //        market: 'XRPUSDT',
+        //        market_type: '1',
+        //        open_price: '0.6104',
+        //        open_val_max: '6.104',
+        //        position_id: '297371462',
+        //        profit_real: '0.35702107169',
+        //        settle_price: '0.6104',
+        //        settle_val: '0',
+        //        side: '2',
+        //        s ys: "0",
+        //        type: '2',
+        //        update_time: '1711391446.133233',
+        //        user_id: '3685860'
+        //    }
         //
         const marketId = this.safeString (position, 'market');
         market = this.safeMarket (marketId, market, undefined, 'swap');
@@ -3906,7 +3939,7 @@ export default class coinex extends Exchange {
         const timestamp = this.safeTimestamp (position, 'update_time');
         const maintenanceMargin = this.safeString (position, 'mainten_margin_amount');
         const maintenanceMarginPercentage = this.safeString (position, 'mainten_margin');
-        const collateral = this.safeString (position, 'margin_amount');
+        const collateral = this.safeString2 (position, 'margin_amount', 'amount_max_margin');
         const leverage = this.safeString (position, 'leverage');
         const notional = this.safeString (position, 'open_val');
         const initialMargin = Precise.stringDiv (notional, leverage);
@@ -4139,7 +4172,7 @@ export default class coinex extends Exchange {
         //             "side": 2,
         //             "stop_loss_price": "0.00000000000000000000",
         //             "stop_loss_type": 0,
-        //             "sys": 0,
+        //             "s ys": 0,
         //             "take_profit_price": "0.00000000000000000000",
         //             "take_profit_type": 0,
         //             "taker_fee": "0.00000000000000000000",
@@ -4205,7 +4238,7 @@ export default class coinex extends Exchange {
         //        "side": 2,
         //        "stop_loss_price": "0.00000000000000000000",
         //        "stop_loss_type": 0,
-        //        "sys": 0,
+        //        "sy s": 0,
         //        "take_profit_price": "0.00000000000000000000",
         //        "take_profit_type": 0,
         //        "taker_fee": "0.00000000000000000000",
@@ -4250,7 +4283,7 @@ export default class coinex extends Exchange {
         };
     }
 
-    async addMargin (symbol: string, amount, params = {}): Promise<MarginModification> {
+    async addMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
         /**
          * @method
          * @name coinex#addMargin
@@ -4264,7 +4297,7 @@ export default class coinex extends Exchange {
         return await this.modifyMarginHelper (symbol, amount, 1, params);
     }
 
-    async reduceMargin (symbol: string, amount, params = {}): Promise<MarginModification> {
+    async reduceMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
         /**
          * @method
          * @name coinex#reduceMargin
@@ -4537,7 +4570,7 @@ export default class coinex extends Exchange {
         return this.filterByArray (result, 'symbol', symbols);
     }
 
-    async withdraw (code: string, amount: number, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {
         /**
          * @method
          * @name coinex#withdraw
@@ -5602,6 +5635,81 @@ export default class coinex extends Exchange {
             'longLeverage': leverageValue,
             'shortLeverage': leverageValue,
         } as Leverage;
+    }
+
+    async fetchPositionHistory (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position> {
+        /**
+         * @method
+         * @name coinex#fetchPositionHistory
+         * @description fetches historical positions
+         * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http033-0_finished_position
+         * @param {string} symbol unified contract symbol
+         * @param {int} [since] not used by coinex fetchPositionHistory
+         * @param {int} [limit] the maximum amount of records to fetch, default=1000
+         * @param {object} params extra parameters specific to the exchange api endpoint
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+         * @param {int} [params.side] 0: all 1: sell, 2: buy
+         * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (limit === undefined) {
+            limit = 1000;
+        }
+        const request = {
+            'market': market['id'],
+            'side': 0,
+            'limit': limit,
+        };
+        const response = await this.v1PerpetualPrivateGetPositionFinished (this.extend (request, params));
+        //
+        //    {
+        //        code: '0',
+        //        data: {
+        //            limit: '1000',
+        //            offset: '0',
+        //            records: [
+        //                {
+        //                    amount_max: '10',
+        //                    amount_max_margin: '2.03466666666666666666',
+        //                    bkr_price: '0',
+        //                    create_time: '1711150526.2581',
+        //                    deal_all: '12.591',
+        //                    deal_asset_fee: '0',
+        //                    fee_asset: '',
+        //                    finish_type: '5',
+        //                    first_price: '0.6104',
+        //                    latest_price: '0.6487',
+        //                    leverage: '3',
+        //                    liq_amount: '0',
+        //                    liq_price: '0',
+        //                    liq_profit: '0',
+        //                    mainten_margin: '0.01',
+        //                    market: 'XRPUSDT',
+        //                    market_type: '1',
+        //                    open_price: '0.6104',
+        //                    open_val_max: '6.104',
+        //                    position_id: '297371462',
+        //                    profit_real: '0.35702107169',
+        //                    settle_price: '0.6104',
+        //                    settle_val: '0',
+        //                    side: '2',
+        //                    sy s: '0',
+        //                    type: '2',
+        //                    update_time: '1711391446.133233',
+        //                    user_id: '3685860'
+        //                },
+        //                ...
+        //            ]
+        //        },
+        //        message: 'OK'
+        //    }
+        //
+        const data = this.safeDict (response, 'data');
+        const records = this.safeList (data, 'records');
+        const positions = this.parsePositions (records);
+        return this.filterBySymbolSinceLimit (positions, symbol, since, limit);
     }
 
     handleMarginModeAndParams (methodName, params = {}, defaultValue = undefined) {

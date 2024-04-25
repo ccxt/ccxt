@@ -2754,7 +2754,7 @@ class ascendex(Exchange, ImplicitAPI):
             'datetime': None,
         }
 
-    def reduce_margin(self, symbol: str, amount, params={}) -> MarginModification:
+    def reduce_margin(self, symbol: str, amount: float, params={}) -> MarginModification:
         """
         remove margin from a position
         :param str symbol: unified market symbol
@@ -2764,7 +2764,7 @@ class ascendex(Exchange, ImplicitAPI):
         """
         return self.modify_margin_helper(symbol, -amount, 'reduce', params)
 
-    def add_margin(self, symbol: str, amount, params={}) -> MarginModification:
+    def add_margin(self, symbol: str, amount: float, params={}) -> MarginModification:
         """
         add margin
         :param str symbol: unified market symbol

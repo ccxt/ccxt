@@ -74,8 +74,10 @@ export default class bingx extends Exchange {
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': true,
+                'fetchPositionHistory': false,
                 'fetchPositionMode': true,
                 'fetchPositions': true,
+                'fetchPositionsHistory': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': true,
@@ -2466,7 +2468,7 @@ export default class bingx extends Exchange {
         return this.safeOrder ({
             'info': info,
             'id': this.safeString2 (order, 'orderId', 'i'),
-            'clientOrderId': this.safeStringN (order, [ 'clientOrderID', 'origClientOrderId', 'c' ]),
+            'clientOrderId': this.safeStringN (order, [ 'clientOrderID', 'clientOrderId', 'origClientOrderId', 'c' ]),
             'symbol': this.safeSymbol (marketId, market, '-', marketType),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -3955,7 +3957,7 @@ export default class bingx extends Exchange {
         return this.parseDepositWithdrawFees (coins, codes, 'coin');
     }
 
-    async withdraw (code: string, amount: number, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {
         /**
          * @method
          * @name bingx#withdraw

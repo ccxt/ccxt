@@ -128,8 +128,10 @@ class bitget(Exchange, ImplicitAPI):
                 'fetchOrders': False,
                 'fetchOrderTrades': False,
                 'fetchPosition': True,
+                'fetchPositionHistory': 'emulated',
                 'fetchPositionMode': False,
                 'fetchPositions': True,
+                'fetchPositionsHistory': True,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchStatus': False,
@@ -2160,7 +2162,7 @@ class bitget(Exchange, ImplicitAPI):
         rawTransactions = self.safe_list(response, 'data', [])
         return self.parse_transactions(rawTransactions, currency, since, limit)
 
-    async def withdraw(self, code: str, amount: float, address, tag=None, params={}):
+    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
         """
         make a withdrawal
         :see: https://www.bitget.com/api-doc/spot/account/Wallet-Withdrawal
@@ -6086,7 +6088,7 @@ class bitget(Exchange, ImplicitAPI):
         #         "cTime": "1700807507275"
         #     }
         #
-        # fetchPositions: privateMixGetV2MixPositionHistoryPosition
+        # fetchPositionsHistory: privateMixGetV2MixPositionHistoryPosition
         #
         #     {
         #         "symbol": "BTCUSDT",
@@ -6501,7 +6503,7 @@ class bitget(Exchange, ImplicitAPI):
             'datetime': None,
         }
 
-    async def reduce_margin(self, symbol: str, amount, params={}) -> MarginModification:
+    async def reduce_margin(self, symbol: str, amount: float, params={}) -> MarginModification:
         """
         remove margin from a position
         :see: https://www.bitget.com/api-doc/contract/account/Change-Margin
@@ -6517,7 +6519,7 @@ class bitget(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' reduceMargin() requires a holdSide parameter, either long or short')
         return await self.modify_margin_helper(symbol, amount, 'reduce', params)
 
-    async def add_margin(self, symbol: str, amount, params={}) -> MarginModification:
+    async def add_margin(self, symbol: str, amount: float, params={}) -> MarginModification:
         """
         add margin
         :see: https://www.bitget.com/api-doc/contract/account/Change-Margin
@@ -7857,6 +7859,70 @@ class bitget(Exchange, ImplicitAPI):
             'symbol': market['symbol'],
             'marginMode': marginType,
         }
+
+    async def fetch_positions_history(self, symbols: Strings = None, since: Int = None, limit: Int = None, params={}) -> List[Position]:
+        """
+        fetches historical positions
+        :see: https://www.bitget.com/api-doc/contract/position/Get-History-Position
+        :param str [symbol]: unified contract symbols
+        :param int [since]: timestamp in ms of the earliest position to fetch, default=3 months ago, max range for params["until"] - since is 3 months
+        :param int [limit]: the maximum amount of records to fetch, default=20, max=100
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :param int [params.until]: timestamp in ms of the latest position to fetch, max range for params["until"] - since is 3 months
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+        :param str [params.productType]: USDT-FUTURES(default), COIN-FUTURES, USDC-FUTURES, SUSDT-FUTURES, SCOIN-FUTURES, or SUSDC-FUTURES
+        :returns dict[]: a list of `position structures <https://docs.ccxt.com/#/?id=position-structure>`
+        """
+        await self.load_markets()
+        until = self.safe_integer(params, 'until')
+        params = self.omit(params, 'until')
+        request = {}
+        if symbols is not None:
+            symbolsLength = len(symbols)
+            if symbolsLength > 0:
+                market = self.market(symbols[0])
+                request['symbol'] = market['id']
+        if since is not None:
+            request['startTime'] = since
+        if limit is not None:
+            request['limit'] = limit
+        if until is not None:
+            request['endTime'] = until
+        response = await self.privateMixGetV2MixPositionHistoryPosition(self.extend(request, params))
+        #
+        #    {
+        #        code: '00000',
+        #        msg: 'success',
+        #        requestTime: '1712794148791',
+        #        data: {
+        #            list: [
+        #                {
+        #                    symbol: 'XRPUSDT',
+        #                    marginCoin: 'USDT',
+        #                    holdSide: 'long',
+        #                    openAvgPrice: '0.64967',
+        #                    closeAvgPrice: '0.58799',
+        #                    marginMode: 'isolated',
+        #                    openTotalPos: '10',
+        #                    closeTotalPos: '10',
+        #                    pnl: '-0.62976205',
+        #                    netProfit: '-0.65356802',
+        #                    totalFunding: '-0.01638',
+        #                    openFee: '-0.00389802',
+        #                    closeFee: '-0.00352794',
+        #                    ctime: '1709590322199',
+        #                    utime: '1709667583395'
+        #                },
+        #                ...
+        #            ]
+        #        }
+        #    }
+        #
+        data = self.safe_dict(response, 'data')
+        responseList = self.safe_list(data, 'list')
+        positions = self.parse_positions(responseList, symbols, params)
+        return self.filter_by_since_limit(positions, since, limit)
 
     async def fetch_convert_quote(self, fromCode: str, toCode: str, amount: Num = None, params={}) -> Conversion:
         """
