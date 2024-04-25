@@ -59,12 +59,11 @@ export default class bitflex extends bitflexRest {
          * @see https://docs.bitflex.com/websocket-v2
          * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int} [limit] the maximum amount of order book entries to return
+         * @param {int} [limit] the maximum amount of order book entries to return, not used by bitflex
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
-        // todo should we use limit?
         const market = this.market (symbol);
         symbol = market['symbol'];
         const subscriptionHash = 'depth';
@@ -428,7 +427,7 @@ export default class bitflex extends bitflexRest {
          */
         await this.loadMarkets ();
         const messageHash = 'balance';
-        return await this.watchPrivate (messageHash, params); // todo only returnes changes in balance
+        return await this.watchPrivate (messageHash, params);
     }
 
     handleBalance (client: Client, message) {
@@ -714,7 +713,6 @@ export default class bitflex extends bitflexRest {
             'MARKET_OF_BASE': 'market',
             'LIMIT': 'limit',
             'LIMIT_MAKER': 'limit',
-            // todo check
         };
         return this.safeString (types, type, type);
     }
