@@ -3,7 +3,7 @@
 
 import binanceRest from '../binance.js';
 import { Precise } from '../base/Precise.js';
-import { InvalidNonce, ArgumentsRequired, BadRequest, NotSupported } from '../base/errors.js';
+import { ArgumentsRequired, BadRequest, NotSupported } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import type { Int, OrderSide, OrderType, Str, Strings, Trade, OrderBook, Order, Ticker, Tickers, OHLCV, Position, Balances, Num } from '../base/types.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
@@ -432,7 +432,7 @@ export default class binance extends binanceRest {
                             const validate = this.safeBool2 (this.options, 'validateOrderBookSequences', 'checksum', true);
                             if (validate) {
                                 // todo: client.reject from handleOrderBookMessage properly
-                                throw new InvalidNonce (this.invalidOrderBookSequenceMessage (symbol, orderbook['nonce'], U - 1));
+                                throw this.orderBookSequenceError (symbol, orderbook['nonce'], U - 1);
                             }
                         }
                     }
@@ -451,7 +451,7 @@ export default class binance extends binanceRest {
                             const validate = this.safeBool2 (this.options, 'validateOrderBookSequences', 'checksum', true);
                             if (validate) {
                                 // todo: client.reject from handleOrderBookMessage properly
-                                throw new InvalidNonce (this.invalidOrderBookSequenceMessage (symbol, orderbook['nonce'], pu));
+                                throw this.orderBookSequenceError (symbol, orderbook['nonce'], pu);
                             }
                         }
                     }

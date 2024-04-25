@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import krakenRest from '../kraken.js';
-import { ExchangeError, BadSymbol, PermissionDenied, AccountSuspended, BadRequest, InsufficientFunds, InvalidOrder, OrderNotFound, NotSupported, RateLimitExceeded, ExchangeNotAvailable, InvalidNonce, AuthenticationError } from '../base/errors.js';
+import { ExchangeError, BadSymbol, PermissionDenied, AccountSuspended, BadRequest, InsufficientFunds, InvalidOrder, OrderNotFound, NotSupported, RateLimitExceeded, ExchangeNotAvailable, AuthenticationError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { Precise } from '../base/Precise.js';
 import type { Int, Strings, OrderSide, OrderType, Str, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Num } from '../base/types.js';
@@ -787,7 +787,7 @@ export default class kraken extends krakenRest {
                 const payload = payloadArray.join ('');
                 const localChecksum = this.crc32 (payload, false);
                 if (localChecksum !== c) {
-                    const error = new InvalidNonce (this.invalidOrderBookSequenceMessage (symbol, localChecksum, c));
+                    const error = this.orderBookSequenceError (symbol, localChecksum, c);
                     client.reject (error, messageHash);
                     return;
                 }

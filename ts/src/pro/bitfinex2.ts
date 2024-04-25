@@ -3,7 +3,7 @@
 
 import bitfinex2Rest from '../bitfinex2.js';
 import { Precise } from '../base/Precise.js';
-import { ExchangeError, AuthenticationError, InvalidNonce } from '../base/errors.js';
+import { ExchangeError, AuthenticationError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import { sha384 } from '../static_dependencies/noble-hashes/sha512.js';
 import type { Int, Str, OrderBook, Order, Trade, Ticker, OHLCV, Balances } from '../base/types.js';
@@ -696,7 +696,7 @@ export default class bitfinex2 extends bitfinex2Rest {
         const localChecksum = this.crc32 (payload, true);
         const responseChecksum = this.safeInteger (message, 2);
         if (responseChecksum !== localChecksum) {
-            const error = new InvalidNonce (this.invalidOrderBookSequenceMessage (symbol, localChecksum, responseChecksum));
+            const error = this.orderBookSequenceError (symbol, localChecksum, responseChecksum);
             client.reject (error, messageHash);
         }
     }

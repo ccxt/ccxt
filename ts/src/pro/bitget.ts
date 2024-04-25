@@ -1,7 +1,7 @@
 //  ---------------------------------------------------------------------------
 
 import bitgetRest from '../bitget.js';
-import { AuthenticationError, BadRequest, ArgumentsRequired, NotSupported, InvalidNonce, ExchangeError, RateLimitExceeded } from '../base/errors.js';
+import { AuthenticationError, BadRequest, ArgumentsRequired, NotSupported, ExchangeError, RateLimitExceeded } from '../base/errors.js';
 import { Precise } from '../base/Precise.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
@@ -572,7 +572,7 @@ export default class bitget extends bitgetRest {
                 if (calculatedChecksum !== responseChecksum) {
                     const validate = this.safeBool2 (this.options, 'validateOrderBookSequences', 'checksum', true);
                     if (validate) {
-                        const error = new InvalidNonce (this.invalidOrderBookSequenceMessage (symbol, calculatedChecksum, responseChecksum));
+                        const error = this.orderBookSequenceError (symbol, calculatedChecksum, responseChecksum);
                         client.reject (error, messageHash);
                     }
                 }

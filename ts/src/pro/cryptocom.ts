@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import cryptocomRest from '../cryptocom.js';
-import { AuthenticationError, InvalidNonce, NetworkError } from '../base/errors.js';
+import { AuthenticationError, NetworkError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import type { Int, OrderSide, OrderType, Str, Strings, OrderBook, Order, Trade, Ticker, OHLCV, Position, Balances, Num } from '../base/types.js';
@@ -225,7 +225,7 @@ export default class cryptocom extends cryptocomRest {
                 const previousNonce = this.safeInteger (data, 'pu');
                 const currentNonce = orderbook['nonce'];
                 if (currentNonce !== previousNonce) {
-                    throw new InvalidNonce (this.invalidOrderBookSequenceMessage (symbol, previousNonce, currentNonce));
+                    throw this.orderBookSequenceError (symbol, previousNonce, currentNonce);
                 }
             }
         }

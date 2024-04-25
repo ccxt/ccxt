@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import okxRest from '../okx.js';
-import { ArgumentsRequired, AuthenticationError, BadRequest, InvalidNonce } from '../base/errors.js';
+import { ArgumentsRequired, AuthenticationError, BadRequest } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import type { Int, OrderSide, OrderType, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Position, Balances, Num } from '../base/types.js';
@@ -610,7 +610,7 @@ export default class okx extends okxRest {
             const responseChecksum = this.safeInteger (message, 'checksum');
             const localChecksum = this.crc32 (payload, true);
             if (responseChecksum !== localChecksum) {
-                const error = new InvalidNonce (this.invalidOrderBookSequenceMessage (orderbook['symbol'], localChecksum, responseChecksum));
+                const error = this.orderBookSequenceError (orderbook['symbol'], localChecksum, responseChecksum);
                 client.reject (error, messageHash);
             }
         }

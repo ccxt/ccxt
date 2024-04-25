@@ -1,7 +1,7 @@
 //  ---------------------------------------------------------------------------
 
 import poloniexfuturesRest from '../poloniexfutures.js';
-import { AuthenticationError, BadRequest, InvalidNonce } from '../base/errors.js';
+import { AuthenticationError, BadRequest } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import type { Int, Str, OrderBook, Order, Trade, Ticker, Balances } from '../base/types.js';
 import Client from '../base/ws/Client.js';
@@ -881,7 +881,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
             const validate = this.safeBool2 (this.options, 'validateOrderBookSequences', 'checksum', true);
             if (validate) {
                 // todo: client.reject from handleOrderBookMessage properly
-                throw new InvalidNonce (this.invalidOrderBookSequenceMessage (orderbook['symbol'], nonce, sequence));
+                throw this.orderBookSequenceError (orderbook['symbol'], nonce, sequence);
             }
         }
         const change = this.safeString (delta, 'change');

@@ -128,6 +128,7 @@ import {
     , RequestTimeout
     , NetworkError
     , ProxyError
+    , InvalidNonce
     , ExchangeNotAvailable
     , ArgumentsRequired
     , RateLimitExceeded,
@@ -2486,13 +2487,13 @@ export default class Exchange {
         this.createNetworksByIdObject ();
     }
 
-    invalidOrderBookSequenceMessage (symbol:Str, storedNonceOrChecksum, incomingNonceOrChecksum): string {
-        let msg = this.id + ' incoming orderbook data checksum/nonce validation failed. You should either implement your reconnection logic or for temporary cases, set .options["validateOrderBookSequences"] = false';
+    orderBookSequenceError (symbol:Str, storedNonceOrChecksum, incomingNonceOrChecksum) {
+        let msg = this.id + ' incoming orderbook data checksum/nonce validation failed. In such cases you are advised to have a reconnection logic to get in sync of correct orderbook, or temporarily you can mute the error by setting exhcange.options["validateOrderBookSequences"] = false';
         const safeSymbol = (symbol === undefined) ? '' : symbol;
         const storedString = (storedNonceOrChecksum === undefined) ? '' : storedNonceOrChecksum.toString ();
         const incomingString = (incomingNonceOrChecksum === undefined) ? '' : incomingNonceOrChecksum.toString ();
         msg += ' symbol:' + safeSymbol + ', stored: ' + storedString + ', incoming: ' + incomingString;
-        return msg;
+        return new InvalidNonce (msg);
     }
 
     createNetworksByIdObject () {
