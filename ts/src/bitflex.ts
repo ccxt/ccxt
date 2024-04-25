@@ -20,7 +20,7 @@ export default class bitflex extends Exchange {
             'id': 'bitflex',
             'name': 'Bitflex',
             'countries': [ 'SC' ], // Seychelles
-            'version': 'v1', // todo
+            'version': 'v1',
             'rateLimit': 300, // todo find out the real ratelimit
             'pro': true,
             'has': {
@@ -29,7 +29,7 @@ export default class bitflex extends Exchange {
                 'margin': false,
                 'swap': true,
                 'future': false,
-                'option': false, // todo check
+                'option': false,
                 'addMargin': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
@@ -155,8 +155,9 @@ export default class bitflex extends Exchange {
                         'openapi/v1/transfer': 1, // implemented
                         'openapi/v1/withdraw': 1, // implemented
                         'openapi/v1/order': 1, // implemented
-                        'openapi/v1/test': 1, // todo check
+                        'openapi/v1/order/test': 1, // todo check
                         'openapi/contract/v1/order': 1, // implemented
+                        'openapi/contract/v1/order/test': 1, // implemented
                         'openapi/contract/v1/modifyMargin': 1, // implemented
                         'openapi/contract/v1/modifyLeverage': 1, // implemented
                         'openapi/v1/userDataStream': 1,
@@ -225,7 +226,6 @@ export default class bitflex extends Exchange {
                     // 500 {"code":-9999,"msg":"Server Error"}
                     // {"code":-1149,"msg":"Create order failed"}
                     // {"code":-1130,"msg":"Data sent for paramter \u0027overPrice\u0027 is not valid."}
-
                     // 400 {"code":-1130,"msg":"Data sent for paramter \u0027type\u0027 is not valid."}
                     // 400 {"code":-100012,"msg":"Parameter symbol [String] missing!"}
                     // 400 {"code":-100012,"msg":"Parameter interval [String] missing!"}
@@ -302,7 +302,6 @@ export default class bitflex extends Exchange {
                     // -2014 BAD_API_KEY_FMT API-key format invalid.
                     // -2015 REJECTED_MBX_KEY Invalid API-key, IP, or permissions for action.
                     // -2016 NO_TRADING_WINDOW No trading window could be found for the symbol. Try ticker/24hrs instead.
-
                     // Messages for -1010 ERROR_MSG_RECEIVED, -2010 NEW_ORDER_REJECTED, and -2011 CANCEL_REJECTED
                     // "Unknown order sent." The order (by either orderId, clOrdId, origClOrdId) could not be found
                     // "Duplicate order sent." The clOrdId is already in use
@@ -321,7 +320,6 @@ export default class bitflex extends Exchange {
                     // "Order would trigger immediately." The order's stop price is not valid when compared to the last traded price.
                     // "Cancel order is invalid. Check origClOrdId and orderId." No origClOrdId or orderId was sent in.
                     // "Order would immediately match and take." LIMIT_MAKER order type would immediately match and trade, and not be a pure maker order.
-
                     // -9xxx
                     // "Filter failure: PRICE_FILTER" price is too high, too low, and/or not following the tick size rule for the symbol.
                     // "Filter failure: LOT_SIZE" quantity is too high, too low, and/or not following the step size rule for the symbol.
@@ -339,6 +337,7 @@ export default class bitflex extends Exchange {
             'options': {
                 'createMarketBuyOrderRequiresPrice': true,
                 'defaultType': 'spot', // 'spot' or 'swap'
+                'sandboxMode': false,
                 'networks': {
                     'ERC20': 'ERC20',
                     'TRC20': 'TRC20',
@@ -1069,7 +1068,10 @@ export default class bitflex extends Exchange {
         const price = this.safeString (trade, 'price');
         const amount = this.safeString2 (trade, 'qty', 'quantity');
         const isMaker = this.safeBool (trade, 'isMaker', undefined);
-        const takerOrMaker = isMaker ? 'maker' : 'taker';
+        let takerOrMaker = undefined;
+        if (isMaker !== undefined) {
+            takerOrMaker = isMaker ? 'maker' : 'taker';
+        }
         const isBuyer = this.safeBool (trade, 'isBuyer');
         let side = undefined;
         if (isBuyer !== undefined) {
@@ -1094,8 +1096,8 @@ export default class bitflex extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
             'type': undefined,
-            'side': side, // todo check
-            'takerOrMaker': takerOrMaker, // todo check
+            'side': side,
+            'takerOrMaker': takerOrMaker,
             'price': price,
             'amount': amount,
             'cost': undefined,
@@ -1519,6 +1521,10 @@ export default class bitflex extends Exchange {
         return this.safeBalance (result);
     }
 
+    setSandboxMode (enable: boolean) {
+        this.options['sandboxMode'] = enable;
+    }
+
     async createMarketBuyOrderWithCost (symbol: string, cost: number, params = {}) {
         /**
          * @method
@@ -1531,6 +1537,10 @@ export default class bitflex extends Exchange {
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (!market['spot']) {
+            throw new NotSupported (this.id + ' createMarketBuyOrderWithCost() supports spot orders only');
+        }
         params['createMarketBuyOrderRequiresPrice'] = false;
         return await this.createOrder (symbol, 'market', 'buy', cost, undefined, params);
     }
@@ -1567,6 +1577,9 @@ export default class bitflex extends Exchange {
         if (market['spot']) {
             return await this.createSpotOrder (market, type, side, amount, price, params);
         } else if (market['swap']) {
+            if (this.options['sandboxMode']) {
+                throw new NotSupported (this.id + ' sandbox supports spot orders only');
+            }
             return await this.createSwapOrder (market, type, side, amount, price, params);
         } else {
             throw new NotSupported (this.id + ' createOrder() does not support ' + type + ' orders, only spot and swap orders are accepted');
@@ -1641,7 +1654,13 @@ export default class bitflex extends Exchange {
     async createSpotOrder (market, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         const request = this.createSpotOrderRequest (market, type, side, amount, price, params);
-        const response = await this.privatePostOpenapiV1Order (request);
+        const isSandbox = this.safeBool (this.options, 'sandboxMode', false);
+        let response = undefined;
+        if (isSandbox) {
+            response = this.privatePostOpenapiV1OrderTest (request);
+        } else {
+            response = await this.privatePostOpenapiV1Order (request);
+        }
         //
         //     {
         //         "accountId": "1662502620223296001",
@@ -1944,7 +1963,6 @@ export default class bitflex extends Exchange {
         }
         const orderSide = this.safeString (order, 'side');
         const side = this.parseOrderSide (orderSide);
-        const reduceOnly = this.parseReduceOnly (orderSide);
         const price = this.omitZero (this.safeString (order, 'price'));
         const triggerPrice = this.safeString (order, 'triggerPrice');
         const average = this.safeString (order, 'avgPrice');
@@ -1952,12 +1970,14 @@ export default class bitflex extends Exchange {
         market = this.safeMarket (marketId, market);
         let amount = this.safeString (order, 'origQty');
         let cost = this.safeString (order, 'cummulativeQuoteQty');
+        let reduceOnly = undefined;
         if (market['spot']) {
             if ((type === 'market') && (side === 'buy')) {
                 cost = amount;
                 amount = undefined;
             }
         } else if (market['contract']) { // swap order types of bitflex are LIMIT or STOP
+            reduceOnly = this.parseReduceOnly (orderSide);
             if (type === 'STOP') {
                 type = 'limit'; // stop orders are always limit orders at bitflex
             } else {
@@ -3246,7 +3266,7 @@ export default class bitflex extends Exchange {
         //             "side": "LONG",
         //             "avgPrice": "66004.8",
         //             "position": "0.001",
-        //             "available": "0.001", // todo check
+        //             "available": "0.001",
         //             "leverage": "10",
         //             "lastPrice": "65998.2",
         //             "positionValue": "66.0223",
@@ -3254,7 +3274,7 @@ export default class bitflex extends Exchange {
         //             "margin": "6.5939",
         //             "marginRate": "0.1001",
         //             "unrealizedPnL": "0.0175",
-        //             "profitRate": "0.0026", // todo check
+        //             "profitRate": "0.0026",
         //             "realizedPnL": "-0.0396"
         //         },
         //         ...
@@ -3317,7 +3337,6 @@ export default class bitflex extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
         }
-        // todo find out the limits for leverage
         await this.loadMarkets ();
         const market = this.market (symbol);
         if (!market['swap']) {
