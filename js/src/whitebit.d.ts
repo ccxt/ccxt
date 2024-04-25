@@ -66,7 +66,7 @@ export default class whitebit extends Exchange {
         toAccount: any;
         status: any;
     };
-    withdraw(code: string, amount: number, address: any, tag?: any, params?: {}): Promise<any>;
+    withdraw(code: string, amount: number, address: string, tag?: any, params?: {}): Promise<any>;
     parseTransaction(transaction: any, currency?: Currency): Transaction;
     parseTransactionStatus(status: any): string;
     fetchDeposit(id: string, code?: Str, params?: {}): Promise<Transaction>;

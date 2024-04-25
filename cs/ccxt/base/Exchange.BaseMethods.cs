@@ -6272,6 +6272,35 @@ public partial class Exchange
         return reconstructedDate;
     }
 
+    public async virtual Task<object> fetchPositionHistory(object symbol, object since = null, object limit = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name exchange#fetchPositionHistory
+        * @description fetches the history of margin added or reduced from contract isolated positions
+        * @param {string} [symbol] unified market symbol
+        * @param {int} [since] timestamp in ms of the position
+        * @param {int} [limit] the maximum amount of candles to fetch, default=1000
+        * @param {object} params extra parameters specific to the exchange api endpoint
+        * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        if (isTrue(getValue(this.has, "fetchPositionsHistory")))
+        {
+            object positions = await this.fetchPositionsHistory(new List<object>() {symbol}, since, limit, parameters);
+            return this.safeDict(positions, 0);
+        } else
+        {
+            throw new NotSupported ((string)add(this.id, " fetchPositionHistory () is not supported yet")) ;
+        }
+    }
+
+    public async virtual Task<object> fetchPositionsHistory(object symbols = null, object since = null, object limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " fetchPositionsHistory () is not supported yet")) ;
+    }
+
     public virtual object parseMarginModification(object data, object market = null)
     {
         throw new NotSupported ((string)add(this.id, " parseMarginModification() is not supported yet")) ;
