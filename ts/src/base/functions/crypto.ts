@@ -104,7 +104,7 @@ function eddsa (request: Hex, secret: Input, curve: CurveFnEDDSA) {
     if (secret.length === 32) {
       // ed25519 secret is 32 bytes
       privateKey = secret
-    } else {
+    } else if (typeof secret === 'string') {
       // secret is the base64 pem encoded key
       // we get the last 32 bytes
       privateKey = new Uint8Array (Base64.unarmor (secret).slice (16))
