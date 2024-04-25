@@ -21,7 +21,7 @@ export default class bitflex extends Exchange {
             'name': 'Bitflex',
             'countries': [ 'SC' ], // Seychelles
             'version': 'v1', // todo
-            'rateLimit': 300, // todo find out the real ratelimit
+            'rateLimit': 300, // todo: find out the real ratelimit
             'pro': true,
             'has': {
                 'CORS': undefined,
@@ -29,9 +29,9 @@ export default class bitflex extends Exchange {
                 'margin': false,
                 'swap': true,
                 'future': false,
-                'option': false, // todo check
+                'option': true, // todo: check
                 'addMargin': true,
-                'cancelAllOrders': true,
+                'cancelAllOrders': false,
                 'cancelOrder': true,
                 'createDepositAddress': false,
                 'createOrder': true,
@@ -78,8 +78,8 @@ export default class bitflex extends Exchange {
                 'fetchWithdrawal': true,
                 'fetchWithdrawals': true,
                 'reduceMargin': true,
-                'setLeverage': true,
                 'transfer': true,
+                'setLeverage': true,
                 'withdraw': true,
             },
             'timeframes': {
@@ -159,16 +159,11 @@ export default class bitflex extends Exchange {
                         'openapi/contract/v1/order': 1, // implemented
                         'openapi/contract/v1/modifyMargin': 1, // implemented
                         'openapi/contract/v1/modifyLeverage': 1, // implemented
-                        'openapi/v1/userDataStream': 1,
-                    },
-                    'put': {
-                        'openapi/v1/userDataStream': 1,
                     },
                     'delete': {
                         'openapi/v1/order': 1, // implemented
                         'openapi/contract/v1/order/cancel': 1, // implemented
                         'openapi/contract/v1/order/batchCancel': 1,
-                        'openapi/v1/userDataStream': 1,
                     },
                 },
             },
@@ -223,8 +218,91 @@ export default class bitflex extends Exchange {
                     // 400 {"code":-100002,"msg":"Param startTime should be Long."}
                     // 400 {"code":-1173,"msg":"Withdraw address illegal."}
                     // 500 {"code":-9999,"msg":"Server Error"}
-                    // {"code":-1149,"msg":"Create order failed"}
-                    // {"code":-1130,"msg":"Data sent for paramter \u0027overPrice\u0027 is not valid."}
+                    // -1000 UNKNOWN An unknown error occured while processing the request.
+                    // -1001 DISCONNECTED Internal error; unable to process your request. Please try again.
+                    // -1002 UNAUTHORIZED You are not authorized to execute this request. Request need API Key included in . We suggest that API Key be included in any request.
+                    // -1003 TOO_MANY_REQUESTS Too many requests; please use the websocket for live updates. Too many requests; current limit is %s requests per minute. Please use the websocket for live updates to avoid polling the API. Way too many requests; IP banned until %s. Please use the websocket for live updates to avoid bans.
+                    // -1006 UNEXPECTED_RESP An unexpected response was received from the message bus. Execution status unknown. OPEN API server find some exception in execute request .Please report to Customer service.
+                    // -1007 TIMEOUT Timeout waiting for response from backend server. Send status unknown; execution status unknown.
+                    // -1014 UNKNOWN_ORDER_COMPOSITION Unsupported order combination.
+                    // -1015 TOO_MANY_ORDERS Reach the rate limit .Please slow down your request speed. Too many new orders. Too many new orders; current limit is %s orders per %s.
+                    // -1016 SERVICE_SHUTTING_DOWN This service is no longer available.
+                    // -1020 UNSUPPORTED_OPERATION This operation is not supported.
+                    // -1021 INVALID_TIMESTAMP Timestamp for this request is outside of the recvWindow. Timestamp for this request was 1000ms ahead of the server's time. Please check the difference between your local time and server time .
+                    // -1022 INVALID_SIGNATURE Signature for this request is not valid.
+                    // 11xx - Request issues
+                    // -1100 ILLEGAL_CHARS Illegal characters found in a parameter. Illegal characters found in parameter '%s'; legal range is '%s'.
+                    // -1101 TOO_MANY_PARAMETERS Too many parameters sent for this endpoint. Too many parameters; expected '%s' and received '%s' Duplicate values for a parameter detected.
+                    // -1102 MANDATORY_PARAM_EMPTY_OR_MALFORMED A mandatory parameter was not sent, was empty/null, or malformed. Mandatory parameter '%s' was not sent, was empty/null, or malformed. Param '%s' or '%s' must be sent, but both were empty/null!
+                    // -1103 UNKNOWN_PARAM An unknown parameter was sent. In HBTC Open Api , each request requires at least one parameter. {Timestamp}.
+                    // -1104 UNREAD_PARAMETERS Not all sent parameters were read. Not all sent parameters were read; read '%s' parameter(s) but was sent '%s'.
+                    // -1105 PARAM_EMPTY A parameter was empty. Parameter '%s' was empty.
+                    // -1106 PARAM_NOT_REQUIRED A parameter was sent when not required. Parameter '%s' sent when not required.
+                    // -1111 BAD_PRECISION Precision is over the maximum defined for this asset.
+                    // -1112 NO_DEPTH No orders on book for symbol.
+                    // -1114 TIF_NOT_REQUIRED TimeInForce parameter sent when not required.
+                    // -1115 INVALID_TIF Invalid timeInForce. In the current version, this parameter is either empty or GTC.
+                    // -1116 INVALID_ORDER_TYPE Invalid orderType. In the current version , ORDER_TYPE values is LIMIT or MARKET.
+                    // -1117 INVALID_SIDE Invalid side. ORDER_SIDE values is BUY or SELL
+                    // -1118 EMPTY_NEW_CL_ORD_ID New client order ID was empty.
+                    // -1119 EMPTY_ORG_CL_ORD_ID Original client order ID was empty.
+                    // -1120 BAD_INTERVAL Invalid interval.
+                    // -1121 BAD_SYMBOL Invalid symbol.
+                    // -1125 INVALID_LISTEN_KEY This listenKey does not exist.
+                    // -1127 MORE_THAN_XX_HOURS Lookup interval is too big. More than %s hours between startTime and endTime.
+                    // -1128 OPTIONAL_PARAMS_BAD_COMBO Combination of optional parameters invalid.
+                    // -1130 INVALID_PARAMETER Invalid data sent for a parameter. Data sent for paramter '%s' is not valid.
+                    // -1132 ORDER_PRICE_TOO_HIGH Order price too high.
+                    // -1133 ORDER_PRICE_TOO_SMALL Order price lower than the minimum,please check general broker info.
+                    // -1134 ORDER_PRICE_PRECISION_TOO_LONG Order price decimal too long,please check general broker info.
+                    // -1135 ORDER_QUANTITY_TOO_BIG Order quantity too large.
+                    // -1136 ORDER_QUANTITY_TOO_SMALL Order quantity lower than the minimum.
+                    // -1137 ORDER_QUANTITY_PRECISION_TOO_LONG Order quantity decimal too long.
+                    // -1138 ORDER_PRICE_WAVE_EXCEED Order price exceeds permissible range.
+                    // -1139 ORDER_HAS_FILLED Order has been filled.
+                    // -1140 ORDER_AMOUNT_TOO_SMALL Transaction amount lower than the minimum.
+                    // -1141 ORDER_DUPLICATED Duplicate clientOrderId
+                    // -1142 ORDER_CANCELLED Order has been canceled
+                    // -1143 ORDER_NOT_FOUND_ON_ORDER_BOOK Cannot be found on order book
+                    // -1144 ORDER_LOCKED Order has been locked
+                    // -1145 ORDER_NOT_SUPPORT_CANCELLATION This order type does not support cancellation
+                    // -1146 ORDER_CREATION_TIMEOUT Order creation timeout
+                    // -1147 ORDER_CANCELLATION_TIMEOUT Order cancellation timeout
+                    // -2010 NEW_ORDER_REJECTED NEW_ORDER_REJECTED
+                    // -2011 CANCEL_REJECTED CANCEL_REJECTED
+                    // -2013 NO_SUCH_ORDER Order does not exist.
+                    // -2014 BAD_API_KEY_FMT API-key format invalid.
+                    // -2015 REJECTED_MBX_KEY Invalid API-key, IP, or permissions for action.
+                    // -2016 NO_TRADING_WINDOW No trading window could be found for the symbol. Try ticker/24hrs instead.
+
+                    // Messages for -1010 ERROR_MSG_RECEIVED, -2010 NEW_ORDER_REJECTED, and -2011 CANCEL_REJECTED
+                    // "Unknown order sent." The order (by either orderId, clOrdId, origClOrdId) could not be found
+                    // "Duplicate order sent." The clOrdId is already in use
+                    // "Market is closed." The symbol is not trading
+                    // "Account has insufficient balance for requested action." Not enough funds to complete the action
+                    // "Market orders are not supported for this symbol." MARKET is not enabled on the symbol
+                    // "Iceberg orders are not supported for this symbol." icebergQty is not enabled on the symbol
+                    // "Stop loss orders are not supported for this symbol." STOP_LOSS is not enabled on the symbol
+                    // "Stop loss limit orders are not supported for this symbol." STOP_LOSS_LIMIT is not enabled on the symbol
+                    // "Take profit orders are not supported for this symbol." TAKE_PROFIT is not enabled on the symbol
+                    // "Take profit limit orders are not supported for this symbol." TAKE_PROFIT_LIMIT is not enabled on the symbol
+                    // "Price* QTY is zero or less." price* quantity is too low
+                    // "IcebergQty exceeds QTY." icebergQty must be less than the order quantity
+                    // "This action disabled is on this account." Contact customer support; some actions have been disabled on the account.
+                    // "Unsupported order combination" The orderType, timeInForce, stopPrice, and/or icebergQty combination isn't allowed.
+                    // "Order would trigger immediately." The order's stop price is not valid when compared to the last traded price.
+                    // "Cancel order is invalid. Check origClOrdId and orderId." No origClOrdId or orderId was sent in.
+                    // "Order would immediately match and take." LIMIT_MAKER order type would immediately match and trade, and not be a pure maker order.
+
+                    // -9xxx
+                    // "Filter failure: PRICE_FILTER" price is too high, too low, and/or not following the tick size rule for the symbol.
+                    // "Filter failure: LOT_SIZE" quantity is too high, too low, and/or not following the step size rule for the symbol.
+                    // "Filter failure: MIN_NOTIONAL" price* quantity is too low to be a valid order for the symbol.
+                    // "Filter failure: MAX_NUM_ORDERS" Account has too many open orders on the symbol.
+                    // "Filter failure: MAX_ALGO_ORDERS" Account has too many open stop loss and/or take profit orders on the symbol.
+                    // "Filter failure: BROKER_MAX_NUM_ORDERS" Account has too many open orders on the broker.
+                    // "Filter failure: BROKER_MAX_ALGO_ORDERS" Account has too many open stop loss and/or take profit orders on the broker.
+                    // "Filter failure: ICEBERG_PARTS" Iceberg order would break into too many parts; icebergQty is too small.
                 },
                 'broad': {
                 },
@@ -485,7 +563,7 @@ export default class bitflex extends Exchange {
         //
         const spotMarkets = this.safeList (response, 'symbols', []);
         const parsedSpotMarkets = this.parseMarkets (spotMarkets);
-        const contractMarkets = this.safeList (response, 'contracts', []);
+        const contractMarkets = this.safeList (response, 'contracts', []); // todo check if contracts are futures
         const parsedContractMarkets = this.parseMarkets (contractMarkets);
         const optionMarkets = this.safeList (response, 'options', []); // options are not supported yet, returns empty list
         const parsedOptionMarkets = this.parseMarkets (optionMarkets);
@@ -1088,8 +1166,10 @@ export default class bitflex extends Exchange {
         const request = {
             'symbol': market['id'],
         };
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
         let response = undefined;
-        if (market['spot']) {
+        if (type === 'spot') {
             response = await this.publicGetOpenapiQuoteV1Ticker24hr (this.extend (request, params));
         //
         //     {
@@ -1105,7 +1185,7 @@ export default class bitflex extends Exchange {
         //         "openPrice": "63364.98"
         //     }
         //
-        } else if (market['swap']) {
+        } else if (type === 'swap') {
             response = await this.publicGetOpenapiQuoteV1ContractTicker24hr (this.extend (request, params));
         }
         //
@@ -1453,7 +1533,6 @@ export default class bitflex extends Exchange {
          * @param {string} [params.newClientOrderId] *spot only* a unique id for the order
          * @param {string} [params.orderType] *swap only* 'LIMIT' or 'STOP'
          * @param {string} [params.priceType] *swap only* 'INPUT' (Default), 'OPPONENT', 'QUEUE', 'OVER' and 'MARKET'
-         * @param {string} [params.overPrice] *swap OVER only* price will be the best opposite quote + overPrice
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -1578,12 +1657,11 @@ export default class bitflex extends Exchange {
          * EXCHANGE SPECIFIC PARAMETERS
          * @param {string} [params.orderType] 'LIMIT' or 'STOP'
          * @param {string} [params.priceType] 'INPUT' (Default), 'OPPONENT', 'QUEUE', 'OVER' and 'MARKET'
-         * @param {string} [params.overPrice] *swap OVER only* price will be the best opposite quote + overPrice
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'newClientOrderId');
         if (clientOrderId === undefined) {
-            throw new ArgumentsRequired (this.id + ' createOrder() requires a params.clientOrderId parameter for swap orders'); // the exchange requires a unique clientOrderId for each swap order
+            throw new ArgumentsRequired (this.id + ' createOrder() requires a params.clientOrderId parameter'); // the exchange requires a unique clientOrderId for each order
         }
         params = this.omit (params, [ 'clientOrderId', 'newClientOrderId' ]);
         const symbol = market['symbol'];
@@ -1656,6 +1734,7 @@ export default class bitflex extends Exchange {
     parseOrder (order, market: Market = undefined): Order {
         //
         // spot: createOrder
+        //
         //     {
         //         "accountId": "1662502620223296001",
         //         "symbol": "ETHUSDT",
@@ -1673,6 +1752,8 @@ export default class bitflex extends Exchange {
         //     }
         //
         // swap: createOrder
+        //
+        //
         //     {
         //         "time": "1713648762414",
         //         "updateTime": "1713648762414",
@@ -1695,6 +1776,7 @@ export default class bitflex extends Exchange {
         //     }
         //
         // spot: fetchOrder
+        //
         //     {
         //         "accountId": "1662502620223296001",
         //         "exchangeId": "301",
@@ -1719,6 +1801,7 @@ export default class bitflex extends Exchange {
         //     }
         //
         // swap: fetchOrder
+        //
         //     {
         //         "time": "1713644180835",
         //         "updateTime": "1713644180876",
@@ -1741,52 +1824,62 @@ export default class bitflex extends Exchange {
         //     }
         //
         // spot: fetchCanceledAndClosedOrders
-        //     {
-        //         "accountId": "1662502620223296001",
-        //         "exchangeId": "301",
-        //         "symbol": "ETHUSDT",
-        //         "symbolName": "ETHUSDT",
-        //         "clientOrderId": "1713531483905247",
-        //         "orderId": "1667617386700800256",
-        //         "price": "0",
-        //         "origQty": "0.001",
-        //         "executedQty": "0.001",
-        //         "cummulativeQuoteQty": "3.09928",
-        //         "avgPrice": "3099.28",
-        //         "status": "FILLED",
-        //         "timeInForce": "GTC",
-        //         "type": "MARKET",
-        //         "side": "SELL",
-        //         "stopPrice": "0.0",
-        //         "icebergQty": "0.0",
-        //         "time": "1713531483914",
-        //         "updateTime": "1713531483961",
-        //         "isWorking": true
-        //     }
         //
-        // swap: fetchCanceledAndClosedOrders
-        //     {
-        //         "time": "1713644180835",
-        //         "updateTime": "1713644180876",
-        //         "orderId": "1668562756977053184",
-        //         "clientOrderId": "123ss443335",
-        //         "symbol": "ETH-SWAP-USDT",
-        //         "price": "0",
-        //         "leverage": "0",
-        //         "origQty": "0.1",
-        //         "executedQty": "0.1",
-        //         "executeQty": "0.1",
-        //         "avgPrice": "3162.28",
-        //         "marginLocked": "0",
-        //         "orderType": "MARKET",
-        //         "side": "BUY_CLOSE",
-        //         "fees": [],
-        //         "timeInForce": "IOC",
-        //         "status": "FILLED",
-        //         "priceType": "MARKET"
-        //     }
+        //     [
+        //         {
+        //             "accountId": "1662502620223296001",
+        //             "exchangeId": "301",
+        //             "symbol": "ETHUSDT",
+        //             "symbolName": "ETHUSDT",
+        //             "clientOrderId": "1713531483905247",
+        //             "orderId": "1667617386700800256",
+        //             "price": "0",
+        //             "origQty": "0.001",
+        //             "executedQty": "0.001",
+        //             "cummulativeQuoteQty": "3.09928",
+        //             "avgPrice": "3099.28",
+        //             "status": "FILLED",
+        //             "timeInForce": "GTC",
+        //             "type": "MARKET",
+        //             "side": "SELL",
+        //             "stopPrice": "0.0",
+        //             "icebergQty": "0.0",
+        //             "time": "1713531483914",
+        //             "updateTime": "1713531483961",
+        //             "isWorking": true
+        //         },
+        //         ...
+        //     ]
+        //
+        // swap: fetchCanceledAndCloseOrders
+        //
+        //
+        //     [
+        //         {
+        //             "time": "1713644180835",
+        //             "updateTime": "1713644180876",
+        //             "orderId": "1668562756977053184",
+        //             "clientOrderId": "123ss443335",
+        //             "symbol": "ETH-SWAP-USDT",
+        //             "price": "0",
+        //             "leverage": "0",
+        //             "origQty": "0.1",
+        //             "executedQty": "0.1",
+        //             "executeQty": "0.1",
+        //             "avgPrice": "3162.28",
+        //             "marginLocked": "0",
+        //             "orderType": "MARKET",
+        //             "side": "BUY_CLOSE",
+        //             "fees": [],
+        //             "timeInForce": "IOC",
+        //             "status": "FILLED",
+        //             "priceType": "MARKET"
+        //         },
+        //         ...
+        //     ]
         //
         // spot: cancelOrder
+        //
         //     {
         //         "accountId": "1662502620223296001",
         //         "symbol": "ETHUSDT",
@@ -1803,6 +1896,7 @@ export default class bitflex extends Exchange {
         //     }
         //
         // swap: cancelOrder
+        //
         //     {
         //         "time": "1713648762414",
         //         "updateTime": "1713649270107",
@@ -1840,27 +1934,25 @@ export default class bitflex extends Exchange {
         const side = this.parseOrderSide (orderSide);
         const reduceOnly = this.parseReduceOnly (orderSide);
         const price = this.omitZero (this.safeString (order, 'price'));
-        const triggerPrice = this.safeString (order, 'triggerPrice');
+        const triggerPrice = this.safeString (order, 'triggerPrice'); // todo check for swap
         const average = this.safeString (order, 'avgPrice');
-        const filled = this.safeString (order, 'executedQty');
+        const filled = this.safeString (order, 'executedQty'); // todo check
         market = this.safeMarket (marketId, market);
         let amount = this.safeString (order, 'origQty');
-        let cost = this.safeString (order, 'cummulativeQuoteQty');
+        let cost = undefined;
         if (market['spot']) {
             if ((type === 'market') && (side === 'buy')) {
-                cost = amount;
+                cost = this.safeString (order, 'origQty');
                 amount = undefined;
             }
-        } else if (market['contract']) { // swap order types of bitflex are LIMIT or STOP
-            if (type === 'STOP') {
-                type = 'limit'; // stop orders are always limit orders at bitflex
-            } else {
-                const priceType = this.safeString (order, 'priceType'); // to define suitable type we use priceType
-                type = this.parsePriceType (priceType);
-            }
+        }
+        if (market['contract']) {
+            const priceType = this.safeString (order, 'priceType');
+            const isMarketOrder = (priceType === 'MARKET') || (priceType === 'OPPONENT') || (priceType === 'QUEUE') || (priceType === 'OVER'); // todo check orders with 'OVER'
+            type = isMarketOrder ? 'market' : type;
         }
         const lastUpdateTimestamp = this.safeString (order, 'updateTime');
-        const remaining = this.safeString (order, 'executeQty');
+        const remaining = this.safeString (order, 'executeQty'); // todo check
         return this.safeOrder ({
             'id': id,
             'clientOrderId': clientOrderId,
@@ -1882,7 +1974,7 @@ export default class bitflex extends Exchange {
             'filled': filled,
             'remaining': remaining,
             'reduceOnly': reduceOnly,
-            'fee': undefined,
+            'fee': undefined, // todo check for different types of orders
             'trades': undefined,
             'info': order,
         }, market);
@@ -1900,24 +1992,13 @@ export default class bitflex extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrderType (type) {
-        const types = {
+    parseOrderType (status) {
+        const statuses = {
             'MARKET': 'market',
             'LIMIT': 'limit',
             'LIMIT_MAKER': 'limit',
         };
-        return this.safeString (types, type, type);
-    }
-
-    parsePriceType (type) {
-        const types = {
-            'MARKET': 'market',
-            'OPPONENT': 'market',
-            'INPUT': 'limit',
-            'QUEUE': 'limit',
-            'OVER': 'limit',
-        };
-        return this.safeString (types, type, type);
+        return this.safeString (statuses, status, status);
     }
 
     parseOrderTimeInForce (status) {
@@ -1930,8 +2011,8 @@ export default class bitflex extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrderSide (side) {
-        const sides = {
+    parseOrderSide (status) {
+        const statuses = {
             'BUY': 'buy',
             'BUY_OPEN': 'buy',
             'BUY_CLOSE': 'buy',
@@ -1939,7 +2020,7 @@ export default class bitflex extends Exchange {
             'SELL_OPEN': 'sell',
             'SELL_CLOSE': 'sell',
         };
-        return this.safeString (sides, side, side);
+        return this.safeString (statuses, status, status);
     }
 
     parseReduceOnly (orderSide) {
@@ -1956,7 +2037,7 @@ export default class bitflex extends Exchange {
         return undefined;
     }
 
-    async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: Str = undefined, params = {}) { // todo fetchOrder for swap
         /**
          * @method
          * @name bitflex#fetchOrder
@@ -2036,7 +2117,7 @@ export default class bitflex extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async fetchCanceledAndClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchCanceledAndClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) { // todo fetchOrders for swap
         /**
          * @method
          * @name bitflex#fetchCanceledAndClosedOrders
@@ -2139,7 +2220,7 @@ export default class bitflex extends Exchange {
         return this.parseOrders (response, market, since, limit);
     }
 
-    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> { // todo fetchOrders for swap
         /**
          * @method
          * @name bitflex#fetchOpenOrders
@@ -2233,7 +2314,7 @@ export default class bitflex extends Exchange {
         return this.parseOrders (response, market, since, limit);
     }
 
-    async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: Str = undefined, params = {}) { // todo cancelOrder for swap
         /**
          * @method
          * @name bitflex#cancelOrder
@@ -2308,31 +2389,6 @@ export default class bitflex extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async cancelAllOrders (symbol: Str = undefined, params = {}) {
-        /**
-         * @method
-         * @name bitflex#cancelAllOrders
-         * @description cancel all open orders in a market
-         * @see https://docs.bitflex.com/contract#batch-cancel
-         * @param {string} symbol unified market symbol, is mandatory for bitflex
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
-        await this.loadMarkets ();
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelAllOrders requires a symbol argument');
-        }
-        const market = this.market (symbol);
-        if (market['type'] === 'spot') {
-            throw new NotSupported (this.id + ' cancelAllOrders does not support spot markets, only swap markets are accepted');
-        }
-        const request = {
-            'symbol': market['id'],
-        };
-        const response = await this.privateDeleteOpenapiContractV1OrderBatchCancel (this.extend (request, params));
-        return response;
-    }
-
     async fetchAccounts (params = {}): Promise<Account[]> {
         /**
          * @method
@@ -2372,7 +2428,7 @@ export default class bitflex extends Exchange {
         //         "accountIndex": 0
         //     },
         //
-        const accountType = this.safeString (account, 'accountType');
+        const accountType = this.safeString (account, 'accountType'); // todo check
         return {
             'id': this.safeString (account, 'accountId'),
             'name': this.safeString (account, 'accountName'),
@@ -2458,7 +2514,7 @@ export default class bitflex extends Exchange {
         //         }
         //     ]
         //
-        return this.parseTransactions (response, currency, since, limit, { 'type': 'deposit' });
+        return this.parseTransactions (response, currency, since, limit, 'deposit');
     }
 
     async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
@@ -2540,7 +2596,7 @@ export default class bitflex extends Exchange {
         //         }
         //     ]
         //
-        return this.parseTransactions (response, currency, since, limit, { 'type': 'withdrawal' });
+        return this.parseTransactions (response, currency, since, limit, 'withdrawal');
     }
 
     async fetchWithdrawal (id: string, code: Str = undefined, params = {}) {
@@ -2597,10 +2653,10 @@ export default class bitflex extends Exchange {
         return this.parseTransaction (response, currency);
     }
 
-    parseTransactions (transactions, currency: Currency = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Transaction[] {
+    parseTransactions (transactions: any[], currency: Currency = undefined, since: Int = undefined, limit: Int = undefined, type: Str = undefined): Transaction[] {
         let result = [];
         for (let i = 0; i < transactions.length; i++) {
-            transactions[i] = this.extend (transactions[i], params);
+            transactions[i] = this.extend (transactions[i], { 'type': type });
             const transaction = this.parseTransaction (transactions[i], currency);
             result.push (transaction);
         }
@@ -2710,7 +2766,7 @@ export default class bitflex extends Exchange {
             }
         }
         const ext = this.safeString (transaction, 'addressExt');
-        if ((ext !== undefined) && (tag === undefined)) {
+        if ((ext !== undefined) && (tag === undefined)) { // todo check
             tag = ext;
         }
         const tagFrom = this.safeString (transaction, 'fromAddressTag');
@@ -2973,19 +3029,19 @@ export default class bitflex extends Exchange {
             '2': 'fee', // trading fees
             '3': 'transfer', // transfer
             '4': 'transaction', // deposit
-            '27': 'reward', // maker reward
-            '28': 'trade', // PnL from contracts
-            '30': 'trade', // settlement
+            '27': 'reward', // maker reward todo check
+            '28': 'trade', // PnL from contracts todo check
+            '30': 'trade', // settlement todo check
             '31': 'trade', // liquidation
-            '32': 'fee', // funding fee settlement
+            '32': 'fee', // funding fee settlement todo check
             '51': 'transfer', // userAccountTransfer Exclusive
             '65': 'trade', // OTC buy coin
             '66': 'trade', // OTC sell coin
-            '67': 'reward', // campaign reward
+            '67': 'reward', // campaign reward todo check
             '68': 'rebate', // user rebates
-            '69': 'reward', // registration reward
+            '69': 'reward', // registration reward todo check
             '70': 'airdrop', // airdrop
-            '71': 'reward', // mining reward
+            '71': 'reward', // mining reward todo check
             '73': 'fee', // OTC fees
             '200': 'trade', // old OTC balance flow
         };
@@ -3015,7 +3071,7 @@ export default class bitflex extends Exchange {
         const account = undefined;
         const referenceId = undefined;
         const referenceAccount = this.safeString (item, 'accountId');
-        const type = this.parseLedgerEntryType (this.safeString (item, 'flowTypeValue'));
+        const type = this.parseLedgerEntryType (this.safeString (item, 'flowTypeValue')); // todo
         const code = this.safeCurrencyCode (this.safeString (item, 'token'), currency);
         let amount = this.safeString (item, 'change');
         const amountIsNegative = Precise.stringLt (amount, '0');
@@ -3140,7 +3196,7 @@ export default class bitflex extends Exchange {
         //             "side": "LONG",
         //             "avgPrice": "66004.8",
         //             "position": "0.001",
-        //             "available": "0.001", // todo check
+        //             "available": "0.001",
         //             "leverage": "10",
         //             "lastPrice": "65998.2",
         //             "positionValue": "66.0223",
@@ -3148,7 +3204,7 @@ export default class bitflex extends Exchange {
         //             "margin": "6.5939",
         //             "marginRate": "0.1001",
         //             "unrealizedPnL": "0.0175",
-        //             "profitRate": "0.0026", // todo check
+        //             "profitRate": "0.0026",
         //             "realizedPnL": "-0.0396"
         //         },
         //         ...
@@ -3187,8 +3243,8 @@ export default class bitflex extends Exchange {
             'maintenanceMargin': undefined,
             'maintenanceMarginPercentage': undefined,
             'collateral': undefined,
-            'initialMargin': this.safeNumber (position, 'margin'),
-            'initialMarginPercentage': this.safeNumber (position, 'marginRate'), // todo check
+            'initialMargin': undefined,
+            'initialMarginPercentage': undefined,
             'leverage': this.safeNumber (position, 'leverage'),
             'marginRatio': undefined,
             'stopLossPrice': undefined,
@@ -3287,7 +3343,7 @@ export default class bitflex extends Exchange {
             'info': data,
             'symbol': market['symbol'],
             'type': undefined,
-            'marginMode': 'cross',
+            'marginMode': 'cross', // todo check
             'amount': undefined,
             'total': total,
             'code': market['settle'],
@@ -3389,7 +3445,7 @@ export default class bitflex extends Exchange {
         //
         const marketId = this.safeString (contract, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
-        const nextFundingTimestamp = this.safeInteger (contract, 'intervalEnd');
+        const nextFundingTimestamp = this.safeInteger (contract, 'intervalEnd'); // todo check
         const previousFundingTimestamp = this.safeInteger (contract, 'intervalStart');
         const fundingRate = this.safeNumber (contract, 'rate');
         return {
