@@ -157,34 +157,43 @@
         ],
         "fetchBalance": [
             {
-                "description": "Fetch spot Balance",
+                "description": "Fetch spot balance",
                 "method": "fetchBalance",
-                "url": "https://api.coinex.com/v1/balance/info?access_id=53DD577FFFD741D4B53A5424ECD33196&tonce=1699458296864",
+                "url": "https://api.coinex.com/v2/assets/spot/balance",
                 "input": [
-                    {
-                        "type": "spot"
-                    }
+                  {
+                    "type": "spot"
+                  }
                 ]
             },
             {
-                "description": "Fetch swap Balance",
+                "description": "Fetch swap balance",
                 "method": "fetchBalance",
-                "url": "https://api.coinex.com/perpetual/v1/asset/query?access_id=53DD577FFFD741D4B53A5424ECD33196&timestamp=1699458297164",
+                "url": "https://api.coinex.com/v2/assets/futures/balance",
                 "input": [
-                    {
-                        "type": "swap"
-                    }
+                  {
+                    "type": "swap"
+                  }
                 ]
             },
             {
-                "description": "fetch spot-margin balance",
+                "description": "Fetch financial account balance",
                 "method": "fetchBalance",
-                "url": "https://api.coinex.com/v1/margin/account?access_id=85D9FDDCA1914FB78E2F2448A0EF812A&market=LTCUSDT&tonce=1706032524583",
+                "url": "https://api.coinex.com/v2/assets/financial/balance",
                 "input": [
-                    {
-                        "marginMode": "isolated",
-                        "symbol": "LTC/USDT"
-                    }
+                  {
+                    "type": "financial"
+                  }
+                ]
+            },
+            {
+                "description": "Fetch spot margin balance",
+                "method": "fetchBalance",
+                "url": "https://api.coinex.com/v2/assets/margin/balance",
+                "input": [
+                  {
+                    "type": "margin"
+                  }
                 ]
             }
         ],
@@ -625,33 +634,23 @@
             {
                 "description": "Spot fetch OHLCV",
                 "method": "fetchOHLCV",
-                "url": "https://api.coinex.com/v1/market/kline?market=BTCUSDT&type=1min",
+                "url": "https://api.coinex.com/v2/spot/kline?market=BTCUSDT&period=1min&limit=3",
                 "input": [
-                    "BTC/USDT"
+                  "BTC/USDT",
+                  "1m",
+                  null,
+                  3
                 ]
             },
             {
                 "description": "Swap fetch OHLCV",
                 "method": "fetchOHLCV",
-                "url": "https://api.coinex.com/perpetual/v1/market/kline?market=BTCUSDT&type=1min",
+                "url": "https://api.coinex.com/v2/futures/kline?market=BTCUSDT&period=1min&limit=3",
                 "input": [
-                    "BTC/USDT:USDT"
-                ]
-            },
-            {
-                "description": "spot ohlcv",
-                "method": "fetchOHLCV",
-                "url": "https://api.coinex.com/v1/market/kline?market=BTCUSDT&type=1min",
-                "input": [
-                    "BTC/USDT"
-                ]
-            },
-            {
-                "description": "swap ohlcv",
-                "method": "fetchOHLCV",
-                "url": "https://api.coinex.com/perpetual/v1/market/kline?market=BTCUSDT&type=1min",
-                "input": [
-                    "BTC/USDT:USDT"
+                  "BTC/USDT:USDT",
+                  "1m",
+                  null,
+                  3
                 ]
             }
         ],
@@ -789,6 +788,16 @@
                   {
                     "type": "swap"
                   }
+                ]
+            }
+        ],
+        "fetchPositionHistory": [
+            {
+                "description": "Fetch Position History",
+                "method": "fetchPositionHistory",
+                "url": "https://api.coinex.com/perpetual/v1/position/finished?access_id=3040ECDCE1944E28B9E262446CF3360E&limit=1000&market=XRPUSDT&side=0&timestamp=1711516582191",
+                "input": [
+                  "XRP/USDT:USDT"
                 ]
             }
         ],

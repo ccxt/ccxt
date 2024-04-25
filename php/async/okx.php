@@ -38,8 +38,10 @@ class okx extends Exchange {
                 'option' => true,
                 'addMargin' => true,
                 'cancelAllOrders' => false,
+                'cancelAllOrdersAfter' => true,
                 'cancelOrder' => true,
                 'cancelOrders' => true,
+                'cancelOrdersForSymbols' => true,
                 'closeAllPositions' => false,
                 'closePosition' => true,
                 'createConvertTrade' => true,
@@ -116,8 +118,10 @@ class okx extends Exchange {
                 'fetchOrderTrades' => true,
                 'fetchPermissions' => null,
                 'fetchPosition' => true,
+                'fetchPositionHistory' => 'emulated',
                 'fetchPositions' => true,
                 'fetchPositionsForSymbol' => true,
+                'fetchPositionsHistory' => true,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchSettlementHistory' => true,
@@ -3274,6 +3278,117 @@ class okx extends Exchange {
         }) ();
     }
 
+    public function cancel_orders_for_symbols(array $orders, $params = array ()) {
+        return Async\async(function () use ($orders, $params) {
+            /**
+             * cancel multiple $orders for multiple symbols
+             * @see https://www.okx.com/docs-v5/en/#$order-book-trading-trade-post-cancel-multiple-$orders
+             * @see https://www.okx.com/docs-v5/en/#$order-book-trading-algo-trading-post-cancel-algo-$order
+             * @param {CancellationRequest[]} $orders each $order should contain the parameters required by cancelOrder namely $id and $symbol
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {boolean} [$params->trigger] whether the $order is a stop/trigger $order
+             * @param {boolean} [$params->trailing] set to true if you want to cancel $trailing $orders
+             * @return {array} an list of ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structures~
+             */
+            Async\await($this->load_markets());
+            $request = array();
+            $options = $this->safe_dict($this->options, 'cancelOrders', array());
+            $defaultMethod = $this->safe_string($options, 'method', 'privatePostTradeCancelBatchOrders');
+            $method = $this->safe_string($params, 'method', $defaultMethod);
+            $stop = $this->safe_bool_2($params, 'stop', 'trigger');
+            $trailing = $this->safe_bool($params, 'trailing', false);
+            $isStopOrTrailing = $stop || $trailing;
+            if ($isStopOrTrailing) {
+                $method = 'privatePostTradeCancelAlgos';
+            }
+            for ($i = 0; $i < count($orders); $i++) {
+                $order = $orders[$i];
+                $id = $this->safe_string($order, 'id');
+                $clientOrderId = $this->safe_string_2($order, 'clOrdId', 'clientOrderId');
+                $symbol = $this->safe_string($order, 'symbol');
+                $market = $this->market($symbol);
+                $idKey = 'ordId';
+                if ($isStopOrTrailing) {
+                    $idKey = 'algoId';
+                } elseif ($clientOrderId !== null) {
+                    $idKey = 'clOrdId';
+                }
+                $requestItem = array(
+                    'instId' => $market['id'],
+                );
+                $requestItem[$idKey] = ($clientOrderId !== null) ? $clientOrderId : $id;
+                $request[] = $requestItem;
+            }
+            $response = null;
+            if ($method === 'privatePostTradeCancelAlgos') {
+                $response = Async\await($this->privatePostTradeCancelAlgos ($request)); // * dont extend with $params, otherwise ARRAY will be turned into OBJECT
+            } else {
+                $response = Async\await($this->privatePostTradeCancelBatchOrders ($request)); // * dont extend with $params, otherwise ARRAY will be turned into OBJECT
+            }
+            //
+            //     {
+            //         "code" => "0",
+            //         "data" => array(
+            //             array(
+            //                 "clOrdId" => "e123456789ec4dBC1123456ba123b45e",
+            //                 "ordId" => "405071912345641543",
+            //                 "sCode" => "0",
+            //                 "sMsg" => ""
+            //             ),
+            //             ...
+            //         ),
+            //         "msg" => ""
+            //     }
+            //
+            // Algo $order
+            //
+            //     {
+            //         "code" => "0",
+            //         "data" => array(
+            //             {
+            //                 "algoId" => "431375349042380800",
+            //                 "sCode" => "0",
+            //                 "sMsg" => ""
+            //             }
+            //         ),
+            //         "msg" => ""
+            //     }
+            //
+            $ordersData = $this->safe_list($response, 'data', array());
+            return $this->parse_orders($ordersData, null, null, null, $params);
+        }) ();
+    }
+
+    public function cancel_all_orders_after(?int $timeout, $params = array ()) {
+        return Async\async(function () use ($timeout, $params) {
+            /**
+             * dead man's switch, cancel all orders after the given $timeout
+             * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-cancel-all-after
+             * @param {number} $timeout time in milliseconds, 0 represents cancel the timer
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} the api result
+             */
+            Async\await($this->load_markets());
+            $request = array(
+                'timeOut' => ($timeout > 0) ? $this->parse_to_int($timeout / 1000) : 0,
+            );
+            $response = Async\await($this->privatePostTradeCancelAllAfter (array_merge($request, $params)));
+            //
+            //     {
+            //         "code":"0",
+            //         "msg":"",
+            //         "data":array(
+            //             {
+            //                 "triggerTime":"1587971460",
+            //                 "ts":"1587971400"
+            //             }
+            //         )
+            //     }
+            //
+            return $response;
+        }) ();
+    }
+
     public function parse_order_status($status) {
         $statuses = array(
             'canceled' => 'canceled',
@@ -4676,7 +4791,7 @@ class okx extends Exchange {
         }) ();
     }
 
-    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
@@ -6559,7 +6674,7 @@ class okx extends Exchange {
         );
     }
 
-    public function reduce_margin(string $symbol, $amount, $params = array ()): PromiseInterface {
+    public function reduce_margin(string $symbol, float $amount, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $amount, $params) {
             /**
              * remove margin from a position
@@ -6573,7 +6688,7 @@ class okx extends Exchange {
         }) ();
     }
 
-    public function add_margin(string $symbol, $amount, $params = array ()): PromiseInterface {
+    public function add_margin(string $symbol, float $amount, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $amount, $params) {
             /**
              * add margin
@@ -8114,6 +8229,88 @@ class okx extends Exchange {
             $data = $this->safe_list($response, 'data');
             $modifications = $this->parse_margin_modifications($data);
             return $this->filter_by_symbol_since_limit($modifications, $symbol, $since, $limit);
+        }) ();
+    }
+
+    public function fetch_positions_history(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbols, $since, $limit, $params) {
+            /**
+             * fetches historical $positions
+             * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-$positions-history
+             * @param {string} [$symbols] unified $market $symbols
+             * @param {int} [$since] timestamp in ms of the earliest position to fetch
+             * @param {int} [$limit] the maximum amount of records to fetch, default=100, max=100
+             * @param {array} $params extra parameters specific to the exchange api endpoint
+             * @param {string} [$params->marginMode] "cross" or "isolated"
+             *
+             * EXCHANGE SPECIFIC PARAMETERS
+             * @param {string} [$params->instType] margin, swap, futures or option
+             * @param {string} [$params->type] the type of latest close position 1 => close position partially, 2：close all, 3：liquidation, 4：partial liquidation; 5：adl, is it is the latest type if there are several types for the same position
+             * @param {string} [$params->posId] position id, there is attribute expiration, the posid will be expired if it is more than 30 days after the last full close position, then position will use new posid
+             * @param {string} [$params->before] timestamp in ms of the earliest position to fetch based on the last update time of the position
+             * @param {string} [$params->after] timestamp in ms of the latest position to fetch based on the last update time of the position
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=position-structure position structures~
+             */
+            Async\await($this->load_markets());
+            $marginMode = $this->safe_string($params, 'marginMode');
+            $instType = $this->safe_string_upper($params, 'instType');
+            $params = $this->omit($params, array( 'until', 'marginMode', 'instType' ));
+            if ($limit === null) {
+                $limit = 100;
+            }
+            $request = array(
+                'limit' => $limit,
+            );
+            if ($symbols !== null) {
+                $symbolsLength = count($symbols);
+                if ($symbolsLength === 1) {
+                    $market = $this->market($symbols[0]);
+                    $request['instId'] = $market['id'];
+                }
+            }
+            if ($marginMode !== null) {
+                $request['mgnMode'] = $marginMode;
+            }
+            if ($instType !== null) {
+                $request['instType'] = $instType;
+            }
+            $response = Async\await($this->privateGetAccountPositionsHistory (array_merge($request, $params)));
+            //
+            //    {
+            //        code => '0',
+            //        $data => array(
+            //            array(
+            //                cTime => '1708735940395',
+            //                ccy => 'USDT',
+            //                closeAvgPx => '0.6330444444444444',
+            //                closeTotalPos => '27',
+            //                direction => 'long',
+            //                fee => '-1.69566',
+            //                fundingFee => '-11.870404179341788',
+            //                instId => 'XRP-USDT-SWAP',
+            //                $instType => 'SWAP',
+            //                lever => '3.0',
+            //                liqPenalty => '0',
+            //                mgnMode => 'cross',
+            //                openAvgPx => '0.623',
+            //                openMaxPos => '15',
+            //                pnl => '27.11999999999988',
+            //                pnlRatio => '0.0241732402722634',
+            //                posId => '681423155054862336',
+            //                realizedPnl => '13.553935820658092',
+            //                triggerPx => '',
+            //                type => '2',
+            //                uTime => '1711088748170',
+            //                uly => 'XRP-USDT'
+            //            ),
+            //            ...
+            //        ),
+            //        msg => ''
+            //    }
+            //
+            $data = $this->safe_list($response, 'data');
+            $positions = $this->parse_positions($data, $symbols, $params);
+            return $this->filter_by_since_limit($positions, $since, $limit);
         }) ();
     }
 }

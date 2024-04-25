@@ -92,6 +92,7 @@ export default class htx extends Exchange {
     cancelOrder(id: string, symbol?: Str, params?: {}): Promise<any>;
     cancelOrders(ids: any, symbol?: Str, params?: {}): Promise<any>;
     cancelAllOrders(symbol?: Str, params?: {}): Promise<any>;
+    cancelAllOrdersAfter(timeout: Int, params?: {}): Promise<any>;
     parseDepositAddress(depositAddress: any, currency?: Currency): {
         currency: string;
         address: string;
@@ -107,7 +108,7 @@ export default class htx extends Exchange {
     fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     parseTransaction(transaction: any, currency?: Currency): Transaction;
     parseTransactionStatus(status: any): string;
-    withdraw(code: string, amount: number, address: any, tag?: any, params?: {}): Promise<Transaction>;
+    withdraw(code: string, amount: number, address: string, tag?: any, params?: {}): Promise<Transaction>;
     parseTransfer(transfer: any, currency?: Currency): {
         info: any;
         id: string;

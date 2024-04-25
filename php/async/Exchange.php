@@ -42,11 +42,11 @@ use React\EventLoop\Loop;
 
 use Exception;
 
-$version = '4.3.5';
+$version = '4.3.7';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.3.5';
+    const VERSION = '4.3.7';
 
     public $browser;
     public $marketsLoading = null;
@@ -3740,6 +3740,10 @@ class Exchange extends \ccxt\Exchange {
         throw new NotSupported($this->id . ' cancelAllOrders() is not supported yet');
     }
 
+    public function cancel_all_orders_after(?int $timeout, $params = array ()) {
+        throw new NotSupported($this->id . ' cancelAllOrdersAfter() is not supported yet');
+    }
+
     public function cancel_orders_for_symbols(array $orders, $params = array ()) {
         throw new NotSupported($this->id . ' cancelOrdersForSymbols() is not supported yet');
     }
@@ -5385,6 +5389,37 @@ class Exchange extends \ccxt\Exchange {
         $day = mb_substr($date, 5, 7 - 5);
         $reconstructedDate = $day . $month . $year;
         return $reconstructedDate;
+    }
+
+    public function fetch_position_history(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * fetches the history of margin added or reduced from contract isolated $positions
+             * @param {string} [$symbol] unified market $symbol
+             * @param {int} [$since] timestamp in ms of the position
+             * @param {int} [$limit] the maximum amount of candles to fetch, default=1000
+             * @param {array} $params extra parameters specific to the exchange api endpoint
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=position-structure position structures~
+             */
+            if ($this->has['fetchPositionsHistory']) {
+                $positions = Async\await($this->fetch_positions_history(array( $symbol ), $since, $limit, $params));
+                return $this->safe_dict($positions, 0);
+            } else {
+                throw new NotSupported($this->id . ' fetchPositionHistory () is not supported yet');
+            }
+        }) ();
+    }
+
+    public function fetch_positions_history(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        /**
+         * fetches the history of margin added or reduced from contract isolated positions
+         * @param {string} [symbol] unified market symbol
+         * @param {int} [$since] timestamp in ms of the position
+         * @param {int} [$limit] the maximum amount of candles to fetch, default=1000
+         * @param {array} $params extra parameters specific to the exchange api endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=position-structure position structures~
+         */
+        throw new NotSupported($this->id . ' fetchPositionsHistory () is not supported yet');
     }
 
     public function parse_margin_modification($data, ?array $market = null) {

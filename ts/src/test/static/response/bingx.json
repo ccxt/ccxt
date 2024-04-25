@@ -1435,7 +1435,7 @@
                       "status": "FILLED",
                       "time": "1710998806000",
                       "updateTime": "1710998806000",
-                      "clientOrderId": "",
+                      "clientOrderId": "b39b0316-1f99-4099-8f4b-bac0f46731f8",
                       "leverage": "5X",
                       "takeProfit": {
                         "type": "",
@@ -1482,7 +1482,7 @@
                     "status": "FILLED",
                     "time": "1710998806000",
                     "updateTime": "1710998806000",
-                    "clientOrderId": "",
+                    "clientOrderId": "b39b0316-1f99-4099-8f4b-bac0f46731f8",
                     "leverage": "5X",
                     "takeProfit": {
                       "type": "",
@@ -1510,7 +1510,7 @@
                     "triggerOrderId": "0"
                   },
                   "id": "1770683446830788608",
-                  "clientOrderId": null,
+                  "clientOrderId": "b39b0316-1f99-4099-8f4b-bac0f46731f8",
                   "symbol": "LTC/USDT:USDT",
                   "timestamp": 1710998806000,
                   "datetime": "2024-03-21T05:26:46.000Z",

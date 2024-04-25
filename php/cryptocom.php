@@ -30,6 +30,7 @@ class cryptocom extends Exchange {
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'cancelOrders' => true,
+                'cancelOrdersForSymbols' => true,
                 'closeAllPositions' => false,
                 'closePosition' => true,
                 'createMarketBuyOrderWithCost' => false,
@@ -77,8 +78,10 @@ class cryptocom extends Exchange {
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
                 'fetchPosition' => true,
+                'fetchPositionHistory' => false,
                 'fetchPositionMode' => false,
                 'fetchPositions' => true,
+                'fetchPositionsHistory' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchSettlementHistory' => true,
                 'fetchStatus' => false,
@@ -1413,6 +1416,36 @@ class cryptocom extends Exchange {
         return $this->parse_orders($result, $market, null, null, $params);
     }
 
+    public function cancel_orders_for_symbols(array $orders, $params = array ()) {
+        /**
+         * cancel multiple $orders for multiple symbols
+         * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-cancel-$order-list-list
+         * @param {CancellationRequest[]} $orders each $order should contain the parameters required by cancelOrder namely $id and $symbol
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an list of ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structures~
+         */
+        $this->load_markets();
+        $orderRequests = array();
+        for ($i = 0; $i < count($orders); $i++) {
+            $order = $orders[$i];
+            $id = $this->safe_string($order, 'id');
+            $symbol = $this->safe_string($order, 'symbol');
+            $market = $this->market($symbol);
+            $orderItem = array(
+                'instrument_name' => $market['id'],
+                'order_id' => (string) $id,
+            );
+            $orderRequests[] = $orderItem;
+        }
+        $request = array(
+            'contingency_type' => 'LIST',
+            'order_list' => $orderRequests,
+        );
+        $response = $this->v1PrivatePostPrivateCancelOrderList (array_merge($request, $params));
+        $result = $this->safe_list($response, 'result', array());
+        return $this->parse_orders($result, null, null, null, $params);
+    }
+
     public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch all unfilled currently open $orders
@@ -1557,7 +1590,7 @@ class cryptocom extends Exchange {
         return array( $address, $tag );
     }
 
-    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
         /**
          * make a withdrawal
          * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-create-withdrawal

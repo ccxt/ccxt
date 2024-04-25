@@ -43,6 +43,7 @@ class hyperliquid(Exchange, ImplicitAPI):
                 'borrowCrossMargin': False,
                 'borrowIsolatedMargin': False,
                 'cancelAllOrders': False,
+                'cancelAllOrdersAfter': True,
                 'cancelOrder': True,
                 'cancelOrders': True,
                 'cancelOrdersForSymbols': True,
@@ -1303,6 +1304,42 @@ class hyperliquid(Exchange, ImplicitAPI):
         #
         return response
 
+    async def cancel_all_orders_after(self, timeout: Int, params={}):
+        """
+        dead man's switch, cancel all orders after the given timeout
+        :param number timeout: time in milliseconds, 0 represents cancel the timer
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.vaultAddress]: the vault address
+        :returns dict: the api result
+        """
+        self.check_required_credentials()
+        await self.load_markets()
+        params = self.omit(params, ['clientOrderId', 'client_id'])
+        nonce = self.milliseconds()
+        request = {
+            'nonce': nonce,
+            # 'vaultAddress': vaultAddress,
+        }
+        cancelAction = {
+            'type': 'scheduleCancel',
+            'time': nonce + timeout,
+        }
+        vaultAddress = self.format_vault_address(self.safe_string(params, 'vaultAddress'))
+        signature = self.sign_l1_action(cancelAction, nonce, vaultAddress)
+        request['action'] = cancelAction
+        request['signature'] = signature
+        if vaultAddress is not None:
+            params = self.omit(params, 'vaultAddress')
+            request['vaultAddress'] = vaultAddress
+        response = await self.privatePostExchange(self.extend(request, params))
+        #
+        #     {
+        #         "status":"err",
+        #         "response":"Cannot set scheduled cancel time until enough volume traded. Required: $1000000. Traded: $373.47205."
+        #     }
+        #
+        return response
+
     async def edit_order(self, id: str, symbol: str, type: str, side: str, amount: Num = None, price: Num = None, params={}):
         """
         edit a trade order
@@ -2090,7 +2127,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         #
         return response
 
-    async def add_margin(self, symbol: str, amount, params={}) -> MarginModification:
+    async def add_margin(self, symbol: str, amount: float, params={}) -> MarginModification:
         """
         add margin
         :see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#update-isolated-margin
@@ -2101,7 +2138,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         """
         return await self.modify_margin_helper(symbol, amount, 'add', params)
 
-    async def reduce_margin(self, symbol: str, amount, params={}) -> MarginModification:
+    async def reduce_margin(self, symbol: str, amount: float, params={}) -> MarginModification:
         """
         :see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#update-isolated-margin
         remove margin from a position

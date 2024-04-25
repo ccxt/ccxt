@@ -38,6 +38,7 @@ export default class whitebit extends Exchange {
     editOrder(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: Num, price?: Num, params?: {}): Promise<Order>;
     cancelOrder(id: string, symbol?: Str, params?: {}): Promise<any>;
     cancelAllOrders(symbol?: Str, params?: {}): Promise<any>;
+    cancelAllOrdersAfter(timeout: Int, params?: {}): Promise<any>;
     parseBalance(response: any): Balances;
     fetchBalance(params?: {}): Promise<Balances>;
     fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
@@ -65,7 +66,7 @@ export default class whitebit extends Exchange {
         toAccount: any;
         status: any;
     };
-    withdraw(code: string, amount: number, address: any, tag?: any, params?: {}): Promise<any>;
+    withdraw(code: string, amount: number, address: string, tag?: any, params?: {}): Promise<any>;
     parseTransaction(transaction: any, currency?: Currency): Transaction;
     parseTransactionStatus(status: any): string;
     fetchDeposit(id: string, code?: Str, params?: {}): Promise<Transaction>;

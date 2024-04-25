@@ -1,5 +1,5 @@
 import Exchange from './abstract/woo.js';
-import type { TransferEntry, Balances, Currency, FundingRateHistory, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Trade, Transaction, Leverage, Account, Currencies, TradingFees, Conversion } from './base/types.js';
+import type { TransferEntry, Balances, Conversion, Currency, FundingRateHistory, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Trade, Transaction, Leverage, Account, Currencies, TradingFees } from './base/types.js';
 /**
  * @class woo
  * @augments Exchange
@@ -28,6 +28,7 @@ export default class woo extends Exchange {
     editOrder(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: Num, price?: Num, params?: {}): Promise<Order>;
     cancelOrder(id: string, symbol?: Str, params?: {}): Promise<any>;
     cancelAllOrders(symbol?: Str, params?: {}): Promise<any>;
+    cancelAllOrdersAfter(timeout: Int, params?: {}): Promise<any>;
     fetchOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
     fetchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
@@ -97,7 +98,7 @@ export default class woo extends Exchange {
         info: any;
     };
     parseTransferStatus(status: any): string;
-    withdraw(code: string, amount: number, address: any, tag?: any, params?: {}): Promise<Transaction>;
+    withdraw(code: string, amount: number, address: string, tag?: any, params?: {}): Promise<Transaction>;
     repayMargin(code: string, amount: any, symbol?: Str, params?: {}): Promise<any>;
     parseMarginLoan(info: any, currency?: Currency): {
         id: any;

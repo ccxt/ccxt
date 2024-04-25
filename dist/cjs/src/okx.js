@@ -31,8 +31,10 @@ class okx extends okx$1 {
                 'option': true,
                 'addMargin': true,
                 'cancelAllOrders': false,
+                'cancelAllOrdersAfter': true,
                 'cancelOrder': true,
                 'cancelOrders': true,
+                'cancelOrdersForSymbols': true,
                 'closeAllPositions': false,
                 'closePosition': true,
                 'createConvertTrade': true,
@@ -109,8 +111,10 @@ class okx extends okx$1 {
                 'fetchOrderTrades': true,
                 'fetchPermissions': undefined,
                 'fetchPosition': true,
+                'fetchPositionHistory': 'emulated',
                 'fetchPositions': true,
                 'fetchPositionsForSymbol': true,
+                'fetchPositionsHistory': true,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchSettlementHistory': true,
@@ -3281,6 +3285,117 @@ class okx extends okx$1 {
         //
         const ordersData = this.safeList(response, 'data', []);
         return this.parseOrders(ordersData, market, undefined, undefined, params);
+    }
+    async cancelOrdersForSymbols(orders, params = {}) {
+        /**
+         * @method
+         * @name okx#cancelOrdersForSymbols
+         * @description cancel multiple orders for multiple symbols
+         * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-cancel-multiple-orders
+         * @see https://www.okx.com/docs-v5/en/#order-book-trading-algo-trading-post-cancel-algo-order
+         * @param {CancellationRequest[]} orders each order should contain the parameters required by cancelOrder namely id and symbol
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [params.trigger] whether the order is a stop/trigger order
+         * @param {boolean} [params.trailing] set to true if you want to cancel trailing orders
+         * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets();
+        const request = [];
+        const options = this.safeDict(this.options, 'cancelOrders', {});
+        const defaultMethod = this.safeString(options, 'method', 'privatePostTradeCancelBatchOrders');
+        let method = this.safeString(params, 'method', defaultMethod);
+        const stop = this.safeBool2(params, 'stop', 'trigger');
+        const trailing = this.safeBool(params, 'trailing', false);
+        const isStopOrTrailing = stop || trailing;
+        if (isStopOrTrailing) {
+            method = 'privatePostTradeCancelAlgos';
+        }
+        for (let i = 0; i < orders.length; i++) {
+            const order = orders[i];
+            const id = this.safeString(order, 'id');
+            const clientOrderId = this.safeString2(order, 'clOrdId', 'clientOrderId');
+            const symbol = this.safeString(order, 'symbol');
+            const market = this.market(symbol);
+            let idKey = 'ordId';
+            if (isStopOrTrailing) {
+                idKey = 'algoId';
+            }
+            else if (clientOrderId !== undefined) {
+                idKey = 'clOrdId';
+            }
+            const requestItem = {
+                'instId': market['id'],
+            };
+            requestItem[idKey] = (clientOrderId !== undefined) ? clientOrderId : id;
+            request.push(requestItem);
+        }
+        let response = undefined;
+        if (method === 'privatePostTradeCancelAlgos') {
+            response = await this.privatePostTradeCancelAlgos(request); // * dont extend with params, otherwise ARRAY will be turned into OBJECT
+        }
+        else {
+            response = await this.privatePostTradeCancelBatchOrders(request); // * dont extend with params, otherwise ARRAY will be turned into OBJECT
+        }
+        //
+        //     {
+        //         "code": "0",
+        //         "data": [
+        //             {
+        //                 "clOrdId": "e123456789ec4dBC1123456ba123b45e",
+        //                 "ordId": "405071912345641543",
+        //                 "sCode": "0",
+        //                 "sMsg": ""
+        //             },
+        //             ...
+        //         ],
+        //         "msg": ""
+        //     }
+        //
+        // Algo order
+        //
+        //     {
+        //         "code": "0",
+        //         "data": [
+        //             {
+        //                 "algoId": "431375349042380800",
+        //                 "sCode": "0",
+        //                 "sMsg": ""
+        //             }
+        //         ],
+        //         "msg": ""
+        //     }
+        //
+        const ordersData = this.safeList(response, 'data', []);
+        return this.parseOrders(ordersData, undefined, undefined, undefined, params);
+    }
+    async cancelAllOrdersAfter(timeout, params = {}) {
+        /**
+         * @method
+         * @name okx#cancelAllOrdersAfter
+         * @description dead man's switch, cancel all orders after the given timeout
+         * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-cancel-all-after
+         * @param {number} timeout time in milliseconds, 0 represents cancel the timer
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} the api result
+         */
+        await this.loadMarkets();
+        const request = {
+            'timeOut': (timeout > 0) ? this.parseToInt(timeout / 1000) : 0,
+        };
+        const response = await this.privatePostTradeCancelAllAfter(this.extend(request, params));
+        //
+        //     {
+        //         "code":"0",
+        //         "msg":"",
+        //         "data":[
+        //             {
+        //                 "triggerTime":"1587971460",
+        //                 "ts":"1587971400"
+        //             }
+        //         ]
+        //     }
+        //
+        return response;
     }
     parseOrderStatus(status) {
         const statuses = {
@@ -8085,6 +8200,87 @@ class okx extends okx$1 {
         const data = this.safeList(response, 'data');
         const modifications = this.parseMarginModifications(data);
         return this.filterBySymbolSinceLimit(modifications, symbol, since, limit);
+    }
+    async fetchPositionsHistory(symbols = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name okx#fetchPositionsHistory
+         * @description fetches historical positions
+         * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-positions-history
+         * @param {string} [symbols] unified market symbols
+         * @param {int} [since] timestamp in ms of the earliest position to fetch
+         * @param {int} [limit] the maximum amount of records to fetch, default=100, max=100
+         * @param {object} params extra parameters specific to the exchange api endpoint
+         * @param {string} [params.marginMode] "cross" or "isolated"
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+         * @param {string} [params.instType] margin, swap, futures or option
+         * @param {string} [params.type] the type of latest close position 1: close position partially, 2：close all, 3：liquidation, 4：partial liquidation; 5：adl, is it is the latest type if there are several types for the same position
+         * @param {string} [params.posId] position id, there is attribute expiration, the posid will be expired if it is more than 30 days after the last full close position, then position will use new posid
+         * @param {string} [params.before] timestamp in ms of the earliest position to fetch based on the last update time of the position
+         * @param {string} [params.after] timestamp in ms of the latest position to fetch based on the last update time of the position
+         * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+         */
+        await this.loadMarkets();
+        const marginMode = this.safeString(params, 'marginMode');
+        const instType = this.safeStringUpper(params, 'instType');
+        params = this.omit(params, ['until', 'marginMode', 'instType']);
+        if (limit === undefined) {
+            limit = 100;
+        }
+        const request = {
+            'limit': limit,
+        };
+        if (symbols !== undefined) {
+            const symbolsLength = symbols.length;
+            if (symbolsLength === 1) {
+                const market = this.market(symbols[0]);
+                request['instId'] = market['id'];
+            }
+        }
+        if (marginMode !== undefined) {
+            request['mgnMode'] = marginMode;
+        }
+        if (instType !== undefined) {
+            request['instType'] = instType;
+        }
+        const response = await this.privateGetAccountPositionsHistory(this.extend(request, params));
+        //
+        //    {
+        //        code: '0',
+        //        data: [
+        //            {
+        //                cTime: '1708735940395',
+        //                ccy: 'USDT',
+        //                closeAvgPx: '0.6330444444444444',
+        //                closeTotalPos: '27',
+        //                direction: 'long',
+        //                fee: '-1.69566',
+        //                fundingFee: '-11.870404179341788',
+        //                instId: 'XRP-USDT-SWAP',
+        //                instType: 'SWAP',
+        //                lever: '3.0',
+        //                liqPenalty: '0',
+        //                mgnMode: 'cross',
+        //                openAvgPx: '0.623',
+        //                openMaxPos: '15',
+        //                pnl: '27.11999999999988',
+        //                pnlRatio: '0.0241732402722634',
+        //                posId: '681423155054862336',
+        //                realizedPnl: '13.553935820658092',
+        //                triggerPx: '',
+        //                type: '2',
+        //                uTime: '1711088748170',
+        //                uly: 'XRP-USDT'
+        //            },
+        //            ...
+        //        ],
+        //        msg: ''
+        //    }
+        //
+        const data = this.safeList(response, 'data');
+        const positions = this.parsePositions(data, symbols, params);
+        return this.filterBySinceLimit(positions, since, limit);
     }
 }
 

@@ -25,6 +25,7 @@ public partial class woo : Exchange
                 { "option", false },
                 { "addMargin", false },
                 { "cancelAllOrders", true },
+                { "cancelAllOrdersAfter", true },
                 { "cancelOrder", true },
                 { "cancelWithdraw", false },
                 { "closeAllPositions", false },
@@ -80,8 +81,10 @@ public partial class woo : Exchange
                 { "fetchOrders", true },
                 { "fetchOrderTrades", true },
                 { "fetchPosition", true },
+                { "fetchPositionHistory", false },
                 { "fetchPositionMode", false },
                 { "fetchPositions", true },
+                { "fetchPositionsHistory", false },
                 { "fetchPremiumIndexOHLCV", false },
                 { "fetchStatus", true },
                 { "fetchTicker", false },
@@ -188,6 +191,7 @@ public partial class woo : Exchange
                         } },
                         { "post", new Dictionary<string, object>() {
                             { "order", 5 },
+                            { "order/cancel_all_after", 1 },
                             { "asset/main_sub_transfer", 30 },
                             { "asset/ltv", 30 },
                             { "asset/withdraw", 30 },
@@ -1363,6 +1367,36 @@ public partial class woo : Exchange
         //     {
         //         "success":true,
         //         "status":"CANCEL_ALL_SENT"
+        //     }
+        //
+        return response;
+    }
+
+    public async override Task<object> cancelAllOrdersAfter(object timeout, object parameters = null)
+    {
+        /**
+        * @method
+        * @name woo#cancelAllOrdersAfter
+        * @description dead man's switch, cancel all orders after the given timeout
+        * @see https://docs.woo.org/#cancel-all-after
+        * @param {number} timeout time in milliseconds, 0 represents cancel the timer
+        * @param {boolean} activated countdown
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} the api result
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object request = new Dictionary<string, object>() {
+            { "trigger_after", ((bool) isTrue((isGreaterThan(timeout, 0)))) ? timeout : 0 },
+        };
+        object response = await this.v1PrivatePostOrderCancelAllAfter(this.extend(request, parameters));
+        //
+        //     {
+        //         "success": true,
+        //         "data": {
+        //             "expected_trigger_time": 1711534302938
+        //         },
+        //         "timestamp": 1711534302943
         //     }
         //
         return response;

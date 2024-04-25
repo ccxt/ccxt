@@ -26,6 +26,7 @@ class whitebit extends Exchange {
                 'future' => false,
                 'option' => false,
                 'cancelAllOrders' => true,
+                'cancelAllOrdersAfter' => true,
                 'cancelOrder' => true,
                 'cancelOrders' => false,
                 'createOrder' => true,
@@ -1378,6 +1379,45 @@ class whitebit extends Exchange {
         return $response;
     }
 
+    public function cancel_all_orders_after(?int $timeout, $params = array ()) {
+        /**
+         * dead man's switch, cancel all orders after the given $timeout
+         * @see https://docs.whitebit.com/private/http-trade-v4/#sync-kill-switch-timer
+         * @param {number} $timeout time in milliseconds, 0 represents cancel the timer
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->types] Order types value. Example => "spot", "margin", "futures" or null
+         * @param {string} [$params->symbol] $symbol unified $symbol of the $market the order was made in
+         * @return {array} the api result
+         */
+        $this->load_markets();
+        $symbol = $this->safe_string($params, 'symbol');
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' cancelAllOrdersAfter() requires a $symbol argument in params');
+        }
+        $market = $this->market($symbol);
+        $params = $this->omit($params, 'symbol');
+        $isBiggerThanZero = ($timeout > 0);
+        $request = array(
+            'market' => $market['id'],
+            // 'timeout' => ($timeout > 0) ? $this->number_to_string($timeout / 1000) : null,
+        );
+        if ($isBiggerThanZero) {
+            $request['timeout'] = $this->number_to_string($timeout / 1000);
+        } else {
+            $request['timeout'] = 'null';
+        }
+        $response = $this->v4PrivatePostOrderKillSwitch (array_merge($request, $params));
+        //
+        //     {
+        //         "market" => "BTC_USDT", // currency $market,
+        //         "startTime" => 1662478154, // now timestamp,
+        //         "cancellationTime" => 1662478154, // now . timer_value,
+        //         "types" => ["spot", "margin"]
+        //     }
+        //
+        return $response;
+    }
+
     public function parse_balance($response): array {
         $balanceKeys = is_array($response) ? array_keys($response) : array();
         $result = array();
@@ -1850,7 +1890,7 @@ class whitebit extends Exchange {
         );
     }
 
-    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
         /**
          * make a withdrawal
          * @see https://docs.whitebit.com/private/http-main-v4/#create-withdraw-$request

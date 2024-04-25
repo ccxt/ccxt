@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.3.5'
+__version__ = '4.3.7'
 
 # -----------------------------------------------------------------------------
 
@@ -4494,6 +4494,9 @@ class Exchange(object):
     def cancel_all_orders(self, symbol: Str = None, params={}):
         raise NotSupported(self.id + ' cancelAllOrders() is not supported yet')
 
+    def cancel_all_orders_after(self, timeout: Int, params={}):
+        raise NotSupported(self.id + ' cancelAllOrdersAfter() is not supported yet')
+
     def cancel_orders_for_symbols(self, orders: List[CancellationRequest], params={}):
         raise NotSupported(self.id + ' cancelOrdersForSymbols() is not supported yet')
 
@@ -5768,6 +5771,32 @@ class Exchange(object):
         day = date[5:7]
         reconstructedDate = day + month + year
         return reconstructedDate
+
+    def fetch_position_history(self, symbol: str, since: Int = None, limit: Int = None, params={}):
+        """
+        fetches the history of margin added or reduced from contract isolated positions
+        :param str [symbol]: unified market symbol
+        :param int [since]: timestamp in ms of the position
+        :param int [limit]: the maximum amount of candles to fetch, default=1000
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns dict[]: a list of `position structures <https://docs.ccxt.com/#/?id=position-structure>`
+        """
+        if self.has['fetchPositionsHistory']:
+            positions = self.fetch_positions_history([symbol], since, limit, params)
+            return self.safe_dict(positions, 0)
+        else:
+            raise NotSupported(self.id + ' fetchPositionHistory() is not supported yet')
+
+    def fetch_positions_history(self, symbols: Strings = None, since: Int = None, limit: Int = None, params={}):
+        """
+        fetches the history of margin added or reduced from contract isolated positions
+        :param str [symbol]: unified market symbol
+        :param int [since]: timestamp in ms of the position
+        :param int [limit]: the maximum amount of candles to fetch, default=1000
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns dict[]: a list of `position structures <https://docs.ccxt.com/#/?id=position-structure>`
+        """
+        raise NotSupported(self.id + ' fetchPositionsHistory() is not supported yet')
 
     def parse_margin_modification(self, data, market: Market = None):
         raise NotSupported(self.id + ' parseMarginModification() is not supported yet')

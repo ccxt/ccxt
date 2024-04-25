@@ -5,7 +5,7 @@
 
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.coinex import ImplicitAPI
-from ccxt.base.types import Balances, Currencies, Currency, Int, Leverage, Leverages, MarginModification, Market, Num, Order, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
+from ccxt.base.types import Balances, Currencies, Currency, Int, Leverage, Leverages, MarginModification, Market, Num, Order, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -102,7 +102,9 @@ class coinex(Exchange, ImplicitAPI):
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchPosition': True,
+                'fetchPositionHistory': True,
                 'fetchPositions': True,
+                'fetchPositionsHistory': False,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
@@ -1115,14 +1117,13 @@ class coinex(Exchange, ImplicitAPI):
         #
         # Spot and Swap fetchTrades(public)
         #
-        #      {
-        #          "id":  2611511379,
-        #          "type": "buy",
-        #          "price": "192.63",
-        #          "amount": "0.02266931",
-        #          "date":  1638990110,
-        #          "date_ms":  1638990110518
-        #      },
+        #     {
+        #         "amount": "0.00049432",
+        #         "created_at": 1713849825667,
+        #         "deal_id": 4137517302,
+        #         "price": "66251",
+        #         "side": "buy"
+        #     }
         #
         # Spot and Margin fetchMyTrades(private)
         #
@@ -1176,8 +1177,8 @@ class coinex(Exchange, ImplicitAPI):
         #
         timestamp = self.safe_timestamp_2(trade, 'create_time', 'time')
         if timestamp is None:
-            timestamp = self.safe_integer(trade, 'date_ms')
-        tradeId = self.safe_string(trade, 'id')
+            timestamp = self.safe_integer(trade, 'created_at')
+        tradeId = self.safe_string_2(trade, 'id', 'deal_id')
         orderId = self.safe_string(trade, 'order_id')
         priceString = self.safe_string(trade, 'price')
         amountString = self.safe_string(trade, 'amount')
@@ -1209,9 +1210,9 @@ class coinex(Exchange, ImplicitAPI):
             elif rawSide == 2:
                 side = 'buy'
             if side is None:
-                side = self.safe_string(trade, 'type')
+                side = self.safe_string_2(trade, 'type', 'side')
         else:
-            side = self.safe_string(trade, 'type')
+            side = self.safe_string_2(trade, 'type', 'side')
         return self.safe_trade({
             'info': trade,
             'timestamp': timestamp,
@@ -1230,9 +1231,9 @@ class coinex(Exchange, ImplicitAPI):
 
     def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
-        get the list of most recent trades for a particular symbol
-        :see: https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot001_market005_market_deals
-        :see: https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http011_market_deals
+        get the list of the most recent trades for a particular symbol
+        :see: https://docs.coinex.com/api/v2/spot/market/http/list-market-deals
+        :see: https://docs.coinex.com/api/v2/futures/market/http/list-market-deals
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
@@ -1249,26 +1250,25 @@ class coinex(Exchange, ImplicitAPI):
             request['limit'] = limit
         response = None
         if market['swap']:
-            response = self.v1PerpetualPublicGetMarketDeals(self.extend(request, params))
+            response = self.v2PublicGetFuturesDeals(self.extend(request, params))
         else:
-            response = self.v1PublicGetMarketDeals(self.extend(request, params))
+            response = self.v2PublicGetSpotDeals(self.extend(request, params))
         #
         # Spot and Swap
         #
-        #      {
-        #          "code":    0,
-        #          "data": [
-        #              {
-        #                  "id":  2611511379,
-        #                  "type": "buy",
-        #                  "price": "192.63",
-        #                  "amount": "0.02266931",
-        #                  "date":  1638990110,
-        #                  "date_ms":  1638990110518
-        #                  },
-        #              ],
-        #          "message": "OK"
-        #      }
+        #     {
+        #         "code": 0,
+        #         "data": [
+        #             {
+        #                 "amount": "0.00049432",
+        #                 "created_at": 1713849825667,
+        #                 "deal_id": 4137517302,
+        #                 "price": "66251",
+        #                 "side": "buy"
+        #             },
+        #         ],
+        #         "message": "OK"
+        #     }
         #
         return self.parse_trades(response['data'], market, since, limit)
 
@@ -1417,31 +1417,31 @@ class coinex(Exchange, ImplicitAPI):
 
     def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
         #
-        #     [
-        #         1591484400,
-        #         "0.02505349",
-        #         "0.02506988",
-        #         "0.02507000",
-        #         "0.02505304",
-        #         "343.19716223",
-        #         "8.6021323866383196",
-        #         "ETHBTC"
-        #     ]
+        #     {
+        #         "close": "66999.95",
+        #         "created_at": 1713934620000,
+        #         "high": "66999.95",
+        #         "low": "66988.53",
+        #         "market": "BTCUSDT",
+        #         "open": "66988.53",
+        #         "value": "0.1572393",        # base volume
+        #         "volume": "10533.2501364336"  # quote volume
+        #     }
         #
         return [
-            self.safe_timestamp(ohlcv, 0),
-            self.safe_number(ohlcv, 1),
-            self.safe_number(ohlcv, 3),
-            self.safe_number(ohlcv, 4),
-            self.safe_number(ohlcv, 2),
-            self.safe_number(ohlcv, 5),
+            self.safe_integer(ohlcv, 'created_at'),
+            self.safe_number(ohlcv, 'open'),
+            self.safe_number(ohlcv, 'high'),
+            self.safe_number(ohlcv, 'low'),
+            self.safe_number(ohlcv, 'close'),
+            self.safe_number(ohlcv, 'value'),
         ]
 
     def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-        :see: https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot001_market006_market_kline
-        :see: https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http012_market_kline
+        :see: https://docs.coinex.com/api/v2/spot/market/http/list-market-kline
+        :see: https://docs.coinex.com/api/v2/futures/market/http/list-market-kline
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in ms of the earliest candle to fetch
@@ -1453,36 +1453,31 @@ class coinex(Exchange, ImplicitAPI):
         market = self.market(symbol)
         request = {
             'market': market['id'],
-            'type': self.safe_string(self.timeframes, timeframe, timeframe),
+            'period': self.safe_string(self.timeframes, timeframe, timeframe),
         }
         if limit is not None:
             request['limit'] = limit
         response = None
         if market['swap']:
-            response = self.v1PerpetualPublicGetMarketKline(self.extend(request, params))
+            response = self.v2PublicGetFuturesKline(self.extend(request, params))
         else:
-            response = self.v1PublicGetMarketKline(self.extend(request, params))
+            response = self.v2PublicGetSpotKline(self.extend(request, params))
         #
-        # Spot
-        #
-        #     {
-        #         "code": 0,
-        #         "data": [
-        #             [1591484400, "0.02505349", "0.02506988", "0.02507000", "0.02505304", "343.19716223", "8.6021323866383196", "ETHBTC"],
-        #             [1591484700, "0.02506990", "0.02508109", "0.02508109", "0.02506979", "91.59841581", "2.2972047780447000", "ETHBTC"],
-        #             [1591485000, "0.02508106", "0.02507996", "0.02508106", "0.02507500", "65.15307697", "1.6340597822306000", "ETHBTC"],
-        #         ],
-        #         "message": "OK"
-        #     }
-        #
-        # Swap
+        # Spot and Swap
         #
         #     {
         #         "code": 0,
         #         "data": [
-        #             [1650569400, "41524.64", "41489.31", "41564.61", "41480.58", "29.7060", "1233907.099562"],
-        #             [1650569700, "41489.31", "41438.29", "41489.31", "41391.87", "42.4115", "1756154.189061"],
-        #             [1650570000, "41438.29", "41482.21", "41485.05", "41427.31", "22.2892", "924000.317861"]
+        #             {
+        #                 "close": "66999.95",
+        #                 "created_at": 1713934620000,
+        #                 "high": "66999.95",
+        #                 "low": "66988.53",
+        #                 "market": "BTCUSDT",
+        #                 "open": "66988.53",
+        #                 "value": "0.1572393",
+        #                 "volume": "10533.2501364336"
+        #             },
         #         ],
         #         "message": "OK"
         #     }
@@ -3520,7 +3515,7 @@ class coinex(Exchange, ImplicitAPI):
         #                 "side": 2,
         #                 "stop_loss_price": "0.00000000000000000000",
         #                 "stop_loss_type": 0,
-        #                 "sys": 0,
+        #                 "sy s": 0,
         #                 "take_profit_price": "0.00000000000000000000",
         #                 "take_profit_type": 0,
         #                 "taker_fee": "0.00000000000000000000",
@@ -3599,7 +3594,7 @@ class coinex(Exchange, ImplicitAPI):
         #                 "side": 2,
         #                 "stop_loss_price": "0.00000000000000000000",
         #                 "stop_loss_type": 0,
-        #                 "sys": 0,
+        #                 "s ys": 0,
         #                 "take_profit_price": "0.00000000000000000000",
         #                 "take_profit_type": 0,
         #                 "taker_fee": "0.00000000000000000000",
@@ -3616,6 +3611,8 @@ class coinex(Exchange, ImplicitAPI):
         return self.parse_position(data[0], market)
 
     def parse_position(self, position, market: Market = None):
+        #
+        # fetchPosition
         #
         #     {
         #         "adl_sort": 3396,
@@ -3659,7 +3656,7 @@ class coinex(Exchange, ImplicitAPI):
         #         "side": 2,
         #         "stop_loss_price": "0.00000000000000000000",
         #         "stop_loss_type": 0,
-        #         "sys": 0,
+        #         "s ys": 0,
         #         "take_profit_price": "0.00000000000000000000",
         #         "take_profit_type": 0,
         #         "taker_fee": "0.00000000000000000000",
@@ -3668,6 +3665,40 @@ class coinex(Exchange, ImplicitAPI):
         #         "update_time": 1651294226.111196,
         #         "user_id": 3620173
         #     }
+        #
+        #
+        # fetchPositionHistory
+        #
+        #    {
+        #        amount_max: '10',
+        #        amount_max_margin: '2.03466666666666666666',
+        #        bkr_price: '0',
+        #        create_time: '1711150526.2581',
+        #        deal_all: '12.591',
+        #        deal_asset_fee: '0',
+        #        fee_asset: '',
+        #        finish_type: '5',
+        #        first_price: '0.6104',
+        #        latest_price: '0.6487',
+        #        leverage: '3',
+        #        liq_amount: '0',
+        #        liq_price: '0',
+        #        liq_profit: '0',
+        #        mainten_margin: '0.01',
+        #        market: 'XRPUSDT',
+        #        market_type: '1',
+        #        open_price: '0.6104',
+        #        open_val_max: '6.104',
+        #        position_id: '297371462',
+        #        profit_real: '0.35702107169',
+        #        settle_price: '0.6104',
+        #        settle_val: '0',
+        #        side: '2',
+        #        s ys: "0",
+        #        type: '2',
+        #        update_time: '1711391446.133233',
+        #        user_id: '3685860'
+        #    }
         #
         marketId = self.safe_string(position, 'market')
         market = self.safe_market(marketId, market, None, 'swap')
@@ -3684,7 +3715,7 @@ class coinex(Exchange, ImplicitAPI):
         timestamp = self.safe_timestamp(position, 'update_time')
         maintenanceMargin = self.safe_string(position, 'mainten_margin_amount')
         maintenanceMarginPercentage = self.safe_string(position, 'mainten_margin')
-        collateral = self.safe_string(position, 'margin_amount')
+        collateral = self.safe_string_2(position, 'margin_amount', 'amount_max_margin')
         leverage = self.safe_string(position, 'leverage')
         notional = self.safe_string(position, 'open_val')
         initialMargin = Precise.string_div(notional, leverage)
@@ -3894,7 +3925,7 @@ class coinex(Exchange, ImplicitAPI):
         #             "side": 2,
         #             "stop_loss_price": "0.00000000000000000000",
         #             "stop_loss_type": 0,
-        #             "sys": 0,
+        #             "s ys": 0,
         #             "take_profit_price": "0.00000000000000000000",
         #             "take_profit_type": 0,
         #             "taker_fee": "0.00000000000000000000",
@@ -3959,7 +3990,7 @@ class coinex(Exchange, ImplicitAPI):
         #        "side": 2,
         #        "stop_loss_price": "0.00000000000000000000",
         #        "stop_loss_type": 0,
-        #        "sys": 0,
+        #        "sy s": 0,
         #        "take_profit_price": "0.00000000000000000000",
         #        "take_profit_type": 0,
         #        "taker_fee": "0.00000000000000000000",
@@ -4003,7 +4034,7 @@ class coinex(Exchange, ImplicitAPI):
             'datetime': self.iso8601(timestamp),
         }
 
-    def add_margin(self, symbol: str, amount, params={}) -> MarginModification:
+    def add_margin(self, symbol: str, amount: float, params={}) -> MarginModification:
         """
         add margin
         :see: https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http032_adjust_position_margin
@@ -4014,7 +4045,7 @@ class coinex(Exchange, ImplicitAPI):
         """
         return self.modify_margin_helper(symbol, amount, 1, params)
 
-    def reduce_margin(self, symbol: str, amount, params={}) -> MarginModification:
+    def reduce_margin(self, symbol: str, amount: float, params={}) -> MarginModification:
         """
         remove margin from a position
         :see: https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http032_adjust_position_margin
@@ -4266,7 +4297,7 @@ class coinex(Exchange, ImplicitAPI):
                 result.append(self.parse_funding_rate(ticker, marketInner))
         return self.filter_by_array(result, 'symbol', symbols)
 
-    def withdraw(self, code: str, amount: float, address, tag=None, params={}):
+    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
         """
         make a withdrawal
         :see: https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account015_submit_withdraw
@@ -5252,6 +5283,77 @@ class coinex(Exchange, ImplicitAPI):
             'longLeverage': leverageValue,
             'shortLeverage': leverageValue,
         }
+
+    def fetch_position_history(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> Position:
+        """
+        fetches historical positions
+        :see: https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http033-0_finished_position
+        :param str symbol: unified contract symbol
+        :param int [since]: not used by coinex fetchPositionHistory
+        :param int [limit]: the maximum amount of records to fetch, default=1000
+        :param dict params: extra parameters specific to the exchange api endpoint
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+        :param int [params.side]: 0: all 1: sell, 2: buy
+        :returns dict[]: a list of `position structures <https://docs.ccxt.com/#/?id=position-structure>`
+        """
+        self.load_markets()
+        market = self.market(symbol)
+        if limit is None:
+            limit = 1000
+        request = {
+            'market': market['id'],
+            'side': 0,
+            'limit': limit,
+        }
+        response = self.v1PerpetualPrivateGetPositionFinished(self.extend(request, params))
+        #
+        #    {
+        #        code: '0',
+        #        data: {
+        #            limit: '1000',
+        #            offset: '0',
+        #            records: [
+        #                {
+        #                    amount_max: '10',
+        #                    amount_max_margin: '2.03466666666666666666',
+        #                    bkr_price: '0',
+        #                    create_time: '1711150526.2581',
+        #                    deal_all: '12.591',
+        #                    deal_asset_fee: '0',
+        #                    fee_asset: '',
+        #                    finish_type: '5',
+        #                    first_price: '0.6104',
+        #                    latest_price: '0.6487',
+        #                    leverage: '3',
+        #                    liq_amount: '0',
+        #                    liq_price: '0',
+        #                    liq_profit: '0',
+        #                    mainten_margin: '0.01',
+        #                    market: 'XRPUSDT',
+        #                    market_type: '1',
+        #                    open_price: '0.6104',
+        #                    open_val_max: '6.104',
+        #                    position_id: '297371462',
+        #                    profit_real: '0.35702107169',
+        #                    settle_price: '0.6104',
+        #                    settle_val: '0',
+        #                    side: '2',
+        #                    sy s: '0',
+        #                    type: '2',
+        #                    update_time: '1711391446.133233',
+        #                    user_id: '3685860'
+        #                },
+        #                ...
+        #            ]
+        #        },
+        #        message: 'OK'
+        #    }
+        #
+        data = self.safe_dict(response, 'data')
+        records = self.safe_list(data, 'records')
+        positions = self.parse_positions(records)
+        return self.filter_by_symbol_since_limit(positions, symbol, since, limit)
 
     def handle_margin_mode_and_params(self, methodName, params={}, defaultValue=None):
         """

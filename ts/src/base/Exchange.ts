@@ -615,6 +615,8 @@ export default class Exchange {
                 'fetchOrderWs': undefined,
                 'fetchPermissions': undefined,
                 'fetchPosition': undefined,
+                'fetchPositionHistory': undefined,
+                'fetchPositionsHistory': undefined,
                 'fetchPositionWs': undefined,
                 'fetchPositionMode': undefined,
                 'fetchPositions': undefined,
@@ -6676,7 +6678,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' parseLeverage () is not supported yet');
     }
 
-    parseConversions (conversions: any[], fromCurrencyKey: Str = undefined, toCurrencyKey: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Conversion[] {
+    parseConversions (conversions: any[], code: Str = undefined, fromCurrencyKey: Str = undefined, toCurrencyKey: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Conversion[] {
         conversions = this.toArray (conversions);
         const result = [];
         let fromCurrency = undefined;
@@ -6695,8 +6697,18 @@ export default class Exchange {
             result.push (conversion);
         }
         const sorted = this.sortBy (result, 'timestamp');
-        const code = (fromCurrency !== undefined) ? fromCurrency['code'] : undefined;
-        return this.filterByCurrencySinceLimit (sorted, code, since, limit);
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+            code = currency['code'];
+        }
+        if (code === undefined) {
+            return this.filterBySinceLimit (sorted, since, limit);
+        }
+        const fromConversion = this.filterBy (sorted, 'fromCurrency', code);
+        const toConversion = this.filterBy (sorted, 'toCurrency', code);
+        const both = this.arrayConcat (fromConversion, toConversion);
+        return this.filterBySinceLimit (both, since, limit);
     }
 
     parseConversion (conversion, fromCurrency: Currency = undefined, toCurrency: Currency = undefined): Conversion {
@@ -6773,6 +6785,39 @@ export default class Exchange {
         const day = date.slice (5, 7);
         const reconstructedDate = day + month + year;
         return reconstructedDate;
+    }
+
+    async fetchPositionHistory (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position> {
+        /**
+         * @method
+         * @name exchange#fetchPositionHistory
+         * @description fetches the history of margin added or reduced from contract isolated positions
+         * @param {string} [symbol] unified market symbol
+         * @param {int} [since] timestamp in ms of the position
+         * @param {int} [limit] the maximum amount of candles to fetch, default=1000
+         * @param {object} params extra parameters specific to the exchange api endpoint
+         * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+         */
+        if (this.has['fetchPositionsHistory']) {
+            const positions = await this.fetchPositionsHistory ([ symbol ], since, limit, params);
+            return this.safeDict (positions, 0) as Position;
+        } else {
+            throw new NotSupported (this.id + ' fetchPositionHistory () is not supported yet');
+        }
+    }
+
+    async fetchPositionsHistory (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
+        /**
+         * @method
+         * @name exchange#fetchPositionsHistory
+         * @description fetches the history of margin added or reduced from contract isolated positions
+         * @param {string} [symbol] unified market symbol
+         * @param {int} [since] timestamp in ms of the position
+         * @param {int} [limit] the maximum amount of candles to fetch, default=1000
+         * @param {object} params extra parameters specific to the exchange api endpoint
+         * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+         */
+        throw new NotSupported (this.id + ' fetchPositionsHistory () is not supported yet');
     }
 
     parseMarginModification (data, market: Market = undefined): MarginModification {

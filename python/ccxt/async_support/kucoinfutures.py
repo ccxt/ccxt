@@ -91,8 +91,10 @@ class kucoinfutures(kucoin, ImplicitAPI):
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchPosition': True,
+                'fetchPositionHistory': False,
                 'fetchPositionMode': False,
                 'fetchPositions': True,
+                'fetchPositionsHistory': False,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchStatus': True,
                 'fetchTicker': True,
@@ -1425,7 +1427,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         #
         return self.safe_value(response, 'data')
 
-    async def add_margin(self, symbol: str, amount, params={}) -> MarginModification:
+    async def add_margin(self, symbol: str, amount: float, params={}) -> MarginModification:
         """
         add margin
         :see: https://www.kucoin.com/docs/rest/futures-trading/positions/add-margin-manually
@@ -2093,8 +2095,8 @@ class kucoinfutures(kucoin, ImplicitAPI):
             # symbol(str) [optional] Symbol of the contract
             # side(str) [optional] buy or sell
             # type(str) [optional] limit, market, limit_stop or market_stop
-            # startAt(long) [optional] Start time(milisecond)
-            # endAt(long) [optional] End time(milisecond)
+            # startAt(long) [optional] Start time(millisecond)
+            # endAt(long) [optional] End time(millisecond)
         }
         market = None
         if symbol is not None:

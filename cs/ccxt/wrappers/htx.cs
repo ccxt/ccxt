@@ -345,6 +345,11 @@ public partial class htx
         var res = await this.cancelAllOrders(symbol, parameters);
         return ((Dictionary<string, object>)res);
     }
+    public async Task<Dictionary<string, object>> CancelAllOrdersAfter(Int64 timeout, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.cancelAllOrdersAfter(timeout, parameters);
+        return ((Dictionary<string, object>)res);
+    }
     public async Task<Dictionary<string, object>> FetchDepositAddressesByNetwork(string code, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchDepositAddressesByNetwork(code, parameters);
@@ -374,7 +379,7 @@ public partial class htx
         var res = await this.fetchWithdrawals(code, since, limit, parameters);
         return ((IList<object>)res).Select(item => new Transaction(item)).ToList<Transaction>();
     }
-    public async Task<Transaction> Withdraw(string code, double amount, object address, object tag = null, Dictionary<string, object> parameters = null)
+    public async Task<Transaction> Withdraw(string code, double amount, string address, object tag = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.withdraw(code, amount, address, tag, parameters);
         return new Transaction(res);

@@ -36,6 +36,7 @@ class woo extends Exchange {
                 'option' => false,
                 'addMargin' => false,
                 'cancelAllOrders' => true,
+                'cancelAllOrdersAfter' => true,
                 'cancelOrder' => true,
                 'cancelWithdraw' => false, // exchange have that endpoint disabled atm, but was once implemented in ccxt per old docs => https://kronosresearch.github.io/wootrade-documents/#cancel-withdraw-request
                 'closeAllPositions' => false,
@@ -91,8 +92,10 @@ class woo extends Exchange {
                 'fetchOrders' => true,
                 'fetchOrderTrades' => true,
                 'fetchPosition' => true,
+                'fetchPositionHistory' => false,
                 'fetchPositionMode' => false,
                 'fetchPositions' => true,
+                'fetchPositionsHistory' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchStatus' => true,
                 'fetchTicker' => false,
@@ -203,6 +206,7 @@ class woo extends Exchange {
                         ),
                         'post' => array(
                             'order' => 5, // 2 requests per 1 second per symbol
+                            'order/cancel_all_after' => 1,
                             'asset/main_sub_transfer' => 30, // 20 requests per 60 seconds
                             'asset/ltv' => 30,
                             'asset/withdraw' => 30,  // implemented in ccxt, disabled on the exchange side https://kronosresearch.github.io/wootrade-documents/#token-withdraw
@@ -1282,6 +1286,34 @@ class woo extends Exchange {
             //     {
             //         "success":true,
             //         "status":"CANCEL_ALL_SENT"
+            //     }
+            //
+            return $response;
+        }) ();
+    }
+
+    public function cancel_all_orders_after(?int $timeout, $params = array ()) {
+        return Async\async(function () use ($timeout, $params) {
+            /**
+             * dead man's switch, cancel all orders after the given $timeout
+             * @see https://docs.woo.org/#cancel-all-after
+             * @param {number} $timeout time in milliseconds, 0 represents cancel the timer
+             * @param {boolean} activated countdown
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} the api result
+             */
+            Async\await($this->load_markets());
+            $request = array(
+                'trigger_after' => ($timeout > 0) ? $timeout : 0,
+            );
+            $response = Async\await($this->v1PrivatePostOrderCancelAllAfter (array_merge($request, $params)));
+            //
+            //     {
+            //         "success" => true,
+            //         "data" => array(
+            //             "expected_trigger_time" => 1711534302938
+            //         ),
+            //         "timestamp" => 1711534302943
             //     }
             //
             return $response;
@@ -2396,7 +2428,7 @@ class woo extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal

@@ -119,8 +119,10 @@ class binance extends Exchange {
                 'fetchOrders' => true,
                 'fetchOrderTrades' => true,
                 'fetchPosition' => true,
+                'fetchPositionHistory' => false,
                 'fetchPositionMode' => true,
                 'fetchPositions' => true,
+                'fetchPositionsHistory' => false,
                 'fetchPositionsRisk' => true,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchSettlementHistory' => true,
@@ -315,6 +317,7 @@ class binance extends Exchange {
                         'capital/deposit/subAddress' => 0.1,
                         'capital/deposit/subHisrec' => 0.1,
                         'capital/withdraw/history' => 1800, // Weight(IP) => 18000 => cost = 0.1 * 18000 = 1800
+                        'capital/withdraw/address/list' => 10,
                         'capital/contract/convertible-coins' => 4.0002, // Weight(UID) => 600 => cost = 0.006667 * 600 = 4.0002
                         'convert/tradeFlow' => 20.001, // Weight(UID) => 3000 => cost = 0.006667 * 3000 = 20.001
                         'convert/exchangeInfo' => 50,
@@ -4051,6 +4054,7 @@ class binance extends Exchange {
          * @param {string[]} [$symbols] unified $symbols of the markets to fetch the ticker for, all $market tickers are returned if not assigned
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->subType] "linear" or "inverse"
+         * @param {string} [$params->type] 'spot', 'option', use $params["subType"] for swap and future markets
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
          */
         $this->load_markets();
@@ -8386,7 +8390,7 @@ class binance extends Exchange {
         return $result;
     }
 
-    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
         /**
          * make a withdrawal
          * @see https://binance-docs.github.io/apidocs/spot/en/#withdraw-user_data
@@ -10964,7 +10968,7 @@ class binance extends Exchange {
         );
     }
 
-    public function reduce_margin(string $symbol, $amount, $params = array ()): array {
+    public function reduce_margin(string $symbol, float $amount, $params = array ()): array {
         /**
          * @see https://binance-docs.github.io/apidocs/delivery/en/#modify-isolated-position-margin-trade
          * @see https://binance-docs.github.io/apidocs/futures/en/#modify-isolated-position-margin-trade
@@ -10977,7 +10981,7 @@ class binance extends Exchange {
         return $this->modify_margin_helper($symbol, $amount, 2, $params);
     }
 
-    public function add_margin(string $symbol, $amount, $params = array ()): array {
+    public function add_margin(string $symbol, float $amount, $params = array ()): array {
         /**
          * @see https://binance-docs.github.io/apidocs/delivery/en/#modify-isolated-position-margin-trade
          * @see https://binance-docs.github.io/apidocs/futures/en/#modify-isolated-position-margin-trade

@@ -271,6 +271,12 @@ public partial class binance
     /// string : "linear" or "inverse"
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.type</term>
+    /// <description>
+    /// string : 'spot', 'option', use params["subType"] for swap and future markets
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}.</returns>
@@ -1632,7 +1638,7 @@ public partial class binance
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}.</returns>
-    public async Task<Transaction> Withdraw(string code, double amount, object address, object tag = null, Dictionary<string, object> parameters = null)
+    public async Task<Transaction> Withdraw(string code, double amount, string address, object tag = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.withdraw(code, amount, address, tag, parameters);
         return new Transaction(res);

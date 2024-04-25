@@ -401,6 +401,38 @@ public partial class whitebit
         return ((Dictionary<string, object>)res);
     }
     /// <summary>
+    /// dead man's switch, cancel all orders after the given timeout
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.whitebit.com/private/http-trade-v4/#sync-kill-switch-timer"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.types</term>
+    /// <description>
+    /// string : Order types value. Example: "spot", "margin", "futures" or null
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.symbol</term>
+    /// <description>
+    /// string : symbol unified symbol of the market the order was made in
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> the api result.</returns>
+    public async Task<Dictionary<string, object>> CancelAllOrdersAfter(Int64 timeout, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.cancelAllOrdersAfter(timeout, parameters);
+        return ((Dictionary<string, object>)res);
+    }
+    /// <summary>
     /// query for balance and get the amount of funds available for trading or funds locked in orders
     /// </summary>
     /// <remarks>
@@ -599,7 +631,7 @@ public partial class whitebit
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}.</returns>
-    public async Task<Dictionary<string, object>> Withdraw(string code, double amount, object address, object tag = null, Dictionary<string, object> parameters = null)
+    public async Task<Dictionary<string, object>> Withdraw(string code, double amount, string address, object tag = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.withdraw(code, amount, address, tag, parameters);
         return ((Dictionary<string, object>)res);

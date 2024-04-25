@@ -148,8 +148,10 @@ class binance(Exchange, ImplicitAPI):
                 'fetchOrders': True,
                 'fetchOrderTrades': True,
                 'fetchPosition': True,
+                'fetchPositionHistory': False,
                 'fetchPositionMode': True,
                 'fetchPositions': True,
+                'fetchPositionsHistory': False,
                 'fetchPositionsRisk': True,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchSettlementHistory': True,
@@ -344,6 +346,7 @@ class binance(Exchange, ImplicitAPI):
                         'capital/deposit/subAddress': 0.1,
                         'capital/deposit/subHisrec': 0.1,
                         'capital/withdraw/history': 1800,  # Weight(IP): 18000 => cost = 0.1 * 18000 = 1800
+                        'capital/withdraw/address/list': 10,
                         'capital/contract/convertible-coins': 4.0002,  # Weight(UID): 600 => cost = 0.006667 * 600 = 4.0002
                         'convert/tradeFlow': 20.001,  # Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
                         'convert/exchangeInfo': 50,
@@ -3988,6 +3991,7 @@ class binance(Exchange, ImplicitAPI):
         :param str[] [symbols]: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.subType]: "linear" or "inverse"
+        :param str [params.type]: 'spot', 'option', use params["subType"] for swap and future markets
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
@@ -8017,7 +8021,7 @@ class binance(Exchange, ImplicitAPI):
             }
         return result
 
-    async def withdraw(self, code: str, amount: float, address, tag=None, params={}):
+    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
         """
         make a withdrawal
         :see: https://binance-docs.github.io/apidocs/spot/en/#withdraw-user_data
@@ -10378,7 +10382,7 @@ class binance(Exchange, ImplicitAPI):
             'datetime': self.iso8601(timestamp),
         }
 
-    async def reduce_margin(self, symbol: str, amount, params={}) -> MarginModification:
+    async def reduce_margin(self, symbol: str, amount: float, params={}) -> MarginModification:
         """
         :see: https://binance-docs.github.io/apidocs/delivery/en/#modify-isolated-position-margin-trade
         :see: https://binance-docs.github.io/apidocs/futures/en/#modify-isolated-position-margin-trade
@@ -10390,7 +10394,7 @@ class binance(Exchange, ImplicitAPI):
         """
         return await self.modify_margin_helper(symbol, amount, 2, params)
 
-    async def add_margin(self, symbol: str, amount, params={}) -> MarginModification:
+    async def add_margin(self, symbol: str, amount: float, params={}) -> MarginModification:
         """
         :see: https://binance-docs.github.io/apidocs/delivery/en/#modify-isolated-position-margin-trade
         :see: https://binance-docs.github.io/apidocs/futures/en/#modify-isolated-position-margin-trade

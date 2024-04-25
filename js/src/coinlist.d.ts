@@ -63,7 +63,7 @@ export default class coinlist extends Exchange {
     };
     parseTransferStatus(status: any): string;
     fetchDepositsWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
-    withdraw(code: string, amount: number, address: any, tag?: any, params?: {}): Promise<Transaction>;
+    withdraw(code: string, amount: number, address: string, tag?: any, params?: {}): Promise<Transaction>;
     parseTransaction(transaction: any, currency?: Currency): Transaction;
     parseTransactionType(type: any): string;
     fetchLedger(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
