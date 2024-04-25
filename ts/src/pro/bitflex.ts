@@ -655,19 +655,22 @@ export default class bitflex extends bitflexRest {
         //     }
         //
         const timestamp = this.safeInteger (order, 'E');
-        const type = this.safeString (order, 'o');
+        let type = this.safeString (order, 'o');
         let amount = this.safeString (order, 'q');
         if (type === 'MARKET_OF_QUOTE') {
             amount = undefined; // market spot orders return cost instead of amount
-        }
-        let reduceOnly = undefined;
-        if (market['swap']) {
-            reduceOnly = this.safeBool (order, 'C', false);
         }
         const orderTimeInForce = this.safeString (order, 'f');
         let timeInForce = this.parseOrderTimeInForce (orderTimeInForce);
         if (type === 'LIMIT_MAKER') {
             timeInForce = 'PO';
+        }
+        let reduceOnly = undefined;
+        if (market['swap']) {
+            reduceOnly = this.safeBool (order, 'C', false);
+            if ((type !== 'MARKET') && (type !== 'MARKET_OF_QUOTE') && (type !== 'MARKET_OF_BASE')) {
+                type = undefined; // swap orders can return type LIMIT for market orders thus we can't parse type properly in ws
+            }
         }
         const feeCost = this.safeString (order, 'n');
         const feeCurrency = this.safeString (order, 'N');
@@ -704,8 +707,8 @@ export default class bitflex extends bitflexRest {
         }, market);
     }
 
-    parseWsOrderType (status) {
-        const statuses = {
+    parseWsOrderType (type) {
+        const types = {
             'MARKET': 'market',
             'MARKET_OF_QUOTE': 'market',
             'MARKET_OF_BASE': 'market',
@@ -713,7 +716,7 @@ export default class bitflex extends bitflexRest {
             'LIMIT_MAKER': 'limit',
             // todo check
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (types, type, type);
     }
 
     async watchPrivate (messageHash, params = {}) {
