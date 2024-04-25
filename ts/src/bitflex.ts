@@ -21,7 +21,7 @@ export default class bitflex extends Exchange {
             'name': 'Bitflex',
             'countries': [ 'SC' ], // Seychelles
             'version': 'v1', // todo
-            'rateLimit': 300, // todo: find out the real ratelimit
+            'rateLimit': 300, // todo find out the real ratelimit
             'pro': true,
             'has': {
                 'CORS': undefined,
@@ -29,9 +29,9 @@ export default class bitflex extends Exchange {
                 'margin': false,
                 'swap': true,
                 'future': false,
-                'option': true, // todo: check
+                'option': false, // todo check
                 'addMargin': true,
-                'cancelAllOrders': false,
+                'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createDepositAddress': false,
                 'createOrder': true,
@@ -484,7 +484,7 @@ export default class bitflex extends Exchange {
         //
         const spotMarkets = this.safeList (response, 'symbols', []);
         const parsedSpotMarkets = this.parseMarkets (spotMarkets);
-        const contractMarkets = this.safeList (response, 'contracts', []); // todo check if contracts are futures
+        const contractMarkets = this.safeList (response, 'contracts', []);
         const parsedContractMarkets = this.parseMarkets (contractMarkets);
         const optionMarkets = this.safeList (response, 'options', []); // options are not supported yet, returns empty list
         const parsedOptionMarkets = this.parseMarkets (optionMarkets);
@@ -1737,7 +1737,7 @@ export default class bitflex extends Exchange {
         //         "priceType": "MARKET"
         //     }
         //
-        // spot: fetchCanceledAndCloseOrders
+        // spot: fetchCanceledAndClosedOrders
         //     {
         //         "accountId": "1662502620223296001",
         //         "exchangeId": "301",
@@ -1761,7 +1761,7 @@ export default class bitflex extends Exchange {
         //         "isWorking": true
         //     }
         //
-        // swap: fetchCanceledAndCloseOrders
+        // swap: fetchCanceledAndClosedOrders
         //     {
         //         "time": "1713644180835",
         //         "updateTime": "1713644180876",
@@ -1837,9 +1837,9 @@ export default class bitflex extends Exchange {
         const side = this.parseOrderSide (orderSide);
         const reduceOnly = this.parseReduceOnly (orderSide);
         const price = this.omitZero (this.safeString (order, 'price'));
-        const triggerPrice = this.safeString (order, 'triggerPrice'); // todo check for swap
+        const triggerPrice = this.safeString (order, 'triggerPrice');
         const average = this.safeString (order, 'avgPrice');
-        const filled = this.safeString (order, 'executedQty'); // todo check
+        const filled = this.safeString (order, 'executedQty');
         market = this.safeMarket (marketId, market);
         let amount = this.safeString (order, 'origQty');
         let cost = this.safeString (order, 'cummulativeQuoteQty');
@@ -1852,10 +1852,14 @@ export default class bitflex extends Exchange {
         if (market['contract']) {
             const priceType = this.safeString (order, 'priceType');
             const isMarketOrder = (priceType === 'MARKET') || (priceType === 'OPPONENT') || (priceType === 'QUEUE') || (priceType === 'OVER'); // todo check orders with 'OVER'
-            type = isMarketOrder ? 'market' : type;
+            if (isMarketOrder) {
+                type = 'market';
+            } else if (type === 'STOP') {
+                type = 'limit'; // stop orders are always limit orders at bitflex
+            }
         }
         const lastUpdateTimestamp = this.safeString (order, 'updateTime');
-        const remaining = this.safeString (order, 'executeQty'); // todo check
+        const remaining = this.safeString (order, 'executeQty');
         return this.safeOrder ({
             'id': id,
             'clientOrderId': clientOrderId,
@@ -2290,6 +2294,31 @@ export default class bitflex extends Exchange {
             throw new NotSupported (this.id + ' cancelOrder() does not support ' + type + ' orders, only spot and swap orders are accepted');
         }
         return this.parseOrder (response, market);
+    }
+
+    async cancelAllOrders (symbol: Str = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitflex#cancelAllOrders
+         * @description cancel all open orders in a market
+         * @see https://docs.bitflex.com/contract#batch-cancel
+         * @param {string} symbol unified market symbol, is mandatory for bitflex
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelAllOrders requires a symbol argument');
+        }
+        const market = this.market (symbol);
+        if (market['type'] === 'spot') {
+            throw new NotSupported (this.id + ' cancelAllOrders does not support spot markets, only swap markets are accepted');
+        }
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this.privateDeleteOpenapiContractV1OrderBatchCancel (this.extend (request, params));
+        return response;
     }
 
     async fetchAccounts (params = {}): Promise<Account[]> {
