@@ -4,9 +4,10 @@ const isPJP = process.env.RUNSTEP === 'PY_JS_PHP';
 
 async function wait () {
     await new Promise(resolve => setTimeout(resolve, 20 * 1000));
+    console.log("read start !"); 
     const rawData = fs.readFileSync('data.json');
     const jsonData = JSON.parse(rawData);
-    console.log("read start !", jsonData.key1); 
+    console.log("read done"); 
 }
 if (isPJP) {
     wait();

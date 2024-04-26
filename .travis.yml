@@ -9,7 +9,7 @@ dist: jammy
 python:
 - 3.8.3
 git:
-  depth: 2
+  depth: 1
 cache:
   directories:
   - ".cache"
