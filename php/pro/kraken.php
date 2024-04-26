@@ -1366,7 +1366,7 @@ class kraken extends \ccxt\async\kraken {
                 ),
             );
             $url = $this->urls['api']['ws']['public'];
-            return Async\await($this->watch_multiple($url, $messageHashes, array_merge($request, $params), $messageHashes, $subscriptionArgs));
+            return Async\await($this->watch_multiple($url, $messageHashes, $this->deep_extend($request, $params), $messageHashes, $subscriptionArgs));
         }) ();
     }
 

@@ -6,7 +6,7 @@
 
 //  ---------------------------------------------------------------------------
 import Exchange from './abstract/bingx.js';
-import { AuthenticationError, PermissionDenied, AccountSuspended, ExchangeError, InsufficientFunds, BadRequest, OrderNotFound, DDoSProtection, BadSymbol, ArgumentsRequired, NotSupported, ExchangeNotAvailable } from './base/errors.js';
+import { AuthenticationError, PermissionDenied, AccountSuspended, ExchangeError, InsufficientFunds, BadRequest, OrderNotFound, DDoSProtection, BadSymbol, ArgumentsRequired, NotSupported, OperationFailed } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { DECIMAL_PLACES } from './base/functions/number.js';
@@ -35,6 +35,7 @@ export default class bingx extends Exchange {
                 'option': false,
                 'addMargin': true,
                 'cancelAllOrders': true,
+                'cancelAllOrdersAfter': true,
                 'cancelOrder': true,
                 'cancelOrders': true,
                 'closeAllPositions': true,
@@ -74,8 +75,10 @@ export default class bingx extends Exchange {
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': true,
+                'fetchPositionHistory': false,
                 'fetchPositionMode': true,
                 'fetchPositions': true,
+                'fetchPositionsHistory': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': true,
@@ -231,6 +234,7 @@ export default class bingx extends Exchange {
                                 'trade/order': 3,
                                 'trade/batchOrders': 3,
                                 'trade/closeAllPositions': 3,
+                                'trade/cancelAllAfter': 3,
                                 'trade/marginType': 3,
                                 'trade/leverage': 3,
                                 'trade/positionMargin': 3,
@@ -387,7 +391,7 @@ export default class bingx extends Exchange {
                     '100400': BadRequest,
                     '100421': BadSymbol,
                     '100440': ExchangeError,
-                    '100500': ExchangeNotAvailable,
+                    '100500': OperationFailed,
                     '100503': ExchangeError,
                     '80001': BadRequest,
                     '80012': InsufficientFunds,
@@ -397,7 +401,7 @@ export default class bingx extends Exchange {
                     '100414': AccountSuspended,
                     '100419': PermissionDenied,
                     '100437': BadRequest,
-                    '101204': InsufficientFunds, // bingx {"code":101204,"msg":"","data":{}}
+                    '101204': InsufficientFunds, // {"code":101204,"msg":"","data":{}}
                 },
                 'broad': {},
             },
@@ -2462,7 +2466,7 @@ export default class bingx extends Exchange {
         return this.safeOrder({
             'info': info,
             'id': this.safeString2(order, 'orderId', 'i'),
-            'clientOrderId': this.safeStringN(order, ['clientOrderID', 'origClientOrderId', 'c']),
+            'clientOrderId': this.safeStringN(order, ['clientOrderID', 'clientOrderId', 'origClientOrderId', 'c']),
             'symbol': this.safeSymbol(marketId, market, '-', marketType),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
@@ -2749,6 +2753,49 @@ export default class bingx extends Exchange {
         //          "failed": null
         //        }
         //    }
+        //
+        return response;
+    }
+    async cancelAllOrdersAfter(timeout, params = {}) {
+        /**
+         * @method
+         * @name bingx#cancelAllOrdersAfter
+         * @description dead man's switch, cancel all orders after the given timeout
+         * @see https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Cancel%20all%20orders%20in%20countdown
+         * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Cancel%20all%20orders%20in%20countdown
+         * @param {number} timeout time in milliseconds, 0 represents cancel the timer
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.type] spot or swap market
+         * @returns {object} the api result
+         */
+        await this.loadMarkets();
+        const isActive = (timeout > 0);
+        const request = {
+            'type': (isActive) ? 'ACTIVATE' : 'CLOSE',
+            'timeOut': (isActive) ? (this.parseToInt(timeout / 1000)) : 0,
+        };
+        let response = undefined;
+        let type = undefined;
+        [type, params] = this.handleMarketTypeAndParams('cancelAllOrdersAfter', undefined, params);
+        if (type === 'spot') {
+            response = await this.spotV1PrivatePostTradeCancelAllAfter(this.extend(request, params));
+        }
+        else if (type === 'swap') {
+            response = await this.swapV2PrivatePostTradeCancelAllAfter(this.extend(request, params));
+        }
+        else {
+            throw new NotSupported(this.id + ' cancelAllOrdersAfter() is not supported for ' + type + ' markets');
+        }
+        //
+        //     {
+        //         code: '0',
+        //         msg: '',
+        //         data: {
+        //             triggerTime: '1712645434',
+        //             status: 'ACTIVATED',
+        //             note: 'All your perpetual pending orders will be closed automatically at 2024-04-09 06:50:34 UTC(+0),before that you can cancel the timer, or extend triggerTime time by this request'
+        //         }
+        //     }
         //
         return response;
     }

@@ -666,7 +666,7 @@ class poloniex extends Exchange {
         return $this->parse_tickers($response, $symbols);
     }
 
-    public function fetch_currencies($params = array ()): array {
+    public function fetch_currencies($params = array ()): ?array {
         /**
          * fetches all available currencies on an exchange
          * @see https://docs.poloniex.com/#public-endpoints-reference-data-$currency-information
@@ -1859,7 +1859,7 @@ class poloniex extends Exchange {
         );
     }
 
-    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
         /**
          * make a withdrawal
          * @see https://docs.poloniex.com/#authenticated-endpoints-wallets-withdraw-$currency

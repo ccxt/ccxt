@@ -2361,7 +2361,7 @@ class tokocrypto extends Exchange {
         );
     }
 
-    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * @see https://www.tokocrypto.com/apidocs/#withdraw-signed

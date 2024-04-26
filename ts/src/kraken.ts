@@ -7,7 +7,7 @@ import { Precise } from './base/Precise.js';
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import type { IndexType, Int, OrderSide, OrderType, OHLCV, Trade, Order, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, Market, TransferEntry, Num, TradingFeeInterface, Currencies } from './base/types.js';
+import type { IndexType, Int, OrderSide, OrderType, OHLCV, Trade, Order, Balances, Str, Dict, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, Market, TransferEntry, Num, TradingFeeInterface, Currencies } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -38,6 +38,7 @@ export default class kraken extends Exchange {
                 'option': false,
                 'addMargin': false,
                 'cancelAllOrders': true,
+                'cancelAllOrdersAfter': true,
                 'cancelOrder': true,
                 'cancelOrders': true,
                 'createDepositAddress': true,
@@ -2154,6 +2155,36 @@ export default class kraken extends Exchange {
         return await this.privatePostCancelAll (params);
     }
 
+    async cancelAllOrdersAfter (timeout: Int, params = {}) {
+        /**
+         * @method
+         * @name kraken#cancelAllOrdersAfter
+         * @description dead man's switch, cancel all orders after the given timeout
+         * @see https://docs.kraken.com/rest/#tag/Spot-Trading/operation/cancelAllOrdersAfter
+         * @param {number} timeout time in milliseconds, 0 represents cancel the timer
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} the api result
+         */
+        if (timeout > 86400000) {
+            throw new BadRequest (this.id + 'cancelAllOrdersAfter timeout should be less than 86400000 milliseconds');
+        }
+        await this.loadMarkets ();
+        const request: Dict = {
+            'timeout': (timeout > 0) ? (this.parseToInt (timeout / 1000)) : 0,
+        };
+        const response = await this.privatePostCancelAllOrdersAfter (this.extend (request, params));
+        //
+        //     {
+        //         "error": [ ],
+        //         "result": {
+        //             "currentTime": "2023-03-24T17:41:56Z",
+        //             "triggerTime": "2023-03-24T17:42:56Z"
+        //         }
+        //     }
+        //
+        return response;
+    }
+
     async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
@@ -2697,7 +2728,7 @@ export default class kraken extends Exchange {
         };
     }
 
-    async withdraw (code: string, amount: number, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {
         /**
          * @method
          * @name kraken#withdraw

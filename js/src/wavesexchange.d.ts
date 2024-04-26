@@ -88,6 +88,6 @@ export default class wavesexchange extends Exchange {
     parseDepositWithdrawFees(response: any, codes?: Strings, currencyIdKey?: any): any;
     fetchDepositWithdrawFees(codes?: Strings, params?: {}): Promise<any>;
     handleErrors(code: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): any;
-    withdraw(code: string, amount: number, address: any, tag?: any, params?: {}): Promise<Transaction>;
+    withdraw(code: string, amount: number, address: string, tag?: any, params?: {}): Promise<Transaction>;
     parseTransaction(transaction: any, currency?: Currency): Transaction;
 }

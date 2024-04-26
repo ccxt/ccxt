@@ -3319,9 +3319,10 @@ public partial class hitbtc : Exchange
                 throw new ArgumentsRequired ((string)add(this.id, " modifyMarginHelper() requires a leverage parameter for swap markets")) ;
             }
         }
-        if (isTrue(!isEqual(amount, 0)))
+        object stringAmount = this.numberToString(amount);
+        if (isTrue(!isEqual(stringAmount, "0")))
         {
-            amount = this.amountToPrecision(symbol, amount);
+            amount = this.amountToPrecision(symbol, stringAmount);
         } else
         {
             amount = "0";
@@ -3432,7 +3433,7 @@ public partial class hitbtc : Exchange
         * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=reduce-margin-structure}
         */
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(!isEqual(amount, 0)))
+        if (isTrue(!isEqual(this.numberToString(amount), "0")))
         {
             throw new BadRequest ((string)add(this.id, " reduceMargin() on hitbtc requires the amount to be 0 and that will remove the entire margin amount")) ;
         }

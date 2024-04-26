@@ -96,7 +96,9 @@ class coinex extends Exchange {
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchPosition' => true,
+                'fetchPositionHistory' => true,
                 'fetchPositions' => true,
+                'fetchPositionsHistory' => false,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
@@ -1148,14 +1150,13 @@ class coinex extends Exchange {
         //
         // Spot and Swap fetchTrades (public)
         //
-        //      array(
-        //          "id" =>  2611511379,
-        //          "type" => "buy",
-        //          "price" => "192.63",
-        //          "amount" => "0.02266931",
-        //          "date" =>  1638990110,
-        //          "date_ms" =>  1638990110518
-        //      ),
+        //     {
+        //         "amount" => "0.00049432",
+        //         "created_at" => 1713849825667,
+        //         "deal_id" => 4137517302,
+        //         "price" => "66251",
+        //         "side" => "buy"
+        //     }
         //
         // Spot and Margin fetchMyTrades (private)
         //
@@ -1209,9 +1210,9 @@ class coinex extends Exchange {
         //
         $timestamp = $this->safe_timestamp_2($trade, 'create_time', 'time');
         if ($timestamp === null) {
-            $timestamp = $this->safe_integer($trade, 'date_ms');
+            $timestamp = $this->safe_integer($trade, 'created_at');
         }
-        $tradeId = $this->safe_string($trade, 'id');
+        $tradeId = $this->safe_string_2($trade, 'id', 'deal_id');
         $orderId = $this->safe_string($trade, 'order_id');
         $priceString = $this->safe_string($trade, 'price');
         $amountString = $this->safe_string($trade, 'amount');
@@ -1246,10 +1247,10 @@ class coinex extends Exchange {
                 $side = 'buy';
             }
             if ($side === null) {
-                $side = $this->safe_string($trade, 'type');
+                $side = $this->safe_string_2($trade, 'type', 'side');
             }
         } else {
-            $side = $this->safe_string($trade, 'type');
+            $side = $this->safe_string_2($trade, 'type', 'side');
         }
         return $this->safe_trade(array(
             'info' => $trade,
@@ -1271,9 +1272,9 @@ class coinex extends Exchange {
     public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
-             * get the list of most recent trades for a particular $symbol
-             * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot001_market005_market_deals
-             * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http011_market_deals
+             * get the list of the most recent trades for a particular $symbol
+             * @see https://docs.coinex.com/api/v2/spot/market/http/list-$market-deals
+             * @see https://docs.coinex.com/api/v2/futures/market/http/list-$market-deals
              * @param {string} $symbol unified $symbol of the $market to fetch trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of trades to fetch
@@ -1291,27 +1292,26 @@ class coinex extends Exchange {
             }
             $response = null;
             if ($market['swap']) {
-                $response = Async\await($this->v1PerpetualPublicGetMarketDeals (array_merge($request, $params)));
+                $response = Async\await($this->v2PublicGetFuturesDeals (array_merge($request, $params)));
             } else {
-                $response = Async\await($this->v1PublicGetMarketDeals (array_merge($request, $params)));
+                $response = Async\await($this->v2PublicGetSpotDeals (array_merge($request, $params)));
             }
             //
             // Spot and Swap
             //
-            //      {
-            //          "code" =>    0,
-            //          "data" => array(
-            //              array(
-            //                  "id" =>  2611511379,
-            //                  "type" => "buy",
-            //                  "price" => "192.63",
-            //                  "amount" => "0.02266931",
-            //                  "date" =>  1638990110,
-            //                  "date_ms" =>  1638990110518
-            //                  ),
-            //              ),
-            //          "message" => "OK"
-            //      }
+            //     {
+            //         "code" => 0,
+            //         "data" => array(
+            //             array(
+            //                 "amount" => "0.00049432",
+            //                 "created_at" => 1713849825667,
+            //                 "deal_id" => 4137517302,
+            //                 "price" => "66251",
+            //                 "side" => "buy"
+            //             ),
+            //         ),
+            //         "message" => "OK"
+            //     }
             //
             return $this->parse_trades($response['data'], $market, $since, $limit);
         }) ();
@@ -1472,24 +1472,24 @@ class coinex extends Exchange {
 
     public function parse_ohlcv($ohlcv, ?array $market = null): array {
         //
-        //     array(
-        //         1591484400,
-        //         "0.02505349",
-        //         "0.02506988",
-        //         "0.02507000",
-        //         "0.02505304",
-        //         "343.19716223",
-        //         "8.6021323866383196",
-        //         "ETHBTC"
-        //     )
+        //     {
+        //         "close" => "66999.95",
+        //         "created_at" => 1713934620000,
+        //         "high" => "66999.95",
+        //         "low" => "66988.53",
+        //         "market" => "BTCUSDT",
+        //         "open" => "66988.53",
+        //         "value" => "0.1572393",        // base volume
+        //         "volume" => "10533.2501364336" // quote volume
+        //     }
         //
         return array(
-            $this->safe_timestamp($ohlcv, 0),
-            $this->safe_number($ohlcv, 1),
-            $this->safe_number($ohlcv, 3),
-            $this->safe_number($ohlcv, 4),
-            $this->safe_number($ohlcv, 2),
-            $this->safe_number($ohlcv, 5),
+            $this->safe_integer($ohlcv, 'created_at'),
+            $this->safe_number($ohlcv, 'open'),
+            $this->safe_number($ohlcv, 'high'),
+            $this->safe_number($ohlcv, 'low'),
+            $this->safe_number($ohlcv, 'close'),
+            $this->safe_number($ohlcv, 'value'),
         );
     }
 
@@ -1497,8 +1497,8 @@ class coinex extends Exchange {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
-             * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot001_market006_market_kline
-             * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http012_market_kline
+             * @see https://docs.coinex.com/api/v2/spot/market/http/list-$market-kline
+             * @see https://docs.coinex.com/api/v2/futures/market/http/list-$market-kline
              * @param {string} $symbol unified $symbol of the $market to fetch OHLCV $data for
              * @param {string} $timeframe the length of time each candle represents
              * @param {int} [$since] timestamp in ms of the earliest candle to fetch
@@ -1510,39 +1510,34 @@ class coinex extends Exchange {
             $market = $this->market($symbol);
             $request = array(
                 'market' => $market['id'],
-                'type' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
+                'period' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
             );
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
             $response = null;
             if ($market['swap']) {
-                $response = Async\await($this->v1PerpetualPublicGetMarketKline (array_merge($request, $params)));
+                $response = Async\await($this->v2PublicGetFuturesKline (array_merge($request, $params)));
             } else {
-                $response = Async\await($this->v1PublicGetMarketKline (array_merge($request, $params)));
+                $response = Async\await($this->v2PublicGetSpotKline (array_merge($request, $params)));
             }
             //
-            // Spot
+            // Spot and Swap
             //
             //     {
             //         "code" => 0,
-            //         "data" => [
-            //             [1591484400, "0.02505349", "0.02506988", "0.02507000", "0.02505304", "343.19716223", "8.6021323866383196", "ETHBTC"],
-            //             [1591484700, "0.02506990", "0.02508109", "0.02508109", "0.02506979", "91.59841581", "2.2972047780447000", "ETHBTC"],
-            //             [1591485000, "0.02508106", "0.02507996", "0.02508106", "0.02507500", "65.15307697", "1.6340597822306000", "ETHBTC"],
-            //         ],
-            //         "message" => "OK"
-            //     }
-            //
-            // Swap
-            //
-            //     {
-            //         "code" => 0,
-            //         "data" => [
-            //             [1650569400, "41524.64", "41489.31", "41564.61", "41480.58", "29.7060", "1233907.099562"],
-            //             [1650569700, "41489.31", "41438.29", "41489.31", "41391.87", "42.4115", "1756154.189061"],
-            //             [1650570000, "41438.29", "41482.21", "41485.05", "41427.31", "22.2892", "924000.317861"]
-            //         ],
+            //         "data" => array(
+            //             array(
+            //                 "close" => "66999.95",
+            //                 "created_at" => 1713934620000,
+            //                 "high" => "66999.95",
+            //                 "low" => "66988.53",
+            //                 "market" => "BTCUSDT",
+            //                 "open" => "66988.53",
+            //                 "value" => "0.1572393",
+            //                 "volume" => "10533.2501364336"
+            //             ),
+            //         ),
             //         "message" => "OK"
             //     }
             //
@@ -1554,82 +1549,56 @@ class coinex extends Exchange {
     public function fetch_margin_balance($params = array ()) {
         return Async\async(function () use ($params) {
             Async\await($this->load_markets());
-            $symbol = $this->safe_string($params, 'symbol');
-            $marketId = $this->safe_string($params, 'market');
-            $market = null;
-            if ($symbol !== null) {
-                $market = $this->market($symbol);
-                $marketId = $market['id'];
-            } elseif ($marketId === null) {
-                throw new ArgumentsRequired($this->id . ' fetchMarginBalance() fetching a margin account requires a $market parameter or a $symbol parameter');
-            }
-            $params = $this->omit($params, array( 'symbol', 'market' ));
-            $request = array(
-                'market' => $marketId,
-            );
-            $response = Async\await($this->v1PrivateGetMarginAccount (array_merge($request, $params)));
+            $response = Async\await($this->v2PrivateGetAssetsMarginBalance ($params));
             //
-            //      {
-            //          "code" =>    0,
-            //           "data" => array(
-            //              "account_id" =>    126,
-            //              "leverage" =>    3,
-            //              "market_type" =>   "AAVEUSDT",
-            //              "sell_asset_type" =>   "AAVE",
-            //              "buy_asset_type" =>   "USDT",
-            //              "balance" => array(
-            //                  "sell_type" => "0.3",     // borrowed
-            //                  "buy_type" => "30"
-            //                  ),
-            //              "frozen" => array(
-            //                  "sell_type" => "0",
-            //                  "buy_type" => "0"
-            //                  ),
-            //              "loan" => array(
-            //                  "sell_type" => "0.3", // $loan
-            //                  "buy_type" => "0"
-            //                  ),
-            //              "interest" => array(
-            //                  "sell_type" => "0.0000125",
-            //                  "buy_type" => "0"
-            //                  ),
-            //              "can_transfer" => array(
-            //                  "sell_type" => "0.02500646",
-            //                  "buy_type" => "4.28635738"
-            //                  ),
-            //              "warn_rate" =>   "",
-            //              "liquidation_price" =>   ""
-            //              ),
-            //          "message" => "Success"
-            //      }
+            //     {
+            //         "data" => array(
+            //             array(
+            //                 "margin_account" => "BTCUSDT",
+            //                 "base_ccy" => "BTC",
+            //                 "quote_ccy" => "USDT",
+            //                 "available" => array(
+            //                     "base_ccy" => "0.00000026",
+            //                     "quote_ccy" => "0"
+            //                 ),
+            //                 "frozen" => array(
+            //                     "base_ccy" => "0",
+            //                     "quote_ccy" => "0"
+            //                 ),
+            //                 "repaid" => array(
+            //                     "base_ccy" => "0",
+            //                     "quote_ccy" => "0"
+            //                 ),
+            //                 "interest" => array(
+            //                     "base_ccy" => "0",
+            //                     "quote_ccy" => "0"
+            //                 ),
+            //                 "rik_rate" => "",
+            //                 "liq_price" => ""
+            //             ),
+            //         ),
+            //         "code" => 0,
+            //         "message" => "OK"
+            //     }
             //
             $result = array( 'info' => $response );
-            $data = $this->safe_value($response, 'data', array());
-            $free = $this->safe_value($data, 'can_transfer', array());
-            $total = $this->safe_value($data, 'balance', array());
-            $loan = $this->safe_value($data, 'loan', array());
-            $interest = $this->safe_value($data, 'interest', array());
-            //
-            $sellAccount = $this->account();
-            $sellCurrencyId = $this->safe_string($data, 'sell_asset_type');
-            $sellCurrencyCode = $this->safe_currency_code($sellCurrencyId);
-            $sellAccount['free'] = $this->safe_string($free, 'sell_type');
-            $sellAccount['total'] = $this->safe_string($total, 'sell_type');
-            $sellDebt = $this->safe_string($loan, 'sell_type');
-            $sellInterest = $this->safe_string($interest, 'sell_type');
-            $sellAccount['debt'] = Precise::string_add($sellDebt, $sellInterest);
-            $result[$sellCurrencyCode] = $sellAccount;
-            //
-            $buyAccount = $this->account();
-            $buyCurrencyId = $this->safe_string($data, 'buy_asset_type');
-            $buyCurrencyCode = $this->safe_currency_code($buyCurrencyId);
-            $buyAccount['free'] = $this->safe_string($free, 'buy_type');
-            $buyAccount['total'] = $this->safe_string($total, 'buy_type');
-            $buyDebt = $this->safe_string($loan, 'buy_type');
-            $buyInterest = $this->safe_string($interest, 'buy_type');
-            $buyAccount['debt'] = Precise::string_add($buyDebt, $buyInterest);
-            $result[$buyCurrencyCode] = $buyAccount;
-            //
+            $balances = $this->safe_list($response, 'data', array());
+            for ($i = 0; $i < count($balances); $i++) {
+                $entry = $balances[$i];
+                $free = $this->safe_dict($entry, 'available', array());
+                $used = $this->safe_dict($entry, 'frozen', array());
+                $loan = $this->safe_dict($entry, 'repaid', array());
+                $interest = $this->safe_dict($entry, 'interest', array());
+                $baseAccount = $this->account();
+                $baseCurrencyId = $this->safe_string($entry, 'base_ccy');
+                $baseCurrencyCode = $this->safe_currency_code($baseCurrencyId);
+                $baseAccount['free'] = $this->safe_string($free, 'base_ccy');
+                $baseAccount['used'] = $this->safe_string($used, 'base_ccy');
+                $baseDebt = $this->safe_string($loan, 'base_ccy');
+                $baseInterest = $this->safe_string($interest, 'base_ccy');
+                $baseAccount['debt'] = Precise::string_add($baseDebt, $baseInterest);
+                $result[$baseCurrencyCode] = $baseAccount;
+            }
             return $this->safe_balance($result);
         }) ();
     }
@@ -1637,37 +1606,29 @@ class coinex extends Exchange {
     public function fetch_spot_balance($params = array ()) {
         return Async\async(function () use ($params) {
             Async\await($this->load_markets());
-            $response = Async\await($this->v1PrivateGetBalanceInfo ($params));
+            $response = Async\await($this->v2PrivateGetAssetsSpotBalance ($params));
             //
             //     {
-            //       "code" => 0,
-            //       "data" => {
-            //         "BCH" => array(                     # BCH $account
-            //           "available" => "13.60109",   # Available BCH
-            //           "frozen" => "0.00000"        # Frozen BCH
+            //         "code" => 0,
+            //         "data" => array(
+            //             {
+            //                 "available" => "0.00000046",
+            //                 "ccy" => "USDT",
+            //                 "frozen" => "0"
+            //             }
             //         ),
-            //         "BTC" => array(                     # BTC $account
-            //           "available" => "32590.16",   # Available BTC
-            //           "frozen" => "7000.00"        # Frozen BTC
-            //         ),
-            //         "ETH" => array(                     # ETH $account
-            //           "available" => "5.06000",    # Available ETH
-            //           "frozen" => "0.00000"        # Frozen ETH
-            //         }
-            //       ),
-            //       "message" => "Ok"
+            //         "message" => "OK"
             //     }
             //
             $result = array( 'info' => $response );
-            $balances = $this->safe_value($response, 'data', array());
-            $currencyIds = is_array($balances) ? array_keys($balances) : array();
-            for ($i = 0; $i < count($currencyIds); $i++) {
-                $currencyId = $currencyIds[$i];
+            $balances = $this->safe_list($response, 'data', array());
+            for ($i = 0; $i < count($balances); $i++) {
+                $entry = $balances[$i];
+                $currencyId = $this->safe_string($entry, 'ccy');
                 $code = $this->safe_currency_code($currencyId);
-                $balance = $this->safe_value($balances, $currencyId, array());
                 $account = $this->account();
-                $account['free'] = $this->safe_string($balance, 'available');
-                $account['used'] = $this->safe_string($balance, 'frozen');
+                $account['free'] = $this->safe_string($entry, 'available');
+                $account['used'] = $this->safe_string($entry, 'frozen');
                 $result[$code] = $account;
             }
             return $this->safe_balance($result);
@@ -1677,34 +1638,32 @@ class coinex extends Exchange {
     public function fetch_swap_balance($params = array ()) {
         return Async\async(function () use ($params) {
             Async\await($this->load_markets());
-            $response = Async\await($this->v1PerpetualPrivateGetAssetQuery ($params));
+            $response = Async\await($this->v2PrivateGetAssetsFuturesBalance ($params));
             //
             //     {
             //         "code" => 0,
-            //         "data" => {
-            //             "USDT" => array(
-            //                 "available" => "37.24817690383456000000",
-            //                 "balance_total" => "37.24817690383456000000",
-            //                 "frozen" => "0.00000000000000000000",
-            //                 "margin" => "0.00000000000000000000",
-            //                 "profit_unreal" => "0.00000000000000000000",
-            //                 "transfer" => "37.24817690383456000000"
+            //         "data" => array(
+            //             {
+            //                 "available" => "0.00000046",
+            //                 "ccy" => "USDT",
+            //                 "frozen" => "0",
+            //                 "margin" => "0",
+            //                 "transferrable" => "0.00000046",
+            //                 "unrealized_pnl" => "0"
             //             }
             //         ),
             //         "message" => "OK"
             //     }
             //
             $result = array( 'info' => $response );
-            $balances = $this->safe_value($response, 'data', array());
-            $currencyIds = is_array($balances) ? array_keys($balances) : array();
-            for ($i = 0; $i < count($currencyIds); $i++) {
-                $currencyId = $currencyIds[$i];
+            $balances = $this->safe_list($response, 'data', array());
+            for ($i = 0; $i < count($balances); $i++) {
+                $entry = $balances[$i];
+                $currencyId = $this->safe_string($entry, 'ccy');
                 $code = $this->safe_currency_code($currencyId);
-                $balance = $this->safe_value($balances, $currencyId, array());
                 $account = $this->account();
-                $account['free'] = $this->safe_string($balance, 'available');
-                $account['used'] = $this->safe_string($balance, 'frozen');
-                $account['total'] = $this->safe_string($balance, 'balance_total');
+                $account['free'] = $this->safe_string($entry, 'available');
+                $account['used'] = $this->safe_string($entry, 'frozen');
                 $result[$code] = $account;
             }
             return $this->safe_balance($result);
@@ -1714,38 +1673,29 @@ class coinex extends Exchange {
     public function fetch_financial_balance($params = array ()) {
         return Async\async(function () use ($params) {
             Async\await($this->load_markets());
-            $response = Async\await($this->v1PrivateGetAccountInvestmentBalance ($params));
+            $response = Async\await($this->v2PrivateGetAssetsFinancialBalance ($params));
             //
             //     {
-            //          "code" => 0,
-            //          "data" => array(
-            //              array(
-            //                  "asset" => "CET",
-            //                  "available" => "0",
-            //                  "frozen" => "0",
-            //                  "lock" => "0",
-            //              ),
-            //              {
-            //                  "asset" => "USDT",
-            //                  "available" => "999900",
-            //                  "frozen" => "0",
-            //                  "lock" => "0"
-            //              }
-            //          ),
-            //          "message" => "Success"
-            //      }
+            //         "code" => 0,
+            //         "data" => array(
+            //             {
+            //                 "available" => "0.00000046",
+            //                 "ccy" => "USDT",
+            //                 "frozen" => "0"
+            //             }
+            //         ),
+            //         "message" => "OK"
+            //     }
             //
             $result = array( 'info' => $response );
-            $balances = $this->safe_value($response, 'data', array());
+            $balances = $this->safe_list($response, 'data', array());
             for ($i = 0; $i < count($balances); $i++) {
-                $balance = $balances[$i];
-                $currencyId = $this->safe_string($balance, 'asset');
+                $entry = $balances[$i];
+                $currencyId = $this->safe_string($entry, 'ccy');
                 $code = $this->safe_currency_code($currencyId);
                 $account = $this->account();
-                $account['free'] = $this->safe_string($balance, 'available');
-                $frozen = $this->safe_string($balance, 'frozen');
-                $locked = $this->safe_string($balance, 'lock');
-                $account['used'] = Precise::string_add($frozen, $locked);
+                $account['free'] = $this->safe_string($entry, 'available');
+                $account['used'] = $this->safe_string($entry, 'frozen');
                 $result[$code] = $account;
             }
             return $this->safe_balance($result);
@@ -1756,10 +1706,10 @@ class coinex extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * query for balance and get the amount of funds available for trading or funds locked in orders
-             * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account001_account_info         // spot
-             * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account004_investment_balance   // financial
-             * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account006_margin_account       // margin
-             * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http016_asset_query       // swap
+             * @see https://docs.coinex.com/api/v2/assets/balance/http/get-spot-balance         // spot
+             * @see https://docs.coinex.com/api/v2/assets/balance/http/get-futures-balance      // swap
+             * @see https://docs.coinex.com/api/v2/assets/balance/http/get-marigin-balance      // margin
+             * @see https://docs.coinex.com/api/v2/assets/balance/http/get-financial-balance    // financial
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->type] 'margin', 'swap', 'financial', or 'spot'
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
@@ -3758,7 +3708,7 @@ class coinex extends Exchange {
             //                 "side" => 2,
             //                 "stop_loss_price" => "0.00000000000000000000",
             //                 "stop_loss_type" => 0,
-            //                 "sys" => 0,
+            //                 "sy s" => 0,
             //                 "take_profit_price" => "0.00000000000000000000",
             //                 "take_profit_type" => 0,
             //                 "taker_fee" => "0.00000000000000000000",
@@ -3841,7 +3791,7 @@ class coinex extends Exchange {
             //                 "side" => 2,
             //                 "stop_loss_price" => "0.00000000000000000000",
             //                 "stop_loss_type" => 0,
-            //                 "sys" => 0,
+            //                 "s ys" => 0,
             //                 "take_profit_price" => "0.00000000000000000000",
             //                 "take_profit_type" => 0,
             //                 "taker_fee" => "0.00000000000000000000",
@@ -3860,6 +3810,8 @@ class coinex extends Exchange {
     }
 
     public function parse_position($position, ?array $market = null) {
+        //
+        // fetchPosition
         //
         //     {
         //         "adl_sort" => 3396,
@@ -3903,7 +3855,7 @@ class coinex extends Exchange {
         //         "side" => 2,
         //         "stop_loss_price" => "0.00000000000000000000",
         //         "stop_loss_type" => 0,
-        //         "sys" => 0,
+        //         "s ys" => 0,
         //         "take_profit_price" => "0.00000000000000000000",
         //         "take_profit_type" => 0,
         //         "taker_fee" => "0.00000000000000000000",
@@ -3912,6 +3864,40 @@ class coinex extends Exchange {
         //         "update_time" => 1651294226.111196,
         //         "user_id" => 3620173
         //     }
+        //
+        //
+        // fetchPositionHistory
+        //
+        //    {
+        //        amount_max => '10',
+        //        amount_max_margin => '2.03466666666666666666',
+        //        bkr_price => '0',
+        //        create_time => '1711150526.2581',
+        //        deal_all => '12.591',
+        //        deal_asset_fee => '0',
+        //        fee_asset => '',
+        //        finish_type => '5',
+        //        first_price => '0.6104',
+        //        latest_price => '0.6487',
+        //        $leverage => '3',
+        //        liq_amount => '0',
+        //        liq_price => '0',
+        //        liq_profit => '0',
+        //        mainten_margin => '0.01',
+        //        $market => 'XRPUSDT',
+        //        market_type => '1',
+        //        open_price => '0.6104',
+        //        open_val_max => '6.104',
+        //        position_id => '297371462',
+        //        profit_real => '0.35702107169',
+        //        settle_price => '0.6104',
+        //        settle_val => '0',
+        //        $side => '2',
+        //        s ys => "0",
+        //        type => '2',
+        //        update_time => '1711391446.133233',
+        //        user_id => '3685860'
+        //    }
         //
         $marketId = $this->safe_string($position, 'market');
         $market = $this->safe_market($marketId, $market, null, 'swap');
@@ -3928,7 +3914,7 @@ class coinex extends Exchange {
         $timestamp = $this->safe_timestamp($position, 'update_time');
         $maintenanceMargin = $this->safe_string($position, 'mainten_margin_amount');
         $maintenanceMarginPercentage = $this->safe_string($position, 'mainten_margin');
-        $collateral = $this->safe_string($position, 'margin_amount');
+        $collateral = $this->safe_string_2($position, 'margin_amount', 'amount_max_margin');
         $leverage = $this->safe_string($position, 'leverage');
         $notional = $this->safe_string($position, 'open_val');
         $initialMargin = Precise::string_div($notional, $leverage);
@@ -4162,7 +4148,7 @@ class coinex extends Exchange {
             //             "side" => 2,
             //             "stop_loss_price" => "0.00000000000000000000",
             //             "stop_loss_type" => 0,
-            //             "sys" => 0,
+            //             "s ys" => 0,
             //             "take_profit_price" => "0.00000000000000000000",
             //             "take_profit_type" => 0,
             //             "taker_fee" => "0.00000000000000000000",
@@ -4229,7 +4215,7 @@ class coinex extends Exchange {
         //        "side" => 2,
         //        "stop_loss_price" => "0.00000000000000000000",
         //        "stop_loss_type" => 0,
-        //        "sys" => 0,
+        //        "sy s" => 0,
         //        "take_profit_price" => "0.00000000000000000000",
         //        "take_profit_type" => 0,
         //        "taker_fee" => "0.00000000000000000000",
@@ -4274,7 +4260,7 @@ class coinex extends Exchange {
         );
     }
 
-    public function add_margin(string $symbol, $amount, $params = array ()): PromiseInterface {
+    public function add_margin(string $symbol, float $amount, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $amount, $params) {
             /**
              * add margin
@@ -4288,7 +4274,7 @@ class coinex extends Exchange {
         }) ();
     }
 
-    public function reduce_margin(string $symbol, $amount, $params = array ()): PromiseInterface {
+    public function reduce_margin(string $symbol, float $amount, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $amount, $params) {
             /**
              * remove margin from a position
@@ -4493,7 +4479,6 @@ class coinex extends Exchange {
     public function fetch_funding_rates(?array $symbols = null, $params = array ()) {
         return Async\async(function () use ($symbols, $params) {
             /**
-             *  @method
              * fetch the current funding rates
              * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http009_market_ticker_all
              * @param {string[]} $symbols unified $market $symbols
@@ -4562,7 +4547,7 @@ class coinex extends Exchange {
         }) ();
     }
 
-    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
@@ -5635,6 +5620,81 @@ class coinex extends Exchange {
         );
     }
 
+    public function fetch_position_history(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * fetches historical $positions
+             * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http033-0_finished_position
+             * @param {string} $symbol unified contract $symbol
+             * @param {int} [$since] not used by coinex fetchPositionHistory
+             * @param {int} [$limit] the maximum amount of $records to fetch, default=1000
+             * @param {array} $params extra parameters specific to the exchange api endpoint
+             *
+             * EXCHANGE SPECIFIC PARAMETERS
+             * @param {int} [$params->side] 0 => all 1 => sell, 2 => buy
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=position-structure position structures~
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            if ($limit === null) {
+                $limit = 1000;
+            }
+            $request = array(
+                'market' => $market['id'],
+                'side' => 0,
+                'limit' => $limit,
+            );
+            $response = Async\await($this->v1PerpetualPrivateGetPositionFinished (array_merge($request, $params)));
+            //
+            //    {
+            //        code => '0',
+            //        $data => array(
+            //            $limit => '1000',
+            //            offset => '0',
+            //            $records => array(
+            //                array(
+            //                    amount_max => '10',
+            //                    amount_max_margin => '2.03466666666666666666',
+            //                    bkr_price => '0',
+            //                    create_time => '1711150526.2581',
+            //                    deal_all => '12.591',
+            //                    deal_asset_fee => '0',
+            //                    fee_asset => '',
+            //                    finish_type => '5',
+            //                    first_price => '0.6104',
+            //                    latest_price => '0.6487',
+            //                    leverage => '3',
+            //                    liq_amount => '0',
+            //                    liq_price => '0',
+            //                    liq_profit => '0',
+            //                    mainten_margin => '0.01',
+            //                    $market => 'XRPUSDT',
+            //                    market_type => '1',
+            //                    open_price => '0.6104',
+            //                    open_val_max => '6.104',
+            //                    position_id => '297371462',
+            //                    profit_real => '0.35702107169',
+            //                    settle_price => '0.6104',
+            //                    settle_val => '0',
+            //                    side => '2',
+            //                    sy s => '0',
+            //                    type => '2',
+            //                    update_time => '1711391446.133233',
+            //                    user_id => '3685860'
+            //                ),
+            //                ...
+            //            )
+            //        ),
+            //        message => 'OK'
+            //    }
+            //
+            $data = $this->safe_dict($response, 'data');
+            $records = $this->safe_list($data, 'records');
+            $positions = $this->parse_positions($records);
+            return $this->filter_by_symbol_since_limit($positions, $symbol, $since, $limit);
+        }) ();
+    }
+
     public function handle_margin_mode_and_params($methodName, $params = array (), $defaultValue = null) {
         /**
          * @ignore
@@ -5737,7 +5797,11 @@ class coinex extends Exchange {
                 $this->check_required_credentials();
                 $query = $this->keysort($query);
                 $urlencoded = $this->rawencode($query);
-                $preparedString = $method . '/' . $version . '/' . $path . '?' . $urlencoded . $nonce . $this->secret;
+                $preparedString = $method . '/' . $version . '/' . $path;
+                if ($urlencoded) {
+                    $preparedString .= '?' . $urlencoded;
+                }
+                $preparedString .= $nonce . $this->secret;
                 $signature = $this->hash($this->encode($preparedString), 'sha256');
                 $headers = array(
                     'X-COINEX-KEY' => $this->apiKey,
@@ -5745,7 +5809,9 @@ class coinex extends Exchange {
                     'X-COINEX-TIMESTAMP' => $nonce,
                 );
                 if (($method === 'GET') || ($method === 'DELETE') || ($method === 'PUT')) {
-                    $url .= '?' . $urlencoded;
+                    if ($urlencoded) {
+                        $url .= '?' . $urlencoded;
+                    }
                 } else {
                     $body = $this->json($query);
                 }

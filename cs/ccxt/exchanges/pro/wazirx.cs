@@ -803,7 +803,8 @@ public partial class wazirx : ccxt.wazirx
         object streams = new List<object>(((IDictionary<string,object>)streamHandlers).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(streams)); postFixIncrement(ref i))
         {
-            if (isTrue(this.inArray(getValue(streams, i), stream)))
+            object streamContains = isGreaterThan(getIndexOf(stream, getValue(streams, i)), -1);
+            if (isTrue(streamContains))
             {
                 object handler = getValue(streamHandlers, getValue(streams, i));
                 DynamicInvoker.InvokeMethod(handler, new object[] { client, message});

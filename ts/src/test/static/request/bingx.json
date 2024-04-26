@@ -56,6 +56,36 @@
                 ]
             },
             {
+                "description": "spot stopLoss market order",
+                "method": "createOrder",
+                "url": "https://open-api.bingx.com/openApi/spot/v1/trade/order?quantity=0.1&side=SELL&stopPrice=30&symbol=LTC-USDT&timestamp=1714140496563&type=TAKE_STOP_MARKET&signature=79a629862e052eab3a7ff71f82802cdf56ab7ccac2596325c2304bc8b0045d0b",
+                "input": [
+                  "LTC/USDT",
+                  "market",
+                  "sell",
+                  0.1,
+                  null,
+                  {
+                    "stopLossPrice": 30
+                  }
+                ]
+            },
+            {
+                "description": "spot limit takeProfit order",
+                "method": "createOrder",
+                "url": "https://open-api.bingx.com/openApi/spot/v1/trade/order?price=150&quantity=0.1&side=SELL&stopPrice=150&symbol=LTC-USDT&timestamp=1714140580532&type=TAKE_STOP_LIMIT&signature=07abb982040e225f36697d0782ca10c62d8c2bd6322439cfdff55915ea889be4",
+                "input": [
+                  "LTC/USDT",
+                  "limit",
+                  "sell",
+                  0.1,
+                  150,
+                  {
+                    "takeProfitPrice": 150
+                  }
+                ]
+            },
+            {
                 "description": "Swap market buy order",
                 "method": "createOrder",
                 "url": "https://open-api.bingx.com/openApi/swap/v2/trade/order?positionSide=LONG&quantity=0.1&side=BUY&symbol=LTC-USDT&timestamp=1699295761502&type=MARKET&signature=f060bcc332d11056fe031ddfee894c40d7493a5c856bf8ea84d7e0aa612bdc6b",
@@ -81,7 +111,7 @@
             {
                 "description": "spot limit buy trigger order",
                 "method": "createOrder",
-                "url": "https://open-api.bingx.com/openApi/spot/v1/trade/order?price=50&quantity=0.1&side=BUY&stopPrice=55&symbol=LTC-USDT&timestamp=1707482604152&triggerPrice=55&type=TRIGGER_LIMIT&signature=9fdea0e815810ae5a96ab326340badae98e24d4cc550298e215ffc09009d26f7",
+                "url": "https://open-api.bingx.com/openApi/spot/v1/trade/order?price=50&quantity=0.1&side=BUY&stopPrice=55&symbol=LTC-USDT&timestamp=1707482604152&type=TRIGGER_LIMIT&signature=9fdea0e815810ae5a96ab326340badae98e24d4cc550298e215ffc09009d26f7",
                 "input": [
                     "LTC/USDT",
                     "limit",
@@ -96,7 +126,7 @@
             {
                 "description": "spot market buy trigger order",
                 "method": "createOrder",
-                "url": "https://open-api.bingx.com/openApi/spot/v1/trade/order?quoteOrderQty=5&side=BUY&stopPrice=55&symbol=LTC-USDT&timestamp=1707482711763&triggerPrice=55&type=TRIGGER_MARKET&signature=564862e81e0e60f6ed61c14f67380a818a57742d8abb04b55bdfc1d3095b2d3a",
+                "url": "https://open-api.bingx.com/openApi/spot/v1/trade/order?quoteOrderQty=5&side=BUY&stopPrice=55&symbol=LTC-USDT&timestamp=1707482711763&type=TRIGGER_MARKET&signature=564862e81e0e60f6ed61c14f67380a818a57742d8abb04b55bdfc1d3095b2d3a",
                 "input": [
                     "LTC/USDT",
                     "market",
@@ -320,7 +350,7 @@
             {
                 "description": "spot order with clientOrderId",
                 "method": "createOrder",
-                "url": "https://open-api.bingx.com/openApi/spot/v1/trade/order?clientOrderId=myorder1&newClientOrderId=myorder1&price=50&quantity=0.1&side=BUY&symbol=LTC-USDT&timestamp=1704360855187&type=LIMIT&signature=db4adedce73fa75cfda1dafccc45d6b2b16566bbcc751a5df7ef27bc7e5e3bef",
+                "url": "https://open-api.bingx.com/openApi/spot/v1/trade/order?&newClientOrderId=myorder1&price=50&quantity=0.1&side=BUY&symbol=LTC-USDT&timestamp=1704360855187&type=LIMIT&signature=db4adedce73fa75cfda1dafccc45d6b2b16566bbcc751a5df7ef27bc7e5e3bef",
                 "input": [
                     "LTC/USDT",
                     "limit",
@@ -451,6 +481,22 @@
                     {
                         "timeInForce": "FOK"
                     }
+                ]
+            },
+            {
+                "description": "swap order with clientOrderId",
+                "method": "createOrder",
+                "url": "https://open-api.bingx.com/openApi/swap/v2/trade/order?clientOrderID=myorder222&positionSide=BOTH&price=50&quantity=0.1&side=BUY&symbol=LTC-USDT&timestamp=1714141045332&type=LIMIT&signature=b0b9849fd0b5828bab58cfa6085dc9dfd7d4c77503aa94aa275d316f6ae87ab6",
+                "input": [
+                  "LTC/USDT:USDT",
+                  "limit",
+                  "buy",
+                  0.1,
+                  50,
+                  {
+                    "clientOrderId": "myorder222",
+                    "positionSide": "BOTH"
+                  }
                 ]
             }
         ],
@@ -695,6 +741,52 @@
                 "url": "https://open-api.bingx.com/openApi/spot/v1/trade/cancelOpenOrders?symbol=LTC-USDT&timestamp=1703847561251&signature=e2c804484ea920957823019aed0ab49073125407426079dea637eef341ab0dc8",
                 "input": [
                     "LTC/USDT"
+                ]
+            }
+        ],
+        "cancelAllOrdersAfter": [
+            {
+                "description": "Swap cancel all orders after",
+                "method": "cancelAllOrdersAfter",
+                "url": "https://open-api.bingx.com/openApi/swap/v2/trade/cancelAllAfter?timeOut=100&type=ACTIVATE&timestamp=1699071702130&signature=581d72f82f5c1c7d133bd0556f0513ae5f22445207a9e49babf5d13d70a421b4",
+                "input": [
+                    100000,
+                    {
+                        "type": "swap"
+                    }
+                ]
+            },
+            {
+                "description": "Swap close cancel all orders after",
+                "method": "cancelAllOrdersAfter",
+                "url": "https://open-api.bingx.com/openApi/swap/v2/trade/cancelAllAfter?timeOut=0&type=CLOSE&timestamp=1699071702130&signature=581d72f82f5c1c7d133bd0556f0513ae5f22445207a9e49babf5d13d70a421b4",
+                "input": [
+                    0,
+                    {
+                        "type": "swap"
+                    }
+                ]
+            },
+            {
+                "description": "Spot cancel all orders after",
+                "method": "cancelAllOrdersAfter",
+                "url": "https://open-api.bingx.com/openApi/spot/v1/trade/cancelAllAfter?timeOut=100&type=ACTIVATE&timestamp=1699458295121&signature=c2bdfd0494cee5e13259629af9f815637a9a42ed87fd47a2eb3b552c0574d945",
+                "input": [
+                    100000,
+                    {
+                        "type": "spot"
+                    }
+                ]
+            },
+            {
+                "description": "Spot close cancel all orders after",
+                "method": "cancelAllOrdersAfter",
+                "url": "https://open-api.bingx.com/openApi/spot/v1/trade/cancelAllAfter?timeOut=0&type=CLOSE&timestamp=1699458295121&signature=c2bdfd0494cee5e13259629af9f815637a9a42ed87fd47a2eb3b552c0574d945",
+                "input": [
+                    0,
+                    {
+                        "type": "spot"
+                    }
                 ]
             }
         ],
@@ -943,6 +1035,61 @@
                     "buy",
                     0.11,
                     51
+                ]
+            },
+            {
+                "description": "edit limit order with tp/sl",
+                "disabled": true,
+                "method": "editOrder",
+                "url": "https://open-api.bingx.com/openApi/swap/v1/trade/cancelReplace?cancelOrderId=1783855116533854208&cancelReplaceMode=STOP_ON_FAILURE&positionSide=BOTH&price=50&quantity=1&side=BUY&stopLoss%5BstopPrice%5D=31&symbol=LTC-USDT&takeProfit%5BstopPrice%5D=151&timestamp=1714139224397&type=LIMIT&signature=3d7478c3f8a6d96717f2478c9b03c926295fbb66977023f81013d3861ce29719",
+                "input": [
+                  "1783855116533854208",
+                  "LTC/USDT:USDT",
+                  "limit",
+                  "buy",
+                  1,
+                  50,
+                  {
+                    "takeProfit": {
+                      "stopPrice": 151
+                    },
+                    "stopLoss": {
+                      "stopPrice": 31
+                    },
+                    "positionSide": "BOTH"
+                  }
+                ]
+            },
+            {
+                "description": "edit spot takeProfit limit order",
+                "method": "editOrder",
+                "url": "https://open-api.bingx.com/openApi/spot/v1/trade/order/cancelReplace?cancelOrderId=1783861005164478464&cancelReplaceMode=STOP_ON_FAILURE&price=151&quantity=0.1&side=SELL&stopPrice=145&symbol=LTC-USDT&takeProfitPrice=145&timestamp=1714140647187&type=TAKE_STOP_LIMIT&signature=f7f996ed4d886028cb510a123213fa91cdb871387c29ca1d02954e967b514e07",
+                "input": [
+                  "1783861005164478464",
+                  "LTC/USDT",
+                  "limit",
+                  "sell",
+                  0.1,
+                  151,
+                  {
+                    "takeProfitPrice": 145
+                  }
+                ]
+            },
+            {
+                "description": "edit spot market stopLoss order",
+                "method": "editOrder",
+                "url": "https://open-api.bingx.com/openApi/spot/v1/trade/order/cancelReplace?cancelOrderId=1783861529486032896&cancelReplaceMode=STOP_ON_FAILURE&quantity=0.1&side=SELL&stopLossPrice=35&stopPrice=35&symbol=LTC-USDT&timestamp=1714140765141&type=TAKE_STOP_MARKET&signature=220a7571f2810f148e6a12587ae48528cad6fb58026968254e50948b761658d1",
+                "input": [
+                  "1783861529486032896",
+                  "LTC/USDT",
+                  "market",
+                  "sell",
+                  0.1,
+                  null,
+                  {
+                    "stopLossPrice": 35
+                  }
                 ]
             }
         ],

@@ -36,6 +36,7 @@ class woo extends Exchange {
                 'option' => false,
                 'addMargin' => false,
                 'cancelAllOrders' => true,
+                'cancelAllOrdersAfter' => true,
                 'cancelOrder' => true,
                 'cancelWithdraw' => false, // exchange have that endpoint disabled atm, but was once implemented in ccxt per old docs => https://kronosresearch.github.io/wootrade-documents/#cancel-withdraw-request
                 'closeAllPositions' => false,
@@ -64,6 +65,8 @@ class woo extends Exchange {
                 'fetchClosedOrders' => true,
                 'fetchConvertCurrencies' => true,
                 'fetchConvertQuote' => true,
+                'fetchConvertTrade' => true,
+                'fetchConvertTradeHistory' => true,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => true,
@@ -89,8 +92,10 @@ class woo extends Exchange {
                 'fetchOrders' => true,
                 'fetchOrderTrades' => true,
                 'fetchPosition' => true,
+                'fetchPositionHistory' => false,
                 'fetchPositionMode' => false,
                 'fetchPositions' => true,
+                'fetchPositionsHistory' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchStatus' => true,
                 'fetchTicker' => false,
@@ -201,6 +206,7 @@ class woo extends Exchange {
                         ),
                         'post' => array(
                             'order' => 5, // 2 requests per 1 second per symbol
+                            'order/cancel_all_after' => 1,
                             'asset/main_sub_transfer' => 30, // 20 requests per 60 seconds
                             'asset/ltv' => 30,
                             'asset/withdraw' => 30,  // implemented in ccxt, disabled on the exchange side https://kronosresearch.github.io/wootrade-documents/#token-withdraw
@@ -1280,6 +1286,34 @@ class woo extends Exchange {
             //     {
             //         "success":true,
             //         "status":"CANCEL_ALL_SENT"
+            //     }
+            //
+            return $response;
+        }) ();
+    }
+
+    public function cancel_all_orders_after(?int $timeout, $params = array ()) {
+        return Async\async(function () use ($timeout, $params) {
+            /**
+             * dead man's switch, cancel all orders after the given $timeout
+             * @see https://docs.woo.org/#cancel-all-after
+             * @param {number} $timeout time in milliseconds, 0 represents cancel the timer
+             * @param {boolean} activated countdown
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} the api result
+             */
+            Async\await($this->load_markets());
+            $request = array(
+                'trigger_after' => ($timeout > 0) ? $timeout : 0,
+            );
+            $response = Async\await($this->v1PrivatePostOrderCancelAllAfter (array_merge($request, $params)));
+            //
+            //     {
+            //         "success" => true,
+            //         "data" => array(
+            //             "expected_trigger_time" => 1711534302938
+            //         ),
+            //         "timestamp" => 1711534302943
             //     }
             //
             return $response;
@@ -2394,7 +2428,7 @@ class woo extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
@@ -3109,6 +3143,98 @@ class woo extends Exchange {
         }) ();
     }
 
+    public function fetch_convert_trade(string $id, ?string $code = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($id, $code, $params) {
+            /**
+             * fetch the $data for a conversion trade
+             * @see https://docs.woo.org/#get-quote-trade
+             * @param {string} $id the $id of the trade that you want to fetch
+             * @param {string} [$code] the unified currency $code of the conversion trade
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?$id=conversion-structure conversion structure~
+             */
+            Async\await($this->load_markets());
+            $request = array(
+                'quoteId' => $id,
+            );
+            $response = Async\await($this->v3PrivateGetConvertTrade (array_merge($request, $params)));
+            //
+            //     {
+            //         "success" => true,
+            //         "data" => {
+            //             "quoteId" => 12,
+            //             "buyAsset" => "",
+            //             "sellAsset" => "",
+            //             "buyAmount" => 12.11,
+            //             "sellAmount" => 12.11,
+            //             "tradeStatus" => 12,
+            //             "createdTime" => ""
+            //         }
+            //     }
+            //
+            $data = $this->safe_dict($response, 'data', array());
+            $fromCurrencyId = $this->safe_string($data, 'sellAsset');
+            $toCurrencyId = $this->safe_string($data, 'buyAsset');
+            $fromCurrency = null;
+            $toCurrency = null;
+            if ($fromCurrencyId !== null) {
+                $fromCurrency = $this->currency($fromCurrencyId);
+            }
+            if ($toCurrencyId !== null) {
+                $toCurrency = $this->currency($toCurrencyId);
+            }
+            return $this->parse_conversion($data, $fromCurrency, $toCurrency);
+        }) ();
+    }
+
+    public function fetch_convert_trade_history(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($code, $since, $limit, $params) {
+            /**
+             * fetch the users history of conversion trades
+             * @see https://docs.woo.org/#get-quote-trades
+             * @param {string} [$code] the unified currency $code
+             * @param {int} [$since] the earliest time in ms to fetch conversions for
+             * @param {int} [$limit] the maximum number of conversion structures to retrieve
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {int} [$params->until] timestamp in ms of the latest conversion to fetch
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=conversion-structure conversion structures~
+             */
+            Async\await($this->load_markets());
+            $request = array();
+            list($request, $params) = $this->handle_until_option('endTime', $request, $params);
+            if ($since !== null) {
+                $request['startTime'] = $since;
+            }
+            if ($limit !== null) {
+                $request['size'] = $limit;
+            }
+            $response = Async\await($this->v3PrivateGetConvertTrades (array_merge($request, $params)));
+            //
+            //     {
+            //         "success" => true,
+            //         "data" => {
+            //             "count" => 12,
+            //             "tradeVos":array(
+            //                 {
+            //                     "quoteId" => 12,
+            //                     "buyAsset" => "",
+            //                     "sellAsset" => "",
+            //                     "buyAmount" => 12.11,
+            //                     "sellAmount" => 12.11,
+            //                     "tradeStatus" => 12,
+            //                     "createdTime" => ""
+            //                 }
+            //                 ...
+            //             )
+            //         }
+            //     }
+            //
+            $data = $this->safe_dict($response, 'data', array());
+            $rows = $this->safe_list($data, 'tradeVos', array());
+            return $this->parse_conversions($rows, $code, 'sellAsset', 'buyAsset', $since, $limit);
+        }) ();
+    }
+
     public function parse_conversion($conversion, ?array $fromCurrency = null, ?array $toCurrency = null): Conversion {
         //
         // fetchConvertQuote
@@ -3133,10 +3259,22 @@ class woo extends Exchange {
         //         "rftAccepted" => 1 // 1 -> success; 2 -> processing; 3 -> fail
         //     }
         //
-        $timestamp = $this->safe_integer($conversion, 'expireTimestamp');
-        $fromCoin = $this->safe_string($conversion, 'sellToken');
-        $fromCode = $this->safe_currency_code($fromCoin, $fromCurrency);
-        $to = $this->safe_string($conversion, 'buyToken');
+        // fetchConvertTrade, fetchConvertTradeHistory
+        //
+        //     {
+        //         "quoteId" => 12,
+        //         "buyAsset" => "",
+        //         "sellAsset" => "",
+        //         "buyAmount" => 12.11,
+        //         "sellAmount" => 12.11,
+        //         "tradeStatus" => 12,
+        //         "createdTime" => ""
+        //     }
+        //
+        $timestamp = $this->safe_integer_2($conversion, 'expireTimestamp', 'createdTime');
+        $fromCurr = $this->safe_string_2($conversion, 'sellToken', 'buyAsset');
+        $fromCode = $this->safe_currency_code($fromCurr, $fromCurrency);
+        $to = $this->safe_string_2($conversion, 'buyToken', 'sellAsset');
         $toCode = $this->safe_currency_code($to, $toCurrency);
         return array(
             'info' => $conversion,
@@ -3144,9 +3282,9 @@ class woo extends Exchange {
             'datetime' => $this->iso8601($timestamp),
             'id' => $this->safe_string($conversion, 'quoteId'),
             'fromCurrency' => $fromCode,
-            'fromAmount' => $this->safe_number($conversion, 'sellQuantity'),
+            'fromAmount' => $this->safe_number_2($conversion, 'sellQuantity', 'sellAmount'),
             'toCurrency' => $toCode,
-            'toAmount' => $this->safe_number($conversion, 'buyQuantity'),
+            'toAmount' => $this->safe_number_2($conversion, 'buyQuantity', 'buyAmount'),
             'price' => $this->safe_number($conversion, 'buyPrice'),
             'fee' => null,
         );

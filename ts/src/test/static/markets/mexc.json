@@ -1186,5 +1186,121 @@
         },
         "tierBased": false,
         "percentage": true
+    },
+    "SOL/USDT:USDT": {
+        "id": "SOL_USDT",
+        "symbol": "SOL/USDT:USDT",
+        "base": "SOL",
+        "quote": "USDT",
+        "settle": "USDT",
+        "baseId": "SOL",
+        "quoteId": "USDT",
+        "settleId": "USDT",
+        "type": "swap",
+        "spot": false,
+        "margin": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0.0002,
+        "maker": 0,
+        "contractSize": 0.1,
+        "precision": {
+            "amount": 1,
+            "price": 0.001
+        },
+        "limits": {
+            "leverage": {
+                "min": 1,
+                "max": 200
+            },
+            "amount": {
+                "min": 1,
+                "max": 34500
+            },
+            "price": {},
+            "cost": {}
+        },
+        "info": {
+            "symbol": "SOL_USDT",
+            "displayName": "SOL_USDT永续",
+            "displayNameEn": "SOL_USDT PERPETUAL",
+            "positionOpenType": "3",
+            "baseCoin": "SOL",
+            "quoteCoin": "USDT",
+            "baseCoinName": "SOL",
+            "quoteCoinName": "USDT",
+            "futureType": "1",
+            "settleCoin": "USDT",
+            "contractSize": "0.1",
+            "minLeverage": "1",
+            "maxLeverage": "200",
+            "priceScale": "3",
+            "volScale": "0",
+            "amountScale": "4",
+            "priceUnit": "0.001",
+            "volUnit": "1",
+            "minVol": "1",
+            "maxVol": "34500",
+            "bidLimitPriceRate": "0.2",
+            "askLimitPriceRate": "0.2",
+            "takerFeeRate": "0.0002",
+            "makerFeeRate": "0",
+            "maintenanceMarginRate": "0.004",
+            "initialMarginRate": "0.005",
+            "riskBaseVol": "34500",
+            "riskIncrVol": "34500",
+            "riskLongShortSwitch": "0",
+            "riskIncrMmr": "0.004",
+            "riskIncrImr": "0.004",
+            "riskLevelLimit": "1",
+            "priceCoefficientVariation": "0.2",
+            "indexOrigin": [
+                "BITGET",
+                "BYBIT",
+                "BINANCE",
+                "HUOBI",
+                "OKX",
+                "MEXC",
+                "KUCOIN"
+            ],
+            "state": "0",
+            "isNew": false,
+            "isHot": true,
+            "isHidden": false,
+            "conceptPlate": [
+                "mc-trade-zone-SOL"
+            ],
+            "riskLimitType": "BY_VOLUME",
+            "maxNumOrders": [
+                200,
+                50
+            ],
+            "marketOrderMaxLevel": "20",
+            "marketOrderPriceLimitRate1": "0.2",
+            "marketOrderPriceLimitRate2": "0.005",
+            "triggerProtect": "0.1",
+            "appraisal": "0",
+            "showAppraisalCountdown": "0",
+            "automaticDelivery": "0",
+            "apiAllowed": false,
+            "depthStepList": [
+                "0.001",
+                "0.01",
+                "0.1",
+                "1"
+            ],
+            "limitMaxVol": "34500",
+            "threshold": "0",
+            "baseCoinIconUrl": "",
+            "id": "51"
+        },
+        "tierBased": false,
+        "percentage": true
     }
 }

@@ -86,7 +86,11 @@ class coinlist extends Exchange {
                 'fetchOrders' => true,
                 'fetchOrderTrades' => true,
                 'fetchPosition' => false,
+                'fetchPositionHistory' => false,
+                'fetchPositionMode' => false,
                 'fetchPositions' => false,
+                'fetchPositionsForSymbol' => false,
+                'fetchPositionsHistory' => false,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchStatus' => false,
@@ -323,7 +327,7 @@ class coinlist extends Exchange {
         return $this->parse8601($string);
     }
 
-    public function fetch_currencies($params = array ()): array {
+    public function fetch_currencies($params = array ()): ?array {
         /**
          * fetches all available $currencies on an exchange
          * @see https://trade-docs.coinlist.co/?javascript--nodejs#list-supported-assets
@@ -1936,7 +1940,7 @@ class coinlist extends Exchange {
         return $this->parse_transactions($response, $currency, $since, $limit);
     }
 
-    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
         /**
          * $request a withdrawal from CoinList wallet. (Disabled by default. Contact CoinList to apply for an exception.)
          * @see https://trade-docs.coinlist.co/?javascript--nodejs#$request-withdrawal-from-wallet
