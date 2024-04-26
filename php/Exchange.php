@@ -930,7 +930,7 @@ class Exchange {
         return $output;
     }
 
-    public static function urlencodeBase64($string) {
+    public static function urlencode_base64($string) {
         return preg_replace(array('#[=]+$#u', '#\+#u', '#\\/#'), array('', '-', '_'), \base64_encode($string));
     }
 
@@ -1257,8 +1257,8 @@ class Exchange {
         if (array_key_exists('nonce', $opts)) {
             $headerOptions['nonce'] = $opts['nonce'];
         }
-        $encodedHeader = static::urlencodeBase64(json_encode($headerOptions));
-        $encodedData = static::urlencodeBase64(json_encode($request, JSON_UNESCAPED_SLASHES));
+        $encodedHeader = static::urlencode_base64(json_encode($headerOptions));
+        $encodedData = static::urlencode_base64(json_encode($request, JSON_UNESCAPED_SLASHES));
         $token = $encodedHeader . '.' . $encodedData;
         $algoType = mb_substr($alg, 0, 2);
         if ($is_rsa || $algoType === 'RS') {
@@ -1269,7 +1269,7 @@ class Exchange {
         } else {
             $signature = static::hmac($token, $secret, $algorithm, 'binary');
         }
-        return $token . '.' . static::urlencodeBase64($signature);
+        return $token . '.' . static::urlencode_base64($signature);
     }
 
     public static function rsa($request, $secret, $alg = 'sha256') {

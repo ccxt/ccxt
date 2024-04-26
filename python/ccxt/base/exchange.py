@@ -1295,7 +1295,7 @@ class Exchange(object):
         return result
 
     @staticmethod
-    def base64urlencode(s):
+    def urlencode_base64(s):
         return Exchange.decode(base64.urlsafe_b64encode(s)).replace('=', '')
 
     @staticmethod
@@ -1333,8 +1333,8 @@ class Exchange(object):
         if 'nonce' in opts and opts['nonce'] is not None:
             header_opts['nonce'] = opts['nonce']
         header = Exchange.encode(Exchange.json(header_opts))
-        encoded_header = Exchange.base64urlencode(header)
-        encoded_data = Exchange.base64urlencode(Exchange.encode(Exchange.json(request)))
+        encoded_header = Exchange.urlencode_base64(header)
+        encoded_data = Exchange.urlencode_base64(Exchange.encode(Exchange.json(request)))
         token = encoded_header + '.' + encoded_data
         algoType = alg[0:2]
         if is_rsa or algoType == 'RS':
@@ -1344,7 +1344,7 @@ class Exchange(object):
             signature = Exchange.base16_to_binary(rawSignature['r'].rjust(64, "0") + rawSignature['s'].rjust(64, "0"))
         else:
             signature = Exchange.hmac(Exchange.encode(token), secret, algos[algorithm], 'binary')
-        return token + '.' + Exchange.base64urlencode(signature)
+        return token + '.' + Exchange.urlencode_base64(signature)
 
     @staticmethod
     def rsa(request, secret, alg='sha256'):
