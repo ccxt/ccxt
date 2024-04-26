@@ -216,6 +216,11 @@ public partial class woo : Exchange
         return await this.callAsync ("v1PrivatePostOrder",parameters);
     }
 
+    public async Task<object> v1PrivatePostOrderCancelAllAfter (object parameters = null)
+    {
+        return await this.callAsync ("v1PrivatePostOrderCancelAllAfter",parameters);
+    }
+
     public async Task<object> v1PrivatePostAssetMainSubTransfer (object parameters = null)
     {
         return await this.callAsync ("v1PrivatePostAssetMainSubTransfer",parameters);

@@ -54,6 +54,7 @@ class kraken(Exchange, ImplicitAPI):
                 'option': False,
                 'addMargin': False,
                 'cancelAllOrders': True,
+                'cancelAllOrdersAfter': True,
                 'cancelOrder': True,
                 'cancelOrders': True,
                 'createDepositAddress': True,
@@ -2006,6 +2007,32 @@ class kraken(Exchange, ImplicitAPI):
         await self.load_markets()
         return await self.privatePostCancelAll(params)
 
+    async def cancel_all_orders_after(self, timeout: Int, params={}):
+        """
+        dead man's switch, cancel all orders after the given timeout
+        :see: https://docs.kraken.com/rest/#tag/Spot-Trading/operation/cancelAllOrdersAfter
+        :param number timeout: time in milliseconds, 0 represents cancel the timer
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: the api result
+        """
+        if timeout > 86400000:
+            raise BadRequest(self.id + 'cancelAllOrdersAfter timeout should be less than 86400000 milliseconds')
+        await self.load_markets()
+        request: dict = {
+            'timeout': (self.parse_to_int(timeout / 1000)) if (timeout > 0) else 0,
+        }
+        response = await self.privatePostCancelAllOrdersAfter(self.extend(request, params))
+        #
+        #     {
+        #         "error": [],
+        #         "result": {
+        #             "currentTime": "2023-03-24T17:41:56Z",
+        #             "triggerTime": "2023-03-24T17:42:56Z"
+        #         }
+        #     }
+        #
+        return response
+
     async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
@@ -2495,7 +2522,7 @@ class kraken(Exchange, ImplicitAPI):
             'info': depositAddress,
         }
 
-    async def withdraw(self, code: str, amount: float, address, tag=None, params={}):
+    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
         """
         make a withdrawal
         :see: https://docs.kraken.com/rest/#tag/Funding/operation/withdrawFunds

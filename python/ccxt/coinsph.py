@@ -108,7 +108,11 @@ class coinsph(Exchange, ImplicitAPI):
                 'fetchOrders': False,
                 'fetchOrderTrades': True,
                 'fetchPosition': False,
+                'fetchPositionHistory': False,
+                'fetchPositionMode': False,
                 'fetchPositions': False,
+                'fetchPositionsForSymbol': False,
+                'fetchPositionsHistory': False,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchStatus': True,
@@ -1497,7 +1501,7 @@ class coinsph(Exchange, ImplicitAPI):
             'tierBased': None,
         }
 
-    def withdraw(self, code: str, amount: float, address, tag=None, params={}):
+    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
         """
         make a withdrawal to coins_ph account
         :see: https://coins-docs.github.io/rest-api/#withdrawuser_data

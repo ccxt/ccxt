@@ -72,8 +72,11 @@ class onetrading extends Exchange {
                 'fetchOrders' => false,
                 'fetchOrderTrades' => true,
                 'fetchPosition' => false,
+                'fetchPositionHistory' => false,
                 'fetchPositionMode' => false,
                 'fetchPositions' => false,
+                'fetchPositionsForSymbol' => false,
+                'fetchPositionsHistory' => false,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
@@ -313,7 +316,7 @@ class onetrading extends Exchange {
         return $this->safe_integer($response, 'epoch_millis');
     }
 
-    public function fetch_currencies($params = array ()): array {
+    public function fetch_currencies($params = array ()): ?array {
         /**
          * fetches all available currencies on an exchange
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1211,7 +1214,7 @@ class onetrading extends Exchange {
         return $this->parse_transactions($withdrawalHistory, $currency, $since, $limit, array( 'type' => 'withdrawal' ));
     }
 
-    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
         /**
          * make a withdrawal
          * @param {string} $code unified $currency $code

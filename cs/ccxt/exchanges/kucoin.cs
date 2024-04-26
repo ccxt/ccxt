@@ -81,7 +81,9 @@ public partial class kucoin : Exchange
                 { "fetchOrderBooks", false },
                 { "fetchOrdersByStatus", true },
                 { "fetchOrderTrades", true },
+                { "fetchPositionHistory", false },
                 { "fetchPositionMode", false },
+                { "fetchPositionsHistory", false },
                 { "fetchPremiumIndexOHLCV", false },
                 { "fetchStatus", true },
                 { "fetchTicker", true },
@@ -1010,8 +1012,10 @@ public partial class kucoin : Exchange
         //              "chains":[
         //                 {
         //                    "chainName":"ERC20",
-        //                    "chain":"eth",
+        //                    "chainId": "eth"
         //                    "withdrawalMinSize":"2999",
+        //                    "depositMinSize":null,
+        //                    "withdrawFeeRate":"0",
         //                    "withdrawalMinFee":"2999",
         //                    "isWithdrawEnabled":false,
         //                    "isDepositEnabled":false,
@@ -1124,7 +1128,7 @@ public partial class kucoin : Exchange
                             { "max", null },
                         } },
                         { "deposit", new Dictionary<string, object>() {
-                            { "min", this.safeNumber(chainExtraData, "depositMinSize") },
+                            { "min", this.safeNumber(chain, "depositMinSize") },
                             { "max", null },
                         } },
                     } },
@@ -3285,7 +3289,6 @@ public partial class kucoin : Exchange
         object request = new Dictionary<string, object>() {
             { "currency", getValue(currency, "id") },
             { "address", address },
-            { "amount", amount },
         };
         if (isTrue(!isEqual(tag, null)))
         {
@@ -3299,6 +3302,8 @@ public partial class kucoin : Exchange
         {
             ((IDictionary<string,object>)request)["chain"] = ((string)this.networkCodeToId(networkCode)).ToLower();
         }
+        await this.loadCurrencyPrecision(currency, networkCode);
+        ((IDictionary<string,object>)request)["amount"] = this.currencyToPrecision(code, amount, networkCode);
         object includeFee = null;
         var includeFeeparametersVariable = this.handleOptionAndParams(parameters, "withdraw", "includeFee", false);
         includeFee = ((IList<object>)includeFeeparametersVariable)[0];
@@ -3320,6 +3325,57 @@ public partial class kucoin : Exchange
         //
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return this.parseTransaction(data, currency);
+    }
+
+    public async virtual Task loadCurrencyPrecision(object currency, object networkCode = null)
+    {
+        // as kucoin might not have network specific precisions defined in fetchCurrencies (because of webapi failure)
+        // we should check and refetch precision once-per-instance for that specific currency & network
+        // so avoids thorwing exceptions and burden to users
+        // Note: this needs to be executed only if networkCode was provided
+        if (isTrue(!isEqual(networkCode, null)))
+        {
+            object networks = getValue(currency, "networks");
+            object network = this.safeDict(networks, networkCode);
+            if (isTrue(!isEqual(this.safeNumber(network, "precision"), null)))
+            {
+                // if precision exists, no need to refetch
+                return;
+            }
+            // otherwise try to fetch and store in instance
+            object request = new Dictionary<string, object>() {
+                { "currency", getValue(currency, "id") },
+                { "chain", ((string)this.networkCodeToId(networkCode)).ToLower() },
+            };
+            object response = await this.privateGetWithdrawalsQuotas(request);
+            //
+            //    {
+            //        "code": "200000",
+            //        "data": {
+            //            "currency": "USDT",
+            //            "limitBTCAmount": "14.24094850",
+            //            "usedBTCAmount": "0.00000000",
+            //            "quotaCurrency": "USDT",
+            //            "limitQuotaCurrencyAmount": "999999.00000000",
+            //            "usedQuotaCurrencyAmount": "0",
+            //            "remainAmount": "999999.0000",
+            //            "availableAmount": "10.77545071",
+            //            "withdrawMinFee": "1",
+            //            "innerWithdrawMinFee": "0",
+            //            "withdrawMinSize": "10",
+            //            "isWithdrawEnabled": true,
+            //            "precision": 4,
+            //            "chain": "EOS",
+            //            "reason": null,
+            //            "lockedAmount": "0"
+            //        }
+            //    }
+            //
+            object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+            object precision = this.parseNumber(this.parsePrecision(this.safeString(data, "precision")));
+            object code = getValue(currency, "code");
+            ((IDictionary<string,object>)getValue(getValue(getValue(this.currencies, code), "networks"), networkCode))["precision"] = precision;
+        }
     }
 
     public virtual object parseTransactionStatus(object status)

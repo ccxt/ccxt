@@ -43,6 +43,7 @@ class hyperliquid(Exchange, ImplicitAPI):
                 'borrowCrossMargin': False,
                 'borrowIsolatedMargin': False,
                 'cancelAllOrders': False,
+                'cancelAllOrdersAfter': True,
                 'cancelOrder': True,
                 'cancelOrders': True,
                 'cancelOrdersForSymbols': True,
@@ -315,6 +316,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         #         ]
         #     ]
         #
+        #
         meta = self.safe_dict(response, 0, {})
         meta = self.safe_list(meta, 'universe', [])
         assetCtxs = self.safe_dict(response, 1, {})
@@ -373,10 +375,70 @@ class hyperliquid(Exchange, ImplicitAPI):
         #         },
         #     ],
         # ]
+        # mainnet
+        # [
+        #     {
+        #        "canonical_tokens2":[
+        #           0,
+        #           1
+        #        ],
+        #        "spot_infos":[
+        #           {
+        #              "name":"PURR/USDC",
+        #              "tokens":[
+        #                 1,
+        #                 0
+        #              ]
+        #           }
+        #        ],
+        #        "token_id_to_token":[
+        #           [
+        #              "0x6d1e7cde53ba9467b783cb7c530ce054",
+        #              0
+        #           ],
+        #           [
+        #              "0xc1fb593aeffbeb02f85e0308e9956a90",
+        #              1
+        #           ]
+        #        ],
+        #        "token_infos":[
+        #           {
+        #              "deployer":null,
+        #              "spec":{
+        #                 "name":"USDC",
+        #                 "szDecimals":"8",
+        #                 "weiDecimals":"8"
+        #              },
+        #              "spots":[
+        #              ]
+        #           },
+        #           {
+        #              "deployer":null,
+        #              "spec":{
+        #                 "name":"PURR",
+        #                 "szDecimals":"0",
+        #                 "weiDecimals":"5"
+        #              },
+        #              "spots":[
+        #                 0
+        #              ]
+        #           }
+        #        ]
+        #     },
+        #     [
+        #        {
+        #           "dayNtlVlm":"35001170.16631",
+        #           "markPx":"0.15743",
+        #           "midPx":"0.157555",
+        #           "prevDayPx":"0.158"
+        #        }
+        #     ]
+        # ]
         #
+        # response differs depending on the environment(mainnet vs sandbox)
         first = self.safe_dict(response, 0, {})
-        meta = self.safe_list(first, 'universe', [])
-        tokens = self.safe_list(first, 'tokens', [])
+        meta = self.safe_list_2(first, 'universe', 'spot_infos', [])
+        tokens = self.safe_list_2(first, 'tokens', 'token_infos', [])
         markets = []
         for i in range(0, len(meta)):
             market = self.safe_dict(meta, i, {})
@@ -392,14 +454,16 @@ class hyperliquid(Exchange, ImplicitAPI):
             maker = self.safe_number(fees, 'maker')
             tokensPos = self.safe_list(market, 'tokens', [])
             baseTokenPos = self.safe_integer(tokensPos, 0)
-            quoteTokenPos = self.safe_integer(tokensPos, 1)
+            # quoteTokenPos = self.safe_integer(tokensPos, 1)
             baseTokenInfo = self.safe_dict(tokens, baseTokenPos, {})
-            quoteTokenInfo = self.safe_dict(tokens, quoteTokenPos, {})
-            baseDecimals = self.safe_string(baseTokenInfo, 'szDecimals')
-            quoteDecimals = self.safe_integer(quoteTokenInfo, 'szDecimals')
+            # quoteTokenInfo = self.safe_dict(tokens, quoteTokenPos, {})
+            innerBaseTokenInfo = self.safe_dict(baseTokenInfo, 'spec', baseTokenInfo)
+            # innerQuoteTokenInfo = self.safe_dict(quoteTokenInfo, 'spec', quoteTokenInfo)
+            amountPrecision = self.parse_number(self.parse_precision(self.safe_string(innerBaseTokenInfo, 'szDecimals')))
+            # quotePrecision = self.parse_number(self.parse_precision(self.safe_string(innerQuoteTokenInfo, 'szDecimals')))
             baseId = self.number_to_string(i + 10000)
             markets.append(self.safe_market_structure({
-                'id': baseId,
+                'id': marketName,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
@@ -409,14 +473,15 @@ class hyperliquid(Exchange, ImplicitAPI):
                 'settleId': None,
                 'type': 'spot',
                 'spot': True,
+                'subType': None,
                 'margin': None,
                 'swap': False,
                 'future': False,
                 'option': False,
                 'active': True,
                 'contract': False,
-                'linear': True,
-                'inverse': False,
+                'linear': None,
+                'inverse': None,
                 'taker': taker,
                 'maker': maker,
                 'contractSize': None,
@@ -425,8 +490,8 @@ class hyperliquid(Exchange, ImplicitAPI):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': self.parse_number(self.parse_precision(baseDecimals)),  # decimal places
-                    'price': quoteDecimals,  # significant digits
+                    'amount': amountPrecision,  # decimal places
+                    'price': 5,  # significant digits
                 },
                 'limits': {
                     'leverage': {
@@ -633,7 +698,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         market = self.market(symbol)
         request = {
             'type': 'l2Book',
-            'coin': market['base'],
+            'coin': market['base'] if market['swap'] else market['id'],
         }
         response = await self.publicPostInfo(self.extend(request, params))
         #
@@ -689,7 +754,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         request = {
             'type': 'candleSnapshot',
             'req': {
-                'coin': market['base'],
+                'coin': market['base'] if market['swap'] else market['id'],
                 'interval': timeframe,
                 'startTime': since,
                 'endTime': until,
@@ -792,6 +857,9 @@ class hyperliquid(Exchange, ImplicitAPI):
         return self.parse_trades(response, market, since, limit)
 
     def amount_to_precision(self, symbol, amount):
+        market = self.market(symbol)
+        if market['spot']:
+            return super(hyperliquid, self).amount_to_precision(symbol, amount)
         return self.decimal_to_precision(amount, ROUND, self.markets[symbol]['precision']['amount'], self.precisionMode)
 
     def price_to_precision(self, symbol: str, price) -> str:
@@ -1232,6 +1300,42 @@ class hyperliquid(Exchange, ImplicitAPI):
         #                 ]
         #             }
         #         }
+        #     }
+        #
+        return response
+
+    async def cancel_all_orders_after(self, timeout: Int, params={}):
+        """
+        dead man's switch, cancel all orders after the given timeout
+        :param number timeout: time in milliseconds, 0 represents cancel the timer
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.vaultAddress]: the vault address
+        :returns dict: the api result
+        """
+        self.check_required_credentials()
+        await self.load_markets()
+        params = self.omit(params, ['clientOrderId', 'client_id'])
+        nonce = self.milliseconds()
+        request = {
+            'nonce': nonce,
+            # 'vaultAddress': vaultAddress,
+        }
+        cancelAction = {
+            'type': 'scheduleCancel',
+            'time': nonce + timeout,
+        }
+        vaultAddress = self.format_vault_address(self.safe_string(params, 'vaultAddress'))
+        signature = self.sign_l1_action(cancelAction, nonce, vaultAddress)
+        request['action'] = cancelAction
+        request['signature'] = signature
+        if vaultAddress is not None:
+            params = self.omit(params, 'vaultAddress')
+            request['vaultAddress'] = vaultAddress
+        response = await self.privatePostExchange(self.extend(request, params))
+        #
+        #     {
+        #         "status":"err",
+        #         "response":"Cannot set scheduled cancel time until enough volume traded. Required: $1000000. Traded: $373.47205."
         #     }
         #
         return response
@@ -2023,7 +2127,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         #
         return response
 
-    async def add_margin(self, symbol: str, amount, params={}) -> MarginModification:
+    async def add_margin(self, symbol: str, amount: float, params={}) -> MarginModification:
         """
         add margin
         :see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#update-isolated-margin
@@ -2034,7 +2138,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         """
         return await self.modify_margin_helper(symbol, amount, 'add', params)
 
-    async def reduce_margin(self, symbol: str, amount, params={}) -> MarginModification:
+    async def reduce_margin(self, symbol: str, amount: float, params={}) -> MarginModification:
         """
         :see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#update-isolated-margin
         remove margin from a position
@@ -2221,6 +2325,11 @@ class hyperliquid(Exchange, ImplicitAPI):
         if (self.walletAddress is not None) and (self.walletAddress != ''):
             return [self.walletAddress, params]
         raise ArgumentsRequired(self.id + ' ' + methodName + '() requires a user parameter inside \'params\' or the wallet address set')
+
+    def coin_to_market_id(self, coin: Str):
+        if coin.find('/') > -1:
+            return coin  # spot
+        return coin + '/USDC:USDC'
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if not response:

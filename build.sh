@@ -17,7 +17,6 @@ fi
 [[ "$RUNSTEP" == "finalstage" ]] && STAGE_DEPLOY="TRUE" || STAGE_DEPLOY="FALSE"
 
 echo "RUNSTEP: $RUNSTEP"
-echo "STAGE_DEPLOY: $STAGE_DEPLOY"
 msgPrefix="⬤ BUILD.SH : "
 
 function run_tests {
@@ -40,8 +39,8 @@ function run_tests {
     if [ -z "$rest_args" ] || { [ -n "$rest_args" ] && [ "$rest_args" != "skip" ]; }; then
       # shellcheck disable=SC2086
       if [ "$STAGE_PYJSPHP" == "TRUE" ]; then
-        npm run commonjs-test && ./package-test.sh && npm run test-pyjsphp --useProxy -- $rest_args &
-      fi;
+        npm run test-pyjsphp --useProxy -- $rest_args &
+      fi
       if [ "$STAGE_CSHARP" == "TRUE" ]; then
         npm run test-cs --useProxy -- $rest_args &
       fi;
@@ -102,6 +101,8 @@ build_and_test_all () {
     if [ "$STAGE_PYJSPHP" == "TRUE" ]; then
       npm run test-base-pyjsphp
       npm run test-base-ws-pyjsphp
+      npm run commonjs-test
+      npm run package-test
     fi
     if [ "$STAGE_CSHARP" == "TRUE" ]; then
       npm run test-base-cs

@@ -49,7 +49,7 @@ export default class coinbase extends coinbaseRest {
             },
         });
     }
-    async subscribe(name, symbol = undefined, params = {}) {
+    async subscribe(name, isPrivate, symbol = undefined, params = {}) {
         /**
          * @ignore
          * @method
@@ -61,7 +61,6 @@ export default class coinbase extends coinbaseRest {
          * @returns {object} subscription to a websocket channel
          */
         await this.loadMarkets();
-        this.checkRequiredCredentials();
         let market = undefined;
         let messageHash = name;
         let productIds = [];
@@ -78,8 +77,6 @@ export default class coinbase extends coinbaseRest {
         }
         const url = this.urls['api']['ws'];
         const timestamp = this.numberToString(this.seconds());
-        const isCloudAPiKey = (this.apiKey.indexOf('organizations/') >= 0) || (this.secret.startsWith('-----BEGIN'));
-        const auth = timestamp + name + productIds.join(',');
         const subscribe = {
             'type': 'subscribe',
             'product_ids': productIds,
@@ -88,25 +85,30 @@ export default class coinbase extends coinbaseRest {
             // 'timestamp': timestamp,
             // 'signature': this.hmac (this.encode (auth), this.encode (this.secret), sha256),
         };
-        if (!isCloudAPiKey) {
-            subscribe['api_key'] = this.apiKey;
-            subscribe['timestamp'] = timestamp;
-            subscribe['signature'] = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
-        }
-        else {
-            if (this.apiKey.startsWith('-----BEGIN')) {
-                throw new ArgumentsRequired(this.id + ' apiKey should contain the name (eg: organizations/3b910e93....) and not the public key');
+        if (isPrivate) {
+            this.checkRequiredCredentials();
+            const isCloudAPiKey = (this.apiKey.indexOf('organizations/') >= 0) || (this.secret.startsWith('-----BEGIN'));
+            const auth = timestamp + name + productIds.join(',');
+            if (!isCloudAPiKey) {
+                subscribe['api_key'] = this.apiKey;
+                subscribe['timestamp'] = timestamp;
+                subscribe['signature'] = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
             }
-            const currentToken = this.safeString(this.options, 'wsToken');
-            const tokenTimestamp = this.safeInteger(this.options, 'wsTokenTimestamp', 0);
-            const seconds = this.seconds();
-            if (currentToken === undefined || tokenTimestamp + 120 < seconds) {
-                // we should generate new token
-                const token = this.createAuthToken(seconds);
-                this.options['wsToken'] = token;
-                this.options['wsTokenTimestamp'] = seconds;
+            else {
+                if (this.apiKey.startsWith('-----BEGIN')) {
+                    throw new ArgumentsRequired(this.id + ' apiKey should contain the name (eg: organizations/3b910e93....) and not the public key');
+                }
+                const currentToken = this.safeString(this.options, 'wsToken');
+                const tokenTimestamp = this.safeInteger(this.options, 'wsTokenTimestamp', 0);
+                const seconds = this.seconds();
+                if (currentToken === undefined || tokenTimestamp + 120 < seconds) {
+                    // we should generate new token
+                    const token = this.createAuthToken(seconds);
+                    this.options['wsToken'] = token;
+                    this.options['wsTokenTimestamp'] = seconds;
+                }
+                subscribe['jwt'] = this.safeString(this.options, 'wsToken');
             }
-            subscribe['jwt'] = this.safeString(this.options, 'wsToken');
         }
         return await this.watch(url, messageHash, subscribe, messageHash);
     }
@@ -121,7 +123,7 @@ export default class coinbase extends coinbaseRest {
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         const name = 'ticker';
-        return await this.subscribe(name, symbol, params);
+        return await this.subscribe(name, false, symbol, params);
     }
     async watchTickers(symbols = undefined, params = {}) {
         /**
@@ -137,7 +139,7 @@ export default class coinbase extends coinbaseRest {
             symbols = this.symbols;
         }
         const name = 'ticker_batch';
-        const tickers = await this.subscribe(name, symbols, params);
+        const tickers = await this.subscribe(name, false, symbols, params);
         if (this.newUpdates) {
             return tickers;
         }
@@ -301,7 +303,7 @@ export default class coinbase extends coinbaseRest {
         await this.loadMarkets();
         symbol = this.symbol(symbol);
         const name = 'market_trades';
-        const trades = await this.subscribe(name, symbol, params);
+        const trades = await this.subscribe(name, false, symbol, params);
         if (this.newUpdates) {
             limit = trades.getLimit(symbol, limit);
         }
@@ -321,7 +323,7 @@ export default class coinbase extends coinbaseRest {
          */
         await this.loadMarkets();
         const name = 'user';
-        const orders = await this.subscribe(name, symbol, params);
+        const orders = await this.subscribe(name, true, symbol, params);
         if (this.newUpdates) {
             limit = orders.getLimit(symbol, limit);
         }
@@ -342,7 +344,7 @@ export default class coinbase extends coinbaseRest {
         const name = 'level2';
         const market = this.market(symbol);
         symbol = market['symbol'];
-        const orderbook = await this.subscribe(name, symbol, params);
+        const orderbook = await this.subscribe(name, false, symbol, params);
         return orderbook.limit();
     }
     handleTrade(client, message) {
@@ -560,8 +562,8 @@ export default class coinbase extends coinbaseRest {
                 this.orderbooks[symbol] = this.orderBook({}, limit);
                 const orderbook = this.orderbooks[symbol];
                 this.handleOrderBookHelper(orderbook, updates);
-                orderbook['timestamp'] = undefined;
-                orderbook['datetime'] = undefined;
+                orderbook['timestamp'] = this.parse8601(datetime);
+                orderbook['datetime'] = datetime;
                 orderbook['symbol'] = symbol;
                 client.resolve(orderbook, messageHash);
                 if (messageHash.endsWith('USD')) {
@@ -580,7 +582,6 @@ export default class coinbase extends coinbaseRest {
                 }
             }
         }
-        return message;
     }
     handleSubscriptionStatus(client, message) {
         //

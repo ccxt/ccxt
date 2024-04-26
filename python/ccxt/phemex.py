@@ -2699,11 +2699,15 @@ class phemex(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' cancelAllOrders() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
+        stop = self.safe_value_2(params, 'stop', 'trigger', False)
+        params = self.omit(params, 'stop', 'trigger')
         request = {
             'symbol': market['id'],
             # 'untriggerred': False,  # False to cancel non-conditional orders, True to cancel conditional orders
             # 'text': 'up to 40 characters max',
         }
+        if stop:
+            request['untriggerred'] = stop
         response = None
         if market['settle'] == 'USDT':
             response = self.privateDeleteGOrdersAll(self.extend(request, params))
@@ -4315,7 +4319,7 @@ class phemex(Exchange, ImplicitAPI):
         sorted = self.sort_by(result, 'timestamp')
         return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
 
-    def withdraw(self, code: str, amount: float, address, tag=None, params={}):
+    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
         """
         make a withdrawal
         :see: https://phemex-docs.github.io/#create-withdraw-request

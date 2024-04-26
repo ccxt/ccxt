@@ -54,6 +54,7 @@ class htx(Exchange, ImplicitAPI):
                 'borrowCrossMargin': True,
                 'borrowIsolatedMargin': True,
                 'cancelAllOrders': True,
+                'cancelAllOrdersAfter': True,
                 'cancelOrder': True,
                 'cancelOrders': True,
                 'createDepositAddress': None,
@@ -120,7 +121,9 @@ class htx(Exchange, ImplicitAPI):
                 'fetchOrders': True,
                 'fetchOrderTrades': True,
                 'fetchPosition': True,
+                'fetchPositionHistory': 'emulated',
                 'fetchPositions': True,
+                'fetchPositionsHistory': False,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': True,
                 'fetchSettlementHistory': True,
@@ -5629,6 +5632,31 @@ class htx(Exchange, ImplicitAPI):
         #
         return response
 
+    async def cancel_all_orders_after(self, timeout: Int, params={}):
+        """
+        dead man's switch, cancel all orders after the given timeout
+        :see: https://huobiapi.github.io/docs/spot/v1/en/#dead-man-s-switch
+        :param number timeout: time in milliseconds, 0 represents cancel the timer
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: the api result
+        """
+        await self.load_markets()
+        request: dict = {
+            'timeout': self.parse_to_int(timeout / 1000) if (timeout > 0) else 0,
+        }
+        response = await self.v2PrivatePostAlgoOrdersCancelAllAfter(self.extend(request, params))
+        #
+        #     {
+        #         "code": 200,
+        #         "message": "success",
+        #         "data": {
+        #             "currentTime": 1630491627230,
+        #             "triggerTime": 1630491637230
+        #         }
+        #     }
+        #
+        return response
+
     def parse_deposit_address(self, depositAddress, currency: Currency = None):
         #
         #     {
@@ -5950,7 +5978,7 @@ class htx(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    async def withdraw(self, code: str, amount: float, address, tag=None, params={}):
+    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code

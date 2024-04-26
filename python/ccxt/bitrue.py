@@ -2591,7 +2591,7 @@ class bitrue(Exchange, ImplicitAPI):
             'fee': fee,
         }
 
-    def withdraw(self, code: str, amount: float, address, tag=None, params={}):
+    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
         """
         make a withdrawal
         :see: https://github.com/Bitrue-exchange/Spot-official-api-docs#withdraw-commit--withdraw_data
