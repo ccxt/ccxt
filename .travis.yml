@@ -1,6 +1,6 @@
 jobs:
   include:
-    - job: "generate-data"
+    - stage: "s1"
       env: 
         - RUNSTEP=CSHARP 
       script:
@@ -13,12 +13,12 @@ jobs:
           name: ws1
           paths:
             - data.json
-    - job: "use-data" 
+    - stage: "s1"
       workspaces:
-        use: ws1
+        use:
+        - ws1
       env: 
         - RUNSTEP=PY_JS_PHP 
-      needs: generate-data 
       script: 
         - ./build.sh 2>&1
       # artifacts: 
