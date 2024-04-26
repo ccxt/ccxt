@@ -10,7 +10,7 @@ jobs:
           name: ws1
           paths:
             - data.json
-            - /tmp/data.json
+            - /var/data.json
     - job: "use-data" 
       workspaces:
         use: ws1
@@ -38,5 +38,7 @@ before_install:
 - echo "runstepppppppppp"
 - echo "$RUNSTEP"
 
-script: 
-- ./build.sh 2>&1
+
+addons:
+  artifacts: 
+    paths: /var/data.json
