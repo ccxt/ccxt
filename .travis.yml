@@ -5,12 +5,14 @@ jobs:
         - RUNSTEP=CSHARP 
       script:
         - ./build.sh 2>&1
+      # artifacts: 
+      #   debug: true
+      #   paths: $HOME/data.json
       workspaces:
         create:
           name: ws1
           paths:
-            - data.json
-            - /var/data.json
+            - $HOME/data.json
     - job: "use-data" 
       workspaces:
         use: ws1
@@ -19,7 +21,9 @@ jobs:
       needs: generate-data 
       script: 
         - ./build.sh 2>&1
-
+      # artifacts: 
+      #   debug: true
+      #   paths: $HOME/data.json
 
 language: python
 dist: jammy
@@ -39,6 +43,5 @@ before_install:
 - echo "$RUNSTEP"
 
 
-addons:
-  artifacts: 
-    paths: /var/data.json
+# addons:
+#   artifacts: true
