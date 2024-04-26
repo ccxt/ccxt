@@ -24,8 +24,10 @@ public partial class okx : Exchange
                 { "option", true },
                 { "addMargin", true },
                 { "cancelAllOrders", false },
+                { "cancelAllOrdersAfter", true },
                 { "cancelOrder", true },
                 { "cancelOrders", true },
+                { "cancelOrdersForSymbols", true },
                 { "closeAllPositions", false },
                 { "closePosition", true },
                 { "createConvertTrade", true },
@@ -56,6 +58,8 @@ public partial class okx : Exchange
                 { "fetchClosedOrders", true },
                 { "fetchConvertCurrencies", true },
                 { "fetchConvertQuote", true },
+                { "fetchConvertTrade", true },
+                { "fetchConvertTradeHistory", true },
                 { "fetchCrossBorrowRate", true },
                 { "fetchCrossBorrowRates", true },
                 { "fetchCurrencies", true },
@@ -100,8 +104,10 @@ public partial class okx : Exchange
                 { "fetchOrderTrades", true },
                 { "fetchPermissions", null },
                 { "fetchPosition", true },
+                { "fetchPositionHistory", "emulated" },
                 { "fetchPositions", true },
                 { "fetchPositionsForSymbol", true },
+                { "fetchPositionsHistory", true },
                 { "fetchPositionsRisk", false },
                 { "fetchPremiumIndexOHLCV", false },
                 { "fetchSettlementHistory", true },
@@ -3415,6 +3421,127 @@ public partial class okx : Exchange
         //
         object ordersData = this.safeList(response, "data", new List<object>() {});
         return this.parseOrders(ordersData, market, null, null, parameters);
+    }
+
+    public async override Task<object> cancelOrdersForSymbols(object orders, object parameters = null)
+    {
+        /**
+        * @method
+        * @name okx#cancelOrdersForSymbols
+        * @description cancel multiple orders for multiple symbols
+        * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-cancel-multiple-orders
+        * @see https://www.okx.com/docs-v5/en/#order-book-trading-algo-trading-post-cancel-algo-order
+        * @param {CancellationRequest[]} orders each order should contain the parameters required by cancelOrder namely id and symbol
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {boolean} [params.trigger] whether the order is a stop/trigger order
+        * @param {boolean} [params.trailing] set to true if you want to cancel trailing orders
+        * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object request = new List<object>() {};
+        object options = this.safeDict(this.options, "cancelOrders", new Dictionary<string, object>() {});
+        object defaultMethod = this.safeString(options, "method", "privatePostTradeCancelBatchOrders");
+        object method = this.safeString(parameters, "method", defaultMethod);
+        object stop = this.safeBool2(parameters, "stop", "trigger");
+        object trailing = this.safeBool(parameters, "trailing", false);
+        object isStopOrTrailing = isTrue(stop) || isTrue(trailing);
+        if (isTrue(isStopOrTrailing))
+        {
+            method = "privatePostTradeCancelAlgos";
+        }
+        for (object i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
+        {
+            object order = getValue(orders, i);
+            object id = this.safeString(order, "id");
+            object clientOrderId = this.safeString2(order, "clOrdId", "clientOrderId");
+            object symbol = this.safeString(order, "symbol");
+            object market = this.market(symbol);
+            object idKey = "ordId";
+            if (isTrue(isStopOrTrailing))
+            {
+                idKey = "algoId";
+            } else if (isTrue(!isEqual(clientOrderId, null)))
+            {
+                idKey = "clOrdId";
+            }
+            object requestItem = new Dictionary<string, object>() {
+                { "instId", getValue(market, "id") },
+            };
+            ((IDictionary<string,object>)requestItem)[(string)idKey] = ((bool) isTrue((!isEqual(clientOrderId, null)))) ? clientOrderId : id;
+            ((IList<object>)request).Add(requestItem);
+        }
+        object response = null;
+        if (isTrue(isEqual(method, "privatePostTradeCancelAlgos")))
+        {
+            response = await this.privatePostTradeCancelAlgos(request); // * dont extend with params, otherwise ARRAY will be turned into OBJECT
+        } else
+        {
+            response = await this.privatePostTradeCancelBatchOrders(request); // * dont extend with params, otherwise ARRAY will be turned into OBJECT
+        }
+        //
+        //     {
+        //         "code": "0",
+        //         "data": [
+        //             {
+        //                 "clOrdId": "e123456789ec4dBC1123456ba123b45e",
+        //                 "ordId": "405071912345641543",
+        //                 "sCode": "0",
+        //                 "sMsg": ""
+        //             },
+        //             ...
+        //         ],
+        //         "msg": ""
+        //     }
+        //
+        // Algo order
+        //
+        //     {
+        //         "code": "0",
+        //         "data": [
+        //             {
+        //                 "algoId": "431375349042380800",
+        //                 "sCode": "0",
+        //                 "sMsg": ""
+        //             }
+        //         ],
+        //         "msg": ""
+        //     }
+        //
+        object ordersData = this.safeList(response, "data", new List<object>() {});
+        return this.parseOrders(ordersData, null, null, null, parameters);
+    }
+
+    public async override Task<object> cancelAllOrdersAfter(object timeout, object parameters = null)
+    {
+        /**
+        * @method
+        * @name okx#cancelAllOrdersAfter
+        * @description dead man's switch, cancel all orders after the given timeout
+        * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-cancel-all-after
+        * @param {number} timeout time in milliseconds, 0 represents cancel the timer
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} the api result
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object request = new Dictionary<string, object>() {
+            { "timeOut", ((bool) isTrue((isGreaterThan(timeout, 0)))) ? this.parseToInt(divide(timeout, 1000)) : 0 },
+        };
+        object response = await this.privatePostTradeCancelAllAfter(this.extend(request, parameters));
+        //
+        //     {
+        //         "code":"0",
+        //         "msg":"",
+        //         "data":[
+        //             {
+        //                 "triggerTime":"1587971460",
+        //                 "ts":"1587971400"
+        //             }
+        //         ]
+        //     }
+        //
+        return response;
     }
 
     public virtual object parseOrderStatus(object status)
@@ -8121,6 +8248,116 @@ public partial class okx : Exchange
         return this.parseConversion(result, fromCurrency, toCurrency);
     }
 
+    public async virtual Task<object> fetchConvertTrade(object id, object code = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name okx#fetchConvertTrade
+        * @description fetch the data for a conversion trade
+        * @see https://www.okx.com/docs-v5/en/#funding-account-rest-api-get-convert-history
+        * @param {string} id the id of the trade that you want to fetch
+        * @param {string} [code] the unified currency code of the conversion trade
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object request = new Dictionary<string, object>() {
+            { "clTReqId", id },
+        };
+        object response = await this.privateGetAssetConvertHistory(this.extend(request, parameters));
+        //
+        //     {
+        //         "code": "0",
+        //         "data": [
+        //             {
+        //                 "clTReqId": "",
+        //                 "instId": "ETH-USDT",
+        //                 "side": "buy",
+        //                 "fillPx": "2932.401044",
+        //                 "baseCcy": "ETH",
+        //                 "quoteCcy": "USDT",
+        //                 "fillBaseSz": "0.01023052",
+        //                 "state": "fullyFilled",
+        //                 "tradeId": "trader16461885203381437",
+        //                 "fillQuoteSz": "30",
+        //                 "ts": "1646188520000"
+        //             }
+        //         ],
+        //         "msg": ""
+        //     }
+        //
+        object data = this.safeList(response, "data", new List<object>() {});
+        object result = this.safeDict(data, 0, new Dictionary<string, object>() {});
+        object fromCurrencyId = this.safeString(result, "baseCcy");
+        object toCurrencyId = this.safeString(result, "quoteCcy");
+        object fromCurrency = null;
+        object toCurrency = null;
+        if (isTrue(!isEqual(fromCurrencyId, null)))
+        {
+            fromCurrency = this.currency(fromCurrencyId);
+        }
+        if (isTrue(!isEqual(toCurrencyId, null)))
+        {
+            toCurrency = this.currency(toCurrencyId);
+        }
+        return this.parseConversion(result, fromCurrency, toCurrency);
+    }
+
+    public async virtual Task<object> fetchConvertTradeHistory(object code = null, object since = null, object limit = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name okx#fetchConvertTradeHistory
+        * @description fetch the users history of conversion trades
+        * @see https://www.okx.com/docs-v5/en/#funding-account-rest-api-get-convert-history
+        * @param {string} [code] the unified currency code
+        * @param {int} [since] the earliest time in ms to fetch conversions for
+        * @param {int} [limit] the maximum number of conversion structures to retrieve
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {int} [params.until] timestamp in ms of the latest conversion to fetch
+        * @returns {object[]} a list of [conversion structures]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object request = new Dictionary<string, object>() {};
+        var requestparametersVariable = this.handleUntilOption("after", request, parameters);
+        request = ((IList<object>)requestparametersVariable)[0];
+        parameters = ((IList<object>)requestparametersVariable)[1];
+        if (isTrue(!isEqual(since, null)))
+        {
+            ((IDictionary<string,object>)request)["before"] = since;
+        }
+        if (isTrue(!isEqual(limit, null)))
+        {
+            ((IDictionary<string,object>)request)["limit"] = limit;
+        }
+        object response = await this.privateGetAssetConvertHistory(this.extend(request, parameters));
+        //
+        //     {
+        //         "code": "0",
+        //         "data": [
+        //             {
+        //                 "clTReqId": "",
+        //                 "instId": "ETH-USDT",
+        //                 "side": "buy",
+        //                 "fillPx": "2932.401044",
+        //                 "baseCcy": "ETH",
+        //                 "quoteCcy": "USDT",
+        //                 "fillBaseSz": "0.01023052",
+        //                 "state": "fullyFilled",
+        //                 "tradeId": "trader16461885203381437",
+        //                 "fillQuoteSz": "30",
+        //                 "ts": "1646188520000"
+        //             }
+        //         ],
+        //         "msg": ""
+        //     }
+        //
+        object rows = this.safeList(response, "data", new List<object>() {});
+        return this.parseConversions(rows, code, "baseCcy", "quoteCcy", since, limit);
+    }
+
     public override object parseConversion(object conversion, object fromCurrency = null, object toCurrency = null)
     {
         //
@@ -8157,6 +8394,22 @@ public partial class okx : Exchange
         //         "state": "fullyFilled",
         //         "tradeId": "trader16461885203381437",
         //         "ts": "1646188520338"
+        //     }
+        //
+        // fetchConvertTrade, fetchConvertTradeHistory
+        //
+        //     {
+        //         "clTReqId": "",
+        //         "instId": "ETH-USDT",
+        //         "side": "buy",
+        //         "fillPx": "2932.401044",
+        //         "baseCcy": "ETH",
+        //         "quoteCcy": "USDT",
+        //         "fillBaseSz": "0.01023052",
+        //         "state": "fullyFilled",
+        //         "tradeId": "trader16461885203381437",
+        //         "fillQuoteSz": "30",
+        //         "ts": "1646188520000"
         //     }
         //
         object timestamp = this.safeInteger2(conversion, "quoteTime", "ts");
@@ -8398,5 +8651,94 @@ public partial class okx : Exchange
         object data = this.safeList(response, "data");
         object modifications = this.parseMarginModifications(data);
         return this.filterBySymbolSinceLimit(modifications, symbol, since, limit);
+    }
+
+    public async override Task<object> fetchPositionsHistory(object symbols = null, object since = null, object limit = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name okx#fetchPositionsHistory
+        * @description fetches historical positions
+        * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-positions-history
+        * @param {string} [symbols] unified market symbols
+        * @param {int} [since] timestamp in ms of the earliest position to fetch
+        * @param {int} [limit] the maximum amount of records to fetch, default=100, max=100
+        * @param {object} params extra parameters specific to the exchange api endpoint
+        * @param {string} [params.marginMode] "cross" or "isolated"
+        *
+        * EXCHANGE SPECIFIC PARAMETERS
+        * @param {string} [params.instType] margin, swap, futures or option
+        * @param {string} [params.type] the type of latest close position 1: close position partially, 2：close all, 3：liquidation, 4：partial liquidation; 5：adl, is it is the latest type if there are several types for the same position
+        * @param {string} [params.posId] position id, there is attribute expiration, the posid will be expired if it is more than 30 days after the last full close position, then position will use new posid
+        * @param {string} [params.before] timestamp in ms of the earliest position to fetch based on the last update time of the position
+        * @param {string} [params.after] timestamp in ms of the latest position to fetch based on the last update time of the position
+        * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object marginMode = this.safeString(parameters, "marginMode");
+        object instType = this.safeStringUpper(parameters, "instType");
+        parameters = this.omit(parameters, new List<object>() {"until", "marginMode", "instType"});
+        if (isTrue(isEqual(limit, null)))
+        {
+            limit = 100;
+        }
+        object request = new Dictionary<string, object>() {
+            { "limit", limit },
+        };
+        if (isTrue(!isEqual(symbols, null)))
+        {
+            object symbolsLength = getArrayLength(symbols);
+            if (isTrue(isEqual(symbolsLength, 1)))
+            {
+                object market = this.market(getValue(symbols, 0));
+                ((IDictionary<string,object>)request)["instId"] = getValue(market, "id");
+            }
+        }
+        if (isTrue(!isEqual(marginMode, null)))
+        {
+            ((IDictionary<string,object>)request)["mgnMode"] = marginMode;
+        }
+        if (isTrue(!isEqual(instType, null)))
+        {
+            ((IDictionary<string,object>)request)["instType"] = instType;
+        }
+        object response = await this.privateGetAccountPositionsHistory(this.extend(request, parameters));
+        //
+        //    {
+        //        code: '0',
+        //        data: [
+        //            {
+        //                cTime: '1708735940395',
+        //                ccy: 'USDT',
+        //                closeAvgPx: '0.6330444444444444',
+        //                closeTotalPos: '27',
+        //                direction: 'long',
+        //                fee: '-1.69566',
+        //                fundingFee: '-11.870404179341788',
+        //                instId: 'XRP-USDT-SWAP',
+        //                instType: 'SWAP',
+        //                lever: '3.0',
+        //                liqPenalty: '0',
+        //                mgnMode: 'cross',
+        //                openAvgPx: '0.623',
+        //                openMaxPos: '15',
+        //                pnl: '27.11999999999988',
+        //                pnlRatio: '0.0241732402722634',
+        //                posId: '681423155054862336',
+        //                realizedPnl: '13.553935820658092',
+        //                triggerPx: '',
+        //                type: '2',
+        //                uTime: '1711088748170',
+        //                uly: 'XRP-USDT'
+        //            },
+        //            ...
+        //        ],
+        //        msg: ''
+        //    }
+        //
+        object data = this.safeList(response, "data");
+        object positions = this.parsePositions(data, symbols, parameters);
+        return this.filterBySinceLimit(positions, since, limit);
     }
 }

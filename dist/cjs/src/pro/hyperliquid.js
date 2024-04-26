@@ -64,7 +64,7 @@ class hyperliquid extends hyperliquid$1 {
             'method': 'subscribe',
             'subscription': {
                 'type': 'l2Book',
-                'coin': market['base'],
+                'coin': market['swap'] ? market['base'] : market['id'],
             },
         };
         const message = this.extend(request, params);
@@ -99,7 +99,7 @@ class hyperliquid extends hyperliquid$1 {
         //
         const entry = this.safeDict(message, 'data', {});
         const coin = this.safeString(entry, 'coin');
-        const marketId = coin + '/USDC:USDC';
+        const marketId = this.coinToMarketId(coin);
         const market = this.market(marketId);
         const symbol = market['symbol'];
         const rawData = this.safeList(entry, 'levels', []);
@@ -230,7 +230,7 @@ class hyperliquid extends hyperliquid$1 {
             'method': 'subscribe',
             'subscription': {
                 'type': 'trades',
-                'coin': market['base'],
+                'coin': market['swap'] ? market['base'] : market['id'],
             },
         };
         const message = this.extend(request, params);
@@ -260,7 +260,7 @@ class hyperliquid extends hyperliquid$1 {
         const entry = this.safeList(message, 'data', []);
         const first = this.safeDict(entry, 0, {});
         const coin = this.safeString(first, 'coin');
-        const marketId = coin + '/USDC:USDC';
+        const marketId = this.coinToMarketId(coin);
         const market = this.market(marketId);
         const symbol = market['symbol'];
         if (!(symbol in this.trades)) {
@@ -315,7 +315,7 @@ class hyperliquid extends hyperliquid$1 {
         const price = this.safeString(trade, 'px');
         const amount = this.safeString(trade, 'sz');
         const coin = this.safeString(trade, 'coin');
-        const marketId = coin + '/USDC:USDC';
+        const marketId = this.coinToMarketId(coin);
         market = this.safeMarket(marketId, undefined);
         const symbol = market['symbol'];
         const id = this.safeString(trade, 'tid');
@@ -360,7 +360,7 @@ class hyperliquid extends hyperliquid$1 {
             'method': 'subscribe',
             'subscription': {
                 'type': 'candle',
-                'coin': market['base'],
+                'coin': market['swap'] ? market['base'] : market['id'],
                 'interval': timeframe,
             },
         };
@@ -392,7 +392,8 @@ class hyperliquid extends hyperliquid$1 {
         //
         const data = this.safeDict(message, 'data', {});
         const base = this.safeString(data, 's');
-        const symbol = base + '/USDC:USDC';
+        const marketId = this.coinToMarketId(base);
+        const symbol = this.safeSymbol(marketId);
         const timeframe = this.safeString(data, 'i');
         if (!(symbol in this.ohlcvs)) {
             this.ohlcvs[symbol] = {};

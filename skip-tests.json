@@ -72,21 +72,6 @@
             }
         }
     },
-    "binanceusdm ": {
-        "httpsProxy": "http://5.75.153.75:8002",
-        "wsProxy": "http://5.75.153.75:8002",
-        "skipMethods": {
-            "orderBook": {
-                "spread": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269352042#L3463"
-            },
-            "watchOrderBook": {
-                "timestamp": "not present https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L3539"
-            },
-            "watchOrderBookForSymbols": {
-                "timestamp": "same"
-            }
-        }
-    },
     "binanceus": {
         "skipMethods": {
             "loadMarkets": {
@@ -117,6 +102,7 @@
     },
     "binanceusdm": {
         "httpsProxy": "http://5.75.153.75:8002",
+        "wsProxy": "http://5.75.153.75:8002",
         "skipMethods": {
             "ticker": {
                 "baseVolume": "quoteVolume >= baseVolume * low is failing, https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L2466"
@@ -131,7 +117,15 @@
                 "code": "not provided",
                 "referenceId": "not provided"
             },
-            "fetchBalance": "tmp skip"
+            "fetchBalance": "tmp skip",
+            "watchOrderBook": {
+                "spread": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269352042#L3463",
+                "timestamp": "not present https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L3539"
+            },
+            "watchOrderBookForSymbols": {
+                "spread": "same",
+                "timestamp": "same"
+            }
         }
     },
     "bit2c": {
@@ -623,11 +617,21 @@
         }
     },
     "coinbase": {
-        "skip": "private endpoints",
-        "skipWs": "needs auth",
         "skipMethods": {
+            "loadMarkets": {
+                "taker":"is undefined",
+                "maker":"is undefined",
+                "currencyIdAndCode": "some curr not available",
+                "networks": "not available"
+            },
+            "fetchTicker": "private",
+            "fetchTickers": "private",
+            "fetchBidsAsks": "private",
             "fetchCurrencies": {
-                "precision": "not provided"
+                "precision": "not provided",
+                "networks": "not provided",
+                "deposit":"not provided",
+                "withdraw": "not provided"
             },
             "fetchTrades": "datetime is not same as timestamp"
         }

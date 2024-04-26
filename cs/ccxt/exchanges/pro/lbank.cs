@@ -235,7 +235,7 @@ public partial class lbank : ccxt.lbank
         }
     }
 
-    public async virtual Task<object> fetchTickerWs(object symbol, object parameters = null)
+    public async override Task<object> fetchTickerWs(object symbol, object parameters = null)
     {
         /**
         * @method

@@ -1,6 +1,6 @@
 {
   "name": "ccxt",
-  "version": "4.3.0",
+  "version": "4.3.8",
   "description": "A JavaScript / TypeScript / Python / C# / PHP cryptocurrency trading library with support for 100+ exchanges",
   "unpkg": "dist/ccxt.browser.js",
   "type": "module",
@@ -25,7 +25,7 @@
   },
   "readme": "README.md",
   "scripts": {
-    "benchmark": "node --loader ts-node/esm examples/ts/benchmark.ts"
+    "benchmark": "tsx examples/ts/benchmark.ts",
     "build": "npm run pre-transpile && npm run transpile && npm run post-transpile && npm run update-badges && npm run build-docs",
     "build-docs": "node jsdoc2md.js && node examples2md.js",
     "buildCS": "dotnet build cs/ccxt.sln",
@@ -45,7 +45,7 @@
     "cli.js": "node ./examples/js/cli.js",
     "cli.php": "php ./examples/php/cli.php",
     "cli.py": "python3 ./examples/py/cli.py",
-    "cli.ts": "node --loader ts-node/esm examples/ts/cli.ts",
+    "cli.ts": "tsx examples/ts/cli.ts",
     "commonjs-test": "node test-commonjs.cjs",
     "copy-python-files": "npm run copy-python-package && npm run copy-python-license && npm run copy-python-keys && npm run copy-python-readme",
     "copy-python-keys": "node build/copy keys.json python/keys.json",
@@ -128,8 +128,8 @@
     "test-ws-cs-base": "npm run test-cs-cache && npm run test-cs-orderbook",
     "test-ws-php-base": "npm run test-php-cache && npm run test-php-orderbook",
     "transpile": "npm run transpileRest && npm run transpileWs",
-    "transpileCS": "node --no-warnings --loader ts-node/esm build/csharpTranspiler.ts --multi",
-    "transpileCSWs": "node --no-warnings --loader ts-node/esm build/csharpTranspiler.ts --ws",
+    "transpileCS": "tsx build/csharpTranspiler.ts --multi",
+    "transpileCSWs": "tsx build/csharpTranspiler.ts --ws",
     "transpileRest": "node build/transpile",
     "transpileWs": "node build/transpileWS",
     "tsBuild": "tsc || echo \"\"",
@@ -137,7 +137,7 @@
     "tsBuildFile": "tsc --skipLibCheck --strictNullChecks false --strict --noImplicitAny false --esModuleInterop --isolatedModules false --forceConsistentCasingInFileNames --removeComments false --target ES2020 --declaration --allowJs --checkJs false --moduleResolution Node --module ES2022 --outDir ./js/src --lib ES2020.BigInt --lib dom ",
     "update-badges": "node build/update-badges",
     "update-links": "node build/update-links",
-    "validate-types": "node --loader ts-node/esm build/validate-types.ts",
+    "validate-types": "tsx build/validate-types.ts",
     "vss": "node build/vss"
   },
   "types": "./js/ccxt.d.ts",
@@ -168,7 +168,7 @@
     "rollup-plugin-execute": "1.1.1",
     "terser-webpack-plugin": "^5.3.9",
     "ts-loader": "^9.4.2",
-    "ts-node": "^10.9.1",
+    "tsx": "^4.7.2",
     "typescript": "4.7.4",
     "webpack": "^5.76.2",
     "webpack-cli": "^5.0.1"
