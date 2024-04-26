@@ -17,7 +17,6 @@ fi
 [[ "$RUNSTEP" == "finalstage" ]] && STAGE_DEPLOY="TRUE" || STAGE_DEPLOY="FALSE"
 
 echo "RUNSTEP: $RUNSTEP"
-echo "STAGE_DEPLOY: $STAGE_DEPLOY"
 msgPrefix="⬤ BUILD.SH : "
 
 function run_tests {
