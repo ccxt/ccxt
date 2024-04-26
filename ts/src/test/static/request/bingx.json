@@ -1039,6 +1039,7 @@
             },
             {
                 "description": "edit limit order with tp/sl",
+                "disabled": true,
                 "method": "editOrder",
                 "url": "https://open-api.bingx.com/openApi/swap/v1/trade/cancelReplace?cancelOrderId=1783855116533854208&cancelReplaceMode=STOP_ON_FAILURE&positionSide=BOTH&price=50&quantity=1&side=BUY&stopLoss%5BstopPrice%5D=31&symbol=LTC-USDT&takeProfit%5BstopPrice%5D=151&timestamp=1714139224397&type=LIMIT&signature=3d7478c3f8a6d96717f2478c9b03c926295fbb66977023f81013d3861ce29719",
                 "input": [
