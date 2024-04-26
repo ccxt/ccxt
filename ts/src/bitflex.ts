@@ -689,8 +689,8 @@ export default class bitflex extends Exchange {
             },
             'limits': {
                 'leverage': {
-                    'min': undefined, // todo
-                    'max': undefined, // todo
+                    'min': undefined,
+                    'max': undefined, // todo can we calculate it?
                 },
                 'amount': {
                     'min': this.safeFloat (amountPrecisionAndLimits, 'minQty'),
@@ -2887,7 +2887,7 @@ export default class bitflex extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    async transfer (code: string, amount: number, fromAccount: string, toAccount: string, params = {}): Promise<TransferEntry> { // todo transfer to account with special index subaccount
+    async transfer (code: string, amount: number, fromAccount: string, toAccount: string, params = {}): Promise<TransferEntry> {
         /**
          * @method
          * @name biflex#transfer
@@ -2896,9 +2896,11 @@ export default class bitflex extends Exchange {
          * @see https://docs.bitflex.com/contract#transfer-pending
          * @param {string} code unified currency code
          * @param {float} amount amount to transfer
-         * @param {string} fromAccount account to transfer from
-         * @param {string} toAccount account to transfer to
+         * @param {string} fromAccount spot or swap - account to transfer from
+         * @param {string} toAccount spot or swap - account to transfer to
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.fromAccountIndex] Sub-account index to transfer from
+         * @param {string} [params.toAccountIndex] Sub-account index to transfer to
          * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
          */
         await this.loadMarkets ();
@@ -2926,8 +2928,8 @@ export default class bitflex extends Exchange {
         //
         //    { "success": "true" }
         //
-        const status = this.safeString (transfer, 'success');
         const timestamp = this.safeInteger (transfer, 'timestamp');
+        const isOk = this.safeBool (transfer, 'success', false);
         return {
             'info': transfer,
             'id': undefined,
@@ -2937,15 +2939,8 @@ export default class bitflex extends Exchange {
             'amount': undefined,
             'fromAccount': undefined,
             'toAccount': undefined,
-            'status': this.parseTransferStatus (status),
+            'status': isOk ? 'ok' : 'failed',
         };
-    }
-
-    parseTransferStatus (status) {
-        const statuses = {
-            'true': 'ok',
-        };
-        return this.safeString (statuses, status, status);
     }
 
     async withdraw (code: string, amount: number, address, tag = undefined, params = {}) {
@@ -3506,7 +3501,7 @@ export default class bitflex extends Exchange {
         //         "indexPrice": "3136.2",
         //         "index": "ETHUSDT",
         //         "indexBaseToken": "USDT",
-        //         "startTs": "1714031502", // todo check
+        //         "startTs": "1714031502", // todo can we use it as a timestamp?
         //         "endTs": "1714117902",
         //         "fundingRate": "0.000138400145284707",
         //         "nextFundingRate": "0.000153806950119",
