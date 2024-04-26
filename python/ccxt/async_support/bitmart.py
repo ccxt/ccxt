@@ -2961,7 +2961,7 @@ class bitmart(Exchange, ImplicitAPI):
             return code
         return self.network_id_to_code(networkId)
 
-    async def withdraw(self, code: str, amount: float, address, tag=None, params={}):
+    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code

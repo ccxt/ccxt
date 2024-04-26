@@ -2612,7 +2612,7 @@ class hitbtc extends Exchange {
         );
     }
 
-    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
         /**
          * make a withdrawal
          * @see https://api.hitbtc.com/#withdraw-crypto
@@ -3164,8 +3164,9 @@ class hitbtc extends Exchange {
                 throw new ArgumentsRequired($this->id . ' modifyMarginHelper() requires a $leverage parameter for swap markets');
             }
         }
-        if ($amount !== 0) {
-            $amount = $this->amount_to_precision($symbol, $amount);
+        $stringAmount = $this->number_to_string($amount);
+        if ($stringAmount !== '0') {
+            $amount = $this->amount_to_precision($symbol, $stringAmount);
         } else {
             $amount = '0';
         }
@@ -3252,7 +3253,7 @@ class hitbtc extends Exchange {
         );
     }
 
-    public function reduce_margin(string $symbol, $amount, $params = array ()): array {
+    public function reduce_margin(string $symbol, float $amount, $params = array ()): array {
         /**
          * remove margin from a position
          * @see https://api.hitbtc.com/#create-update-margin-account-2
@@ -3264,13 +3265,13 @@ class hitbtc extends Exchange {
          * @param {bool} [$params->margin] true for reducing spot-margin
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=reduce-margin-structure margin structure~
          */
-        if ($amount !== 0) {
+        if ($this->number_to_string($amount) !== '0') {
             throw new BadRequest($this->id . ' reduceMargin() on hitbtc requires the $amount to be 0 and that will remove the entire margin amount');
         }
         return $this->modify_margin_helper($symbol, $amount, 'reduce', $params);
     }
 
-    public function add_margin(string $symbol, $amount, $params = array ()): array {
+    public function add_margin(string $symbol, float $amount, $params = array ()): array {
         /**
          * add margin
          * @see https://api.hitbtc.com/#create-update-margin-account-2

@@ -1538,118 +1538,84 @@ export default class coinex extends Exchange {
 
     async fetchMarginBalance (params = {}) {
         await this.loadMarkets ();
-        const symbol = this.safeString (params, 'symbol');
-        let marketId = this.safeString (params, 'market');
-        let market: Market = undefined;
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-            marketId = market['id'];
-        } else if (marketId === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchMarginBalance() fetching a margin account requires a market parameter or a symbol parameter');
-        }
-        params = this.omit (params, [ 'symbol', 'market' ]);
-        const request = {
-            'market': marketId,
-        };
-        const response = await this.v1PrivateGetMarginAccount (this.extend (request, params));
+        const response = await this.v2PrivateGetAssetsMarginBalance (params);
         //
-        //      {
-        //          "code":    0,
-        //           "data": {
-        //              "account_id":    126,
-        //              "leverage":    3,
-        //              "market_type":   "AAVEUSDT",
-        //              "sell_asset_type":   "AAVE",
-        //              "buy_asset_type":   "USDT",
-        //              "balance": {
-        //                  "sell_type": "0.3",     // borrowed
-        //                  "buy_type": "30"
-        //                  },
-        //              "frozen": {
-        //                  "sell_type": "0",
-        //                  "buy_type": "0"
-        //                  },
-        //              "loan": {
-        //                  "sell_type": "0.3", // loan
-        //                  "buy_type": "0"
-        //                  },
-        //              "interest": {
-        //                  "sell_type": "0.0000125",
-        //                  "buy_type": "0"
-        //                  },
-        //              "can_transfer": {
-        //                  "sell_type": "0.02500646",
-        //                  "buy_type": "4.28635738"
-        //                  },
-        //              "warn_rate":   "",
-        //              "liquidation_price":   ""
-        //              },
-        //          "message": "Success"
-        //      }
+        //     {
+        //         "data": [
+        //             {
+        //                 "margin_account": "BTCUSDT",
+        //                 "base_ccy": "BTC",
+        //                 "quote_ccy": "USDT",
+        //                 "available": {
+        //                     "base_ccy": "0.00000026",
+        //                     "quote_ccy": "0"
+        //                 },
+        //                 "frozen": {
+        //                     "base_ccy": "0",
+        //                     "quote_ccy": "0"
+        //                 },
+        //                 "repaid": {
+        //                     "base_ccy": "0",
+        //                     "quote_ccy": "0"
+        //                 },
+        //                 "interest": {
+        //                     "base_ccy": "0",
+        //                     "quote_ccy": "0"
+        //                 },
+        //                 "rik_rate": "",
+        //                 "liq_price": ""
+        //             },
+        //         ],
+        //         "code": 0,
+        //         "message": "OK"
+        //     }
         //
         const result = { 'info': response };
-        const data = this.safeValue (response, 'data', {});
-        const free = this.safeValue (data, 'can_transfer', {});
-        const total = this.safeValue (data, 'balance', {});
-        const loan = this.safeValue (data, 'loan', {});
-        const interest = this.safeValue (data, 'interest', {});
-        //
-        const sellAccount = this.account ();
-        const sellCurrencyId = this.safeString (data, 'sell_asset_type');
-        const sellCurrencyCode = this.safeCurrencyCode (sellCurrencyId);
-        sellAccount['free'] = this.safeString (free, 'sell_type');
-        sellAccount['total'] = this.safeString (total, 'sell_type');
-        const sellDebt = this.safeString (loan, 'sell_type');
-        const sellInterest = this.safeString (interest, 'sell_type');
-        sellAccount['debt'] = Precise.stringAdd (sellDebt, sellInterest);
-        result[sellCurrencyCode] = sellAccount;
-        //
-        const buyAccount = this.account ();
-        const buyCurrencyId = this.safeString (data, 'buy_asset_type');
-        const buyCurrencyCode = this.safeCurrencyCode (buyCurrencyId);
-        buyAccount['free'] = this.safeString (free, 'buy_type');
-        buyAccount['total'] = this.safeString (total, 'buy_type');
-        const buyDebt = this.safeString (loan, 'buy_type');
-        const buyInterest = this.safeString (interest, 'buy_type');
-        buyAccount['debt'] = Precise.stringAdd (buyDebt, buyInterest);
-        result[buyCurrencyCode] = buyAccount;
-        //
+        const balances = this.safeList (response, 'data', []);
+        for (let i = 0; i < balances.length; i++) {
+            const entry = balances[i];
+            const free = this.safeDict (entry, 'available', {});
+            const used = this.safeDict (entry, 'frozen', {});
+            const loan = this.safeDict (entry, 'repaid', {});
+            const interest = this.safeDict (entry, 'interest', {});
+            const baseAccount = this.account ();
+            const baseCurrencyId = this.safeString (entry, 'base_ccy');
+            const baseCurrencyCode = this.safeCurrencyCode (baseCurrencyId);
+            baseAccount['free'] = this.safeString (free, 'base_ccy');
+            baseAccount['used'] = this.safeString (used, 'base_ccy');
+            const baseDebt = this.safeString (loan, 'base_ccy');
+            const baseInterest = this.safeString (interest, 'base_ccy');
+            baseAccount['debt'] = Precise.stringAdd (baseDebt, baseInterest);
+            result[baseCurrencyCode] = baseAccount;
+        }
         return this.safeBalance (result);
     }
 
     async fetchSpotBalance (params = {}) {
         await this.loadMarkets ();
-        const response = await this.v1PrivateGetBalanceInfo (params);
+        const response = await this.v2PrivateGetAssetsSpotBalance (params);
         //
         //     {
-        //       "code": 0,
-        //       "data": {
-        //         "BCH": {                     # BCH account
-        //           "available": "13.60109",   # Available BCH
-        //           "frozen": "0.00000"        # Frozen BCH
-        //         },
-        //         "BTC": {                     # BTC account
-        //           "available": "32590.16",   # Available BTC
-        //           "frozen": "7000.00"        # Frozen BTC
-        //         },
-        //         "ETH": {                     # ETH account
-        //           "available": "5.06000",    # Available ETH
-        //           "frozen": "0.00000"        # Frozen ETH
-        //         }
-        //       },
-        //       "message": "Ok"
+        //         "code": 0,
+        //         "data": [
+        //             {
+        //                 "available": "0.00000046",
+        //                 "ccy": "USDT",
+        //                 "frozen": "0"
+        //             }
+        //         ],
+        //         "message": "OK"
         //     }
         //
         const result = { 'info': response };
-        const balances = this.safeValue (response, 'data', {});
-        const currencyIds = Object.keys (balances);
-        for (let i = 0; i < currencyIds.length; i++) {
-            const currencyId = currencyIds[i];
+        const balances = this.safeList (response, 'data', []);
+        for (let i = 0; i < balances.length; i++) {
+            const entry = balances[i];
+            const currencyId = this.safeString (entry, 'ccy');
             const code = this.safeCurrencyCode (currencyId);
-            const balance = this.safeValue (balances, currencyId, {});
             const account = this.account ();
-            account['free'] = this.safeString (balance, 'available');
-            account['used'] = this.safeString (balance, 'frozen');
+            account['free'] = this.safeString (entry, 'available');
+            account['used'] = this.safeString (entry, 'frozen');
             result[code] = account;
         }
         return this.safeBalance (result);
@@ -1657,34 +1623,32 @@ export default class coinex extends Exchange {
 
     async fetchSwapBalance (params = {}) {
         await this.loadMarkets ();
-        const response = await this.v1PerpetualPrivateGetAssetQuery (params);
+        const response = await this.v2PrivateGetAssetsFuturesBalance (params);
         //
         //     {
         //         "code": 0,
-        //         "data": {
-        //             "USDT": {
-        //                 "available": "37.24817690383456000000",
-        //                 "balance_total": "37.24817690383456000000",
-        //                 "frozen": "0.00000000000000000000",
-        //                 "margin": "0.00000000000000000000",
-        //                 "profit_unreal": "0.00000000000000000000",
-        //                 "transfer": "37.24817690383456000000"
+        //         "data": [
+        //             {
+        //                 "available": "0.00000046",
+        //                 "ccy": "USDT",
+        //                 "frozen": "0",
+        //                 "margin": "0",
+        //                 "transferrable": "0.00000046",
+        //                 "unrealized_pnl": "0"
         //             }
-        //         },
+        //         ],
         //         "message": "OK"
         //     }
         //
         const result = { 'info': response };
-        const balances = this.safeValue (response, 'data', {});
-        const currencyIds = Object.keys (balances);
-        for (let i = 0; i < currencyIds.length; i++) {
-            const currencyId = currencyIds[i];
+        const balances = this.safeList (response, 'data', []);
+        for (let i = 0; i < balances.length; i++) {
+            const entry = balances[i];
+            const currencyId = this.safeString (entry, 'ccy');
             const code = this.safeCurrencyCode (currencyId);
-            const balance = this.safeValue (balances, currencyId, {});
             const account = this.account ();
-            account['free'] = this.safeString (balance, 'available');
-            account['used'] = this.safeString (balance, 'frozen');
-            account['total'] = this.safeString (balance, 'balance_total');
+            account['free'] = this.safeString (entry, 'available');
+            account['used'] = this.safeString (entry, 'frozen');
             result[code] = account;
         }
         return this.safeBalance (result);
@@ -1692,38 +1656,29 @@ export default class coinex extends Exchange {
 
     async fetchFinancialBalance (params = {}) {
         await this.loadMarkets ();
-        const response = await this.v1PrivateGetAccountInvestmentBalance (params);
+        const response = await this.v2PrivateGetAssetsFinancialBalance (params);
         //
         //     {
-        //          "code": 0,
-        //          "data": [
-        //              {
-        //                  "asset": "CET",
-        //                  "available": "0",
-        //                  "frozen": "0",
-        //                  "lock": "0",
-        //              },
-        //              {
-        //                  "asset": "USDT",
-        //                  "available": "999900",
-        //                  "frozen": "0",
-        //                  "lock": "0"
-        //              }
-        //          ],
-        //          "message": "Success"
-        //      }
+        //         "code": 0,
+        //         "data": [
+        //             {
+        //                 "available": "0.00000046",
+        //                 "ccy": "USDT",
+        //                 "frozen": "0"
+        //             }
+        //         ],
+        //         "message": "OK"
+        //     }
         //
         const result = { 'info': response };
-        const balances = this.safeValue (response, 'data', {});
+        const balances = this.safeList (response, 'data', []);
         for (let i = 0; i < balances.length; i++) {
-            const balance = balances[i];
-            const currencyId = this.safeString (balance, 'asset');
+            const entry = balances[i];
+            const currencyId = this.safeString (entry, 'ccy');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['free'] = this.safeString (balance, 'available');
-            const frozen = this.safeString (balance, 'frozen');
-            const locked = this.safeString (balance, 'lock');
-            account['used'] = Precise.stringAdd (frozen, locked);
+            account['free'] = this.safeString (entry, 'available');
+            account['used'] = this.safeString (entry, 'frozen');
             result[code] = account;
         }
         return this.safeBalance (result);
@@ -1734,10 +1689,10 @@ export default class coinex extends Exchange {
          * @method
          * @name coinex#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account001_account_info         // spot
-         * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account004_investment_balance   // financial
-         * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account006_margin_account       // margin
-         * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http016_asset_query       // swap
+         * @see https://docs.coinex.com/api/v2/assets/balance/http/get-spot-balance         // spot
+         * @see https://docs.coinex.com/api/v2/assets/balance/http/get-futures-balance      // swap
+         * @see https://docs.coinex.com/api/v2/assets/balance/http/get-marigin-balance      // margin
+         * @see https://docs.coinex.com/api/v2/assets/balance/http/get-financial-balance    // financial
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.type] 'margin', 'swap', 'financial', or 'spot'
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
@@ -5819,7 +5774,11 @@ export default class coinex extends Exchange {
                 this.checkRequiredCredentials ();
                 query = this.keysort (query);
                 const urlencoded = this.rawencode (query);
-                const preparedString = method + '/' + version + '/' + path + '?' + urlencoded + nonce + this.secret;
+                let preparedString = method + '/' + version + '/' + path;
+                if (urlencoded) {
+                    preparedString += '?' + urlencoded;
+                }
+                preparedString += nonce + this.secret;
                 const signature = this.hash (this.encode (preparedString), sha256);
                 headers = {
                     'X-COINEX-KEY': this.apiKey,
@@ -5827,7 +5786,9 @@ export default class coinex extends Exchange {
                     'X-COINEX-TIMESTAMP': nonce,
                 };
                 if ((method === 'GET') || (method === 'DELETE') || (method === 'PUT')) {
-                    url += '?' + urlencoded;
+                    if (urlencoded) {
+                        url += '?' + urlencoded;
+                    }
                 } else {
                     body = this.json (query);
                 }

@@ -1537,6 +1537,14 @@
                 "url": "https://www.okx.com/api/v5/asset/convert/history",
                 "input": []
             }
+        ],
+        "fetchPositionMode": [
+            {
+                "description": "Fetch position mode",
+                "method": "fetchPositionMode",
+                "url": "https://www.okx.com/api/v5/account/config",
+                "input": []
+            }
         ]
     }
 }
