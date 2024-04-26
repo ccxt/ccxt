@@ -4,6 +4,7 @@ set -e
 if [ "${BASH_VERSION:0:1}" -lt 4 ]; then
   echo "EPROGMISMATCH: bash version must be at least 4" >&2
   exit 75
+      if [ "$STAGE_PYJSPHP" == "TRUE" ]; then
 fi
 
 if [ $# -gt 0 ]; then
@@ -38,8 +39,7 @@ function run_tests {
   if [ -z "$rest_pid" ]; then
     if [ -z "$rest_args" ] || { [ -n "$rest_args" ] && [ "$rest_args" != "skip" ]; }; then
       # shellcheck disable=SC2086
-      if [ "$STAGE_PYJSPHP" == "TRUE" ]; then
-        npm run commonjs-test && ./package-test.sh && npm run test-pyjsphp --useProxy -- $rest_args &
+        npm run test-pyjsphp --useProxy -- $rest_args &
       fi
       if [ "$STAGE_CSHARP" == "TRUE" ]; then
         npm run test-cs --useProxy -- $rest_args &
@@ -101,6 +101,8 @@ build_and_test_all () {
     if [ "$STAGE_PYJSPHP" == "TRUE" ]; then
       npm run test-base-pyjsphp
       npm run test-base-ws-pyjsphp
+      npm run commonjs-test
+      npm run package-test
     fi
     if [ "$STAGE_CSHARP" == "TRUE" ]; then
       npm run test-base-cs

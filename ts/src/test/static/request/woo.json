@@ -192,6 +192,26 @@
                 "output": "symbol=SPOT_LTC_USDT"
             }
         ],
+        "cancelAllOrdersAfter": [
+            {
+                "description": "Cancel all orders after",
+                "method": "cancelAllOrdersAfter",
+                "url": "https://api.woo.org/v1/order/cancel_all_after",
+                "input": [
+                    10000
+                ],
+                "output": "trigger_after=10000"
+            },
+            {
+                "description": "Close cancel all orders after",
+                "method": "cancelAllOrdersAfter",
+                "url": "https://api.woo.org/v1/order/cancel_all_after",
+                "input": [
+                    0
+                ],
+                "output": "trigger_after=0"
+            }
+        ],
         "fetchBalance": [
             {
                 "description": "Fetch spot Balance",
@@ -580,6 +600,16 @@
                 "method": "fetchClosedOrders",
                 "url": "https://api.staging.woo.org/v1/orders?size=500&status=COMPLETED",
                 "input": []
+            }
+        ],
+        "fetchConvertTrade": [
+            {
+                "description": "Fetch a conversion trade",
+                "method": "fetchConvertTrade",
+                "url": "https://api.staging.woo.org/v3/convert/trade?quoteId=12",
+                "input": [
+                  "12"
+                ]
             }
         ]
     }

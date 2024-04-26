@@ -108,7 +108,9 @@ class kucoin(Exchange, ImplicitAPI):
                 'fetchOrderBooks': False,
                 'fetchOrdersByStatus': True,
                 'fetchOrderTrades': True,
+                'fetchPositionHistory': False,
                 'fetchPositionMode': False,
+                'fetchPositionsHistory': False,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchStatus': True,
                 'fetchTicker': True,
@@ -534,7 +536,7 @@ class kucoin(Exchange, ImplicitAPI):
                     '400006': AuthenticationError,
                     '400007': AuthenticationError,
                     '400008': NotSupported,
-                    '400100': InsufficientFunds,  # {"msg":"account.available.amount","code":"400100"}
+                    '400100': InsufficientFunds,  # {"msg":"account.available.amount","code":"400100"} or {"msg":"Withdrawal amount is below the minimum requirement.","code":"400100"}
                     '400200': InvalidOrder,  # {"code":"400200","msg":"Forbidden to place an order"}
                     '400350': InvalidOrder,  # {"code":"400350","msg":"Upper limit for holding: 10,000USDT, you can still buy 10,000USDT worth of coin."}
                     '400370': InvalidOrder,  # {"code":"400370","msg":"Max. price: 0.02500000000000000000"}
@@ -1159,8 +1161,10 @@ class kucoin(Exchange, ImplicitAPI):
         #              "chains":[
         #                 {
         #                    "chainName":"ERC20",
-        #                    "chain":"eth",
+        #                    "chainId": "eth"
         #                    "withdrawalMinSize":"2999",
+        #                    "depositMinSize":null,
+        #                    "withdrawFeeRate":"0",
         #                    "withdrawalMinFee":"2999",
         #                    "isWithdrawEnabled":false,
         #                    "isDepositEnabled":false,
@@ -1263,7 +1267,7 @@ class kucoin(Exchange, ImplicitAPI):
                             'max': None,
                         },
                         'deposit': {
-                            'min': self.safe_number(chainExtraData, 'depositMinSize'),
+                            'min': self.safe_number(chain, 'depositMinSize'),
                             'max': None,
                         },
                     },
@@ -3002,7 +3006,7 @@ class kucoin(Exchange, ImplicitAPI):
             'tierBased': True,
         }
 
-    async def withdraw(self, code: str, amount: float, address, tag=None, params={}):
+    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
         """
         make a withdrawal
         :see: https://www.kucoin.com/docs/rest/funding/withdrawals/apply-withdraw
@@ -3020,7 +3024,6 @@ class kucoin(Exchange, ImplicitAPI):
         request = {
             'currency': currency['id'],
             'address': address,
-            'amount': amount,
             # 'memo': tag,
             # 'isInner': False,  # internal transfer or external withdrawal
             # 'remark': 'optional',
@@ -3032,6 +3035,8 @@ class kucoin(Exchange, ImplicitAPI):
         networkCode, params = self.handle_network_code_and_params(params)
         if networkCode is not None:
             request['chain'] = self.network_code_to_id(networkCode).lower()
+        await self.load_currency_precision(currency, networkCode)
+        request['amount'] = self.currency_to_precision(code, amount, networkCode)
         includeFee = None
         includeFee, params = self.handle_option_and_params(params, 'withdraw', 'includeFee', False)
         if includeFee:
@@ -3049,6 +3054,51 @@ class kucoin(Exchange, ImplicitAPI):
         #
         data = self.safe_dict(response, 'data', {})
         return self.parse_transaction(data, currency)
+
+    async def load_currency_precision(self, currency, networkCode: Str = None):
+        # might not have network specific precisions defined in fetchCurrencies(because of webapi failure)
+        # we should check and refetch precision once-per-instance for that specific currency & network
+        # so avoids thorwing exceptions and burden to users
+        # Note: self needs to be executed only if networkCode was provided
+        if networkCode is not None:
+            networks = currency['networks']
+            network = self.safe_dict(networks, networkCode)
+            if self.safe_number(network, 'precision') is not None:
+                # if precision exists, no need to refetch
+                return
+            # otherwise try to fetch and store in instance
+            request = {
+                'currency': currency['id'],
+                'chain': self.network_code_to_id(networkCode).lower(),
+            }
+            response = await self.privateGetWithdrawalsQuotas(request)
+            #
+            #    {
+            #        "code": "200000",
+            #        "data": {
+            #            "currency": "USDT",
+            #            "limitBTCAmount": "14.24094850",
+            #            "usedBTCAmount": "0.00000000",
+            #            "quotaCurrency": "USDT",
+            #            "limitQuotaCurrencyAmount": "999999.00000000",
+            #            "usedQuotaCurrencyAmount": "0",
+            #            "remainAmount": "999999.0000",
+            #            "availableAmount": "10.77545071",
+            #            "withdrawMinFee": "1",
+            #            "innerWithdrawMinFee": "0",
+            #            "withdrawMinSize": "10",
+            #            "isWithdrawEnabled": True,
+            #            "precision": 4,
+            #            "chain": "EOS",
+            #            "reason": null,
+            #            "lockedAmount": "0"
+            #        }
+            #    }
+            #
+            data = self.safe_dict(response, 'data', {})
+            precision = self.parse_number(self.parse_precision(self.safe_string(data, 'precision')))
+            code = currency['code']
+            self.currencies[code]['networks'][networkCode]['precision'] = precision
 
     def parse_transaction_status(self, status):
         statuses = {

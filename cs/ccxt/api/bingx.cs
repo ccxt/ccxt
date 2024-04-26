@@ -311,6 +311,11 @@ public partial class bingx : Exchange
         return await this.callAsync ("swapV2PrivatePostTradeCloseAllPositions",parameters);
     }
 
+    public async Task<object> swapV2PrivatePostTradeCancelAllAfter (object parameters = null)
+    {
+        return await this.callAsync ("swapV2PrivatePostTradeCancelAllAfter",parameters);
+    }
+
     public async Task<object> swapV2PrivatePostTradeMarginType (object parameters = null)
     {
         return await this.callAsync ("swapV2PrivatePostTradeMarginType",parameters);

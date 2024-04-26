@@ -80,8 +80,10 @@ export default class kucoinfutures extends kucoin {
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchPosition': true,
+                'fetchPositionHistory': false,
                 'fetchPositionMode': false,
                 'fetchPositions': true,
+                'fetchPositionsHistory': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchStatus': true,
                 'fetchTicker': true,
@@ -1498,7 +1500,7 @@ export default class kucoinfutures extends kucoin {
         return this.safeValue (response, 'data');
     }
 
-    async addMargin (symbol: string, amount, params = {}): Promise<MarginModification> {
+    async addMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
         /**
          * @method
          * @name kucoinfutures#addMargin
@@ -2214,8 +2216,8 @@ export default class kucoinfutures extends kucoin {
             // symbol (String) [optional] Symbol of the contract
             // side (String) [optional] buy or sell
             // type (String) [optional] limit, market, limit_stop or market_stop
-            // startAt (long) [optional] Start time (milisecond)
-            // endAt (long) [optional] End time (milisecond)
+            // startAt (long) [optional] Start time (millisecond)
+            // endAt (long) [optional] End time (millisecond)
         };
         let market = undefined;
         if (symbol !== undefined) {

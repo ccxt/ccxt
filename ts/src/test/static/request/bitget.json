@@ -757,6 +757,29 @@
                 ]
             }
         ],
+        "fetchPositionsHistory": [
+            {
+                "description": "Fetch Positions History",
+                "method": "fetchPositionsHistory",
+                "url": "https://api.bitget.com/api/v2/mix/position/history-position",
+                "input": []
+            },
+            {
+                "description": "Fill this with a description of the method call",
+                "method": "fetchPositionsHistory",
+                "url": "https://api.bitget.com/api/v2/mix/position/history-position?endTime=1709590068602&limit=1&startTime=1709589714736&symbol=XRPUSDT",
+                "input": [
+                  [
+                    "XRP/USDT:USDT"
+                  ],
+                  1709589714736,
+                  1,
+                  {
+                    "until": 1709590068602
+                  }
+                ]
+            }
+        ],
         "setLeverage": [
             {
                 "description": "Set linear leverage",
@@ -1593,6 +1616,14 @@
                   }
                 ],
                 "output": "{\"traceId\":\"1164014202462613512\",\"fromCoin\":\"USDC\",\"toCoin\":\"USDT\",\"fromCoinSize\":\"5\",\"toCoinSize\":\"4.9915035\",\"cnvtPrice\":\"0.9983007\"}"
+            }
+        ],
+        "fetchConvertTradeHistory": [
+            {
+                "description": "Fetch the conversion trade history",
+                "method": "fetchConvertTradeHistory",
+                "url": "https://api.bitget.com/api/v2/convert/convert-record?endTime=1713423544995&startTime=1713337144995",
+                "input": []
             }
         ]
     }
