@@ -259,6 +259,40 @@
                     }
                 ],
                 "output": "[{\"instId\":\"LTC-USDT\",\"side\":\"buy\",\"ordType\":\"limit\",\"sz\":\"0.5\",\"tdMode\":\"cash\",\"tgtCcy\":\"base_ccy\",\"px\":\"50\",\"clOrdId\":\"mycustomid\"}]"
+            },
+            {
+                "description": "contract with hedged market sell and stopLossPrice",
+                "method": "createOrder",
+                "url": "https://www.okx.com/api/v5/trade/order-algo",
+                "input": [
+                  "ETH/USDT:USDT",
+                  "market",
+                  "sell",
+                  1,
+                  null,
+                  {
+                    "stopLossPrice": 2000,
+                    "hedged": true
+                  }
+                ],
+                "output": "{\"instId\":\"ETH-USDT-SWAP\",\"side\":\"sell\",\"ordType\":\"conditional\",\"sz\":\"1\",\"tdMode\":\"cross\",\"slTriggerPx\":\"2000\",\"slOrdPx\":\"-1\",\"slTriggerPxType\":\"last\",\"posSide\":\"long\",\"clOrdId\":\"e847386390ce4dBC159d537bd47d91ff\",\"tag\":\"e847386590ce2dBC\"}"
+            },
+            {
+                "description": "contract with hedged market sell and reduceOnly",
+                "method": "createOrder",
+                "url": "https://www.okx.com/api/v5/trade/batch-orders",
+                "input": [
+                  "ETH/USDT:USDT",
+                  "market",
+                  "sell",
+                  1,
+                  null,
+                  {
+                    "reduceOnly": true,
+                    "hedged": true
+                  }
+                ],
+                "output": "[{\"instId\":\"ETH-USDT-SWAP\",\"side\":\"sell\",\"ordType\":\"market\",\"sz\":\"1\",\"posSide\":\"long\",\"tdMode\":\"cross\",\"clOrdId\":\"e847383590ce4dBCdb03fa5964dabfc8\",\"tag\":\"e847382590ce4dBC\"}]"
             }
         ],
         "createMarketBuyOrderWithCost": [
