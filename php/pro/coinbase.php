@@ -52,8 +52,8 @@ class coinbase extends \ccxt\async\coinbase {
         ));
     }
 
-    public function subscribe($name, $symbol = null, $params = array ()) {
-        return Async\async(function () use ($name, $symbol, $params) {
+    public function subscribe(string $name, bool $isPrivate, $symbol = null, $params = array ()) {
+        return Async\async(function () use ($name, $isPrivate, $symbol, $params) {
             /**
              * @ignore
              * subscribes to a websocket channel
@@ -64,7 +64,6 @@ class coinbase extends \ccxt\async\coinbase {
              * @return {array} subscription to a websocket channel
              */
             Async\await($this->load_markets());
-            $this->check_required_credentials();
             $market = null;
             $messageHash = $name;
             $productIds = array();
@@ -80,8 +79,6 @@ class coinbase extends \ccxt\async\coinbase {
             }
             $url = $this->urls['api']['ws'];
             $timestamp = $this->number_to_string($this->seconds());
-            $isCloudAPiKey = (mb_strpos($this->apiKey, 'organizations/') !== false) || (str_starts_with($this->secret, '-----BEGIN'));
-            $auth = $timestamp . $name . implode(',', $productIds);
             $subscribe = array(
                 'type' => 'subscribe',
                 'product_ids' => $productIds,
@@ -90,24 +87,29 @@ class coinbase extends \ccxt\async\coinbase {
                 // 'timestamp' => $timestamp,
                 // 'signature' => $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256'),
             );
-            if (!$isCloudAPiKey) {
-                $subscribe['api_key'] = $this->apiKey;
-                $subscribe['timestamp'] = $timestamp;
-                $subscribe['signature'] = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256');
-            } else {
-                if (str_starts_with($this->apiKey, '-----BEGIN')) {
-                    throw new ArgumentsRequired($this->id . ' apiKey should contain the $name (eg => organizations/3b910e93....) and not the public key');
+            if ($isPrivate) {
+                $this->check_required_credentials();
+                $isCloudAPiKey = (mb_strpos($this->apiKey, 'organizations/') !== false) || (str_starts_with($this->secret, '-----BEGIN'));
+                $auth = $timestamp . $name . implode(',', $productIds);
+                if (!$isCloudAPiKey) {
+                    $subscribe['api_key'] = $this->apiKey;
+                    $subscribe['timestamp'] = $timestamp;
+                    $subscribe['signature'] = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256');
+                } else {
+                    if (str_starts_with($this->apiKey, '-----BEGIN')) {
+                        throw new ArgumentsRequired($this->id . ' apiKey should contain the $name (eg => organizations/3b910e93....) and not the public key');
+                    }
+                    $currentToken = $this->safe_string($this->options, 'wsToken');
+                    $tokenTimestamp = $this->safe_integer($this->options, 'wsTokenTimestamp', 0);
+                    $seconds = $this->seconds();
+                    if ($currentToken === null || $tokenTimestamp + 120 < $seconds) {
+                        // we should generate new $token
+                        $token = $this->create_auth_token($seconds);
+                        $this->options['wsToken'] = $token;
+                        $this->options['wsTokenTimestamp'] = $seconds;
+                    }
+                    $subscribe['jwt'] = $this->safe_string($this->options, 'wsToken');
                 }
-                $currentToken = $this->safe_string($this->options, 'wsToken');
-                $tokenTimestamp = $this->safe_integer($this->options, 'wsTokenTimestamp', 0);
-                $seconds = $this->seconds();
-                if ($currentToken === null || $tokenTimestamp + 120 < $seconds) {
-                    // we should generate new $token
-                    $token = $this->create_auth_token($seconds);
-                    $this->options['wsToken'] = $token;
-                    $this->options['wsTokenTimestamp'] = $seconds;
-                }
-                $subscribe['jwt'] = $this->safe_string($this->options, 'wsToken');
             }
             return Async\await($this->watch($url, $messageHash, $subscribe, $messageHash));
         }) ();
@@ -123,7 +125,7 @@ class coinbase extends \ccxt\async\coinbase {
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
              */
             $name = 'ticker';
-            return Async\await($this->subscribe($name, $symbol, $params));
+            return Async\await($this->subscribe($name, false, $symbol, $params));
         }) ();
     }
 
@@ -140,7 +142,7 @@ class coinbase extends \ccxt\async\coinbase {
                 $symbols = $this->symbols;
             }
             $name = 'ticker_batch';
-            $tickers = Async\await($this->subscribe($name, $symbols, $params));
+            $tickers = Async\await($this->subscribe($name, false, $symbols, $params));
             if ($this->newUpdates) {
                 return $tickers;
             }
@@ -307,7 +309,7 @@ class coinbase extends \ccxt\async\coinbase {
             Async\await($this->load_markets());
             $symbol = $this->symbol($symbol);
             $name = 'market_trades';
-            $trades = Async\await($this->subscribe($name, $symbol, $params));
+            $trades = Async\await($this->subscribe($name, false, $symbol, $params));
             if ($this->newUpdates) {
                 $limit = $trades->getLimit ($symbol, $limit);
             }
@@ -328,7 +330,7 @@ class coinbase extends \ccxt\async\coinbase {
              */
             Async\await($this->load_markets());
             $name = 'user';
-            $orders = Async\await($this->subscribe($name, $symbol, $params));
+            $orders = Async\await($this->subscribe($name, true, $symbol, $params));
             if ($this->newUpdates) {
                 $limit = $orders->getLimit ($symbol, $limit);
             }
@@ -350,7 +352,7 @@ class coinbase extends \ccxt\async\coinbase {
             $name = 'level2';
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
-            $orderbook = Async\await($this->subscribe($name, $symbol, $params));
+            $orderbook = Async\await($this->subscribe($name, false, $symbol, $params));
             return $orderbook->limit ();
         }) ();
     }
@@ -574,8 +576,8 @@ class coinbase extends \ccxt\async\coinbase {
                 $this->orderbooks[$symbol] = $this->order_book(array(), $limit);
                 $orderbook = $this->orderbooks[$symbol];
                 $this->handle_order_book_helper($orderbook, $updates);
-                $orderbook['timestamp'] = null;
-                $orderbook['datetime'] = null;
+                $orderbook['timestamp'] = $this->parse8601($datetime);
+                $orderbook['datetime'] = $datetime;
                 $orderbook['symbol'] = $symbol;
                 $client->resolve ($orderbook, $messageHash);
                 if (str_ends_with($messageHash, 'USD')) {
@@ -593,7 +595,6 @@ class coinbase extends \ccxt\async\coinbase {
                 }
             }
         }
-        return $message;
     }
 
     public function handle_subscription_status($client, $message) {

@@ -85,7 +85,9 @@ class kucoin extends Exchange {
                 'fetchOrderBooks' => false,
                 'fetchOrdersByStatus' => true,
                 'fetchOrderTrades' => true,
+                'fetchPositionHistory' => false,
                 'fetchPositionMode' => false,
+                'fetchPositionsHistory' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchStatus' => true,
                 'fetchTicker' => true,
@@ -3119,7 +3121,7 @@ class kucoin extends Exchange {
         );
     }
 
-    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
         /**
          * make a withdrawal
          * @see https://www.kucoin.com/docs/rest/funding/withdrawals/apply-withdraw
