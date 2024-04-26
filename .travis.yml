@@ -1,7 +1,19 @@
-env:
-  jobs:
-    - RUNSTEP=PY_JS_PHP
-    - RUNSTEP=CSHARP
+jobs:
+  include:
+    - job: "generate-data"
+      env: 
+        - RUNSTEP=CSHARP 
+      script:
+        - ./build.sh 2>&1
+      artifacts:
+          paths:
+            - data.json 
+    - job: "use-data" 
+      env: 
+        - RUNSTEP=PY_JS_PHP 
+      needs: generate-data 
+      script: 
+        - ./build.sh 2>&1
 
 
 language: python
