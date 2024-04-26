@@ -2668,16 +2668,13 @@ export default class okx extends Exchange {
                 } else {
                     let hedged = undefined;
                     [ hedged, params ] = this.handleOptionAndParams (params, 'createOrder', 'hedged');
-                    // for users convenience, automatically set `posSide` (in "hedge" mode) if not set
                     if (hedged) {
                         const isBuy = (side === 'buy');
                         const isProtective = (takeProfitPrice !== undefined) || (stopLossPrice !== undefined) || isReduceOnly;
                         if (isProtective) {
                             // in case of protective orders, the posSide should be opposite of position side
+                            // reduceOnly is emulated and not natively supported by the exchange
                             request['posSide'] = isBuy ? 'short' : 'long';
-                            // due to imperfection of OKX api, 'reduceOnly' can not be sent in "hedge-mode". however,
-                            // that is nonsense because protective orders are always reduce-only "by nature".
-                            // However, we have to remove 'reduceOnly' from request in such cases
                             if (isReduceOnly) {
                                 params = this.omit (params, 'reduceOnly');
                             }
