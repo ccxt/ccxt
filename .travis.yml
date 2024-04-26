@@ -40,9 +40,3 @@ before_install:
   if [ "$RUNSTEP" == "CSHARP" ]; then
     echo "$RUNSTEP 2";
   fi;
-
-script: 
-- ./build.sh 2>&1
-- artifacts:
-    paths:
-      - data.json 
