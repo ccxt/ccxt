@@ -1,6 +1,6 @@
 jobs:
   include:
-    - job: "s1"
+    - stage: "s1"
       env: 
         - RUNSTEP=CSHARP 
       script:
@@ -10,7 +10,7 @@ jobs:
           name: ws1
           paths:
             - data.json
-    - job: "s2"
+    - stage: "s2"
       workspaces:
         use:
         - ws1
