@@ -10,6 +10,7 @@ jobs:
           name: ws1
           paths:
             - data.json
+            - /tmp/data.json
     - job: "use-data" 
       workspaces:
         use: ws1
