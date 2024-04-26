@@ -6255,9 +6255,11 @@ export default class okx extends Exchange {
         /**
          * @method
          * @name okx#fetchPositionMode
+         * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-account-configuration
          * @description fetchs the position mode, hedged or one way, hedged for binance is set identically for all linear markets or all inverse markets
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [param.accountId] if you have multiple accounts, you must specify the account id to fetch the position mode
          * @returns {object} an object detailing whether the market is in hedged or one-way mode
          */
         const accounts = await this.fetchAccounts ();
