@@ -21,7 +21,7 @@ export default class bitflex extends Exchange {
             'name': 'Bitflex',
             'countries': [ 'SC' ], // Seychelles
             'version': 'v1',
-            'rateLimit': 300, // todo find out the real ratelimit
+            'rateLimit': 20,
             'pro': true,
             'has': {
                 'CORS': undefined,
@@ -111,63 +111,63 @@ export default class bitflex extends Exchange {
             'api': {
                 'public': {
                     'get': {
-                        'openapi/v1/ping': 1, // not unified
-                        'openapi/v1/time': 1, // implemented
-                        'openapi/v1/pairs': 1, // implemented
-                        'openapi/v1/brokerInfo': 1, // implemented
+                        'openapi/v1/ping': 1,
+                        'openapi/v1/time': 1,
+                        'openapi/v1/pairs': 1,
+                        'openapi/v1/brokerInfo': 1,
                         'openapi/v1/contracts': 1,
                         'openapi/contract/v1/insurance': 1,
-                        'openapi/contract/v1/fundingRate': 1, // implemented
+                        'openapi/contract/v1/fundingRate': 1,
                         'openapi/quote/v1/contract/index': 1,
-                        'openapi/quote/v1/depth': 1, // implemented
-                        'openapi/quote/v1/depth/merged': 1, // implemented
-                        'openapi/quote/v1/contract/depth': 1, // implemented
-                        'openapi/quote/v1/contract/depth/merged': 1, // implemented
-                        'openapi/quote/v1/trades': 1, // implemented
-                        'openapi/quote/v1/contract/trades': 1, // implemented
-                        'openapi/quote/v1/klines': 1, // implemented
-                        'openapi/quote/v1/ticker/24hr': 1, // implemented
-                        'openapi/quote/v1/contract/ticker/24hr': 1, // implemented
-                        'openapi/quote/v1/ticker/price': 1, // not unified
-                        'openapi/quote/v1/ticker/bookTicker': 1, // implemented
+                        'openapi/quote/v1/depth': 1,
+                        'openapi/quote/v1/depth/merged': 1,
+                        'openapi/quote/v1/contract/depth': 1,
+                        'openapi/quote/v1/contract/depth/merged': 1,
+                        'openapi/quote/v1/trades': 1,
+                        'openapi/quote/v1/contract/trades': 1,
+                        'openapi/quote/v1/klines': 1,
+                        'openapi/quote/v1/ticker/24hr': 1,
+                        'openapi/quote/v1/contract/ticker/24hr': 1,
+                        'openapi/quote/v1/ticker/price': 1,
+                        'openapi/quote/v1/ticker/bookTicker': 1,
                     },
                 },
                 'private': {
                     'get': {
-                        'openapi/v1/order': 1, // implemented
-                        'openapi/v1/openOrders': 1, // implemented
-                        'openapi/v1/historyOrders': 1, // implemented
-                        'openapi/v1/myTrades': 1, // implemented
-                        'openapi/v1/account': 1, // implemented
-                        'openapi/v1/depositOrders': 1, // implemented
-                        'openapi/v1/withdrawalOrders': 1, // implemented
-                        'openapi/v1/withdraw/detail': 1, // implemented
-                        'openapi/v1/balance_flow': 1, // implemented
-                        'openapi/contract/v1/getOrder': 1, // implemented
-                        'openapi/contract/v1/openOrders': 1, // implemented
-                        'openapi/contract/v1/historyOrders': 1, // implemented
-                        'openapi/contract/v1/myTrades': 1, // implemented
-                        'openapi/contract/v1/positions': 1, // implemented
-                        'openapi/contract/v1/account': 1, // implemented
+                        'openapi/v1/order': 1,
+                        'openapi/v1/openOrders': 1,
+                        'openapi/v1/historyOrders': 5,
+                        'openapi/v1/myTrades': 5,
+                        'openapi/v1/account': 5,
+                        'openapi/v1/depositOrders': 5,
+                        'openapi/v1/withdrawalOrders': 1,
+                        'openapi/v1/withdraw/detail': 1,
+                        'openapi/v1/balance_flow': 5,
+                        'openapi/contract/v1/getOrder': 1,
+                        'openapi/contract/v1/openOrders': 1,
+                        'openapi/contract/v1/historyOrders': 5,
+                        'openapi/contract/v1/myTrades': 5,
+                        'openapi/contract/v1/positions': 1,
+                        'openapi/contract/v1/account': 5,
                     },
                     'post': {
-                        'openapi/v1/subAccount/query': 1, // implemented
-                        'openapi/v1/transfer': 1, // implemented
-                        'openapi/v1/withdraw': 1, // implemented
-                        'openapi/v1/order': 1, // implemented
-                        'openapi/v1/order/test': 1, // implemented
-                        'openapi/contract/v1/order': 1, // implemented
-                        'openapi/contract/v1/modifyMargin': 1, // implemented
-                        'openapi/contract/v1/modifyLeverage': 1, // implemented
-                        'openapi/v1/userDataStream': 1, // implemented
+                        'openapi/v1/subAccount/query': 5,
+                        'openapi/v1/transfer': 1,
+                        'openapi/v1/withdraw': 1,
+                        'openapi/v1/order': 50,
+                        'openapi/v1/order/test': 1,
+                        'openapi/contract/v1/order': 50,
+                        'openapi/contract/v1/modifyMargin': 1,
+                        'openapi/contract/v1/modifyLeverage': 1,
+                        'openapi/v1/userDataStream': 1,
                     },
                     'put': {
-                        'openapi/v1/userDataStream': 1, // implemented
+                        'openapi/v1/userDataStream': 1,
                     },
                     'delete': {
-                        'openapi/v1/order': 1, // implemented
-                        'openapi/contract/v1/order/cancel': 1, // implemented
-                        'openapi/contract/v1/order/batchCancel': 1, // implemented
+                        'openapi/v1/order': 1,
+                        'openapi/contract/v1/order/cancel': 1,
+                        'openapi/contract/v1/order/batchCancel': 1,
                         'openapi/v1/userDataStream': 1,
                     },
                 },
