@@ -41,14 +41,6 @@ export default class bitflex extends bitflexRest {
             'streaming': {
                 'keepAlive': 10000,
             },
-            'exceptions': {
-                'exact': {
-                    // { "code": '-100003', "desc": 'Symbol required!' }
-                    // { "code": '-10001', "desc": 'Invalid JSON!' }
-                },
-                'broad': {
-                },
-            },
         });
     }
 
@@ -386,8 +378,7 @@ export default class bitflex extends bitflexRest {
         const data = this.safeDict (message, 'data', {});
         const parsed = this.parseWsOHLCV (data, market);
         const stored = this.ohlcvs[symbol][timeframe];
-        // todo the excchange returns multiple candles with same timeframe
-        stored.push (parsed);
+        stored.append (parsed);
         const messageHash = 'ohlcv:' + symbol + ':' + timeframe;
         client.resolve (stored, messageHash);
     }
@@ -562,7 +553,7 @@ export default class bitflex extends bitflexRest {
             'markPrice': undefined,
             'lastPrice': undefined,
             'side': this.safeStringLower (position, 'S'),
-            'hedged': undefined, // todo check
+            'hedged': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastUpdateTimestamp': undefined,
