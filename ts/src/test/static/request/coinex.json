@@ -417,26 +417,110 @@
             {
                 "description": "Create multiple spot orders at once",
                 "method": "createOrders",
-                "url": "https://api.coinex.com/v1/order/limit/batch",
+                "url": "https://api.coinex.com/v2/spot/batch-order",
                 "input": [
-                    [
-                        {
-                            "symbol": "BTC/USDT",
-                            "type": "limit",
-                            "side": "buy",
-                            "amount": 0.0005,
-                            "price": 23000
-                        },
-                        {
-                            "symbol": "BTC/USDT",
-                            "type": "limit",
-                            "side": "buy",
-                            "amount": 0.0005,
-                            "price": 22000
-                        }
-                    ]
+                  [
+                    {
+                      "symbol": "BTC/USDT",
+                      "type": "limit",
+                      "side": "buy",
+                      "amount": 0.0001,
+                      "price": 61000
+                    },
+                    {
+                      "symbol": "BTC/USDT",
+                      "type": "limit",
+                      "side": "buy",
+                      "amount": 0.0001,
+                      "price": 60000
+                    }
+                  ]
                 ],
-                "output": "{\"access_id\":\"86AC33D5904F432C9C9DDD4708233F38\",\"batch_orders\":\"[{\\\"market\\\":\\\"BTCUSDT\\\",\\\"client_id\\\":\\\"x-167673045-d34bfb41242d8fd1\\\",\\\"type\\\":\\\"buy\\\",\\\"amount\\\":\\\"0.0005\\\",\\\"price\\\":\\\"23000\\\"},{\\\"market\\\":\\\"BTCUSDT\\\",\\\"client_id\\\":\\\"x-167673045-d4e03c38f4d19b4e\\\",\\\"type\\\":\\\"buy\\\",\\\"amount\\\":\\\"0.0005\\\",\\\"price\\\":\\\"22000\\\"}]\",\"market\":\"BTCUSDT\",\"tonce\":\"1701229156016\"}"
+                "output": "{\"market\":\"BTCUSDT\",\"orders\":[{\"market\":\"BTCUSDT\",\"client_id\":\"x-167673045-f3651372049dab0d\",\"side\":\"buy\",\"price\":\"61000\",\"type\":\"limit\",\"market_type\":\"SPOT\",\"amount\":\"0.0001\"},{\"market\":\"BTCUSDT\",\"client_id\":\"x-167673045-9fcc57353496be53\",\"side\":\"buy\",\"price\":\"60000\",\"type\":\"limit\",\"market_type\":\"SPOT\",\"amount\":\"0.0001\"}]}"
+            },
+            {
+                "description": "Create multiple spot trigger orders at once",
+                "method": "createOrders",
+                "url": "https://api.coinex.com/v2/spot/batch-stop-order",
+                "input": [
+                  [
+                    {
+                      "symbol": "BTC/USDT",
+                      "type": "limit",
+                      "side": "buy",
+                      "amount": 0.0001,
+                      "price": 61000,
+                      "params": {
+                        "triggerPrice": 62000
+                      }
+                    },
+                    {
+                      "symbol": "BTC/USDT",
+                      "type": "limit",
+                      "side": "buy",
+                      "amount": 0.0001,
+                      "price": 60000,
+                      "params": {
+                        "triggerPrice": 61000
+                      }
+                    }
+                  ]
+                ],
+                "output": "{\"market\":\"BTCUSDT\",\"orders\":[{\"market\":\"BTCUSDT\",\"client_id\":\"x-167673045-79aa0ee064a0b029\",\"side\":\"buy\",\"price\":\"61000\",\"type\":\"limit\",\"market_type\":\"SPOT\",\"amount\":\"0.0001\",\"trigger_price\":\"62000\"},{\"market\":\"BTCUSDT\",\"client_id\":\"x-167673045-d0141bcdf49db4cd\",\"side\":\"buy\",\"price\":\"60000\",\"type\":\"limit\",\"market_type\":\"SPOT\",\"amount\":\"0.0001\",\"trigger_price\":\"61000\"}]}"
+            },
+            {
+                "description": "Create multiple swap orders at once",
+                "method": "createOrders",
+                "url": "https://api.coinex.com/v2/futures/batch-order",
+                "input": [
+                  [
+                    {
+                      "symbol": "BTC/USDT:USDT",
+                      "type": "limit",
+                      "side": "buy",
+                      "amount": 0.0001,
+                      "price": 61000
+                    },
+                    {
+                      "symbol": "BTC/USDT:USDT",
+                      "type": "limit",
+                      "side": "buy",
+                      "amount": 0.0001,
+                      "price": 60000
+                    }
+                  ]
+                ],
+                "output": "{\"market\":\"BTCUSDT\",\"orders\":[{\"market\":\"BTCUSDT\",\"client_id\":\"x-167673045-2cb7436f3462a654\",\"side\":\"buy\",\"price\":\"61000\",\"type\":\"limit\",\"market_type\":\"FUTURES\",\"amount\":\"0.0001\"},{\"market\":\"BTCUSDT\",\"client_id\":\"x-167673045-da1a7f4a347681b5\",\"side\":\"buy\",\"price\":\"60000\",\"type\":\"limit\",\"market_type\":\"FUTURES\",\"amount\":\"0.0001\"}]}"
+            },
+            {
+                "description": "Create multiple swap trigger orders at once",
+                "method": "createOrders",
+                "url": "https://api.coinex.com/v2/futures/batch-stop-order",
+                "input": [
+                  [
+                    {
+                      "symbol": "BTC/USDT:USDT",
+                      "type": "limit",
+                      "side": "buy",
+                      "amount": 0.0001,
+                      "price": 61000,
+                      "params": {
+                        "triggerPrice": 62000
+                      }
+                    },
+                    {
+                      "symbol": "BTC/USDT:USDT",
+                      "type": "limit",
+                      "side": "buy",
+                      "amount": 0.0001,
+                      "price": 60000,
+                      "params": {
+                        "triggerPrice": 61000
+                      }
+                    }
+                  ]
+                ],
+                "output": "{\"market\":\"BTCUSDT\",\"orders\":[{\"market\":\"BTCUSDT\",\"client_id\":\"x-167673045-322032f7841eb7ee\",\"side\":\"buy\",\"price\":\"61000\",\"type\":\"limit\",\"market_type\":\"FUTURES\",\"amount\":\"0.0001\",\"trigger_price\":\"62000\",\"trigger_price_type\":\"latest_price\"},{\"market\":\"BTCUSDT\",\"client_id\":\"x-167673045-c1ff1373a4908fcf\",\"side\":\"buy\",\"price\":\"60000\",\"type\":\"limit\",\"market_type\":\"FUTURES\",\"amount\":\"0.0001\",\"trigger_price\":\"61000\",\"trigger_price_type\":\"latest_price\"}]}"
             }
         ],
         "cancelOrder": [
