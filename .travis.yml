@@ -43,3 +43,6 @@ before_install:
 
 script: 
 - ./build.sh 2>&1
+- artifacts:
+    paths:
+      - data.json 
