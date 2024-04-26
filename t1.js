@@ -3,7 +3,7 @@ import fs from 'fs';
 const isPJP = process.env.RUNSTEP === 'PY_JS_PHP';
 
 async function wait () {
-    await new Promise(resolve => setTimeout(resolve, 20 * 1000));
+    await new Promise(resolve => setTimeout(resolve, 7 * 1000));
     console.log("read start !"); 
     const rawData = fs.readFileSync('data.json');
     const jsonData = JSON.parse(rawData);
