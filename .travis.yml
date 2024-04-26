@@ -43,5 +43,7 @@ before_install:
 - echo "$RUNSTEP"
 
 
-# addons:
-#   artifacts: true
+addons:
+  artifacts: 
+    debug: true
+    paths: data.json
