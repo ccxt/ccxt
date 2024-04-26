@@ -439,6 +439,22 @@
                   }
                 ],
                 "output": "{\"amount\":\"0.0001\",\"client_id\":\"x-167673045-4f264600c432ac06\",\"market\":\"BTCUSDT\",\"market_type\":\"FUTURES\",\"type\":\"market\"}"
+            },
+            {
+                "description": "swap limit buy postOnly",
+                "method": "createOrder",
+                "url": "https://api.coinex.com/v2/futures/order",
+                "input": [
+                  "LTC/USDT:USDT",
+                  "limit",
+                  "buy",
+                  0.1,
+                  55,
+                  {
+                    "postOnly": true
+                  }
+                ],
+                "output": "{\"amount\":\"0.1\",\"client_id\":\"x-167673045-e5872d88a42fa228\",\"market\":\"LTCUSDT\",\"market_type\":\"FUTURES\",\"price\":\"55\",\"side\":\"buy\",\"type\":\"maker_only\"}"
             }
         ],
         "createOrders": [
