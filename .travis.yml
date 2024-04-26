@@ -10,7 +10,7 @@ jobs:
           name: ws1
           paths:
             - data.json
-    - stage: "s2"
+    - stage: "s1"
       workspaces:
         use:
         - ws1

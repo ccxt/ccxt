@@ -5,7 +5,7 @@ const home = process.env.HOME;
 const filepath = `data.json`;
 
 async function wait () {
-    await new Promise(resolve => setTimeout(resolve, 7 * 1000));
+    await new Promise(resolve => setTimeout(resolve, 15 * 1000));
     console.log("read start !"); 
     const rawData = fs.readFileSync(filepath);
     const jsonData = JSON.parse(rawData);
