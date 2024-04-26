@@ -1,27 +1,22 @@
-
 //  ---------------------------------------------------------------------------
-
 import Exchange from './abstract/bitflex.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { ArgumentsRequired, BadSymbol, InvalidOrder, NotSupported } from './base/errors.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { Precise } from './base/Precise.js';
-import { Account, Balances, Currencies, Currency, Int, MarginModification, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Ticker, Tickers, Trade, Transaction, TransferEntry, Strings } from './base/types.js';
-
 //  ---------------------------------------------------------------------------
-
 /**
  * @class bitflex
  * @augments Exchange
  */
 export default class bitflex extends Exchange {
-    describe () {
-        return this.deepExtend (super.describe (), {
+    describe() {
+        return this.deepExtend(super.describe(), {
             'id': 'bitflex',
             'name': 'Bitflex',
-            'countries': [ 'SC' ], // Seychelles
+            'countries': ['SC'],
             'version': 'v1',
-            'rateLimit': 300, // todo find out the real ratelimit
+            'rateLimit': 300,
             'pro': true,
             'has': {
                 'CORS': undefined,
@@ -47,7 +42,6 @@ export default class bitflex extends Exchange {
                 'fetchDepositsWithdrawals': false,
                 'fetchDepositWithdrawFee': false,
                 'fetchDepositWithdrawFees': false,
-                'fetchFundingRate': true,
                 'fetchFundingRates': true,
                 'fetchIndexOHLCV': false,
                 'fetchLedger': true,
@@ -57,6 +51,7 @@ export default class bitflex extends Exchange {
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
+                'fetchOpenInterest': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
@@ -99,7 +94,7 @@ export default class bitflex extends Exchange {
                 '1M': '1M',
             },
             'urls': {
-                'logo': '', // todo
+                'logo': '',
                 'api': {
                     'public': 'https://api.bitflex.com',
                     'private': 'https://api.bitflex.com',
@@ -111,63 +106,62 @@ export default class bitflex extends Exchange {
             'api': {
                 'public': {
                     'get': {
-                        'openapi/v1/ping': 1, // not unified
-                        'openapi/v1/time': 1, // implemented
-                        'openapi/v1/pairs': 1, // implemented
-                        'openapi/v1/brokerInfo': 1, // implemented
+                        'openapi/v1/ping': 1,
+                        'openapi/v1/time': 1,
+                        'openapi/v1/pairs': 1,
+                        'openapi/v1/brokerInfo': 1,
                         'openapi/v1/contracts': 1,
                         'openapi/contract/v1/insurance': 1,
                         'openapi/contract/v1/fundingRate': 1,
                         'openapi/quote/v1/contract/index': 1,
-                        'openapi/quote/v1/depth': 1, // implemented
-                        'openapi/quote/v1/depth/merged': 1, // implemented
-                        'openapi/quote/v1/contract/depth': 1, // implemented
-                        'openapi/quote/v1/contract/depth/merged': 1, // implemented
-                        'openapi/quote/v1/trades': 1, // implemented
-                        'openapi/quote/v1/contract/trades': 1, // implemented
-                        'openapi/quote/v1/klines': 1, // implemented
-                        'openapi/quote/v1/ticker/24hr': 1, // implemented
-                        'openapi/quote/v1/contract/ticker/24hr': 1, // implemented
-                        'openapi/quote/v1/ticker/price': 1, // not unified
+                        'openapi/quote/v1/depth': 1,
+                        'openapi/quote/v1/depth/merged': 1,
+                        'openapi/quote/v1/contract/depth': 1,
+                        'openapi/quote/v1/contract/depth/merged': 1,
+                        'openapi/quote/v1/trades': 1,
+                        'openapi/quote/v1/contract/trades': 1,
+                        'openapi/quote/v1/klines': 1,
+                        'openapi/quote/v1/ticker/24hr': 1,
+                        'openapi/quote/v1/contract/ticker/24hr': 1,
+                        'openapi/quote/v1/ticker/price': 1,
                         'openapi/quote/v1/ticker/bookTicker': 1, // implemented
                     },
                 },
                 'private': {
                     'get': {
-                        'openapi/v1/order': 1, // implemented
-                        'openapi/v1/openOrders': 1, // implemented
-                        'openapi/v1/historyOrders': 1, // implemented
-                        'openapi/v1/myTrades': 1, // implemented
-                        'openapi/v1/account': 1, // implemented
-                        'openapi/v1/depositOrders': 1, // implemented
-                        'openapi/v1/withdrawalOrders': 1, // implemented
-                        'openapi/v1/withdraw/detail': 1, // implemented
-                        'openapi/v1/balance_flow': 1, // implemented
-                        'openapi/contract/v1/getOrder': 1, // implemented
-                        'openapi/contract/v1/openOrders': 1, // implemented
-                        'openapi/contract/v1/historyOrders': 1, // implemented
-                        'openapi/contract/v1/myTrades': 1, // implemented
-                        'openapi/contract/v1/positions': 1, // implemented
+                        'openapi/v1/order': 1,
+                        'openapi/v1/openOrders': 1,
+                        'openapi/v1/historyOrders': 1,
+                        'openapi/v1/myTrades': 1,
+                        'openapi/v1/account': 1,
+                        'openapi/v1/depositOrders': 1,
+                        'openapi/v1/withdrawalOrders': 1,
+                        'openapi/v1/withdraw/detail': 1,
+                        'openapi/v1/balance_flow': 1,
+                        'openapi/contract/v1/getOrder': 1,
+                        'openapi/contract/v1/openOrders': 1,
+                        'openapi/contract/v1/historyOrders': 1,
+                        'openapi/contract/v1/myTrades': 1,
+                        'openapi/contract/v1/positions': 1,
                         'openapi/contract/v1/account': 1, // implemented
                     },
                     'post': {
-                        'openapi/v1/subAccount/query': 1, // implemented
-                        'openapi/v1/transfer': 1, // implemented
-                        'openapi/v1/withdraw': 1, // implemented
-                        'openapi/v1/order': 1, // implemented
-                        'openapi/v1/order/test': 1, // todo check
-                        'openapi/contract/v1/order': 1, // implemented
-                        'openapi/contract/v1/order/test': 1, // implemented
-                        'openapi/contract/v1/modifyMargin': 1, // implemented
-                        'openapi/contract/v1/modifyLeverage': 1, // implemented
-                        'openapi/v1/userDataStream': 1,
+                        'openapi/v1/subAccount/query': 1,
+                        'openapi/v1/transfer': 1,
+                        'openapi/v1/withdraw': 1,
+                        'openapi/v1/order': 1,
+                        'openapi/v1/order/test': 1,
+                        'openapi/contract/v1/order': 1,
+                        'openapi/contract/v1/modifyMargin': 1,
+                        'openapi/contract/v1/modifyLeverage': 1,
+                        'openapi/v1/userDataStream': 1, // implemented
                     },
                     'put': {
-                        'openapi/v1/userDataStream': 1,
+                        'openapi/v1/userDataStream': 1, // implemented
                     },
                     'delete': {
-                        'openapi/v1/order': 1, // implemented
-                        'openapi/contract/v1/order/cancel': 1, // implemented
+                        'openapi/v1/order': 1,
+                        'openapi/contract/v1/order/cancel': 1,
                         'openapi/contract/v1/order/batchCancel': 1,
                         'openapi/v1/userDataStream': 1,
                     },
@@ -178,165 +172,164 @@ export default class bitflex extends Exchange {
                     'feeSide': 'get',
                     'tierBased': true,
                     'percentage': true,
-                    'maker': this.parseNumber ('0.00015'),
-                    'taker': this.parseNumber ('0.00060'),
+                    'maker': this.parseNumber('0.00015'),
+                    'taker': this.parseNumber('0.00060'),
                     'tiers': {
                         'taker': [
-                            [ this.parseNumber ('0'), this.parseNumber ('0.00060') ],
-                            [ this.parseNumber ('25'), this.parseNumber ('0.00050') ],
-                            [ this.parseNumber ('150'), this.parseNumber ('0.000450') ],
-                            [ this.parseNumber ('750'), this.parseNumber ('0.000425') ],
-                            [ this.parseNumber ('3000'), this.parseNumber ('0.000400') ],
-                            [ this.parseNumber ('9000'), this.parseNumber ('0.000350') ],
-                            [ this.parseNumber ('25000'), this.parseNumber ('0.000300') ],
+                            [this.parseNumber('0'), this.parseNumber('0.00060')],
+                            [this.parseNumber('25'), this.parseNumber('0.00050')],
+                            [this.parseNumber('150'), this.parseNumber('0.000450')],
+                            [this.parseNumber('750'), this.parseNumber('0.000425')],
+                            [this.parseNumber('3000'), this.parseNumber('0.000400')],
+                            [this.parseNumber('9000'), this.parseNumber('0.000350')],
+                            [this.parseNumber('25000'), this.parseNumber('0.000300')],
                         ],
                         'maker': [
-                            [ this.parseNumber ('0'), this.parseNumber ('0.00015') ],
-                            [ this.parseNumber ('25'), this.parseNumber ('0.000120') ],
-                            [ this.parseNumber ('150'), this.parseNumber ('0.000090') ],
-                            [ this.parseNumber ('750'), this.parseNumber ('0.000060') ],
-                            [ this.parseNumber ('3000'), this.parseNumber ('0.000030') ],
-                            [ this.parseNumber ('9000'), this.parseNumber ('0') ],
-                            [ this.parseNumber ('25000'), this.parseNumber ('0') ],
+                            [this.parseNumber('0'), this.parseNumber('0.00015')],
+                            [this.parseNumber('25'), this.parseNumber('0.000120')],
+                            [this.parseNumber('150'), this.parseNumber('0.000090')],
+                            [this.parseNumber('750'), this.parseNumber('0.000060')],
+                            [this.parseNumber('3000'), this.parseNumber('0.000030')],
+                            [this.parseNumber('9000'), this.parseNumber('0')],
+                            [this.parseNumber('25000'), this.parseNumber('0')],
                         ],
                     },
                 },
             },
             'exceptions': {
                 'exact': {
-                    // 400 {"code":-1130,"msg":"Data sent for paramter \u0027type\u0027 is not valid."}
-                    // 400 {"code":-100012,"msg":"Parameter symbol [String] missing!"}
-                    // 400 {"code":-100012,"msg":"Parameter interval [String] missing!"}
-                    // 400 {"code":-1140,"msg":"Transaction amount lower than the minimum."}
-                    // 400 {"code":-1131,"msg":"Balance insufficient "}
-                    // 400 {"code":-100002,"msg":"Param limit should be int."}
-                    // 400 {"code":-1156,"msg":"Order quantity invalid"} - reduceOnly order for already closed position
-                    // 400 {"code":-1004,"msg":"Missing required parameter \u0027symbol\u0027"}
-                    // 400 {"code":-1001,"msg":"Internal error."}
-                    // 400 {"code":-1130,"msg":"Data sent for paramter \u0027leverage\u0027 is not valid."}
-                    // 400 {"code":-1162,"msg":"Modify position leverage error"}
-                    // 400 {"code":-1155,"msg":"Invalid position side"}
-                    // 400 {"code":-1000,"msg":"An unknown error occured while processing the request."}
-                    // 400 {"code":-1187,"msg":"Withdrawal address not in whitelist"}
-                    // 400 {"code":-1023,"msg":"Please set IP whitelist before using API"}
-                    // 400 {"code":-1022,"msg":"Signature for this request is not valid."}
-                    // 400 {"code":-10009,"msg":"Invalid period!"}
-                    // 400 {"code":-100002,"msg":"Param startTime should be Long."}
-                    // 400 {"code":-1173,"msg":"Withdraw address illegal."}
-                    // 500 {"code":-9999,"msg":"Server Error"}
-                    // {"code":-1149,"msg":"Create order failed"}
-                    // {"code":-1130,"msg":"Data sent for paramter \u0027overPrice\u0027 is not valid."}
-                    // 400 {"code":-1130,"msg":"Data sent for paramter \u0027type\u0027 is not valid."}
-                    // 400 {"code":-100012,"msg":"Parameter symbol [String] missing!"}
-                    // 400 {"code":-100012,"msg":"Parameter interval [String] missing!"}
-                    // 400 {"code":-1140,"msg":"Transaction amount lower than the minimum."}
-                    // 400 {"code":-1131,"msg":"Balance insufficient "}
-                    // 400 {"code":-100002,"msg":"Param limit should be int."}
-                    // 400 {"code":-1156,"msg":"Order quantity invalid"} - reduceOnly order for already closed position
-                    // 400 {"code":-1004,"msg":"Missing required parameter \u0027symbol\u0027"}
-                    // 400 {"code":-1001,"msg":"Internal error."}
-                    // 400 {"code":-1130,"msg":"Data sent for paramter \u0027leverage\u0027 is not valid."}
-                    // 400 {"code":-1162,"msg":"Modify position leverage error"}
-                    // 400 {"code":-1155,"msg":"Invalid position side"}
-                    // 400 {"code":-1000,"msg":"An unknown error occured while processing the request."}
-                    // 400 {"code":-1187,"msg":"Withdrawal address not in whitelist"}
-                    // 400 {"code":-1023,"msg":"Please set IP whitelist before using API"}
-                    // 400 {"code":-1022,"msg":"Signature for this request is not valid."}
-                    // 400 {"code":-10009,"msg":"Invalid period!"}
-                    // 400 {"code":-100002,"msg":"Param startTime should be Long."}
-                    // 400 {"code":-1173,"msg":"Withdraw address illegal."}
-                    // 500 {"code":-9999,"msg":"Server Error"}
-                    // -1000 UNKNOWN An unknown error occured while processing the request.
-                    // -1001 DISCONNECTED Internal error; unable to process your request. Please try again.
-                    // -1002 UNAUTHORIZED You are not authorized to execute this request. Request need API Key included in . We suggest that API Key be included in any request.
-                    // -1003 TOO_MANY_REQUESTS Too many requests; please use the websocket for live updates. Too many requests; current limit is %s requests per minute. Please use the websocket for live updates to avoid polling the API. Way too many requests; IP banned until %s. Please use the websocket for live updates to avoid bans.
-                    // -1006 UNEXPECTED_RESP An unexpected response was received from the message bus. Execution status unknown. OPEN API server find some exception in execute request .Please report to Customer service.
-                    // -1007 TIMEOUT Timeout waiting for response from backend server. Send status unknown; execution status unknown.
-                    // -1014 UNKNOWN_ORDER_COMPOSITION Unsupported order combination.
-                    // -1015 TOO_MANY_ORDERS Reach the rate limit .Please slow down your request speed. Too many new orders. Too many new orders; current limit is %s orders per %s.
-                    // -1016 SERVICE_SHUTTING_DOWN This service is no longer available.
-                    // -1020 UNSUPPORTED_OPERATION This operation is not supported.
-                    // -1021 INVALID_TIMESTAMP Timestamp for this request is outside of the recvWindow. Timestamp for this request was 1000ms ahead of the server's time. Please check the difference between your local time and server time .
-                    // -1022 INVALID_SIGNATURE Signature for this request is not valid.
-                    // 11xx - Request issues
-                    // -1100 ILLEGAL_CHARS Illegal characters found in a parameter. Illegal characters found in parameter '%s'; legal range is '%s'.
-                    // -1101 TOO_MANY_PARAMETERS Too many parameters sent for this endpoint. Too many parameters; expected '%s' and received '%s' Duplicate values for a parameter detected.
-                    // -1102 MANDATORY_PARAM_EMPTY_OR_MALFORMED A mandatory parameter was not sent, was empty/null, or malformed. Mandatory parameter '%s' was not sent, was empty/null, or malformed. Param '%s' or '%s' must be sent, but both were empty/null!
-                    // -1103 UNKNOWN_PARAM An unknown parameter was sent. In HBTC Open Api , each request requires at least one parameter. {Timestamp}.
-                    // -1104 UNREAD_PARAMETERS Not all sent parameters were read. Not all sent parameters were read; read '%s' parameter(s) but was sent '%s'.
-                    // -1105 PARAM_EMPTY A parameter was empty. Parameter '%s' was empty.
-                    // -1106 PARAM_NOT_REQUIRED A parameter was sent when not required. Parameter '%s' sent when not required.
-                    // -1111 BAD_PRECISION Precision is over the maximum defined for this asset.
-                    // -1112 NO_DEPTH No orders on book for symbol.
-                    // -1114 TIF_NOT_REQUIRED TimeInForce parameter sent when not required.
-                    // -1115 INVALID_TIF Invalid timeInForce. In the current version, this parameter is either empty or GTC.
-                    // -1116 INVALID_ORDER_TYPE Invalid orderType. In the current version , ORDER_TYPE values is LIMIT or MARKET.
-                    // -1117 INVALID_SIDE Invalid side. ORDER_SIDE values is BUY or SELL
-                    // -1118 EMPTY_NEW_CL_ORD_ID New client order ID was empty.
-                    // -1119 EMPTY_ORG_CL_ORD_ID Original client order ID was empty.
-                    // -1120 BAD_INTERVAL Invalid interval.
-                    // -1121 BAD_SYMBOL Invalid symbol.
-                    // -1125 INVALID_LISTEN_KEY This listenKey does not exist.
-                    // -1127 MORE_THAN_XX_HOURS Lookup interval is too big. More than %s hours between startTime and endTime.
-                    // -1128 OPTIONAL_PARAMS_BAD_COMBO Combination of optional parameters invalid.
-                    // -1130 INVALID_PARAMETER Invalid data sent for a parameter. Data sent for paramter '%s' is not valid.
-                    // -1132 ORDER_PRICE_TOO_HIGH Order price too high.
-                    // -1133 ORDER_PRICE_TOO_SMALL Order price lower than the minimum,please check general broker info.
-                    // -1134 ORDER_PRICE_PRECISION_TOO_LONG Order price decimal too long,please check general broker info.
-                    // -1135 ORDER_QUANTITY_TOO_BIG Order quantity too large.
-                    // -1136 ORDER_QUANTITY_TOO_SMALL Order quantity lower than the minimum.
-                    // -1137 ORDER_QUANTITY_PRECISION_TOO_LONG Order quantity decimal too long.
-                    // -1138 ORDER_PRICE_WAVE_EXCEED Order price exceeds permissible range.
-                    // -1139 ORDER_HAS_FILLED Order has been filled.
-                    // -1140 ORDER_AMOUNT_TOO_SMALL Transaction amount lower than the minimum.
-                    // -1141 ORDER_DUPLICATED Duplicate clientOrderId
-                    // -1142 ORDER_CANCELLED Order has been canceled
-                    // -1143 ORDER_NOT_FOUND_ON_ORDER_BOOK Cannot be found on order book
-                    // -1144 ORDER_LOCKED Order has been locked
-                    // -1145 ORDER_NOT_SUPPORT_CANCELLATION This order type does not support cancellation
-                    // -1146 ORDER_CREATION_TIMEOUT Order creation timeout
-                    // -1147 ORDER_CANCELLATION_TIMEOUT Order cancellation timeout
-                    // -2010 NEW_ORDER_REJECTED NEW_ORDER_REJECTED
-                    // -2011 CANCEL_REJECTED CANCEL_REJECTED
-                    // -2013 NO_SUCH_ORDER Order does not exist.
-                    // -2014 BAD_API_KEY_FMT API-key format invalid.
-                    // -2015 REJECTED_MBX_KEY Invalid API-key, IP, or permissions for action.
-                    // -2016 NO_TRADING_WINDOW No trading window could be found for the symbol. Try ticker/24hrs instead.
-                    // Messages for -1010 ERROR_MSG_RECEIVED, -2010 NEW_ORDER_REJECTED, and -2011 CANCEL_REJECTED
-                    // "Unknown order sent." The order (by either orderId, clOrdId, origClOrdId) could not be found
-                    // "Duplicate order sent." The clOrdId is already in use
-                    // "Market is closed." The symbol is not trading
-                    // "Account has insufficient balance for requested action." Not enough funds to complete the action
-                    // "Market orders are not supported for this symbol." MARKET is not enabled on the symbol
-                    // "Iceberg orders are not supported for this symbol." icebergQty is not enabled on the symbol
-                    // "Stop loss orders are not supported for this symbol." STOP_LOSS is not enabled on the symbol
-                    // "Stop loss limit orders are not supported for this symbol." STOP_LOSS_LIMIT is not enabled on the symbol
-                    // "Take profit orders are not supported for this symbol." TAKE_PROFIT is not enabled on the symbol
-                    // "Take profit limit orders are not supported for this symbol." TAKE_PROFIT_LIMIT is not enabled on the symbol
-                    // "Price* QTY is zero or less." price* quantity is too low
-                    // "IcebergQty exceeds QTY." icebergQty must be less than the order quantity
-                    // "This action disabled is on this account." Contact customer support; some actions have been disabled on the account.
-                    // "Unsupported order combination" The orderType, timeInForce, stopPrice, and/or icebergQty combination isn't allowed.
-                    // "Order would trigger immediately." The order's stop price is not valid when compared to the last traded price.
-                    // "Cancel order is invalid. Check origClOrdId and orderId." No origClOrdId or orderId was sent in.
-                    // "Order would immediately match and take." LIMIT_MAKER order type would immediately match and trade, and not be a pure maker order.
-                    // -9xxx
-                    // "Filter failure: PRICE_FILTER" price is too high, too low, and/or not following the tick size rule for the symbol.
-                    // "Filter failure: LOT_SIZE" quantity is too high, too low, and/or not following the step size rule for the symbol.
-                    // "Filter failure: MIN_NOTIONAL" price* quantity is too low to be a valid order for the symbol.
-                    // "Filter failure: MAX_NUM_ORDERS" Account has too many open orders on the symbol.
-                    // "Filter failure: MAX_ALGO_ORDERS" Account has too many open stop loss and/or take profit orders on the symbol.
-                    // "Filter failure: BROKER_MAX_NUM_ORDERS" Account has too many open orders on the broker.
-                    // "Filter failure: BROKER_MAX_ALGO_ORDERS" Account has too many open stop loss and/or take profit orders on the broker.
-                    // "Filter failure: ICEBERG_PARTS" Iceberg order would break into too many parts; icebergQty is too small.
+                // 400 {"code":-1130,"msg":"Data sent for paramter \u0027type\u0027 is not valid."}
+                // 400 {"code":-100012,"msg":"Parameter symbol [String] missing!"}
+                // 400 {"code":-100012,"msg":"Parameter interval [String] missing!"}
+                // 400 {"code":-1140,"msg":"Transaction amount lower than the minimum."}
+                // 400 {"code":-1131,"msg":"Balance insufficient "}
+                // 400 {"code":-100002,"msg":"Param limit should be int."}
+                // 400 {"code":-1156,"msg":"Order quantity invalid"} - reduceOnly order for already closed position
+                // 400 {"code":-1004,"msg":"Missing required parameter \u0027symbol\u0027"}
+                // 400 {"code":-1001,"msg":"Internal error."}
+                // 400 {"code":-1130,"msg":"Data sent for paramter \u0027leverage\u0027 is not valid."}
+                // 400 {"code":-1162,"msg":"Modify position leverage error"}
+                // 400 {"code":-1155,"msg":"Invalid position side"}
+                // 400 {"code":-1000,"msg":"An unknown error occured while processing the request."}
+                // 400 {"code":-1187,"msg":"Withdrawal address not in whitelist"}
+                // 400 {"code":-1023,"msg":"Please set IP whitelist before using API"}
+                // 400 {"code":-1022,"msg":"Signature for this request is not valid."}
+                // 400 {"code":-10009,"msg":"Invalid period!"}
+                // 400 {"code":-100002,"msg":"Param startTime should be Long."}
+                // 400 {"code":-1173,"msg":"Withdraw address illegal."}
+                // 500 {"code":-9999,"msg":"Server Error"}
+                // {"code":-1149,"msg":"Create order failed"}
+                // {"code":-1130,"msg":"Data sent for paramter \u0027overPrice\u0027 is not valid."}
+                // 400 {"code":-1130,"msg":"Data sent for paramter \u0027type\u0027 is not valid."}
+                // 400 {"code":-100012,"msg":"Parameter symbol [String] missing!"}
+                // 400 {"code":-100012,"msg":"Parameter interval [String] missing!"}
+                // 400 {"code":-1140,"msg":"Transaction amount lower than the minimum."}
+                // 400 {"code":-1131,"msg":"Balance insufficient "}
+                // 400 {"code":-100002,"msg":"Param limit should be int."}
+                // 400 {"code":-1156,"msg":"Order quantity invalid"} - reduceOnly order for already closed position
+                // 400 {"code":-1004,"msg":"Missing required parameter \u0027symbol\u0027"}
+                // 400 {"code":-1001,"msg":"Internal error."}
+                // 400 {"code":-1130,"msg":"Data sent for paramter \u0027leverage\u0027 is not valid."}
+                // 400 {"code":-1162,"msg":"Modify position leverage error"}
+                // 400 {"code":-1155,"msg":"Invalid position side"}
+                // 400 {"code":-1000,"msg":"An unknown error occured while processing the request."}
+                // 400 {"code":-1187,"msg":"Withdrawal address not in whitelist"}
+                // 400 {"code":-1023,"msg":"Please set IP whitelist before using API"}
+                // 400 {"code":-1022,"msg":"Signature for this request is not valid."}
+                // 400 {"code":-10009,"msg":"Invalid period!"}
+                // 400 {"code":-100002,"msg":"Param startTime should be Long."}
+                // 400 {"code":-1173,"msg":"Withdraw address illegal."}
+                // 500 {"code":-9999,"msg":"Server Error"}
+                // -1000 UNKNOWN An unknown error occured while processing the request.
+                // -1001 DISCONNECTED Internal error; unable to process your request. Please try again.
+                // -1002 UNAUTHORIZED You are not authorized to execute this request. Request need API Key included in . We suggest that API Key be included in any request.
+                // -1003 TOO_MANY_REQUESTS Too many requests; please use the websocket for live updates. Too many requests; current limit is %s requests per minute. Please use the websocket for live updates to avoid polling the API. Way too many requests; IP banned until %s. Please use the websocket for live updates to avoid bans.
+                // -1006 UNEXPECTED_RESP An unexpected response was received from the message bus. Execution status unknown. OPEN API server find some exception in execute request .Please report to Customer service.
+                // -1007 TIMEOUT Timeout waiting for response from backend server. Send status unknown; execution status unknown.
+                // -1014 UNKNOWN_ORDER_COMPOSITION Unsupported order combination.
+                // -1015 TOO_MANY_ORDERS Reach the rate limit .Please slow down your request speed. Too many new orders. Too many new orders; current limit is %s orders per %s.
+                // -1016 SERVICE_SHUTTING_DOWN This service is no longer available.
+                // -1020 UNSUPPORTED_OPERATION This operation is not supported.
+                // -1021 INVALID_TIMESTAMP Timestamp for this request is outside of the recvWindow. Timestamp for this request was 1000ms ahead of the server's time. Please check the difference between your local time and server time .
+                // -1022 INVALID_SIGNATURE Signature for this request is not valid.
+                // 11xx - Request issues
+                // -1100 ILLEGAL_CHARS Illegal characters found in a parameter. Illegal characters found in parameter '%s'; legal range is '%s'.
+                // -1101 TOO_MANY_PARAMETERS Too many parameters sent for this endpoint. Too many parameters; expected '%s' and received '%s' Duplicate values for a parameter detected.
+                // -1102 MANDATORY_PARAM_EMPTY_OR_MALFORMED A mandatory parameter was not sent, was empty/null, or malformed. Mandatory parameter '%s' was not sent, was empty/null, or malformed. Param '%s' or '%s' must be sent, but both were empty/null!
+                // -1103 UNKNOWN_PARAM An unknown parameter was sent. In HBTC Open Api , each request requires at least one parameter. {Timestamp}.
+                // -1104 UNREAD_PARAMETERS Not all sent parameters were read. Not all sent parameters were read; read '%s' parameter(s) but was sent '%s'.
+                // -1105 PARAM_EMPTY A parameter was empty. Parameter '%s' was empty.
+                // -1106 PARAM_NOT_REQUIRED A parameter was sent when not required. Parameter '%s' sent when not required.
+                // -1111 BAD_PRECISION Precision is over the maximum defined for this asset.
+                // -1112 NO_DEPTH No orders on book for symbol.
+                // -1114 TIF_NOT_REQUIRED TimeInForce parameter sent when not required.
+                // -1115 INVALID_TIF Invalid timeInForce. In the current version, this parameter is either empty or GTC.
+                // -1116 INVALID_ORDER_TYPE Invalid orderType. In the current version , ORDER_TYPE values is LIMIT or MARKET.
+                // -1117 INVALID_SIDE Invalid side. ORDER_SIDE values is BUY or SELL
+                // -1118 EMPTY_NEW_CL_ORD_ID New client order ID was empty.
+                // -1119 EMPTY_ORG_CL_ORD_ID Original client order ID was empty.
+                // -1120 BAD_INTERVAL Invalid interval.
+                // -1121 BAD_SYMBOL Invalid symbol.
+                // -1125 INVALID_LISTEN_KEY This listenKey does not exist.
+                // -1127 MORE_THAN_XX_HOURS Lookup interval is too big. More than %s hours between startTime and endTime.
+                // -1128 OPTIONAL_PARAMS_BAD_COMBO Combination of optional parameters invalid.
+                // -1130 INVALID_PARAMETER Invalid data sent for a parameter. Data sent for paramter '%s' is not valid.
+                // -1132 ORDER_PRICE_TOO_HIGH Order price too high.
+                // -1133 ORDER_PRICE_TOO_SMALL Order price lower than the minimum,please check general broker info.
+                // -1134 ORDER_PRICE_PRECISION_TOO_LONG Order price decimal too long,please check general broker info.
+                // -1135 ORDER_QUANTITY_TOO_BIG Order quantity too large.
+                // -1136 ORDER_QUANTITY_TOO_SMALL Order quantity lower than the minimum.
+                // -1137 ORDER_QUANTITY_PRECISION_TOO_LONG Order quantity decimal too long.
+                // -1138 ORDER_PRICE_WAVE_EXCEED Order price exceeds permissible range.
+                // -1139 ORDER_HAS_FILLED Order has been filled.
+                // -1140 ORDER_AMOUNT_TOO_SMALL Transaction amount lower than the minimum.
+                // -1141 ORDER_DUPLICATED Duplicate clientOrderId
+                // -1142 ORDER_CANCELLED Order has been canceled
+                // -1143 ORDER_NOT_FOUND_ON_ORDER_BOOK Cannot be found on order book
+                // -1144 ORDER_LOCKED Order has been locked
+                // -1145 ORDER_NOT_SUPPORT_CANCELLATION This order type does not support cancellation
+                // -1146 ORDER_CREATION_TIMEOUT Order creation timeout
+                // -1147 ORDER_CANCELLATION_TIMEOUT Order cancellation timeout
+                // -2010 NEW_ORDER_REJECTED NEW_ORDER_REJECTED
+                // -2011 CANCEL_REJECTED CANCEL_REJECTED
+                // -2013 NO_SUCH_ORDER Order does not exist.
+                // -2014 BAD_API_KEY_FMT API-key format invalid.
+                // -2015 REJECTED_MBX_KEY Invalid API-key, IP, or permissions for action.
+                // -2016 NO_TRADING_WINDOW No trading window could be found for the symbol. Try ticker/24hrs instead.
+                // Messages for -1010 ERROR_MSG_RECEIVED, -2010 NEW_ORDER_REJECTED, and -2011 CANCEL_REJECTED
+                // "Unknown order sent." The order (by either orderId, clOrdId, origClOrdId) could not be found
+                // "Duplicate order sent." The clOrdId is already in use
+                // "Market is closed." The symbol is not trading
+                // "Account has insufficient balance for requested action." Not enough funds to complete the action
+                // "Market orders are not supported for this symbol." MARKET is not enabled on the symbol
+                // "Iceberg orders are not supported for this symbol." icebergQty is not enabled on the symbol
+                // "Stop loss orders are not supported for this symbol." STOP_LOSS is not enabled on the symbol
+                // "Stop loss limit orders are not supported for this symbol." STOP_LOSS_LIMIT is not enabled on the symbol
+                // "Take profit orders are not supported for this symbol." TAKE_PROFIT is not enabled on the symbol
+                // "Take profit limit orders are not supported for this symbol." TAKE_PROFIT_LIMIT is not enabled on the symbol
+                // "Price* QTY is zero or less." price* quantity is too low
+                // "IcebergQty exceeds QTY." icebergQty must be less than the order quantity
+                // "This action disabled is on this account." Contact customer support; some actions have been disabled on the account.
+                // "Unsupported order combination" The orderType, timeInForce, stopPrice, and/or icebergQty combination isn't allowed.
+                // "Order would trigger immediately." The order's stop price is not valid when compared to the last traded price.
+                // "Cancel order is invalid. Check origClOrdId and orderId." No origClOrdId or orderId was sent in.
+                // "Order would immediately match and take." LIMIT_MAKER order type would immediately match and trade, and not be a pure maker order.
+                // -9xxx
+                // "Filter failure: PRICE_FILTER" price is too high, too low, and/or not following the tick size rule for the symbol.
+                // "Filter failure: LOT_SIZE" quantity is too high, too low, and/or not following the step size rule for the symbol.
+                // "Filter failure: MIN_NOTIONAL" price* quantity is too low to be a valid order for the symbol.
+                // "Filter failure: MAX_NUM_ORDERS" Account has too many open orders on the symbol.
+                // "Filter failure: MAX_ALGO_ORDERS" Account has too many open stop loss and/or take profit orders on the symbol.
+                // "Filter failure: BROKER_MAX_NUM_ORDERS" Account has too many open orders on the broker.
+                // "Filter failure: BROKER_MAX_ALGO_ORDERS" Account has too many open stop loss and/or take profit orders on the broker.
+                // "Filter failure: ICEBERG_PARTS" Iceberg order would break into too many parts; icebergQty is too small.
                 },
-                'broad': {
-                },
+                'broad': {},
             },
             'precisionMode': TICK_SIZE,
             'options': {
                 'createMarketBuyOrderRequiresPrice': true,
-                'defaultType': 'spot', // 'spot' or 'swap'
+                'defaultType': 'spot',
                 'sandboxMode': false,
                 'networks': {
                     'ERC20': 'ERC20',
@@ -353,8 +346,7 @@ export default class bitflex extends Exchange {
             },
         });
     }
-
-    async fetchTime (params = {}) {
+    async fetchTime(params = {}) {
         /**
          * @method
          * @name bitflex#fetchTime
@@ -363,16 +355,15 @@ export default class bitflex extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {int} the current integer timestamp in milliseconds from the exchange server
          */
-        const response = await this.publicGetOpenapiV1Time (params);
+        const response = await this.publicGetOpenapiV1Time(params);
         //
         //     {
         //         "serverTime": 1713272360388
         //     }
         //
-        return this.safeInteger (response, 'serverTime');
+        return this.safeInteger(response, 'serverTime');
     }
-
-    async fetchCurrencies (params = {}): Promise<Currencies> {
+    async fetchCurrencies(params = {}) {
         /**
          * @method
          * @name bitflex#fetchCurrencies
@@ -381,7 +372,7 @@ export default class bitflex extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an associative dictionary of currencies
          */
-        const response = await this.publicGetOpenapiV1BrokerInfo (params);
+        const response = await this.publicGetOpenapiV1BrokerInfo(params);
         //
         //     {
         //         "timezone": "UTC",
@@ -426,23 +417,23 @@ export default class bitflex extends Exchange {
         //     }
         //
         const result = {};
-        const tokens = this.safeList (response, 'tokens', []);
+        const tokens = this.safeList(response, 'tokens', []);
         for (let i = 0; i < tokens.length; i++) {
             const currency = tokens[i];
-            const id = this.safeString (currency, 'tokenId');
-            const code = this.safeCurrencyCode (id);
-            const name = this.safeString (currency, 'tokenFullName');
-            const depositEnabled = this.safeBool (currency, 'allowDeposit');
-            const withdrawEnabled = this.safeBool (currency, 'allowWithdraw');
+            const id = this.safeString(currency, 'tokenId');
+            const code = this.safeCurrencyCode(id);
+            const name = this.safeString(currency, 'tokenFullName');
+            const depositEnabled = this.safeBool(currency, 'allowDeposit');
+            const withdrawEnabled = this.safeBool(currency, 'allowWithdraw');
             const currencyActive = (withdrawEnabled && depositEnabled);
             const networks = {};
-            const chains = this.safeList (currency, 'chainTypes', []);
+            const chains = this.safeList(currency, 'chainTypes', []);
             for (let j = 0; j < chains.length; j++) {
                 const chain = chains[j];
-                const networkId = this.safeString (chain, 'chainType');
-                const network = this.networkIdToCode (networkId);
-                const isDepositEnabled = this.safeBool (chain, 'allowDeposit');
-                const isWithdrawEnabled = this.safeBool (chain, 'allowWithdraw');
+                const networkId = this.safeString(chain, 'chainType');
+                const network = this.networkIdToCode(networkId);
+                const isDepositEnabled = this.safeBool(chain, 'allowDeposit');
+                const isWithdrawEnabled = this.safeBool(chain, 'allowWithdraw');
                 const active = (isDepositEnabled && isWithdrawEnabled);
                 networks[network] = {
                     'info': chain,
@@ -486,8 +477,7 @@ export default class bitflex extends Exchange {
         }
         return result;
     }
-
-    async fetchMarkets (params = {}): Promise<Market[]> {
+    async fetchMarkets(params = {}) {
         /**
          * @method
          * @name bitflex#fetchMarkets
@@ -496,7 +486,7 @@ export default class bitflex extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange api endpoint
          * @returns {object[]} an array of objects representing market data
          */
-        const response = await this.publicGetOpenapiV1BrokerInfo (params);
+        const response = await this.publicGetOpenapiV1BrokerInfo(params);
         //
         //     {
         //         "timezone": "UTC",
@@ -588,18 +578,17 @@ export default class bitflex extends Exchange {
         //         ]
         //     }
         //
-        const spotMarkets = this.safeList (response, 'symbols', []);
-        const parsedSpotMarkets = this.parseMarkets (spotMarkets);
-        const contractMarkets = this.safeList (response, 'contracts', []);
-        const parsedContractMarkets = this.parseMarkets (contractMarkets);
-        const optionMarkets = this.safeList (response, 'options', []); // options are not supported yet, returns empty list
-        const parsedOptionMarkets = this.parseMarkets (optionMarkets);
-        let result = this.arrayConcat (parsedSpotMarkets, parsedContractMarkets);
-        result = this.arrayConcat (result, parsedOptionMarkets);
+        const spotMarkets = this.safeList(response, 'symbols', []);
+        const parsedSpotMarkets = this.parseMarkets(spotMarkets);
+        const contractMarkets = this.safeList(response, 'contracts', []);
+        const parsedContractMarkets = this.parseMarkets(contractMarkets);
+        const optionMarkets = this.safeList(response, 'options', []); // options are not supported yet, returns empty list
+        const parsedOptionMarkets = this.parseMarkets(optionMarkets);
+        let result = this.arrayConcat(parsedSpotMarkets, parsedContractMarkets);
+        result = this.arrayConcat(result, parsedOptionMarkets);
         return result;
     }
-
-    parseMarket (market): Market {
+    parseMarket(market) {
         //
         // spot market
         //     {
@@ -652,39 +641,39 @@ export default class bitflex extends Exchange {
         //         ]
         //     }
         //
-        const id = this.safeString (market, 'symbol');
-        const baseId = this.safeString2 (market, 'underlying', 'baseAsset');
-        const quoteId = this.safeString (market, 'quoteAsset');
-        const settleId = this.safeString (market, 'marginToken');
-        const base = this.safeCurrencyCode (baseId);
-        const quote = this.safeCurrencyCode (quoteId);
-        const settle = this.safeCurrencyCode (settleId);
+        const id = this.safeString(market, 'symbol');
+        const baseId = this.safeString2(market, 'underlying', 'baseAsset');
+        const quoteId = this.safeString(market, 'quoteAsset');
+        const settleId = this.safeString(market, 'marginToken');
+        const base = this.safeCurrencyCode(baseId);
+        const quote = this.safeCurrencyCode(quoteId);
+        const settle = this.safeCurrencyCode(settleId);
         let symbol = base + '/' + quote;
         if (settle !== undefined) {
             symbol += ':' + settle;
         }
-        const status = this.safeString (market, 'status');
+        const status = this.safeString(market, 'status');
         const active = (status === 'TRADING');
-        const riskLimits = this.safeList (market, 'riskLimits');
+        const riskLimits = this.safeList(market, 'riskLimits');
         let isSpot = false;
         if (riskLimits === undefined) {
             isSpot = true;
         }
-        const margin = this.safeBool (market, 'allowMargin', false);
+        const margin = this.safeBool(market, 'allowMargin', false);
         const type = isSpot ? 'spot' : 'swap';
         const isSwap = (type === 'swap');
-        const isInverse = this.safeBool (market, 'inverse');
+        const isInverse = this.safeBool(market, 'inverse');
         let isLinear = undefined;
         if (isInverse !== undefined) {
             isLinear = !isInverse;
         }
-        const contractSize = this.safeFloat (market, 'contractMultiplier');
-        const limits = this.safeList (market, 'filters', []);
-        const limitsIndexed = this.indexBy (limits, 'filterType');
-        const amountPrecisionAndLimits = this.safeDict (limitsIndexed, 'LOT_SIZE', {});
-        const pricePrecisionAndLimits = this.safeDict (limitsIndexed, 'PRICE_FILTER', {});
-        const costLimits = this.safeDict (limitsIndexed, 'MIN_NOTIONAL', {});
-        return this.safeMarketStructure ({
+        const contractSize = this.safeFloat(market, 'contractMultiplier');
+        const limits = this.safeList(market, 'filters', []);
+        const limitsIndexed = this.indexBy(limits, 'filterType');
+        const amountPrecisionAndLimits = this.safeDict(limitsIndexed, 'LOT_SIZE', {});
+        const pricePrecisionAndLimits = this.safeDict(limitsIndexed, 'PRICE_FILTER', {});
+        const costLimits = this.safeDict(limitsIndexed, 'MIN_NOTIONAL', {});
+        return this.safeMarketStructure({
             'id': id,
             'numericId': undefined,
             'symbol': symbol,
@@ -709,27 +698,27 @@ export default class bitflex extends Exchange {
             'expiryDatetime': undefined,
             'strike': undefined,
             'optionType': undefined,
-            'maker': this.safeNumber (this.fees['trading'], 'maker'),
-            'taker': this.safeNumber (this.fees['trading'], 'taker'),
+            'maker': this.safeNumber(this.fees['trading'], 'maker'),
+            'taker': this.safeNumber(this.fees['trading'], 'taker'),
             'precision': {
-                'amount': this.safeFloat (amountPrecisionAndLimits, 'stepSize'),
-                'price': this.safeFloat (pricePrecisionAndLimits, 'tickSize'),
+                'amount': this.safeFloat(amountPrecisionAndLimits, 'stepSize'),
+                'price': this.safeFloat(pricePrecisionAndLimits, 'tickSize'),
             },
             'limits': {
                 'leverage': {
-                    'min': undefined, // todo
+                    'min': undefined,
                     'max': undefined, // todo
                 },
                 'amount': {
-                    'min': this.safeFloat (amountPrecisionAndLimits, 'minQty'),
-                    'max': this.safeFloat (amountPrecisionAndLimits, 'maxQty'),
+                    'min': this.safeFloat(amountPrecisionAndLimits, 'minQty'),
+                    'max': this.safeFloat(amountPrecisionAndLimits, 'maxQty'),
                 },
                 'price': {
-                    'min': this.safeFloat (pricePrecisionAndLimits, 'minPrice'),
-                    'max': this.safeFloat (pricePrecisionAndLimits, 'maxPrice'),
+                    'min': this.safeFloat(pricePrecisionAndLimits, 'minPrice'),
+                    'max': this.safeFloat(pricePrecisionAndLimits, 'maxPrice'),
                 },
                 'cost': {
-                    'min': this.safeFloat (costLimits, 'minNotional'),
+                    'min': this.safeFloat(costLimits, 'minNotional'),
                     'max': undefined,
                 },
             },
@@ -737,8 +726,7 @@ export default class bitflex extends Exchange {
             'info': market,
         });
     }
-
-    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    async fetchOrderBook(symbol, limit = undefined, params = {}) {
         /**
          * @method
          * @name bitflex#fetchOrderBook
@@ -752,8 +740,8 @@ export default class bitflex extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
-        await this.loadMarkets ();
-        const market = this.market (symbol);
+        await this.loadMarkets();
+        const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
         };
@@ -765,9 +753,10 @@ export default class bitflex extends Exchange {
             // this exchange recomends to use the merged depth endpoint for spot and swap markets with a limit up to 40 levels of depth
             // and we use the regular depth endpoint for limit over 40 levels of depth
             if ((limit !== undefined) && (limit > 40)) {
-                response = await this.publicGetOpenapiQuoteV1Depth (this.extend (request, params));
-            } else {
-                response = await this.publicGetOpenapiQuoteV1DepthMerged (this.extend (request, params));
+                response = await this.publicGetOpenapiQuoteV1Depth(this.extend(request, params));
+            }
+            else {
+                response = await this.publicGetOpenapiQuoteV1DepthMerged(this.extend(request, params));
             }
             //
             //     {
@@ -784,11 +773,13 @@ export default class bitflex extends Exchange {
             //         ]
             //     }
             //
-        } else {
+        }
+        else {
             if ((limit !== undefined) && (limit > 40)) {
-                response = await this.publicGetOpenapiQuoteV1ContractDepth (this.extend (request, params));
-            } else {
-                response = await this.publicGetOpenapiQuoteV1ContractDepthMerged (this.extend (request, params));
+                response = await this.publicGetOpenapiQuoteV1ContractDepth(this.extend(request, params));
+            }
+            else {
+                response = await this.publicGetOpenapiQuoteV1ContractDepthMerged(this.extend(request, params));
             }
             //
             //     {
@@ -806,11 +797,10 @@ export default class bitflex extends Exchange {
             //     }
             //
         }
-        const timestamp = this.safeInteger (response, 'time');
-        return this.parseOrderBook (response, symbol, timestamp);
+        const timestamp = this.safeInteger(response, 'time');
+        return this.parseOrderBook(response, symbol, timestamp);
     }
-
-    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name bitflex#fetchTrades
@@ -824,8 +814,8 @@ export default class bitflex extends Exchange {
          * @param {int} [params.until] *spot only* *since must be defined* the latest time in ms to fetch entries for
          * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
-        await this.loadMarkets ();
-        const market = this.market (symbol);
+        await this.loadMarkets();
+        const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
         };
@@ -834,7 +824,7 @@ export default class bitflex extends Exchange {
         }
         let response = undefined;
         if (market['spot']) {
-            response = await this.publicGetOpenapiQuoteV1Trades (this.extend (request, params));
+            response = await this.publicGetOpenapiQuoteV1Trades(this.extend(request, params));
             //
             //     [
             //         {
@@ -852,8 +842,9 @@ export default class bitflex extends Exchange {
             //         ...
             //     ]
             //
-        } else if (market['swap']) {
-            response = await this.publicGetOpenapiQuoteV1ContractTrades (this.extend (request, params));
+        }
+        else if (market['swap']) {
+            response = await this.publicGetOpenapiQuoteV1ContractTrades(this.extend(request, params));
             //
             //     [
             //         {
@@ -872,10 +863,9 @@ export default class bitflex extends Exchange {
             //     ]
             //
         }
-        return this.parseTrades (response, market, since, limit);
+        return this.parseTrades(response, market, since, limit);
     }
-
-    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name bitflex#fetchMyTrades
@@ -894,11 +884,11 @@ export default class bitflex extends Exchange {
          * @param {string} [params.toId] trade Id to fetch to
          * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
-        await this.loadMarkets ();
+        await this.loadMarkets();
         let market = undefined;
         const request = {};
         if (symbol !== undefined) {
-            market = this.market (symbol);
+            market = this.market(symbol);
             request['symbol'] = market['id'];
         }
         if (limit !== undefined) {
@@ -907,16 +897,16 @@ export default class bitflex extends Exchange {
         if (since !== undefined) {
             request['startTime'] = since;
         }
-        const until = this.safeInteger (params, 'until');
+        const until = this.safeInteger(params, 'until');
         if (until !== undefined) {
-            params = this.omit (params, 'until');
+            params = this.omit(params, 'until');
             request['endTime'] = until;
         }
         let response = undefined;
         let type = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, params);
+        [type, params] = this.handleMarketTypeAndParams('fetchMyTrades', market, params);
         if (type === 'spot') {
-            response = await this.privateGetOpenapiV1MyTrades (this.extend (request, params));
+            response = await this.privateGetOpenapiV1MyTrades(this.extend(request, params));
             //
             //     [
             //         {
@@ -945,8 +935,9 @@ export default class bitflex extends Exchange {
             //         ...
             //     ]
             //
-        } else if (type === 'swap') {
-            response = await this.privateGetOpenapiContractV1MyTrades (this.extend (request, params));
+        }
+        else if (type === 'swap') {
+            response = await this.privateGetOpenapiContractV1MyTrades(this.extend(request, params));
             //
             //     [
             //         {
@@ -968,13 +959,13 @@ export default class bitflex extends Exchange {
             //         ...
             //     ]
             //
-        } else {
-            throw new NotSupported (this.id + ' fetchMyTrades() does not support ' + type + ' markets, only spot and swap orders are accepted');
         }
-        return this.parseTrades (response, market, since, limit);
+        else {
+            throw new NotSupported(this.id + ' fetchMyTrades() does not support ' + type + ' markets, only spot and swap orders are accepted');
+        }
+        return this.parseTrades(response, market, since, limit);
     }
-
-    parseTrade (trade, market: Market = undefined): Trade {
+    parseTrade(trade, market = undefined) {
         //
         // fetchTrades (spot)
         //     [
@@ -1059,41 +1050,42 @@ export default class bitflex extends Exchange {
         //         ...
         //     ]
         //
-        const marketId = this.safeString (trade, 'symbol');
-        market = this.safeMarket (marketId, market);
-        const symbol = this.safeString (market, 'symbol');
-        const id = this.safeString2 (trade, 'id', 'tradeId');
-        const orderId = this.safeString (trade, 'orderId');
-        const timestamp = this.safeInteger (trade, 'time');
-        const price = this.safeString (trade, 'price');
-        const amount = this.safeString2 (trade, 'qty', 'quantity');
-        const isMaker = this.safeBool (trade, 'isMaker', undefined);
+        const marketId = this.safeString(trade, 'symbol');
+        market = this.safeMarket(marketId, market);
+        const symbol = this.safeString(market, 'symbol');
+        const id = this.safeString2(trade, 'id', 'tradeId');
+        const orderId = this.safeString(trade, 'orderId');
+        const timestamp = this.safeInteger(trade, 'time');
+        const price = this.safeString(trade, 'price');
+        const amount = this.safeString2(trade, 'qty', 'quantity');
+        const isMaker = this.safeBool(trade, 'isMaker', undefined);
         let takerOrMaker = undefined;
         if (isMaker !== undefined) {
             takerOrMaker = isMaker ? 'maker' : 'taker';
         }
-        const isBuyer = this.safeBool (trade, 'isBuyer');
+        const isBuyer = this.safeBool(trade, 'isBuyer');
         let side = undefined;
         if (isBuyer !== undefined) {
             side = (isBuyer) ? 'buy' : 'sell';
-        } else { // swap trades have no isBuyer
-            const tradeSide = this.safeString (trade, 'side');
-            side = this.parseSwapTradeSide (tradeSide);
+        }
+        else { // swap trades have no isBuyer
+            const tradeSide = this.safeString(trade, 'side');
+            side = this.parseSwapTradeSide(tradeSide);
         }
         let fee = undefined;
-        const feeCost = this.safeString2 (trade, 'commission', 'fee');
+        const feeCost = this.safeString2(trade, 'commission', 'fee');
         if (feeCost !== undefined) {
-            const feeCurrencyId = this.safeString2 (trade, 'commissionAsset', 'feeTokenId');
+            const feeCurrencyId = this.safeString2(trade, 'commissionAsset', 'feeTokenId');
             fee = {
                 'cost': feeCost,
-                'currency': this.safeCurrencyCode (feeCurrencyId),
+                'currency': this.safeCurrencyCode(feeCurrencyId),
             };
         }
-        return this.safeTrade ({
+        return this.safeTrade({
             'id': id,
             'order': orderId,
             'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
+            'datetime': this.iso8601(timestamp),
             'symbol': symbol,
             'type': undefined,
             'side': side,
@@ -1105,18 +1097,16 @@ export default class bitflex extends Exchange {
             'info': trade,
         }, market);
     }
-
-    parseSwapTradeSide (side) {
+    parseSwapTradeSide(side) {
         const sides = {
             'BUY_CLOSE': 'buy',
             'BUY_OPEN': 'buy',
             'SELL_CLOSE': 'sell',
             'SELL_OPEN': 'sell',
         };
-        return this.safeString (sides, side);
+        return this.safeString(sides, side);
     }
-
-    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name bitflex#fetchOHLCV
@@ -1130,11 +1120,11 @@ export default class bitflex extends Exchange {
          * @param {int} [params.until] the latest time in ms to fetch entries for
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
-        await this.loadMarkets ();
-        const market = this.market (symbol);
+        await this.loadMarkets();
+        const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
-            'interval': this.safeString (this.timeframes, timeframe, timeframe),
+            'interval': this.safeString(this.timeframes, timeframe, timeframe),
         };
         if (since !== undefined) {
             request['startTime'] = since;
@@ -1142,12 +1132,12 @@ export default class bitflex extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const until = this.safeInteger (params, 'until');
+        const until = this.safeInteger(params, 'until');
         if (until !== undefined) {
-            params = this.omit (params, 'until');
+            params = this.omit(params, 'until');
             request['endTime'] = until;
         }
-        const response = await this.publicGetOpenapiQuoteV1Klines (this.extend (request, params));
+        const response = await this.publicGetOpenapiQuoteV1Klines(this.extend(request, params));
         //
         //     [
         //         [
@@ -1166,21 +1156,19 @@ export default class bitflex extends Exchange {
         //         ...
         //     ]
         //
-        return this.parseOHLCVs (response, market, timeframe, since, limit);
+        return this.parseOHLCVs(response, market, timeframe, since, limit);
     }
-
-    parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
+    parseOHLCV(ohlcv, market = undefined) {
         return [
-            this.safeInteger (ohlcv, 0),
-            this.safeNumber (ohlcv, 1),
-            this.safeNumber (ohlcv, 2),
-            this.safeNumber (ohlcv, 3),
-            this.safeNumber (ohlcv, 4),
-            this.safeNumber (ohlcv, 5),
+            this.safeInteger(ohlcv, 0),
+            this.safeNumber(ohlcv, 1),
+            this.safeNumber(ohlcv, 2),
+            this.safeNumber(ohlcv, 3),
+            this.safeNumber(ohlcv, 4),
+            this.safeNumber(ohlcv, 5),
         ];
     }
-
-    async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
+    async fetchTicker(symbol, params = {}) {
         /**
          * @method
          * @name bitflex#fetchTicker
@@ -1191,30 +1179,31 @@ export default class bitflex extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
-        await this.loadMarkets ();
-        const market = this.market (symbol);
+        await this.loadMarkets();
+        const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
         };
         let response = undefined;
         if (market['spot']) {
-            response = await this.publicGetOpenapiQuoteV1Ticker24hr (this.extend (request, params));
-        //
-        //     {
-        //         "time": 1713430460947,
-        //         "symbol": "BTCUSDT",
-        //         "bestBidPrice": "61346.47",
-        //         "bestAskPrice": "61353.53",
-        //         "volume": "288.494146",
-        //         "quoteVolume": "17738881.75813519",
-        //         "lastPrice": "61353.94",
-        //         "highPrice": "63533.64",
-        //         "lowPrice": "59727.66",
-        //         "openPrice": "63364.98"
-        //     }
-        //
-        } else if (market['swap']) {
-            response = await this.publicGetOpenapiQuoteV1ContractTicker24hr (this.extend (request, params));
+            response = await this.publicGetOpenapiQuoteV1Ticker24hr(this.extend(request, params));
+            //
+            //     {
+            //         "time": 1713430460947,
+            //         "symbol": "BTCUSDT",
+            //         "bestBidPrice": "61346.47",
+            //         "bestAskPrice": "61353.53",
+            //         "volume": "288.494146",
+            //         "quoteVolume": "17738881.75813519",
+            //         "lastPrice": "61353.94",
+            //         "highPrice": "63533.64",
+            //         "lowPrice": "59727.66",
+            //         "openPrice": "63364.98"
+            //     }
+            //
+        }
+        else if (market['swap']) {
+            response = await this.publicGetOpenapiQuoteV1ContractTicker24hr(this.extend(request, params));
         }
         //
         //     {
@@ -1231,10 +1220,9 @@ export default class bitflex extends Exchange {
         //         "openPrice": "63359.8"
         //     }
         //
-        return this.parseTicker (response, market);
+        return this.parseTicker(response, market);
     }
-
-    async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+    async fetchTickers(symbols = undefined, params = {}) {
         /**
          * @method
          * @name bitflex#fetchTickers
@@ -1245,66 +1233,55 @@ export default class bitflex extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
-        await this.loadMarkets ();
-        let hasSpot = true;
-        let hasContract = true;
-        if (symbols !== undefined) {
-            hasSpot = false;
-            hasContract = false;
-            for (let i = 0; i < symbols.length; i++) {
-                const symbol = symbols[i];
-                const market = this.market (symbol);
-                if (market['spot']) {
-                    hasSpot = true;
-                } else if (market['swap']) {
-                    hasContract = true;
-                }
-            }
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols, undefined, true, true);
+        const market = this.getMarketFromSymbols(symbols);
+        let type = undefined;
+        [type, params] = this.handleMarketTypeAndParams('fetchMyTrades', market, params);
+        let response = undefined;
+        if (type === 'spot') {
+            response = await this.publicGetOpenapiQuoteV1Ticker24hr(params);
+            //
+            //     [
+            //         {
+            //             "time": 1713433035363,
+            //             "symbol": "TRXUSDT",
+            //             "volume": "5324149.27",
+            //             "quoteVolume": "586707.79503338",
+            //             "lastPrice": "0.109537",
+            //             "highPrice": "0.112817",
+            //             "lowPrice": "0.108604",
+            //             "openPrice": "0.112816"
+            //         },
+            //         ...
+            //     ]
+            //
         }
-        let responseSpot = [];
-        let responseContract = []; // todo check is it good to use 2 endpoints
-        if (hasSpot) {
-            responseSpot = await this.publicGetOpenapiQuoteV1Ticker24hr (params);
+        else if (type === 'swap') {
+            response = await this.publicGetOpenapiQuoteV1ContractTicker24hr(params);
+            //
+            //     [
+            //         {
+            //             "time" :1713433029225,
+            //             "symbol" :"AVAX-SWAP-USDT",
+            //             "volume" :"768502.5",
+            //             "quoteVolume" :"25936222.33476",
+            //             "openInterest" :"1983.6",
+            //             "lastPrice" :"33.9029",
+            //             "highPrice" :"35.167",
+            //             "lowPrice" :"32.2528",
+            //             "openPrice" :"35.0013"
+            //         },
+            //         ...
+            //     ]
+            //
         }
-        //
-        //     [
-        //         {
-        //             "time": 1713433035363,
-        //             "symbol": "TRXUSDT",
-        //             "volume": "5324149.27",
-        //             "quoteVolume": "586707.79503338",
-        //             "lastPrice": "0.109537",
-        //             "highPrice": "0.112817",
-        //             "lowPrice": "0.108604",
-        //             "openPrice": "0.112816"
-        //         },
-        //         ...
-        //     ]
-        //
-        if (hasContract) {
-            responseContract = await this.publicGetOpenapiQuoteV1ContractTicker24hr (params);
+        else {
+            throw new NotSupported(this.id + ' fetchTickers() does not support ' + type + ' markets, only spot and swap orders are accepted');
         }
-        //
-        //     [
-        //         {
-        //             "time" :1713433029225,
-        //             "symbol" :"AVAX-SWAP-USDT",
-        //             "volume" :"768502.5",
-        //             "quoteVolume" :"25936222.33476",
-        //             "openInterest" :"1983.6",
-        //             "lastPrice" :"33.9029",
-        //             "highPrice" :"35.167",
-        //             "lowPrice" :"32.2528",
-        //             "openPrice" :"35.0013"
-        //         },
-        //         ...
-        //     ]
-        //
-        const response = this.arrayConcat (responseSpot, responseContract);
-        return this.parseTickers (response, symbols);
+        return this.parseTickers(response, symbols);
     }
-
-    parseTicker (ticker, market: Market = undefined): Ticker {
+    parseTicker(ticker, market = undefined) {
         //
         // spot (fetchTicker)
         //     {
@@ -1370,25 +1347,25 @@ export default class bitflex extends Exchange {
         //         "time": 1713434723420
         //     },
         //
-        const marketId = this.safeString (ticker, 'symbol');
-        market = this.safeMarket (marketId, market);
+        const marketId = this.safeString(ticker, 'symbol');
+        market = this.safeMarket(marketId, market);
         const symbol = market['symbol'];
-        const timestamp = this.safeInteger (ticker, 'time');
-        const high = this.safeString (ticker, 'highPrice');
-        const low = this.safeString (ticker, 'lowPrice');
-        const bid = this.safeString2 (ticker, 'bestBidPrice', 'bidPrice');
-        const bidVolume = this.safeString (ticker, 'bidQty');
-        const ask = this.safeString2 (ticker, 'bestAskPrice', 'askPrice');
-        const askVolume = this.safeString (ticker, 'askQty');
-        const open = this.safeString (ticker, 'openPrice');
-        const last = this.safeString (ticker, 'lastPrice');
-        const baseVolume = this.safeString (ticker, 'volume');
-        const quoteVolume = this.safeString (ticker, 'quoteVolume');
-        const average = this.safeString2 (ticker, 'avg_price', 'index_price');
-        return this.safeTicker ({
+        const timestamp = this.safeInteger(ticker, 'time');
+        const high = this.safeString(ticker, 'highPrice');
+        const low = this.safeString(ticker, 'lowPrice');
+        const bid = this.safeString2(ticker, 'bestBidPrice', 'bidPrice');
+        const bidVolume = this.safeString(ticker, 'bidQty');
+        const ask = this.safeString2(ticker, 'bestAskPrice', 'askPrice');
+        const askVolume = this.safeString(ticker, 'askQty');
+        const open = this.safeString(ticker, 'openPrice');
+        const last = this.safeString(ticker, 'lastPrice');
+        const baseVolume = this.safeString(ticker, 'volume');
+        const quoteVolume = this.safeString(ticker, 'quoteVolume');
+        const average = this.safeString2(ticker, 'avg_price', 'index_price');
+        return this.safeTicker({
             'symbol': symbol,
             'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
+            'datetime': this.iso8601(timestamp),
             'high': high,
             'low': low,
             'bid': bid,
@@ -1408,8 +1385,7 @@ export default class bitflex extends Exchange {
             'info': ticker,
         }, market);
     }
-
-    async fetchBidsAsks (symbols: Strings = undefined, params = {}) {
+    async fetchBidsAsks(symbols = undefined, params = {}) {
         /**
          * @method
          * @name bitflex#fetchBidsAsks
@@ -1419,8 +1395,8 @@ export default class bitflex extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
-        await this.loadMarkets ();
-        const response = await this.publicGetOpenapiQuoteV1TickerBookTicker (params); // only for spot markets, does not work for contracts
+        await this.loadMarkets();
+        const response = await this.publicGetOpenapiQuoteV1TickerBookTicker(params); // only for spot markets, does not work for contracts
         //
         //     [
         //         {
@@ -1434,10 +1410,9 @@ export default class bitflex extends Exchange {
         //         ...
         //     ]
         //
-        return this.parseTickers (response, symbols);
+        return this.parseTickers(response, symbols);
     }
-
-    async fetchBalance (params = {}): Promise<Balances> {
+    async fetchBalance(params = {}) {
         /**
          * @method
          * @name bitflex#fetchBalance
@@ -1447,12 +1422,12 @@ export default class bitflex extends Exchange {
          * @param {string} [params.type] market type, ['spot', 'swap']
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
-        await this.loadMarkets ();
+        await this.loadMarkets();
         let type = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
+        [type, params] = this.handleMarketTypeAndParams('fetchBalance', undefined, params);
         let response = undefined;
         if (type === 'spot') {
-            response = await this.privateGetOpenapiV1Account (params);
+            response = await this.privateGetOpenapiV1Account(params);
             //
             //     {
             //         "balances":
@@ -1468,8 +1443,9 @@ export default class bitflex extends Exchange {
             //             ]
             //     }
             //
-        } else if (type === 'swap') {
-            response = await this.privateGetOpenapiContractV1Account (params);
+        }
+        else if (type === 'swap') {
+            response = await this.privateGetOpenapiContractV1Account(params);
             //
             //     {
             //         "USDT": {
@@ -1481,13 +1457,13 @@ export default class bitflex extends Exchange {
             //         },
             //     }
             //
-        } else {
-            throw new NotSupported (this.id + ' fetchBalance() does not support ' + type + ' markets, only spot and swap markets are accepted');
         }
-        return this.customParseBalance (response, type);
+        else {
+            throw new NotSupported(this.id + ' fetchBalance() does not support ' + type + ' markets, only spot and swap markets are accepted');
+        }
+        return this.customParseBalance(response, type);
     }
-
-    customParseBalance (response, type): Balances {
+    customParseBalance(response, type) {
         let balances = undefined;
         const result = {
             'info': response,
@@ -1495,37 +1471,40 @@ export default class bitflex extends Exchange {
             'datetime': undefined,
         };
         if (type === 'spot') {
-            balances = this.safeList (response, 'balances', []);
+            balances = this.safeList(response, 'balances', []);
             for (let i = 0; i < balances.length; i++) {
                 const balance = balances[i];
-                const currencyId = this.safeString (balance, 'asset');
-                const code = this.safeCurrencyCode (currencyId);
-                const account = this.account ();
-                account['free'] = this.safeString (balance, 'free');
-                account['used'] = this.safeString (balance, 'locked');
-                account['total'] = this.safeString (balance, 'total');
-                result[code] = account;
-            }
-        } else if (type === 'swap') {
-            const currencyIds = Object.keys (response);
-            for (let i = 0; i < currencyIds.length; i++) {
-                const currencyId = currencyIds[i];
-                const balance = response[currencyId];
-                const code = this.safeCurrencyCode (currencyId);
-                const account = this.account ();
-                account['free'] = this.safeString (balance, 'availableMargin');
-                account['total'] = this.safeString (balance, 'total');
+                const currencyId = this.safeString(balance, 'asset');
+                const code = this.safeCurrencyCode(currencyId);
+                const account = this.account();
+                account['free'] = this.safeString(balance, 'free');
+                account['used'] = this.safeString(balance, 'locked');
+                account['total'] = this.safeString(balance, 'total');
                 result[code] = account;
             }
         }
-        return this.safeBalance (result);
+        else if (type === 'swap') {
+            const currencyIds = Object.keys(response);
+            for (let i = 0; i < currencyIds.length; i++) {
+                const currencyId = currencyIds[i];
+                const balance = response[currencyId];
+                const code = this.safeCurrencyCode(currencyId);
+                const account = this.account();
+                account['free'] = this.safeString(balance, 'availableMargin');
+                account['total'] = this.safeString(balance, 'total');
+                result[code] = account;
+            }
+        }
+        return this.safeBalance(result);
     }
-
-    setSandboxMode (enable: boolean) {
+    setSandboxMode(enable) {
         this.options['sandboxMode'] = enable;
     }
-
-    async createMarketBuyOrderWithCost (symbol: string, cost: number, params = {}) {
+    isSandbox() {
+        const isSandbox = this.safeBool(this.options, 'sandboxMode', false);
+        return isSandbox === true;
+    }
+    async createMarketBuyOrderWithCost(symbol, cost, params = {}) {
         /**
          * @method
          * @name bitflex#createMarketBuyOrderWithCost
@@ -1536,16 +1515,15 @@ export default class bitflex extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        await this.loadMarkets ();
-        const market = this.market (symbol);
+        await this.loadMarkets();
+        const market = this.market(symbol);
         if (!market['spot']) {
-            throw new NotSupported (this.id + ' createMarketBuyOrderWithCost() supports spot orders only');
+            throw new NotSupported(this.id + ' createMarketBuyOrderWithCost() supports spot orders only');
         }
         params['createMarketBuyOrderRequiresPrice'] = false;
-        return await this.createOrder (symbol, 'market', 'buy', cost, undefined, params);
+        return await this.createOrder(symbol, 'market', 'buy', cost, undefined, params);
     }
-
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+    async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name bitflex#createOrder
@@ -1553,7 +1531,7 @@ export default class bitflex extends Exchange {
          * @see https://docs.bitflex.com/spot#new-order
          * @see https://docs.bitflex.com/contract#new-order
          * @param {string} symbol unified symbol of the market to create an order in
-         * @param {string} type 'market' or 'limit'
+         * @param {string} type 'market' or 'limit', also for swap markets 'INPUT', 'OPPONENT', 'QUEUE', 'OVER'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
@@ -1567,26 +1545,25 @@ export default class bitflex extends Exchange {
          *
          * EXCHANGE SPECIFIC PARAMETERS
          * @param {string} [params.newClientOrderId] *spot only* a unique id for the order
-         * @param {string} [params.orderType] *swap only* 'LIMIT' or 'STOP'
-         * @param {string} [params.priceType] *swap only* 'INPUT' (Default), 'OPPONENT', 'QUEUE', 'OVER' and 'MARKET'
          * @param {string} [params.overPrice] *swap OVER only* price will be the best opposite quote + overPrice
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        await this.loadMarkets ();
-        const market = this.market (symbol);
+        await this.loadMarkets();
+        const market = this.market(symbol);
         if (market['spot']) {
-            return await this.createSpotOrder (market, type, side, amount, price, params);
-        } else if (market['swap']) {
-            if (this.options['sandboxMode']) {
-                throw new NotSupported (this.id + ' sandbox supports spot orders only');
+            return await this.createSpotOrder(market, type, side, amount, price, params);
+        }
+        else if (market['swap']) {
+            if (this.isSandbox()) {
+                throw new NotSupported(this.id + ' sandbox supports spot orders only');
             }
-            return await this.createSwapOrder (market, type, side, amount, price, params);
-        } else {
-            throw new NotSupported (this.id + ' createOrder() does not support ' + type + ' orders, only spot and swap orders are accepted');
+            return await this.createSwapOrder(market, type, side, amount, price, params);
+        }
+        else {
+            throw new NotSupported(this.id + ' createOrder() does not support ' + type + ' orders, only spot and swap orders are accepted');
         }
     }
-
-    createSpotOrderRequest (market, type, side, amount, price = undefined, params = {}) {
+    createSpotOrderRequest(market, type, side, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name bitflex#createSpotOrderRequest
@@ -1608,58 +1585,60 @@ export default class bitflex extends Exchange {
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         const symbol = market['symbol'];
-        const orderSide = side.toUpperCase ();
+        const orderSide = side.toUpperCase();
         const request = {
             'symbol': market['id'],
             'side': orderSide,
-            'type': type.toUpperCase (),
+            'type': type.toUpperCase(),
         };
         if ((orderSide === 'BUY') && (type === 'market')) {
             let createMarketBuyOrderRequiresPrice = true;
-            [ createMarketBuyOrderRequiresPrice, params ] = this.handleOptionAndParams (params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
-            const cost = this.safeNumber (params, 'cost');
-            params = this.omit (params, 'cost');
+            [createMarketBuyOrderRequiresPrice, params] = this.handleOptionAndParams(params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+            const cost = this.safeNumber(params, 'cost');
+            params = this.omit(params, 'cost');
             if (cost !== undefined) {
                 amount = cost;
-            } else if (createMarketBuyOrderRequiresPrice) {
+            }
+            else if (createMarketBuyOrderRequiresPrice) {
                 if (price === undefined) {
-                    throw new InvalidOrder (this.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument');
-                } else {
-                    const amountString = this.numberToString (amount);
-                    const priceString = this.numberToString (price);
-                    const quoteAmount = Precise.stringMul (amountString, priceString);
+                    throw new InvalidOrder(this.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument');
+                }
+                else {
+                    const amountString = this.numberToString(amount);
+                    const priceString = this.numberToString(price);
+                    const quoteAmount = Precise.stringMul(amountString, priceString);
                     amount = quoteAmount;
                 }
             }
-            request['quantity'] = this.costToPrecision (symbol, amount);
-        } else {
-            request['quantity'] = this.amountToPrecision (symbol, amount);
+            request['quantity'] = this.costToPrecision(symbol, amount);
+        }
+        else {
+            request['quantity'] = this.amountToPrecision(symbol, amount);
         }
         if ((price !== undefined) && (type !== 'market')) {
-            request['price'] = this.priceToPrecision (symbol, price);
+            request['price'] = this.priceToPrecision(symbol, price);
         }
-        const clientOrderId = this.safeString (params, 'clientOrderId');
+        const clientOrderId = this.safeString(params, 'clientOrderId');
         if (clientOrderId !== undefined) {
             request['newClientOrderId'] = clientOrderId;
-            params = this.omit (params, 'clientOrderId');
+            params = this.omit(params, 'clientOrderId');
         }
         let postOnly = undefined;
-        [ postOnly, params ] = this.handlePostOnly (type === 'market', type === 'LIMIT_MAKER', params);
+        [postOnly, params] = this.handlePostOnly(type === 'market', type === 'LIMIT_MAKER', params);
         if (postOnly) {
             request['type'] = 'LIMIT_MAKER';
         }
-        return this.extend (request, params);
+        return this.extend(request, params);
     }
-
-    async createSpotOrder (market, type, side, amount, price = undefined, params = {}) {
-        await this.loadMarkets ();
-        const request = this.createSpotOrderRequest (market, type, side, amount, price, params);
-        const isSandbox = this.safeBool (this.options, 'sandboxMode', false);
+    async createSpotOrder(market, type, side, amount, price = undefined, params = {}) {
+        await this.loadMarkets();
+        const request = this.createSpotOrderRequest(market, type, side, amount, price, params);
         let response = undefined;
-        if (isSandbox) {
-            response = this.privatePostOpenapiV1OrderTest (request);
-        } else {
-            response = await this.privatePostOpenapiV1Order (request);
+        if (this.isSandbox()) {
+            response = this.privatePostOpenapiV1OrderTest(request);
+        }
+        else {
+            response = await this.privatePostOpenapiV1Order(request);
         }
         //
         //     {
@@ -1678,10 +1657,9 @@ export default class bitflex extends Exchange {
         //         "side": "BUY"
         //     }
         //
-        return this.parseOrder (response, market);
+        return this.parseOrder(response, market);
     }
-
-    createSwapOrderRequest (market, type, side, amount, price = undefined, params = {}) {
+    createSwapOrderRequest(market, type, side, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name bitflex#createOrder
@@ -1689,7 +1667,7 @@ export default class bitflex extends Exchange {
          * @see https://docs.bitflex.com/spot#new-order
          * @see https://docs.bitflex.com/contract#new-order
          * @param {string} symbol unified symbol of the market to create an order in
-         * @param {string} type 'market' or 'limit'
+         * @param {string} type 'market', 'limit', 'INPUT', 'OPPONENT', 'QUEUE', 'OVER'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
@@ -1701,58 +1679,78 @@ export default class bitflex extends Exchange {
          * @param {bool} [params.reduceOnly] true or false whether the order is reduce-only
          *
          * EXCHANGE SPECIFIC PARAMETERS
-         * @param {string} [params.orderType] 'LIMIT' or 'STOP'
-         * @param {string} [params.priceType] 'INPUT' (Default), 'OPPONENT', 'QUEUE', 'OVER' and 'MARKET'
          * @param {string} [params.overPrice] *swap OVER only* price will be the best opposite quote + overPrice
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        const clientOrderId = this.safeString2 (params, 'clientOrderId', 'newClientOrderId');
+        const clientOrderId = this.safeString2(params, 'clientOrderId', 'newClientOrderId');
         if (clientOrderId === undefined) {
-            throw new ArgumentsRequired (this.id + ' createOrder() requires a params.clientOrderId parameter for swap orders'); // the exchange requires a unique clientOrderId for each swap order
+            throw new ArgumentsRequired(this.id + ' createOrder() requires a params.clientOrderId argument for swap orders'); // the exchange requires a unique clientOrderId for each swap order
         }
-        params = this.omit (params, [ 'clientOrderId', 'newClientOrderId' ]);
+        params = this.omit(params, ['clientOrderId', 'newClientOrderId']);
         const symbol = market['symbol'];
         const request = {
             'symbol': market['id'],
-            'quantity': this.amountToPrecision (symbol, amount),
+            'quantity': this.amountToPrecision(symbol, amount),
             'clientOrderId': clientOrderId,
         };
-        const reduceOnly = this.safeBool (params, 'reduceOnly', false);
+        const reduceOnly = this.safeBool(params, 'reduceOnly', false);
         let suffix = '_OPEN';
         if (reduceOnly) {
             suffix = '_CLOSE';
         }
-        params = this.omit (params, 'reduceOnly');
-        const orderSide = side.toUpperCase () + suffix;
+        params = this.omit(params, 'reduceOnly');
+        const orderSide = side.toUpperCase() + suffix;
         request['side'] = orderSide;
-        const priceType = this.safeString (params, 'priceType');
-        if ((type === 'limit') && ((priceType === undefined) || (priceType === 'INPUT'))) {
-            request['price'] = this.priceToPrecision (symbol, price);
+        let priceType = undefined;
+        priceType = this.handlePriceType(type);
+        if (priceType === 'OVER') {
+            const overPrice = this.safeNumber(params, 'overPrice');
+            if (overPrice === undefined) {
+                throw new ArgumentsRequired(this.id + ' createOrder() requires a params.overPrice argument for swap OVER orders');
+            }
+            else {
+                request['overPrice'] = this.priceToPrecision(symbol, overPrice);
+                params = this.omit(params, 'overPrice');
+            }
         }
-        if ((type === 'market') && (priceType === undefined)) {
-            request['priceType'] = 'MARKET';
+        if (priceType !== undefined) {
+            request['priceType'] = priceType;
+        }
+        if (price !== undefined) {
+            request['price'] = this.priceToPrecision(symbol, price);
         }
         let postOnly = undefined;
-        const timeInForce = this.safeString (params, 'timeInForce');
-        [ postOnly, params ] = this.handlePostOnly (type === 'market', timeInForce === 'LIMIT_MAKER', params);
+        const timeInForce = this.safeString(params, 'timeInForce');
+        [postOnly, params] = this.handlePostOnly(type === 'market', timeInForce === 'LIMIT_MAKER', params);
         if (postOnly) {
             request['timeInForce'] = 'LIMIT_MAKER';
         }
-        const triggerPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
+        const triggerPrice = this.safeString2(params, 'triggerPrice', 'stopPrice');
         if (triggerPrice !== undefined) {
-            request['triggerPrice'] = this.priceToPrecision (symbol, triggerPrice);
-            params = this.omit (params, [ 'triggerPrice', 'stopPrice' ]);
+            request['triggerPrice'] = this.priceToPrecision(symbol, triggerPrice);
+            params = this.omit(params, ['triggerPrice', 'stopPrice']);
             request['orderType'] = 'STOP';
-        } else {
+        }
+        else {
             request['orderType'] = 'LIMIT';
         }
-        return this.extend (request, params);
+        return this.extend(request, params);
     }
-
-    async createSwapOrder (market, type, side, amount, price = undefined, params = {}) {
-        await this.loadMarkets ();
-        const request = this.createSwapOrderRequest (market, type, side, amount, price, params);
-        const response = await this.privatePostOpenapiContractV1Order (request);
+    handlePriceType(orderType) {
+        let priceType = undefined;
+        orderType = orderType.toUpperCase();
+        if (orderType === 'MARKET') {
+            priceType = 'MARKET';
+        }
+        else if (orderType !== 'LIMIT') {
+            priceType = orderType;
+        }
+        return priceType;
+    }
+    async createSwapOrder(market, type, side, amount, price = undefined, params = {}) {
+        await this.loadMarkets();
+        const request = this.createSwapOrderRequest(market, type, side, amount, price, params);
+        const response = await this.privatePostOpenapiContractV1Order(request);
         //
         //     {
         //         "time": "1713688829967",
@@ -1775,10 +1773,9 @@ export default class bitflex extends Exchange {
         //         "priceType": "MARKET"
         //     }
         //
-        return this.parseOrder (response, market);
+        return this.parseOrder(response, market);
     }
-
-    parseOrder (order, market: Market = undefined): Order {
+    parseOrder(order, market = undefined) {
         //
         // spot: createOrder
         //     {
@@ -1949,52 +1946,54 @@ export default class bitflex extends Exchange {
         //         "priceType": "INPUT"
         //     }
         //
-        const id = this.safeString (order, 'orderId');
-        const clientOrderId = this.safeString (order, 'clientOrderId');
-        const timestamp = this.safeString (order, 'transactTime');
-        const status = this.safeString (order, 'status');
-        const marketId = this.safeString (order, 'symbol');
-        const orderType = this.safeString2 (order, 'type', 'orderType');
-        let type = this.parseOrderType (orderType);
-        const orderTimeInForce = this.safeString (order, 'timeInForce');
-        let timeInForce = this.parseOrderTimeInForce (orderTimeInForce);
+        const id = this.safeString(order, 'orderId');
+        const clientOrderId = this.safeString(order, 'clientOrderId');
+        const timestamp = this.safeString(order, 'transactTime');
+        const status = this.safeString(order, 'status');
+        const marketId = this.safeString(order, 'symbol');
+        const orderType = this.safeString2(order, 'type', 'orderType');
+        let type = this.parseOrderType(orderType);
+        const orderTimeInForce = this.safeString(order, 'timeInForce');
+        let timeInForce = this.parseOrderTimeInForce(orderTimeInForce);
         if (orderType === 'LIMIT_MAKER') {
             timeInForce = 'PO';
         }
-        const orderSide = this.safeString (order, 'side');
-        const side = this.parseOrderSide (orderSide);
-        const price = this.omitZero (this.safeString (order, 'price'));
-        const triggerPrice = this.safeString (order, 'triggerPrice');
-        const average = this.safeString (order, 'avgPrice');
-        const filled = this.safeString (order, 'executedQty');
-        market = this.safeMarket (marketId, market);
-        let amount = this.safeString (order, 'origQty');
-        let cost = this.safeString (order, 'cummulativeQuoteQty');
+        const orderSide = this.safeString(order, 'side');
+        const side = this.parseOrderSide(orderSide);
+        const price = this.omitZero(this.safeString(order, 'price'));
+        const triggerPrice = this.safeString(order, 'triggerPrice');
+        const average = this.safeString(order, 'avgPrice');
+        const filled = this.safeString(order, 'executedQty');
+        market = this.safeMarket(marketId, market);
+        let amount = this.safeString(order, 'origQty');
+        let cost = this.safeString(order, 'cummulativeQuoteQty');
         let reduceOnly = undefined;
         if (market['spot']) {
             if ((type === 'market') && (side === 'buy')) {
                 cost = amount;
                 amount = undefined;
             }
-        } else if (market['contract']) { // swap order types of bitflex are LIMIT or STOP
-            reduceOnly = this.parseReduceOnly (orderSide);
+        }
+        else if (market['contract']) { // swap order types of bitflex are LIMIT or STOP
+            reduceOnly = this.parseReduceOnly(orderSide);
             if (type === 'STOP') {
                 type = 'limit'; // stop orders are always limit orders at bitflex
-            } else {
-                const priceType = this.safeString (order, 'priceType'); // to define suitable type we use priceType
-                type = this.parsePriceType (priceType);
+            }
+            else {
+                const priceType = this.safeString(order, 'priceType'); // to define suitable type we use priceType
+                type = this.parsePriceType(priceType);
             }
         }
-        const lastUpdateTimestamp = this.safeString (order, 'updateTime');
-        const remaining = this.safeString (order, 'executeQty');
-        return this.safeOrder ({
+        const lastUpdateTimestamp = this.safeString(order, 'updateTime');
+        const remaining = this.safeString(order, 'executeQty');
+        return this.safeOrder({
             'id': id,
             'clientOrderId': clientOrderId,
             'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
+            'datetime': this.iso8601(timestamp),
             'lastUpdateTimestamp': lastUpdateTimestamp,
-            'lastTradeTimestamp': undefined, // TODO: this might be 'updateTime' if order-status is filled, otherwise cancellation time. needs to be checked
-            'status': this.parseOrderStatus (status),
+            'lastTradeTimestamp': undefined,
+            'status': this.parseOrderStatus(status),
             'symbol': market['symbol'],
             'type': type,
             'timeInForce': timeInForce,
@@ -2013,8 +2012,7 @@ export default class bitflex extends Exchange {
             'info': order,
         }, market);
     }
-
-    parseOrderStatus (status) {
+    parseOrderStatus(status) {
         const statuses = {
             'NEW': 'open',
             'ORDER_NEW': 'open',
@@ -2023,19 +2021,17 @@ export default class bitflex extends Exchange {
             'PARTIALLY_FILLED': 'open',
             'REJECTED': 'rejected',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString(statuses, status, status);
     }
-
-    parseOrderType (type) {
+    parseOrderType(type) {
         const types = {
             'MARKET': 'market',
             'LIMIT': 'limit',
             'LIMIT_MAKER': 'limit',
         };
-        return this.safeString (types, type, type);
+        return this.safeString(types, type, type);
     }
-
-    parsePriceType (type) {
+    parsePriceType(type) {
         const types = {
             'MARKET': 'market',
             'OPPONENT': 'market',
@@ -2043,20 +2039,18 @@ export default class bitflex extends Exchange {
             'QUEUE': 'limit',
             'OVER': 'limit',
         };
-        return this.safeString (types, type, type);
+        return this.safeString(types, type, type);
     }
-
-    parseOrderTimeInForce (status) {
+    parseOrderTimeInForce(status) {
         const statuses = {
             'GTC': 'GTC',
             'FOK': 'FOK',
             'IOC': 'IOC',
             'LIMIT_MAKER': 'PO',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString(statuses, status, status);
     }
-
-    parseOrderSide (side) {
+    parseOrderSide(side) {
         const sides = {
             'BUY': 'buy',
             'BUY_OPEN': 'buy',
@@ -2065,11 +2059,10 @@ export default class bitflex extends Exchange {
             'SELL_OPEN': 'sell',
             'SELL_CLOSE': 'sell',
         };
-        return this.safeString (sides, side, side);
+        return this.safeString(sides, side, side);
     }
-
-    parseReduceOnly (orderSide) {
-        const parts = orderSide.split ('_');
+    parseReduceOnly(orderSide) {
+        const parts = orderSide.split('_');
         if (parts.length > 1) {
             if (parts[1] === 'OPEN') {
                 return false;
@@ -2081,8 +2074,7 @@ export default class bitflex extends Exchange {
         }
         return undefined;
     }
-
-    async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
+    async fetchOrder(id, symbol = undefined, params = {}) {
         /**
          * @method
          * @name bitflex#fetchOrder
@@ -2097,19 +2089,19 @@ export default class bitflex extends Exchange {
          * @param {string} [params.orderType] The order type, possible types: 'LIMIT', 'STOP' (for contract orders only)
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        await this.loadMarkets ();
+        await this.loadMarkets();
         let market = undefined;
         if (symbol !== undefined) {
-            market = this.market (symbol);
+            market = this.market(symbol);
         }
         const request = {
             'orderId': id,
         };
         let type = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('fetchOrder', market, params, 'spot');
+        [type, params] = this.handleMarketTypeAndParams('fetchOrder', market, params, 'spot');
         let response = undefined;
         if (type === 'spot') {
-            response = await this.privateGetOpenapiV1Order (this.extend (request, params));
+            response = await this.privateGetOpenapiV1Order(this.extend(request, params));
             //
             //     {
             //         "accountId": "1662502620223296001",
@@ -2134,8 +2126,9 @@ export default class bitflex extends Exchange {
             //         "isWorking": true
             //     }
             //
-        } else if (type === 'swap') {
-            response = await this.privateGetOpenapiContractV1GetOrder (this.extend (request, params));
+        }
+        else if (type === 'swap') {
+            response = await this.privateGetOpenapiContractV1GetOrder(this.extend(request, params));
             //
             //     {
             //         "time": "1713644180835",
@@ -2159,10 +2152,12 @@ export default class bitflex extends Exchange {
             //     }
             //
         }
-        return this.parseOrder (response, market);
+        else {
+            throw new NotSupported(this.id + ' fetchOrder() does not support ' + type + ' markets, only spot and swap orders are accepted');
+        }
+        return this.parseOrder(response, market);
     }
-
-    async fetchCanceledAndClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchCanceledAndClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name bitflex#fetchCanceledAndClosedOrders
@@ -2180,28 +2175,28 @@ export default class bitflex extends Exchange {
          * @param {string} [params.orderType] order type, ['LIMIT', 'STOP'] for contract orders only
          * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        await this.loadMarkets ();
+        await this.loadMarkets();
         let market = undefined;
         if (symbol !== undefined) {
-            market = this.market (symbol);
+            market = this.market(symbol);
         }
         const request = {};
         if (limit !== undefined) {
             request['limit'] = limit;
         }
         let type = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('fetchCanceledAndClosedOrders', market, params, 'spot');
+        [type, params] = this.handleMarketTypeAndParams('fetchCanceledAndClosedOrders', market, params, 'spot');
         let response = undefined;
         if (type === 'spot') {
             if (since !== undefined) {
                 request['startTime'] = since;
             }
-            const until = this.safeInteger (params, 'until');
+            const until = this.safeInteger(params, 'until');
             if (until !== undefined) {
-                params = this.omit (params, 'until');
+                params = this.omit(params, 'until');
                 request['endTime'] = until;
             }
-            response = await this.privateGetOpenapiV1HistoryOrders (this.extend (request, params));
+            response = await this.privateGetOpenapiV1HistoryOrders(this.extend(request, params));
             //
             //     [
             //         {
@@ -2229,11 +2224,12 @@ export default class bitflex extends Exchange {
             //         ...
             //     ]
             //
-        } else if (type === 'swap') {
+        }
+        else if (type === 'swap') {
             if (market !== undefined) {
                 request['symbol'] = market['id'];
             }
-            response = await this.privateGetOpenapiContractV1HistoryOrders (this.extend (request, params));
+            response = await this.privateGetOpenapiContractV1HistoryOrders(this.extend(request, params));
             //
             //     [
             //         {
@@ -2259,13 +2255,13 @@ export default class bitflex extends Exchange {
             //         ...
             //     ]
             //
-        } else {
-            throw new NotSupported (this.id + ' fetchCanceledAndClosedOrders() does not support ' + type + ' orders, only spot and swap orders are accepted');
         }
-        return this.parseOrders (response, market, since, limit);
+        else {
+            throw new NotSupported(this.id + ' fetchCanceledAndClosedOrders() does not support ' + type + ' orders, only spot and swap orders are accepted');
+        }
+        return this.parseOrders(response, market, since, limit);
     }
-
-    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name bitflex#fetchOpenOrders
@@ -2284,21 +2280,21 @@ export default class bitflex extends Exchange {
          * @param {string} [params.priceType] price type, ['INPUT', 'OPPONENT', 'QUEUE', 'OVER', 'MARKET']
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        await this.loadMarkets ();
+        await this.loadMarkets();
         let market = undefined;
         const request = {};
         if (symbol !== undefined) {
-            market = this.market (symbol);
+            market = this.market(symbol);
             request['symbol'] = market['id'];
         }
         if (limit !== undefined) {
             request['limit'] = limit;
         }
         let type = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
+        [type, params] = this.handleMarketTypeAndParams('fetchOpenOrders', market, params);
         let response = undefined;
         if (type === 'spot') {
-            response = await this.privateGetOpenapiV1OpenOrders (this.extend (request, params));
+            response = await this.privateGetOpenapiV1OpenOrders(this.extend(request, params));
             //
             //     [
             //         {
@@ -2326,8 +2322,9 @@ export default class bitflex extends Exchange {
             //         ...
             //     ]
             //
-        } else if (type === 'swap') {
-            response = await this.privateGetOpenapiContractV1OpenOrders (this.extend (request, params));
+        }
+        else if (type === 'swap') {
+            response = await this.privateGetOpenapiContractV1OpenOrders(this.extend(request, params));
             //
             //     ]
             //         {
@@ -2353,13 +2350,13 @@ export default class bitflex extends Exchange {
             //         ...
             //     ]
             //
-        } else {
-            throw new NotSupported (this.id + ' fetchOpenOrders() does not support ' + type + ' orders, only spot and swap orders are accepted');
         }
-        return this.parseOrders (response, market, since, limit);
+        else {
+            throw new NotSupported(this.id + ' fetchOpenOrders() does not support ' + type + ' orders, only spot and swap orders are accepted');
+        }
+        return this.parseOrders(response, market, since, limit);
     }
-
-    async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
+    async cancelOrder(id, symbol = undefined, params = {}) {
         /**
          * @method
          * @name bitflex#cancelOrder
@@ -2375,19 +2372,19 @@ export default class bitflex extends Exchange {
          * @param {string} [params.orderType] order type, ['LIMIT', 'STOP'] for contract orders only
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        await this.loadMarkets ();
+        await this.loadMarkets();
         const request = {
             'orderId': id,
         };
         let market = undefined;
         if (symbol !== undefined) {
-            market = this.market (symbol);
+            market = this.market(symbol);
         }
         let type = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('cancelOrder', market, params);
+        [type, params] = this.handleMarketTypeAndParams('cancelOrder', market, params);
         let response = undefined;
         if (type === 'spot') {
-            response = await this.privateDeleteOpenapiV1Order (this.extend (request, params));
+            response = await this.privateDeleteOpenapiV1Order(this.extend(request, params));
             //
             //     {
             //         "accountId": "1662502620223296001",
@@ -2404,8 +2401,9 @@ export default class bitflex extends Exchange {
             //         "side": "BUY"
             //     }
             //
-        } else if (type === 'swap') {
-            response = await this.privateDeleteOpenapiContractV1OrderCancel (this.extend (request, params));
+        }
+        else if (type === 'swap') {
+            response = await this.privateDeleteOpenapiContractV1OrderCancel(this.extend(request, params));
             //
             //     {
             //         "time": "1713648762414",
@@ -2428,13 +2426,13 @@ export default class bitflex extends Exchange {
             //         "priceType": "INPUT"
             //     }
             //
-        } else {
-            throw new NotSupported (this.id + ' cancelOrder() does not support ' + type + ' orders, only spot and swap orders are accepted');
         }
-        return this.parseOrder (response, market);
+        else {
+            throw new NotSupported(this.id + ' cancelOrder() does not support ' + type + ' orders, only spot and swap orders are accepted');
+        }
+        return this.parseOrder(response, market);
     }
-
-    async cancelAllOrders (symbol: Str = undefined, params = {}) {
+    async cancelAllOrders(symbol = undefined, params = {}) {
         /**
          * @method
          * @name bitflex#cancelAllOrders
@@ -2444,22 +2442,21 @@ export default class bitflex extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        await this.loadMarkets ();
+        await this.loadMarkets();
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelAllOrders requires a symbol argument');
+            throw new ArgumentsRequired(this.id + ' cancelAllOrders requires a symbol argument');
         }
-        const market = this.market (symbol);
+        const market = this.market(symbol);
         if (market['type'] === 'spot') {
-            throw new NotSupported (this.id + ' cancelAllOrders does not support spot markets, only swap markets are accepted');
+            throw new NotSupported(this.id + ' cancelAllOrders does not support spot markets, only swap markets are accepted');
         }
         const request = {
             'symbol': market['id'],
         };
-        const response = await this.privateDeleteOpenapiContractV1OrderBatchCancel (this.extend (request, params));
+        const response = await this.privateDeleteOpenapiContractV1OrderBatchCancel(this.extend(request, params));
         return response;
     }
-
-    async fetchAccounts (params = {}): Promise<Account[]> {
+    async fetchAccounts(params = {}) {
         /**
          * @method
          * @name bitflex#fetchAccounts
@@ -2468,8 +2465,8 @@ export default class bitflex extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type
          */
-        await this.loadMarkets ();
-        const response = await this.privatePostOpenapiV1SubAccountQuery (params);
+        await this.loadMarkets();
+        const response = await this.privatePostOpenapiV1SubAccountQuery(params);
         //
         //     [
         //         {
@@ -2486,10 +2483,9 @@ export default class bitflex extends Exchange {
         //         }
         //     ]
         //
-        return this.parseAccounts (response, params);
+        return this.parseAccounts(response, params);
     }
-
-    parseAccount (account) {
+    parseAccount(account) {
         //
         //     {
         //         "accountId": "1662502620223296001",
@@ -2498,43 +2494,39 @@ export default class bitflex extends Exchange {
         //         "accountIndex": 0
         //     },
         //
-        const accountType = this.safeString (account, 'accountType');
+        const accountType = this.safeString(account, 'accountType');
         return {
-            'id': this.safeString (account, 'accountId'),
-            'name': this.safeString (account, 'accountName'),
-            'type': this.parseAccountType (accountType),
+            'id': this.safeString(account, 'accountId'),
+            'name': this.safeString(account, 'accountName'),
+            'type': this.parseAccountType(accountType),
             'code': undefined,
             'info': account,
         };
     }
-
-    parseAccountType (type) {
+    parseAccountType(type) {
         const types = {
             '1': 'spot',
             '2': 'option',
             '3': 'swap',
         };
-        return this.safeString (types, type, type);
+        return this.safeString(types, type, type);
     }
-
-    encodeAccountType (type) {
+    encodeAccountType(type) {
         const types = {
             'spot': '1',
             'option': '2',
             'swap': '3',
         };
-        return this.safeString (types, type, type);
+        return this.safeString(types, type, type);
     }
-
-    parseAccountIndex (index) {
+    parseAccountIndex(index) {
         const indexes = {
             '0': 'main',
             '1': 'subaccount',
         };
-        return this.safeString (indexes, index, index);
+        return this.safeString(indexes, index, index);
     }
-
-    async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+    async fetchDeposits(code = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name bitflex#fetchDeposits
@@ -2549,11 +2541,11 @@ export default class bitflex extends Exchange {
          * @param {string} [params.fromId] if fromId is set, it will get orders > that fromId. Otherwise most recent orders are returned
          * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
-        await this.loadMarkets ();
+        await this.loadMarkets();
         let currency = undefined;
         const request = {};
         if (code !== undefined) {
-            currency = this.currency (code);
+            currency = this.currency(code);
             request['token'] = currency['id'];
         }
         if (since !== undefined) {
@@ -2562,7 +2554,7 @@ export default class bitflex extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.privateGetOpenapiV1DepositOrders (this.extend (request, params));
+        const response = await this.privateGetOpenapiV1DepositOrders(this.extend(request, params));
         //
         //     [
         //         {
@@ -2584,10 +2576,9 @@ export default class bitflex extends Exchange {
         //         }
         //     ]
         //
-        return this.parseTransactions (response, currency, since, limit, { 'type': 'deposit' });
+        return this.parseTransactions(response, currency, since, limit, { 'type': 'deposit' });
     }
-
-    async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+    async fetchWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name bitflex#fetchWithdrawals
@@ -2602,11 +2593,11 @@ export default class bitflex extends Exchange {
          * @param {string} [params.fromId] query from this OrderId. Defaults to latest records
          * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
-        await this.loadMarkets ();
+        await this.loadMarkets();
         let currency = undefined;
         const request = {};
         if (code !== undefined) {
-            currency = this.currency (code);
+            currency = this.currency(code);
             request['tokenId'] = currency['id'];
         }
         if (since !== undefined) {
@@ -2615,7 +2606,7 @@ export default class bitflex extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.privateGetOpenapiV1WithdrawalOrders (this.extend (request, params));
+        const response = await this.privateGetOpenapiV1WithdrawalOrders(this.extend(request, params));
         //
         //     [
         //         {
@@ -2666,10 +2657,9 @@ export default class bitflex extends Exchange {
         //         }
         //     ]
         //
-        return this.parseTransactions (response, currency, since, limit, { 'type': 'withdrawal' });
+        return this.parseTransactions(response, currency, since, limit, { 'type': 'withdrawal' });
     }
-
-    async fetchWithdrawal (id: string, code: Str = undefined, params = {}) {
+    async fetchWithdrawal(id, code = undefined, params = {}) {
         /**
          * @method
          * @name bitflex#fetchWithdrawal
@@ -2683,16 +2673,16 @@ export default class bitflex extends Exchange {
          * @param {string} [params.clientOrderId] either orderId or clientOrderId must be sent
          * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
-        await this.loadMarkets ();
+        await this.loadMarkets();
         const request = {
             'orderId': id,
         };
         let currency = undefined;
         if (code !== undefined) {
-            currency = this.currency (code);
+            currency = this.currency(code);
             request['tokenId'] = currency['id'];
         }
-        const response = await this.privateGetOpenapiV1WithdrawDetail (this.extend (request, params));
+        const response = await this.privateGetOpenapiV1WithdrawDetail(this.extend(request, params));
         //
         //     {
         //         "time": "1713957600743",
@@ -2720,22 +2710,20 @@ export default class bitflex extends Exchange {
         //     }
         //
         response['type'] = 'withdrawal';
-        return this.parseTransaction (response, currency);
+        return this.parseTransaction(response, currency);
     }
-
-    parseTransactions (transactions, currency: Currency = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Transaction[] {
+    parseTransactions(transactions, currency = undefined, since = undefined, limit = undefined, params = {}) {
         let result = [];
         for (let i = 0; i < transactions.length; i++) {
-            transactions[i] = this.extend (transactions[i], params);
-            const transaction = this.parseTransaction (transactions[i], currency);
-            result.push (transaction);
+            transactions[i] = this.extend(transactions[i], params);
+            const transaction = this.parseTransaction(transactions[i], currency);
+            result.push(transaction);
         }
-        result = this.sortBy (result, 'timestamp');
+        result = this.sortBy(result, 'timestamp');
         const code = (currency !== undefined) ? currency['code'] : undefined;
-        return this.filterByCurrencySinceLimit (result, code, since, limit);
+        return this.filterByCurrencySinceLimit(result, code, since, limit);
     }
-
-    parseTransaction (transaction, currency: Currency = undefined): Transaction {
+    parseTransaction(transaction, currency = undefined) {
         //
         // fetchDeposits
         //     [
@@ -2822,35 +2810,36 @@ export default class bitflex extends Exchange {
         //         "refuseReason": "0"
         //     }
         //
-        const type = this.safeString (transaction, 'type');
-        transaction = this.omit (transaction, 'type'); // we extend the transaction with the 'type' in parseTransactions
-        const id = this.safeString (transaction, 'orderId');
-        const txid = this.safeString (transaction, 'txid');
-        const timestamp = this.safeInteger (transaction, 'time');
-        const address = this.safeString (transaction, 'address');
-        const fromAddress = this.safeString (transaction, 'fromAddress');
-        let tag = this.safeString (transaction, 'addressTag');
+        const type = this.safeString(transaction, 'type');
+        transaction = this.omit(transaction, 'type'); // we extend the transaction with the 'type' in parseTransactions
+        const id = this.safeString(transaction, 'orderId');
+        const txid = this.safeString(transaction, 'txid');
+        const timestamp = this.safeInteger(transaction, 'time');
+        const address = this.safeString(transaction, 'address');
+        const fromAddress = this.safeString(transaction, 'fromAddress');
+        let tag = this.safeString(transaction, 'addressTag');
         if (tag !== undefined) {
             if (tag.length < 1) {
                 tag = undefined;
             }
         }
-        const ext = this.safeString (transaction, 'addressExt');
+        const ext = this.safeString(transaction, 'addressExt');
         if ((ext !== undefined) && (tag === undefined)) {
             tag = ext;
         }
-        const tagFrom = this.safeString (transaction, 'fromAddressTag');
-        const amount = this.safeNumber (transaction, 'quantity');
-        const currencyId = this.safeString (transaction, 'token');
-        const currencyCode = this.safeCurrencyCode (currencyId, currency);
-        const statusType = this.safeString (transaction, 'status');
+        const tagFrom = this.safeString(transaction, 'fromAddressTag');
+        const amount = this.safeNumber(transaction, 'quantity');
+        const currencyId = this.safeString(transaction, 'token');
+        const currencyCode = this.safeCurrencyCode(currencyId, currency);
+        const statusType = this.safeString(transaction, 'status');
         let status = undefined;
         if (type === 'withdrawal') {
-            status = this.parseWithdrawTransactionStatus (statusType);
-        } else {
-            status = this.parseDepositTransactionStatus (statusType);
+            status = this.parseWithdrawTransactionStatus(statusType);
         }
-        const feeCost = this.safeNumber (transaction, 'fee');
+        else {
+            status = this.parseDepositTransactionStatus(statusType);
+        }
+        const feeCost = this.safeNumber(transaction, 'fee');
         let fee = undefined;
         if (feeCost !== undefined) {
             fee = {
@@ -2858,13 +2847,13 @@ export default class bitflex extends Exchange {
                 'currency': currencyCode,
             };
         }
-        const internal = this.safeBool (transaction, 'isInternalTransfer');
+        const internal = this.safeBool(transaction, 'isInternalTransfer');
         return {
             'info': transaction,
             'id': id,
             'txid': txid,
             'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
+            'datetime': this.iso8601(timestamp),
             'network': undefined,
             'address': address,
             'addressTo': undefined,
@@ -2882,30 +2871,26 @@ export default class bitflex extends Exchange {
             'fee': fee,
         };
     }
-
-    parseWithdrawTransactionStatus (status) {
+    parseWithdrawTransactionStatus(status) {
         const statuses = {
-            '1': 'pending', // Processing by broker
-            '2': 'canceled', // Rejected by broker
-            '3': 'pending', // Processing by platform
-            '4': 'canceled', // Reject by platfor
-            '5': 'pending', // Processing by wallet
-            '6': 'ok', // Withdrawal success
-            '7': 'failed', // Withdrawal failed
+            '1': 'pending',
+            '2': 'canceled',
+            '3': 'pending',
+            '4': 'canceled',
+            '5': 'pending',
+            '6': 'ok',
+            '7': 'failed',
             '8': 'pending', // Blockchain mining
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString(statuses, status, status);
     }
-
-    parseDepositTransactionStatus (status) { // todo check
+    parseDepositTransactionStatus(status) {
         const statuses = {
-            '1': 'failed', // failed
             '2': 'ok', // deposit can withdraw
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString(statuses, status, status);
     }
-
-    async transfer (code: string, amount: number, fromAccount: string, toAccount: string, params = {}): Promise<TransferEntry> { // todo transfer to account with special index subaccount
+    async transfer(code, amount, fromAccount, toAccount, params = {}) {
         /**
          * @method
          * @name biflex#transfer
@@ -2919,33 +2904,32 @@ export default class bitflex extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
          */
-        await this.loadMarkets ();
-        const currency = this.currency (code);
-        const fromAccountType = this.encodeAccountType (fromAccount);
-        const toAccountType = this.encodeAccountType (toAccount);
+        await this.loadMarkets();
+        const currency = this.currency(code);
+        const fromAccountType = this.encodeAccountType(fromAccount);
+        const toAccountType = this.encodeAccountType(toAccount);
         const request = {
             'amount': amount,
             'tokenId': currency['id'],
             'fromAccountType': fromAccountType,
             'toAccountType': toAccountType,
         };
-        const response = await this.privatePostOpenapiV1Transfer (this.extend (request, params));
+        const response = await this.privatePostOpenapiV1Transfer(this.extend(request, params));
         //
         //    { "success": "true" }
         //
-        const transfer = this.parseTransfer (response, currency);
+        const transfer = this.parseTransfer(response, currency);
         transfer['amount'] = amount;
         transfer['fromAccount'] = fromAccount;
         transfer['toAccount'] = toAccount;
         return transfer;
     }
-
-    parseTransfer (transfer, currency = undefined) {
+    parseTransfer(transfer, currency = undefined) {
         //
         //    { "success": "true" }
         //
-        const status = this.safeString (transfer, 'success');
-        const timestamp = this.safeInteger (transfer, 'timestamp');
+        const status = this.safeString(transfer, 'success');
+        const timestamp = this.safeInteger(transfer, 'timestamp');
         return {
             'info': transfer,
             'id': undefined,
@@ -2955,18 +2939,16 @@ export default class bitflex extends Exchange {
             'amount': undefined,
             'fromAccount': undefined,
             'toAccount': undefined,
-            'status': this.parseTransferStatus (status),
+            'status': this.parseTransferStatus(status),
         };
     }
-
-    parseTransferStatus (status) {
+    parseTransferStatus(status) {
         const statuses = {
             'true': 'ok',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString(statuses, status, status);
     }
-
-    async withdraw (code: string, amount: number, address, tag = undefined, params = {}) {
+    async withdraw(code, amount, address, tag = undefined, params = {}) {
         /**
          * @method
          * @name bitflex#withdraw
@@ -2983,25 +2965,25 @@ export default class bitflex extends Exchange {
          * @param {string} [params.chainType] chain type, USDT chain types are OMNI ERC20 TRC20, default is OMNI
          * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
-        await this.loadMarkets ();
-        const currency = this.currency (code);
+        await this.loadMarkets();
+        const currency = this.currency(code);
         const request = {
             'tokenId': currency['id'],
             'address': address,
             'withdrawQuantity': amount,
         };
-        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
+        [tag, params] = this.handleWithdrawTagAndParams(tag, params);
         if (tag !== undefined) {
             request['addressExt'] = tag;
         }
-        const networks = this.safeValue (this.options, 'networks', {});
-        let network = this.safeString2 (params, 'network', 'chainType');
-        network = this.safeString (networks, network, network);
+        const networks = this.safeDict(this.options, 'networks', {});
+        let network = this.safeString2(params, 'network', 'chainType');
+        network = this.safeString(networks, network, network);
         if (network !== undefined) {
             request['chainType'] = network;
-            params = this.omit (params, [ 'network', 'chainType' ]);
+            params = this.omit(params, ['network', 'chainType']);
         }
-        const response = await this.privatePostOpenapiV1Withdraw (this.extend (request, params));
+        const response = await this.privatePostOpenapiV1Withdraw(this.extend(request, params));
         //
         //     {
         //         "success": true,
@@ -3012,10 +2994,9 @@ export default class bitflex extends Exchange {
         //     }
         //
         response['type'] = 'withdrawal';
-        return this.parseTransaction (response, currency);
+        return this.parseTransaction(response, currency);
     }
-
-    async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+    async fetchLedger(code = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name bitstamp#fetchLedger
@@ -3034,32 +3015,32 @@ export default class bitflex extends Exchange {
          * @param {int} [params.endFlowId] Id to end with
          * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
          */
-        await this.loadMarkets ();
+        await this.loadMarkets();
         const request = {};
         if (limit !== undefined) {
             request['limit'] = limit;
         }
         let currency = undefined;
         if (code !== undefined) {
-            currency = this.currency (code);
+            currency = this.currency(code);
             request['tokenId'] = currency['id'];
         }
         if (since !== undefined) {
             request['startTime'] = since;
         }
-        const until = this.safeInteger (params, 'until');
+        const until = this.safeInteger(params, 'until');
         if (until !== undefined) {
-            params = this.omit (params, 'until');
+            params = this.omit(params, 'until');
             request['endTime'] = until;
         }
         let type = undefined;
-        [ type, params ] = this.handleOptionAndParams (params, 'fetchLedger', 'accountType', 'swap');
+        [type, params] = this.handleOptionAndParams(params, 'fetchLedger', 'accountType', 'swap');
         if (type === 'spot') {
-            throw new NotSupported (this.id + ' fetchLedger() does not support spot accounts, only swap accounts are accepted');
+            throw new NotSupported(this.id + ' fetchLedger() does not support spot accounts, only swap accounts are accepted');
         }
-        request['accountType'] = this.encodeAccountType (type);
-        params = this.omit (params, 'accountType');
-        const response = await this.privateGetOpenapiV1BalanceFlow (this.extend (request, params));
+        request['accountType'] = this.encodeAccountType(type);
+        params = this.omit(params, 'accountType');
+        const response = await this.privateGetOpenapiV1BalanceFlow(this.extend(request, params));
         //
         //     [
         //         {
@@ -3090,35 +3071,33 @@ export default class bitflex extends Exchange {
         //         }
         //     ]
         //
-        return this.parseLedger (response, currency, since, limit);
+        return this.parseLedger(response, currency, since, limit);
     }
-
-    parseLedgerEntryType (type) {
+    parseLedgerEntryType(type) {
         const types = {
-            '1': 'trade', // trades
-            '2': 'fee', // trading fees
-            '3': 'transfer', // transfer
-            '4': 'transaction', // deposit
-            '27': 'reward', // maker reward
-            '28': 'trade', // PnL from contracts
-            '30': 'trade', // settlement
-            '31': 'trade', // liquidation
-            '32': 'fee', // funding fee settlement
-            '51': 'transfer', // userAccountTransfer Exclusive
-            '65': 'trade', // OTC buy coin
-            '66': 'trade', // OTC sell coin
-            '67': 'reward', // campaign reward
-            '68': 'rebate', // user rebates
-            '69': 'reward', // registration reward
-            '70': 'airdrop', // airdrop
-            '71': 'reward', // mining reward
-            '73': 'fee', // OTC fees
+            '1': 'trade',
+            '2': 'fee',
+            '3': 'transfer',
+            '4': 'transaction',
+            '27': 'reward',
+            '28': 'trade',
+            '30': 'trade',
+            '31': 'trade',
+            '32': 'fee',
+            '51': 'transfer',
+            '65': 'trade',
+            '66': 'trade',
+            '67': 'reward',
+            '68': 'rebate',
+            '69': 'reward',
+            '70': 'airdrop',
+            '71': 'reward',
+            '73': 'fee',
             '200': 'trade', // old OTC balance flow
         };
-        return this.safeString (types, type, type);
+        return this.safeString(types, type, type);
     }
-
-    parseLedgerEntry (item, currency: Currency = undefined) {
+    parseLedgerEntry(item, currency = undefined) {
         //
         //     [
         //         {
@@ -3137,27 +3116,27 @@ export default class bitflex extends Exchange {
         //         ...
         //     ]
         //
-        const id = this.safeString (item, 'id');
+        const id = this.safeString(item, 'id');
         const account = undefined;
         const referenceId = undefined;
-        const referenceAccount = this.safeString (item, 'accountId');
-        const type = this.parseLedgerEntryType (this.safeString (item, 'flowTypeValue'));
-        const code = this.safeCurrencyCode (this.safeString (item, 'token'), currency);
-        let amount = this.safeString (item, 'change');
-        const amountIsNegative = Precise.stringLt (amount, '0');
+        const referenceAccount = this.safeString(item, 'accountId');
+        const type = this.parseLedgerEntryType(this.safeString(item, 'flowTypeValue'));
+        const code = this.safeCurrencyCode(this.safeString(item, 'token'), currency);
+        let amount = this.safeString(item, 'change');
+        const amountIsNegative = Precise.stringLt(amount, '0');
         const direction = amountIsNegative ? 'out' : 'in';
-        amount = Precise.stringAbs (amount);
-        const timestamp = this.safeString (item, 'created');
-        const fee = this.safeString (item, 'fee');
+        amount = Precise.stringAbs(amount);
+        const timestamp = this.safeString(item, 'created');
+        const fee = this.safeString(item, 'fee');
         const before = undefined;
-        const after = this.safeString (item, 'total');
+        const after = this.safeString(item, 'total');
         const status = 'ok';
         const symbol = undefined;
-        return this.safeLedgerEntry ({
+        return this.safeLedgerEntry({
             'id': id,
             'info': item,
             'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
+            'datetime': this.iso8601(timestamp),
             'account': account,
             'direction': direction,
             'referenceId': referenceId,
@@ -3172,8 +3151,7 @@ export default class bitflex extends Exchange {
             'fee': fee,
         });
     }
-
-    async fetchPosition (symbol: string, params = {}): Promise<Position> {
+    async fetchPosition(symbol, params = {}) {
         /**
          * @method
          * @name bitflex#fetchPosition
@@ -3184,21 +3162,21 @@ export default class bitflex extends Exchange {
          * @param {string} params.side 'long' or 'short' - direction of the position. If not sent, positions for both sides will be returned.
          * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
          */
-        await this.loadMarkets ();
-        const market = this.market (symbol);
+        await this.loadMarkets();
+        const market = this.market(symbol);
         if (market['spot']) {
-            throw new NotSupported (this.id + ' fetchPosition() does not support spot markets, only swap markets are accepted');
+            throw new NotSupported(this.id + ' fetchPosition() does not support spot markets, only swap markets are accepted');
         }
-        const side = this.safeString (params, 'side');
+        const side = this.safeString(params, 'side');
         if (side === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchPosition() requires a params.side argument for fetching long or short position. Use fetchPositionsForSymbol() for fetching both long and short positions');
+            throw new ArgumentsRequired(this.id + ' fetchPosition() requires a params.side argument for fetching long or short position. Use fetchPositionsForSymbol() for fetching both long and short positions');
         }
         const request = {
             'symbol': market['id'],
-            'side': side.toUpperCase (),
+            'side': side.toUpperCase(),
         };
-        params = this.omit (params, 'side');
-        const response = await this.privateGetOpenapiContractV1Positions (this.extend (request, params));
+        params = this.omit(params, 'side');
+        const response = await this.privateGetOpenapiContractV1Positions(this.extend(request, params));
         //
         //     [
         //         {
@@ -3220,13 +3198,13 @@ export default class bitflex extends Exchange {
         //     ]
         //
         if (response.length > 0) {
-            return this.parsePosition (response[0], market);
-        } else {
-            return this.parsePosition (response[0]); // omiting market to return empty Position
+            return this.parsePosition(response[0], market);
+        }
+        else {
+            return this.parsePosition(response[0]); // omiting market to return empty Position
         }
     }
-
-    async fetchPositionsForSymbol (symbol: string, params = {}) {
+    async fetchPositionsForSymbol(symbol, params = {}) {
         /**
          * @method
          * @name bitflex#fetchPositionsForSymbol
@@ -3236,10 +3214,9 @@ export default class bitflex extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
          */
-        return await this.fetchPositions ([ symbol ], params);
+        return await this.fetchPositions([symbol], params);
     }
-
-    async fetchPositions (symbols: Strings = undefined, params = {}) {
+    async fetchPositions(symbols = undefined, params = {}) {
         /**
          * @method
          * @name bitflex#fetchPositions
@@ -3250,15 +3227,15 @@ export default class bitflex extends Exchange {
          * @param {string} [params.side] 'long' or 'short' - direction of the position. If not sent, positions for both sides will be returned.
          * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
          */
-        await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols);
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols);
         const request = {};
-        const side = this.safeString (params, 'side');
+        const side = this.safeString(params, 'side');
         if (side !== undefined) {
-            request['side'] = side.toUpperCase ();
-            params = this.omit (params, 'side');
+            request['side'] = side.toUpperCase();
+            params = this.omit(params, 'side');
         }
-        const response = await this.privateGetOpenapiContractV1Positions (this.extend (request, params));
+        const response = await this.privateGetOpenapiContractV1Positions(this.extend(request, params));
         //
         //     [
         //         {
@@ -3280,49 +3257,47 @@ export default class bitflex extends Exchange {
         //         ...
         //     ]
         //
-        return this.parsePositions (response, symbols);
+        return this.parsePositions(response, symbols);
     }
-
-    parsePosition (position, market: Market = undefined) {
-        const marketId = this.safeString (position, 'symbol');
+    parsePosition(position, market = undefined) {
+        const marketId = this.safeString(position, 'symbol');
         let marginMode = 'cross';
         if (position === undefined) {
             marginMode = undefined;
         }
-        market = this.safeMarket (marketId, market);
-        return this.safePosition ({
+        market = this.safeMarket(marketId, market);
+        return this.safePosition({
             'info': position,
             'id': undefined,
             'symbol': market['symbol'],
-            'notional': this.safeNumber (position, 'positionValue'),
+            'notional': this.safeNumber(position, 'positionValue'),
             'marginMode': marginMode,
-            'liquidationPrice': this.safeNumber (position, 'flp'),
-            'entryPrice': this.safeNumber (position, 'avgPrice'),
-            'unrealizedPnl': this.safeNumber (position, 'unrealizedPnL'),
-            'realizedPnl': this.safeNumber (position, 'realizedPnL'),
+            'liquidationPrice': this.safeNumber(position, 'flp'),
+            'entryPrice': this.safeNumber(position, 'avgPrice'),
+            'unrealizedPnl': this.safeNumber(position, 'unrealizedPnL'),
+            'realizedPnl': this.safeNumber(position, 'realizedPnL'),
             'percentage': undefined,
-            'contracts': this.safeNumber (position, 'position'),
+            'contracts': this.safeNumber(position, 'position'),
             'contractSize': undefined,
             'markPrice': undefined,
-            'lastPrice': this.safeNumber (position, 'lastPrice'),
-            'side': this.safeStringLower (position, 'side'),
-            'hedged': undefined, // todo check
+            'lastPrice': this.safeNumber(position, 'lastPrice'),
+            'side': this.safeStringLower(position, 'side'),
+            'hedged': undefined,
             'timestamp': undefined,
             'datetime': undefined,
             'lastUpdateTimestamp': undefined,
             'maintenanceMargin': undefined,
             'maintenanceMarginPercentage': undefined,
             'collateral': undefined,
-            'initialMargin': this.safeNumber (position, 'margin'),
-            'initialMarginPercentage': this.safeNumber (position, 'marginRate'), // todo check
-            'leverage': this.safeNumber (position, 'leverage'),
+            'initialMargin': this.safeNumber(position, 'margin'),
+            'initialMarginPercentage': this.safeNumber(position, 'marginRate'),
+            'leverage': this.safeNumber(position, 'leverage'),
             'marginRatio': undefined,
             'stopLossPrice': undefined,
             'takeProfitPrice': undefined,
         });
     }
-
-    async setLeverage (leverage: Int, symbol: Str = undefined, params = {}) {
+    async setLeverage(leverage, symbol = undefined, params = {}) {
         /**
          * @method
          * @name bitflex#setLeverage
@@ -3335,24 +3310,24 @@ export default class bitflex extends Exchange {
          * @returns {object} response from the exchange
          */
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
+            throw new ArgumentsRequired(this.id + ' setLeverage() requires a symbol argument');
         }
-        await this.loadMarkets ();
-        const market = this.market (symbol);
+        await this.loadMarkets();
+        const market = this.market(symbol);
         if (!market['swap']) {
-            throw new BadSymbol (this.id + ' setLeverage() supports swap contracts only');
+            throw new BadSymbol(this.id + ' setLeverage() supports swap contracts only');
         }
-        const side = this.safeString (params, 'side');
+        const side = this.safeString(params, 'side');
         if (side === undefined) {
-            throw new ArgumentsRequired (this.id + ' setLeverage() requires a params.side argument (long or short)');
+            throw new ArgumentsRequired(this.id + ' setLeverage() requires a params.side argument (long or short)');
         }
         const request = {
             'symbol': market['id'],
             'leverage': leverage,
-            'side': side.toUpperCase (),
+            'side': side.toUpperCase(),
         };
-        params = this.omit (params, 'side');
-        return await this.privatePostOpenapiContractV1ModifyLeverage (this.extend (request, params));
+        params = this.omit(params, 'side');
+        return await this.privatePostOpenapiContractV1ModifyLeverage(this.extend(request, params));
         //
         //     {
         //         "symbol": "ETH-SWAP-USDT",
@@ -3361,25 +3336,24 @@ export default class bitflex extends Exchange {
         //     }
         //
     }
-
-    async modifyMarginHelper (symbol: string, amount, type, params = {}): Promise<MarginModification> {
-        await this.loadMarkets ();
-        const market = this.market (symbol);
+    async modifyMarginHelper(symbol, amount, type, params = {}) {
+        await this.loadMarkets();
+        const market = this.market(symbol);
         if (!market['swap']) {
-            throw new BadSymbol (this.id + ' reduceMargin() and addMargin() support swap contracts only');
+            throw new BadSymbol(this.id + ' reduceMargin() and addMargin() support swap contracts only');
         }
-        const side = this.safeString (params, 'side');
+        const side = this.safeString(params, 'side');
         if (side === undefined) {
-            throw new ArgumentsRequired (this.id + ' reduceMargin() and addMargin() require a params.side argument (long or short)');
+            throw new ArgumentsRequired(this.id + ' reduceMargin() and addMargin() require a params.side argument (long or short)');
         }
-        amount = this.amountToPrecision (symbol, amount);
+        amount = this.amountToPrecision(symbol, amount);
         const request = {
             'symbol': market['id'],
-            'amount': amount, // positive value for adding margin, negative for reducing
-            'side': side.toUpperCase (),
+            'amount': amount,
+            'side': side.toUpperCase(),
         };
-        params = this.omit (params, 'side');
-        const response = await this.privatePostOpenapiContractV1ModifyMargin (this.extend (request, params));
+        params = this.omit(params, 'side');
+        const response = await this.privatePostOpenapiContractV1ModifyMargin(this.extend(request, params));
         //
         //     {
         //         "symbol": "BTC-SWAP-USDT",
@@ -3388,15 +3362,14 @@ export default class bitflex extends Exchange {
         //     }
         //
         if (type === 'reduce') {
-            amount = Precise.stringAbs (amount);
+            amount = Precise.stringAbs(amount);
         }
-        return this.extend (this.parseMarginModification (response, market), {
-            'amount': this.parseNumber (amount),
+        return this.extend(this.parseMarginModification(response, market), {
+            'amount': this.parseNumber(amount),
             'type': type,
         });
     }
-
-    parseMarginModification (data, market: Market = undefined): MarginModification {
+    parseMarginModification(data, market = undefined) {
         //
         //     {
         //         "symbol": "BTC-SWAP-USDT",
@@ -3404,10 +3377,10 @@ export default class bitflex extends Exchange {
         //         "timestamp": "1713818240989"
         //     }
         //
-        const marketId = this.safeString (data, 'symbol');
-        market = this.safeMarket (marketId, market);
-        const total = this.safeNumber (data, 'margin');
-        const timestamp = this.safeInteger (data, 'timestamp');
+        const marketId = this.safeString(data, 'symbol');
+        market = this.safeMarket(marketId, market);
+        const total = this.safeNumber(data, 'margin');
+        const timestamp = this.safeInteger(data, 'timestamp');
         return {
             'info': data,
             'symbol': market['symbol'],
@@ -3418,11 +3391,10 @@ export default class bitflex extends Exchange {
             'code': market['settle'],
             'status': 'ok',
             'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
+            'datetime': this.iso8601(timestamp),
         };
     }
-
-    async reduceMargin (symbol: string, amount, params = {}): Promise<MarginModification> {
+    async reduceMargin(symbol, amount, params = {}) {
         /**
          * @method
          * @name ascendex#reduceMargin
@@ -3434,10 +3406,9 @@ export default class bitflex extends Exchange {
          * @param {string} params.side 'long' or 'short' - direction of the position
          * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=reduce-margin-structure}
          */
-        return await this.modifyMarginHelper (symbol, -amount, 'reduce', params);
+        return await this.modifyMarginHelper(symbol, -amount, 'reduce', params);
     }
-
-    async addMargin (symbol: string, amount, params = {}): Promise<MarginModification> {
+    async addMargin(symbol, amount, params = {}) {
         /**
          * @method
          * @name ascendex#addMargin
@@ -3449,118 +3420,233 @@ export default class bitflex extends Exchange {
          * @param {string} params.side 'long' or 'short' - direction of the position
          * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=add-margin-structure}
          */
-        return await this.modifyMarginHelper (symbol, amount, 'add', params);
+        return await this.modifyMarginHelper(symbol, amount, 'add', params);
     }
-
-    async fetchFundingRate (symbol: string, params = {}) {
-        /**
-         * @method
-         * @name bitflex#fetchFundingRate
-         * @description fetch the current funding rate
-         * @see https://docs.bitflex.com/contract#funding-rate-pending
-         * @param {string} symbol unified market symbol
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
-         */
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request = {
-            'symbol': market['id'],
-        };
-        const response = await this.publicGetOpenapiContractV1FundingRate (this.extend (request, params));
-        //
-        //     [
-        //         {
-        //             "symbol": "BTC-SWAP-USDT",
-        //             "intervalStart": "1713816000000",
-        //             "intervalEnd": "1713844800000",
-        //             "rate": "0.000272543243139311"
-        //         }
-        //     ]
-        //
-        return this.parseFundingRate (response[0], market);
-    }
-
-    async fetchFundingRates (symbols: Strings = undefined, params = {}) {
+    async fetchFundingRates(symbols = undefined, params = {}) {
         /**
          * @method
          * @name bitflex#fetchFundingRates
          * @description fetch the funding rate for multiple markets
-         * @see https://docs.bitflex.com/contract#funding-rate-pending
+         * @see https://docs.bitflex.com/contract#get-contract-infomation
          * @param {string[]|undefined} symbols list of unified market symbols
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a dictionary of [funding rates structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexe by market symbols
          */
-        await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols);
-        const response = await this.publicGetOpenapiContractV1FundingRate (params);
-        const result = [];
-        for (let i = 0; i < response.length; i++) {
-            const entry = response[i];
-            const parsed = this.parseFundingRate (entry);
-            result.push (parsed);
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols, 'swap', true, true);
+        const market = this.getMarketFromSymbols(symbols);
+        let type = undefined;
+        [type, params] = this.handleMarketTypeAndParams('fetchMyTrades', market, params);
+        let response = undefined;
+        if (type === 'swap') {
+            response = await this.publicGetOpenapiV1Contracts(params);
+            //
+            //     [
+            //         {
+            //             "symbol": "ETH-SWAP-USDT",
+            //             "symbolName": "ETH-SWAP-USDTUSDT",
+            //             "baseToken": "ETH-SWAP-USDT",
+            //             "quoteToken": "USDT",
+            //             "lastPrice": "3136.13",
+            //             "baseVolume": "79742.67",
+            //             "quoteVolume": "249810188.6898",
+            //             "bid": "3136.09",
+            //             "ask": "3136.67",
+            //             "high": "3191.52",
+            //             "low": "3072.89",
+            //             "productType": "futures",
+            //             "openInterest": "223",
+            //             "indexPrice": "3136.2",
+            //             "index": "ETHUSDT",
+            //             "indexBaseToken": "USDT",
+            //             "startTs": "1714031502",
+            //             "endTs": "1714117902",
+            //             "fundingRate": "0.000138400145284707",
+            //             "nextFundingRate": "0.000153806950119",
+            //             "nextFundingRateTs": 1714132800
+            //         },
+            //         ...
+            //     ]
+            //
         }
-        return this.filterByArray (result, 'symbol', symbols);
+        else {
+            throw new NotSupported(this.id + ' fetchMyTrades() does not support ' + type + ' markets, only swap orders are accepted');
+        }
+        const result = this.parseFundingRates(response);
+        return this.filterByArray(result, 'symbol', symbols);
     }
-
-    parseFundingRate (contract, market: Market = undefined) {
+    parseFundingRate(contract, market = undefined) {
         //
         //     {
-        //         "symbol": "BTC-SWAP-USDT",
-        //         "intervalStart": "1713816000000",
-        //         "intervalEnd": "1713844800000",
-        //         "rate": "0.000272543243139311"
-        //     }
+        //         "symbol": "ETH-SWAP-USDT",
+        //         "symbolName": "ETH-SWAP-USDTUSDT",
+        //         "baseToken": "ETH-SWAP-USDT",
+        //         "quoteToken": "USDT",
+        //         "lastPrice": "3136.13",
+        //         "baseVolume": "79742.67",
+        //         "quoteVolume": "249810188.6898",
+        //         "bid": "3136.09",
+        //         "ask": "3136.67",
+        //         "high": "3191.52",
+        //         "low": "3072.89",
+        //         "productType": "futures",
+        //         "openInterest": "223",
+        //         "indexPrice": "3136.2",
+        //         "index": "ETHUSDT",
+        //         "indexBaseToken": "USDT",
+        //         "startTs": "1714031502", // todo check
+        //         "endTs": "1714117902",
+        //         "fundingRate": "0.000138400145284707",
+        //         "nextFundingRate": "0.000153806950119",
+        //         "nextFundingRateTs": 1714132800
+        //     },
         //
-        const marketId = this.safeString (contract, 'symbol');
-        const symbol = this.safeSymbol (marketId, market);
-        const nextFundingTimestamp = this.safeInteger (contract, 'intervalEnd');
-        const previousFundingTimestamp = this.safeInteger (contract, 'intervalStart');
-        const fundingRate = this.safeNumber (contract, 'rate');
+        const marketId = this.safeString(contract, 'symbol');
+        const symbol = this.safeSymbol(marketId, market);
+        const nextFundingTimestamp = this.safeIntegerProduct(contract, 'nextFundingRateTs', 1000);
         return {
             'info': contract,
             'symbol': symbol,
             'markPrice': undefined,
-            'indexPrice': undefined,
+            'indexPrice': this.safeNumber(contract, 'indexPrice'),
             'interestRate': undefined,
-            'estimatedSettlePrice': undefined,
+            'estimatedSettlePrice': this.safeNumber(contract, 'lastPrice'),
             'timestamp': undefined,
             'datetime': undefined,
-            'fundingRate': fundingRate,
+            'fundingRate': this.safeNumber(contract, 'fundingRate'),
             'fundingTimestamp': undefined,
             'fundingDatetime': undefined,
-            'nextFundingRate': undefined,
+            'nextFundingRate': this.safeNumber(contract, 'nextFundingRate'),
             'nextFundingTimestamp': nextFundingTimestamp,
-            'nextFundingDatetime': this.iso8601 (nextFundingTimestamp),
+            'nextFundingDatetime': this.iso8601(nextFundingTimestamp),
             'previousFundingRate': undefined,
-            'previousFundingTimestamp': previousFundingTimestamp,
-            'previousFundingDatetime': this.iso8601 (previousFundingTimestamp),
+            'previousFundingTimestamp': undefined,
+            'previousFundingDatetime': undefined,
         };
     }
-
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    async fetchOpenInterest(symbol, params = {}) {
+        /**
+         * @method
+         * @name bitflex#fetchOpenInterest
+         * @description retrieves the open interest of a contract trading pair
+         * @see https://docs.bitflex.com/contract#get-contract-infomation
+         * @param {string} symbol unified CCXT market symbol
+         * @param {object} [params] exchange specific parameters
+         * @returns {object} an open interest structure{@link https://docs.ccxt.com/#/?id=open-interest-structure}
+         */
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        let type = undefined;
+        [type, params] = this.handleMarketTypeAndParams('fetchMyTrades', market, params);
+        let response = [];
+        if (type === 'swap') {
+            response = await this.publicGetOpenapiV1Contracts(params);
+            //
+            //     [
+            //         {
+            //             "symbol": "ETH-SWAP-USDT",
+            //             "symbolName": "ETH-SWAP-USDTUSDT",
+            //             "baseToken": "ETH-SWAP-USDT",
+            //             "quoteToken": "USDT",
+            //             "lastPrice": "3136.13",
+            //             "baseVolume": "79742.67",
+            //             "quoteVolume": "249810188.6898",
+            //             "bid": "3136.09",
+            //             "ask": "3136.67",
+            //             "high": "3191.52",
+            //             "low": "3072.89",
+            //             "productType": "futures",
+            //             "openInterest": "223",
+            //             "indexPrice": "3136.2",
+            //             "index": "ETHUSDT",
+            //             "indexBaseToken": "USDT",
+            //             "startTs": "1714031502",
+            //             "endTs": "1714117902",
+            //             "fundingRate": "0.000138400145284707",
+            //             "nextFundingRate": "0.000153806950119",
+            //             "nextFundingRateTs": 1714132800
+            //         },
+            //         ...
+            //     ]
+            //
+        }
+        else {
+            throw new NotSupported(this.id + ' fetchMyTrades() does not support ' + type + ' markets, only swap orders are accepted');
+        }
+        let interest = {};
+        for (let i = 0; i < response.length; i++) {
+            const entry = this.safeDict(response, i);
+            const entrySymbolId = this.safeString(entry, 'symbol');
+            if (entrySymbolId === market['id']) {
+                interest = entry;
+                break;
+            }
+        }
+        return this.parseOpenInterest(interest, market);
+    }
+    parseOpenInterest(interest, market = undefined) {
+        //
+        //     {
+        //         "symbol": "ETH-SWAP-USDT",
+        //         "symbolName": "ETH-SWAP-USDTUSDT",
+        //         "baseToken": "ETH-SWAP-USDT",
+        //         "quoteToken": "USDT",
+        //         "lastPrice": "3136.13",
+        //         "baseVolume": "79742.67",
+        //         "quoteVolume": "249810188.6898",
+        //         "bid": "3136.09",
+        //         "ask": "3136.67",
+        //         "high": "3191.52",
+        //         "low": "3072.89",
+        //         "productType": "futures",
+        //         "openInterest": "223",
+        //         "indexPrice": "3136.2",
+        //         "index": "ETHUSDT",
+        //         "indexBaseToken": "USDT",
+        //         "startTs": "1714031502",
+        //         "endTs": "1714117902",
+        //         "fundingRate": "0.000138400145284707",
+        //         "nextFundingRate": "0.000153806950119",
+        //         "nextFundingRateTs": 1714132800
+        //     },
+        //
+        const amount = this.safeString(interest, 'baseVolume');
+        const value = this.safeString(interest, 'quoteVolume');
+        return this.safeOpenInterest({
+            'symbol': market['symbol'],
+            'baseVolume': amount,
+            'quoteVolume': value,
+            'openInterestAmount': amount,
+            'openInterestValue': value,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'info': interest,
+        }, market);
+    }
+    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api];
-        let query = this.omit (params, this.extractParams (path));
-        const endpoint = this.implodeParams (path, params);
+        let query = this.omit(params, this.extractParams(path));
+        const endpoint = this.implodeParams(path, params);
         url = url + '/' + endpoint;
         if (api === 'private') {
-            this.checkRequiredCredentials ();
-            query['timestamp'] = this.milliseconds ();
-            const recvWindow = this.safeInteger (query, 'recvWindow');
+            this.checkRequiredCredentials();
+            query['timestamp'] = this.milliseconds();
+            const recvWindow = this.safeInteger(query, 'recvWindow');
             if (recvWindow === undefined) {
-                const defaultRecvWindow = this.safeInteger (this.options, 'recvWindow');
+                const defaultRecvWindow = this.safeInteger(this.options, 'recvWindow');
                 if (defaultRecvWindow !== undefined) {
                     query['recvWindow'] = defaultRecvWindow;
                 }
             }
-            query = this.urlencode (query);
-            const signature = this.hmac (this.encode (query), this.encode (this.secret), sha256);
+            query = this.urlencode(query);
+            const signature = this.hmac(this.encode(query), this.encode(this.secret), sha256);
             url = url + '?' + query + '&signature=' + signature;
             headers = {
                 'X-BH-APIKEY': this.apiKey,
             };
-        } else {
-            query = this.urlencode (query);
+        }
+        else {
+            query = this.urlencode(query);
             if (query.length !== 0) {
                 url += '?' + query;
             }
