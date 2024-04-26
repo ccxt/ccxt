@@ -14,7 +14,6 @@ fi
 [[ -n "$TRAVIS_BUILD_ID" ]] && IS_TRAVIS="TRUE" || IS_TRAVIS="FALSE"
 [[ "$RUNSTEP" == "PY_JS_PHP" ]] && STAGE_PYJSPHP="TRUE" || STAGE_PYJSPHP="FALSE"
 [[ "$RUNSTEP" == "CSHARP" ]] && STAGE_CSHARP="TRUE" || STAGE_CSHARP="FALSE"
-[[ "$RUNSTEP" == "finalstage" ]] && STAGE_DEPLOY="TRUE" || STAGE_DEPLOY="FALSE"
 
 if [ "$STAGE_CSHARP" == "TRUE" ]; then
   echo "S 1"
