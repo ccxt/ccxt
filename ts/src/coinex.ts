@@ -2224,7 +2224,7 @@ export default class coinex extends Exchange {
                     requestType = 'fok';
                 }
             }
-            if ((requestType === 'limit') || (requestType === 'ioc')) {
+            if (!isMarketOrder) {
                 request['price'] = this.priceToPrecision (symbol, price);
             }
             request['type'] = requestType;
@@ -2312,7 +2312,7 @@ export default class coinex extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const reduceOnly = this.safeBool (params, 'reduceOnly');
-        const triggerPrice = this.safeString (params, 'stopPrice', 'triggerPrice');
+        const triggerPrice = this.safeString2 (params, 'stopPrice', 'triggerPrice');
         const stopLossTriggerPrice = this.safeString (params, 'stopLossPrice');
         const takeProfitTriggerPrice = this.safeString (params, 'takeProfitPrice');
         const isTriggerOrder = triggerPrice !== undefined;
