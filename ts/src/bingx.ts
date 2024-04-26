@@ -291,7 +291,6 @@ export default class bingx extends Exchange {
                             'get': {
                                 'list': 3,
                                 'assets': 3,
-                                'apiKey/query': 1,
                             },
                             'post': {
                                 'create': 3,
@@ -308,6 +307,7 @@ export default class bingx extends Exchange {
                         'private': {
                             'get': {
                                 'uid': 1,
+                                'apiKey/query': 1,
                             },
                             'post': {
                                 'innerTransfer/authorizeSubAccount': 3,
