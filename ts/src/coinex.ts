@@ -2122,6 +2122,8 @@ export default class coinex extends Exchange {
                 type = 'market';
             } else if ((typeString === 'limit') || (typeString === 'market')) {
                 type = typeString;
+            } else if (typeString === 'maker_only') {
+                type = 'limit';
             }
         } else {
             type = rawType;

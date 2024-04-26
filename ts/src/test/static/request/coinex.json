@@ -279,6 +279,34 @@
                 "output": "{\"amount\":\"0.0001\",\"client_id\":\"x-167673045-edae2f7914f68b94\",\"market\":\"BTCUSDT\",\"market_type\":\"SPOT\",\"price\":\"61000\",\"side\":\"buy\",\"type\":\"limit\"}"
             },
             {
+                "description": "spot market sell",
+                "method": "createOrder",
+                "url": "https://api.coinex.com/v2/spot/order",
+                "input": [
+                  "LTC/USDT",
+                  "market",
+                  "sell",
+                  0.07
+                ],
+                "output": "{\"amount\":\"0.07\",\"client_id\":\"x-167673045-b1fe1dd3e421b261\",\"market\":\"LTCUSDT\",\"market_type\":\"SPOT\",\"side\":\"sell\",\"type\":\"market\"}"
+            },
+            {
+                "description": "spot limit buy postOnly",
+                "method": "createOrder",
+                "url": "https://api.coinex.com/v2/spot/order",
+                "input": [
+                  "LTC/USDT",
+                  "limit",
+                  "buy",
+                  0.1,
+                  55,
+                  {
+                    "postOnly": true
+                  }
+                ],
+                "output": "{\"amount\":\"0.1\",\"client_id\":\"x-167673045-82ea48c70463b427\",\"market\":\"LTCUSDT\",\"market_type\":\"SPOT\",\"price\":\"55\",\"side\":\"buy\",\"type\":\"maker_only\"}"
+            },
+            {
                 "description": "Spot limit trigger buy order",
                 "method": "createOrder",
                 "url": "https://api.coinex.com/v2/spot/stop-order",
