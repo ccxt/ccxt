@@ -2505,9 +2505,10 @@ export default class Exchange {
     }
 
     orderBookSequenceErrorReject (client, messageHash, symbol:Str, storedNonceOrChecksum, incomingNonceOrChecksum) {
-        try {
-            this.orderBookSequenceErrorThrow (symbol, storedNonceOrChecksum, incomingNonceOrChecksum);
-        } catch (err) {
+        const validate = this.safeBool2 (this.options, 'validateOrderBookSequences', 'checksum', true);
+        if (validate) {
+            const msg = this.orderBookSequenceErrorMessage (symbol, storedNonceOrChecksum, incomingNonceOrChecksum);
+            const err = new InvalidNonce ('' + msg.toString ());
             client.reject (err, messageHash);
         }
     }
