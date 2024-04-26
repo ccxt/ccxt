@@ -2187,14 +2187,14 @@ export default class coinex extends Exchange {
         const market = this.market (symbol);
         const swap = market['swap'];
         const clientOrderId = this.safeString2 (params, 'client_id', 'clientOrderId');
-        const stopPrice = this.safeValue2 (params, 'stopPrice', 'triggerPrice');
-        const stopLossPrice = this.safeValue (params, 'stopLossPrice');
-        const takeProfitPrice = this.safeValue (params, 'takeProfitPrice');
+        const stopPrice = this.safeString2 (params, 'stopPrice', 'triggerPrice');
+        const stopLossPrice = this.safeString (params, 'stopLossPrice');
+        const takeProfitPrice = this.safeString (params, 'takeProfitPrice');
         const option = this.safeString (params, 'option');
         const isMarketOrder = type === 'market';
         const postOnly = this.isPostOnly (isMarketOrder, option === 'maker_only', params);
         const timeInForceRaw = this.safeStringUpper (params, 'timeInForce');
-        const reduceOnly = this.safeValue (params, 'reduceOnly');
+        const reduceOnly = this.safeBool (params, 'reduceOnly');
         if (reduceOnly) {
             if (!market['swap']) {
                 throw new InvalidOrder (this.id + ' createOrder() does not support reduceOnly for ' + market['type'] + ' orders, reduceOnly orders are supported for swap markets only');
@@ -2311,10 +2311,10 @@ export default class coinex extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const reduceOnly = this.safeValue (params, 'reduceOnly');
-        const triggerPrice = this.safeNumber2 (params, 'stopPrice', 'triggerPrice');
-        const stopLossTriggerPrice = this.safeNumber (params, 'stopLossPrice');
-        const takeProfitTriggerPrice = this.safeNumber (params, 'takeProfitPrice');
+        const reduceOnly = this.safeBool (params, 'reduceOnly');
+        const triggerPrice = this.safeString (params, 'stopPrice', 'triggerPrice');
+        const stopLossTriggerPrice = this.safeString (params, 'stopLossPrice');
+        const takeProfitTriggerPrice = this.safeString (params, 'takeProfitPrice');
         const isTriggerOrder = triggerPrice !== undefined;
         const isStopLossTriggerOrder = stopLossTriggerPrice !== undefined;
         const isTakeProfitTriggerOrder = takeProfitTriggerPrice !== undefined;
