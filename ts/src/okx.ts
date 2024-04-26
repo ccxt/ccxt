@@ -6251,6 +6251,41 @@ export default class okx extends Exchange {
         return response;
     }
 
+    async fetchPositionMode (symbol: Str = undefined, params = {}) {
+        /**
+         * @method
+         * @name okx#fetchPositionMode
+         * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-account-configuration
+         * @description fetchs the position mode, hedged or one way, hedged for binance is set identically for all linear markets or all inverse markets
+         * @param {string} symbol unified symbol of the market to fetch the order book for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [param.accountId] if you have multiple accounts, you must specify the account id to fetch the position mode
+         * @returns {object} an object detailing whether the market is in hedged or one-way mode
+         */
+        const accounts = await this.fetchAccounts ();
+        const length = accounts.length;
+        let selectedAccount = undefined;
+        if (length > 1) {
+            const accountId = this.safeString (params, 'accountId');
+            if (accountId === undefined) {
+                const accountIds = this.getListFromObjectValues (accounts, 'id');
+                throw new ExchangeError (this.id + ' fetchPositionMode() can not detect position mode, because you have multiple accounts. Set params["accountId"] to desired id from: ' + accountIds.join (', '));
+            } else {
+                const accountsById = this.indexBy (accounts, 'id');
+                selectedAccount = this.safeDict (accountsById, accountId);
+            }
+        } else {
+            selectedAccount = accounts[0];
+        }
+        const mainAccount = selectedAccount['info'];
+        const posMode = this.safeString (mainAccount, 'posMode'); // long_short_mode, net_mode
+        const isHedged = posMode === 'long_short_mode';
+        return {
+            'info': mainAccount,
+            'hedged': isHedged,
+        };
+    }
+
     async setPositionMode (hedged: boolean, symbol: Str = undefined, params = {}) {
         /**
          * @method
