@@ -1752,7 +1752,7 @@ export default class coinex extends Exchange {
         //         "client_id": "",
         //     }
         //
-        // Spot and Margin createOrder, createOrders, cancelOrder, cancelOrders, fetchOrder
+        // Spot and Margin cancelOrder, cancelOrders, fetchOrder
         //
         //      {
         //          "amount":"1.5",
@@ -1780,7 +1780,7 @@ export default class coinex extends Exchange {
         //          "client_id": "",
         //      }
         //
-        // Swap createOrder, cancelOrder, fetchOrder
+        // Swap cancelOrder, fetchOrder
         //
         //     {
         //         "amount": "0.0005",
@@ -1816,10 +1816,6 @@ export default class coinex extends Exchange {
         //         "update_time": 1651004578.618224,
         //         "user_id": 3620173
         //     }
-        //
-        // Stop order createOrder
-        //
-        //     {"status":"success"}
         //
         // Swap Stop cancelOrder, fetchOrder
         //
@@ -1993,23 +1989,150 @@ export default class coinex extends Exchange {
         //         "user_id": 3620173
         //     }
         //
+        // Spot and Margin createOrder v2
+        //
+        //     {
+        //         "amount": "0.0001",
+        //         "base_fee": "0",
+        //         "ccy": "BTC",
+        //         "client_id": "x-167673045-a0a3c6461459a801",
+        //         "created_at": 1714114386250,
+        //         "discount_fee": "0",
+        //         "filled_amount": "0",
+        //         "filled_value": "0",
+        //         "last_fill_amount": "0",
+        //         "last_fill_price": "0",
+        //         "maker_fee_rate": "0.002",
+        //         "market": "BTCUSDT",
+        //         "market_type": "SPOT",
+        //         "order_id": 117178743547,
+        //         "price": "61000",
+        //         "quote_fee": "0",
+        //         "side": "buy",
+        //         "taker_fee_rate": "0.002",
+        //         "type": "limit",
+        //         "unfilled_amount": "0.0001",
+        //         "updated_at": 1714114386250
+        //     }
+        //
+        // Spot, Margin and Swap trigger createOrder v2
+        //
+        //     {
+        //         "stop_id": 117180138153
+        //     }
+        //
+        // Swap createOrder v2
+        //
+        //     {
+        //         "amount": "0.0001",
+        //         "client_id": "x-167673045-1471b81d747080a0",
+        //         "created_at": 1714116769986,
+        //         "fee": "0",
+        //         "fee_ccy": "USDT",
+        //         "filled_amount": "0",
+        //         "filled_value": "0",
+        //         "last_filled_amount": "0",
+        //         "last_filled_price": "0",
+        //         "maker_fee_rate": "0.0003",
+        //         "market": "BTCUSDT",
+        //         "market_type": "FUTURES",
+        //         "order_id": 136913377780,
+        //         "price": "61000.42",
+        //         "realized_pnl": "0",
+        //         "side": "buy",
+        //         "taker_fee_rate": "0.0005",
+        //         "type": "limit",
+        //         "unfilled_amount": "0.0001",
+        //         "updated_at": 1714116769986
+        //     }
+        //
+        // Swap stopLossPrice and takeProfitPrice createOrder v2
+        //
+        //     {
+        //         "adl_level": 1,
+        //         "ath_margin_size": "2.14586666",
+        //         "ath_position_amount": "0.0001",
+        //         "avg_entry_price": "64376",
+        //         "bkr_price": "0",
+        //         "close_avbl": "0.0001",
+        //         "cml_position_value": "6.4376",
+        //         "created_at": 1714119054558,
+        //         "leverage": "3",
+        //         "liq_price": "0",
+        //         "maintenance_margin_rate": "0.005",
+        //         "maintenance_margin_value": "0.03218632",
+        //         "margin_avbl": "2.14586666",
+        //         "margin_mode": "cross",
+        //         "market": "BTCUSDT",
+        //         "market_type": "FUTURES",
+        //         "max_position_value": "6.4376",
+        //         "open_interest": "0.0001",
+        //         "position_id": 303884204,
+        //         "position_margin_rate": "3.10624785634397912265",
+        //         "realized_pnl": "-0.0032188",
+        //         "settle_price": "64376",
+        //         "settle_value": "6.4376",
+        //         "side": "long",
+        //         "stop_loss_price": "62000",
+        //         "stop_loss_type": "latest_price",
+        //         "take_profit_price": "0",
+        //         "take_profit_type": "",
+        //         "unrealized_pnl": "0",
+        //         "updated_at": 1714119054559
+        //     }
+        //
+        // Swap createOrder reduceOnly v2
+        //
+        //     {
+        //         "amount": "0.0001",
+        //         "client_id": "x-167673045-4f264600c432ac06",
+        //         "created_at": 1714119323764,
+        //         "fee": "0.003221",
+        //         "fee_ccy": "USDT",
+        //         "filled_amount": "0.0001",
+        //         "filled_value": "6.442017",
+        //         "last_filled_amount": "0.0001",
+        //         "last_filled_price": "64420.17",
+        //         "maker_fee_rate": "0",
+        //         "market": "BTCUSDT",
+        //         "market_type": "FUTURES",
+        //         "order_id": 136915813578,
+        //         "price": "0",
+        //         "realized_pnl": "0.004417",
+        //         "side": "sell",
+        //         "taker_fee_rate": "0.0005",
+        //         "type": "market",
+        //         "unfilled_amount": "0",
+        //         "updated_at": 1714119323764
+        //     }
+        //
         const rawStatus = this.safeString (order, 'status');
-        const timestamp = this.safeTimestamp (order, 'create_time');
+        let timestamp = this.safeTimestamp (order, 'create_time');
+        if (timestamp === undefined) {
+            timestamp = this.safeInteger (order, 'created_at');
+        }
+        let update = this.safeTimestamp (order, 'update_time');
+        if (update === undefined) {
+            update = this.safeInteger (order, 'updated_at');
+        }
         const marketId = this.safeString (order, 'market');
         const defaultType = this.safeString (this.options, 'defaultType');
         const orderType = ('source' in order) ? 'swap' : defaultType;
         market = this.safeMarket (marketId, market, undefined, orderType);
-        const feeCurrencyId = this.safeString (order, 'fee_asset');
+        const feeCurrencyId = this.safeString2 (order, 'fee_asset', 'fee_ccy');
         let feeCurrency = this.safeCurrencyCode (feeCurrencyId);
         if (feeCurrency === undefined) {
             feeCurrency = market['quote'];
         }
-        const rawSide = this.safeInteger (order, 'side');
+        const rawIntegerSide = this.safeInteger (order, 'side');
+        const rawStringSide = this.safeString (order, 'side');
         let side: Str = undefined;
-        if (rawSide === 1) {
+        if (rawIntegerSide === 1) {
             side = 'sell';
-        } else if (rawSide === 2) {
+        } else if (rawIntegerSide === 2) {
             side = 'buy';
+        } else if ((rawStringSide === 'buy') || (rawStringSide === 'sell')) {
+            side = rawStringSide;
         } else {
             side = this.safeString (order, 'type');
         }
@@ -2017,10 +2140,13 @@ export default class coinex extends Exchange {
         let type: Str = undefined;
         if (rawType === undefined) {
             const typeInteger = this.safeInteger (order, 'type');
+            const typeString = this.safeString (order, 'type');
             if (typeInteger === 1) {
                 type = 'limit';
             } else if (typeInteger === 2) {
                 type = 'market';
+            } else if ((typeString === 'limit') || (typeString === 'market')) {
+                type = typeString;
             }
         } else {
             type = rawType;
@@ -2030,11 +2156,11 @@ export default class coinex extends Exchange {
             clientOrderId = undefined;
         }
         return this.safeOrder ({
-            'id': this.safeString2 (order, 'id', 'order_id'),
+            'id': this.safeStringN (order, [ 'id', 'order_id', 'stop_id' ]),
             'clientOrderId': clientOrderId,
             'datetime': this.iso8601 (timestamp),
             'timestamp': timestamp,
-            'lastTradeTimestamp': this.safeTimestamp (order, 'update_time'),
+            'lastTradeTimestamp': update,
             'status': this.parseOrderStatus (rawStatus),
             'symbol': market['symbol'],
             'type': type,
@@ -2047,15 +2173,15 @@ export default class coinex extends Exchange {
             'triggerPrice': this.safeString (order, 'stop_price'),
             'takeProfitPrice': this.safeNumber (order, 'take_profit_price'),
             'stopLossPrice': this.safeNumber (order, 'stop_loss_price'),
-            'cost': this.safeString (order, 'deal_money'),
-            'average': this.safeString (order, 'avg_price'),
+            'cost': this.safeString2 (order, 'deal_money', 'filled_value'),
+            'average': this.safeString2 (order, 'avg_price', 'avg_entry_price'),
             'amount': this.safeString (order, 'amount'),
-            'filled': this.safeString (order, 'deal_amount'),
-            'remaining': this.safeString (order, 'left'),
+            'filled': this.safeString2 (order, 'deal_amount', 'filled_amount'),
+            'remaining': this.safeString2 (order, 'left', 'unfilled_amount'),
             'trades': undefined,
             'fee': {
                 'currency': feeCurrency,
-                'cost': this.safeString (order, 'deal_fee'),
+                'cost': this.safeStringN (order, [ 'deal_fee', 'quote_fee', 'fee' ]),
             },
             'info': order,
         }, market);
@@ -2067,6 +2193,7 @@ export default class coinex extends Exchange {
          * @name coinex#createMarketBuyOrderWithCost
          * @description create a market buy order by providing the symbol and cost
          * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade003_market_order
+         * @see https://docs.coinex.com/api/v2/spot/order/http/put-order
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {float} cost how much you want to trade in units of the quote currency
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2090,16 +2217,12 @@ export default class coinex extends Exchange {
         const takeProfitPrice = this.safeValue (params, 'takeProfitPrice');
         const option = this.safeString (params, 'option');
         const isMarketOrder = type === 'market';
-        const postOnly = this.isPostOnly (isMarketOrder, option === 'MAKER_ONLY', params);
-        const positionId = this.safeInteger2 (params, 'position_id', 'positionId'); // Required for closing swap positions
-        const timeInForceRaw = this.safeString (params, 'timeInForce'); // Spot: IOC, FOK, PO, GTC, ... NORMAL (default), MAKER_ONLY
+        const postOnly = this.isPostOnly (isMarketOrder, option === 'maker_only', params);
+        const timeInForceRaw = this.safeStringUpper (params, 'timeInForce');
         const reduceOnly = this.safeValue (params, 'reduceOnly');
         if (reduceOnly) {
             if (!market['swap']) {
                 throw new InvalidOrder (this.id + ' createOrder() does not support reduceOnly for ' + market['type'] + ' orders, reduceOnly orders are supported for swap markets only');
-            }
-            if (positionId === undefined) {
-                throw new ArgumentsRequired (this.id + ' createOrder() requires a position_id/positionId parameter for reduceOnly orders');
             }
         }
         const request = {
@@ -2112,64 +2235,50 @@ export default class coinex extends Exchange {
         } else {
             request['client_id'] = clientOrderId;
         }
-        if (swap) {
-            if (stopLossPrice || takeProfitPrice) {
-                request['stop_type'] = this.safeInteger (params, 'stop_type', 1); // 1: triggered by the latest transaction, 2: mark price, 3: index price
-                if (positionId === undefined) {
-                    throw new ArgumentsRequired (this.id + ' createOrder() requires a position_id parameter for stop loss and take profit orders');
+        if ((stopLossPrice === undefined) && (takeProfitPrice === undefined)) {
+            if (!reduceOnly) {
+                request['side'] = side;
+            }
+            let requestType = type;
+            if (postOnly) {
+                requestType = 'maker_only';
+            } else if (timeInForceRaw !== undefined) {
+                if (timeInForceRaw === 'IOC') {
+                    requestType = 'ioc';
+                } else if (timeInForceRaw === 'FOK') {
+                    requestType = 'fok';
                 }
-                request['position_id'] = positionId;
+            }
+            if ((requestType === 'limit') || (requestType === 'ioc')) {
+                request['price'] = this.priceToPrecision (symbol, price);
+            }
+            request['type'] = requestType;
+        }
+        if (swap) {
+            request['market_type'] = 'FUTURES';
+            if (stopLossPrice || takeProfitPrice) {
                 if (stopLossPrice) {
                     request['stop_loss_price'] = this.priceToPrecision (symbol, stopLossPrice);
+                    request['stop_loss_type'] = this.safeString (params, 'stop_type', 'latest_price');
                 } else if (takeProfitPrice) {
                     request['take_profit_price'] = this.priceToPrecision (symbol, takeProfitPrice);
+                    request['take_profit_type'] = this.safeString (params, 'stop_type', 'latest_price');
                 }
             } else {
-                const requestSide = (side === 'buy') ? 2 : 1;
+                request['amount'] = this.amountToPrecision (symbol, amount);
                 if (stopPrice !== undefined) {
-                    request['stop_price'] = this.priceToPrecision (symbol, stopPrice);
-                    request['stop_type'] = this.safeInteger (params, 'stop_type', 1); // 1: triggered by the latest transaction, 2: mark price, 3: index price;
-                    request['amount'] = this.amountToPrecision (symbol, amount);
-                    request['side'] = requestSide;
-                    if (type === 'limit') {
-                        request['price'] = this.priceToPrecision (symbol, price);
-                    }
-                    request['amount'] = this.amountToPrecision (symbol, amount);
-                }
-                let timeInForce = undefined;
-                if ((type !== 'market') || (stopPrice !== undefined)) {
-                    if (postOnly) {
-                        request['option'] = 1;
-                    } else if (timeInForceRaw !== undefined) {
-                        if (timeInForceRaw === 'IOC') {
-                            timeInForce = 2;
-                        } else if (timeInForceRaw === 'FOK') {
-                            timeInForce = 3;
-                        } else {
-                            timeInForce = 1;
-                        }
-                        request['effect_type'] = timeInForce; // exchange takes 'IOC' and 'FOK'
-                    }
-                }
-                if (type === 'limit' && stopPrice === undefined) {
-                    if (reduceOnly) {
-                        request['position_id'] = positionId;
-                    } else {
-                        request['side'] = requestSide;
-                    }
-                    request['price'] = this.priceToPrecision (symbol, price);
-                    request['amount'] = this.amountToPrecision (symbol, amount);
-                } else if (type === 'market' && stopPrice === undefined) {
-                    if (reduceOnly) {
-                        request['position_id'] = positionId;
-                    } else {
-                        request['side'] = requestSide;
-                        request['amount'] = this.amountToPrecision (symbol, amount);
-                    }
+                    request['trigger_price'] = this.priceToPrecision (symbol, stopPrice);
+                    request['trigger_price_type'] = this.safeString (params, 'stop_type', 'latest_price');
                 }
             }
         } else {
-            request['type'] = side;
+            let marginMode = undefined;
+            [ marginMode, params ] = this.handleMarginModeAndParams ('createOrder', params);
+            if (marginMode !== undefined) {
+                request['market_type'] = 'MARGIN';
+            } else {
+                request['market_type'] = 'SPOT';
+            }
             if ((type === 'market') && (side === 'buy')) {
                 let createMarketBuyOrderRequiresPrice = true;
                 [ createMarketBuyOrderRequiresPrice, params ] = this.handleOptionAndParams (params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
@@ -2191,38 +2300,11 @@ export default class coinex extends Exchange {
             } else {
                 request['amount'] = this.amountToPrecision (symbol, amount);
             }
-            if ((type === 'limit') || (type === 'ioc')) {
-                request['price'] = this.priceToPrecision (symbol, price);
-            }
             if (stopPrice !== undefined) {
-                request['stop_price'] = this.priceToPrecision (symbol, stopPrice);
-            }
-            if ((type !== 'market') || (stopPrice !== undefined)) {
-                // following options cannot be applied to vanilla market orders (but can be applied to stop-market orders)
-                if ((timeInForceRaw !== undefined) || postOnly) {
-                    if ((postOnly || (timeInForceRaw !== 'IOC')) && ((type === 'limit') && (stopPrice !== undefined))) {
-                        throw new InvalidOrder (this.id + ' createOrder() only supports the IOC option for stop-limit orders');
-                    }
-                    if (postOnly) {
-                        request['option'] = 'MAKER_ONLY';
-                    } else {
-                        if (timeInForceRaw !== undefined) {
-                            request['option'] = timeInForceRaw; // exchange takes 'IOC' and 'FOK'
-                        }
-                    }
-                }
+                request['trigger_price'] = this.priceToPrecision (symbol, stopPrice);
             }
         }
-        const accountId = this.safeInteger (params, 'account_id');
-        let marginMode = undefined;
-        [ marginMode, params ] = this.handleMarginModeAndParams ('createOrder', params);
-        if (marginMode !== undefined) {
-            if (accountId === undefined) {
-                throw new BadRequest (this.id + ' createOrder() requires an account_id parameter for margin orders');
-            }
-            request['account_id'] = accountId;
-        }
-        params = this.omit (params, [ 'reduceOnly', 'positionId', 'timeInForce', 'postOnly', 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ]);
+        params = this.omit (params, [ 'reduceOnly', 'timeInForce', 'postOnly', 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ]);
         return this.extend (request, params);
     }
 
@@ -2231,17 +2313,13 @@ export default class coinex extends Exchange {
          * @method
          * @name coinex#createOrder
          * @description create a trade order
-         * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade001_limit_order
-         * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade003_market_order
-         * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade004_IOC_order
-         * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade005_stop_limit_order
-         * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade006_stop_market_order
-         * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http017_put_limit
-         * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http018_put_market
-         * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http019_put_limit_stop
-         * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http020_put_market_stop
-         * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http031_market_close
-         * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http030_limit_close
+         * @see https://docs.coinex.com/api/v2/spot/order/http/put-order
+         * @see https://docs.coinex.com/api/v2/spot/order/http/put-stop-order
+         * @see https://docs.coinex.com/api/v2/futures/order/http/put-order
+         * @see https://docs.coinex.com/api/v2/futures/order/http/put-stop-order
+         * @see https://docs.coinex.com/api/v2/futures/position/http/close-position
+         * @see https://docs.coinex.com/api/v2/futures/position/http/set-position-stop-loss
+         * @see https://docs.coinex.com/api/v2/futures/position/http/set-position-take-profit
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
@@ -2254,7 +2332,6 @@ export default class coinex extends Exchange {
          * @param {string} [params.timeInForce] 'GTC', 'IOC', 'FOK', 'PO'
          * @param {boolean} [params.postOnly] set to true if you wish to make a post only order
          * @param {boolean} [params.reduceOnly] *contract only* indicates if this order is to reduce the size of a position
-         * @param {int} [params.position_id] *required for reduce only orders* the position id to reduce
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -2271,124 +2348,206 @@ export default class coinex extends Exchange {
         let response = undefined;
         if (market['spot']) {
             if (isTriggerOrder) {
-                if (type === 'limit') {
-                    response = await this.v1PrivatePostOrderStopLimit (request);
-                } else {
-                    response = await this.v1PrivatePostOrderStopMarket (request);
-                }
+                response = await this.v2PrivatePostSpotStopOrder (request);
+                //
+                //     {
+                //         "code": 0,
+                //         "data": {
+                //             "stop_id": 117180138153
+                //         },
+                //         "message": "OK"
+                //     }
+                //
             } else {
-                if (type === 'limit') {
-                    response = await this.v1PrivatePostOrderLimit (request);
-                } else {
-                    response = await this.v1PrivatePostOrderMarket (request);
-                }
+                response = await this.v2PrivatePostSpotOrder (request);
+                //
+                //     {
+                //         "code": 0,
+                //         "data": {
+                //             "amount": "0.0001",
+                //             "base_fee": "0",
+                //             "ccy": "BTC",
+                //             "client_id": "x-167673045-a0a3c6461459a801",
+                //             "created_at": 1714114386250,
+                //             "discount_fee": "0",
+                //             "filled_amount": "0",
+                //             "filled_value": "0",
+                //             "last_fill_amount": "0",
+                //             "last_fill_price": "0",
+                //             "maker_fee_rate": "0.002",
+                //             "market": "BTCUSDT",
+                //             "market_type": "SPOT",
+                //             "order_id": 117178743547,
+                //             "price": "61000",
+                //             "quote_fee": "0",
+                //             "side": "buy",
+                //             "taker_fee_rate": "0.002",
+                //             "type": "limit",
+                //             "unfilled_amount": "0.0001",
+                //             "updated_at": 1714114386250
+                //         },
+                //         "message": "OK"
+                //     }
+                //
             }
         } else {
             if (isTriggerOrder) {
-                if (type === 'limit') {
-                    response = await this.v1PerpetualPrivatePostOrderPutStopLimit (request);
-                } else {
-                    response = await this.v1PerpetualPrivatePostOrderPutStopMarket (request);
-                }
+                response = await this.v2PrivatePostFuturesStopOrder (request);
+                //
+                //     {
+                //         "code": 0,
+                //         "data": {
+                //             "stop_id": 136915460994
+                //         },
+                //         "message": "OK"
+                //     }
+                //
             } else if (isStopLossOrTakeProfitTrigger) {
                 if (isStopLossTriggerOrder) {
-                    response = await this.v1PerpetualPrivatePostPositionStopLoss (request);
+                    response = await this.v2PrivatePostFuturesSetPositionStopLoss (request);
+                    //
+                    //     {
+                    //         "code": 0,
+                    //         "data": {
+                    //             "adl_level": 1,
+                    //             "ath_margin_size": "2.14586666",
+                    //             "ath_position_amount": "0.0001",
+                    //             "avg_entry_price": "64376",
+                    //             "bkr_price": "0",
+                    //             "close_avbl": "0.0001",
+                    //             "cml_position_value": "6.4376",
+                    //             "created_at": 1714119054558,
+                    //             "leverage": "3",
+                    //             "liq_price": "0",
+                    //             "maintenance_margin_rate": "0.005",
+                    //             "maintenance_margin_value": "0.03218632",
+                    //             "margin_avbl": "2.14586666",
+                    //             "margin_mode": "cross",
+                    //             "market": "BTCUSDT",
+                    //             "market_type": "FUTURES",
+                    //             "max_position_value": "6.4376",
+                    //             "open_interest": "0.0001",
+                    //             "position_id": 303884204,
+                    //             "position_margin_rate": "3.10624785634397912265",
+                    //             "realized_pnl": "-0.0032188",
+                    //             "settle_price": "64376",
+                    //             "settle_value": "6.4376",
+                    //             "side": "long",
+                    //             "stop_loss_price": "62000",
+                    //             "stop_loss_type": "latest_price",
+                    //             "take_profit_price": "0",
+                    //             "take_profit_type": "",
+                    //             "unrealized_pnl": "0",
+                    //             "updated_at": 1714119054559
+                    //         },
+                    //         "message": "OK"
+                    //     }
+                    //
                 } else if (isTakeProfitTriggerOrder) {
-                    response = await this.v1PerpetualPrivatePostPositionTakeProfit (request);
+                    response = await this.v2PrivatePostFuturesSetPositionTakeProfit (request);
+                    //
+                    //     {
+                    //         "code": 0,
+                    //         "data": {
+                    //             "adl_level": 1,
+                    //             "ath_margin_size": "2.14586666",
+                    //             "ath_position_amount": "0.0001",
+                    //             "avg_entry_price": "64376",
+                    //             "bkr_price": "0",
+                    //             "close_avbl": "0.0001",
+                    //             "cml_position_value": "6.4376",
+                    //             "created_at": 1714119054558,
+                    //             "leverage": "3",
+                    //             "liq_price": "0",
+                    //             "maintenance_margin_rate": "0.005",
+                    //             "maintenance_margin_value": "0.03218632",
+                    //             "margin_avbl": "2.14586666",
+                    //             "margin_mode": "cross",
+                    //             "market": "BTCUSDT",
+                    //             "market_type": "FUTURES",
+                    //             "max_position_value": "6.4376",
+                    //             "open_interest": "0.0001",
+                    //             "position_id": 303884204,
+                    //             "position_margin_rate": "3.10624785634397912265",
+                    //             "realized_pnl": "-0.0032188",
+                    //             "settle_price": "64376",
+                    //             "settle_value": "6.4376",
+                    //             "side": "long",
+                    //             "stop_loss_price": "62000",
+                    //             "stop_loss_type": "latest_price",
+                    //             "take_profit_price": "70000",
+                    //             "take_profit_type": "latest_price",
+                    //             "unrealized_pnl": "0",
+                    //             "updated_at": 1714119054559
+                    //         },
+                    //         "message": "OK"
+                    //     }
+                    //
                 }
             } else {
                 if (reduceOnly) {
-                    if (type === 'limit') {
-                        response = await this.v1PerpetualPrivatePostOrderCloseLimit (request);
-                    } else {
-                        response = await this.v1PerpetualPrivatePostOrderCloseMarket (request);
-                    }
+                    response = await this.v2PrivatePostFuturesClosePosition (request);
+                    //
+                    //     {
+                    //         "code": 0,
+                    //         "data": {
+                    //             "amount": "0.0001",
+                    //             "client_id": "x-167673045-4f264600c432ac06",
+                    //             "created_at": 1714119323764,
+                    //             "fee": "0.003221",
+                    //             "fee_ccy": "USDT",
+                    //             "filled_amount": "0.0001",
+                    //             "filled_value": "6.442017",
+                    //             "last_filled_amount": "0.0001",
+                    //             "last_filled_price": "64420.17",
+                    //             "maker_fee_rate": "0",
+                    //             "market": "BTCUSDT",
+                    //             "market_type": "FUTURES",
+                    //             "order_id": 136915813578,
+                    //             "price": "0",
+                    //             "realized_pnl": "0.004417",
+                    //             "side": "sell",
+                    //             "taker_fee_rate": "0.0005",
+                    //             "type": "market",
+                    //             "unfilled_amount": "0",
+                    //             "updated_at": 1714119323764
+                    //         },
+                    //         "message": "OK"
+                    //     }
+                    //
                 } else {
-                    if (type === 'limit') {
-                        response = await this.v1PerpetualPrivatePostOrderPutLimit (request);
-                    } else {
-                        response = await this.v1PerpetualPrivatePostOrderPutMarket (request);
-                    }
+                    response = await this.v2PrivatePostFuturesOrder (request);
+                    //
+                    //     {
+                    //         "code": 0,
+                    //         "data": {
+                    //             "amount": "0.0001",
+                    //             "client_id": "x-167673045-1471b81d747080a0",
+                    //             "created_at": 1714116769986,
+                    //             "fee": "0",
+                    //             "fee_ccy": "USDT",
+                    //             "filled_amount": "0",
+                    //             "filled_value": "0",
+                    //             "last_filled_amount": "0",
+                    //             "last_filled_price": "0",
+                    //             "maker_fee_rate": "0.0003",
+                    //             "market": "BTCUSDT",
+                    //             "market_type": "FUTURES",
+                    //             "order_id": 136913377780,
+                    //             "price": "61000.42",
+                    //             "realized_pnl": "0",
+                    //             "side": "buy",
+                    //             "taker_fee_rate": "0.0005",
+                    //             "type": "limit",
+                    //             "unfilled_amount": "0.0001",
+                    //             "updated_at": 1714116769986
+                    //         },
+                    //         "message": "OK"
+                    //     }
+                    //
                 }
             }
         }
-        //
-        // Spot and Margin
-        //
-        //     {
-        //         "code": 0,
-        //         "data": {
-        //             "amount": "0.0005",
-        //             "asset_fee": "0",
-        //             "avg_price": "0.00",
-        //             "client_id": "",
-        //             "create_time": 1650951627,
-        //             "deal_amount": "0",
-        //             "deal_fee": "0",
-        //             "deal_money": "0",
-        //             "fee_asset": null,
-        //             "fee_discount": "1",
-        //             "finished_time": null,
-        //             "id": 74510932594,
-        //             "left": "0.0005",
-        //             "maker_fee_rate": "0.002",
-        //             "market": "BTCUSDT",
-        //             "money_fee": "0",
-        //             "order_type": "limit",
-        //             "price": "30000",
-        //             "status": "not_deal",
-        //             "stock_fee": "0",
-        //             "taker_fee_rate": "0.002",
-        //             "type": "buy"
-        //         },
-        //         "message": "Success"
-        //     }
-        //
-        // Swap
-        //
-        //     {
-        //         "code": 0,
-        //         "data": {
-        //             "amount": "0.0005",
-        //             "client_id": "",
-        //             "create_time": 1651004578.618224,
-        //             "deal_asset_fee": "0.00000000000000000000",
-        //             "deal_fee": "0.00000000000000000000",
-        //             "deal_profit": "0.00000000000000000000",
-        //             "deal_stock": "0.00000000000000000000",
-        //             "effect_type": 1,
-        //             "fee_asset": "",
-        //             "fee_discount": "0.00000000000000000000",
-        //             "last_deal_amount": "0.00000000000000000000",
-        //             "last_deal_id": 0,
-        //             "last_deal_price": "0.00000000000000000000",
-        //             "last_deal_role": 0,
-        //             "last_deal_time": 0,
-        //             "last_deal_type": 0,
-        //             "left": "0.0005",
-        //             "leverage": "3",
-        //             "maker_fee": "0.00030",
-        //             "market": "BTCUSDT",
-        //             "order_id": 18221659097,
-        //             "position_id": 0,
-        //             "position_type": 1,
-        //             "price": "30000.00",
-        //             "side": 2,
-        //             "source": "api.v1",
-        //             "stop_id": 0,
-        //             "taker_fee": "0.00050",
-        //             "target": 0,
-        //             "type": 1,
-        //             "update_time": 1651004578.618224,
-        //             "user_id": 3620173
-        //         },
-        //         "message": "OK"
-        //     }
-        //
-        // Stop Order
-        //
-        //     {"code":0,"data":{"status":"success"},"message":"OK"}
-        //
         const data = this.safeDict (response, 'data', {});
         return this.parseOrder (data, market);
     }
@@ -5775,7 +5934,10 @@ export default class coinex extends Exchange {
                 query = this.keysort (query);
                 const urlencoded = this.rawencode (query);
                 let preparedString = method + '/' + version + '/' + path;
-                if (urlencoded) {
+                if (method === 'POST') {
+                    body = this.json (query);
+                    preparedString += body;
+                } else if (urlencoded) {
                     preparedString += '?' + urlencoded;
                 }
                 preparedString += nonce + this.secret;
@@ -5785,12 +5947,10 @@ export default class coinex extends Exchange {
                     'X-COINEX-SIGN': signature,
                     'X-COINEX-TIMESTAMP': nonce,
                 };
-                if ((method === 'GET') || (method === 'DELETE') || (method === 'PUT')) {
+                if (method !== 'POST') {
                     if (urlencoded) {
                         url += '?' + urlencoded;
                     }
-                } else {
-                    body = this.json (query);
                 }
             }
         }
