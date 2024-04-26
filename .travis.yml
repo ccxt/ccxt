@@ -5,10 +5,14 @@ jobs:
         - RUNSTEP=CSHARP 
       script:
         - ./build.sh 2>&1
-      artifacts:
+      workspaces:
+        create:
+          name: ws1
           paths:
-            - data.json 
+            - data.json
     - job: "use-data" 
+      workspaces:
+        use: ws1
       env: 
         - RUNSTEP=PY_JS_PHP 
       needs: generate-data 
