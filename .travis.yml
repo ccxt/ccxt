@@ -1,6 +1,6 @@
 jobs:
   include:
-    - stage: "s1"
+    - job: "s1"
       env: 
         - RUNSTEP=CSHARP 
       script:
@@ -10,7 +10,7 @@ jobs:
           name: ws1
           paths:
             - data.json
-    - stage: "s1"
+    - job: "s2"
       workspaces:
         use:
         - ws1
@@ -34,4 +34,4 @@ before_install:
 - nvm ls
 - nvm ls-remote
 - echo "runstepppppppppp"
-- echo "$RUNSTEP"
+- echo $RUNSTEP
