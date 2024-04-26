@@ -482,6 +482,22 @@
                         "timeInForce": "FOK"
                     }
                 ]
+            },
+            {
+                "description": "swap order with clientOrderId",
+                "method": "createOrder",
+                "url": "https://open-api.bingx.com/openApi/swap/v2/trade/order?clientOrderID=myorder222&positionSide=BOTH&price=50&quantity=0.1&side=BUY&symbol=LTC-USDT&timestamp=1714141045332&type=LIMIT&signature=b0b9849fd0b5828bab58cfa6085dc9dfd7d4c77503aa94aa275d316f6ae87ab6",
+                "input": [
+                  "LTC/USDT:USDT",
+                  "limit",
+                  "buy",
+                  0.1,
+                  50,
+                  {
+                    "clientOrderId": "myorder222",
+                    "positionSide": "BOTH"
+                  }
+                ]
             }
         ],
         "createOrders": [
