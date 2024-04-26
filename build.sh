@@ -4,7 +4,6 @@ set -e
 if [ "${BASH_VERSION:0:1}" -lt 4 ]; then
   echo "EPROGMISMATCH: bash version must be at least 4" >&2
   exit 75
-      if [ "$STAGE_PYJSPHP" == "TRUE" ]; then
 fi
 
 if [ $# -gt 0 ]; then
