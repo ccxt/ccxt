@@ -19,11 +19,11 @@ async function sleep (ms) {
 
 
 async function wait (lang) {
-    const pauseMS = 1000;
+    const pauseMS = 3000;
     let count = 0;
     while(true) {
         count ++;
-        if (count > 1000) {
+        if (count > 400) {
             console.error("waiting count more than 1000");
             process.exit(1);
         }
@@ -44,8 +44,8 @@ async function wait (lang) {
     }
 }
 
-const randomMs = Math.floor(Math.random() * 10000);
-await sleep(randomMs);
+// const randomMs = Math.floor(Math.random() * 10000);
+// await sleep(randomMs);
 const response = await fetch(url('write', build_ID, RUNSTEP, 'success'));
 const txt = await response.text();
 console.log("WRITE COMPLETE! for", RUNSTEP, txt);
