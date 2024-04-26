@@ -18,12 +18,8 @@ before_install:
 - ". $HOME/.nvm/nvm.sh"
 - nvm ls
 - nvm ls-remote
-- nvm install v18.17.0
-- rm -rf node_modules
 # common commands
 - npm ci --include=dev
-- git checkout package.json package-lock.json
-- git config pull.rebase false
 - if [ "$RUNSTEP" == "PY_JS_PHP" ]; then
     echo "$RUNSTEP 1"
   fi;
