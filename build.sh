@@ -41,10 +41,10 @@ function run_tests {
       # shellcheck disable=SC2086
       if [ "$STAGE_PYJSPHP" == "TRUE" ]; then
         npm run commonjs-test && ./package-test.sh && npm run test-pyjsphp --useProxy -- $rest_args &
-      fi
+      fi;
       if [ "$STAGE_CSHARP" == "TRUE" ]; then
         npm run test-cs --useProxy -- $rest_args &
-      fi
+      fi;
       local rest_pid=$!
     fi
   fi
@@ -53,10 +53,10 @@ function run_tests {
       # shellcheck disable=SC2086
       if [ "$STAGE_PYJSPHP" == "TRUE" ]; then
         npm run test-pyjsphp-ws $ws_args &
-      fi
+      fi;
       if [ "$STAGE_CSHARP" == "TRUE" ]; then
         npm run test-cs-ws $ws_args &
-      fi
+      fi;
       local ws_pid=$!
     fi
   fi
