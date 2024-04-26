@@ -18,13 +18,12 @@ before_install:
 - ". $HOME/.nvm/nvm.sh"
 - nvm ls
 - nvm ls-remote
-# common commands
 - npm ci --include=dev
 - if [ "$RUNSTEP" == "PY_JS_PHP" ]; then
-    echo "$RUNSTEP 1"
+    echo "$RUNSTEP 1";
   fi;
   if [ "$RUNSTEP" == "CSHARP" ]; then
-    echo "$RUNSTEP 2"
+    echo "$RUNSTEP 2";
   fi;
 
 script: 
