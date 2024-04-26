@@ -698,6 +698,52 @@
                 ]
             }
         ],
+        "cancelAllOrdersAfter": [
+            {
+                "description": "Swap cancel all orders after",
+                "method": "cancelAllOrdersAfter",
+                "url": "https://open-api.bingx.com/openApi/swap/v2/trade/cancelAllAfter?timeOut=100&type=ACTIVATE&timestamp=1699071702130&signature=581d72f82f5c1c7d133bd0556f0513ae5f22445207a9e49babf5d13d70a421b4",
+                "input": [
+                    100000,
+                    {
+                        "type": "swap"
+                    }
+                ]
+            },
+            {
+                "description": "Swap close cancel all orders after",
+                "method": "cancelAllOrdersAfter",
+                "url": "https://open-api.bingx.com/openApi/swap/v2/trade/cancelAllAfter?timeOut=0&type=CLOSE&timestamp=1699071702130&signature=581d72f82f5c1c7d133bd0556f0513ae5f22445207a9e49babf5d13d70a421b4",
+                "input": [
+                    0,
+                    {
+                        "type": "swap"
+                    }
+                ]
+            },
+            {
+                "description": "Spot cancel all orders after",
+                "method": "cancelAllOrdersAfter",
+                "url": "https://open-api.bingx.com/openApi/spot/v1/trade/cancelAllAfter?timeOut=100&type=ACTIVATE&timestamp=1699458295121&signature=c2bdfd0494cee5e13259629af9f815637a9a42ed87fd47a2eb3b552c0574d945",
+                "input": [
+                    100000,
+                    {
+                        "type": "spot"
+                    }
+                ]
+            },
+            {
+                "description": "Spot close cancel all orders after",
+                "method": "cancelAllOrdersAfter",
+                "url": "https://open-api.bingx.com/openApi/spot/v1/trade/cancelAllAfter?timeOut=0&type=CLOSE&timestamp=1699458295121&signature=c2bdfd0494cee5e13259629af9f815637a9a42ed87fd47a2eb3b552c0574d945",
+                "input": [
+                    0,
+                    {
+                        "type": "spot"
+                    }
+                ]
+            }
+        ],
         "fetchOpenOrders": [
             {
                 "description": "Spot open orders",
@@ -1145,6 +1191,7 @@
         ],
         "fetchMyLiquidations": [
             {
+                "disabled": true,
                 "description": "fetch my liquidations",
                 "method": "fetchMyLiquidations",
                 "url": "https://open-api.bingx.com/openApi/swap/v2/trade/forceOrders?autoCloseType=LIQUIDATION&symbol=BTC-USDT&timestamp=1713364573101&signature=f8eb5457ce479316113f59ab7c9be200d7bd2b39e394a480143b0f2ec59a1d91",

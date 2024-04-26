@@ -799,6 +799,46 @@
                 "output": "[{\"algoId\":\"663748219972878336\",\"instId\":\"BTC-USDT-SWAP\"}]"
             }
         ],
+        "cancelOrdersForSymbols": [
+            {
+                "description": "cancelOrdersForSymbols",
+                "method": "cancelOrdersForSymbols",
+                "url": "https://www.okx.com/api/v5/trade/cancel-batch-orders",
+                "input": [
+                  [
+                    {
+                      "id": "1388361822563405824",
+                      "symbol": "LTC/USDT:USDT"
+                    },
+                    {
+                      "id": "1388360134171496448",
+                      "symbol": "ADA/USDT"
+                    }
+                  ]
+                ],
+                "output": "[{\"instId\":\"LTC-USDT-SWAP\",\"ordId\":\"1388361822563405824\"},{\"instId\":\"ADA-USDT\",\"ordId\":\"1388360134171496448\"}]"
+            }
+        ],
+        "cancelAllOrdersAfter": [
+            {
+                "description": "Cancel orders after",
+                "method": "cancelAllOrdersAfter",
+                "url": "https://www.okx.com/api/v5/trade/cancel-all-after",
+                "input": [
+                    10000
+                ],
+                "output": "{\"timeOut\":10}"
+            },
+            {
+                "description": "Close cancel orders after",
+                "method": "cancelAllOrdersAfter",
+                "url": "https://www.okx.com/api/v5/trade/cancel-all-after",
+                "input": [
+                    0
+                ],
+                "output": "{\"timeOut\":0}"
+            }
+        ],
         "closePosition": [
             {
                 "description": "Closing positiion in net mode",
@@ -1404,6 +1444,26 @@
                 ]
             }
         ],
+        "fetchPositionsHistory": [
+            {
+                "description": "Fetch Positions History",
+                "method": "fetchPositionHistory",
+                "url": "https://www.okx.com/api/v5/account/positions-history?limit=100",
+                "input": []
+            },
+            {
+                "description": "Fill this with a description of the method call",
+                "method": "fetchPositionsHistory",
+                "url": "https://www.okx.com/api/v5/account/positions-history?limit=1&instId=XRP-USDT-SWAP",
+                "input": [
+                  [
+                    "XRP/USDT:USDT"
+                  ],
+                  1708735940395,
+                  1
+                ]
+            }
+        ],
         "fetchConvertCurrencies": [
             {
                 "description": "Fetch currencies that can be converted",
@@ -1424,6 +1484,24 @@
                   3
                 ],
                 "output": "{\"quoteId\":\"quoternextUSDC-USDT17133439642216046\",\"baseCcy\":\"USDC\",\"quoteCcy\":\"USDT\",\"szCcy\":\"USDC\",\"sz\":\"3\",\"side\":\"sell\"}"
+            }
+        ],
+        "fetchConvertTrade": [
+            {
+                "description": "Fetch a conversion trade by the id",
+                "method": "fetchConvertTrade",
+                "url": "https://www.okx.com/api/v5/asset/convert/history?clTReqId=12AB34",
+                "input": [
+                  "12AB34"
+                ]
+            }
+        ],
+        "fetchConvertTradeHistory": [
+            {
+                "description": "Fetch the conversion trade history",
+                "method": "fetchConvertTradeHistory",
+                "url": "https://www.okx.com/api/v5/asset/convert/history",
+                "input": []
             }
         ]
     }

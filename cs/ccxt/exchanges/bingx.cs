@@ -24,6 +24,7 @@ public partial class bingx : Exchange
                 { "option", false },
                 { "addMargin", true },
                 { "cancelAllOrders", true },
+                { "cancelAllOrdersAfter", true },
                 { "cancelOrder", true },
                 { "cancelOrders", true },
                 { "closeAllPositions", true },
@@ -63,8 +64,10 @@ public partial class bingx : Exchange
                 { "fetchOrder", true },
                 { "fetchOrderBook", true },
                 { "fetchOrders", true },
+                { "fetchPositionHistory", false },
                 { "fetchPositionMode", true },
                 { "fetchPositions", true },
+                { "fetchPositionsHistory", false },
                 { "fetchTicker", true },
                 { "fetchTickers", true },
                 { "fetchTime", true },
@@ -220,6 +223,7 @@ public partial class bingx : Exchange
                                 { "trade/order", 3 },
                                 { "trade/batchOrders", 3 },
                                 { "trade/closeAllPositions", 3 },
+                                { "trade/cancelAllAfter", 3 },
                                 { "trade/marginType", 3 },
                                 { "trade/leverage", 3 },
                                 { "trade/positionMargin", 3 },
@@ -376,7 +380,7 @@ public partial class bingx : Exchange
                     { "100400", typeof(BadRequest) },
                     { "100421", typeof(BadSymbol) },
                     { "100440", typeof(ExchangeError) },
-                    { "100500", typeof(ExchangeError) },
+                    { "100500", typeof(OperationFailed) },
                     { "100503", typeof(ExchangeError) },
                     { "80001", typeof(BadRequest) },
                     { "80012", typeof(InsufficientFunds) },
@@ -2638,7 +2642,7 @@ public partial class bingx : Exchange
         return this.safeOrder(new Dictionary<string, object>() {
             { "info", info },
             { "id", this.safeString2(order, "orderId", "i") },
-            { "clientOrderId", this.safeStringN(order, new List<object>() {"clientOrderID", "origClientOrderId", "c"}) },
+            { "clientOrderId", this.safeStringN(order, new List<object>() {"clientOrderID", "clientOrderId", "origClientOrderId", "c"}) },
             { "symbol", this.safeSymbol(marketId, market, "-", marketType) },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
@@ -2897,6 +2901,55 @@ public partial class bingx : Exchange
         //          "failed": null
         //        }
         //    }
+        //
+        return response;
+    }
+
+    public async override Task<object> cancelAllOrdersAfter(object timeout, object parameters = null)
+    {
+        /**
+        * @method
+        * @name bingx#cancelAllOrdersAfter
+        * @description dead man's switch, cancel all orders after the given timeout
+        * @see https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Cancel%20all%20orders%20in%20countdown
+        * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Cancel%20all%20orders%20in%20countdown
+        * @param {number} timeout time in milliseconds, 0 represents cancel the timer
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string} [params.type] spot or swap market
+        * @returns {object} the api result
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object isActive = (isGreaterThan(timeout, 0));
+        object request = new Dictionary<string, object>() {
+            { "type", ((bool) isTrue((isActive))) ? "ACTIVATE" : "CLOSE" },
+            { "timeOut", ((bool) isTrue((isActive))) ? (this.parseToInt(divide(timeout, 1000))) : 0 },
+        };
+        object response = null;
+        object type = null;
+        var typeparametersVariable = this.handleMarketTypeAndParams("cancelAllOrdersAfter", null, parameters);
+        type = ((IList<object>)typeparametersVariable)[0];
+        parameters = ((IList<object>)typeparametersVariable)[1];
+        if (isTrue(isEqual(type, "spot")))
+        {
+            response = await this.spotV1PrivatePostTradeCancelAllAfter(this.extend(request, parameters));
+        } else if (isTrue(isEqual(type, "swap")))
+        {
+            response = await this.swapV2PrivatePostTradeCancelAllAfter(this.extend(request, parameters));
+        } else
+        {
+            throw new NotSupported ((string)add(add(add(this.id, " cancelAllOrdersAfter() is not supported for "), type), " markets")) ;
+        }
+        //
+        //     {
+        //         code: '0',
+        //         msg: '',
+        //         data: {
+        //             triggerTime: '1712645434',
+        //             status: 'ACTIVATED',
+        //             note: 'All your perpetual pending orders will be closed automatically at 2024-04-09 06:50:34 UTC(+0),before that you can cancel the timer, or extend triggerTime time by this request'
+        //         }
+        //     }
         //
         return response;
     }
@@ -4225,7 +4278,7 @@ public partial class bingx : Exchange
         if (isTrue(!isEqual(symbol, null)))
         {
             market = this.market(symbol);
-            ((IDictionary<string,object>)request)["symbol"] = symbol;
+            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
         }
         if (isTrue(!isEqual(since, null)))
         {

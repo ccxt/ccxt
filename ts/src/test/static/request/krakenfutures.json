@@ -171,6 +171,24 @@
                 ]
             }
         ],
+        "cancelAllOrdersAfter": [
+            {
+                "description": "Cancel swap orders after",
+                "method": "cancelAllOrdersAfter",
+                "url": "https://futures.kraken.com/derivatives/api/v3/cancelallordersafter?timeout=10",
+                "input": [
+                    10000
+                ]
+            },
+            {
+                "description": "Cancel swap orders after",
+                "method": "cancelAllOrdersAfter",
+                "url": "https://futures.kraken.com/derivatives/api/v3/cancelallordersafter?timeout=0",
+                "input": [
+                    0
+                ]
+            }
+        ],
         "fetchMyTrades": [
             {
                 "description": "fetch my trades",

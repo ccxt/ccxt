@@ -80,7 +80,6 @@ class woo extends \ccxt\async\woo {
 
     public function watch_public($messageHash, $message) {
         return Async\async(function () use ($messageHash, $message) {
-            $this->check_required_uid();
             $url = $this->urls['api']['ws']['public'] . '/' . $this->uid;
             $requestId = $this->request_id($url);
             $subscribe = array(

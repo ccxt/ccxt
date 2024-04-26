@@ -117,7 +117,7 @@ public partial class bybit : ccxt.bybit
             } },
             { "streaming", new Dictionary<string, object>() {
                 { "ping", this.ping },
-                { "keepAlive", 20000 },
+                { "keepAlive", 19000 },
             } },
         });
     }

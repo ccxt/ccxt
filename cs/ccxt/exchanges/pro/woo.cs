@@ -75,7 +75,6 @@ public partial class woo : ccxt.woo
 
     public async virtual Task<object> watchPublic(object messageHash, object message)
     {
-        this.checkRequiredUid();
         object url = add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), "public"), "/"), this.uid);
         object requestId = this.requestId(url);
         object subscribe = new Dictionary<string, object>() {
