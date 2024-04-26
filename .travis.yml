@@ -5,9 +5,6 @@ jobs:
         - RUNSTEP=CSHARP 
       script:
         - ./build.sh 2>&1
-      # artifacts: 
-      #   debug: true
-      #   paths: $HOME/data.json
       workspaces:
         create:
           name: ws1
@@ -38,9 +35,3 @@ before_install:
 - nvm ls-remote
 - echo "runstepppppppppp"
 - echo "$RUNSTEP"
-
-
-# addons:
-#   artifacts: 
-#     debug: true
-#     paths: data.json
