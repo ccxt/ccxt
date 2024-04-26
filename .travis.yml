@@ -12,7 +12,7 @@ jobs:
         create:
           name: ws1
           paths:
-            - $HOME/data.json
+            - data.json
     - job: "use-data" 
       workspaces:
         use: ws1

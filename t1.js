@@ -2,7 +2,7 @@
 import fs from 'fs';
 const isPJP = process.env.RUNSTEP === 'PY_JS_PHP';
 const home = process.env.HOME;
-const filepath = `${home}/data.json`;
+const filepath = `data.json`;
 
 async function wait () {
     await new Promise(resolve => setTimeout(resolve, 7 * 1000));
