@@ -433,6 +433,16 @@
                     "BTC/USDT:USDT"
                 ]
             }
+        ],
+        "fetchTradingFee": [
+            {
+                "description": "fetchTradingFee",
+                "method": "fetchTradingFee",
+                "url": "https://openapi-v2.kucoin.com/api/v1/trade-fees?symbols=XBTUSDTM",
+                "input": [
+                  "BTC/USDT:USDT"
+                ]
+            }
         ]
     }
 }

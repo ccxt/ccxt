@@ -5,7 +5,7 @@ import { ArgumentsRequired, ExchangeNotAvailable, InvalidOrder, InsufficientFund
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import kucoin from './abstract/kucoinfutures.js';
-import type { TransferEntry, Int, OrderSide, OrderType, OHLCV, Order, Trade, OrderRequest, FundingHistory, Balances, Str, Ticker, Tickers, OrderBook, Transaction, Strings, Market, Currency, Num, MarginModification } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, OHLCV, Order, Trade, OrderRequest, FundingHistory, Balances, Str, Ticker, Tickers, OrderBook, Transaction, Strings, Market, Currency, Num, MarginModification, TradingFeeInterface } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -91,6 +91,7 @@ export default class kucoinfutures extends kucoin {
                 'fetchTime': true,
                 'fetchTrades': true,
                 'fetchTransactionFee': false,
+                'fetchTradingFee': true,
                 'fetchWithdrawals': true,
                 'setLeverage': false,
                 'setMarginMode': false,
@@ -166,6 +167,7 @@ export default class kucoinfutures extends kucoin {
                         'funding-history': 4.44,
                         'sub/api-key': 1,
                         'trade-statistics': 1,
+                        'trade-fees': 1,
                     },
                     'post': {
                         'withdrawals': 1,
@@ -2726,5 +2728,44 @@ export default class kucoinfutures extends kucoin {
             response = await this.futuresPrivatePostOrders (this.extend (request, params));
         }
         return this.parseOrder (response, market);
+    }
+
+    async fetchTradingFee (symbol: string, params = {}): Promise<TradingFeeInterface> {
+        /**
+         * @method
+         * @name kucoinfutures#fetchTradingFee
+         * @description fetch the trading fees for a market
+         * @see https://www.kucoin.com/docs/rest/funding/trade-fee/trading-pair-actual-fee-futures
+         * @param {string} symbol unified market symbol
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbols': market['id'],
+        };
+        const response = await this.privateGetTradeFees (this.extend (request, params));
+        //
+        //  {
+        //      "code": "200000",
+        //      "data": {
+        //        "symbol": "XBTUSDTM",
+        //        "takerFeeRate": "0.0006",
+        //        "makerFeeRate": "0.0002"
+        //      }
+        //  }
+        //
+        const data = this.safeList (response, 'data', []);
+        const first = this.safeDict (data, 0);
+        const marketId = this.safeString (first, 'symbol');
+        return {
+            'info': response,
+            'symbol': this.safeSymbol (marketId, market),
+            'maker': this.safeNumber (first, 'makerFeeRate'),
+            'taker': this.safeNumber (first, 'takerFeeRate'),
+            'percentage': true,
+            'tierBased': true,
+        };
     }
 }
