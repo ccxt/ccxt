@@ -83,7 +83,7 @@ export default class kucoinfutures extends kucoin {
                 'fetchPositionHistory': false,
                 'fetchPositionMode': false,
                 'fetchPositions': true,
-                'fetchPositionsHistory': false,
+                'fetchPositionsHistory': true,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchStatus': true,
                 'fetchTicker': true,
@@ -168,6 +168,7 @@ export default class kucoinfutures extends kucoin {
                         'sub/api-key': 1,
                         'trade-statistics': 1,
                         'trade-fees': 1,
+                        'history-positions': 1,
                     },
                     'post': {
                         'withdrawals': 1,
@@ -1151,6 +1152,68 @@ export default class kucoinfutures extends kucoin {
         return this.parsePositions (data, symbols);
     }
 
+    async fetchPositionsHistory (symbols: Strings = undefined, params = {}) {
+        /**
+         * @method
+         * @name kucoinfutures#fetchPositionsHistory
+         * @description fetches historical positions
+         * @see https://www.kucoin.com/docs/rest/futures-trading/positions/get-positions-history
+         * @param {string[]} [symbols] list of unified market symbols
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {int} [params.from] closing start time
+         * @param {int} [params.to] closing end time
+         * @param {int} [params.limit] maximum number of positions to return, default is 10
+         * @param {int} [params.pageId] page id
+         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+         */
+        await this.loadMarkets ();
+        const request = {
+            'limit': this.safeInteger (params, 'limit', 200),
+        };
+        const response = await this.futuresPrivateGetHistoryPositions (this.extend (request, params));
+        //
+        // {
+        //     "success": true,
+        //     "code": "200",
+        //     "msg": "success",
+        //     "retry": false,
+        //     "data": {
+        //         "currentPage": 1,
+        //         "pageSize": 10,
+        //         "totalNum": 25,
+        //         "totalPage": 3,
+        //         "items": [
+        //             {
+        //                 "closeId": "300000000000000030",
+        //                 "positionId": "300000000000000009",
+        //                 "uid": 99996908309485,
+        //                 "userId": "6527d4fc8c7f3d0001f40f5f",
+        //                 "symbol": "XBTUSDM",
+        //                 "settleCurrency": "XBT",
+        //                 "leverage": "0.0",
+        //                 "type": "LIQUID_LONG",
+        //                 "side": null,
+        //                 "closeSize": null,
+        //                 "pnl": "-1.0000003793999999",
+        //                 "realisedGrossCost": "0.9993849748999999",
+        //                 "withdrawPnl": "0.0",
+        //                 "roe": null,
+        //                 "tradeFee": "0.0006154045",
+        //                 "fundingFee": "0.0",
+        //                 "openTime": 1713785751181,
+        //                 "closeTime": 1713785752784,
+        //                 "openPrice": null,
+        //                 "closePrice": null
+        //             }
+        //         ]
+        //     }
+        // }
+        //
+        const data = this.safeDict (response, 'data');
+        const items = this.safeList (data, 'items', []);
+        return this.parsePositions (items, symbols);
+    }
+
     parsePosition (position, market: Market = undefined) {
         //
         //    {
@@ -1197,6 +1260,29 @@ export default class kucoinfutures extends kucoin {
         //            }
         //        ]
         //    }
+        // position history
+        //             {
+        //                 "closeId": "300000000000000030",
+        //                 "positionId": "300000000000000009",
+        //                 "uid": 99996908309485,
+        //                 "userId": "6527d4fc8c7f3d0001f40f5f",
+        //                 "symbol": "XBTUSDM",
+        //                 "settleCurrency": "XBT",
+        //                 "leverage": "0.0",
+        //                 "type": "LIQUID_LONG",
+        //                 "side": null,
+        //                 "closeSize": null,
+        //                 "pnl": "-1.0000003793999999",
+        //                 "realisedGrossCost": "0.9993849748999999",
+        //                 "withdrawPnl": "0.0",
+        //                 "roe": null,
+        //                 "tradeFee": "0.0006154045",
+        //                 "fundingFee": "0.0",
+        //                 "openTime": 1713785751181,
+        //                 "closeTime": 1713785752784,
+        //                 "openPrice": null,
+        //                 "closePrice": null
+        //             }
         //
         const symbol = this.safeString (position, 'symbol');
         market = this.safeMarket (symbol, market);
@@ -1218,11 +1304,11 @@ export default class kucoinfutures extends kucoin {
         const marginMode = crossMode ? 'cross' : 'isolated';
         return this.safePosition ({
             'info': position,
-            'id': this.safeString (position, 'id'),
+            'id': this.safeString2 (position, 'id', 'positionId'),
             'symbol': this.safeString (market, 'symbol'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'lastUpdateTimestamp': undefined,
+            'lastUpdateTimestamp': this.safeInteger (position, 'closeTime'),
             'initialMargin': this.parseNumber (initialMargin),
             'initialMarginPercentage': this.parseNumber (initialMarginPercentage),
             'maintenanceMargin': this.safeNumber (position, 'posMaint'),
@@ -1233,7 +1319,7 @@ export default class kucoinfutures extends kucoin {
             'unrealizedPnl': this.parseNumber (unrealisedPnl),
             'contracts': this.parseNumber (Precise.stringAbs (size)),
             'contractSize': this.safeValue (market, 'contractSize'),
-            'realizedPnl': this.safeNumber (position, 'realisedPnl'),
+            'realizedPnl': this.safeNumber2 (position, 'realisedPnl', 'pnl'),
             'marginRatio': undefined,
             'liquidationPrice': this.safeNumber (position, 'liquidationPrice'),
             'markPrice': this.safeNumber (position, 'markPrice'),
