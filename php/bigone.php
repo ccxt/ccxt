@@ -327,7 +327,7 @@ class bigone extends Exchange {
         ));
     }
 
-    public function fetch_currencies($params = array ()): array {
+    public function fetch_currencies($params = array ()): ?array {
         /**
          * fetches all available currencies on an exchange
          * @param {dict} [$params] extra parameters specific to the exchange API endpoint
@@ -2126,7 +2126,7 @@ class bigone extends Exchange {
         return $this->safe_string($statuses, $status, 'failed');
     }
 
-    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
         /**
          * make a withdrawal
          * @see https://open.big.one/docs/spot_withdrawal.html#create-withdrawal-of-user

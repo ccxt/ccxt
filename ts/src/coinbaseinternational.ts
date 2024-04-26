@@ -92,8 +92,10 @@ export default class coinbaseinternational extends Exchange {
                 'fetchOrderBook': false,
                 'fetchOrders': false,
                 'fetchPosition': true,
+                'fetchPositionHistory': false,
                 'fetchPositionMode': false,
                 'fetchPositions': true,
+                'fetchPositionsHistory': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
@@ -1922,7 +1924,7 @@ export default class coinbaseinternational extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    async withdraw (code: string, amount: number, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {
         /**
          * @method
          * @name coinbaseinternational#withdraw

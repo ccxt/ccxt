@@ -24,6 +24,7 @@ public partial class bingx : Exchange
                 { "option", false },
                 { "addMargin", true },
                 { "cancelAllOrders", true },
+                { "cancelAllOrdersAfter", true },
                 { "cancelOrder", true },
                 { "cancelOrders", true },
                 { "closeAllPositions", true },
@@ -63,8 +64,10 @@ public partial class bingx : Exchange
                 { "fetchOrder", true },
                 { "fetchOrderBook", true },
                 { "fetchOrders", true },
+                { "fetchPositionHistory", false },
                 { "fetchPositionMode", true },
                 { "fetchPositions", true },
+                { "fetchPositionsHistory", false },
                 { "fetchTicker", true },
                 { "fetchTickers", true },
                 { "fetchTime", true },
@@ -220,6 +223,7 @@ public partial class bingx : Exchange
                                 { "trade/order", 3 },
                                 { "trade/batchOrders", 3 },
                                 { "trade/closeAllPositions", 3 },
+                                { "trade/cancelAllAfter", 3 },
                                 { "trade/marginType", 3 },
                                 { "trade/leverage", 3 },
                                 { "trade/positionMargin", 3 },
@@ -277,7 +281,6 @@ public partial class bingx : Exchange
                             { "get", new Dictionary<string, object>() {
                                 { "list", 3 },
                                 { "assets", 3 },
-                                { "apiKey/query", 1 },
                             } },
                             { "post", new Dictionary<string, object>() {
                                 { "create", 3 },
@@ -294,6 +297,7 @@ public partial class bingx : Exchange
                         { "private", new Dictionary<string, object>() {
                             { "get", new Dictionary<string, object>() {
                                 { "uid", 1 },
+                                { "apiKey/query", 1 },
                             } },
                             { "post", new Dictionary<string, object>() {
                                 { "innerTransfer/authorizeSubAccount", 3 },
@@ -376,7 +380,7 @@ public partial class bingx : Exchange
                     { "100400", typeof(BadRequest) },
                     { "100421", typeof(BadSymbol) },
                     { "100440", typeof(ExchangeError) },
-                    { "100500", typeof(ExchangeNotAvailable) },
+                    { "100500", typeof(OperationFailed) },
                     { "100503", typeof(ExchangeError) },
                     { "80001", typeof(BadRequest) },
                     { "80012", typeof(InsufficientFunds) },
@@ -1955,6 +1959,12 @@ public partial class bingx : Exchange
         };
         object isMarketOrder = isEqual(type, "MARKET");
         object isSpot = isEqual(marketType, "spot");
+        object stopLossPrice = this.safeString(parameters, "stopLossPrice");
+        object takeProfitPrice = this.safeString(parameters, "takeProfitPrice");
+        object triggerPrice = this.safeString2(parameters, "stopPrice", "triggerPrice");
+        object isTriggerOrder = !isEqual(triggerPrice, null);
+        object isStopLossPriceOrder = !isEqual(stopLossPrice, null);
+        object isTakeProfitPriceOrder = !isEqual(takeProfitPrice, null);
         object exchangeClientOrderId = ((bool) isTrue(isSpot)) ? "newClientOrderId" : "clientOrderID";
         object clientOrderId = this.safeString2(parameters, exchangeClientOrderId, "clientOrderId");
         if (isTrue(!isEqual(clientOrderId, null)))
@@ -1975,7 +1985,6 @@ public partial class bingx : Exchange
         {
             ((IDictionary<string,object>)request)["timeInForce"] = "GTC";
         }
-        object triggerPrice = this.safeString2(parameters, "stopPrice", "triggerPrice");
         if (isTrue(isSpot))
         {
             object cost = this.safeNumber2(parameters, "cost", "quoteOrderQty");
@@ -2013,6 +2022,17 @@ public partial class bingx : Exchange
                 {
                     ((IDictionary<string,object>)request)["type"] = "TRIGGER_MARKET";
                 }
+            } else if (isTrue(isTrue((!isEqual(stopLossPrice, null))) || isTrue((!isEqual(takeProfitPrice, null)))))
+            {
+                object stopTakePrice = ((bool) isTrue((!isEqual(stopLossPrice, null)))) ? stopLossPrice : takeProfitPrice;
+                if (isTrue(isEqual(type, "LIMIT")))
+                {
+                    ((IDictionary<string,object>)request)["type"] = "TAKE_STOP_LIMIT";
+                } else if (isTrue(isEqual(type, "MARKET")))
+                {
+                    ((IDictionary<string,object>)request)["type"] = "TAKE_STOP_MARKET";
+                }
+                ((IDictionary<string,object>)request)["stopPrice"] = this.parseToNumeric(this.priceToPrecision(symbol, stopTakePrice));
             }
         } else
         {
@@ -2020,14 +2040,9 @@ public partial class bingx : Exchange
             {
                 ((IDictionary<string,object>)request)["timeInForce"] = "FOK";
             }
-            object stopLossPrice = this.safeString(parameters, "stopLossPrice");
-            object takeProfitPrice = this.safeString(parameters, "takeProfitPrice");
             object trailingAmount = this.safeString(parameters, "trailingAmount");
             object trailingPercent = this.safeString2(parameters, "trailingPercent", "priceRate");
             object trailingType = this.safeString(parameters, "trailingType", "TRAILING_STOP_MARKET");
-            object isTriggerOrder = !isEqual(triggerPrice, null);
-            object isStopLossPriceOrder = !isEqual(stopLossPrice, null);
-            object isTakeProfitPriceOrder = !isEqual(takeProfitPrice, null);
             object isTrailingAmountOrder = !isEqual(trailingAmount, null);
             object isTrailingPercentOrder = !isEqual(trailingPercent, null);
             object isTrailing = isTrue(isTrailingAmountOrder) || isTrue(isTrailingPercentOrder);
@@ -2139,8 +2154,8 @@ public partial class bingx : Exchange
             }
             ((IDictionary<string,object>)request)["positionSide"] = positionSide;
             ((IDictionary<string,object>)request)["quantity"] = this.parseToNumeric(this.amountToPrecision(symbol, amount));
-            parameters = this.omit(parameters, new List<object>() {"reduceOnly", "triggerPrice", "stopLossPrice", "takeProfitPrice", "trailingAmount", "trailingPercent", "trailingType", "takeProfit", "stopLoss", "clientOrderId"});
         }
+        parameters = this.omit(parameters, new List<object>() {"reduceOnly", "triggerPrice", "stopLossPrice", "takeProfitPrice", "trailingAmount", "trailingPercent", "trailingType", "takeProfit", "stopLoss", "clientOrderId"});
         return this.extend(request, parameters);
     }
 
@@ -2162,9 +2177,9 @@ public partial class bingx : Exchange
         * @param {bool} [params.postOnly] true to place a post only order
         * @param {string} [params.timeInForce] spot supports 'PO', 'GTC' and 'IOC', swap supports 'PO', 'GTC', 'IOC' and 'FOK'
         * @param {bool} [params.reduceOnly] *swap only* true or false whether the order is reduce only
-        * @param {float} [params.triggerPrice] *swap only* triggerPrice at which the attached take profit / stop loss order will be triggered
-        * @param {float} [params.stopLossPrice] *swap only* stop loss trigger price
-        * @param {float} [params.takeProfitPrice] *swap only* take profit trigger price
+        * @param {float} [params.triggerPrice] triggerPrice at which the attached take profit / stop loss order will be triggered
+        * @param {float} [params.stopLossPrice] stop loss trigger price
+        * @param {float} [params.takeProfitPrice] take profit trigger price
         * @param {float} [params.cost] the quote quantity that can be used as an alternative for the amount
         * @param {float} [params.trailingAmount] *swap only* the quote amount to trail away from the current market price
         * @param {float} [params.trailingPercent] *swap only* the percent to trail away from the current market price
@@ -2638,7 +2653,7 @@ public partial class bingx : Exchange
         return this.safeOrder(new Dictionary<string, object>() {
             { "info", info },
             { "id", this.safeString2(order, "orderId", "i") },
-            { "clientOrderId", this.safeStringN(order, new List<object>() {"clientOrderID", "origClientOrderId", "c"}) },
+            { "clientOrderId", this.safeStringN(order, new List<object>() {"clientOrderID", "clientOrderId", "origClientOrderId", "c"}) },
             { "symbol", this.safeSymbol(marketId, market, "-", marketType) },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
@@ -2897,6 +2912,55 @@ public partial class bingx : Exchange
         //          "failed": null
         //        }
         //    }
+        //
+        return response;
+    }
+
+    public async override Task<object> cancelAllOrdersAfter(object timeout, object parameters = null)
+    {
+        /**
+        * @method
+        * @name bingx#cancelAllOrdersAfter
+        * @description dead man's switch, cancel all orders after the given timeout
+        * @see https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Cancel%20all%20orders%20in%20countdown
+        * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Cancel%20all%20orders%20in%20countdown
+        * @param {number} timeout time in milliseconds, 0 represents cancel the timer
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string} [params.type] spot or swap market
+        * @returns {object} the api result
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object isActive = (isGreaterThan(timeout, 0));
+        object request = new Dictionary<string, object>() {
+            { "type", ((bool) isTrue((isActive))) ? "ACTIVATE" : "CLOSE" },
+            { "timeOut", ((bool) isTrue((isActive))) ? (this.parseToInt(divide(timeout, 1000))) : 0 },
+        };
+        object response = null;
+        object type = null;
+        var typeparametersVariable = this.handleMarketTypeAndParams("cancelAllOrdersAfter", null, parameters);
+        type = ((IList<object>)typeparametersVariable)[0];
+        parameters = ((IList<object>)typeparametersVariable)[1];
+        if (isTrue(isEqual(type, "spot")))
+        {
+            response = await this.spotV1PrivatePostTradeCancelAllAfter(this.extend(request, parameters));
+        } else if (isTrue(isEqual(type, "swap")))
+        {
+            response = await this.swapV2PrivatePostTradeCancelAllAfter(this.extend(request, parameters));
+        } else
+        {
+            throw new NotSupported ((string)add(add(add(this.id, " cancelAllOrdersAfter() is not supported for "), type), " markets")) ;
+        }
+        //
+        //     {
+        //         code: '0',
+        //         msg: '',
+        //         data: {
+        //             triggerTime: '1712645434',
+        //             status: 'ACTIVATED',
+        //             note: 'All your perpetual pending orders will be closed automatically at 2024-04-09 06:50:34 UTC(+0),before that you can cancel the timer, or extend triggerTime time by this request'
+        //         }
+        //     }
         //
         return response;
     }

@@ -1468,7 +1468,7 @@ public partial class kraken : ccxt.kraken
             } },
         };
         object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "public");
-        return await this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes, subscriptionArgs);
+        return await this.watchMultiple(url, messageHashes, this.deepExtend(request, parameters), messageHashes, subscriptionArgs);
     }
 
     public virtual object getMessageHash(object unifiedElementName, object subChannelName = null, object symbol = null)

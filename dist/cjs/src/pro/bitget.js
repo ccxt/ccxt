@@ -1004,7 +1004,7 @@ class bitget extends bitget$1 {
         }
         return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
     }
-    handleOrder(client, message, subscription = undefined) {
+    handleOrder(client, message) {
         //
         // spot
         //

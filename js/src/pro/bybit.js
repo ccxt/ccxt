@@ -120,7 +120,7 @@ export default class bybit extends bybitRest {
             },
             'streaming': {
                 'ping': this.ping,
-                'keepAlive': 20000,
+                'keepAlive': 19000,
             },
         });
     }

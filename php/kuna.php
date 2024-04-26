@@ -415,7 +415,7 @@ class kuna extends Exchange {
         return $this->safe_integer($data, 'timestamp_miliseconds');
     }
 
-    public function fetch_currencies($params = array ()): array {
+    public function fetch_currencies($params = array ()): ?array {
         /**
          * fetches all available currencies on an exchange
          * @see https://docs.kuna.io/docs/get-information-about-available-currencies
@@ -1376,7 +1376,7 @@ class kuna extends Exchange {
         return $this->parse_trades($data, $market, $since, $limit);
     }
 
-    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
         /**
          * make a withdrawal
          * @see https://docs.kuna.io/docs/create-a-withdraw

@@ -46,6 +46,7 @@ class kraken extends Exchange {
                 'option' => false,
                 'addMargin' => false,
                 'cancelAllOrders' => true,
+                'cancelAllOrdersAfter' => true,
                 'cancelOrder' => true,
                 'cancelOrders' => true,
                 'createDepositAddress' => true,
@@ -2166,6 +2167,36 @@ class kraken extends Exchange {
         }) ();
     }
 
+    public function cancel_all_orders_after(?int $timeout, $params = array ()) {
+        return Async\async(function () use ($timeout, $params) {
+            /**
+             * dead man's switch, cancel all orders after the given $timeout
+             * @see https://docs.kraken.com/rest/#tag/Spot-Trading/operation/cancelAllOrdersAfter
+             * @param {number} $timeout time in milliseconds, 0 represents cancel the timer
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} the api result
+             */
+            if ($timeout > 86400000) {
+                throw new BadRequest($this->id . 'cancelAllOrdersAfter $timeout should be less than 86400000 milliseconds');
+            }
+            Async\await($this->load_markets());
+            $request = array(
+                'timeout' => ($timeout > 0) ? ($this->parse_to_int($timeout / 1000)) : 0,
+            );
+            $response = Async\await($this->privatePostCancelAllOrdersAfter (array_merge($request, $params)));
+            //
+            //     {
+            //         "error" => [ ],
+            //         "result" => {
+            //             "currentTime" => "2023-03-24T17:41:56Z",
+            //             "triggerTime" => "2023-03-24T17:42:56Z"
+            //         }
+            //     }
+            //
+            return $response;
+        }) ();
+    }
+
     public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
@@ -2709,7 +2740,7 @@ class kraken extends Exchange {
         );
     }
 
-    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal

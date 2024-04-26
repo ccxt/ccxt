@@ -2237,7 +2237,7 @@ class tokocrypto(Exchange, ImplicitAPI):
             'fee': fee,
         }
 
-    async def withdraw(self, code: str, amount: float, address, tag=None, params={}):
+    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
         """
         :see: https://www.tokocrypto.com/apidocs/#withdraw-signed
         make a withdrawal

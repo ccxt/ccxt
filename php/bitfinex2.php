@@ -622,7 +622,7 @@ class bitfinex2 extends Exchange {
         return $result;
     }
 
-    public function fetch_currencies($params = array ()): array {
+    public function fetch_currencies($params = array ()): ?array {
         /**
          * fetches all available currencies on an exchange
          * @see https://docs.bitfinex.com/reference/rest-public-conf
@@ -2528,7 +2528,7 @@ class bitfinex2 extends Exchange {
         return $this->parse_transactions($response, $currency, $since, $limit);
     }
 
-    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
         /**
          * make a withdrawal
          * @see https://docs.bitfinex.com/reference/rest-auth-withdraw

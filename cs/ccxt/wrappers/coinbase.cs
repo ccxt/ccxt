@@ -256,7 +256,7 @@ public partial class coinbase
     /// retrieves data on all markets for coinbase
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getproducts"/>  <br/>
+    /// See <see href="https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getpublicproducts"/>  <br/>
     /// See <see href="https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-currencies#get-fiat-currencies"/>  <br/>
     /// See <see href="https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-exchange-rates#get-exchange-rates"/>  <br/>
     /// <list type="table">
@@ -498,7 +498,7 @@ public partial class coinbase
     /// <item>
     /// <term>params.timeInForce</term>
     /// <description>
-    /// string : 'GTC', 'IOC', 'GTD' or 'PO'
+    /// string : 'GTC', 'IOC', 'GTD' or 'PO', 'FOK'
     /// </description>
     /// </item>
     /// <item>
@@ -840,7 +840,7 @@ public partial class coinbase
     /// fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getcandles"/>  <br/>
+    /// See <see href="https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getpubliccandles"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -886,7 +886,7 @@ public partial class coinbase
     /// get the list of most recent trades for a particular symbol
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getmarkettrades"/>  <br/>
+    /// See <see href="https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getpublicmarkettrades"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -966,7 +966,7 @@ public partial class coinbase
     /// fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getproductbook"/>  <br/>
+    /// See <see href="https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getpublicproductbook"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>
@@ -1030,7 +1030,7 @@ public partial class coinbase
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}.</returns>
-    public async Task<Transaction> Withdraw(string code, double amount, object address, object tag = null, Dictionary<string, object> parameters = null)
+    public async Task<Transaction> Withdraw(string code, double amount, string address, object tag = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.withdraw(code, amount, address, tag, parameters);
         return new Transaction(res);

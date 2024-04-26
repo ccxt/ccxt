@@ -33,8 +33,8 @@ declare class baseMainTestClass {
 }
 export default class testMainClass extends baseMainTestClass {
     parseCliArgs(): void;
-    init(exchangeId: any, symbolArgv: any): Promise<void>;
-    checkIfSpecificTestIsChosen(symbolArgv: any): any;
+    init(exchangeId: any, symbolArgv: any, methodArgv: any): Promise<void>;
+    checkIfSpecificTestIsChosen(methodArgv: any): void;
     importFiles(exchange: Exchange): Promise<void>;
     loadCredentialsFromEnv(exchange: Exchange): void;
     expandSettings(exchange: Exchange): void;
