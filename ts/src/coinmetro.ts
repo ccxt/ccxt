@@ -163,6 +163,7 @@ export default class coinmetro extends Exchange {
                 'private': {
                     'get': {
                         'users/balances': 1,
+                        'users/wallets': 1,
                         'users/wallets/history/{since}': 1.67,
                         'exchange/orders/status/{orderID}': 1,
                         'exchange/orders/active': 1,
