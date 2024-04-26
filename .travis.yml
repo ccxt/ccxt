@@ -12,8 +12,10 @@ jobs:
             - data.json
     - stage: "s2"
       workspaces:
-        use:
-        - ws1
+        create:
+          name: ws1
+          paths:
+            - data.json
       env: 
         - RUNSTEP=PY_JS_PHP 
       script: 

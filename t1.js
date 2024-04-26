@@ -9,7 +9,7 @@ async function wait () {
     console.log("read start !"); 
     const rawData = fs.readFileSync(filepath);
     const jsonData = JSON.parse(rawData);
-    console.log("read done"); 
+    console.log("read done", jsonData); 
 }
 if (isPJP) {
     wait();
