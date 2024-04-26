@@ -1,61 +1,34 @@
 jobs:
   include:
-    - stage: final_stage
-      env: RUNSTEP=finalstage
+    - stage: "s2"
+      env: 
+        - RUNSTEP=CSHARP 
       script:
         - ./build.sh 2>&1
-        - git checkout master composer.json
-        - if [ "$RUNSTEP" = "finalstage" ] && [ "$TRAVIS_PULL_REQUEST" = "false" ] && [ "$TRAVIS_BRANCH" = "master" ]; then
-            export SHOULD_DEPLOY=false;
-            DEPLOY_OUTPUT=$(env DEPLOY_CACHE=.cache/deploy SECONDS_BEFORE_NEXT_DEPLOY=43200 TRAVIS_COMMIT_MESSAGE="${TRAVIS_COMMIT_MESSAGE}" ./build/deploy.sh) && SHOULD_DEPLOY=true;
-            echo "----------------";
-            echo "${DEPLOY_OUTPUT}";
-            echo "${SHOULD_DEPLOY}";
-            echo "----------------";
-            if $SHOULD_DEPLOY; then
-              echo "Publishing";
-              npm config set git-tag-version=false && NPM_VERSION=$(npm version patch);
-              npm run vss && npm run copy-python-files && npm run buildCSRelease;
-              env COMMIT_MESSAGE=${NPM_VERSION:1} GITHUB_TOKEN=${GITHUB_TOKEN} SHOULD_TAG=${SHOULD_DEPLOY} ./build/push.sh;
-              ./cs/deploy.sh;
-              cd python && env PYPI_TOKEN=${PYPI_TOKEN} ./deploy.sh && cd ..;
-            else
-              echo "Not publishing";
-              env COMMIT_MESSAGE="${TRAVIS_COMMIT_MESSAGE}" GITHUB_TOKEN=${GITHUB_TOKEN} SHOULD_TAG=${SHOULD_DEPLOY} ./build/push.sh;
-            fi;
-          fi
-      after_failure:
-      - sleep 10
-      before_deploy:
-      - echo $SHOULD_DEPLOY
-      deploy:
-      - provider: npm
-        email: igor.kroitor@gmail.com
-        api_key:
-          secure: euGp3OIlxbY+ZqgJYOAE1MH4EyCVIRLxMksHcj+w/V6MEkRchLIUDE68kLdK5ZUFGHnoFQtR1N65i428gvcjy8P/0K0p9maVpZaHuk0Q2GrnIAAe0D6jZu2s2D0JPhWCZ5U4Aiek5ExhTblEYWTwOtpG/JwAa+2/IT+2DvtNf37HBM0tEvI3FLRexTv74vMDH172681UFHz2h0dvfgOzBwCiydsp6eihnV90AetsYT4Y9VpZDjAdmATO1ydLw8SnH2skWssmH8snyDDVOPkdu6mRBHZB6ckSZzyQLiIbn4dlzAt6Zi1/NjSJg4z/+vIK8o8SOHPu3AkCab+E6kBeuCBnphquIa/i3bToxJSa1AScisg+5rQZCsY/L7ey8El/nOvVn7B6xATk7w4Cm/dy5gTyriNqgFoJvDLhlntfPp+7w9GGc7Hi6UL9RWw0CCW9c2I1cyDmNpSv95gspMJAI847ykaHgXl01Cxo2yWGqwxpCR/suqdTySvo3NgqFQrM2aRkPQT+yQlL2hrrqX2l2w7gU+2y9W89WB/75x674RR3fpSID6HGrt52frZDk1mgi6ggHv0ta+hOHQCIhLM7tB/pR9ehF4RGcVjRTEBa0CG2XeXDWDFDjLEzZPmvf6vCL+PDMk91sR6YB+djsaPEwLV6pjWngYSrNdYVe1djdl8=
-        on:
-          condition: $SHOULD_DEPLOY = true
-      after_deploy:
-      - cat ~/.npm/_logs/*-debug.log
-env:
-  jobs:
-    - RUNSTEP=PY_JS_PHP
-    - RUNSTEP=CSHARP
-
-  global:
-  # PYPI_TOKEN
-  - secure: QCQa8tn40loCqSx9tR7PFAa7h5Gucl9IaEARiskiPF3zlLoZTst6ThnFl1rQDKx2jIJsN1z8Vwd12I4kYGED+Tgd345kE+J/n2hVEpTwSB+oOUWlwgkTQbCQB0XxPJRPila9lt3Ogpbvrp//L7IkFM06gu+N+qwQEOjn7dkLrVAkg5vl9nouuzqHadaQ1oOMG/v3DgPq5NHaCEWK0285Oqs8dqecVRSFGAtRPTDHzO/nv4stsbnmEWO1pu/SYXyxum1CYv9glfFaRNWoQ9EWjl8ogCzBsH3lkFeNhwLOcSyMFmTpXH1soXcLzJTWoUgfx9hiiC8IqOxx4nGurOK6OyY9QO8aVwyRdYlbpdLFuEiGuadfI6Rbz41TewZ+r3OmFn4gy5oRIM0fE+2Osj3btmsdZYktXdErqhRm18bV/oO/IOteKEXdbC7+PJ5obnpbBKKfcSNOAF8F/en+qouAywghq8UBJ9zHtWSsDXOUeCdvXLGKA01pbdaDpmtHBU9u5iX+KnSbBP+iAb7+i/uymxFTJbseYllPa1IFUf4wNf6AFlfgLnZT064KF1oiIGnvpczqD+UV4fDIukKaBaC0gK2nUQUiSNPs1kFJbs7QiQO5I07RgpAACigDWlp6tKLSUoA4wUXIG1APF5Eh001FAQ01lCjsxhMh3OmtgEIaxkI=
-  # new new GITHUB_TOKEN
-  - secure: koZWVx9bBt1QZ43OUGH6DE0tQseqYxL+LGubjSndpCQfx1OLbUOjuxa4ka8S2mVTX61IQ+Pl7VambRahmXrSp/+cIYf2l/7BfE/vmaAxs+mM7+YbvAmIbmp3ohw2Ib+SnkCPUsQWBPdOedbuDXUkTvd6T22EwftFOBYrcBxmABpvNNRwaaK7fnNJQMnJo3yiaM0sCOjcyBJOzGhO2+aW7T7LaSa0CdmD/yBIAfqxmfFCf8gOTnRep8iCay/fMAhdDD/zzUNBJoKupMWHkwSik8BeKA/Ny4OO0zvR1ZF+t1PD4qXnK17bKf3kS+JKPCK8q7wGwJWTJFezKRG0JbIZRMxi4Dsawu+QvHs4+ekSCWLuPD0bnn6TMue+bOWaCnLVQAmzTbiykWF2tuHN0Zj/c8DJJKjA62EKPKJh/69OdEV6VIwy5m2o+ij6MWK0yaAcNNOfDRiM9sAJL8eUcncFVOOzyEkFTRuke/gerJEUknH/25tYCXbmRYRolSoFvSW8PaB2Q8RXizL9LtnyRcR02wxs12jpCTAJ9rpR0XIb3D4W8BWkWgJvHp9JZOAlzESz4moROv3C6EvPFX4uZAAx/RgdFicLB7tgP9EC6RAPs1yPJwjNcv7EPLsl5OPBsFkOa8Qq5guNbeX6XuBWsIRJL+XJBODw29kISxiWDh49Dlg=
-  # NUGGET_TOKEN
-  - secure: chdCyiT8Sc8aEdcqNgjjESyIUyI9hAsSVgtmbU2DId93brLUgkbOlkKjb8MlEfByvV3njVslN52OHfI8hiBg+3PonS6vzD0HDxJZjo9HZb3EMnfpupRwp14WDDrxhjX/tt4Y/rBhjQBV/DALdVcl9P20pqKGWloO8yfzw8Ytqd45kyMb7GG8xl8YH0xOiIH+yMklsIyoLAe73R47eqyDwy87AOLyR3+tZxNAqI7SwkOUXWKNoBacFkWOQsae2mBm9W5osJPMARo7HQ+0DYnpRhrRNKcxQIhdIhDAOZtGEE+n0ZeWUXeQbAEhwSLyB60kccZ0p19MTO2+61Od86gutKjNo8jSiEKvQNjedOpi3nybQOd2F18N6IrJKO/4VXMZVyl8va2rb9QRfwbfBZqGdC4VgkFBgfzI0CvkTte0BJKwzpSN3bN3MDgVWP2ttsujYVlw9RXgGF3dduekppUm+p3jUnQyZDe13VfQkT5+XtPYmZID9K+bunSYMMWwqol5ND0cCNulWDxFMKMfX5N+BpavIAwMotjH434FmB/0TyWg8lbjchgsgNsTYyxE69sW0MEAt0WeEh55yIXHPymFR7tS3EybiT0Wuj8kY3RxjM76jKMv8evk6Y6XEWArVoGeJQfWEAScorTWAA1q3JZUhhl0zTZwryhU3OwZESuwIzo=
+      workspaces:
+        use: nm1
+        create:
+          name: nm2
+          paths:
+            - data.json
+    - stage: "s2"
+      env: 
+        - RUNSTEP=PY_JS_PHP 
+      script: 
+        - ./build.sh 2>&1
+      workspaces:
+        use: nm1
+        create:
+          name: nm2
+          paths:
+            - data.json
 
 language: python
 dist: jammy
 python:
 - 3.8.3
 git:
-  depth: 2
+  depth: 1
 cache:
   directories:
   - ".cache"
@@ -64,36 +37,5 @@ before_install:
 - ". $HOME/.nvm/nvm.sh"
 - nvm ls
 - nvm ls-remote
-- nvm install v18.17.0
-- rm -rf node_modules
-# common commands
-- npm ci --include=dev
-- git checkout package.json package-lock.json
-- git config pull.rebase false
-- if [ "$RUNSTEP" == "PY_JS_PHP" ]; then
-    pip install tox cryptography requests ruff;
-    pip install twine;
-    pip install pyopenssl aiohttp;
-    pip install typing-extensions;
-    php -i | grep php.ini;
-    composer install;
-    sudo apt update;
-    sudo apt install apt-transport-https -y;
-    sudo apt update -y;
-  fi;
-  if [ "$RUNSTEP" == "CSHARP" ]; then
-    sudo apt-get install -y dotnet-sdk-7.0;
-    sudo apt-get install -y dotnet-runtime-7.0;
-    dotnet --version;
-    dotnet --info;
-  fi;
-- type -p curl >/dev/null || ( apt update &&  apt install curl -y)
-- curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg && sudo chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null && sudo apt update && sudo apt install gh -y
-
-
-script: 
-- ./build.sh 2>&1
-
-# multi-job references:
-# - simpler:  https://docs.travis-ci.com/user/build-stages/; https://docs.travis-ci.com/user/build-stages/define-steps/ ;
-# - complex : https://github.com/travis-ci/travis-build/blob/f3daad7afa95db3005464db42331372cda28d607/.travis.yml + https://app.travis-ci.com/github/travis-ci/travis-build/builds/240296640
+- echo "runstepppppppppp"
+- echo $RUNSTEP
