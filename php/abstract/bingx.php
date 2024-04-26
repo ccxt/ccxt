@@ -259,9 +259,6 @@ abstract class bingx extends \ccxt\Exchange {
     public function subaccount_v1_private_get_assets($params = array()) {
         return $this->request('assets', array('subAccount', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 3));
     }
-    public function subaccount_v1_private_get_apikey_query($params = array()) {
-        return $this->request('apiKey/query', array('subAccount', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
-    }
     public function subaccount_v1_private_post_create($params = array()) {
         return $this->request('create', array('subAccount', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 3));
     }
@@ -279,6 +276,9 @@ abstract class bingx extends \ccxt\Exchange {
     }
     public function account_v1_private_get_uid($params = array()) {
         return $this->request('uid', array('account', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function account_v1_private_get_apikey_query($params = array()) {
+        return $this->request('apiKey/query', array('account', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
     public function account_v1_private_post_innertransfer_authorizesubaccount($params = array()) {
         return $this->request('innerTransfer/authorizeSubAccount', array('account', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 3));
@@ -565,9 +565,6 @@ abstract class bingx extends \ccxt\Exchange {
     public function subAccountV1PrivateGetAssets($params = array()) {
         return $this->request('assets', array('subAccount', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 3));
     }
-    public function subAccountV1PrivateGetApiKeyQuery($params = array()) {
-        return $this->request('apiKey/query', array('subAccount', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
-    }
     public function subAccountV1PrivatePostCreate($params = array()) {
         return $this->request('create', array('subAccount', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 3));
     }
@@ -585,6 +582,9 @@ abstract class bingx extends \ccxt\Exchange {
     }
     public function accountV1PrivateGetUid($params = array()) {
         return $this->request('uid', array('account', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function accountV1PrivateGetApiKeyQuery($params = array()) {
+        return $this->request('apiKey/query', array('account', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
     public function accountV1PrivatePostInnerTransferAuthorizeSubAccount($params = array()) {
         return $this->request('innerTransfer/authorizeSubAccount', array('account', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 3));
