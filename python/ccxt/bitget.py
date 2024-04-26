@@ -3921,6 +3921,8 @@ class bitget(Exchange, ImplicitAPI):
             market = self.market(sandboxSymbol)
         else:
             market = self.market(symbol)
+        hedged = self.safe_value(params, 'hedged', True)
+        params = self.omit(params, 'hedged')
         marketType = None
         marginMode = None
         marketType, params = self.handle_market_type_and_params('createOrder', market, params)
@@ -4028,11 +4030,13 @@ class bitget(Exchange, ImplicitAPI):
                 requestSide = side
                 if reduceOnly:
                     request['reduceOnly'] = 'YES'
-                    request['tradeSide'] = 'Close'
+                    if hedged:
+                        request['tradeSide'] = 'Close'
                     # on bitget if the position is long the side is always buy, and if the position is short the side is always sell
                     requestSide = 'sell' if (side == 'buy') else 'buy'
                 else:
-                    request['tradeSide'] = 'Open'
+                    if hedged:
+                        request['tradeSide'] = 'Open'
                 request['side'] = requestSide
         elif marketType == 'spot':
             if isStopLossOrTakeProfitTrigger or isStopLossOrTakeProfit:
