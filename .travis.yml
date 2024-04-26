@@ -13,7 +13,7 @@ jobs:
           name: ws1
           paths:
             - data.json
-    - stage: "s1"
+    - stage: "s2"
       workspaces:
         use:
         - ws1
@@ -21,9 +21,6 @@ jobs:
         - RUNSTEP=PY_JS_PHP 
       script: 
         - ./build.sh 2>&1
-      # artifacts: 
-      #   debug: true
-      #   paths: $HOME/data.json
 
 language: python
 dist: jammy
@@ -43,7 +40,7 @@ before_install:
 - echo "$RUNSTEP"
 
 
-addons:
-  artifacts: 
-    debug: true
-    paths: data.json
+# addons:
+#   artifacts: 
+#     debug: true
+#     paths: data.json
