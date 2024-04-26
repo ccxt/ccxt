@@ -7,7 +7,7 @@ import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { eddsa } from './base/functions/crypto.js';
 import { ed25519 } from './static_dependencies/noble-curves/ed25519.js';
-import type { TransferEntry, Balances, Bool, Currency, FundingRateHistory, Int, Market, MarketType, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Trade, Transaction, Leverage, Account, Currencies, TradingFees, Conversion } from './base/types.js';
+import type { TransferEntry, Balances, Bool, Currency, FundingRateHistory, Int, Market, MarketType, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Trade, Transaction, Leverage, Account, Currencies, TradingFees } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -2051,7 +2051,6 @@ export default class woofipro extends Exchange {
         const [ currency, rows ] = await this.getAssetHistoryRows (code, since, limit, params);
         return this.parseLedger (rows, currency, since, limit, params);
     }
-    
 
     parseTransaction (transaction, currency: Currency = undefined): Transaction {
         // example in fetchLedger
@@ -2433,13 +2432,14 @@ export default class woofipro extends Exchange {
             if (method === 'POST' && (path === 'algo/order' || path === 'order')) {
                 const isSandboxMode = this.safeBool (this.options, 'sandboxMode', false);
                 if (!isSandboxMode) {
-                    const applicationId = 'bc830de7-50f3-460b-9ee0-f430f83f9dad';
+                    // TODO: set the default broker id
+                    const applicationId = '';
                     const brokerId = this.safeString (this.options, 'brokerId', applicationId);
                     const isStop = path.indexOf ('algo') > -1;
                     if (isStop) {
-                        params['brokerId'] = brokerId;
+                        params['order_tag'] = brokerId;
                     } else {
-                        params['broker_id'] = brokerId;
+                        params['order_tag'] = brokerId;
                     }
                 }
                 params = this.keysort (params);
@@ -2449,7 +2449,7 @@ export default class woofipro extends Exchange {
             url += pathWithParams;
             headers = {
                 'orderly-account-id': this.uid,
-                'orderly-key':  this.apiKey,
+                'orderly-key': this.apiKey,
                 'orderly-timestamp': ts,
             };
             auth = ts + method + '/' + version + '/' + pathWithParams;
