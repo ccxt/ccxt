@@ -48,7 +48,7 @@ const randomMs = Math.floor(Math.random() * 10000);
 await sleep(randomMs);
 const response = await fetch(url('write', build_ID, RUNSTEP, 'success'));
 const txt = await response.text();
-console.log("WRITE COMPLETE! for", RUNSTEP, data);
+console.log("WRITE COMPLETE! for", RUNSTEP, txt);
 if(txt !== 'RESPONSE_write_success') {
     console.error("Error while writing response", txt);
     process.exit(1);
