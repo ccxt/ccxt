@@ -18,7 +18,6 @@ before_install:
 - ". $HOME/.nvm/nvm.sh"
 - nvm ls
 - nvm ls-remote
-- npm ci --include=dev
 - if [ "$RUNSTEP" == "PY_JS_PHP" ]; then
     echo "$RUNSTEP 1";
   fi;

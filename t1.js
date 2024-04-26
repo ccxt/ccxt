@@ -1,5 +1,5 @@
 
-const fs = require('fs');
+import fs from 'fs';
 const isPJP = process.env.RUNSTEP === 'PY_JS_PHP';
 
 async function wait () {
