@@ -332,6 +332,7 @@ class NewTranspiler {
         const csharpReplacements = {
             'OrderType': 'string',
             'OrderSide': 'string', // tmp
+            'ObjectOrObjectList': 'List<Dictionary<string, T>>',
         }
 
         if (wrappedType === undefined || wrappedType === 'Undefined') {
