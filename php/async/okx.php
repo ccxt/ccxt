@@ -2648,6 +2648,8 @@ class okx extends Exchange {
         $takeProfitDefined = ($takeProfit !== null);
         $trailingPercent = $this->safe_string_2($params, 'trailingPercent', 'callbackRatio');
         $isTrailingPercentOrder = $trailingPercent !== null;
+        $trigger = ($triggerPrice !== null) || ($type === 'trigger');
+        $isReduceOnly = $this->safe_value($params, 'reduceOnly', false);
         $defaultMarginMode = $this->safe_string_2($this->options, 'defaultMarginMode', 'marginMode', 'cross');
         $marginMode = $this->safe_string_2($params, 'marginMode', 'tdMode'); // cross or isolated, tdMode not ommited so be extended into the $request
         $margin = false;
@@ -2671,6 +2673,23 @@ class okx extends Exchange {
                 list($positionSide, $params) = $this->handle_option_and_params($params, 'createOrder', 'positionSide');
                 if ($positionSide !== null) {
                     $request['posSide'] = $positionSide;
+                } else {
+                    $hedged = null;
+                    list($hedged, $params) = $this->handle_option_and_params($params, 'createOrder', 'hedged');
+                    if ($hedged) {
+                        $isBuy = ($side === 'buy');
+                        $isProtective = ($takeProfitPrice !== null) || ($stopLossPrice !== null) || $isReduceOnly;
+                        if ($isProtective) {
+                            // in case of protective orders, the posSide should be opposite of position $side
+                            // reduceOnly is emulated and not natively supported by the exchange
+                            $request['posSide'] = $isBuy ? 'short' : 'long';
+                            if ($isReduceOnly) {
+                                $params = $this->omit($params, 'reduceOnly');
+                            }
+                        } else {
+                            $request['posSide'] = $isBuy ? 'long' : 'short';
+                        }
+                    }
                 }
             }
             $request['tdMode'] = $marginMode;
@@ -2681,7 +2700,6 @@ class okx extends Exchange {
         $params = $this->omit($params, array( 'currency', 'ccy', 'marginMode', 'timeInForce', 'stopPrice', 'triggerPrice', 'clientOrderId', 'stopLossPrice', 'takeProfitPrice', 'slOrdPx', 'tpOrdPx', 'margin', 'stopLoss', 'takeProfit', 'trailingPercent' ));
         $ioc = ($timeInForce === 'IOC') || ($type === 'ioc');
         $fok = ($timeInForce === 'FOK') || ($type === 'fok');
-        $trigger = ($triggerPrice !== null) || ($type === 'trigger');
         $conditional = ($stopLossPrice !== null) || ($takeProfitPrice !== null) || ($type === 'conditional');
         $marketIOC = ($isMarketOrder && $ioc) || ($type === 'optimal_limit_ioc');
         $defaultTgtCcy = $this->safe_string($this->options, 'tgtCcy', 'base_ccy');
@@ -2872,6 +2890,7 @@ class okx extends Exchange {
              * @param {string} [$params->positionSide] if position mode is one-way => set to 'net', if position mode is hedge-mode => set to 'long' or 'short'
              * @param {string} [$params->trailingPercent] the percent to trail away from the current $market $price
              * @param {string} [$params->tpOrdKind] 'condition' or 'limit', the default is 'condition'
+             * @param {string} [$params->hedged] true/false, to automatically set exchange-specific $params needed when trading in hedge mode
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=$order-structure $order structure~
              */
             Async\await($this->load_markets());
@@ -6259,6 +6278,41 @@ class okx extends Exchange {
         }) ();
     }
 
+    public function fetch_position_mode(?string $symbol = null, $params = array ()) {
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-account-configuration
+             * fetchs the position mode, hedged or one way, hedged for binance is set identically for all linear markets or all inverse markets
+             * @param {string} $symbol unified $symbol of the market to fetch the order book for
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [param.accountId] if you have multiple $accounts, you must specify the account id to fetch the position mode
+             * @return {array} an object detailing whether the market is in hedged or one-way mode
+             */
+            $accounts = Async\await($this->fetch_accounts());
+            $length = count($accounts);
+            $selectedAccount = null;
+            if ($length > 1) {
+                $accountId = $this->safe_string($params, 'accountId');
+                if ($accountId === null) {
+                    $accountIds = $this->get_list_from_object_values($accounts, 'id');
+                    throw new ExchangeError($this->id . ' fetchPositionMode() can not detect position mode, because you have multiple $accounts-> Set $params["accountId"] to desired id from => ' . implode(', ', $accountIds));
+                } else {
+                    $accountsById = $this->index_by($accounts, 'id');
+                    $selectedAccount = $this->safe_dict($accountsById, $accountId);
+                }
+            } else {
+                $selectedAccount = $accounts[0];
+            }
+            $mainAccount = $selectedAccount['info'];
+            $posMode = $this->safe_string($mainAccount, 'posMode'); // long_short_mode, net_mode
+            $isHedged = $posMode === 'long_short_mode';
+            return array(
+                'info' => $mainAccount,
+                'hedged' => $isHedged,
+            );
+        }) ();
+    }
+
     public function set_position_mode(bool $hedged, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($hedged, $symbol, $params) {
             /**
@@ -7953,7 +8007,7 @@ class okx extends Exchange {
             //     }
             //
             $rows = $this->safe_list($response, 'data', array());
-            return $this->parse_conversions($rows, 'baseCcy', 'quoteCcy', $since, $limit);
+            return $this->parse_conversions($rows, $code, 'baseCcy', 'quoteCcy', $since, $limit);
         }) ();
     }
 

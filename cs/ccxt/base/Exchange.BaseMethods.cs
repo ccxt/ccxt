@@ -6151,7 +6151,7 @@ public partial class Exchange
         throw new NotSupported ((string)add(this.id, " parseLeverage () is not supported yet")) ;
     }
 
-    public virtual object parseConversions(object conversions, object fromCurrencyKey = null, object toCurrencyKey = null, object since = null, object limit = null, object parameters = null)
+    public virtual object parseConversions(object conversions, object code = null, object fromCurrencyKey = null, object toCurrencyKey = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         conversions = this.toArray(conversions);
@@ -6175,8 +6175,20 @@ public partial class Exchange
             ((IList<object>)result).Add(conversion);
         }
         object sorted = this.sortBy(result, "timestamp");
-        object code = ((bool) isTrue((!isEqual(fromCurrency, null)))) ? getValue(fromCurrency, "code") : null;
-        return this.filterByCurrencySinceLimit(sorted, code, since, limit);
+        object currency = null;
+        if (isTrue(!isEqual(code, null)))
+        {
+            currency = this.currency(code);
+            code = getValue(currency, "code");
+        }
+        if (isTrue(isEqual(code, null)))
+        {
+            return this.filterBySinceLimit(sorted, since, limit);
+        }
+        object fromConversion = this.filterBy(sorted, "fromCurrency", code);
+        object toConversion = this.filterBy(sorted, "toCurrency", code);
+        object both = this.arrayConcat(fromConversion, toConversion);
+        return this.filterBySinceLimit(both, since, limit);
     }
 
     public virtual object parseConversion(object conversion, object fromCurrency = null, object toCurrency = null)

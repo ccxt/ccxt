@@ -3217,7 +3217,7 @@ export default class woo extends Exchange {
         //
         const data = this.safeDict (response, 'data', {});
         const rows = this.safeList (data, 'tradeVos', []);
-        return this.parseConversions (rows, 'sellAsset', 'buyAsset', since, limit);
+        return this.parseConversions (rows, code, 'sellAsset', 'buyAsset', since, limit);
     }
 
     parseConversion (conversion, fromCurrency: Currency = undefined, toCurrency: Currency = undefined): Conversion {

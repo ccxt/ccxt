@@ -12759,7 +12759,7 @@ class binance extends Exchange {
                 //
             }
             $rows = $this->safe_list($response, $responseQuery, array());
-            return $this->parse_conversions($rows, $fromCurrencyKey, $toCurrencyKey, $since, $limit);
+            return $this->parse_conversions($rows, $code, $fromCurrencyKey, $toCurrencyKey, $since, $limit);
         }) ();
     }
 

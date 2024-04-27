@@ -205,7 +205,7 @@ public partial class coinmetro
     /// query for balance and get the amount of funds available for trading or funds locked in orders
     /// </summary>
     /// <remarks>
-    /// See <see href="https://documenter.getpostman.com/view/3653795/SVfWN6KS#698ae067-43dd-4e19-a0ac-d9ba91381816"/>  <br/>
+    /// See <see href="https://documenter.getpostman.com/view/3653795/SVfWN6KS#741a1dcc-7307-40d0-acca-28d003d1506a"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>

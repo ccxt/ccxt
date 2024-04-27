@@ -6104,7 +6104,7 @@ class Exchange {
     parseLeverage(leverage, market = undefined) {
         throw new errors.NotSupported(this.id + ' parseLeverage () is not supported yet');
     }
-    parseConversions(conversions, fromCurrencyKey = undefined, toCurrencyKey = undefined, since = undefined, limit = undefined, params = {}) {
+    parseConversions(conversions, code = undefined, fromCurrencyKey = undefined, toCurrencyKey = undefined, since = undefined, limit = undefined, params = {}) {
         conversions = this.toArray(conversions);
         const result = [];
         let fromCurrency = undefined;
@@ -6123,8 +6123,18 @@ class Exchange {
             result.push(conversion);
         }
         const sorted = this.sortBy(result, 'timestamp');
-        const code = (fromCurrency !== undefined) ? fromCurrency['code'] : undefined;
-        return this.filterByCurrencySinceLimit(sorted, code, since, limit);
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency(code);
+            code = currency['code'];
+        }
+        if (code === undefined) {
+            return this.filterBySinceLimit(sorted, since, limit);
+        }
+        const fromConversion = this.filterBy(sorted, 'fromCurrency', code);
+        const toConversion = this.filterBy(sorted, 'toCurrency', code);
+        const both = this.arrayConcat(fromConversion, toConversion);
+        return this.filterBySinceLimit(both, since, limit);
     }
     parseConversion(conversion, fromCurrency = undefined, toCurrency = undefined) {
         throw new errors.NotSupported(this.id + ' parseConversion () is not supported yet');

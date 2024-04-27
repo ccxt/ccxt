@@ -3231,7 +3231,7 @@ class woo extends Exchange {
             //
             $data = $this->safe_dict($response, 'data', array());
             $rows = $this->safe_list($data, 'tradeVos', array());
-            return $this->parse_conversions($rows, 'sellAsset', 'buyAsset', $since, $limit);
+            return $this->parse_conversions($rows, $code, 'sellAsset', 'buyAsset', $since, $limit);
         }) ();
     }
 

@@ -13588,7 +13588,7 @@ public partial class binance : Exchange
             response = await this.sapiGetConvertTradeFlow(this.extend(request, parameters));
         }
         object rows = this.safeList(response, responseQuery, new List<object>() {});
-        return this.parseConversions(rows, fromCurrencyKey, toCurrencyKey, since, limit);
+        return this.parseConversions(rows, code, fromCurrencyKey, toCurrencyKey, since, limit);
     }
 
     public override object parseConversion(object conversion, object fromCurrency = null, object toCurrency = null)

@@ -11884,7 +11884,7 @@ class binance(Exchange, ImplicitAPI):
             #     }
             #
         rows = self.safe_list(response, responseQuery, [])
-        return self.parse_conversions(rows, fromCurrencyKey, toCurrencyKey, since, limit)
+        return self.parse_conversions(rows, code, fromCurrencyKey, toCurrencyKey, since, limit)
 
     def parse_conversion(self, conversion, fromCurrency: Currency = None, toCurrency: Currency = None) -> Conversion:
         #

@@ -2964,7 +2964,7 @@ class woo(Exchange, ImplicitAPI):
         #
         data = self.safe_dict(response, 'data', {})
         rows = self.safe_list(data, 'tradeVos', [])
-        return self.parse_conversions(rows, 'sellAsset', 'buyAsset', since, limit)
+        return self.parse_conversions(rows, code, 'sellAsset', 'buyAsset', since, limit)
 
     def parse_conversion(self, conversion, fromCurrency: Currency = None, toCurrency: Currency = None) -> Conversion:
         #

@@ -3182,7 +3182,7 @@ class woo extends woo$1 {
         //
         const data = this.safeDict(response, 'data', {});
         const rows = this.safeList(data, 'tradeVos', []);
-        return this.parseConversions(rows, 'sellAsset', 'buyAsset', since, limit);
+        return this.parseConversions(rows, code, 'sellAsset', 'buyAsset', since, limit);
     }
     parseConversion(conversion, fromCurrency = undefined, toCurrency = undefined) {
         //

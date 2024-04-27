@@ -8672,7 +8672,7 @@ class bitget extends bitget$1 {
         //
         const data = this.safeDict(response, 'data', {});
         const dataList = this.safeList(data, 'dataList', []);
-        return this.parseConversions(dataList, 'fromCoin', 'toCoin', since, limit);
+        return this.parseConversions(dataList, code, 'fromCoin', 'toCoin', since, limit);
     }
     parseConversion(conversion, fromCurrency = undefined, toCurrency = undefined) {
         //

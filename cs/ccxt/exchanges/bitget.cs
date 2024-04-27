@@ -9389,7 +9389,7 @@ public partial class bitget : Exchange
         //
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         object dataList = this.safeList(data, "dataList", new List<object>() {});
-        return this.parseConversions(dataList, "fromCoin", "toCoin", since, limit);
+        return this.parseConversions(dataList, code, "fromCoin", "toCoin", since, limit);
     }
 
     public override object parseConversion(object conversion, object fromCurrency = null, object toCurrency = null)

@@ -2669,6 +2669,8 @@ public partial class okx : Exchange
         object takeProfitDefined = (!isEqual(takeProfit, null));
         object trailingPercent = this.safeString2(parameters, "trailingPercent", "callbackRatio");
         object isTrailingPercentOrder = !isEqual(trailingPercent, null);
+        object trigger = isTrue((!isEqual(triggerPrice, null))) || isTrue((isEqual(type, "trigger")));
+        object isReduceOnly = this.safeValue(parameters, "reduceOnly", false);
         object defaultMarginMode = this.safeString2(this.options, "defaultMarginMode", "marginMode", "cross");
         object marginMode = this.safeString2(parameters, "marginMode", "tdMode"); // cross or isolated, tdMode not ommited so as to be extended into the request
         object margin = false;
@@ -2701,6 +2703,30 @@ public partial class okx : Exchange
                 if (isTrue(!isEqual(positionSide, null)))
                 {
                     ((IDictionary<string,object>)request)["posSide"] = positionSide;
+                } else
+                {
+                    object hedged = null;
+                    var hedgedparametersVariable = this.handleOptionAndParams(parameters, "createOrder", "hedged");
+                    hedged = ((IList<object>)hedgedparametersVariable)[0];
+                    parameters = ((IList<object>)hedgedparametersVariable)[1];
+                    if (isTrue(hedged))
+                    {
+                        object isBuy = (isEqual(side, "buy"));
+                        object isProtective = isTrue(isTrue((!isEqual(takeProfitPrice, null))) || isTrue((!isEqual(stopLossPrice, null)))) || isTrue(isReduceOnly);
+                        if (isTrue(isProtective))
+                        {
+                            // in case of protective orders, the posSide should be opposite of position side
+                            // reduceOnly is emulated and not natively supported by the exchange
+                            ((IDictionary<string,object>)request)["posSide"] = ((bool) isTrue(isBuy)) ? "short" : "long";
+                            if (isTrue(isReduceOnly))
+                            {
+                                parameters = this.omit(parameters, "reduceOnly");
+                            }
+                        } else
+                        {
+                            ((IDictionary<string,object>)request)["posSide"] = ((bool) isTrue(isBuy)) ? "long" : "short";
+                        }
+                    }
                 }
             }
             ((IDictionary<string,object>)request)["tdMode"] = marginMode;
@@ -2713,7 +2739,6 @@ public partial class okx : Exchange
         parameters = this.omit(parameters, new List<object>() {"currency", "ccy", "marginMode", "timeInForce", "stopPrice", "triggerPrice", "clientOrderId", "stopLossPrice", "takeProfitPrice", "slOrdPx", "tpOrdPx", "margin", "stopLoss", "takeProfit", "trailingPercent"});
         object ioc = isTrue((isEqual(timeInForce, "IOC"))) || isTrue((isEqual(type, "ioc")));
         object fok = isTrue((isEqual(timeInForce, "FOK"))) || isTrue((isEqual(type, "fok")));
-        object trigger = isTrue((!isEqual(triggerPrice, null))) || isTrue((isEqual(type, "trigger")));
         object conditional = isTrue(isTrue((!isEqual(stopLossPrice, null))) || isTrue((!isEqual(takeProfitPrice, null)))) || isTrue((isEqual(type, "conditional")));
         object marketIOC = isTrue((isTrue(isMarketOrder) && isTrue(ioc))) || isTrue((isEqual(type, "optimal_limit_ioc")));
         object defaultTgtCcy = this.safeString(this.options, "tgtCcy", "base_ccy");
@@ -2957,6 +2982,7 @@ public partial class okx : Exchange
         * @param {string} [params.positionSide] if position mode is one-way: set to 'net', if position mode is hedge-mode: set to 'long' or 'short'
         * @param {string} [params.trailingPercent] the percent to trail away from the current market price
         * @param {string} [params.tpOrdKind] 'condition' or 'limit', the default is 'condition'
+        * @param {string} [params.hedged] true/false, to automatically set exchange-specific params needed when trading in hedge mode
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
@@ -6521,6 +6547,47 @@ public partial class okx : Exchange
         return response;
     }
 
+    public async virtual Task<object> fetchPositionMode(object symbol = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name okx#fetchPositionMode
+        * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-account-configuration
+        * @description fetchs the position mode, hedged or one way, hedged for binance is set identically for all linear markets or all inverse markets
+        * @param {string} symbol unified symbol of the market to fetch the order book for
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string} [param.accountId] if you have multiple accounts, you must specify the account id to fetch the position mode
+        * @returns {object} an object detailing whether the market is in hedged or one-way mode
+        */
+        parameters ??= new Dictionary<string, object>();
+        object accounts = await this.fetchAccounts();
+        object length = getArrayLength(accounts);
+        object selectedAccount = null;
+        if (isTrue(isGreaterThan(length, 1)))
+        {
+            object accountId = this.safeString(parameters, "accountId");
+            if (isTrue(isEqual(accountId, null)))
+            {
+                object accountIds = this.getListFromObjectValues(accounts, "id");
+                throw new ExchangeError ((string)add(add(this.id, " fetchPositionMode() can not detect position mode, because you have multiple accounts. Set params[\"accountId\"] to desired id from: "), String.Join(", ", ((IList<object>)accountIds).ToArray()))) ;
+            } else
+            {
+                object accountsById = this.indexBy(accounts, "id");
+                selectedAccount = this.safeDict(accountsById, accountId);
+            }
+        } else
+        {
+            selectedAccount = getValue(accounts, 0);
+        }
+        object mainAccount = getValue(selectedAccount, "info");
+        object posMode = this.safeString(mainAccount, "posMode"); // long_short_mode, net_mode
+        object isHedged = isEqual(posMode, "long_short_mode");
+        return new Dictionary<string, object>() {
+            { "info", mainAccount },
+            { "hedged", isHedged },
+        };
+    }
+
     public async override Task<object> setPositionMode(object hedged, object symbol = null, object parameters = null)
     {
         /**
@@ -8355,7 +8422,7 @@ public partial class okx : Exchange
         //     }
         //
         object rows = this.safeList(response, "data", new List<object>() {});
-        return this.parseConversions(rows, "baseCcy", "quoteCcy", since, limit);
+        return this.parseConversions(rows, code, "baseCcy", "quoteCcy", since, limit);
     }
 
     public override object parseConversion(object conversion, object fromCurrency = null, object toCurrency = null)

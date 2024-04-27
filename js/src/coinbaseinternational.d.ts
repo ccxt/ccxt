@@ -42,7 +42,7 @@ export default class coinbaseinternational extends Exchange {
         address: string;
         info: any;
     }>;
-    findDefaultNetwork(networks: any): unknown;
+    findDefaultNetwork(networks: any): any;
     loadCurrencyNetworks(code: any, params?: {}): Promise<void>;
     parseNetworks(networks: any, params?: {}): {};
     parseNetwork(network: any, params?: {}): {
