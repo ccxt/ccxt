@@ -1289,10 +1289,19 @@ export default class kucoinfutures extends kucoin {
         const timestamp = this.safeInteger (position, 'currentTimestamp');
         const size = this.safeString (position, 'currentQty');
         let side = undefined;
-        if (Precise.stringGt (size, '0')) {
-            side = 'long';
-        } else if (Precise.stringLt (size, '0')) {
-            side = 'short';
+        const type = this.safeStringLower (position, 'type');
+        if (size !== undefined) {
+            if (Precise.stringGt (size, '0')) {
+                side = 'long';
+            } else if (Precise.stringLt (size, '0')) {
+                side = 'short';
+            }
+        } else if (type !== undefined) {
+            if (type.indexOf ('long') > -1) {
+                side = 'long';
+            } else {
+                side = 'short';
+            }
         }
         const notional = Precise.stringAbs (this.safeString (position, 'posCost'));
         const initialMargin = this.safeString (position, 'posInit');
@@ -1301,7 +1310,10 @@ export default class kucoinfutures extends kucoin {
         const unrealisedPnl = this.safeString (position, 'unrealisedPnl');
         const crossMode = this.safeValue (position, 'crossMode');
         // currently crossMode is always set to false and only isolated positions are supported
-        const marginMode = crossMode ? 'cross' : 'isolated';
+        let marginMode = undefined;
+        if (crossMode !== undefined) {
+            marginMode = crossMode ? 'cross' : 'isolated';
+        }
         return this.safePosition ({
             'info': position,
             'id': this.safeString2 (position, 'id', 'positionId'),
@@ -1313,9 +1325,9 @@ export default class kucoinfutures extends kucoin {
             'initialMarginPercentage': this.parseNumber (initialMarginPercentage),
             'maintenanceMargin': this.safeNumber (position, 'posMaint'),
             'maintenanceMarginPercentage': this.safeNumber (position, 'maintMarginReq'),
-            'entryPrice': this.safeNumber (position, 'avgEntryPrice'),
+            'entryPrice': this.safeNumber2 (position, 'avgEntryPrice', 'openPrice'),
             'notional': this.parseNumber (notional),
-            'leverage': this.safeNumber (position, 'realLeverage'),
+            'leverage': this.safeNumber2 (position, 'realLeverage', 'leverage'),
             'unrealizedPnl': this.parseNumber (unrealisedPnl),
             'contracts': this.parseNumber (Precise.stringAbs (size)),
             'contractSize': this.safeValue (market, 'contractSize'),
