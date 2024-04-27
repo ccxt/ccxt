@@ -19,7 +19,7 @@ async function testWatchTickersHelper (exchange: Exchange, skippedProperties: ob
         let response: Tickers = undefined;
         try {
             response = await exchange.watchTickers (argSymbols, argParams);
-        } catch (e) {
+        } catch (e: any) {
             // for some exchanges, specifically watchTickers method not subscribe
             // to "all tickers" itself, and it requires symbols to be set
             // so, in such case, if it's arguments-required exception, we don't
