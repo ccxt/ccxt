@@ -6165,11 +6165,11 @@ public partial class Exchange
             object toId = this.safeString(entry, toCurrencyKey);
             if (isTrue(!isEqual(fromId, null)))
             {
-                fromCurrency = this.currency(fromId);
+                fromCurrency = this.safeCurrency(fromId);
             }
             if (isTrue(!isEqual(toId, null)))
             {
-                toCurrency = this.currency(toId);
+                toCurrency = this.safeCurrency(toId);
             }
             object conversion = this.extend(this.parseConversion(entry, fromCurrency, toCurrency), parameters);
             ((IList<object>)result).Add(conversion);
@@ -6178,7 +6178,7 @@ public partial class Exchange
         object currency = null;
         if (isTrue(!isEqual(code, null)))
         {
-            currency = this.currency(code);
+            currency = this.safeCurrency(code);
             code = getValue(currency, "code");
         }
         if (isTrue(isEqual(code, null)))

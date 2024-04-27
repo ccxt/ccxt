@@ -5693,15 +5693,15 @@ class Exchange(object):
             fromId = self.safe_string(entry, fromCurrencyKey)
             toId = self.safe_string(entry, toCurrencyKey)
             if fromId is not None:
-                fromCurrency = self.currency(fromId)
+                fromCurrency = self.safe_currency(fromId)
             if toId is not None:
-                toCurrency = self.currency(toId)
+                toCurrency = self.safe_currency(toId)
             conversion = self.extend(self.parseConversion(entry, fromCurrency, toCurrency), params)
             result.append(conversion)
         sorted = self.sort_by(result, 'timestamp')
         currency = None
         if code is not None:
-            currency = self.currency(code)
+            currency = self.safe_currency(code)
             code = currency['code']
         if code is None:
             return self.filter_by_since_limit(sorted, since, limit)

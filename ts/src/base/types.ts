@@ -116,15 +116,15 @@ export interface Order {
     clientOrderId: Str;
     cost: number;
     datetime: string;
-    fee: Fee;
+    fee?: Fee;
     filled: number;
     id: string;
     info: any;
     lastTradeTimestamp?: number;
     lastUpdateTimestamp?: number;
-    postOnly: Bool;
+    postOnly?: Bool;
     price: number;
-    reduceOnly: Bool;
+    reduceOnly?: Bool;
     remaining: number;
     side: 'buy' | 'sell' | Str;
     status: 'open' | 'closed' | 'canceled' | Str;

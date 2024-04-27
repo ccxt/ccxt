@@ -7863,7 +7863,7 @@ class bitget(Exchange, ImplicitAPI):
         """
         fetches historical positions
         :see: https://www.bitget.com/api-doc/contract/position/Get-History-Position
-        :param str [symbol]: unified contract symbols
+        :param str[] [symbols]: unified contract symbols
         :param int [since]: timestamp in ms of the earliest position to fetch, default=3 months ago, max range for params["until"] - since is 3 months
         :param int [limit]: the maximum amount of records to fetch, default=20, max=100
         :param dict params: extra parameters specific to the exchange api endpoint

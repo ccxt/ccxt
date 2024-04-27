@@ -121,6 +121,8 @@ export interface Order {
     cost: number;
     trades: Trade[];
     fee: Fee;
+    reduceOnly: Bool;
+    postOnly: Bool;
     info: any;
 }
 export interface OrderBook {
