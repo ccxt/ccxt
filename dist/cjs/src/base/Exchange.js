@@ -6114,10 +6114,10 @@ class Exchange {
             const fromId = this.safeString(entry, fromCurrencyKey);
             const toId = this.safeString(entry, toCurrencyKey);
             if (fromId !== undefined) {
-                fromCurrency = this.currency(fromId);
+                fromCurrency = this.safeCurrency(fromId);
             }
             if (toId !== undefined) {
-                toCurrency = this.currency(toId);
+                toCurrency = this.safeCurrency(toId);
             }
             const conversion = this.extend(this.parseConversion(entry, fromCurrency, toCurrency), params);
             result.push(conversion);
@@ -6125,7 +6125,7 @@ class Exchange {
         const sorted = this.sortBy(result, 'timestamp');
         let currency = undefined;
         if (code !== undefined) {
-            currency = this.currency(code);
+            currency = this.safeCurrency(code);
             code = currency['code'];
         }
         if (code === undefined) {

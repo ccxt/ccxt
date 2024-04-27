@@ -410,13 +410,21 @@ public partial class coinex
     /// cancel multiple orders
     /// </summary>
     /// <remarks>
-    /// See <see href="https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade016_batch_cancel_order"/>  <br/>
-    /// See <see href="https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http021-0_cancel_order_batch"/>  <br/>
+    /// See <see href="https://docs.coinex.com/api/v2/spot/order/http/cancel-batch-order"/>  <br/>
+    /// See <see href="https://docs.coinex.com/api/v2/spot/order/http/cancel-batch-stop-order"/>  <br/>
+    /// See <see href="https://docs.coinex.com/api/v2/futures/order/http/cancel-batch-order"/>  <br/>
+    /// See <see href="https://docs.coinex.com/api/v2/futures/order/http/cancel-batch-stop-order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.stop</term>
+    /// <description>
+    /// boolean : set to true for canceling stop orders
     /// </description>
     /// </item>
     /// </list>

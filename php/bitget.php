@@ -8260,7 +8260,7 @@ class bitget extends Exchange {
         /**
          * fetches historical $positions
          * @see https://www.bitget.com/api-doc/contract/position/Get-History-Position
-         * @param {string} [symbol] unified contract $symbols
+         * @param {string[]} [$symbols] unified contract $symbols
          * @param {int} [$since] timestamp in ms of the earliest position to fetch, default=3 months ago, max range for $params["until"] - $since is 3 months
          * @param {int} [$limit] the maximum amount of records to fetch, default=20, max=100
          * @param {array} $params extra parameters specific to the exchange api endpoint
