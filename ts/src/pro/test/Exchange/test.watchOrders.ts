@@ -11,7 +11,7 @@ async function testWatchOrders (exchange, skippedProperties, symbol) {
         let response = undefined;
         try {
             response = await exchange.watchOrders (symbol);
-        } catch (e: any) {
+        } catch (e) {
             if (!testSharedMethods.isTemporaryFailure (e)) {
                 throw e;
             }

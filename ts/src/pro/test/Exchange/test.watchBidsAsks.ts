@@ -19,7 +19,7 @@ async function testWatchBidsAsksHelper (exchange, skippedProperties, argSymbols,
         let response = undefined;
         try {
             response = await exchange.watchBidsAsks (argSymbols, argParams);
-        } catch (e: any) {
+        } catch (e) {
             // for some exchanges, multi symbol methods might require symbols array to be present, so
             // so, if method throws "arguments-required" exception, we don't fail test, but just skip silently,
             // because tests will make a second call of this method with symbols array
