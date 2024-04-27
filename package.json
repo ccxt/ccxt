@@ -1,6 +1,6 @@
 {
   "name": "ccxt",
-  "version": "4.3.8",
+  "version": "4.3.9",
   "description": "A JavaScript / TypeScript / Python / C# / PHP cryptocurrency trading library with support for 100+ exchanges",
   "unpkg": "dist/ccxt.browser.js",
   "type": "module",
@@ -129,6 +129,7 @@
     "test-ws-php-base": "npm run test-php-cache && npm run test-php-orderbook",
     "transpile": "npm run transpileRest && npm run transpileWs",
     "transpileCS": "tsx build/csharpTranspiler.ts --multi",
+    "transpileCsSingle": "tsx build/csharpTranspiler.ts",
     "transpileCSWs": "tsx build/csharpTranspiler.ts --ws",
     "transpileRest": "node build/transpile",
     "transpileWs": "node build/transpileWS",

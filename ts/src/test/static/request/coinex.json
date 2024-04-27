@@ -687,27 +687,60 @@
             {
                 "description": "Cancel multiple spot orders at once",
                 "method": "cancelOrders",
-                "url": "https://api.coinex.com/v1/order/pending/batch?access_id=86AC33D5904F432C9C9DDD4708233F38&batch_ids=107745856682,107745856676&market=BTCUSDT&tonce=1701230333560",
+                "url": "https://api.coinex.com/v2/spot/cancel-batch-order",
                 "input": [
-                    [
-                        "107745856682",
-                        "107745856676"
-                    ],
-                    "BTC/USDT"
-                ]
+                  [
+                    117248494358,
+                    117248494357
+                  ],
+                  "BTC/USDT"
+                ],
+                "output": "{\"market\":\"BTCUSDT\",\"order_ids\":[117248494358,117248494357]}"
+            },
+            {
+                "description": "Cancel multiple spot stop orders at once",
+                "method": "cancelOrders",
+                "url": "https://api.coinex.com/v2/spot/cancel-batch-stop-order",
+                "input": [
+                  [
+                    117248845854,
+                    117248845855
+                  ],
+                  "BTC/USDT",
+                  {
+                    "stop": true
+                  }
+                ],
+                "output": "{\"market\":\"BTCUSDT\",\"stop_ids\":[117248845854,117248845855]}"
             },
             {
                 "description": "Cancel multiple swap orders at once",
                 "method": "cancelOrders",
-                "url": "https://api.coinex.com/perpetual/v1/order/cancel_batch",
+                "url": "https://api.coinex.com/v2/futures/cancel-batch-order",
                 "input": [
-                    [
-                        "115938781741",
-                        "115938847458"
-                    ],
-                    "BTC/USDT:USDT"
+                  [
+                    136983851788,
+                    136983851789
+                  ],
+                  "BTC/USDT:USDT"
                 ],
-                "output": "access_id=86AC33D5904F432C9C9DDD4708233F38&market=BTCUSDT&order_ids=115938781741,115938847458&timestamp=1701232526724"
+                "output": "{\"market\":\"BTCUSDT\",\"market_type\":\"FUTURES\",\"order_ids\":[136983851788,136983851789]}"
+            },
+            {
+                "description": "Cancel multiple swap stop orders at once",
+                "method": "cancelOrders",
+                "url": "https://api.coinex.com/v2/futures/cancel-batch-stop-order",
+                "input": [
+                  [
+                    136984426097,
+                    136984426099
+                  ],
+                  "BTC/USDT:USDT",
+                  {
+                    "stop": true
+                  }
+                ],
+                "output": "{\"market\":\"BTCUSDT\",\"market_type\":\"FUTURES\",\"stop_ids\":[136984426097,136984426099]}"
             }
         ],
         "fetchTicker": [

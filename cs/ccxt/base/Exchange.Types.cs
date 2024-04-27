@@ -245,6 +245,9 @@ public struct Order
     public double? takeProfitPrice;
     public double? remaining;
     public string? status;
+
+    public bool? reduceOnly;
+    public bool? postOnly;
     public Fee? fee;
     public IEnumerable<Trade>? trades;
     public Dictionary<string, object>? info;
@@ -271,6 +274,8 @@ public struct Order
         triggerPrice = Exchange.SafeFloat(order, "triggerPrice");
         stopLossPrice = Exchange.SafeFloat(order, "stopLossPrice");
         takeProfitPrice = Exchange.SafeFloat(order, "takeProfitPrice");
+        reduceOnly = Exchange.SafeBool(order, "reduceOnly", false);
+        postOnly = Exchange.SafeBool(order, "postOnly", false);
         info = order.ContainsKey("info") ? (Dictionary<string, object>)order["info"] : null;
     }
 }
