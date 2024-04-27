@@ -995,7 +995,7 @@ class Transpiler {
             'BalanceAccount': /-> BalanceAccount:/,
             'Balances': /-> Balances:/,
             'Bool': /: Bool =/,
-            'Collection': /: Collection/,
+            'ObjectOrObjectList': /: ObjectOrObjectList/,
             'Conversion': /-> Conversion:/,
             'Currencies': /-> Currencies:/,
             'Currency': /(-> Currency:|: Currency)/,
@@ -1685,7 +1685,7 @@ class Transpiler {
                 'OrderSide': 'string',
                 'Dictionary<any>': 'array',
                 'Dict': 'array',
-                'Collection': 'array',
+                'ObjectOrObjectList': 'array',
             }
             const phpArrayRegex = /^(?:Market|Currency|Account|AccountStructure|BalanceAccount|object|OHLCV|Order|OrderBook|Tickers?|Trade|Transaction|Balances?|MarketInterface|TransferEntry|Leverages|Leverage|Greeks|MarginModes|MarginMode|MarginModification|LastPrice|LastPrices|TradingFeeInterface|Currencies|TradingFees)( \| undefined)?$|\w+\[\]/
             let phpArgs = args.map (x => {

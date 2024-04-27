@@ -1,7 +1,7 @@
 
 // ----------------------------------------------------------------------------
 
-import { Collection, Dictionary, IndexType } from '../types.js';
+import { ObjectOrObjectList, Dictionary, IndexType } from '../types.js';
 import { isObject, isNumber, isDictionary, isArray } from './type.js';
 
 // ----------------------------------------------------------------------------
@@ -24,9 +24,9 @@ const arrayConcat = (a: any[], b: any[]) => a.concat (b);
 
 const inArray = (needle: any, haystack: any[]) => haystack.includes (needle);
 
-const toArray = (object: Collection) => Object.values (object);
+const toArray = (object: ObjectOrObjectList) => Object.values (object);
 
-const isEmpty = (object: Collection) => {
+const isEmpty = (object: ObjectOrObjectList) => {
     if (!object) {
         return true;
     }
