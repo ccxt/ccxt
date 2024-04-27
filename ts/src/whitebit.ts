@@ -1829,6 +1829,7 @@ export default class whitebit extends Exchange {
         //     {
         //         "address": "3ApEASLcrQtZpg1TsssFgYF5V5YQJAKvuE",                                              // deposit address
         //         "uniqueId": null,                                                                             // unique Id of deposit
+        //         "transactionId": "a6d71d69-2b17-4ad8-8b15-2d686c54a1a5",
         //         "createdAt": 1593437922,                                                                      // timestamp of deposit
         //         "currency": "Bitcoin",                                                                        // deposit currency
         //         "ticker": "BTC",                                                                              // deposit currency ticker
@@ -1852,6 +1853,7 @@ export default class whitebit extends Exchange {
         //             "actual": 1,                                                                              // current block confirmations
         //             "required": 2                                                                             // required block confirmation for successful deposit
         //         }
+        //         "centralized": false,
         //     }
         //
         currency = this.safeCurrency (undefined, currency);
@@ -1862,7 +1864,7 @@ export default class whitebit extends Exchange {
         const method = this.safeString (transaction, 'method');
         return {
             'id': this.safeString (transaction, 'uniqueId'),
-            'txid': this.safeString (transaction, 'transactionHash'),
+            'txid': this.safeString (transaction, 'transactionId'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'network': this.safeString (transaction, 'network'),
