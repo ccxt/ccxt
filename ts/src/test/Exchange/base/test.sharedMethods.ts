@@ -270,7 +270,7 @@ function assertNonEqual (exchange: Exchange, skippedProperties: object, method: 
     }
 }
 
-function assertInArray (exchange: Exchange, skippedProperties: object, method: string, entry: object, key: string | number, expectedArray: object | any[]) {
+function assertInArray (exchange: Exchange, skippedProperties: object, method: string, entry: object, key: string | number, expectedArray: any[]) {
     if (key in skippedProperties) {
         return;
     }
