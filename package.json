@@ -30,6 +30,7 @@
     "coverage-js": "npm run instrument && npm run nyc-coverage && rm -rf jsInstrumented",
     "docker": "docker-compose run --rm ccxt",
     "fixTSBug": "node build/fixTSBug",
+    "transpileCsSingle": "tsx build/csharpTranspiler.ts",
     "transpileCS": "tsx build/csharpTranspiler.ts --multi",
     "transpileCSWs": "tsx build/csharpTranspiler.ts --ws",
     "buildCS": "dotnet build cs/ccxt.sln",
