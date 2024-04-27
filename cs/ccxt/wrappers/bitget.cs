@@ -1836,12 +1836,6 @@ public partial class bitget
     /// See <see href="https://www.bitget.com/api-doc/contract/position/Get-History-Position"/>  <br/>
     /// <list type="table">
     /// <item>
-    /// <term>symbol</term>
-    /// <description>
-    /// string : unified contract symbols
-    /// </description>
-    /// </item>
-    /// <item>
     /// <term>since</term>
     /// <description>
     /// int : timestamp in ms of the earliest position to fetch, default=3 months ago, max range for params["until"] - since is 3 months

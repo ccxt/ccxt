@@ -7039,10 +7039,10 @@ class Exchange {
             $fromId = $this->safe_string($entry, $fromCurrencyKey);
             $toId = $this->safe_string($entry, $toCurrencyKey);
             if ($fromId !== null) {
-                $fromCurrency = $this->currency ($fromId);
+                $fromCurrency = $this->safe_currency($fromId);
             }
             if ($toId !== null) {
-                $toCurrency = $this->currency ($toId);
+                $toCurrency = $this->safe_currency($toId);
             }
             $conversion = array_merge($this->parseConversion ($entry, $fromCurrency, $toCurrency), $params);
             $result[] = $conversion;
@@ -7050,7 +7050,7 @@ class Exchange {
         $sorted = $this->sort_by($result, 'timestamp');
         $currency = null;
         if ($code !== null) {
-            $currency = $this->currency ($code);
+            $currency = $this->safe_currency($code);
             $code = $currency['code'];
         }
         if ($code === null) {
