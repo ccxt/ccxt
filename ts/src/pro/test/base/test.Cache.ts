@@ -409,7 +409,7 @@ assert (cacheSymbolSide3.getLimit (undefined, outsideLimit) === 1); // watch all
 // ----------------------------------------------------------------------------
 // test ArrayCacheBySymbolBySide, watch all positions, same symbol when not positionMode is not hedged reset other side
 
-const oneWayCacheSymbolSide = new ArrayCacheBySymbolBySide (false);
+const oneWayCacheSymbolSide = new ArrayCacheBySymbolBySide (undefined, false);
 symbol = 'BTC/USDT';
 outsideLimit = 5;
 oneWayCacheSymbolSide.append ({ 'symbol': symbol, 'side': 'short', 'contracts': 1 }); // create first position

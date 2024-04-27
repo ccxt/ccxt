@@ -381,7 +381,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
     async loadPositionSnapshot (client, messageHash, symbol) {
         const position = await this.fetchPosition (symbol);
         if (this.positions === undefined) {
-            this.positions = new ArrayCacheBySymbolBySide (false);
+            this.positions = new ArrayCacheBySymbolBySide (undefined, false);
         }
         const cache = this.positions;
         cache.append (position);
@@ -443,7 +443,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
     async loadPositionsSnapshot (client, messageHash) {
         const positions = await this.fetchPositions ();
         if (this.positions === undefined) {
-            this.positions = new ArrayCacheBySymbolBySide (false);
+            this.positions = new ArrayCacheBySymbolBySide (undefined, false);
         }
         const cache = this.positions;
         for (let i = 0; i < positions.length; i++) {

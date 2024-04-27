@@ -221,8 +221,8 @@ class ArrayCacheBySymbolById extends ArrayCache {
 
 class ArrayCacheBySymbolBySide extends ArrayCache {
 
-    constructor (hedged = true) {
-        super ()
+    constructor (maxSize = undefined, hedged = true) {
+        super (maxSize)
         this.nestedNewUpdatesBySymbol = true
         this.hedged = hedged
         Object.defineProperty (this, 'hashmap', {
@@ -258,6 +258,10 @@ class ArrayCacheBySymbolBySide extends ArrayCache {
             this.splice (index, 1)
         } else {
             bySide[item.side] = item
+        }
+        if (this.maxSize && (this.length === this.maxSize)) {
+            const deleteReference = this.shift ()
+            delete this.hashmap[deleteReference.symbol][deleteReference.side]
         }
         this.push (item)
         if (this.clearAllUpdates) {

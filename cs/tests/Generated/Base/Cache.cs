@@ -614,5 +614,24 @@ public partial class BaseTest
             { "contracts", 3 },
         }); // update second position
         Assert(isEqual(cacheSymbolSide3.getLimit(null, outsideLimit), 1)); // watch all positions
+        
+        // ----------------------------------------------------------------------------
+        
+        // test ArrayCacheBySymbolBySide, watch all positions, same symbol when not positionMode is not hedged reset other side
+        var oneWayCacheSymbolSide = new ArrayCacheBySymbolBySide(null, false);
+        symbol = "BTC/USDT";
+        outsideLimit = 5;
+        oneWayCacheSymbolSide.append(new Dictionary<string, object>() {
+            { "symbol", symbol },
+            { "side", "short" },
+            { "contracts", 1 },
+        }); // create first position
+        oneWayCacheSymbolSide.append(new Dictionary<string, object>() {
+            { "symbol", symbol },
+            { "side", "long" },
+            { "contracts", 2 },
+        }); // create oposite side position
+        object arrayLength = getArrayLength(oneWayCacheSymbolSide);
+        Assert(isEqual(arrayLength, 1));
     }
 }

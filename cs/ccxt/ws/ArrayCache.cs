@@ -297,9 +297,11 @@ public class ArrayCacheBySymbolBySide : ArrayCache
 {
     // tbd incomplete
     public Dictionary<string, object> hashmap = new Dictionary<string, object>();
-    public ArrayCacheBySymbolBySide(int? maxSixe = null) : base(maxSixe)
+    private bool hedged = true;
+    public ArrayCacheBySymbolBySide(int? maxSixe = null, bool hedged = true) : base(maxSixe)
     {
         this.nestedNewUpdatesBySymbol = true;
+        this.hedged = hedged;
     }
 
     public void append(object item)
@@ -316,6 +318,15 @@ public class ArrayCacheBySymbolBySide : ArrayCache
         var itemSide = Exchange.SafeString(item, "side");
         var bySide = (this.hashmap.ContainsKey(itemSymbol)) ? this.hashmap[itemSide] as Dictionary<string, object> : new Dictionary<string, object>();
 
+        if (!this.hedged) {
+            var sideToReset = itemSide == "long" ? "short" : "long";
+            if (bySide.ContainsKey(sideToReset)) {
+                bySide.Remove(sideToReset);
+                var value = this.Find(x => Exchange.SafeString (x, "symbol") == itemSymbol && Exchange.SafeString (x, "side") == sideToReset);
+                var indexInt = this.IndexOf(value);
+                this.RemoveAt(indexInt);
+            }
+        }
         if (bySide.ContainsKey(itemSide))
         {
             var reference = bySide[itemSide];
