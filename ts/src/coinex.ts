@@ -2728,8 +2728,8 @@ export default class coinex extends Exchange {
         const request = {
             'market': market['id'],
         };
-        const stop = this.safeBool (params, 'stop');
-        params = this.omit (params, 'stop');
+        const stop = this.safeBool2 (params, 'stop', 'trigger');
+        params = this.omit (params, [ 'stop', 'trigger' ]);
         let response = undefined;
         if (stop) {
             request['stop_ids'] = ids;
