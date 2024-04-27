@@ -108,8 +108,10 @@ class okx extends Exchange {
                 'fetchOrderTrades' => true,
                 'fetchPermissions' => null,
                 'fetchPosition' => true,
+                'fetchPositionHistory' => 'emulated',
                 'fetchPositions' => true,
                 'fetchPositionsForSymbol' => true,
+                'fetchPositionsHistory' => true,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchSettlementHistory' => true,
@@ -4715,7 +4717,7 @@ class okx extends Exchange {
         return $result;
     }
 
-    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
         /**
          * make a withdrawal
          * @see https://www.okx.com/docs-v5/en/#funding-account-rest-api-withdrawal
@@ -6554,7 +6556,7 @@ class okx extends Exchange {
         );
     }
 
-    public function reduce_margin(string $symbol, $amount, $params = array ()): array {
+    public function reduce_margin(string $symbol, float $amount, $params = array ()): array {
         /**
          * remove margin from a position
          * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-increase-decrease-margin
@@ -6566,7 +6568,7 @@ class okx extends Exchange {
         return $this->modify_margin_helper($symbol, $amount, 'reduce', $params);
     }
 
-    public function add_margin(string $symbol, $amount, $params = array ()): array {
+    public function add_margin(string $symbol, float $amount, $params = array ()): array {
         /**
          * add margin
          * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-increase-decrease-margin
@@ -8068,5 +8070,85 @@ class okx extends Exchange {
         $data = $this->safe_list($response, 'data');
         $modifications = $this->parse_margin_modifications($data);
         return $this->filter_by_symbol_since_limit($modifications, $symbol, $since, $limit);
+    }
+
+    public function fetch_positions_history(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+        /**
+         * fetches historical $positions
+         * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-$positions-history
+         * @param {string} [$symbols] unified $market $symbols
+         * @param {int} [$since] timestamp in ms of the earliest position to fetch
+         * @param {int} [$limit] the maximum amount of records to fetch, default=100, max=100
+         * @param {array} $params extra parameters specific to the exchange api endpoint
+         * @param {string} [$params->marginMode] "cross" or "isolated"
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+         * @param {string} [$params->instType] margin, swap, futures or option
+         * @param {string} [$params->type] the type of latest close position 1 => close position partially, 2：close all, 3：liquidation, 4：partial liquidation; 5：adl, is it is the latest type if there are several types for the same position
+         * @param {string} [$params->posId] position id, there is attribute expiration, the posid will be expired if it is more than 30 days after the last full close position, then position will use new posid
+         * @param {string} [$params->before] timestamp in ms of the earliest position to fetch based on the last update time of the position
+         * @param {string} [$params->after] timestamp in ms of the latest position to fetch based on the last update time of the position
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=position-structure position structures~
+         */
+        $this->load_markets();
+        $marginMode = $this->safe_string($params, 'marginMode');
+        $instType = $this->safe_string_upper($params, 'instType');
+        $params = $this->omit($params, array( 'until', 'marginMode', 'instType' ));
+        if ($limit === null) {
+            $limit = 100;
+        }
+        $request = array(
+            'limit' => $limit,
+        );
+        if ($symbols !== null) {
+            $symbolsLength = count($symbols);
+            if ($symbolsLength === 1) {
+                $market = $this->market($symbols[0]);
+                $request['instId'] = $market['id'];
+            }
+        }
+        if ($marginMode !== null) {
+            $request['mgnMode'] = $marginMode;
+        }
+        if ($instType !== null) {
+            $request['instType'] = $instType;
+        }
+        $response = $this->privateGetAccountPositionsHistory (array_merge($request, $params));
+        //
+        //    {
+        //        code => '0',
+        //        $data => array(
+        //            array(
+        //                cTime => '1708735940395',
+        //                ccy => 'USDT',
+        //                closeAvgPx => '0.6330444444444444',
+        //                closeTotalPos => '27',
+        //                direction => 'long',
+        //                fee => '-1.69566',
+        //                fundingFee => '-11.870404179341788',
+        //                instId => 'XRP-USDT-SWAP',
+        //                $instType => 'SWAP',
+        //                lever => '3.0',
+        //                liqPenalty => '0',
+        //                mgnMode => 'cross',
+        //                openAvgPx => '0.623',
+        //                openMaxPos => '15',
+        //                pnl => '27.11999999999988',
+        //                pnlRatio => '0.0241732402722634',
+        //                posId => '681423155054862336',
+        //                realizedPnl => '13.553935820658092',
+        //                triggerPx => '',
+        //                type => '2',
+        //                uTime => '1711088748170',
+        //                uly => 'XRP-USDT'
+        //            ),
+        //            ...
+        //        ),
+        //        msg => ''
+        //    }
+        //
+        $data = $this->safe_list($response, 'data');
+        $positions = $this->parse_positions($data, $symbols, $params);
+        return $this->filter_by_since_limit($positions, $since, $limit);
     }
 }

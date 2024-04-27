@@ -98,7 +98,7 @@ export default class woo extends Exchange {
         info: any;
     };
     parseTransferStatus(status: any): string;
-    withdraw(code: string, amount: number, address: any, tag?: any, params?: {}): Promise<Transaction>;
+    withdraw(code: string, amount: number, address: string, tag?: any, params?: {}): Promise<Transaction>;
     repayMargin(code: string, amount: any, symbol?: Str, params?: {}): Promise<any>;
     parseMarginLoan(info: any, currency?: Currency): {
         id: any;

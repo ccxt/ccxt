@@ -62,8 +62,11 @@ class yobit extends Exchange {
                 'fetchOrderBook' => true,
                 'fetchOrderBooks' => true,
                 'fetchPosition' => false,
+                'fetchPositionHistory' => false,
                 'fetchPositionMode' => false,
                 'fetchPositions' => false,
+                'fetchPositionsForSymbol' => false,
+                'fetchPositionsHistory' => false,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
@@ -1187,7 +1190,7 @@ class yobit extends Exchange {
         );
     }
 
-    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
         /**
          * @see https://yobit.net/en/api
          * make a withdrawal

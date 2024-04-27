@@ -1444,6 +1444,26 @@
                 ]
             }
         ],
+        "fetchPositionsHistory": [
+            {
+                "description": "Fetch Positions History",
+                "method": "fetchPositionHistory",
+                "url": "https://www.okx.com/api/v5/account/positions-history?limit=100",
+                "input": []
+            },
+            {
+                "description": "Fill this with a description of the method call",
+                "method": "fetchPositionsHistory",
+                "url": "https://www.okx.com/api/v5/account/positions-history?limit=1&instId=XRP-USDT-SWAP",
+                "input": [
+                  [
+                    "XRP/USDT:USDT"
+                  ],
+                  1708735940395,
+                  1
+                ]
+            }
+        ],
         "fetchConvertCurrencies": [
             {
                 "description": "Fetch currencies that can be converted",

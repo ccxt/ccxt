@@ -99,8 +99,10 @@ class coinbaseinternational(Exchange, ImplicitAPI):
                 'fetchOrderBook': False,
                 'fetchOrders': False,
                 'fetchPosition': True,
+                'fetchPositionHistory': False,
                 'fetchPositionMode': False,
                 'fetchPositions': True,
+                'fetchPositionsHistory': False,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
@@ -1771,7 +1773,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         trades = self.safe_list(response, 'results', [])
         return self.parse_trades(trades, market, since, limit)
 
-    async def withdraw(self, code: str, amount: float, address, tag=None, params={}):
+    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
         """
         make a withdrawal
         :see: https://docs.cloud.coinbase.com/intx/reference/withdraw

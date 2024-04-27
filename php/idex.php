@@ -71,8 +71,11 @@ class idex extends Exchange {
                 'fetchOrderBook' => true,
                 'fetchOrders' => false,
                 'fetchPosition' => false,
+                'fetchPositionHistory' => false,
                 'fetchPositionMode' => false,
                 'fetchPositions' => false,
+                'fetchPositionsForSymbol' => false,
+                'fetchPositionsHistory' => false,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchStatus' => true,
@@ -1337,7 +1340,7 @@ class idex extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
         /**
          * make a withdrawal
          * @see https://api-docs-v3.idex.io/#withdraw-funds

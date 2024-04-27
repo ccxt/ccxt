@@ -37,7 +37,7 @@ export default class bitopro extends Exchange {
     fetchDeposits(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     fetchWithdrawal(id: string, code?: Str, params?: {}): Promise<Transaction>;
-    withdraw(code: string, amount: number, address: any, tag?: any, params?: {}): Promise<Transaction>;
+    withdraw(code: string, amount: number, address: string, tag?: any, params?: {}): Promise<Transaction>;
     parseDepositWithdrawFee(fee: any, currency?: Currency): {
         info: any;
         withdraw: {

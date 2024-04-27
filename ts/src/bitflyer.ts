@@ -832,7 +832,7 @@ export default class bitflyer extends Exchange {
         return response;
     }
 
-    async withdraw (code: string, amount: number, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {
         /**
          * @method
          * @name bitflyer#withdraw

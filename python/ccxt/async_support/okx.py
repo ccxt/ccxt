@@ -7,7 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.okx import ImplicitAPI
 import asyncio
 import hashlib
-from ccxt.base.types import Account, Balances, Conversion, Currencies, Currency, Greeks, Int, Leverage, MarginModification, Market, MarketInterface, Num, Option, OptionChain, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry
+from ccxt.base.types import Account, Balances, Conversion, Currencies, Currency, Greeks, Int, Leverage, MarginModification, Market, MarketInterface, Num, Option, OptionChain, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry
 from typing import List
 from typing import Any
 from ccxt.base.errors import ExchangeError
@@ -135,8 +135,10 @@ class okx(Exchange, ImplicitAPI):
                 'fetchOrderTrades': True,
                 'fetchPermissions': None,
                 'fetchPosition': True,
+                'fetchPositionHistory': 'emulated',
                 'fetchPositions': True,
                 'fetchPositionsForSymbol': True,
+                'fetchPositionsHistory': True,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchSettlementHistory': True,
@@ -4501,7 +4503,7 @@ class okx(Exchange, ImplicitAPI):
             raise InvalidAddress(self.id + ' fetchDepositAddress() cannot find ' + network + ' deposit address for ' + code)
         return result
 
-    async def withdraw(self, code: str, amount: float, address, tag=None, params={}):
+    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
         """
         make a withdrawal
         :see: https://www.okx.com/docs-v5/en/#funding-account-rest-api-withdrawal
@@ -6225,7 +6227,7 @@ class okx(Exchange, ImplicitAPI):
             'datetime': self.iso8601(timestamp),
         }
 
-    async def reduce_margin(self, symbol: str, amount, params={}) -> MarginModification:
+    async def reduce_margin(self, symbol: str, amount: float, params={}) -> MarginModification:
         """
         remove margin from a position
         :see: https://www.okx.com/docs-v5/en/#trading-account-rest-api-increase-decrease-margin
@@ -6236,7 +6238,7 @@ class okx(Exchange, ImplicitAPI):
         """
         return await self.modify_margin_helper(symbol, amount, 'reduce', params)
 
-    async def add_margin(self, symbol: str, amount, params={}) -> MarginModification:
+    async def add_margin(self, symbol: str, amount: float, params={}) -> MarginModification:
         """
         add margin
         :see: https://www.okx.com/docs-v5/en/#trading-account-rest-api-increase-decrease-margin
@@ -7653,3 +7655,77 @@ class okx(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data')
         modifications = self.parse_margin_modifications(data)
         return self.filter_by_symbol_since_limit(modifications, symbol, since, limit)
+
+    async def fetch_positions_history(self, symbols: Strings = None, since: Int = None, limit: Int = None, params={}) -> List[Position]:
+        """
+        fetches historical positions
+        :see: https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-positions-history
+        :param str [symbols]: unified market symbols
+        :param int [since]: timestamp in ms of the earliest position to fetch
+        :param int [limit]: the maximum amount of records to fetch, default=100, max=100
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :param str [params.marginMode]: "cross" or "isolated"
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+        :param str [params.instType]: margin, swap, futures or option
+        :param str [params.type]: the type of latest close position 1: close position partially, 2：close all, 3：liquidation, 4：partial liquidation; 5：adl, is it is the latest type if there are several types for the same position
+        :param str [params.posId]: position id, there is attribute expiration, the posid will be expired if it is more than 30 days after the last full close position, then position will use new posid
+        :param str [params.before]: timestamp in ms of the earliest position to fetch based on the last update time of the position
+        :param str [params.after]: timestamp in ms of the latest position to fetch based on the last update time of the position
+        :returns dict[]: a list of `position structures <https://docs.ccxt.com/#/?id=position-structure>`
+        """
+        await self.load_markets()
+        marginMode = self.safe_string(params, 'marginMode')
+        instType = self.safe_string_upper(params, 'instType')
+        params = self.omit(params, ['until', 'marginMode', 'instType'])
+        if limit is None:
+            limit = 100
+        request = {
+            'limit': limit,
+        }
+        if symbols is not None:
+            symbolsLength = len(symbols)
+            if symbolsLength == 1:
+                market = self.market(symbols[0])
+                request['instId'] = market['id']
+        if marginMode is not None:
+            request['mgnMode'] = marginMode
+        if instType is not None:
+            request['instType'] = instType
+        response = await self.privateGetAccountPositionsHistory(self.extend(request, params))
+        #
+        #    {
+        #        code: '0',
+        #        data: [
+        #            {
+        #                cTime: '1708735940395',
+        #                ccy: 'USDT',
+        #                closeAvgPx: '0.6330444444444444',
+        #                closeTotalPos: '27',
+        #                direction: 'long',
+        #                fee: '-1.69566',
+        #                fundingFee: '-11.870404179341788',
+        #                instId: 'XRP-USDT-SWAP',
+        #                instType: 'SWAP',
+        #                lever: '3.0',
+        #                liqPenalty: '0',
+        #                mgnMode: 'cross',
+        #                openAvgPx: '0.623',
+        #                openMaxPos: '15',
+        #                pnl: '27.11999999999988',
+        #                pnlRatio: '0.0241732402722634',
+        #                posId: '681423155054862336',
+        #                realizedPnl: '13.553935820658092',
+        #                triggerPx: '',
+        #                type: '2',
+        #                uTime: '1711088748170',
+        #                uly: 'XRP-USDT'
+        #            },
+        #            ...
+        #        ],
+        #        msg: ''
+        #    }
+        #
+        data = self.safe_list(response, 'data')
+        positions = self.parse_positions(data, symbols, params)
+        return self.filter_by_since_limit(positions, since, limit)

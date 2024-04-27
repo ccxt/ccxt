@@ -52,7 +52,11 @@ class bithumb extends Exchange {
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchPosition' => false,
+                'fetchPositionHistory' => false,
+                'fetchPositionMode' => false,
                 'fetchPositions' => false,
+                'fetchPositionsForSymbol' => false,
+                'fetchPositionsHistory' => false,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
@@ -963,7 +967,7 @@ class bithumb extends Exchange {
         return $this->cancel_order($order['id'], $order['symbol'], array_merge($request, $params));
     }
 
-    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
         /**
          * make a withdrawal
          * @see https://apidocs.bithumb.com/reference/%EC%BD%94%EC%9D%B8-%EC%B6%9C%EA%B8%88%ED%95%98%EA%B8%B0-%EA%B0%9C%EC%9D%B8

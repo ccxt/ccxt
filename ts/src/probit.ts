@@ -69,8 +69,11 @@ export default class probit extends Exchange {
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchPosition': false,
+                'fetchPositionHistory': false,
                 'fetchPositionMode': false,
                 'fetchPositions': false,
+                'fetchPositionsForSymbol': false,
+                'fetchPositionsHistory': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
@@ -1425,7 +1428,7 @@ export default class probit extends Exchange {
         return this.parseDepositAddresses (data, codes);
     }
 
-    async withdraw (code: string, amount: number, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {
         /**
          * @method
          * @name probit#withdraw

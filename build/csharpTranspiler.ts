@@ -147,7 +147,7 @@ class NewTranspiler {
                 "parser": {
                     "ELEMENT_ACCESS_WRAPPER_OPEN": "getValue(",
                     "ELEMENT_ACCESS_WRAPPER_CLOSE": ")",
-                    "VAR_TOKEN": "var",
+                    // "VAR_TOKEN": "var",
                 }
             },
         }

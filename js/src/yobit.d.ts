@@ -55,7 +55,7 @@ export default class yobit extends Exchange {
             rate: any;
         };
     }>;
-    withdraw(code: string, amount: number, address: any, tag?: any, params?: {}): Promise<Transaction>;
+    withdraw(code: string, amount: number, address: string, tag?: any, params?: {}): Promise<Transaction>;
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
         url: any;
         method: string;

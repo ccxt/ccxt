@@ -1085,6 +1085,20 @@ public partial class Exchange
         var res = await this.fetchPaginatedCallIncremental(method, symbol, since, limit, parameters, pageKey, maxEntriesPerRequest);
         return ((Dictionary<string, object>)res);
     }
+    public async Task<Position> FetchPositionHistory(string symbol, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.fetchPositionHistory(symbol, since, limit, parameters);
+        return new Position(res);
+    }
+    public async Task<List<Position>> FetchPositionsHistory(List<String> symbols = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.fetchPositionsHistory(symbols, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new Position(item)).ToList<Position>();
+    }
 }
 // class wrappers
 public class  Ace: ace { public Ace(object args = null) : base(args) { } }

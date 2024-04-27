@@ -90,7 +90,9 @@ export default class kucoin extends Exchange {
                 'fetchOrderBooks': false,
                 'fetchOrdersByStatus': true,
                 'fetchOrderTrades': true,
+                'fetchPositionHistory': false,
                 'fetchPositionMode': false,
+                'fetchPositionsHistory': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchStatus': true,
                 'fetchTicker': true,
@@ -3184,7 +3186,7 @@ export default class kucoin extends Exchange {
         };
     }
 
-    async withdraw (code: string, amount: number, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {
         /**
          * @method
          * @name kucoin#withdraw

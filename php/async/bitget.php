@@ -113,8 +113,10 @@ class bitget extends Exchange {
                 'fetchOrders' => false,
                 'fetchOrderTrades' => false,
                 'fetchPosition' => true,
+                'fetchPositionHistory' => 'emulated',
                 'fetchPositionMode' => false,
                 'fetchPositions' => true,
+                'fetchPositionsHistory' => true,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchStatus' => false,
@@ -2204,7 +2206,7 @@ class bitget extends Exchange {
         }) ();
     }
 
-    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
@@ -6456,7 +6458,7 @@ class bitget extends Exchange {
         //         "cTime" => "1700807507275"
         //     }
         //
-        // fetchPositions => privateMixGetV2MixPositionHistoryPosition
+        // fetchPositionsHistory => privateMixGetV2MixPositionHistoryPosition
         //
         //     {
         //         "symbol" => "BTCUSDT",
@@ -6911,7 +6913,7 @@ class bitget extends Exchange {
         );
     }
 
-    public function reduce_margin(string $symbol, $amount, $params = array ()): PromiseInterface {
+    public function reduce_margin(string $symbol, float $amount, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $amount, $params) {
             /**
              * remove margin from a position
@@ -6932,7 +6934,7 @@ class bitget extends Exchange {
         }) ();
     }
 
-    public function add_margin(string $symbol, $amount, $params = array ()): PromiseInterface {
+    public function add_margin(string $symbol, float $amount, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $amount, $params) {
             /**
              * add margin
@@ -8378,6 +8380,78 @@ class bitget extends Exchange {
             'symbol' => $market['symbol'],
             'marginMode' => $marginType,
         );
+    }
+
+    public function fetch_positions_history(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbols, $since, $limit, $params) {
+            /**
+             * fetches historical $positions
+             * @see https://www.bitget.com/api-doc/contract/position/Get-History-Position
+             * @param {string} [symbol] unified contract $symbols
+             * @param {int} [$since] timestamp in ms of the earliest position to fetch, default=3 months ago, max range for $params["until"] - $since is 3 months
+             * @param {int} [$limit] the maximum amount of records to fetch, default=20, max=100
+             * @param {array} $params extra parameters specific to the exchange api endpoint
+             * @param {int} [$params->until] timestamp in ms of the latest position to fetch, max range for $params["until"] - $since is 3 months
+             *
+             * EXCHANGE SPECIFIC PARAMETERS
+             * @param {string} [$params->productType] USDT-FUTURES (default), COIN-FUTURES, USDC-FUTURES, SUSDT-FUTURES, SCOIN-FUTURES, or SUSDC-FUTURES
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=position-structure position structures~
+             */
+            Async\await($this->load_markets());
+            $until = $this->safe_integer($params, 'until');
+            $params = $this->omit($params, 'until');
+            $request = array();
+            if ($symbols !== null) {
+                $symbolsLength = count($symbols);
+                if ($symbolsLength > 0) {
+                    $market = $this->market($symbols[0]);
+                    $request['symbol'] = $market['id'];
+                }
+            }
+            if ($since !== null) {
+                $request['startTime'] = $since;
+            }
+            if ($limit !== null) {
+                $request['limit'] = $limit;
+            }
+            if ($until !== null) {
+                $request['endTime'] = $until;
+            }
+            $response = Async\await($this->privateMixGetV2MixPositionHistoryPosition (array_merge($request, $params)));
+            //
+            //    {
+            //        code => '00000',
+            //        msg => 'success',
+            //        requestTime => '1712794148791',
+            //        $data => {
+            //            list => array(
+            //                array(
+            //                    symbol => 'XRPUSDT',
+            //                    marginCoin => 'USDT',
+            //                    holdSide => 'long',
+            //                    openAvgPrice => '0.64967',
+            //                    closeAvgPrice => '0.58799',
+            //                    marginMode => 'isolated',
+            //                    openTotalPos => '10',
+            //                    closeTotalPos => '10',
+            //                    pnl => '-0.62976205',
+            //                    netProfit => '-0.65356802',
+            //                    totalFunding => '-0.01638',
+            //                    openFee => '-0.00389802',
+            //                    closeFee => '-0.00352794',
+            //                    ctime => '1709590322199',
+            //                    utime => '1709667583395'
+            //                ),
+            //                ...
+            //            )
+            //        }
+            //    }
+            //
+            $data = $this->safe_dict($response, 'data');
+            $responseList = $this->safe_list($data, 'list');
+            $positions = $this->parse_positions($responseList, $symbols, $params);
+            return $this->filter_by_since_limit($positions, $since, $limit);
+        }) ();
     }
 
     public function fetch_convert_quote(string $fromCode, string $toCode, ?float $amount = null, $params = array ()): PromiseInterface {
