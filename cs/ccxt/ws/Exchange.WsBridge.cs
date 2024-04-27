@@ -165,16 +165,9 @@ public partial class Exchange
 
         var future = client.future(messageHash);
 
-        var clientSubscription = (subscribeHash != null && client.subscriptions.ContainsKey(subscribeHash)) ? client.subscriptions[subscribeHash] : null;
-
-        if (clientSubscription == null)
-        {
-            client.subscriptions[subscribeHash] = subscription ?? true;
-        }
-
         var connected = client.connect(0);
 
-        if (clientSubscription == null)
+        if (client.subscriptions.TryAdd (subscribeHash, subscription ?? true))
         {
             await connected;
             if (message != null)
