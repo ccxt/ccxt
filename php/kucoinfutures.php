@@ -76,8 +76,10 @@ class kucoinfutures extends kucoin {
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchPosition' => true,
+                'fetchPositionHistory' => false,
                 'fetchPositionMode' => false,
                 'fetchPositions' => true,
+                'fetchPositionsHistory' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchStatus' => true,
                 'fetchTicker' => true,
@@ -1464,7 +1466,7 @@ class kucoinfutures extends kucoin {
         return $this->safe_value($response, 'data');
     }
 
-    public function add_margin(string $symbol, $amount, $params = array ()): array {
+    public function add_margin(string $symbol, float $amount, $params = array ()): array {
         /**
          * add margin
          * @see https://www.kucoin.com/docs/rest/futures-trading/positions/add-margin-manually

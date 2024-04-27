@@ -432,6 +432,8 @@ export default class Exchange {
             fetchOrderWs: any;
             fetchPermissions: any;
             fetchPosition: any;
+            fetchPositionHistory: any;
+            fetchPositionsHistory: any;
             fetchPositionWs: any;
             fetchPositionMode: any;
             fetchPositions: any;
@@ -1075,6 +1077,8 @@ export default class Exchange {
     convertExpireDate(date: string): string;
     convertExpireDateToMarketIdDate(date: string): string;
     convertMarketIdExpireDate(date: string): string;
+    fetchPositionHistory(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Position>;
+    fetchPositionsHistory(symbols?: Strings, since?: Int, limit?: Int, params?: {}): Promise<Position[]>;
     parseMarginModification(data: any, market?: Market): MarginModification;
     parseMarginModifications(response: object[], symbols?: string[], symbolKey?: Str, marketType?: MarketType): MarginModification[];
 }

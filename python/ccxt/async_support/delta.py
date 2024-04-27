@@ -2480,7 +2480,7 @@ class delta(Exchange, ImplicitAPI):
             'previousFundingDatetime': None,
         }
 
-    async def add_margin(self, symbol: str, amount, params={}) -> MarginModification:
+    async def add_margin(self, symbol: str, amount: float, params={}) -> MarginModification:
         """
         add margin
         :see: https://docs.delta.exchange/#add-remove-position-margin
@@ -2491,7 +2491,7 @@ class delta(Exchange, ImplicitAPI):
         """
         return await self.modify_margin_helper(symbol, amount, 'add', params)
 
-    async def reduce_margin(self, symbol: str, amount, params={}) -> MarginModification:
+    async def reduce_margin(self, symbol: str, amount: float, params={}) -> MarginModification:
         """
         remove margin from a position
         :see: https://docs.delta.exchange/#add-remove-position-margin

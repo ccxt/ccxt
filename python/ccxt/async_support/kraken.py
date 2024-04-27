@@ -2522,7 +2522,7 @@ class kraken(Exchange, ImplicitAPI):
             'info': depositAddress,
         }
 
-    async def withdraw(self, code: str, amount: float, address, tag=None, params={}):
+    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
         """
         make a withdrawal
         :see: https://docs.kraken.com/rest/#tag/Funding/operation/withdrawFunds

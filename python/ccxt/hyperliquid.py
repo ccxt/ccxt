@@ -2126,7 +2126,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         #
         return response
 
-    def add_margin(self, symbol: str, amount, params={}) -> MarginModification:
+    def add_margin(self, symbol: str, amount: float, params={}) -> MarginModification:
         """
         add margin
         :see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#update-isolated-margin
@@ -2137,7 +2137,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         """
         return self.modify_margin_helper(symbol, amount, 'add', params)
 
-    def reduce_margin(self, symbol: str, amount, params={}) -> MarginModification:
+    def reduce_margin(self, symbol: str, amount: float, params={}) -> MarginModification:
         """
         :see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#update-isolated-margin
         remove margin from a position
