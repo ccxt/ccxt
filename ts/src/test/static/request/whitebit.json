@@ -275,6 +275,17 @@
                     "BTC/USDT:USDT"
                 ]
             }
+        ],
+        "fetchDepositsWithdrawals": [
+            {
+                "description": "Fetch Deposits Withdrawals",
+                "method": "fetchDepositsWithdrawals",
+                "url": "https://whitebit.com/api/v4/main-account/history",
+                "input": [
+                  "USDT"
+                ],
+                "output": "{\"request\":\"/api/v4/main-account/history\",\"nonce\":\"1714156110333\",\"ticker\":\"USDT\"}"
+            }  
         ]
     }
 }
