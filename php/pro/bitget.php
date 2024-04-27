@@ -7,10 +7,10 @@ namespace ccxt\pro;
 
 use Exception; // a common import
 use ccxt\ExchangeError;
+use ccxt\AuthenticationError;
 use ccxt\ArgumentsRequired;
 use ccxt\NotSupported;
 use ccxt\InvalidNonce;
-use ccxt\AuthenticationError;
 use ccxt\Precise;
 use React\Async;
 use React\Promise\PromiseInterface;
@@ -1024,7 +1024,7 @@ class bitget extends \ccxt\async\bitget {
         }) ();
     }
 
-    public function handle_order(Client $client, $message, $subscription = null) {
+    public function handle_order(Client $client, $message) {
         //
         // spot
         //

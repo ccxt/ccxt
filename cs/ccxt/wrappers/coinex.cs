@@ -10,8 +10,8 @@ public partial class coinex
     /// retrieves data on all markets for coinex
     /// </summary>
     /// <remarks>
-    /// See <see href="https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot001_market002_all_market_info"/>  <br/>
-    /// See <see href="https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http006_market_list"/>  <br/>
+    /// See <see href="https://docs.coinex.com/api/v2/spot/market/http/list-market"/>  <br/>
+    /// See <see href="https://docs.coinex.com/api/v2/futures/market/http/list-market"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -41,8 +41,8 @@ public partial class coinex
     /// fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot001_market007_single_market_ticker"/>  <br/>
-    /// See <see href="https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http008_market_ticker"/>  <br/>
+    /// See <see href="https://docs.coinex.com/api/v2/spot/market/http/list-market-ticker"/>  <br/>
+    /// See <see href="https://docs.coinex.com/api/v2/futures/market/http/list-market-ticker"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -62,8 +62,8 @@ public partial class coinex
     /// fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot001_market008_all_market_ticker"/>  <br/>
-    /// See <see href="https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http009_market_ticker_all"/>  <br/>
+    /// See <see href="https://docs.coinex.com/api/v2/spot/market/http/list-market-ticker"/>  <br/>
+    /// See <see href="https://docs.coinex.com/api/v2/futures/market/http/list-market-ticker"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -103,8 +103,8 @@ public partial class coinex
     /// fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
     /// </summary>
     /// <remarks>
-    /// See <see href="https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot001_market004_market_depth"/>  <br/>
-    /// See <see href="https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http010_market_depth"/>  <br/>
+    /// See <see href="https://docs.coinex.com/api/v2/spot/market/http/list-market-depth"/>  <br/>
+    /// See <see href="https://docs.coinex.com/api/v2/futures/market/http/list-market-depth"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>
@@ -127,11 +127,11 @@ public partial class coinex
         return new OrderBook(res);
     }
     /// <summary>
-    /// get the list of most recent trades for a particular symbol
+    /// get the list of the most recent trades for a particular symbol
     /// </summary>
     /// <remarks>
-    /// See <see href="https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot001_market005_market_deals"/>  <br/>
-    /// See <see href="https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http011_market_deals"/>  <br/>
+    /// See <see href="https://docs.coinex.com/api/v2/spot/market/http/list-market-deals"/>  <br/>
+    /// See <see href="https://docs.coinex.com/api/v2/futures/market/http/list-market-deals"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -207,8 +207,8 @@ public partial class coinex
     /// fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot001_market006_market_kline"/>  <br/>
-    /// See <see href="https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http012_market_kline"/>  <br/>
+    /// See <see href="https://docs.coinex.com/api/v2/spot/market/http/list-market-kline"/>  <br/>
+    /// See <see href="https://docs.coinex.com/api/v2/futures/market/http/list-market-kline"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -262,10 +262,10 @@ public partial class coinex
     /// query for balance and get the amount of funds available for trading or funds locked in orders
     /// </summary>
     /// <remarks>
-    /// See <see href="https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account001_account_info"/>  <br/>
-    /// See <see href="https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account004_investment_balance"/>  <br/>
-    /// See <see href="https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account006_margin_account"/>  <br/>
-    /// See <see href="https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http016_asset_query"/>  <br/>
+    /// See <see href="https://docs.coinex.com/api/v2/assets/balance/http/get-spot-balance"/>  <br/>
+    /// See <see href="https://docs.coinex.com/api/v2/assets/balance/http/get-futures-balance"/>  <br/>
+    /// See <see href="https://docs.coinex.com/api/v2/assets/balance/http/get-marigin-balance"/>  <br/>
+    /// See <see href="https://docs.coinex.com/api/v2/assets/balance/http/get-financial-balance"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -292,6 +292,7 @@ public partial class coinex
     /// </summary>
     /// <remarks>
     /// See <see href="https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade003_market_order"/>  <br/>
+    /// See <see href="https://docs.coinex.com/api/v2/spot/order/http/put-order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -317,17 +318,13 @@ public partial class coinex
     /// create a trade order
     /// </summary>
     /// <remarks>
-    /// See <see href="https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade001_limit_order"/>  <br/>
-    /// See <see href="https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade003_market_order"/>  <br/>
-    /// See <see href="https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade004_IOC_order"/>  <br/>
-    /// See <see href="https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade005_stop_limit_order"/>  <br/>
-    /// See <see href="https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade006_stop_market_order"/>  <br/>
-    /// See <see href="https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http017_put_limit"/>  <br/>
-    /// See <see href="https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http018_put_market"/>  <br/>
-    /// See <see href="https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http019_put_limit_stop"/>  <br/>
-    /// See <see href="https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http020_put_market_stop"/>  <br/>
-    /// See <see href="https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http031_market_close"/>  <br/>
-    /// See <see href="https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http030_limit_close"/>  <br/>
+    /// See <see href="https://docs.coinex.com/api/v2/spot/order/http/put-order"/>  <br/>
+    /// See <see href="https://docs.coinex.com/api/v2/spot/order/http/put-stop-order"/>  <br/>
+    /// See <see href="https://docs.coinex.com/api/v2/futures/order/http/put-order"/>  <br/>
+    /// See <see href="https://docs.coinex.com/api/v2/futures/order/http/put-stop-order"/>  <br/>
+    /// See <see href="https://docs.coinex.com/api/v2/futures/position/http/close-position"/>  <br/>
+    /// See <see href="https://docs.coinex.com/api/v2/futures/position/http/set-position-stop-loss"/>  <br/>
+    /// See <see href="https://docs.coinex.com/api/v2/futures/position/http/set-position-take-profit"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>
@@ -377,12 +374,6 @@ public partial class coinex
     /// boolean : *contract only* indicates if this order is to reduce the size of a position
     /// </description>
     /// </item>
-    /// <item>
-    /// <term>params.position_id</term>
-    /// <description>
-    /// int : *required for reduce only orders* the position id to reduce
-    /// </description>
-    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
@@ -396,7 +387,10 @@ public partial class coinex
     /// create a list of trade orders (all orders should be of the same symbol)
     /// </summary>
     /// <remarks>
-    /// See <see href="https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade002_batch_limit_orders"/>  <br/>
+    /// See <see href="https://docs.coinex.com/api/v2/spot/order/http/put-multi-order"/>  <br/>
+    /// See <see href="https://docs.coinex.com/api/v2/spot/order/http/put-multi-stop-order"/>  <br/>
+    /// See <see href="https://docs.coinex.com/api/v2/futures/order/http/put-multi-order"/>  <br/>
+    /// See <see href="https://docs.coinex.com/api/v2/futures/order/http/put-multi-stop-order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -893,7 +887,7 @@ public partial class coinex
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}.</returns>
-    public async Task<Transaction> Withdraw(string code, double amount, object address, object tag = null, Dictionary<string, object> parameters = null)
+    public async Task<Transaction> Withdraw(string code, double amount, string address, object tag = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.withdraw(code, amount, address, tag, parameters);
         return new Transaction(res);
@@ -1154,6 +1148,40 @@ public partial class coinex
     {
         var res = await this.fetchLeverages(symbols, parameters);
         return new Leverages(res);
+    }
+    /// <summary>
+    /// fetches historical positions
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http033-0_finished_position"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : not used by coinex fetchPositionHistory
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum amount of records to fetch, default=1000
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.side</term>
+    /// <description>
+    /// int : 0: all 1: sell, 2: buy
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object[]</term> a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}.</returns>
+    public async Task<Position> FetchPositionHistory(string symbol, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.fetchPositionHistory(symbol, since, limit, parameters);
+        return new Position(res);
     }
     /// <summary>
     /// fetches the history of margin added or reduced from contract isolated positions

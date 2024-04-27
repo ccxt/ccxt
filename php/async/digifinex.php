@@ -2958,7 +2958,7 @@ class digifinex extends Exchange {
         }) ();
     }
 
-    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
@@ -3795,57 +3795,8 @@ class digifinex extends Exchange {
             //
             $data = $this->safe_value($response, 'data', array());
             $symbols = $this->market_symbols($symbols);
-            return $this->parse_leverage_tiers($data, $symbols, 'symbol');
+            return $this->parse_leverage_tiers($data, $symbols, 'instrument_id');
         }) ();
-    }
-
-    public function parse_leverage_tiers($response, ?array $symbols = null, $marketIdKey = null) {
-        //
-        //     array(
-        //         {
-        //             "instrument_id" => "BTCUSDTPERP",
-        //             "type" => "REAL",
-        //             "contract_type" => "PERPETUAL",
-        //             "base_currency" => "BTC",
-        //             "quote_currency" => "USDT",
-        //             "clear_currency" => "USDT",
-        //             "contract_value" => "0.001",
-        //             "contract_value_currency" => "BTC",
-        //             "is_inverse" => false,
-        //             "is_trading" => true,
-        //             "status" => "ONLINE",
-        //             "price_precision" => 1,
-        //             "tick_size" => "0.1",
-        //             "min_order_amount" => 1,
-        //             "open_max_limits" => array(
-        //                 array(
-        //                     "leverage" => "50",
-        //                     "max_limit" => "1000000"
-        //                 }
-        //             )
-        //         ),
-        //     )
-        //
-        $tiers = array();
-        $result = array();
-        for ($i = 0; $i < count($response); $i++) {
-            $entry = $response[$i];
-            $marketId = $this->safe_string($entry, 'instrument_id');
-            $market = $this->safe_market($marketId);
-            $symbol = $this->safe_symbol($marketId, $market);
-            $symbolsLength = 0;
-            $tiers[$symbol] = $this->parse_market_leverage_tiers($response[$i], $market);
-            if ($symbols !== null) {
-                $symbolsLength = count($symbols);
-                if ($this->in_array($symbol, $symbols)) {
-                    $result[$symbol] = $this->parse_market_leverage_tiers($response[$i], $market);
-                }
-            }
-            if ($symbol !== null && ($symbolsLength === 0 || $this->in_array($symbols, $symbol))) {
-                $result[$symbol] = $this->parse_market_leverage_tiers($response[$i], $market);
-            }
-        }
-        return $result;
     }
 
     public function fetch_market_leverage_tiers(string $symbol, $params = array ()) {
@@ -4081,7 +4032,7 @@ class digifinex extends Exchange {
         return $depositWithdrawFees;
     }
 
-    public function add_margin(string $symbol, $amount, $params = array ()): PromiseInterface {
+    public function add_margin(string $symbol, float $amount, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $amount, $params) {
             /**
              * add margin to a position
@@ -4098,7 +4049,7 @@ class digifinex extends Exchange {
         }) ();
     }
 
-    public function reduce_margin(string $symbol, $amount, $params = array ()): PromiseInterface {
+    public function reduce_margin(string $symbol, float $amount, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $amount, $params) {
             /**
              * remove margin from a position

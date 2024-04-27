@@ -387,7 +387,7 @@ public struct LastPrice
 
 public struct MarginModification
 {
-    public string symbol; 
+    public string symbol;
     public string? type;
     public string? marginMode;
     public double? amount;
@@ -1148,6 +1148,20 @@ public struct OrderRequest
     }
 }
 
+public struct CancellationRequest
+{
+
+    public string? symbol;
+
+    public string? id;
+
+    public CancellationRequest(object request)
+    {
+        id = Exchange.SafeString(request, "id");
+        symbol = Exchange.SafeString(request, "symbol");
+    }
+}
+
 public struct FundingHistory
 {
     public Dictionary<string, object>? info;
@@ -1256,6 +1270,35 @@ public struct Greeks
 }
 
 
+public struct Conversion
+{
+    public Dictionary<string, object>? info;
+    public Int64? timestamp;
+    public string? datetime;
+    public string? id;
+    public string? fromCurrency;
+    public double? fromAmount;
+    public string? toCurrency;
+    public double? toAmount;
+    public double? price;
+    public double? fee;
+
+    public Conversion(object conversion)
+    {
+        info = Exchange.SafeValue(conversion, "info") != null ? (Dictionary<string, object>)Exchange.SafeValue(conversion, "info") : null;
+        timestamp = Exchange.SafeInteger(conversion, "timestamp");
+        datetime = Exchange.SafeString(conversion, "datetime"); ;
+        id = Exchange.SafeString(conversion, "id");
+        fromCurrency = Exchange.SafeString(conversion, "fromCurrency");
+        fromAmount = Exchange.SafeFloat(conversion, "fromAmount");
+        toCurrency = Exchange.SafeString(conversion, "toCurrency");
+        toAmount = Exchange.SafeFloat(conversion, "toAmount");
+        price = Exchange.SafeFloat(conversion, "price");
+        fee = Exchange.SafeFloat(conversion, "fee");
+    }
+}
+
+
 public struct MarketInterface
 {
 
@@ -1328,7 +1371,8 @@ public struct MarketInterface
 
 }
 
-public struct CurrencyLimits{
+public struct CurrencyLimits
+{
     public MinMax? amount;
     public MinMax? withdraw;
     public CurrencyLimits(object currencyLimits2)

@@ -9,14 +9,15 @@ import hashlib
 from ccxt.base.types import Account, Balances, Currencies, Currency, Int, Leverage, Leverages, MarginMode, MarginModes, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
+from ccxt.base.errors import AccountSuspended
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import NotSupported
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -368,7 +369,7 @@ class ascendex(Exchange, ImplicitAPI):
                     '300013': InvalidOrder,  # INVALID_BATCH_ORDER Some or all orders are invalid in batch order request
                     '300014': InvalidOrder,  # {"code":300014,"message":"Order price doesn't conform to the required tick size: 0.1","reason":"TICK_SIZE_VIOLATION"}
                     '300020': InvalidOrder,  # TRADING_RESTRICTED There is some trading restriction on account or asset
-                    '300021': InvalidOrder,  # TRADING_DISABLED Trading is disabled on account or asset
+                    '300021': AccountSuspended,  # {"code":300021,"message":"Trading disabled for self account.","reason":"TRADING_DISABLED"}
                     '300031': InvalidOrder,  # NO_MARKET_PRICE No market price for market type order trading
                     '310001': InsufficientFunds,  # INVALID_MARGIN_BALANCE No enough margin balance
                     '310002': InvalidOrder,  # INVALID_MARGIN_ACCOUNT Not a valid account for margin trading
@@ -2753,7 +2754,7 @@ class ascendex(Exchange, ImplicitAPI):
             'datetime': None,
         }
 
-    async def reduce_margin(self, symbol: str, amount, params={}) -> MarginModification:
+    async def reduce_margin(self, symbol: str, amount: float, params={}) -> MarginModification:
         """
         remove margin from a position
         :param str symbol: unified market symbol
@@ -2763,7 +2764,7 @@ class ascendex(Exchange, ImplicitAPI):
         """
         return await self.modify_margin_helper(symbol, -amount, 'reduce', params)
 
-    async def add_margin(self, symbol: str, amount, params={}) -> MarginModification:
+    async def add_margin(self, symbol: str, amount: float, params={}) -> MarginModification:
         """
         add margin
         :param str symbol: unified market symbol

@@ -38,8 +38,8 @@ function jwt(request, secret, hash, isRSA = false, opts = {}) {
     }
     else if (algoType === 'ES') {
         const signedHash = crypto.ecdsa(token, index.utf8.encode(secret), p256.P256, hash);
-        const r = (signedHash.r.length === 64) ? signedHash.r : '0' + signedHash.r;
-        const s = (signedHash.s.length === 64) ? signedHash.s : '0' + signedHash.s;
+        const r = signedHash.r.padStart(64, '0');
+        const s = signedHash.s.padStart(64, '0');
         signature = encode.urlencodeBase64(encode.binaryToBase64(encode.base16ToBinary(r + s)));
     }
     return [token, signature].join('.');

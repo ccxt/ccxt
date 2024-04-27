@@ -38,6 +38,7 @@ export default class htx extends Exchange {
     costToPrecision(symbol: any, cost: any): any;
     fetchMarkets(params?: {}): Promise<Market[]>;
     fetchMarketsByTypeAndSubType(type: any, subType: any, params?: {}): Promise<any[]>;
+    tryGetSymbolFromFutureMarkets(symbolOrMarketId: string): any;
     parseTicker(ticker: any, market?: Market): Ticker;
     fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
     fetchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
@@ -91,6 +92,7 @@ export default class htx extends Exchange {
     cancelOrder(id: string, symbol?: Str, params?: {}): Promise<any>;
     cancelOrders(ids: any, symbol?: Str, params?: {}): Promise<any>;
     cancelAllOrders(symbol?: Str, params?: {}): Promise<any>;
+    cancelAllOrdersAfter(timeout: Int, params?: {}): Promise<any>;
     parseDepositAddress(depositAddress: any, currency?: Currency): {
         currency: string;
         address: string;
@@ -99,14 +101,14 @@ export default class htx extends Exchange {
         note: string;
         info: any;
     };
-    fetchDepositAddressesByNetwork(code: string, params?: {}): Promise<{}>;
+    fetchDepositAddressesByNetwork(code: string, params?: {}): Promise<import("./base/types.js").Dictionary<any>>;
     fetchDepositAddress(code: string, params?: {}): Promise<any>;
     fetchWithdrawAddresses(code: string, note?: any, networkCode?: any, params?: {}): Promise<any[]>;
     fetchDeposits(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     parseTransaction(transaction: any, currency?: Currency): Transaction;
     parseTransactionStatus(status: any): string;
-    withdraw(code: string, amount: number, address: any, tag?: any, params?: {}): Promise<Transaction>;
+    withdraw(code: string, amount: number, address: string, tag?: any, params?: {}): Promise<Transaction>;
     parseTransfer(transfer: any, currency?: Currency): {
         info: any;
         id: string;
@@ -243,7 +245,7 @@ export default class htx extends Exchange {
         datetime: string;
         info: any;
     };
-    fetchSettlementHistory(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchSettlementHistory(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<any[]>;
     fetchDepositWithdrawFees(codes?: Strings, params?: {}): Promise<any>;
     parseDepositWithdrawFee(fee: any, currency?: Currency): any;
     parseSettlements(settlements: any, market: any): any[];

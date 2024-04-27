@@ -11,6 +11,7 @@ import json
 from ccxt.base.types import Balances, Currencies, Currency, Int, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import AccountSuspended
 from ccxt.base.errors import ArgumentsRequired
@@ -26,7 +27,6 @@ from ccxt.base.errors import NetworkError
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import InvalidNonce
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -2755,7 +2755,7 @@ class digifinex(Exchange, ImplicitAPI):
         #
         return self.parse_transfer(response, currency)
 
-    async def withdraw(self, code: str, amount: float, address, tag=None, params={}):
+    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code
@@ -3519,51 +3519,7 @@ class digifinex(Exchange, ImplicitAPI):
         #
         data = self.safe_value(response, 'data', [])
         symbols = self.market_symbols(symbols)
-        return self.parse_leverage_tiers(data, symbols, 'symbol')
-
-    def parse_leverage_tiers(self, response, symbols: Strings = None, marketIdKey=None):
-        #
-        #     [
-        #         {
-        #             "instrument_id": "BTCUSDTPERP",
-        #             "type": "REAL",
-        #             "contract_type": "PERPETUAL",
-        #             "base_currency": "BTC",
-        #             "quote_currency": "USDT",
-        #             "clear_currency": "USDT",
-        #             "contract_value": "0.001",
-        #             "contract_value_currency": "BTC",
-        #             "is_inverse": False,
-        #             "is_trading": True,
-        #             "status": "ONLINE",
-        #             "price_precision": 1,
-        #             "tick_size": "0.1",
-        #             "min_order_amount": 1,
-        #             "open_max_limits": [
-        #                 {
-        #                     "leverage": "50",
-        #                     "max_limit": "1000000"
-        #                 }
-        #             ]
-        #         },
-        #     ]
-        #
-        tiers = {}
-        result = {}
-        for i in range(0, len(response)):
-            entry = response[i]
-            marketId = self.safe_string(entry, 'instrument_id')
-            market = self.safe_market(marketId)
-            symbol = self.safe_symbol(marketId, market)
-            symbolsLength = 0
-            tiers[symbol] = self.parse_market_leverage_tiers(response[i], market)
-            if symbols is not None:
-                symbolsLength = len(symbols)
-                if self.in_array(symbol, symbols):
-                    result[symbol] = self.parse_market_leverage_tiers(response[i], market)
-            if symbol is not None and (symbolsLength == 0 or self.in_array(symbols, symbol)):
-                result[symbol] = self.parse_market_leverage_tiers(response[i], market)
-        return result
+        return self.parse_leverage_tiers(data, symbols, 'instrument_id')
 
     async def fetch_market_leverage_tiers(self, symbol: str, params={}):
         """
@@ -3779,7 +3735,7 @@ class digifinex(Exchange, ImplicitAPI):
             depositWithdrawFees[code] = self.assign_default_deposit_withdraw_fees(depositWithdrawFees[code], currency)
         return depositWithdrawFees
 
-    async def add_margin(self, symbol: str, amount, params={}) -> MarginModification:
+    async def add_margin(self, symbol: str, amount: float, params={}) -> MarginModification:
         """
         add margin to a position
         :see: https://docs.digifinex.com/en-ww/swap/v2/rest.html#positionmargin
@@ -3793,7 +3749,7 @@ class digifinex(Exchange, ImplicitAPI):
         self.check_required_argument('addMargin', side, 'side', ['long', 'short'])
         return await self.modify_margin_helper(symbol, amount, 1, params)
 
-    async def reduce_margin(self, symbol: str, amount, params={}) -> MarginModification:
+    async def reduce_margin(self, symbol: str, amount: float, params={}) -> MarginModification:
         """
         remove margin from a position
         :see: https://docs.digifinex.com/en-ww/swap/v2/rest.html#positionmargin

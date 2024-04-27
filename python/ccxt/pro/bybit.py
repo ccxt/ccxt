@@ -11,9 +11,9 @@ from ccxt.base.types import Balances, Int, Order, OrderBook, Position, Str, Stri
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
-from ccxt.base.errors import AuthenticationError
 
 
 class bybit(ccxt.async_support.bybit):
@@ -127,7 +127,7 @@ class bybit(ccxt.async_support.bybit):
             },
             'streaming': {
                 'ping': self.ping,
-                'keepAlive': 20000,
+                'keepAlive': 19000,
             },
         })
 

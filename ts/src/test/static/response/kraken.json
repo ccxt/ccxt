@@ -3,6 +3,65 @@
     "skipKeys": [],
     "options": {},
     "methods": {
+        "createOrder": [
+            {
+                "description": "create order",
+                "method": "createOrder",
+                "input": [
+                  "LTC/USDT",
+                  "market",
+                  "buy",
+                  0.1
+                ],
+                "httpResponse": {
+                  "error": [],
+                  "result": {
+                    "txid": [
+                      "OL7LNO-R4SAD-6UINEU"
+                    ],
+                    "descr": {
+                      "order": "buy 0.10000000 LTCUSDT @ market"
+                    }
+                  }
+                },
+                "parsedResponse": {
+                  "id": "OL7LNO-R4SAD-6UINEU",
+                  "clientOrderId": null,
+                  "info": {
+                    "txid": [
+                      "OL7LNO-R4SAD-6UINEU"
+                    ],
+                    "descr": {
+                      "order": "buy 0.10000000 LTCUSDT @ market"
+                    }
+                  },
+                  "timestamp": null,
+                  "datetime": null,
+                  "lastTradeTimestamp": null,
+                  "status": null,
+                  "symbol": "LTC/USDT",
+                  "type": "market",
+                  "timeInForce": "IOC",
+                  "postOnly": false,
+                  "side": "buy",
+                  "price": null,
+                  "stopPrice": null,
+                  "triggerPrice": null,
+                  "takeProfitPrice": null,
+                  "stopLossPrice": null,
+                  "cost": null,
+                  "amount": 0.1,
+                  "filled": null,
+                  "average": null,
+                  "remaining": null,
+                  "fee": null,
+                  "trades": [],
+                  "fees": [],
+                  "lastUpdateTimestamp": null,
+                  "reduceOnly": null
+                }
+            }
+        ],
         "fetchOrder": [
             {
                 "description": "fetch spot limit order",
@@ -840,6 +899,75 @@
                         "o": "71450.70000"
                     }
                 }
+            }
+        ],
+        "fetchPositions": [
+            {
+                "description": "fetchPositions",
+                "method": "fetchPositions",
+                "input": [],
+                "httpResponse": {
+                  "error": [],
+                  "result": [
+                    {
+                      "pair": "ADAUSDT",
+                      "positions": "1",
+                      "type": "sell",
+                      "leverage": "4.00000000",
+                      "cost": "6.07505000",
+                      "fee": "0.02551521",
+                      "vol": "10.00000000",
+                      "vol_closed": "0.00000000",
+                      "margin": "1.51876250",
+                      "value": "6.08527000",
+                      "net": "-0.01022000"
+                    }
+                  ]
+                },
+                "parsedResponse": [
+                  {
+                    "info": {
+                      "pair": "ADAUSDT",
+                      "positions": "1",
+                      "type": "sell",
+                      "leverage": "4.00000000",
+                      "cost": "6.07505000",
+                      "fee": "0.02551521",
+                      "vol": "10.00000000",
+                      "vol_closed": "0.00000000",
+                      "margin": "1.51876250",
+                      "value": "6.08527000",
+                      "net": "-0.01022000"
+                    },
+                    "id": null,
+                    "symbol": "ADA/USDT",
+                    "notional": null,
+                    "marginMode": null,
+                    "liquidationPrice": null,
+                    "entryPrice": null,
+                    "unrealizedPnl": -0.01022,
+                    "realizedPnl": null,
+                    "percentage": null,
+                    "contracts": 10,
+                    "contractSize": null,
+                    "markPrice": null,
+                    "lastPrice": null,
+                    "side": "short",
+                    "hedged": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastUpdateTimestamp": null,
+                    "maintenanceMargin": null,
+                    "maintenanceMarginPercentage": null,
+                    "collateral": null,
+                    "initialMargin": 1.5187625,
+                    "initialMarginPercentage": null,
+                    "leverage": 4,
+                    "marginRatio": null,
+                    "stopLossPrice": null,
+                    "takeProfitPrice": null
+                  }
+                ]
             }
         ]
     }

@@ -34,7 +34,7 @@ function run_tests {
   if [ -z "$rest_pid" ]; then
     if [ -z "$rest_args" ] || { [ -n "$rest_args" ] && [ "$rest_args" != "skip" ]; }; then
       # shellcheck disable=SC2086
-      node test-commonjs.cjs && node run-tests --js --python-async --php-async --csharp --useProxy $rest_args &
+      node run-tests --js --python-async --php-async --csharp --useProxy $rest_args &
       local rest_pid=$!
     fi
   fi
@@ -82,12 +82,14 @@ build_and_test_all () {
     fi
     npm run test-base
     npm run test-base-ws
+    node test-commonjs.cjs
+    npm run package-test
     last_commit_message=$(git log -1 --pretty=%B)
     echo "Last commit: $last_commit_message" # for debugging
     if [[ "$last_commit_message" == *"skip-tests"* ]]; then
         echo "[SKIP-TESTS] Will skip tests!"
         exit
-    fi 
+    fi
     run_tests
   fi
   exit
@@ -155,7 +157,7 @@ PYTHON_FILES=()
 for exchange in "${REST_EXCHANGES[@]}"; do
   npm run eslint "ts/src/$exchange.ts"
   node build/transpile.js $exchange --force --child
-  node --loader ts-node/esm build/csharpTranspiler.ts $exchange
+  tsx build/csharpTranspiler.ts $exchange
   PYTHON_FILES+=("python/ccxt/$exchange.py")
   PYTHON_FILES+=("python/ccxt/async_support/$exchange.py")
 done
@@ -163,7 +165,7 @@ echo "$msgPrefix WS_EXCHANGES TO BE TRANSPILED: ${WS_EXCHANGES[*]}"
 for exchange in "${WS_EXCHANGES[@]}"; do
   npm run eslint "ts/src/pro/$exchange.ts"
   node build/transpileWS.js $exchange --force --child
-  node --loader ts-node/esm build/csharpTranspiler.ts $exchange --ws
+  tsx build/csharpTranspiler.ts $exchange --ws
   PYTHON_FILES+=("python/ccxt/pro/$exchange.py")
 done
 # faster version of post-transpile

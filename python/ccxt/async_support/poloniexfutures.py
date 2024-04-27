@@ -8,6 +8,7 @@ from ccxt.abstract.poloniexfutures import ImplicitAPI
 import hashlib
 from ccxt.base.types import Balances, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
 from typing import List
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import AccountSuspended
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
@@ -17,7 +18,6 @@ from ccxt.base.errors import NotSupported
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import InvalidNonce
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -382,7 +382,17 @@ class poloniexfutures(Exchange, ImplicitAPI):
         #
         marketId = self.safe_string(ticker, 'symbol')
         symbol = self.safe_symbol(marketId, market)
-        timestamp = self.safe_integer_product(ticker, 'ts', 0.000001)
+        timestampString = self.safe_string(ticker, 'ts')
+        # check timestamp bcz bug: https://app.travis-ci.com/github/ccxt/ccxt/builds/269959181#L4011 and also 17 digits occured
+        multiplier = None
+        if len(timestampString) == 17:
+            multiplier = 0.0001
+        elif len(timestampString) == 18:
+            multiplier = 0.00001
+        else:
+            # 19 length default
+            multiplier = 0.000001
+        timestamp = self.safe_integer_product(ticker, 'ts', multiplier)
         last = self.safe_string_2(ticker, 'price', 'lastPrice')
         percentage = Precise.string_mul(self.safe_string(ticker, 'priceChgPct'), '100')
         return self.safe_ticker({

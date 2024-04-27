@@ -76,6 +76,7 @@ public partial class deribit
     /// </summary>
     /// <remarks>
     /// See <see href="https://docs.deribit.com/#public-get_currencies"/>  <br/>
+    /// See <see href="https://docs.deribit.com/#public-get_instruments"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -181,6 +182,12 @@ public partial class deribit
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.code</term>
+    /// <description>
+    /// string : *required* the currency code to fetch the tickers for, eg. 'BTC', 'ETH'
     /// </description>
     /// </item>
     /// </list>
@@ -823,7 +830,7 @@ public partial class deribit
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}.</returns>
-    public async Task<Transaction> Withdraw(string code, double amount, object address, object tag = null, Dictionary<string, object> parameters = null)
+    public async Task<Transaction> Withdraw(string code, double amount, string address, object tag = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.withdraw(code, amount, address, tag, parameters);
         return new Transaction(res);

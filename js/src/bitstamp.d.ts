@@ -119,7 +119,7 @@ export default class bitstamp extends Exchange {
         network: any;
         info: any;
     }>;
-    withdraw(code: string, amount: number, address: any, tag?: any, params?: {}): Promise<Transaction>;
+    withdraw(code: string, amount: number, address: string, tag?: any, params?: {}): Promise<Transaction>;
     transfer(code: string, amount: number, fromAccount: string, toAccount: string, params?: {}): Promise<TransferEntry>;
     parseTransfer(transfer: any, currency?: any): {
         info: any;

@@ -7,6 +7,9 @@ using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.OpenSsl;
 using Org.BouncyCastle.Asn1.Nist;
 using Org.BouncyCastle.Crypto.Signers;
+using Org.BouncyCastle.Crypto.Generators;
+using Org.BouncyCastle.Crypto;
+using Org.BouncyCastle.Security;
 
 namespace ccxt;
 
@@ -457,23 +460,28 @@ public partial class Exchange
 
     public object eddsa(object request, object secret, object alg = null)
     {
-        // ECDsa key = ECDsa.Create(ECCurve.NamedCurves.nistP256);
-        alg ??= "EdDSA";
-        return null;
-        // stub
+        alg ??= "ed25519";
+        var msg = Hex.HexToBytes((string)request);
+        var signer = new Ed25519Signer();
+        var privateKey = ReadEDDSAPrivateKeyFromPem(secret as string);
+        signer.Init(true, privateKey);
+        signer.BlockUpdate(msg, 0, msg.Length);
+        byte[] signature = signer.GenerateSignature();
+        var base64Sig = Convert.ToBase64String(signature);
+        return base64Sig;
     }
 
-    public int crc32(object str, object signed2 = null) => Crc32(str, signed2);
+    public Int64 crc32(object str, object signed2 = null) => Crc32(str, signed2);
 
-    public static int Crc32(object str, object signed2 = null)
+    public static Int64 Crc32(object str, object signed2 = null)
     {
         var signed = (signed2 == null) ? false : (bool)signed2;
         // var data = Encoding.UTF8.GetBytes((string)str);
-        var crc = CalculateCrc32((string)str);
+        var crc = CalculateCrc32((string)str, signed);
         return crc;
     }
 
-    public static int CalculateCrc32(string data, int? bound = null)
+    public static Int64 CalculateCrc32(string data, bool signed, int? bound = null)
     {
         // https://gist.github.com/martin31821/6a4736521043233bf7cdc05aa785149d
         var s_generator = 0xEDB88320;
@@ -493,7 +501,7 @@ public partial class Exchange
         var arrayOfBytes = Encoding.ASCII.GetBytes(data);
         var result = ~arrayOfBytes.Aggregate(0xFFFFFFFF, (checksumRegister, currentByte) =>
                       (m_checksumTable[(checksumRegister & 0xFF) ^ Convert.ToByte(currentByte)] ^ (checksumRegister >> 8)));
-        return (int)result;
+        return (!signed) ? Convert.ToInt64(result) : Convert.ToInt64((int)result);
     }
 
     private static RSACryptoServiceProvider DecodeRSAPrivateKey(byte[] privkey)
@@ -689,6 +697,32 @@ public partial class Exchange
             }
         }
     }
+
+    private static Ed25519PrivateKeyParameters ReadEDDSAPrivateKeyFromPem(string pemString)
+    {
+        if (!pemString.StartsWith("-----BEGIN"))
+        {
+            pemString = "-----BEGIN PRIVATE KEY-----\n" + pemString + "\n-----END PRIVATE KEY-----";
+        }
+        using (TextReader reader = new StringReader(pemString))
+        {
+            PemReader pemReader = new PemReader(reader);
+            object pemObject = pemReader.ReadObject();
+            if (pemObject is Org.BouncyCastle.Crypto.AsymmetricCipherKeyPair)
+            {
+                return ((Org.BouncyCastle.Crypto.AsymmetricCipherKeyPair)pemObject).Private as Ed25519PrivateKeyParameters;
+            }
+            else if (pemObject is Ed25519PrivateKeyParameters)
+            {
+                return (Ed25519PrivateKeyParameters)pemObject;
+            }
+            else
+            {
+                throw new InvalidCastException("The PEM does not contain a valid Ed25519 private key.");
+            }
+        }
+    }
+
 
     private static ECDsa ConvertToECDsa(ECPrivateKeyParameters privateKeyParameters)
     {

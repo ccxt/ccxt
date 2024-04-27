@@ -576,7 +576,7 @@ class bitrue extends Exchange {
         return $this->safe_string_2($networksById, $networkId, $uppercaseNetworkId, $networkId);
     }
 
-    public function fetch_currencies($params = array ()): array {
+    public function fetch_currencies($params = array ()): ?array {
         /**
          * fetches all available currencies on an exchange
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -2699,7 +2699,7 @@ class bitrue extends Exchange {
         );
     }
 
-    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
         /**
          * make a withdrawal
          * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#withdraw-commit--withdraw_data

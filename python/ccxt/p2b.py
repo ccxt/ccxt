@@ -8,11 +8,11 @@ from ccxt.abstract.p2b import ImplicitAPI
 import hashlib
 from ccxt.base.types import Int, Market, Num, Order, OrderSide, OrderType, Str, Strings, Ticker, Tickers
 from typing import List
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import ExchangeNotAvailable
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 
 
@@ -85,8 +85,11 @@ class p2b(Exchange, ImplicitAPI):
                 'fetchOrderTrades': True,
                 'fetchPermissions': False,
                 'fetchPosition': False,
+                'fetchPositionHistory': False,
+                'fetchPositionMode': False,
                 'fetchPositions': False,
                 'fetchPositionsForSymbol': False,
+                'fetchPositionsHistory': False,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,

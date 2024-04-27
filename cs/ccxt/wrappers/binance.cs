@@ -271,6 +271,12 @@ public partial class binance
     /// string : "linear" or "inverse"
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.type</term>
+    /// <description>
+    /// string : 'spot', 'option', use params["subType"] for swap and future markets
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}.</returns>
@@ -463,6 +469,12 @@ public partial class binance
     {
         var price = price2 == 0 ? null : (object)price2;
         var res = this.editSpotOrderRequest(id, symbol, type, side, amount, price, parameters);
+        return ((Dictionary<string, object>)res);
+    }
+    public Dictionary<string, object> EditContractOrderRequest(string id, string symbol, string type, string side, double amount, double? price2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var price = price2 == 0 ? null : (object)price2;
+        var res = this.editContractOrderRequest(id, symbol, type, side, amount, price, parameters);
         return ((Dictionary<string, object>)res);
     }
     /// <summary>
@@ -1626,7 +1638,7 @@ public partial class binance
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}.</returns>
-    public async Task<Transaction> Withdraw(string code, double amount, object address, object tag = null, Dictionary<string, object> parameters = null)
+    public async Task<Transaction> Withdraw(string code, double amount, string address, object tag = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.withdraw(code, amount, address, tag, parameters);
         return new Transaction(res);
@@ -2633,5 +2645,154 @@ public partial class binance
         var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchMarginAdjustmentHistory(symbol, type, since, limit, parameters);
         return ((IList<object>)res).Select(item => new MarginModification(item)).ToList<MarginModification>();
+    }
+    /// <summary>
+    /// fetches all available currencies that can be converted
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://binance-docs.github.io/apidocs/spot/en/#query-order-quantity-precision-per-asset-user_data"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> an associative dictionary of currencies.</returns>
+    public async Task<Currencies> FetchConvertCurrencies(Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchConvertCurrencies(parameters);
+        return new Currencies(res);
+    }
+    /// <summary>
+    /// fetch a quote for converting from one currency to another
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://binance-docs.github.io/apidocs/spot/en/#send-quote-request-user_data"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.walletType</term>
+    /// <description>
+    /// string : either 'SPOT' or 'FUNDING', the default is 'SPOT'
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}.</returns>
+    public async Task<Conversion> FetchConvertQuote(string fromCode, string toCode, double? amount2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var amount = amount2 == 0 ? null : (object)amount2;
+        var res = await this.fetchConvertQuote(fromCode, toCode, amount, parameters);
+        return new Conversion(res);
+    }
+    /// <summary>
+    /// convert from one currency to another
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://binance-docs.github.io/apidocs/spot/en/#busd-convert-trade"/>  <br/>
+    /// See <see href="https://binance-docs.github.io/apidocs/spot/en/#accept-quote-trade"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>amount</term>
+    /// <description>
+    /// float : how much you want to trade in units of the from currency
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}.</returns>
+    public async Task<Conversion> CreateConvertTrade(string id, string fromCode, string toCode, double? amount2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var amount = amount2 == 0 ? null : (object)amount2;
+        var res = await this.createConvertTrade(id, fromCode, toCode, amount, parameters);
+        return new Conversion(res);
+    }
+    /// <summary>
+    /// fetch the data for a conversion trade
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://binance-docs.github.io/apidocs/spot/en/#busd-convert-history-user_data"/>  <br/>
+    /// See <see href="https://binance-docs.github.io/apidocs/spot/en/#order-status-user_data"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>code</term>
+    /// <description>
+    /// string : the unified currency code of the conversion trade
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}.</returns>
+    public async Task<Conversion> FetchConvertTrade(string id, string code = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchConvertTrade(id, code, parameters);
+        return new Conversion(res);
+    }
+    /// <summary>
+    /// fetch the users history of conversion trades
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://binance-docs.github.io/apidocs/spot/en/#busd-convert-history-user_data"/>  <br/>
+    /// See <see href="https://binance-docs.github.io/apidocs/spot/en/#get-convert-trade-history-user_data"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>code</term>
+    /// <description>
+    /// string : the unified currency code
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : the earliest time in ms to fetch conversions for
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum number of conversion structures to retrieve
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.until</term>
+    /// <description>
+    /// int : timestamp in ms of the latest conversion to fetch
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object[]</term> a list of [conversion structures]{@link https://docs.ccxt.com/#/?id=conversion-structure}.</returns>
+    public async Task<List<Conversion>> FetchConvertTradeHistory(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.fetchConvertTradeHistory(code, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new Conversion(item)).ToList<Conversion>();
     }
 }

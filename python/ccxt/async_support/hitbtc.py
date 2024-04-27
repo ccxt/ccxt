@@ -9,6 +9,7 @@ import hashlib
 from ccxt.base.types import Balances, Currencies, Currency, Int, Leverage, MarginMode, MarginModes, MarginModification, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import AccountSuspended
 from ccxt.base.errors import ArgumentsRequired
@@ -21,7 +22,6 @@ from ccxt.base.errors import NotSupported
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import OnMaintenance
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -2491,7 +2491,7 @@ class hitbtc(Exchange, ImplicitAPI):
             'info': response,
         }
 
-    async def withdraw(self, code: str, amount: float, address, tag=None, params={}):
+    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
         """
         make a withdrawal
         :see: https://api.hitbtc.com/#withdraw-crypto
@@ -3008,8 +3008,9 @@ class hitbtc(Exchange, ImplicitAPI):
         if market['swap']:
             if leverage is None:
                 raise ArgumentsRequired(self.id + ' modifyMarginHelper() requires a leverage parameter for swap markets')
-        if amount != 0:
-            amount = self.amount_to_precision(symbol, amount)
+        stringAmount = self.number_to_string(amount)
+        if stringAmount != '0':
+            amount = self.amount_to_precision(symbol, stringAmount)
         else:
             amount = '0'
         request = {
@@ -3091,7 +3092,7 @@ class hitbtc(Exchange, ImplicitAPI):
             'datetime': datetime,
         }
 
-    async def reduce_margin(self, symbol: str, amount, params={}) -> MarginModification:
+    async def reduce_margin(self, symbol: str, amount: float, params={}) -> MarginModification:
         """
         remove margin from a position
         :see: https://api.hitbtc.com/#create-update-margin-account-2
@@ -3103,11 +3104,11 @@ class hitbtc(Exchange, ImplicitAPI):
         :param bool [params.margin]: True for reducing spot-margin
         :returns dict: a `margin structure <https://docs.ccxt.com/#/?id=reduce-margin-structure>`
         """
-        if amount != 0:
+        if self.number_to_string(amount) != '0':
             raise BadRequest(self.id + ' reduceMargin() on hitbtc requires the amount to be 0 and that will remove the entire margin amount')
         return await self.modify_margin_helper(symbol, amount, 'reduce', params)
 
-    async def add_margin(self, symbol: str, amount, params={}) -> MarginModification:
+    async def add_margin(self, symbol: str, amount: float, params={}) -> MarginModification:
         """
         add margin
         :see: https://api.hitbtc.com/#create-update-margin-account-2

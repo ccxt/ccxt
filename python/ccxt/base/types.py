@@ -148,6 +148,10 @@ class OrderRequest(TypedDict):
     price: Union[None, float]
     params: Dict[str, Any]
 
+class CancellationRequest(TypedDict):
+    id: Str
+    symbol: Str
+    clientOrderId: Str
 
 class Order(TypedDict):
     info: Dict[str, Any]
@@ -309,6 +313,19 @@ class Greeks(TypedDict):
     lastPrice: Num
     underlyingPrice: Num
     info: Dict[str, Any]
+
+
+class Conversion(TypedDict):
+    info: Dict[str, Any]
+    timestamp: Int
+    datetime: Str
+    id: Str
+    fromCurrency: Str
+    fromAmount: Num
+    toCurrency: Str
+    toAmount: Num
+    price: Num
+    fee: Num
 
 
 class Option(TypedDict):

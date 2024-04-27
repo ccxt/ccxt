@@ -1,5 +1,5 @@
 import Exchange from './abstract/bitget.js';
-import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Market, Strings, Currency, Position, Liquidation, TransferEntry, Leverage, MarginMode, Num, MarginModification, TradingFeeInterface, Currencies, TradingFees } from './base/types.js';
+import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Market, Strings, Currency, Position, Liquidation, TransferEntry, Leverage, MarginMode, Num, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion } from './base/types.js';
 /**
  * @class bitget
  * @augments Exchange
@@ -17,7 +17,7 @@ export default class bitget extends Exchange {
     fetchMarketLeverageTiers(symbol: string, params?: {}): Promise<any[]>;
     parseMarketLeverageTiers(info: any, market?: Market): any[];
     fetchDeposits(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
-    withdraw(code: string, amount: number, address: any, tag?: any, params?: {}): Promise<Transaction>;
+    withdraw(code: string, amount: number, address: string, tag?: any, params?: {}): Promise<Transaction>;
     fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     parseTransaction(transaction: any, currency?: Currency): Transaction;
     parseTransactionStatus(status: any): string;
@@ -145,8 +145,8 @@ export default class bitget extends Exchange {
     parseFundingHistories(contracts: any, market?: any, since?: Int, limit?: Int): FundingHistory[];
     modifyMarginHelper(symbol: string, amount: any, type: any, params?: {}): Promise<MarginModification>;
     parseMarginModification(data: any, market?: Market): MarginModification;
-    reduceMargin(symbol: string, amount: any, params?: {}): Promise<MarginModification>;
-    addMargin(symbol: string, amount: any, params?: {}): Promise<MarginModification>;
+    reduceMargin(symbol: string, amount: number, params?: {}): Promise<MarginModification>;
+    addMargin(symbol: string, amount: number, params?: {}): Promise<MarginModification>;
     fetchLeverage(symbol: string, params?: {}): Promise<Leverage>;
     parseLeverage(leverage: any, market?: any): Leverage;
     setLeverage(leverage: Int, symbol?: Str, params?: {}): Promise<any>;
@@ -282,6 +282,12 @@ export default class bitget extends Exchange {
     closeAllPositions(params?: {}): Promise<Position[]>;
     fetchMarginMode(symbol: string, params?: {}): Promise<MarginMode>;
     parseMarginMode(marginMode: any, market?: any): MarginMode;
+    fetchPositionsHistory(symbols?: Strings, since?: Int, limit?: Int, params?: {}): Promise<Position[]>;
+    fetchConvertQuote(fromCode: string, toCode: string, amount?: Num, params?: {}): Promise<Conversion>;
+    createConvertTrade(id: string, fromCode: string, toCode: string, amount?: Num, params?: {}): Promise<Conversion>;
+    fetchConvertTradeHistory(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Conversion[]>;
+    parseConversion(conversion: any, fromCurrency?: Currency, toCurrency?: Currency): Conversion;
+    fetchConvertCurrencies(params?: {}): Promise<Currencies>;
     handleErrors(code: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): any;
     sign(path: any, api?: any[], method?: string, params?: {}, headers?: any, body?: any): {
         url: string;

@@ -78,7 +78,7 @@ export default class bitfinex2 extends Exchange {
     parseTransaction(transaction: any, currency?: Currency): Transaction;
     fetchTradingFees(params?: {}): Promise<TradingFees>;
     fetchDepositsWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
-    withdraw(code: string, amount: number, address: any, tag?: any, params?: {}): Promise<any>;
+    withdraw(code: string, amount: number, address: string, tag?: any, params?: {}): Promise<any>;
     fetchPositions(symbols?: Strings, params?: {}): Promise<import("./base/types.js").Position[]>;
     parsePosition(position: any, market?: Market): import("./base/types.js").Position;
     nonce(): number;

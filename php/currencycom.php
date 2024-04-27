@@ -313,7 +313,7 @@ class currencycom extends Exchange {
         return $this->safe_integer($response, 'serverTime');
     }
 
-    public function fetch_currencies($params = array ()): array {
+    public function fetch_currencies($params = array ()): ?array {
         /**
          * fetches all available currencies on an exchange
          * @see https://apitradedoc.currency.com/swagger-ui.html#/rest-api/getCurrenciesUsingGET

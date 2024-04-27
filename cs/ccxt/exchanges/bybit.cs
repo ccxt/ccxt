@@ -27,6 +27,8 @@ public partial class bybit : Exchange
                 { "borrowCrossMargin", true },
                 { "cancelAllOrders", true },
                 { "cancelOrder", true },
+                { "cancelOrders", true },
+                { "cancelOrdersForSymbols", true },
                 { "closeAllPositions", false },
                 { "closePosition", false },
                 { "createMarketBuyOrderWithCost", true },
@@ -92,7 +94,9 @@ public partial class bybit : Exchange
                 { "fetchOrders", false },
                 { "fetchOrderTrades", true },
                 { "fetchPosition", true },
+                { "fetchPositionHistory", "emulated" },
                 { "fetchPositions", true },
+                { "fetchPositionsHistory", true },
                 { "fetchPremiumIndexOHLCV", true },
                 { "fetchSettlementHistory", true },
                 { "fetchTicker", true },
@@ -334,6 +338,7 @@ public partial class bybit : Exchange
                         { "v5/broker/earning-record", 5 },
                         { "v5/broker/earnings-info", 5 },
                         { "v5/broker/account-info", 5 },
+                        { "v5/broker/asset/query-sub-member-deposit-record", 10 },
                     } },
                     { "post", new Dictionary<string, object>() {
                         { "option/usdc/openapi/private/v1/place-order", 2.5 },
@@ -4602,6 +4607,99 @@ public partial class bybit : Exchange
         return this.parseOrders(row, market);
     }
 
+    public async override Task<object> cancelOrdersForSymbols(object orders, object parameters = null)
+    {
+        /**
+        * @method
+        * @name bybit#cancelOrdersForSymbols
+        * @description cancel multiple orders for multiple symbols
+        * @see https://bybit-exchange.github.io/docs/v5/order/batch-cancel
+        * @param {string[]} ids order ids
+        * @param {string} symbol unified symbol of the market the order was made in
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string[]} [params.clientOrderIds] client order ids
+        * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object ordersRequests = new List<object>() {};
+        object category = null;
+        for (object i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
+        {
+            object order = getValue(orders, i);
+            object symbol = this.safeString(order, "symbol");
+            object market = this.market(symbol);
+            object currentCategory = null;
+            var currentCategoryparametersVariable = this.getBybitType("cancelOrders", market, parameters);
+            currentCategory = ((IList<object>)currentCategoryparametersVariable)[0];
+            parameters = ((IList<object>)currentCategoryparametersVariable)[1];
+            if (isTrue(isEqual(currentCategory, "inverse")))
+            {
+                throw new NotSupported ((string)add(this.id, " cancelOrdersForSymbols does not allow inverse orders")) ;
+            }
+            if (isTrue(isTrue((!isEqual(category, null))) && isTrue((!isEqual(category, currentCategory)))))
+            {
+                throw new ExchangeError ((string)add(this.id, " cancelOrdersForSymbols requires all orders to be of the same category (linear, spot or option))")) ;
+            }
+            category = currentCategory;
+            object id = this.safeString(order, "id");
+            object clientOrderId = this.safeString(order, "clientOrderId");
+            object idKey = "orderId";
+            if (isTrue(!isEqual(clientOrderId, null)))
+            {
+                idKey = "orderLinkId";
+            }
+            object orderItem = new Dictionary<string, object>() {
+                { "symbol", getValue(market, "id") },
+            };
+            ((IDictionary<string,object>)orderItem)[(string)idKey] = ((bool) isTrue((isEqual(idKey, "orderId")))) ? id : clientOrderId;
+            ((IList<object>)ordersRequests).Add(orderItem);
+        }
+        object request = new Dictionary<string, object>() {
+            { "category", category },
+            { "request", ordersRequests },
+        };
+        object response = await this.privatePostV5OrderCancelBatch(this.extend(request, parameters));
+        //
+        //     {
+        //         "retCode": "0",
+        //         "retMsg": "OK",
+        //         "result": {
+        //             "list": [
+        //                 {
+        //                     "category": "spot",
+        //                     "symbol": "BTCUSDT",
+        //                     "orderId": "1636282505818800896",
+        //                     "orderLinkId": "1636282505818800897"
+        //                 },
+        //                 {
+        //                     "category": "spot",
+        //                     "symbol": "BTCUSDT",
+        //                     "orderId": "1636282505818800898",
+        //                     "orderLinkId": "1636282505818800899"
+        //                 }
+        //             ]
+        //         },
+        //         "retExtInfo": {
+        //             "list": [
+        //                 {
+        //                     "code": "0",
+        //                     "msg": "OK"
+        //                 },
+        //                 {
+        //                     "code": "0",
+        //                     "msg": "OK"
+        //                 }
+        //             ]
+        //         },
+        //         "time": "1709796158501"
+        //     }
+        //
+        object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
+        object row = this.safeList(result, "list", new List<object>() {});
+        return this.parseOrders(row, null);
+    }
+
     public async virtual Task<object> cancelAllUsdcOrders(object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
@@ -5728,7 +5826,7 @@ public partial class bybit : Exchange
         object coin = this.safeString(result, "coin");
         currency = this.currency(coin);
         object parsed = this.parseDepositAddresses(chains, new List<object>() {getValue(currency, "code")}, false, new Dictionary<string, object>() {
-            { "currency", getValue(currency, "id") },
+            { "currency", getValue(currency, "code") },
         });
         return this.indexBy(parsed, "network");
     }
@@ -6786,41 +6884,69 @@ public partial class bybit : Exchange
         //         "tradeMode": 0
         //     }
         //
+        // fetchPositionsHistory
+        //
+        //    {
+        //        symbol: 'XRPUSDT',
+        //        orderType: 'Market',
+        //        leverage: '10',
+        //        updatedTime: '1712717265572',
+        //        side: 'Sell',
+        //        orderId: '071749f3-a9fa-427b-b5ca-27b2f52b81de',
+        //        closedPnl: '-0.00049568',
+        //        avgEntryPrice: '0.6045',
+        //        qty: '3',
+        //        cumEntryValue: '1.8135',
+        //        createdTime: '1712717265566',
+        //        orderPrice: '0.5744',
+        //        closedSize: '3',
+        //        avgExitPrice: '0.605',
+        //        execType: 'Trade',
+        //        fillCount: '1',
+        //        cumExitValue: '1.815'
+        //    }
+        //
+        object closedSize = this.safeString(position, "closedSize");
+        object isHistory = (!isEqual(closedSize, null));
         object contract = this.safeString(position, "symbol");
         market = this.safeMarket(contract, market, null, "contract");
-        object size = Precise.stringAbs(this.safeString(position, "size"));
+        object size = Precise.stringAbs(this.safeString2(position, "size", "qty"));
         object side = this.safeString(position, "side");
         if (isTrue(!isEqual(side, null)))
         {
             if (isTrue(isEqual(side, "Buy")))
             {
-                side = "long";
+                side = ((bool) isTrue(isHistory)) ? "short" : "long";
             } else if (isTrue(isEqual(side, "Sell")))
             {
-                side = "short";
+                side = ((bool) isTrue(isHistory)) ? "long" : "short";
             } else
             {
                 side = null;
             }
         }
-        object notional = this.safeString(position, "positionValue");
+        object notional = this.safeString2(position, "positionValue", "cumExitValue");
         object unrealisedPnl = this.omitZero(this.safeString(position, "unrealisedPnl"));
-        object initialMarginString = this.safeString(position, "positionIM");
+        object initialMarginString = this.safeStringN(position, new List<object>() {"positionIM", "cumEntryValue"});
         object maintenanceMarginString = this.safeString(position, "positionMM");
-        object timestamp = this.parse8601(this.safeString(position, "updated_at"));
-        if (isTrue(isEqual(timestamp, null)))
+        object timestamp = this.safeIntegerN(position, new List<object>() {"createdTime", "createdAt"});
+        object lastUpdateTimestamp = this.parse8601(this.safeString(position, "updated_at"));
+        if (isTrue(isEqual(lastUpdateTimestamp, null)))
         {
-            timestamp = this.safeIntegerN(position, new List<object>() {"updatedTime", "updatedAt"});
+            lastUpdateTimestamp = this.safeIntegerN(position, new List<object>() {"updatedTime", "updatedAt", "updatedTime"});
         }
         object tradeMode = this.safeInteger(position, "tradeMode", 0);
         object marginMode = null;
         if (isTrue(isTrue((!isTrue(getValue(this.options, "enableUnifiedAccount")))) || isTrue((isTrue(getValue(this.options, "enableUnifiedAccount")) && isTrue(getValue(market, "inverse"))))))
         {
             // tradeMode would work for classic and UTA(inverse)
-            marginMode = ((bool) isTrue((isEqual(tradeMode, 1)))) ? "isolated" : "cross";
+            if (!isTrue(isHistory))
+            {
+                marginMode = ((bool) isTrue((isEqual(tradeMode, 1)))) ? "isolated" : "cross";
+            }
         }
         object collateralString = this.safeString(position, "positionBalance");
-        object entryPrice = this.omitZero(this.safeString2(position, "entryPrice", "avgPrice"));
+        object entryPrice = this.omitZero(this.safeStringN(position, new List<object>() {"entryPrice", "avgPrice", "avgEntryPrice"}));
         object liquidationPrice = this.omitZero(this.safeString(position, "liqPrice"));
         object leverage = this.safeString(position, "leverage");
         if (isTrue(!isEqual(liquidationPrice, null)))
@@ -6871,7 +6997,7 @@ public partial class bybit : Exchange
             { "symbol", getValue(market, "symbol") },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "lastUpdateTimestamp", null },
+            { "lastUpdateTimestamp", lastUpdateTimestamp },
             { "initialMargin", this.parseNumber(initialMarginString) },
             { "initialMarginPercentage", this.parseNumber(Precise.stringDiv(initialMarginString, notional)) },
             { "maintenanceMargin", this.parseNumber(maintenanceMarginString) },
@@ -6880,12 +7006,13 @@ public partial class bybit : Exchange
             { "notional", this.parseNumber(notional) },
             { "leverage", this.parseNumber(leverage) },
             { "unrealizedPnl", this.parseNumber(unrealisedPnl) },
+            { "realizedPnl", this.safeNumber(position, "closedPnl") },
             { "contracts", this.parseNumber(size) },
             { "contractSize", this.safeNumber(market, "contractSize") },
             { "marginRatio", this.parseNumber(marginRatio) },
             { "liquidationPrice", this.parseNumber(liquidationPrice) },
             { "markPrice", this.safeNumber(position, "markPrice") },
-            { "lastPrice", null },
+            { "lastPrice", this.safeNumber(position, "avgExitPrice") },
             { "collateral", this.parseNumber(collateralString) },
             { "marginMode", marginMode },
             { "side", side },
@@ -9030,6 +9157,98 @@ public partial class bybit : Exchange
             { "baseVolume", this.safeNumber(chain, "totalVolume") },
             { "quoteVolume", null },
         };
+    }
+
+    public async override Task<object> fetchPositionsHistory(object symbols = null, object since = null, object limit = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name bybit#fetchPositionsHistory
+        * @description fetches historical positions
+        * @see https://bybit-exchange.github.io/docs/v5/position/close-pnl
+        * @param {string} [symbol] unified market symbols, symbols must have the same subType (must all be linear or all be inverse)
+        * @param {int} [since] timestamp in ms of the earliest position to fetch, params["until"] - since <= 7 days
+        * @param {int} [limit] the maximum amount of records to fetch, default=50, max=100
+        * @param {object} params extra parameters specific to the exchange api endpoint
+        * @param {int} [params.until] timestamp in ms of the latest position to fetch, params["until"] - since <= 7 days
+        * @param {string} [params.subType] 'linear' or 'inverse'
+        * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = null;
+        object subType = null;
+        object symbolsLength = 0;
+        if (isTrue(!isEqual(symbols, null)))
+        {
+            symbolsLength = getArrayLength(symbols);
+            if (isTrue(isGreaterThan(symbolsLength, 0)))
+            {
+                market = this.market(getValue(symbols, 0));
+            }
+        }
+        object until = this.safeInteger(parameters, "until");
+        var subTypeparametersVariable = this.handleSubTypeAndParams("fetchPositionsHistory", market, parameters, "linear");
+        subType = ((IList<object>)subTypeparametersVariable)[0];
+        parameters = ((IList<object>)subTypeparametersVariable)[1];
+        parameters = this.omit(parameters, "until");
+        object request = new Dictionary<string, object>() {
+            { "category", subType },
+        };
+        if (isTrue(isTrue((!isEqual(symbols, null))) && isTrue((isEqual(symbolsLength, 1)))))
+        {
+            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+        }
+        if (isTrue(!isEqual(since, null)))
+        {
+            ((IDictionary<string,object>)request)["startTime"] = since;
+        }
+        if (isTrue(!isEqual(limit, null)))
+        {
+            ((IDictionary<string,object>)request)["limit"] = limit;
+        }
+        if (isTrue(!isEqual(until, null)))
+        {
+            ((IDictionary<string,object>)request)["endTime"] = until;
+        }
+        object response = await this.privateGetV5PositionClosedPnl(this.extend(request, parameters));
+        //
+        //    {
+        //        retCode: '0',
+        //        retMsg: 'OK',
+        //        result: {
+        //            nextPageCursor: '071749f3-a9fa-427b-b5ca-27b2f52b81de%3A1712717265566520788%2C071749f3-a9fa-427b-b5ca-27b2f52b81de%3A1712717265566520788',
+        //            category: 'linear',
+        //            list: [
+        //                {
+        //                    symbol: 'XRPUSDT',
+        //                    orderType: 'Market',
+        //                    leverage: '10',
+        //                    updatedTime: '1712717265572',
+        //                    side: 'Sell',
+        //                    orderId: '071749f3-a9fa-427b-b5ca-27b2f52b81de',
+        //                    closedPnl: '-0.00049568',
+        //                    avgEntryPrice: '0.6045',
+        //                    qty: '3',
+        //                    cumEntryValue: '1.8135',
+        //                    createdTime: '1712717265566',
+        //                    orderPrice: '0.5744',
+        //                    closedSize: '3',
+        //                    avgExitPrice: '0.605',
+        //                    execType: 'Trade',
+        //                    fillCount: '1',
+        //                    cumExitValue: '1.815'
+        //                }
+        //            ]
+        //        },
+        //        retExtInfo: {},
+        //        time: '1712717286073'
+        //    }
+        //
+        object result = this.safeDict(response, "result");
+        object rawPositions = this.safeList(result, "list");
+        object positions = this.parsePositions(rawPositions, symbols, parameters);
+        return this.filterBySinceLimit(positions, since, limit);
     }
 
     public override object sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)

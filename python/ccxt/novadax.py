@@ -9,6 +9,7 @@ import hashlib
 from ccxt.base.types import Account, Balances, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import AccountNotEnabled
 from ccxt.base.errors import AccountSuspended
@@ -21,7 +22,6 @@ from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import CancelPending
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import OnMaintenance
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -89,7 +89,11 @@ class novadax(Exchange, ImplicitAPI):
                 'fetchOrders': True,
                 'fetchOrderTrades': True,
                 'fetchPosition': False,
+                'fetchPositionHistory': False,
+                'fetchPositionMode': False,
                 'fetchPositions': False,
+                'fetchPositionsForSymbol': False,
+                'fetchPositionsHistory': False,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
@@ -1154,7 +1158,7 @@ class novadax(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, 'failed')
 
-    def withdraw(self, code: str, amount: float, address, tag=None, params={}):
+    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
         """
         make a withdrawal
         :see: https://doc.novadax.com/en-US/#send-cryptocurrencies

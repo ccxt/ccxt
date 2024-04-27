@@ -1024,7 +1024,7 @@ export default class bitget extends bitgetRest {
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
     }
 
-    handleOrder (client: Client, message, subscription = undefined) {
+    handleOrder (client: Client, message) {
         //
         // spot
         //

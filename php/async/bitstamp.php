@@ -8,9 +8,9 @@ namespace ccxt\async;
 use Exception; // a common import
 use ccxt\async\abstract\bitstamp as Exchange;
 use ccxt\ExchangeError;
+use ccxt\AuthenticationError;
 use ccxt\BadRequest;
 use ccxt\NotSupported;
-use ccxt\AuthenticationError;
 use ccxt\Precise;
 use React\Async;
 use React\Promise\PromiseInterface;
@@ -73,8 +73,11 @@ class bitstamp extends Exchange {
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchPosition' => false,
+                'fetchPositionHistory' => false,
                 'fetchPositionMode' => false,
                 'fetchPositions' => false,
+                'fetchPositionsForSymbol' => false,
+                'fetchPositionsHistory' => false,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
@@ -361,6 +364,12 @@ class bitstamp extends Exchange {
                         'blur_address/' => 1,
                         'vext_withdrawal/' => 1,
                         'vext_address/' => 1,
+                        'cspr_withdrawal/' => 1,
+                        'cspr_address/' => 1,
+                        'vchf_withdrawal/' => 1,
+                        'vchf_address/' => 1,
+                        'veur_withdrawal/' => 1,
+                        'veur_address/' => 1,
                     ),
                 ),
             ),
@@ -2107,7 +2116,7 @@ class bitstamp extends Exchange {
         }) ();
     }
 
-    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal

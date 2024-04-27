@@ -1,5 +1,5 @@
 import Exchange from './abstract/binance.js';
-import type { TransferEntry, Int, OrderSide, Balances, OrderType, Trade, OHLCV, Order, FundingRateHistory, OpenInterest, Liquidation, OrderRequest, Str, Transaction, Ticker, OrderBook, Tickers, Market, Greeks, Strings, Currency, MarketInterface, MarginMode, MarginModes, Leverage, Leverages, Num, Option, MarginModification, TradingFeeInterface, Currencies, TradingFees } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, Balances, OrderType, Trade, OHLCV, Order, FundingRateHistory, OpenInterest, Liquidation, OrderRequest, Str, Transaction, Ticker, OrderBook, Tickers, Market, Greeks, Strings, Currency, MarketInterface, MarginMode, MarginModes, Leverage, Leverages, Num, Option, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion } from './base/types.js';
 /**
  * @class binance
  * @augments Exchange
@@ -49,6 +49,10 @@ export default class binance extends Exchange {
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     editSpotOrder(id: string, symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
     editSpotOrderRequest(id: string, symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): any;
+    editContractOrderRequest(id: string, symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): {
+        symbol: string;
+        side: string;
+    };
     editContractOrder(id: string, symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
     editOrder(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: Num, price?: Num, params?: {}): Promise<Order>;
     parseOrderStatus(status: any): string;
@@ -131,7 +135,7 @@ export default class binance extends Exchange {
     }>;
     fetchDepositWithdrawFees(codes?: Strings, params?: {}): Promise<any>;
     parseDepositWithdrawFee(fee: any, currency?: Currency): any;
-    withdraw(code: string, amount: number, address: any, tag?: any, params?: {}): Promise<Transaction>;
+    withdraw(code: string, amount: number, address: string, tag?: any, params?: {}): Promise<Transaction>;
     parseTradingFee(fee: any, market?: Market): TradingFeeInterface;
     fetchTradingFee(symbol: string, params?: {}): Promise<TradingFeeInterface>;
     fetchTradingFees(params?: {}): Promise<TradingFees>;
@@ -297,8 +301,8 @@ export default class binance extends Exchange {
     request(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any, config?: {}): Promise<any>;
     modifyMarginHelper(symbol: string, amount: any, addOrReduce: any, params?: {}): Promise<any>;
     parseMarginModification(data: any, market?: Market): MarginModification;
-    reduceMargin(symbol: string, amount: any, params?: {}): Promise<MarginModification>;
-    addMargin(symbol: string, amount: any, params?: {}): Promise<MarginModification>;
+    reduceMargin(symbol: string, amount: number, params?: {}): Promise<MarginModification>;
+    addMargin(symbol: string, amount: number, params?: {}): Promise<MarginModification>;
     fetchCrossBorrowRate(code: string, params?: {}): Promise<{
         currency: string;
         rate: number;
@@ -439,4 +443,10 @@ export default class binance extends Exchange {
         quoteVolume: any;
     };
     fetchMarginAdjustmentHistory(symbol?: Str, type?: Str, since?: Num, limit?: Num, params?: {}): Promise<MarginModification[]>;
+    fetchConvertCurrencies(params?: {}): Promise<Currencies>;
+    fetchConvertQuote(fromCode: string, toCode: string, amount?: Num, params?: {}): Promise<Conversion>;
+    createConvertTrade(id: string, fromCode: string, toCode: string, amount?: Num, params?: {}): Promise<Conversion>;
+    fetchConvertTrade(id: string, code?: Str, params?: {}): Promise<Conversion>;
+    fetchConvertTradeHistory(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Conversion[]>;
+    parseConversion(conversion: any, fromCurrency?: Currency, toCurrency?: Currency): Conversion;
 }

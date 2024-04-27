@@ -69,8 +69,11 @@ export default class probit extends Exchange {
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchPosition': false,
+                'fetchPositionHistory': false,
                 'fetchPositionMode': false,
                 'fetchPositions': false,
+                'fetchPositionsForSymbol': false,
+                'fetchPositionsHistory': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
@@ -1425,7 +1428,7 @@ export default class probit extends Exchange {
         return this.parseDepositAddresses (data, codes);
     }
 
-    async withdraw (code: string, amount: number, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {
         /**
          * @method
          * @name probit#withdraw
@@ -1509,12 +1512,11 @@ export default class probit extends Exchange {
         return result;
     }
 
-    async fetchTransactions (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchDepositsWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
-         * @name probit#fetchTransactions
-         * @deprecated
-         * @description use fetchDepositsWithdrawals instead
+         * @name probit#fetchDepositsWithdrawals
+         * @description fetch history of deposits and withdrawals
          * @see https://docs-en.probit.com/reference/transferpayment
          * @param {string} code unified currency code
          * @param {int} [since] the earliest time in ms to fetch transactions for

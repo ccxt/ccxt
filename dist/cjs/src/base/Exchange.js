@@ -374,35 +374,55 @@ class Exchange {
                 'cancelAllOrders': undefined,
                 'cancelAllOrdersWs': undefined,
                 'cancelOrder': true,
+                'cancelOrderWs': undefined,
                 'cancelOrders': undefined,
                 'cancelOrdersWs': undefined,
-                'cancelOrderWs': undefined,
                 'closeAllPositions': undefined,
                 'closePosition': undefined,
                 'createDepositAddress': undefined,
                 'createLimitBuyOrder': undefined,
+                'createLimitBuyOrderWs': undefined,
                 'createLimitOrder': true,
+                'createLimitOrderWs': undefined,
                 'createLimitSellOrder': undefined,
+                'createLimitSellOrderWs': undefined,
                 'createMarketBuyOrder': undefined,
+                'createMarketBuyOrderWs': undefined,
                 'createMarketBuyOrderWithCost': undefined,
+                'createMarketBuyOrderWithCostWs': undefined,
                 'createMarketOrder': true,
+                'createMarketOrderWs': true,
                 'createMarketOrderWithCost': undefined,
+                'createMarketOrderWithCostWs': undefined,
                 'createMarketSellOrder': undefined,
+                'createMarketSellOrderWs': undefined,
                 'createMarketSellOrderWithCost': undefined,
+                'createMarketSellOrderWithCostWs': undefined,
                 'createOrder': true,
+                'createOrderWs': undefined,
                 'createOrders': undefined,
                 'createOrderWithTakeProfitAndStopLoss': undefined,
-                'createOrderWs': undefined,
+                'createOrderWithTakeProfitAndStopLossWs': undefined,
                 'createPostOnlyOrder': undefined,
+                'createPostOnlyOrderWs': undefined,
                 'createReduceOnlyOrder': undefined,
+                'createReduceOnlyOrderWs': undefined,
                 'createStopLimitOrder': undefined,
+                'createStopLimitOrderWs': undefined,
                 'createStopLossOrder': undefined,
+                'createStopLossOrderWs': undefined,
                 'createStopMarketOrder': undefined,
+                'createStopMarketOrderWs': undefined,
                 'createStopOrder': undefined,
+                'createStopOrderWs': undefined,
                 'createTakeProfitOrder': undefined,
+                'createTakeProfitOrderWs': undefined,
                 'createTrailingAmountOrder': undefined,
+                'createTrailingAmountOrderWs': undefined,
                 'createTrailingPercentOrder': undefined,
+                'createTrailingPercentOrderWs': undefined,
                 'createTriggerOrder': undefined,
+                'createTriggerOrderWs': undefined,
                 'deposit': undefined,
                 'editOrder': 'emulated',
                 'editOrderWs': undefined,
@@ -421,6 +441,8 @@ class Exchange {
                 'fetchClosedOrder': undefined,
                 'fetchClosedOrders': undefined,
                 'fetchClosedOrdersWs': undefined,
+                'fetchConvertCurrencies': undefined,
+                'fetchConvertQuote': undefined,
                 'fetchCrossBorrowRate': undefined,
                 'fetchCrossBorrowRates': undefined,
                 'fetchCurrencies': 'emulated',
@@ -483,16 +505,22 @@ class Exchange {
                 'fetchOrderWs': undefined,
                 'fetchPermissions': undefined,
                 'fetchPosition': undefined,
+                'fetchPositionHistory': undefined,
+                'fetchPositionsHistory': undefined,
+                'fetchPositionWs': undefined,
                 'fetchPositionMode': undefined,
                 'fetchPositions': undefined,
+                'fetchPositionsWs': undefined,
                 'fetchPositionsForSymbol': undefined,
+                'fetchPositionsForSymbolWs': undefined,
                 'fetchPositionsRisk': undefined,
                 'fetchPremiumIndexOHLCV': undefined,
                 'fetchSettlementHistory': undefined,
                 'fetchStatus': undefined,
                 'fetchTicker': true,
-                'fetchTickers': undefined,
                 'fetchTickerWs': undefined,
+                'fetchTickers': undefined,
+                'fetchTickersWs': undefined,
                 'fetchTime': undefined,
                 'fetchTrades': true,
                 'fetchTradesWs': undefined,
@@ -2095,7 +2123,7 @@ class Exchange {
     parseToInt(number) {
         // Solve Common parseInt misuse ex: parseInt ((since / 1000).toString ())
         // using a number as parameter which is not valid in ts
-        const stringifiedNumber = number.toString();
+        const stringifiedNumber = this.numberToString(number);
         const convertedNumber = parseFloat(stringifiedNumber);
         return parseInt(convertedNumber);
     }
@@ -3178,6 +3206,16 @@ class Exchange {
         }
         return result;
     }
+    marketsForSymbols(symbols = undefined) {
+        if (symbols === undefined) {
+            return symbols;
+        }
+        const result = [];
+        for (let i = 0; i < symbols.length; i++) {
+            result.push(this.market(symbols[i]));
+        }
+        return result;
+    }
     marketSymbols(symbols = undefined, type = undefined, allowEmpty = true, sameTypeOnly = false, sameSubTypeOnly = false) {
         if (symbols === undefined) {
             if (!allowEmpty) {
@@ -3447,14 +3485,34 @@ class Exchange {
         // marketIdKey should only be undefined when response is a dictionary
         symbols = this.marketSymbols(symbols);
         const tiers = {};
-        for (let i = 0; i < response.length; i++) {
-            const item = response[i];
-            const id = this.safeString(item, marketIdKey);
-            const market = this.safeMarket(id, undefined, undefined, 'swap');
-            const symbol = market['symbol'];
-            const contract = this.safeBool(market, 'contract', false);
-            if (contract && ((symbols === undefined) || this.inArray(symbol, symbols))) {
-                tiers[symbol] = this.parseMarketLeverageTiers(item, market);
+        let symbolsLength = 0;
+        if (symbols !== undefined) {
+            symbolsLength = symbols.length;
+        }
+        const noSymbols = (symbols === undefined) || (symbolsLength === 0);
+        if (Array.isArray(response)) {
+            for (let i = 0; i < response.length; i++) {
+                const item = response[i];
+                const id = this.safeString(item, marketIdKey);
+                const market = this.safeMarket(id, undefined, undefined, 'swap');
+                const symbol = market['symbol'];
+                const contract = this.safeBool(market, 'contract', false);
+                if (contract && (noSymbols || this.inArray(symbol, symbols))) {
+                    tiers[symbol] = this.parseMarketLeverageTiers(item, market);
+                }
+            }
+        }
+        else {
+            const keys = Object.keys(response);
+            for (let i = 0; i < keys.length; i++) {
+                const marketId = keys[i];
+                const item = response[marketId];
+                const market = this.safeMarket(marketId, undefined, undefined, 'swap');
+                const symbol = market['symbol'];
+                const contract = this.safeBool(market, 'contract', false);
+                if (contract && (noSymbols || this.inArray(symbol, symbols))) {
+                    tiers[symbol] = this.parseMarketLeverageTiers(item, market);
+                }
             }
         }
         return tiers;
@@ -3752,6 +3810,9 @@ class Exchange {
     async fetchPosition(symbol, params = {}) {
         throw new errors.NotSupported(this.id + ' fetchPosition() is not supported yet');
     }
+    async fetchPositionWs(symbol, params = {}) {
+        throw new errors.NotSupported(this.id + ' fetchPositionWs() is not supported yet');
+    }
     async watchPosition(symbol = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' watchPosition() is not supported yet');
     }
@@ -3772,7 +3833,21 @@ class Exchange {
          */
         throw new errors.NotSupported(this.id + ' fetchPositionsForSymbol() is not supported yet');
     }
+    async fetchPositionsForSymbolWs(symbol, params = {}) {
+        /**
+         * @method
+         * @name exchange#fetchPositionsForSymbol
+         * @description fetches all open positions for specific symbol, unlike fetchPositions (which is designed to work with multiple symbols) so this method might be preffered for one-market position, because of less rate-limit consumption and speed
+         * @param {string} symbol unified market symbol
+         * @param {object} params extra parameters specific to the endpoint
+         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure} with maximum 3 items - possible one position for "one-way" mode, and possible two positions (long & short) for "two-way" (a.k.a. hedge) mode
+         */
+        throw new errors.NotSupported(this.id + ' fetchPositionsForSymbol() is not supported yet');
+    }
     async fetchPositions(symbols = undefined, params = {}) {
+        throw new errors.NotSupported(this.id + ' fetchPositions() is not supported yet');
+    }
+    async fetchPositionsWs(symbols = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' fetchPositions() is not supported yet');
     }
     async fetchPositionsRisk(symbols = undefined, params = {}) {
@@ -4030,11 +4105,26 @@ class Exchange {
         const [result, empty] = this.handleOptionAndParams({}, methodName, optionName, defaultValue);
         return result;
     }
-    handleMarketTypeAndParams(methodName, market = undefined, params = {}) {
+    handleMarketTypeAndParams(methodName, market = undefined, params = {}, defaultValue = undefined) {
+        /**
+         * @ignore
+         * @method
+         * @name exchange#handleMarketTypeAndParams
+         * @param methodName the method calling handleMarketTypeAndParams
+         * @param {Market} market
+         * @param {object} params
+         * @param {string} [params.type] type assigned by user
+         * @param {string} [params.defaultType] same as params.type
+         * @param {string} [defaultValue] assigned programatically in the method calling handleMarketTypeAndParams
+         * @returns {[string, object]} the market type and params with type and defaultType omitted
+         */
         const defaultType = this.safeString2(this.options, 'defaultType', 'type', 'spot');
+        if (defaultValue === undefined) { // defaultValue takes precendence over exchange wide defaultType
+            defaultValue = defaultType;
+        }
         const methodOptions = this.safeDict(this.options, methodName);
-        let methodType = defaultType;
-        if (methodOptions !== undefined) {
+        let methodType = defaultValue;
+        if (methodOptions !== undefined) { // user defined methodType takes precedence over defaultValue
             if (typeof methodOptions === 'string') {
                 methodType = methodOptions;
             }
@@ -4136,10 +4226,31 @@ class Exchange {
             throw new errors.NotSupported(this.id + ' fetchTicker() is not supported yet');
         }
     }
+    async fetchTickerWs(symbol, params = {}) {
+        if (this.has['fetchTickersWs']) {
+            await this.loadMarkets();
+            const market = this.market(symbol);
+            symbol = market['symbol'];
+            const tickers = await this.fetchTickerWs(symbol, params);
+            const ticker = this.safeDict(tickers, symbol);
+            if (ticker === undefined) {
+                throw new errors.NullResponse(this.id + ' fetchTickers() could not find a ticker for ' + symbol);
+            }
+            else {
+                return ticker;
+            }
+        }
+        else {
+            throw new errors.NotSupported(this.id + ' fetchTicker() is not supported yet');
+        }
+    }
     async watchTicker(symbol, params = {}) {
         throw new errors.NotSupported(this.id + ' watchTicker() is not supported yet');
     }
     async fetchTickers(symbols = undefined, params = {}) {
+        throw new errors.NotSupported(this.id + ' fetchTickers() is not supported yet');
+    }
+    async fetchTickersWs(symbols = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' fetchTickers() is not supported yet');
     }
     async fetchOrderBooks(symbols = undefined, limit = undefined, params = {}) {
@@ -4196,6 +4307,33 @@ class Exchange {
         }
         throw new errors.NotSupported(this.id + ' createTrailingAmountOrder() is not supported yet');
     }
+    async createTrailingAmountOrderWs(symbol, type, side, amount, price = undefined, trailingAmount = undefined, trailingTriggerPrice = undefined, params = {}) {
+        /**
+         * @method
+         * @name createTrailingAmountOrderWs
+         * @description create a trailing order by providing the symbol, type, side, amount, price and trailingAmount
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much you want to trade in units of the base currency, or number of contracts
+         * @param {float} [price] the price for the order to be filled at, in units of the quote currency, ignored in market orders
+         * @param {float} trailingAmount the quote amount to trail away from the current market price
+         * @param {float} [trailingTriggerPrice] the price to activate a trailing order, default uses the price argument
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        if (trailingAmount === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' createTrailingAmountOrderWs() requires a trailingAmount argument');
+        }
+        params['trailingAmount'] = trailingAmount;
+        if (trailingTriggerPrice !== undefined) {
+            params['trailingTriggerPrice'] = trailingTriggerPrice;
+        }
+        if (this.has['createTrailingAmountOrderWs']) {
+            return await this.createOrderWs(symbol, type, side, amount, price, params);
+        }
+        throw new errors.NotSupported(this.id + ' createTrailingAmountOrderWs() is not supported yet');
+    }
     async createTrailingPercentOrder(symbol, type, side, amount, price = undefined, trailingPercent = undefined, trailingTriggerPrice = undefined, params = {}) {
         /**
          * @method
@@ -4222,6 +4360,33 @@ class Exchange {
             return await this.createOrder(symbol, type, side, amount, price, params);
         }
         throw new errors.NotSupported(this.id + ' createTrailingPercentOrder() is not supported yet');
+    }
+    async createTrailingPercentOrderWs(symbol, type, side, amount, price = undefined, trailingPercent = undefined, trailingTriggerPrice = undefined, params = {}) {
+        /**
+         * @method
+         * @name createTrailingPercentOrderWs
+         * @description create a trailing order by providing the symbol, type, side, amount, price and trailingPercent
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much you want to trade in units of the base currency, or number of contracts
+         * @param {float} [price] the price for the order to be filled at, in units of the quote currency, ignored in market orders
+         * @param {float} trailingPercent the percent to trail away from the current market price
+         * @param {float} [trailingTriggerPrice] the price to activate a trailing order, default uses the price argument
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        if (trailingPercent === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' createTrailingPercentOrderWs() requires a trailingPercent argument');
+        }
+        params['trailingPercent'] = trailingPercent;
+        if (trailingTriggerPrice !== undefined) {
+            params['trailingTriggerPrice'] = trailingTriggerPrice;
+        }
+        if (this.has['createTrailingPercentOrderWs']) {
+            return await this.createOrderWs(symbol, type, side, amount, price, params);
+        }
+        throw new errors.NotSupported(this.id + ' createTrailingPercentOrderWs() is not supported yet');
     }
     async createMarketOrderWithCost(symbol, side, cost, params = {}) {
         /**
@@ -4269,6 +4434,22 @@ class Exchange {
         }
         throw new errors.NotSupported(this.id + ' createMarketSellOrderWithCost() is not supported yet');
     }
+    async createMarketOrderWithCostWs(symbol, side, cost, params = {}) {
+        /**
+         * @method
+         * @name createMarketOrderWithCostWs
+         * @description create a market order by providing the symbol, side and cost
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} cost how much you want to trade in units of the quote currency
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        if (this.has['createMarketOrderWithCostWs'] || (this.has['createMarketBuyOrderWithCostWs'] && this.has['createMarketSellOrderWithCostWs'])) {
+            return await this.createOrderWs(symbol, 'market', side, cost, 1, params);
+        }
+        throw new errors.NotSupported(this.id + ' createMarketOrderWithCostWs() is not supported yet');
+    }
     async createTriggerOrder(symbol, type, side, amount, price = undefined, triggerPrice = undefined, params = {}) {
         /**
          * @method
@@ -4291,6 +4472,29 @@ class Exchange {
             return await this.createOrder(symbol, type, side, amount, price, params);
         }
         throw new errors.NotSupported(this.id + ' createTriggerOrder() is not supported yet');
+    }
+    async createTriggerOrderWs(symbol, type, side, amount, price = undefined, triggerPrice = undefined, params = {}) {
+        /**
+         * @method
+         * @name createTriggerOrderWs
+         * @description create a trigger stop order (type 1)
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much you want to trade in units of the base currency or the number of contracts
+         * @param {float} [price] the price to fulfill the order, in units of the quote currency, ignored in market orders
+         * @param {float} triggerPrice the price to trigger the stop order, in units of the quote currency
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        if (triggerPrice === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' createTriggerOrderWs() requires a triggerPrice argument');
+        }
+        params['triggerPrice'] = triggerPrice;
+        if (this.has['createTriggerOrderWs']) {
+            return await this.createOrderWs(symbol, type, side, amount, price, params);
+        }
+        throw new errors.NotSupported(this.id + ' createTriggerOrderWs() is not supported yet');
     }
     async createStopLossOrder(symbol, type, side, amount, price = undefined, stopLossPrice = undefined, params = {}) {
         /**
@@ -4315,6 +4519,29 @@ class Exchange {
         }
         throw new errors.NotSupported(this.id + ' createStopLossOrder() is not supported yet');
     }
+    async createStopLossOrderWs(symbol, type, side, amount, price = undefined, stopLossPrice = undefined, params = {}) {
+        /**
+         * @method
+         * @name createStopLossOrderWs
+         * @description create a trigger stop loss order (type 2)
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much you want to trade in units of the base currency or the number of contracts
+         * @param {float} [price] the price to fulfill the order, in units of the quote currency, ignored in market orders
+         * @param {float} stopLossPrice the price to trigger the stop loss order, in units of the quote currency
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        if (stopLossPrice === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' createStopLossOrderWs() requires a stopLossPrice argument');
+        }
+        params['stopLossPrice'] = stopLossPrice;
+        if (this.has['createStopLossOrderWs']) {
+            return await this.createOrderWs(symbol, type, side, amount, price, params);
+        }
+        throw new errors.NotSupported(this.id + ' createStopLossOrderWs() is not supported yet');
+    }
     async createTakeProfitOrder(symbol, type, side, amount, price = undefined, takeProfitPrice = undefined, params = {}) {
         /**
          * @method
@@ -4337,6 +4564,29 @@ class Exchange {
             return await this.createOrder(symbol, type, side, amount, price, params);
         }
         throw new errors.NotSupported(this.id + ' createTakeProfitOrder() is not supported yet');
+    }
+    async createTakeProfitOrderWs(symbol, type, side, amount, price = undefined, takeProfitPrice = undefined, params = {}) {
+        /**
+         * @method
+         * @name createTakeProfitOrderWs
+         * @description create a trigger take profit order (type 2)
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much you want to trade in units of the base currency or the number of contracts
+         * @param {float} [price] the price to fulfill the order, in units of the quote currency, ignored in market orders
+         * @param {float} takeProfitPrice the price to trigger the take profit order, in units of the quote currency
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        if (takeProfitPrice === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' createTakeProfitOrderWs() requires a takeProfitPrice argument');
+        }
+        params['takeProfitPrice'] = takeProfitPrice;
+        if (this.has['createTakeProfitOrderWs']) {
+            return await this.createOrderWs(symbol, type, side, amount, price, params);
+        }
+        throw new errors.NotSupported(this.id + ' createTakeProfitOrderWs() is not supported yet');
     }
     async createOrderWithTakeProfitAndStopLoss(symbol, type, side, amount, price = undefined, takeProfit = undefined, stopLoss = undefined, params = {}) {
         /**
@@ -4361,6 +4611,13 @@ class Exchange {
          * @param {float} [params.stopLossAmount] *not available on all exchanges* the amount for a stop loss
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
+        params = this.setTakeProfitAndStopLossParams(symbol, type, side, amount, price, takeProfit, stopLoss, params);
+        if (this.has['createOrderWithTakeProfitAndStopLoss']) {
+            return await this.createOrder(symbol, type, side, amount, price, params);
+        }
+        throw new errors.NotSupported(this.id + ' createOrderWithTakeProfitAndStopLoss() is not supported yet');
+    }
+    setTakeProfitAndStopLossParams(symbol, type, side, amount, price = undefined, takeProfit = undefined, stopLoss = undefined, params = {}) {
         if ((takeProfit === undefined) && (stopLoss === undefined)) {
             throw new errors.ArgumentsRequired(this.id + ' createOrderWithTakeProfitAndStopLoss() requires either a takeProfit or stopLoss argument');
         }
@@ -4407,10 +4664,36 @@ class Exchange {
             params['stopLoss']['amount'] = this.parseToNumeric(stopLossAmount);
         }
         params = this.omit(params, ['takeProfitType', 'takeProfitPriceType', 'takeProfitLimitPrice', 'takeProfitAmount', 'stopLossType', 'stopLossPriceType', 'stopLossLimitPrice', 'stopLossAmount']);
-        if (this.has['createOrderWithTakeProfitAndStopLoss']) {
-            return await this.createOrder(symbol, type, side, amount, price, params);
+        return params;
+    }
+    async createOrderWithTakeProfitAndStopLossWs(symbol, type, side, amount, price = undefined, takeProfit = undefined, stopLoss = undefined, params = {}) {
+        /**
+         * @method
+         * @name createOrderWithTakeProfitAndStopLossWs
+         * @description create an order with a stop loss or take profit attached (type 3)
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much you want to trade in units of the base currency or the number of contracts
+         * @param {float} [price] the price to fulfill the order, in units of the quote currency, ignored in market orders
+         * @param {float} [takeProfit] the take profit price, in units of the quote currency
+         * @param {float} [stopLoss] the stop loss price, in units of the quote currency
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.takeProfitType] *not available on all exchanges* 'limit' or 'market'
+         * @param {string} [params.stopLossType] *not available on all exchanges* 'limit' or 'market'
+         * @param {string} [params.takeProfitPriceType] *not available on all exchanges* 'last', 'mark' or 'index'
+         * @param {string} [params.stopLossPriceType] *not available on all exchanges* 'last', 'mark' or 'index'
+         * @param {float} [params.takeProfitLimitPrice] *not available on all exchanges* limit price for a limit take profit order
+         * @param {float} [params.stopLossLimitPrice] *not available on all exchanges* stop loss for a limit stop loss order
+         * @param {float} [params.takeProfitAmount] *not available on all exchanges* the amount for a take profit
+         * @param {float} [params.stopLossAmount] *not available on all exchanges* the amount for a stop loss
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        params = this.setTakeProfitAndStopLossParams(symbol, type, side, amount, price, takeProfit, stopLoss, params);
+        if (this.has['createOrderWithTakeProfitAndStopLossWs']) {
+            return await this.createOrderWs(symbol, type, side, amount, price, params);
         }
-        throw new errors.NotSupported(this.id + ' createOrderWithTakeProfitAndStopLoss() is not supported yet');
+        throw new errors.NotSupported(this.id + ' createOrderWithTakeProfitAndStopLossWs() is not supported yet');
     }
     async createOrders(orders, params = {}) {
         throw new errors.NotSupported(this.id + ' createOrders() is not supported yet');
@@ -4429,6 +4712,12 @@ class Exchange {
     }
     async cancelAllOrders(symbol = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' cancelAllOrders() is not supported yet');
+    }
+    async cancelAllOrdersAfter(timeout, params = {}) {
+        throw new errors.NotSupported(this.id + ' cancelAllOrdersAfter() is not supported yet');
+    }
+    async cancelOrdersForSymbols(orders, params = {}) {
+        throw new errors.NotSupported(this.id + ' cancelOrdersForSymbols() is not supported yet');
     }
     async cancelAllOrdersWs(symbol = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' cancelAllOrdersWs() is not supported yet');
@@ -4505,6 +4794,9 @@ class Exchange {
     }
     async fetchOption(symbol, params = {}) {
         throw new errors.NotSupported(this.id + ' fetchOption() is not supported yet');
+    }
+    async fetchConvertQuote(fromCode, toCode, amount = undefined, params = {}) {
+        throw new errors.NotSupported(this.id + ' fetchConvertQuote() is not supported yet');
     }
     async fetchDepositsWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
         /**
@@ -4588,13 +4880,6 @@ class Exchange {
         if (!this.substituteCommonCurrencyCodes) {
             return code;
         }
-        // if the provided code already exists as a value in commonCurrencies dict, then we should not again transform it
-        // more details at: https://github.com/ccxt/ccxt/issues/21112#issuecomment-2031293691
-        const commonCurrencies = Object.values(this.commonCurrencies);
-        const exists = this.inArray(code, commonCurrencies);
-        if (exists) {
-            return code;
-        }
         return this.safeString(this.commonCurrencies, code, code);
     }
     currency(code) {
@@ -4653,20 +4938,38 @@ class Exchange {
     async createLimitOrder(symbol, side, amount, price, params = {}) {
         return await this.createOrder(symbol, 'limit', side, amount, price, params);
     }
+    async createLimitOrderWs(symbol, side, amount, price, params = {}) {
+        return await this.createOrderWs(symbol, 'limit', side, amount, price, params);
+    }
     async createMarketOrder(symbol, side, amount, price = undefined, params = {}) {
         return await this.createOrder(symbol, 'market', side, amount, price, params);
+    }
+    async createMarketOrderWs(symbol, side, amount, price = undefined, params = {}) {
+        return await this.createOrderWs(symbol, 'market', side, amount, price, params);
     }
     async createLimitBuyOrder(symbol, amount, price, params = {}) {
         return await this.createOrder(symbol, 'limit', 'buy', amount, price, params);
     }
+    async createLimitBuyOrderWs(symbol, amount, price, params = {}) {
+        return await this.createOrderWs(symbol, 'limit', 'buy', amount, price, params);
+    }
     async createLimitSellOrder(symbol, amount, price, params = {}) {
         return await this.createOrder(symbol, 'limit', 'sell', amount, price, params);
+    }
+    async createLimitSellOrderWs(symbol, amount, price, params = {}) {
+        return await this.createOrderWs(symbol, 'limit', 'sell', amount, price, params);
     }
     async createMarketBuyOrder(symbol, amount, params = {}) {
         return await this.createOrder(symbol, 'market', 'buy', amount, undefined, params);
     }
+    async createMarketBuyOrderWs(symbol, amount, params = {}) {
+        return await this.createOrderWs(symbol, 'market', 'buy', amount, undefined, params);
+    }
     async createMarketSellOrder(symbol, amount, params = {}) {
         return await this.createOrder(symbol, 'market', 'sell', amount, undefined, params);
+    }
+    async createMarketSellOrderWs(symbol, amount, params = {}) {
+        return await this.createOrderWs(symbol, 'market', 'sell', amount, undefined, params);
     }
     costToPrecision(symbol, cost) {
         const market = this.market(symbol);
@@ -4803,12 +5106,26 @@ class Exchange {
         const query = this.extend(params, { 'postOnly': true });
         return await this.createOrder(symbol, type, side, amount, price, query);
     }
+    async createPostOnlyOrderWs(symbol, type, side, amount, price = undefined, params = {}) {
+        if (!this.has['createPostOnlyOrderWs']) {
+            throw new errors.NotSupported(this.id + 'createPostOnlyOrderWs() is not supported yet');
+        }
+        const query = this.extend(params, { 'postOnly': true });
+        return await this.createOrderWs(symbol, type, side, amount, price, query);
+    }
     async createReduceOnlyOrder(symbol, type, side, amount, price = undefined, params = {}) {
         if (!this.has['createReduceOnlyOrder']) {
             throw new errors.NotSupported(this.id + 'createReduceOnlyOrder() is not supported yet');
         }
         const query = this.extend(params, { 'reduceOnly': true });
         return await this.createOrder(symbol, type, side, amount, price, query);
+    }
+    async createReduceOnlyOrderWs(symbol, type, side, amount, price = undefined, params = {}) {
+        if (!this.has['createReduceOnlyOrderWs']) {
+            throw new errors.NotSupported(this.id + 'createReduceOnlyOrderWs() is not supported yet');
+        }
+        const query = this.extend(params, { 'reduceOnly': true });
+        return await this.createOrderWs(symbol, type, side, amount, price, query);
     }
     async createStopOrder(symbol, type, side, amount, price = undefined, stopPrice = undefined, params = {}) {
         if (!this.has['createStopOrder']) {
@@ -4820,6 +5137,16 @@ class Exchange {
         const query = this.extend(params, { 'stopPrice': stopPrice });
         return await this.createOrder(symbol, type, side, amount, price, query);
     }
+    async createStopOrderWs(symbol, type, side, amount, price = undefined, stopPrice = undefined, params = {}) {
+        if (!this.has['createStopOrderWs']) {
+            throw new errors.NotSupported(this.id + ' createStopOrderWs() is not supported yet');
+        }
+        if (stopPrice === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' createStopOrderWs() requires a stopPrice argument');
+        }
+        const query = this.extend(params, { 'stopPrice': stopPrice });
+        return await this.createOrderWs(symbol, type, side, amount, price, query);
+    }
     async createStopLimitOrder(symbol, side, amount, price, stopPrice, params = {}) {
         if (!this.has['createStopLimitOrder']) {
             throw new errors.NotSupported(this.id + ' createStopLimitOrder() is not supported yet');
@@ -4827,12 +5154,26 @@ class Exchange {
         const query = this.extend(params, { 'stopPrice': stopPrice });
         return await this.createOrder(symbol, 'limit', side, amount, price, query);
     }
+    async createStopLimitOrderWs(symbol, side, amount, price, stopPrice, params = {}) {
+        if (!this.has['createStopLimitOrderWs']) {
+            throw new errors.NotSupported(this.id + ' createStopLimitOrderWs() is not supported yet');
+        }
+        const query = this.extend(params, { 'stopPrice': stopPrice });
+        return await this.createOrderWs(symbol, 'limit', side, amount, price, query);
+    }
     async createStopMarketOrder(symbol, side, amount, stopPrice, params = {}) {
         if (!this.has['createStopMarketOrder']) {
             throw new errors.NotSupported(this.id + ' createStopMarketOrder() is not supported yet');
         }
         const query = this.extend(params, { 'stopPrice': stopPrice });
         return await this.createOrder(symbol, 'market', side, amount, undefined, query);
+    }
+    async createStopMarketOrderWs(symbol, side, amount, stopPrice, params = {}) {
+        if (!this.has['createStopMarketOrderWs']) {
+            throw new errors.NotSupported(this.id + ' createStopMarketOrderWs() is not supported yet');
+        }
+        const query = this.extend(params, { 'stopPrice': stopPrice });
+        return await this.createOrderWs(symbol, 'market', side, amount, undefined, query);
     }
     safeCurrencyCode(currencyId, currency = undefined) {
         currency = this.safeCurrency(currencyId, currency);
@@ -5061,6 +5402,9 @@ class Exchange {
         const fees = await this.fetchTradingFees(params);
         return this.safeDict(fees, symbol);
     }
+    async fetchConvertCurrencies(params = {}) {
+        throw new errors.NotSupported(this.id + ' fetchConvertCurrencies() is not supported yet');
+    }
     parseOpenInterest(interest, market = undefined) {
         throw new errors.NotSupported(this.id + ' parseOpenInterest () is not supported yet');
     }
@@ -5245,7 +5589,6 @@ class Exchange {
          * @returns {object} objects with withdraw and deposit fees, indexed by currency codes
          */
         const depositWithdrawFees = {};
-        codes = this.marketCodes(codes);
         const isArray = Array.isArray(response);
         let responseKeys = response;
         if (!isArray) {
@@ -5759,7 +6102,42 @@ class Exchange {
         return leverageStructures;
     }
     parseLeverage(leverage, market = undefined) {
-        throw new errors.NotSupported(this.id + ' parseLeverage() is not supported yet');
+        throw new errors.NotSupported(this.id + ' parseLeverage () is not supported yet');
+    }
+    parseConversions(conversions, code = undefined, fromCurrencyKey = undefined, toCurrencyKey = undefined, since = undefined, limit = undefined, params = {}) {
+        conversions = this.toArray(conversions);
+        const result = [];
+        let fromCurrency = undefined;
+        let toCurrency = undefined;
+        for (let i = 0; i < conversions.length; i++) {
+            const entry = conversions[i];
+            const fromId = this.safeString(entry, fromCurrencyKey);
+            const toId = this.safeString(entry, toCurrencyKey);
+            if (fromId !== undefined) {
+                fromCurrency = this.currency(fromId);
+            }
+            if (toId !== undefined) {
+                toCurrency = this.currency(toId);
+            }
+            const conversion = this.extend(this.parseConversion(entry, fromCurrency, toCurrency), params);
+            result.push(conversion);
+        }
+        const sorted = this.sortBy(result, 'timestamp');
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency(code);
+            code = currency['code'];
+        }
+        if (code === undefined) {
+            return this.filterBySinceLimit(sorted, since, limit);
+        }
+        const fromConversion = this.filterBy(sorted, 'fromCurrency', code);
+        const toConversion = this.filterBy(sorted, 'toCurrency', code);
+        const both = this.arrayConcat(fromConversion, toConversion);
+        return this.filterBySinceLimit(both, since, limit);
+    }
+    parseConversion(conversion, fromCurrency = undefined, toCurrency = undefined) {
+        throw new errors.NotSupported(this.id + ' parseConversion () is not supported yet');
     }
     convertExpireDate(date) {
         // parse YYMMDD to datetime string
@@ -5815,7 +6193,7 @@ class Exchange {
         return reconstructedDate;
     }
     convertMarketIdExpireDate(date) {
-        // parse 19JAN24 to 240119
+        // parse 03JAN24 to 240103
         const monthMappping = {
             'JAN': '01',
             'FEB': '02',
@@ -5830,12 +6208,48 @@ class Exchange {
             'NOV': '11',
             'DEC': '12',
         };
+        // if exchange omits first zero and provides i.e. '3JAN24' instead of '03JAN24'
+        if (date.length === 6) {
+            date = '0' + date;
+        }
         const year = date.slice(0, 2);
         const monthName = date.slice(2, 5);
         const month = this.safeString(monthMappping, monthName);
         const day = date.slice(5, 7);
         const reconstructedDate = day + month + year;
         return reconstructedDate;
+    }
+    async fetchPositionHistory(symbol, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name exchange#fetchPositionHistory
+         * @description fetches the history of margin added or reduced from contract isolated positions
+         * @param {string} [symbol] unified market symbol
+         * @param {int} [since] timestamp in ms of the position
+         * @param {int} [limit] the maximum amount of candles to fetch, default=1000
+         * @param {object} params extra parameters specific to the exchange api endpoint
+         * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+         */
+        if (this.has['fetchPositionsHistory']) {
+            const positions = await this.fetchPositionsHistory([symbol], since, limit, params);
+            return this.safeDict(positions, 0);
+        }
+        else {
+            throw new errors.NotSupported(this.id + ' fetchPositionHistory () is not supported yet');
+        }
+    }
+    async fetchPositionsHistory(symbols = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name exchange#fetchPositionsHistory
+         * @description fetches the history of margin added or reduced from contract isolated positions
+         * @param {string} [symbol] unified market symbol
+         * @param {int} [since] timestamp in ms of the position
+         * @param {int} [limit] the maximum amount of candles to fetch, default=1000
+         * @param {object} params extra parameters specific to the exchange api endpoint
+         * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+         */
+        throw new errors.NotSupported(this.id + ' fetchPositionsHistory () is not supported yet');
     }
     parseMarginModification(data, market = undefined) {
         throw new errors.NotSupported(this.id + ' parseMarginModification() is not supported yet');

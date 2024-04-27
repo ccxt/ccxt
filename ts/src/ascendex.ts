@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/ascendex.js';
-import { ArgumentsRequired, AuthenticationError, ExchangeError, InsufficientFunds, InvalidOrder, BadSymbol, PermissionDenied, BadRequest, NotSupported } from './base/errors.js';
+import { ArgumentsRequired, AuthenticationError, ExchangeError, AccountSuspended, InsufficientFunds, InvalidOrder, BadSymbol, PermissionDenied, BadRequest, NotSupported } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
@@ -360,7 +360,7 @@ export default class ascendex extends Exchange {
                     '300013': InvalidOrder, // INVALID_BATCH_ORDER Some or all orders are invalid in batch order request
                     '300014': InvalidOrder, // {"code":300014,"message":"Order price doesn't conform to the required tick size: 0.1","reason":"TICK_SIZE_VIOLATION"}
                     '300020': InvalidOrder, // TRADING_RESTRICTED There is some trading restriction on account or asset
-                    '300021': InvalidOrder, // TRADING_DISABLED Trading is disabled on account or asset
+                    '300021': AccountSuspended, // {"code":300021,"message":"Trading disabled for this account.","reason":"TRADING_DISABLED"}
                     '300031': InvalidOrder, // NO_MARKET_PRICE No market price for market type order trading
                     '310001': InsufficientFunds, // INVALID_MARGIN_BALANCE No enough margin balance
                     '310002': InvalidOrder, // INVALID_MARGIN_ACCOUNT Not a valid account for margin trading
@@ -2916,7 +2916,7 @@ export default class ascendex extends Exchange {
         };
     }
 
-    async reduceMargin (symbol: string, amount, params = {}): Promise<MarginModification> {
+    async reduceMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
         /**
          * @method
          * @name ascendex#reduceMargin
@@ -2929,7 +2929,7 @@ export default class ascendex extends Exchange {
         return await this.modifyMarginHelper (symbol, -amount, 'reduce', params);
     }
 
-    async addMargin (symbol: string, amount, params = {}): Promise<MarginModification> {
+    async addMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
         /**
          * @method
          * @name ascendex#addMargin

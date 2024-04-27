@@ -9,6 +9,7 @@ import hashlib
 from ccxt.base.types import Balances, Currencies, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InsufficientFunds
@@ -19,7 +20,6 @@ from ccxt.base.errors import NotSupported
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import InvalidNonce
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -82,8 +82,11 @@ class bitstamp(Exchange, ImplicitAPI):
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchPosition': False,
+                'fetchPositionHistory': False,
                 'fetchPositionMode': False,
                 'fetchPositions': False,
+                'fetchPositionsForSymbol': False,
+                'fetchPositionsHistory': False,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
@@ -370,6 +373,12 @@ class bitstamp(Exchange, ImplicitAPI):
                         'blur_address/': 1,
                         'vext_withdrawal/': 1,
                         'vext_address/': 1,
+                        'cspr_withdrawal/': 1,
+                        'cspr_address/': 1,
+                        'vchf_withdrawal/': 1,
+                        'vchf_address/': 1,
+                        'veur_withdrawal/': 1,
+                        'veur_address/': 1,
                     },
                 },
             },
@@ -1957,7 +1966,7 @@ class bitstamp(Exchange, ImplicitAPI):
             'info': response,
         }
 
-    def withdraw(self, code: str, amount: float, address, tag=None, params={}):
+    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
         """
         make a withdrawal
         :see: https://www.bitstamp.net/api/#tag/Withdrawals/operation/RequestFiatWithdrawal

@@ -7,6 +7,7 @@ from ccxt.async_support.kucoin import kucoin
 from ccxt.abstract.kucoinfutures import ImplicitAPI
 from ccxt.base.types import Balances, Currency, Int, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
 from typing import List
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import AccountSuspended
 from ccxt.base.errors import ArgumentsRequired
@@ -18,7 +19,6 @@ from ccxt.base.errors import NotSupported
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import InvalidNonce
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -91,8 +91,10 @@ class kucoinfutures(kucoin, ImplicitAPI):
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchPosition': True,
+                'fetchPositionHistory': False,
                 'fetchPositionMode': False,
                 'fetchPositions': True,
+                'fetchPositionsHistory': False,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchStatus': True,
                 'fetchTicker': True,
@@ -1425,7 +1427,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         #
         return self.safe_value(response, 'data')
 
-    async def add_margin(self, symbol: str, amount, params={}) -> MarginModification:
+    async def add_margin(self, symbol: str, amount: float, params={}) -> MarginModification:
         """
         add margin
         :see: https://www.kucoin.com/docs/rest/futures-trading/positions/add-margin-manually
@@ -2093,8 +2095,8 @@ class kucoinfutures(kucoin, ImplicitAPI):
             # symbol(str) [optional] Symbol of the contract
             # side(str) [optional] buy or sell
             # type(str) [optional] limit, market, limit_stop or market_stop
-            # startAt(long) [optional] Start time(milisecond)
-            # endAt(long) [optional] End time(milisecond)
+            # startAt(long) [optional] Start time(millisecond)
+            # endAt(long) [optional] End time(millisecond)
         }
         market = None
         if symbol is not None:

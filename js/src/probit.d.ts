@@ -44,11 +44,11 @@ export default class probit extends Exchange {
         network: string;
         info: any;
     }>;
-    fetchDepositAddresses(codes?: string[], params?: {}): Promise<{}>;
-    withdraw(code: string, amount: number, address: any, tag?: any, params?: {}): Promise<Transaction>;
+    fetchDepositAddresses(codes?: string[], params?: {}): Promise<import("./base/types.js").Dictionary<any>>;
+    withdraw(code: string, amount: number, address: string, tag?: any, params?: {}): Promise<Transaction>;
     fetchDeposits(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
-    fetchTransactions(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
+    fetchDepositsWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     parseTransaction(transaction: any, currency?: Currency): Transaction;
     parseTransactionStatus(status: any): string;
     fetchDepositWithdrawFees(codes?: Strings, params?: {}): Promise<any>;

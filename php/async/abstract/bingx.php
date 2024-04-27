@@ -187,6 +187,9 @@ abstract class bingx extends \ccxt\async\Exchange {
     public function swap_v2_private_post_trade_closeallpositions($params = array()) {
         return $this->request('trade/closeAllPositions', array('swap', 'v2', 'private'), 'POST', $params, null, null, array("cost" => 3));
     }
+    public function swap_v2_private_post_trade_cancelallafter($params = array()) {
+        return $this->request('trade/cancelAllAfter', array('swap', 'v2', 'private'), 'POST', $params, null, null, array("cost" => 3));
+    }
     public function swap_v2_private_post_trade_margintype($params = array()) {
         return $this->request('trade/marginType', array('swap', 'v2', 'private'), 'POST', $params, null, null, array("cost" => 3));
     }
@@ -256,9 +259,6 @@ abstract class bingx extends \ccxt\async\Exchange {
     public function subaccount_v1_private_get_assets($params = array()) {
         return $this->request('assets', array('subAccount', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 3));
     }
-    public function subaccount_v1_private_get_apikey_query($params = array()) {
-        return $this->request('apiKey/query', array('subAccount', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
-    }
     public function subaccount_v1_private_post_create($params = array()) {
         return $this->request('create', array('subAccount', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 3));
     }
@@ -276,6 +276,9 @@ abstract class bingx extends \ccxt\async\Exchange {
     }
     public function account_v1_private_get_uid($params = array()) {
         return $this->request('uid', array('account', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function account_v1_private_get_apikey_query($params = array()) {
+        return $this->request('apiKey/query', array('account', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
     public function account_v1_private_post_innertransfer_authorizesubaccount($params = array()) {
         return $this->request('innerTransfer/authorizeSubAccount', array('account', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 3));
@@ -490,6 +493,9 @@ abstract class bingx extends \ccxt\async\Exchange {
     public function swapV2PrivatePostTradeCloseAllPositions($params = array()) {
         return $this->request('trade/closeAllPositions', array('swap', 'v2', 'private'), 'POST', $params, null, null, array("cost" => 3));
     }
+    public function swapV2PrivatePostTradeCancelAllAfter($params = array()) {
+        return $this->request('trade/cancelAllAfter', array('swap', 'v2', 'private'), 'POST', $params, null, null, array("cost" => 3));
+    }
     public function swapV2PrivatePostTradeMarginType($params = array()) {
         return $this->request('trade/marginType', array('swap', 'v2', 'private'), 'POST', $params, null, null, array("cost" => 3));
     }
@@ -559,9 +565,6 @@ abstract class bingx extends \ccxt\async\Exchange {
     public function subAccountV1PrivateGetAssets($params = array()) {
         return $this->request('assets', array('subAccount', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 3));
     }
-    public function subAccountV1PrivateGetApiKeyQuery($params = array()) {
-        return $this->request('apiKey/query', array('subAccount', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
-    }
     public function subAccountV1PrivatePostCreate($params = array()) {
         return $this->request('create', array('subAccount', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 3));
     }
@@ -579,6 +582,9 @@ abstract class bingx extends \ccxt\async\Exchange {
     }
     public function accountV1PrivateGetUid($params = array()) {
         return $this->request('uid', array('account', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function accountV1PrivateGetApiKeyQuery($params = array()) {
+        return $this->request('apiKey/query', array('account', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
     public function accountV1PrivatePostInnerTransferAuthorizeSubAccount($params = array()) {
         return $this->request('innerTransfer/authorizeSubAccount', array('account', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 3));

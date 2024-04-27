@@ -79,7 +79,7 @@ public partial class Exchange
                 // var endpoints = new List<string>(dictValue.Keys);
                 foreach (string endpoint in endpoints)
                 {
-                    var cost = 1;
+                    double cost = 1;
                     if (dictValue != null)
                     {
                         var config = dictValue[endpoint];
@@ -88,11 +88,18 @@ public partial class Exchange
                         {
                             var dictConfig = config as dict;
                             var success = dictConfig.TryGetValue("cost", out var rl);
-                            cost = success ? Convert.ToInt32(rl) : 1;
+                            cost = success ? Convert.ToDouble(rl) : 1;
                         }
                         else
                         {
-                            // cost = cost != null ? Convert.ToInt32(cost) : 1;
+                            try
+                            {
+                                if (config != null)
+                                {
+                                    cost = Convert.ToDouble(config);
+                                }
+                            }
+                            catch { }
                         }
                     }
 
@@ -155,40 +162,57 @@ public partial class Exchange
         // to do: add all proxies support
         this.checkProxySettings();
         // add headers
-        httpClient.DefaultRequestHeaders.Accept.Clear();
-        httpClient.DefaultRequestHeaders.Clear();
+        // httpClient.DefaultRequestHeaders.Accept.Clear();
+        // httpClient.DefaultRequestHeaders.Clear();
         var headersList = new List<string>(headers.Keys);
 
         var contentType = "";
+        // foreach (string key in headersList)
+        // {
+
+        //     if (key.ToLower() != "content-type")
+        //     {
+        //         httpClient.DefaultRequestHeaders.Add(key, headers[key].ToString());
+        //     }
+        //     else
+        //     {
+        //         // can't set content type header here, because it's part of the content
+        //         // check: https://nzpcmad.blogspot.com/2017/07/aspnet-misused-header-name-make-sure.html
+        //         contentType = headers[key].ToString();
+
+        //     }
+        // }
+
+        var request = new HttpRequestMessage();
+        request.RequestUri = new Uri(url);
+
+        // set user agent
+        if (this.userAgent != null && this.userAgent.Length > 0)
+            request.Headers.Add("User-Agent", userAgent);
+
+        // set headers
         foreach (string key in headersList)
         {
-
             if (key.ToLower() != "content-type")
             {
-                httpClient.DefaultRequestHeaders.Add(key, headers[key].ToString());
+                request.Headers.Add(key, headers[key].ToString());
             }
             else
             {
                 // can't set content type header here, because it's part of the content
                 // check: https://nzpcmad.blogspot.com/2017/07/aspnet-misused-header-name-make-sure.html
                 contentType = headers[key].ToString();
-
             }
         }
-        // user agent
-        if (this.userAgent != null && this.userAgent.Length > 0)
-            httpClient.DefaultRequestHeaders.Add("User-Agent", userAgent);
-
-
         var result = "";
         HttpResponseMessage response = null;
         object responseBody = null;
         try
         {
-
             if (method == "GET")
             {
-                response = await this.httpClient.GetAsync(url);
+                request.Method = HttpMethod.Get;
+                response = await httpClient.SendAsync(request);
                 result = await response.Content.ReadAsStringAsync();
             }
             else
@@ -199,29 +223,45 @@ public partial class Exchange
 #else
                 var contentTypeHeader = contentType;
 #endif
+
                 var stringContent = body != null ? new StringContent(body, Encoding.UTF8, contentTypeHeader) : null;
+                request.Content = stringContent;
+
                 if (method == "POST")
                 {
-                    response = await this.httpClient.PostAsync(url, stringContent);
-                }
-                else if (method == "DELETE")
-                {
-                    response = await this.httpClient.DeleteAsync(url);
+                    // response = await this.httpClient.PostAsync(url, stringContent);
+                    request.Method = HttpMethod.Post;
+                    response = await this.httpClient.SendAsync(request);
                 }
                 else if (method == "PUT")
                 {
-                    response = await this.httpClient.PutAsync(url, stringContent);
+                    request.Method = HttpMethod.Put;
+                    response = await this.httpClient.SendAsync(request);
+                    // response = await this.httpClient.PutAsync(url, stringContent);
+                }
+                else if (method == "DELETE")
+                {
+                    request.Method = HttpMethod.Delete;
+                    response = await this.httpClient.SendAsync(request);
+                    // response = await this.httpClient.DeleteAsync(url);
+                }
+                else if (method == "PUT")
+                {
+                    // response = await this.httpClient.PutAsync(url, stringContent);
+                    request.Method = HttpMethod.Put;
+                    response = await this.httpClient.SendAsync(request);
                 }
                 else if (method == "PATCH")
                 {
-                    // workaround for the lack of putAsync
-                    // https://github.com/RicoSuter/NSwag/issues/107
-                    var methodInner = new HttpMethod("PATCH");
-                    var request = new HttpRequestMessage(methodInner, url)
-                    {
-                        Content = stringContent
-                    };
-
+                    // // workaround for the lack of putAsync
+                    // // https://github.com/RicoSuter/NSwag/issues/107
+                    // var methodInner = new HttpMethod("PATCH");
+                    // var patchRequest = new HttpRequestMessage(methodInner, url)
+                    // {
+                    //     Content = stringContent
+                    // };
+                    request.Method = new HttpMethod("PATCH");
+                    // response = await httpClient.SendAsync(patchRequest);
                     response = await httpClient.SendAsync(request);
                 }
                 result = await response.Content.ReadAsStringAsync();
@@ -427,7 +467,7 @@ public partial class Exchange
         return this.currencies;
     }
 
-        public async Task<Currencies> FetchCurrenciesWs(object parameters = null)
+    public async Task<Currencies> FetchCurrenciesWs(object parameters = null)
     {
         var res = await this.fetchCurrenciesWs(parameters);
         return new Currencies(res);
@@ -491,7 +531,7 @@ public partial class Exchange
 
     public async Task throttle(object cost)
     {
-        await this.throttler.throttle(cost);
+        await (await this.throttler.throttle(cost));
     }
 
     public void initRestLimiter()

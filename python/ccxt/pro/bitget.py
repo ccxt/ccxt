@@ -10,12 +10,12 @@ from ccxt.base.types import Balances, Int, Order, OrderBook, Position, Str, Stri
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import InvalidNonce
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.precise import Precise
 
 
@@ -947,7 +947,7 @@ class bitget(ccxt.async_support.bitget):
             limit = orders.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
 
-    def handle_order(self, client: Client, message, subscription=None):
+    def handle_order(self, client: Client, message):
         #
         # spot
         #

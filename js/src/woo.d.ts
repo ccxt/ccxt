@@ -1,5 +1,5 @@
 import Exchange from './abstract/woo.js';
-import type { TransferEntry, Balances, Currency, FundingRateHistory, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Trade, Transaction, Leverage, Account, Currencies, TradingFees } from './base/types.js';
+import type { TransferEntry, Balances, Conversion, Currency, FundingRateHistory, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Trade, Transaction, Leverage, Account, Currencies, TradingFees } from './base/types.js';
 /**
  * @class woo
  * @augments Exchange
@@ -28,6 +28,7 @@ export default class woo extends Exchange {
     editOrder(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: Num, price?: Num, params?: {}): Promise<Order>;
     cancelOrder(id: string, symbol?: Str, params?: {}): Promise<any>;
     cancelAllOrders(symbol?: Str, params?: {}): Promise<any>;
+    cancelAllOrdersAfter(timeout: Int, params?: {}): Promise<any>;
     fetchOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
     fetchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
@@ -97,7 +98,7 @@ export default class woo extends Exchange {
         info: any;
     };
     parseTransferStatus(status: any): string;
-    withdraw(code: string, amount: number, address: any, tag?: any, params?: {}): Promise<Transaction>;
+    withdraw(code: string, amount: number, address: string, tag?: any, params?: {}): Promise<Transaction>;
     repayMargin(code: string, amount: any, symbol?: Str, params?: {}): Promise<any>;
     parseMarginLoan(info: any, currency?: Currency): {
         id: any;
@@ -174,6 +175,12 @@ export default class woo extends Exchange {
     fetchPosition(symbol?: Str, params?: {}): Promise<import("./base/types.js").Position>;
     fetchPositions(symbols?: Strings, params?: {}): Promise<import("./base/types.js").Position[]>;
     parsePosition(position: any, market?: Market): import("./base/types.js").Position;
+    fetchConvertQuote(fromCode: string, toCode: string, amount?: Num, params?: {}): Promise<Conversion>;
+    createConvertTrade(id: string, fromCode: string, toCode: string, amount?: Num, params?: {}): Promise<Conversion>;
+    fetchConvertTrade(id: string, code?: Str, params?: {}): Promise<Conversion>;
+    fetchConvertTradeHistory(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Conversion[]>;
+    parseConversion(conversion: any, fromCurrency?: Currency, toCurrency?: Currency): Conversion;
+    fetchConvertCurrencies(params?: {}): Promise<Currencies>;
     defaultNetworkCodeForCurrency(code: any): any;
     setSandboxMode(enable: boolean): void;
 }

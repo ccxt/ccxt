@@ -9,8 +9,8 @@ import hashlib
 from ccxt.base.types import Balances, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, TradingFees, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import BadSymbol
 from ccxt.base.decimal_to_precision import TICK_SIZE
 
 
@@ -56,8 +56,11 @@ class coincheck(Exchange, ImplicitAPI):
                 'fetchOpenOrders': True,
                 'fetchOrderBook': True,
                 'fetchPosition': False,
+                'fetchPositionHistory': False,
                 'fetchPositionMode': False,
                 'fetchPositions': False,
+                'fetchPositionsForSymbol': False,
+                'fetchPositionsHistory': False,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,

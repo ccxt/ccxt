@@ -75,32 +75,32 @@ public partial class Exchange
         return safeTimestampN(obj, new List<object> { key1, key2 }, defaultValue);
     }
 
-    public object safeInteger(object obj, object key, object defaultValue = null) => SafeInteger(obj, key, defaultValue);
+    public Int64? safeInteger(object obj, object key, object defaultValue = null) => SafeInteger(obj, key, defaultValue);
     public static Int64? SafeInteger(object obj, object key, object defaultValue = null)
     {
         var res = SafeIntegerN(obj, new List<object> { key }, defaultValue);
-        return res == null ? null : (Int64)res;
+        return res == null ? null : res;
     }
 
     public object safeInteger2(object obj, object key1, object key2, object defaultValue = null) => safeIntegerN(obj, new List<object> { key1, key2 }, defaultValue);
 
-    public object safeFloat(object obj, object key, object defaultValue = null) => safeFloatN(obj, new List<object> { key }, defaultValue);
+    public double? safeFloat(object obj, object key, object defaultValue = null) => safeFloatN(obj, new List<object> { key }, defaultValue);
     public static double? SafeFloat(object obj, object key, object defaultValue = null)
     {
         var res = SafeFloatN(obj, new List<object> { key }, defaultValue);
-        return res == null ? null : Convert.ToDouble(res);
+        return res == null ? null : res;
     }
 
-    public object safeFloat2(object obj, object key1, object key2, object defaultValue = null) => safeFloatN(obj, new List<object> { key1, key2 }, defaultValue);
+    public double? safeFloat2(object obj, object key1, object key2, object defaultValue = null) => safeFloatN(obj, new List<object> { key1, key2 }, defaultValue);
 
     public static string SafeString(object obj, object key, object defaultValue = null)
     {
         var res = SafeStringN(obj, new List<object> { key });
         return res == null ? null : (string)res;
     }
-    public object safeString(object obj, object key, object defaultValue = null) => safeStringN(obj, new List<object> { key }, defaultValue);
+    public string? safeString(object obj, object key, object defaultValue = null) => safeStringN(obj, new List<object> { key }, defaultValue);
 
-    public object safeString2(object obj, object key1, object key2, object defaultValue = null) => safeStringN(obj, new List<object> { key1, key2 }, defaultValue);
+    public string? safeString2(object obj, object key1, object key2, object defaultValue = null) => safeStringN(obj, new List<object> { key1, key2 }, defaultValue);
 
     public object safeValue2(object obj, object key1, object key2, object defaultValue = null) => safeValueN(obj, new List<object> { key1, key2 }, defaultValue);
 
@@ -108,51 +108,52 @@ public partial class Exchange
     public object safeValue(object obj, object key1, object defaultValue = null) => safeValueN(obj, new List<object> { key1 }, defaultValue);
 
 
-    public object safeStringUpper(object obj, object key, object defaultValue = null)
+    public string? safeStringUpper(object obj, object key, object defaultValue = null)
     {
         var result = toStringOrNull(safeString(obj, key, defaultValue));
-        return result == null ? defaultValue : result.ToUpper();
+        return result == null ? defaultValue as string : result.ToUpper();
     }
 
-    public object safeStringUpper2(object obj, object key1, object key2, object defaultValue = null)
+    public string? safeStringUpper2(object obj, object key1, object key2, object defaultValue = null)
     {
         var result = safeString2(obj, key1, key2, defaultValue);
-        return result == null ? defaultValue : ((string)result).ToUpper();
+        return result == null ? defaultValue as string : ((string)result).ToUpper();
     }
 
-    public object safeStringUpperN(object obj, List<object> keys, object defaultValue = null)
+    public string? safeStringUpperN(object obj, List<object> keys, object defaultValue = null)
     {
         var result = safeStringN(obj, keys, defaultValue);
-        return result == null ? defaultValue : ((string)result).ToUpper();
+        return result == null ? defaultValue as string : ((string)result).ToUpper();
     }
 
-    public object safeStringLower(object obj, object key, object defaultValue = null)
+    public string? safeStringLower(object obj, object key, object defaultValue = null)
     {
         var result = safeString(obj, key, defaultValue);
-        return result == null ? defaultValue : ((string)result).ToLower();
+        return result == null ? defaultValue as string : ((string)result).ToLower();
     }
 
-    public object safeStringLower2(object obj, object key1, object key2, object defaultValue = null)
+    public string? safeStringLower2(object obj, object key1, object key2, object defaultValue = null)
     {
         var result = safeString2(obj, key1, key2, defaultValue);
-        return result == null ? defaultValue : ((string)result).ToLower();
+        return result == null ? defaultValue as string : ((string)result).ToLower();
     }
 
-    public object safeStringLowerN(object obj, List<object> keys, string defaultValue = null)
+    public string? safeStringLowerN(object obj, List<object> keys, string defaultValue = null)
     {
         var result = safeStringN(obj, keys, defaultValue);
         return result == null ? defaultValue : ((string)result).ToLower();
     }
 
-    public object safeIntegerProduct(object obj, object key, object multiplier = null, object defaultValue = null)
+    public Int64? safeIntegerProduct(object obj, object key, object multiplier = null, object defaultValue = null)
     {
         multiplier ??= 1;
         var result = safeValueN(obj, new List<object> { key }, defaultValue);
+        Int64? convertedDefaultValue = (defaultValue == null) ? null : Convert.ToInt64(defaultValue);
         if (result == null)
         {
-            return defaultValue;
+            return convertedDefaultValue;
         }
-        object parsedValue = null;
+        Int64? parsedValue = null;
         try
         {
             parsedValue = Convert.ToInt64((Convert.ToDouble(result) * Convert.ToDouble(multiplier)));
@@ -161,7 +162,7 @@ public partial class Exchange
         {
 
         }
-        return parsedValue == null ? defaultValue : parsedValue;
+        return parsedValue == null ? convertedDefaultValue : parsedValue;
     }
 
     public object safeIntegerProduct2(object obj, object key1, object key2, object multiplier = null, object defaultValue = null)
@@ -200,11 +201,9 @@ public partial class Exchange
     public static Int64? SafeIntegerN(object obj, List<object> keys, object defaultValue = null)
     {
         var result = SafeValueN(obj, keys, defaultValue);
+        Int64? convertedDefaultValue = (defaultValue == null) ? null : Convert.ToInt64(defaultValue);
         if (result == null || result.ToString().Length == 0)
-            if (defaultValue != null)
-                return Convert.ToInt64(defaultValue);
-            else
-                return null;
+            return convertedDefaultValue;
         Int64? parsedValue = null;
         try
         {
@@ -241,17 +240,21 @@ public partial class Exchange
             // }
 
         }
-        return parsedValue == null ? Convert.ToInt64(defaultValue) : parsedValue;
+        return parsedValue == null ? convertedDefaultValue : parsedValue;
     }
 
-    public object safeStringN(object obj, object keys, object defaultValue = null) => SafeStringN(obj, keys, defaultValue);
+    public string? safeStringN(object obj, object keys, object defaultValue = null) => SafeStringN(obj, keys, defaultValue);
 
-    public static object SafeStringN(object obj, object keys, object defaultValue = null)
+    public static string? SafeStringN(object obj, object keys, object defaultValue = null)
     {
         var result = SafeValueN(obj, keys, defaultValue);
         if (result == null)
-            return defaultValue;
+            return defaultValue as string;
         string returnResult = null;
+        if (result is IList || result is IDictionary)
+        {
+            return defaultValue as string;
+        }
         if (result.GetType() == typeof(float))
         {
             returnResult = ((float)result).ToString(CultureInfo.InvariantCulture);
@@ -281,18 +284,19 @@ public partial class Exchange
                 return stringRest;
             }
         }
-        return defaultValue;
+        return defaultValue as string;
     }
 
 
-    public object safeFloatN(object obj, object keys, object defaultValue = null) => SafeFloatN(obj, keys as List<object>, defaultValue);
-    public static object SafeFloatN(object obj, List<object> keys, object defaultValue = null)
+    public double? safeFloatN(object obj, object keys, object defaultValue = null) => SafeFloatN(obj, keys as List<object>, defaultValue);
+    public static double? SafeFloatN(object obj, List<object> keys, object defaultValue = null)
     {
         defaultValue ??= null;
+        double? convertedDefaultValue = (defaultValue == null) ? null : Convert.ToDouble(defaultValue, CultureInfo.InvariantCulture);
         var result = SafeValueN(obj, keys, defaultValue);
         if (result == null)
-            return defaultValue;
-        object parsedValue = null;
+            return convertedDefaultValue;
+        double? parsedValue = null;
         try
         {
             parsedValue = Convert.ToDouble(result, CultureInfo.InvariantCulture); // altough the name is float right now it is double
@@ -301,7 +305,7 @@ public partial class Exchange
         {
 
         }
-        return parsedValue == null ? defaultValue : Convert.ToDouble(result, CultureInfo.InvariantCulture);
+        return parsedValue == null ? convertedDefaultValue : parsedValue;
     }
     public object safeValueN(object obj, object keys2, object defaultValue = null) => SafeValueN(obj, keys2, defaultValue);
     public static object SafeValueN(object obj, object keys2, object defaultValue = null)

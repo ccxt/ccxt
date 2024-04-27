@@ -9,6 +9,7 @@ import hashlib
 from ccxt.base.types import Balances, Currencies, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
@@ -20,7 +21,6 @@ from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import InvalidNonce
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -299,7 +299,13 @@ class gemini(Exchange, ImplicitAPI):
                     'ATOM': 'cosmos',
                     'DOT': 'polkadot',
                 },
-                'nonce': 'milliseconds',  # if getting a Network 400 error change to seconds
+                'nonce': 'milliseconds',  # if getting a Network 400 error change to seconds,
+                'conflictingMarkets': {
+                    'paxgusd': {
+                        'base': 'PAXG',
+                        'quote': 'USD',
+                    },
+                },
             },
         })
 
@@ -444,6 +450,7 @@ class gemini(Exchange, ImplicitAPI):
             #         '</tr>'
             #     ]
             marketId = cells[0].replace('<td>', '')
+            marketId = marketId.replace('*', '')
             # base = self.safe_currency_code(baseId)
             minAmountString = cells[1].replace('<td>', '')
             minAmountParts = minAmountString.split(' ')
@@ -660,15 +667,25 @@ class gemini(Exchange, ImplicitAPI):
             marketIdUpper = marketId.upper()
             isPerp = (marketIdUpper.find('PERP') >= 0)
             marketIdWithoutPerp = marketIdUpper.replace('PERP', '')
-            quoteQurrencies = self.handle_option('fetchMarketsFromAPI', 'quoteCurrencies', [])
-            for i in range(0, len(quoteQurrencies)):
-                quoteCurrency = quoteQurrencies[i]
-                if marketIdWithoutPerp.endswith(quoteCurrency):
-                    baseId = marketIdWithoutPerp.replace(quoteCurrency, '')
-                    quoteId = quoteCurrency
-                    if isPerp:
-                        settleId = quoteCurrency  # always same
-                    break
+            conflictingMarkets = self.safe_dict(self.options, 'conflictingMarkets', {})
+            lowerCaseId = marketIdWithoutPerp.lower()
+            if lowerCaseId in conflictingMarkets:
+                conflictingMarket = conflictingMarkets[lowerCaseId]
+                baseId = conflictingMarket['base']
+                quoteId = conflictingMarket['quote']
+                if isPerp:
+                    settleId = conflictingMarket['quote']
+            else:
+                quoteCurrencies = self.handle_option('fetchMarketsFromAPI', 'quoteCurrencies', [])
+                for i in range(0, len(quoteCurrencies)):
+                    quoteCurrency = quoteCurrencies[i]
+                    if marketIdWithoutPerp.endswith(quoteCurrency):
+                        quoteLength = self.parse_to_int(-1 * len(quoteCurrency))
+                        baseId = marketIdWithoutPerp[0:quoteLength]
+                        quoteId = quoteCurrency
+                        if isPerp:
+                            settleId = quoteCurrency  # always same
+                        break
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
         settle = self.safe_currency_code(settleId)
@@ -1505,7 +1522,7 @@ class gemini(Exchange, ImplicitAPI):
         response = self.privatePostV1Mytrades(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
-    def withdraw(self, code: str, amount: float, address, tag=None, params={}):
+    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
         """
         make a withdrawal
         :see: https://docs.gemini.com/rest-api/#withdraw-crypto-funds

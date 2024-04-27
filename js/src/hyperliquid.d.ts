@@ -1,5 +1,5 @@
 import Exchange from './abstract/hyperliquid.js';
-import type { Market, TransferEntry, Balances, Int, OrderBook, OHLCV, Str, FundingRateHistory, Order, OrderType, OrderSide, Trade, Strings, Position, OrderRequest, Dict, Num, MarginModification, Currencies } from './base/types.js';
+import type { Market, TransferEntry, Balances, Int, OrderBook, OHLCV, Str, FundingRateHistory, Order, OrderType, OrderSide, Trade, Strings, Position, OrderRequest, Dict, Num, MarginModification, Currencies, CancellationRequest } from './base/types.js';
 /**
  * @class hyperliquid
  * @augments Exchange
@@ -55,6 +55,8 @@ export default class hyperliquid extends Exchange {
     createOrders(orders: OrderRequest[], params?: {}): Promise<Order[]>;
     cancelOrder(id: string, symbol?: Str, params?: {}): Promise<any>;
     cancelOrders(ids: string[], symbol?: Str, params?: {}): Promise<any>;
+    cancelOrdersForSymbols(orders: CancellationRequest[], params?: {}): Promise<any>;
+    cancelAllOrdersAfter(timeout: Int, params?: {}): Promise<any>;
     editOrder(id: string, symbol: string, type: string, side: string, amount?: Num, price?: Num, params?: {}): Promise<Order>;
     fetchFundingRateHistory(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<FundingRateHistory[]>;
     fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
@@ -70,14 +72,15 @@ export default class hyperliquid extends Exchange {
     parsePosition(position: any, market?: Market): Position;
     setMarginMode(marginMode: string, symbol?: Str, params?: {}): Promise<any>;
     setLeverage(leverage: Int, symbol?: Str, params?: {}): Promise<any>;
-    addMargin(symbol: string, amount: any, params?: {}): Promise<MarginModification>;
-    reduceMargin(symbol: string, amount: any, params?: {}): Promise<MarginModification>;
+    addMargin(symbol: string, amount: number, params?: {}): Promise<MarginModification>;
+    reduceMargin(symbol: string, amount: number, params?: {}): Promise<MarginModification>;
     modifyMarginHelper(symbol: string, amount: any, type: any, params?: {}): Promise<MarginModification>;
     parseMarginModification(data: any, market?: Market): MarginModification;
     transfer(code: string, amount: number, fromAccount: string, toAccount: string, params?: {}): Promise<TransferEntry>;
     withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<any>;
     formatVaultAddress(address?: Str): string;
     handlePublicAddress(methodName: string, params: Dict): any[];
+    coinToMarketId(coin: Str): string;
     handleErrors(code: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): any;
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;
