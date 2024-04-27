@@ -108,7 +108,9 @@ class kucoin(Exchange, ImplicitAPI):
                 'fetchOrderBooks': False,
                 'fetchOrdersByStatus': True,
                 'fetchOrderTrades': True,
+                'fetchPositionHistory': False,
                 'fetchPositionMode': False,
+                'fetchPositionsHistory': False,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchStatus': True,
                 'fetchTicker': True,
@@ -3004,7 +3006,7 @@ class kucoin(Exchange, ImplicitAPI):
             'tierBased': True,
         }
 
-    async def withdraw(self, code: str, amount: float, address, tag=None, params={}):
+    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
         """
         make a withdrawal
         :see: https://www.kucoin.com/docs/rest/funding/withdrawals/apply-withdraw

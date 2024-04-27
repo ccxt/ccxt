@@ -92,8 +92,10 @@ class woo extends Exchange {
                 'fetchOrders' => true,
                 'fetchOrderTrades' => true,
                 'fetchPosition' => true,
+                'fetchPositionHistory' => false,
                 'fetchPositionMode' => false,
                 'fetchPositions' => true,
+                'fetchPositionsHistory' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchStatus' => true,
                 'fetchTicker' => false,
@@ -2426,7 +2428,7 @@ class woo extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
@@ -3229,7 +3231,7 @@ class woo extends Exchange {
             //
             $data = $this->safe_dict($response, 'data', array());
             $rows = $this->safe_list($data, 'tradeVos', array());
-            return $this->parse_conversions($rows, 'sellAsset', 'buyAsset', $since, $limit);
+            return $this->parse_conversions($rows, $code, 'sellAsset', 'buyAsset', $since, $limit);
         }) ();
     }
 

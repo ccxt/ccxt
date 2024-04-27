@@ -122,7 +122,9 @@ export interface Order {
     info: any;
     lastTradeTimestamp?: number;
     lastUpdateTimestamp?: number;
+    postOnly: Bool;
     price: number;
+    reduceOnly: Bool;
     remaining: number;
     side: 'buy' | 'sell' | Str;
     status: 'open' | 'closed' | 'canceled' | Str;

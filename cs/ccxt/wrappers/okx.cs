@@ -456,6 +456,12 @@ public partial class okx
     /// string : 'condition' or 'limit', the default is 'condition'
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.hedged</term>
+    /// <description>
+    /// string : true/false, to automatically set exchange-specific params needed when trading in hedge mode
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
@@ -1116,7 +1122,7 @@ public partial class okx
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}.</returns>
-    public async Task<Transaction> Withdraw(string code, double amount, object address, object tag = null, Dictionary<string, object> parameters = null)
+    public async Task<Transaction> Withdraw(string code, double amount, string address, object tag = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.withdraw(code, amount, address, tag, parameters);
         return new Transaction(res);
@@ -1479,6 +1485,32 @@ public partial class okx
     public async Task<Dictionary<string, object>> SetLeverage(Int64 leverage, string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.setLeverage(leverage, symbol, parameters);
+        return ((Dictionary<string, object>)res);
+    }
+    /// <summary>
+    /// fetchs the position mode, hedged or one way, hedged for binance is set identically for all linear markets or all inverse markets
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-account-configuration"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>param.accountId</term>
+    /// <description>
+    /// string : if you have multiple accounts, you must specify the account id to fetch the position mode
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> an object detailing whether the market is in hedged or one-way mode.</returns>
+    public async Task<Dictionary<string, object>> FetchPositionMode(string symbol = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchPositionMode(symbol, parameters);
         return ((Dictionary<string, object>)res);
     }
     /// <summary>
@@ -2094,5 +2126,75 @@ public partial class okx
         var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchMarginAdjustmentHistory(symbol, type, since, limit, parameters);
         return ((IList<object>)res).Select(item => new MarginModification(item)).ToList<MarginModification>();
+    }
+    /// <summary>
+    /// fetches historical positions
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-positions-history"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>symbols</term>
+    /// <description>
+    /// string : unified market symbols
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : timestamp in ms of the earliest position to fetch
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum amount of records to fetch, default=100, max=100
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.marginMode</term>
+    /// <description>
+    /// string : "cross" or "isolated"
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.instType</term>
+    /// <description>
+    /// string : margin, swap, futures or option
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.type</term>
+    /// <description>
+    /// string : the type of latest close position 1: close position partially, 2：close all, 3：liquidation, 4：partial liquidation; 5：adl, is it is the latest type if there are several types for the same position
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.posId</term>
+    /// <description>
+    /// string : position id, there is attribute expiration, the posid will be expired if it is more than 30 days after the last full close position, then position will use new posid
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.before</term>
+    /// <description>
+    /// string : timestamp in ms of the earliest position to fetch based on the last update time of the position
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.after</term>
+    /// <description>
+    /// string : timestamp in ms of the latest position to fetch based on the last update time of the position
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object[]</term> a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}.</returns>
+    public async Task<List<Position>> FetchPositionsHistory(List<String> symbols = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.fetchPositionsHistory(symbols, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new Position(item)).ToList<Position>();
     }
 }

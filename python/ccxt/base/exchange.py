@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.3.6'
+__version__ = '4.3.9'
 
 # -----------------------------------------------------------------------------
 
@@ -5683,7 +5683,7 @@ class Exchange(object):
     def parse_leverage(self, leverage, market: Market = None):
         raise NotSupported(self.id + ' parseLeverage() is not supported yet')
 
-    def parse_conversions(self, conversions: List[Any], fromCurrencyKey: Str = None, toCurrencyKey: Str = None, since: Int = None, limit: Int = None, params={}):
+    def parse_conversions(self, conversions: List[Any], code: Str = None, fromCurrencyKey: Str = None, toCurrencyKey: Str = None, since: Int = None, limit: Int = None, params={}):
         conversions = self.to_array(conversions)
         result = []
         fromCurrency = None
@@ -5699,8 +5699,16 @@ class Exchange(object):
             conversion = self.extend(self.parseConversion(entry, fromCurrency, toCurrency), params)
             result.append(conversion)
         sorted = self.sort_by(result, 'timestamp')
-        code = fromCurrency['code'] if (fromCurrency is not None) else None
-        return self.filter_by_currency_since_limit(sorted, code, since, limit)
+        currency = None
+        if code is not None:
+            currency = self.currency(code)
+            code = currency['code']
+        if code is None:
+            return self.filter_by_since_limit(sorted, since, limit)
+        fromConversion = self.filter_by(sorted, 'fromCurrency', code)
+        toConversion = self.filter_by(sorted, 'toCurrency', code)
+        both = self.array_concat(fromConversion, toConversion)
+        return self.filter_by_since_limit(both, since, limit)
 
     def parse_conversion(self, conversion, fromCurrency: Currency = None, toCurrency: Currency = None):
         raise NotSupported(self.id + ' parseConversion() is not supported yet')
@@ -5771,6 +5779,32 @@ class Exchange(object):
         day = date[5:7]
         reconstructedDate = day + month + year
         return reconstructedDate
+
+    def fetch_position_history(self, symbol: str, since: Int = None, limit: Int = None, params={}):
+        """
+        fetches the history of margin added or reduced from contract isolated positions
+        :param str [symbol]: unified market symbol
+        :param int [since]: timestamp in ms of the position
+        :param int [limit]: the maximum amount of candles to fetch, default=1000
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns dict[]: a list of `position structures <https://docs.ccxt.com/#/?id=position-structure>`
+        """
+        if self.has['fetchPositionsHistory']:
+            positions = self.fetch_positions_history([symbol], since, limit, params)
+            return self.safe_dict(positions, 0)
+        else:
+            raise NotSupported(self.id + ' fetchPositionHistory() is not supported yet')
+
+    def fetch_positions_history(self, symbols: Strings = None, since: Int = None, limit: Int = None, params={}):
+        """
+        fetches the history of margin added or reduced from contract isolated positions
+        :param str [symbol]: unified market symbol
+        :param int [since]: timestamp in ms of the position
+        :param int [limit]: the maximum amount of candles to fetch, default=1000
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns dict[]: a list of `position structures <https://docs.ccxt.com/#/?id=position-structure>`
+        """
+        raise NotSupported(self.id + ' fetchPositionsHistory() is not supported yet')
 
     def parse_margin_modification(self, data, market: Market = None):
         raise NotSupported(self.id + ' parseMarginModification() is not supported yet')

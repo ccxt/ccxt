@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.okx import ImplicitAPI
 import hashlib
-from ccxt.base.types import Account, Balances, Conversion, Currencies, Currency, Greeks, Int, Leverage, MarginModification, Market, MarketInterface, Num, Option, OptionChain, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry
+from ccxt.base.types import Account, Balances, Conversion, Currencies, Currency, Greeks, Int, Leverage, MarginModification, Market, MarketInterface, Num, Option, OptionChain, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry
 from typing import List
 from typing import Any
 from ccxt.base.errors import ExchangeError
@@ -134,8 +134,10 @@ class okx(Exchange, ImplicitAPI):
                 'fetchOrderTrades': True,
                 'fetchPermissions': None,
                 'fetchPosition': True,
+                'fetchPositionHistory': 'emulated',
                 'fetchPositions': True,
                 'fetchPositionsForSymbol': True,
+                'fetchPositionsHistory': True,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchSettlementHistory': True,
@@ -2545,6 +2547,8 @@ class okx(Exchange, ImplicitAPI):
         takeProfitDefined = (takeProfit is not None)
         trailingPercent = self.safe_string_2(params, 'trailingPercent', 'callbackRatio')
         isTrailingPercentOrder = trailingPercent is not None
+        trigger = (triggerPrice is not None) or (type == 'trigger')
+        isReduceOnly = self.safe_value(params, 'reduceOnly', False)
         defaultMarginMode = self.safe_string_2(self.options, 'defaultMarginMode', 'marginMode', 'cross')
         marginMode = self.safe_string_2(params, 'marginMode', 'tdMode')  # cross or isolated, tdMode not ommited so be extended into the request
         margin = False
@@ -2566,6 +2570,20 @@ class okx(Exchange, ImplicitAPI):
                 positionSide, params = self.handle_option_and_params(params, 'createOrder', 'positionSide')
                 if positionSide is not None:
                     request['posSide'] = positionSide
+                else:
+                    hedged = None
+                    hedged, params = self.handle_option_and_params(params, 'createOrder', 'hedged')
+                    if hedged:
+                        isBuy = (side == 'buy')
+                        isProtective = (takeProfitPrice is not None) or (stopLossPrice is not None) or isReduceOnly
+                        if isProtective:
+                            # in case of protective orders, the posSide should be opposite of position side
+                            # reduceOnly is emulated and not natively supported by the exchange
+                            request['posSide'] = 'short' if isBuy else 'long'
+                            if isReduceOnly:
+                                params = self.omit(params, 'reduceOnly')
+                        else:
+                            request['posSide'] = 'long' if isBuy else 'short'
             request['tdMode'] = marginMode
         isMarketOrder = type == 'market'
         postOnly = False
@@ -2573,7 +2591,6 @@ class okx(Exchange, ImplicitAPI):
         params = self.omit(params, ['currency', 'ccy', 'marginMode', 'timeInForce', 'stopPrice', 'triggerPrice', 'clientOrderId', 'stopLossPrice', 'takeProfitPrice', 'slOrdPx', 'tpOrdPx', 'margin', 'stopLoss', 'takeProfit', 'trailingPercent'])
         ioc = (timeInForce == 'IOC') or (type == 'ioc')
         fok = (timeInForce == 'FOK') or (type == 'fok')
-        trigger = (triggerPrice is not None) or (type == 'trigger')
         conditional = (stopLossPrice is not None) or (takeProfitPrice is not None) or (type == 'conditional')
         marketIOC = (isMarketOrder and ioc) or (type == 'optimal_limit_ioc')
         defaultTgtCcy = self.safe_string(self.options, 'tgtCcy', 'base_ccy')
@@ -2732,6 +2749,7 @@ class okx(Exchange, ImplicitAPI):
         :param str [params.positionSide]: if position mode is one-way: set to 'net', if position mode is hedge-mode: set to 'long' or 'short'
         :param str [params.trailingPercent]: the percent to trail away from the current market price
         :param str [params.tpOrdKind]: 'condition' or 'limit', the default is 'condition'
+        :param str [params.hedged]: True/false, to automatically set exchange-specific params needed when trading in hedge mode
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
@@ -4500,7 +4518,7 @@ class okx(Exchange, ImplicitAPI):
             raise InvalidAddress(self.id + ' fetchDepositAddress() cannot find ' + network + ' deposit address for ' + code)
         return result
 
-    def withdraw(self, code: str, amount: float, address, tag=None, params={}):
+    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
         """
         make a withdrawal
         :see: https://www.okx.com/docs-v5/en/#funding-account-rest-api-withdrawal
@@ -5849,6 +5867,36 @@ class okx(Exchange, ImplicitAPI):
         #
         return response
 
+    def fetch_position_mode(self, symbol: Str = None, params={}):
+        """
+        :see: https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-account-configuration
+        fetchs the position mode, hedged or one way, hedged for binance is set identically for all linear markets or all inverse markets
+        :param str symbol: unified symbol of the market to fetch the order book for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [param.accountId]: if you have multiple accounts, you must specify the account id to fetch the position mode
+        :returns dict: an object detailing whether the market is in hedged or one-way mode
+        """
+        accounts = self.fetch_accounts()
+        length = len(accounts)
+        selectedAccount = None
+        if length > 1:
+            accountId = self.safe_string(params, 'accountId')
+            if accountId is None:
+                accountIds = self.get_list_from_object_values(accounts, 'id')
+                raise ExchangeError(self.id + ' fetchPositionMode() can not detect position mode, because you have multiple accounts. Set params["accountId"] to desired id from: ' + ', '.join(accountIds))
+            else:
+                accountsById = self.index_by(accounts, 'id')
+                selectedAccount = self.safe_dict(accountsById, accountId)
+        else:
+            selectedAccount = accounts[0]
+        mainAccount = selectedAccount['info']
+        posMode = self.safe_string(mainAccount, 'posMode')  # long_short_mode, net_mode
+        isHedged = posMode == 'long_short_mode'
+        return {
+            'info': mainAccount,
+            'hedged': isHedged,
+        }
+
     def set_position_mode(self, hedged: bool, symbol: Str = None, params={}):
         """
         set hedged to True or False for a market
@@ -6224,7 +6272,7 @@ class okx(Exchange, ImplicitAPI):
             'datetime': self.iso8601(timestamp),
         }
 
-    def reduce_margin(self, symbol: str, amount, params={}) -> MarginModification:
+    def reduce_margin(self, symbol: str, amount: float, params={}) -> MarginModification:
         """
         remove margin from a position
         :see: https://www.okx.com/docs-v5/en/#trading-account-rest-api-increase-decrease-margin
@@ -6235,7 +6283,7 @@ class okx(Exchange, ImplicitAPI):
         """
         return self.modify_margin_helper(symbol, amount, 'reduce', params)
 
-    def add_margin(self, symbol: str, amount, params={}) -> MarginModification:
+    def add_margin(self, symbol: str, amount: float, params={}) -> MarginModification:
         """
         add margin
         :see: https://www.okx.com/docs-v5/en/#trading-account-rest-api-increase-decrease-margin
@@ -7395,7 +7443,7 @@ class okx(Exchange, ImplicitAPI):
         #     }
         #
         rows = self.safe_list(response, 'data', [])
-        return self.parse_conversions(rows, 'baseCcy', 'quoteCcy', since, limit)
+        return self.parse_conversions(rows, code, 'baseCcy', 'quoteCcy', since, limit)
 
     def parse_conversion(self, conversion, fromCurrency: Currency = None, toCurrency: Currency = None) -> Conversion:
         #
@@ -7652,3 +7700,77 @@ class okx(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data')
         modifications = self.parse_margin_modifications(data)
         return self.filter_by_symbol_since_limit(modifications, symbol, since, limit)
+
+    def fetch_positions_history(self, symbols: Strings = None, since: Int = None, limit: Int = None, params={}) -> List[Position]:
+        """
+        fetches historical positions
+        :see: https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-positions-history
+        :param str [symbols]: unified market symbols
+        :param int [since]: timestamp in ms of the earliest position to fetch
+        :param int [limit]: the maximum amount of records to fetch, default=100, max=100
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :param str [params.marginMode]: "cross" or "isolated"
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+        :param str [params.instType]: margin, swap, futures or option
+        :param str [params.type]: the type of latest close position 1: close position partially, 2：close all, 3：liquidation, 4：partial liquidation; 5：adl, is it is the latest type if there are several types for the same position
+        :param str [params.posId]: position id, there is attribute expiration, the posid will be expired if it is more than 30 days after the last full close position, then position will use new posid
+        :param str [params.before]: timestamp in ms of the earliest position to fetch based on the last update time of the position
+        :param str [params.after]: timestamp in ms of the latest position to fetch based on the last update time of the position
+        :returns dict[]: a list of `position structures <https://docs.ccxt.com/#/?id=position-structure>`
+        """
+        self.load_markets()
+        marginMode = self.safe_string(params, 'marginMode')
+        instType = self.safe_string_upper(params, 'instType')
+        params = self.omit(params, ['until', 'marginMode', 'instType'])
+        if limit is None:
+            limit = 100
+        request = {
+            'limit': limit,
+        }
+        if symbols is not None:
+            symbolsLength = len(symbols)
+            if symbolsLength == 1:
+                market = self.market(symbols[0])
+                request['instId'] = market['id']
+        if marginMode is not None:
+            request['mgnMode'] = marginMode
+        if instType is not None:
+            request['instType'] = instType
+        response = self.privateGetAccountPositionsHistory(self.extend(request, params))
+        #
+        #    {
+        #        code: '0',
+        #        data: [
+        #            {
+        #                cTime: '1708735940395',
+        #                ccy: 'USDT',
+        #                closeAvgPx: '0.6330444444444444',
+        #                closeTotalPos: '27',
+        #                direction: 'long',
+        #                fee: '-1.69566',
+        #                fundingFee: '-11.870404179341788',
+        #                instId: 'XRP-USDT-SWAP',
+        #                instType: 'SWAP',
+        #                lever: '3.0',
+        #                liqPenalty: '0',
+        #                mgnMode: 'cross',
+        #                openAvgPx: '0.623',
+        #                openMaxPos: '15',
+        #                pnl: '27.11999999999988',
+        #                pnlRatio: '0.0241732402722634',
+        #                posId: '681423155054862336',
+        #                realizedPnl: '13.553935820658092',
+        #                triggerPx: '',
+        #                type: '2',
+        #                uTime: '1711088748170',
+        #                uly: 'XRP-USDT'
+        #            },
+        #            ...
+        #        ],
+        #        msg: ''
+        #    }
+        #
+        data = self.safe_list(response, 'data')
+        positions = self.parse_positions(data, symbols, params)
+        return self.filter_by_since_limit(positions, since, limit)

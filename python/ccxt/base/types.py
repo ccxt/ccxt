@@ -176,6 +176,8 @@ class Order(TypedDict):
     stopLossPrice: Num
     cost: Num
     trades: List[Trade]
+    reduceOnly: Bool
+    postOnly: Bool
     fee: Fee
 
 

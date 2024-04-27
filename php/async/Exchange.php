@@ -42,11 +42,11 @@ use React\EventLoop\Loop;
 
 use Exception;
 
-$version = '4.3.6';
+$version = '4.3.9';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.3.6';
+    const VERSION = '4.3.9';
 
     public $browser;
     public $marketsLoading = null;
@@ -5292,7 +5292,7 @@ class Exchange extends \ccxt\Exchange {
         throw new NotSupported($this->id . ' parseLeverage () is not supported yet');
     }
 
-    public function parse_conversions(array $conversions, ?string $fromCurrencyKey = null, ?string $toCurrencyKey = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function parse_conversions(array $conversions, ?string $code = null, ?string $fromCurrencyKey = null, ?string $toCurrencyKey = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         $conversions = $this->to_array($conversions);
         $result = array();
         $fromCurrency = null;
@@ -5311,8 +5311,18 @@ class Exchange extends \ccxt\Exchange {
             $result[] = $conversion;
         }
         $sorted = $this->sort_by($result, 'timestamp');
-        $code = ($fromCurrency !== null) ? $fromCurrency['code'] : null;
-        return $this->filter_by_currency_since_limit($sorted, $code, $since, $limit);
+        $currency = null;
+        if ($code !== null) {
+            $currency = $this->currency ($code);
+            $code = $currency['code'];
+        }
+        if ($code === null) {
+            return $this->filter_by_since_limit($sorted, $since, $limit);
+        }
+        $fromConversion = $this->filter_by($sorted, 'fromCurrency', $code);
+        $toConversion = $this->filter_by($sorted, 'toCurrency', $code);
+        $both = $this->array_concat($fromConversion, $toConversion);
+        return $this->filter_by_since_limit($both, $since, $limit);
     }
 
     public function parse_conversion($conversion, ?array $fromCurrency = null, ?array $toCurrency = null) {
@@ -5389,6 +5399,37 @@ class Exchange extends \ccxt\Exchange {
         $day = mb_substr($date, 5, 7 - 5);
         $reconstructedDate = $day . $month . $year;
         return $reconstructedDate;
+    }
+
+    public function fetch_position_history(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * fetches the history of margin added or reduced from contract isolated $positions
+             * @param {string} [$symbol] unified market $symbol
+             * @param {int} [$since] timestamp in ms of the position
+             * @param {int} [$limit] the maximum amount of candles to fetch, default=1000
+             * @param {array} $params extra parameters specific to the exchange api endpoint
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=position-structure position structures~
+             */
+            if ($this->has['fetchPositionsHistory']) {
+                $positions = Async\await($this->fetch_positions_history(array( $symbol ), $since, $limit, $params));
+                return $this->safe_dict($positions, 0);
+            } else {
+                throw new NotSupported($this->id . ' fetchPositionHistory () is not supported yet');
+            }
+        }) ();
+    }
+
+    public function fetch_positions_history(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        /**
+         * fetches the history of margin added or reduced from contract isolated positions
+         * @param {string} [symbol] unified market symbol
+         * @param {int} [$since] timestamp in ms of the position
+         * @param {int} [$limit] the maximum amount of candles to fetch, default=1000
+         * @param {array} $params extra parameters specific to the exchange api endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=position-structure position structures~
+         */
+        throw new NotSupported($this->id . ' fetchPositionsHistory () is not supported yet');
     }
 
     public function parse_margin_modification($data, ?array $market = null) {

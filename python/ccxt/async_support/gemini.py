@@ -1523,7 +1523,7 @@ class gemini(Exchange, ImplicitAPI):
         response = await self.privatePostV1Mytrades(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
-    async def withdraw(self, code: str, amount: float, address, tag=None, params={}):
+    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
         """
         make a withdrawal
         :see: https://docs.gemini.com/rest-api/#withdraw-crypto-funds

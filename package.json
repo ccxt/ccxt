@@ -1,6 +1,6 @@
 {
   "name": "ccxt",
-  "version": "4.3.6",
+  "version": "4.3.9",
   "description": "A JavaScript / TypeScript / Python / C# / PHP cryptocurrency trading library with support for 100+ exchanges",
   "unpkg": "dist/ccxt.browser.js",
   "type": "module",
@@ -30,8 +30,9 @@
     "coverage-js": "npm run instrument && npm run nyc-coverage && rm -rf jsInstrumented",
     "docker": "docker-compose run --rm ccxt",
     "fixTSBug": "node build/fixTSBug",
-    "transpileCS": "node --no-warnings --loader ts-node/esm build/csharpTranspiler.ts --multi",
-    "transpileCSWs": "node --no-warnings --loader ts-node/esm build/csharpTranspiler.ts --ws",
+    "transpileCsSingle": "tsx build/csharpTranspiler.ts",
+    "transpileCS": "tsx build/csharpTranspiler.ts --multi",
+    "transpileCSWs": "tsx build/csharpTranspiler.ts --ws",
     "buildCS": "dotnet build cs/ccxt.sln",
     "buildCSRelease": "dotnet build cs --configuration Release",
     "csharp": "npm run transpileCS && npm run transpileCSWs && npm run buildCS",
@@ -74,7 +75,7 @@
     "cli.js": "node ./examples/js/cli.js",
     "cli.py": "python3 ./examples/py/cli.py",
     "cli.php": "php ./examples/php/cli.php",
-    "cli.ts": "node --loader ts-node/esm examples/ts/cli.ts",
+    "cli.ts": "tsx examples/ts/cli.ts",
     "cli.cs": "dotnet run --project \"./cs/cli/cli.csproj\"",
     "export-exchanges": "node build/export-exchanges",
     "capabilities": "node ./examples/js/exchange-capabilities.js",
@@ -121,7 +122,7 @@
     "copy-python-keys": "node build/copy keys.json python/keys.json",
     "copy-python-readme": "node build/copy README.md python/README.md",
     "postinstall": "node postinstall.js",
-    "validate-types": "node --loader ts-node/esm build/validate-types.ts",
+    "validate-types": "tsx build/validate-types.ts",
     "response-js": "node js/src/test/test.js --responseTests",
     "request-js": "node js/src/test/test.js --requestTests",
     "request-py": "python3 python/ccxt/test/test_async.py --requestTests",
@@ -138,7 +139,7 @@
     "id-tests-php": "php php/test/test_async.php --idTests",
     "id-tests-cs": "dotnet run --project cs/tests/tests.csproj --idTests",
     "id-tests": "npm run id-tests-js && npm run id-tests-py && npm run id-tests-php && npm run id-tests-cs",
-    "benchmark": "node --loader ts-node/esm examples/ts/benchmark.ts"
+    "benchmark": "tsx examples/ts/benchmark.ts"
   },
   "types": "./js/ccxt.d.ts",
   "devDependencies": {
@@ -168,7 +169,7 @@
     "rollup-plugin-execute": "1.1.1",
     "terser-webpack-plugin": "^5.3.9",
     "ts-loader": "^9.4.2",
-    "ts-node": "^10.9.1",
+    "tsx": "^4.7.2",
     "typescript": "4.7.4",
     "webpack": "^5.76.2",
     "webpack-cli": "^5.0.1"

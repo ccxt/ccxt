@@ -61,8 +61,13 @@ class lykke extends Exchange {
                 'fetchOrderBook' => true,
                 'fetchOrders' => false,
                 'fetchOrderTrades' => false,
+                'fetchPosition' => false,
+                'fetchPositionHistory' => false,
                 'fetchPositionMode' => false,
                 'fetchPositions' => false,
+                'fetchPositionsForSymbol' => false,
+                'fetchPositionsHistory' => false,
+                'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
@@ -1228,7 +1233,7 @@ class lykke extends Exchange {
         return $this->parse_transactions($payload, $currency, $since, $limit);
     }
 
-    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
         /**
          * make a withdrawal
          * @see https://lykkecity.github.io/Trading-API/#withdrawal
