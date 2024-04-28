@@ -1272,7 +1272,7 @@ export default class bybit extends bybitRest {
         //    }
         //
         const messageHash = this.safeString (message, 'reqId');
-        const data = this.safeValue (message, 'data');
+        const data = this.safeDict (message, 'data');
         const order = this.parseOrder (data);
         client.resolve (order, messageHash);
     }
