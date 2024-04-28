@@ -18,7 +18,7 @@ public partial class Exchange
 
         public IDictionary<string, Future> futures = new ConcurrentDictionary<string, Future>();
         public IDictionary<string, object> subscriptions = new ConcurrentDictionary<string, object>();
-        public IDictionary<string, object> rejections = new ConcurrentDictionary<string, object>();
+        public IDictionary<string, object> rejections = new ConcurrentDictionary<string, object>(); // Currently not being used
 
         public bool verbose = false;
         public bool isConnected = false;

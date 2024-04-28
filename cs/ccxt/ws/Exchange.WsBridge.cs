@@ -193,7 +193,6 @@ public partial class Exchange
 
         var client = this.client(url);
 
-
         var future = Future.race(messageHashes.Select(subHash => client.future(subHash)).ToArray());
 
         var missingSubscriptions = new List<string>();
@@ -202,11 +201,10 @@ public partial class Exchange
         {
             foreach (var subscribeHash in subscribeHashes)
             {
-                var clientSubscription = (subscribeHash != null && client.subscriptions.ContainsKey(subscribeHash)) ? client.subscriptions[subscribeHash] : null;
+                if (subscribeHash == null) return;
 
-                if (clientSubscription == null)
+                if ((client.subscriptions as ConcurrentDictionary<string, object>).TryAdd (subscribeHash, clientSubscription ?? true))
                 {
-                    client.subscriptions[subscribeHash] = subscription ?? true;
                     missingSubscriptions.Add(subscribeHash);
                 }
             }
