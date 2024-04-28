@@ -763,7 +763,6 @@ export default class mexc extends mexcRest {
             'fee': {
                 'cost': feeAmount,
                 'currency': this.safeCurrencyCode (feeCurrencyId),
-
             },
         }, market);
     }
