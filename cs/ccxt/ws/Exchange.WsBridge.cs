@@ -203,7 +203,7 @@ public partial class Exchange
             {
                 if (subscribeHash == null) continue;
 
-                if ((client.subscriptions as ConcurrentDictionary<string, object>).TryAdd (subscribeHash, clientSubscription ?? true))
+                if ((client.subscriptions as ConcurrentDictionary<string, object>).TryAdd (subscribeHash, subscription ?? true))
                 {
                     missingSubscriptions.Add(subscribeHash);
                 }
