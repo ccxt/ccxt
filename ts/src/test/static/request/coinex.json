@@ -1030,6 +1030,70 @@
                   }
                 ]
             }
+        ],
+        "editOrder": [
+            {
+                "description": "Spot edit an order",
+                "method": "editOrder",
+                "url": "https://api.coinex.com/v2/spot/modify-order",
+                "input": [
+                  117336840432,
+                  "BTC/USDT",
+                  "limit",
+                  "buy",
+                  0.0001,
+                  61000
+                ],
+                "output": "{\"amount\":\"0.0001\",\"market\":\"BTCUSDT\",\"market_type\":\"SPOT\",\"order_id\":117336840432,\"price\":\"61000\"}"
+            },
+            {
+                "description": "Spot edit a trigger order",
+                "method": "editOrder",
+                "url": "https://api.coinex.com/v2/spot/modify-stop-order",
+                "input": [
+                  117337149743,
+                  "BTC/USDT",
+                  "limit",
+                  "buy",
+                  0.0001,
+                  61000,
+                  {
+                    "triggerPrice": 61500
+                  }
+                ],
+                "output": "{\"amount\":\"0.0001\",\"market\":\"BTCUSDT\",\"market_type\":\"SPOT\",\"price\":\"61000\",\"stop_id\":117337149743,\"trigger_price\":\"61500\"}"
+            },
+            {
+                "description": "Swap edit an order",
+                "method": "editOrder",
+                "url": "https://api.coinex.com/v2/futures/modify-order",
+                "input": [
+                  137091531608,
+                  "BTC/USDT:USDT",
+                  "limit",
+                  "buy",
+                  0.0001,
+                  61000
+                ],
+                "output": "{\"amount\":\"0.0001\",\"market\":\"BTCUSDT\",\"market_type\":\"FUTURES\",\"order_id\":137091531608,\"price\":\"61000\"}"
+            },
+            {
+                "description": "Swap edit a trigger order",
+                "method": "editOrder",
+                "url": "https://api.coinex.com/v2/futures/modify-stop-order",
+                "input": [
+                  137091809783,
+                  "BTC/USDT:USDT",
+                  "limit",
+                  "buy",
+                  0.0001,
+                  61000,
+                  {
+                    "triggerPrice": 61500
+                  }
+                ],
+                "output": "{\"amount\":\"0.0001\",\"market\":\"BTCUSDT\",\"market_type\":\"FUTURES\",\"price\":\"61000\",\"stop_id\":137091809783,\"trigger_price\":\"61500\"}"
+            }
         ]
     },
     "disabledTests": {}
