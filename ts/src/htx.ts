@@ -8570,8 +8570,8 @@ export default class htx extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchSettlementHistory() requires a symbol argument');
         }
-        const until = this.safeInteger2 (params, 'until', 'till');
-        params = this.omit (params, [ 'until', 'till' ]);
+        const until = this.safeInteger (params, 'until');
+        params = this.omit (params, [ 'until' ]);
         const market = this.market (symbol);
         const request = {};
         if (market['future']) {
