@@ -7,7 +7,7 @@ interface CustomArray<T> extends Array<T> {
 
 class BaseCache<T> extends Array<T> {
 
-    constructor (maxSize = undefined) {
+    constructor (maxSize: number | undefined = undefined) {
         super ()
         Object.defineProperty (this, 'maxSize', {
             __proto__: null, // make it invisible
@@ -25,7 +25,7 @@ class ArrayCache<T> extends BaseCache<T> implements CustomArray<T> {
 
     hashmap: object = {};
 
-    constructor (maxSize = undefined) {
+    constructor (maxSize: number | undefined = undefined) {
         super (maxSize);
         Object.defineProperty (this, 'nestedNewUpdatesBySymbol', {
             __proto__: null, // make it invisible
@@ -106,7 +106,7 @@ class ArrayCache<T> extends BaseCache<T> implements CustomArray<T> {
 
 class ArrayCacheByTimestamp<T> extends BaseCache<T> {
 
-    constructor (maxSize = undefined) {
+    constructor (maxSize: number | undefined = undefined) {
         super (maxSize)
         Object.defineProperty (this, 'hashmap', {
             __proto__: null, // make it invisible
@@ -166,7 +166,7 @@ class ArrayCacheByTimestamp<T> extends BaseCache<T> {
 
 class ArrayCacheBySymbolById<T> extends ArrayCache<T> {
 
-    constructor (maxSize = undefined) {
+    constructor (maxSize: number | undefined = undefined) {
         super (maxSize)
         this.nestedNewUpdatesBySymbol = true
         // Object.defineProperty (this, 'hashmap', {
@@ -221,8 +221,8 @@ class ArrayCacheBySymbolById<T> extends ArrayCache<T> {
 
 class ArrayCacheBySymbolBySide<T> extends ArrayCache<T> {
 
-    constructor () {
-        super ()
+    constructor (maxSize: number | undefined = undefined) {
+        super (maxSize)
         this.nestedNewUpdatesBySymbol = true
         Object.defineProperty (this, 'hashmap', {
             __proto__: null, // make it invisible

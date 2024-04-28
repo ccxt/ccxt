@@ -12,9 +12,7 @@
   "author": "",
   "license": "ISC",
   "types": "./test.d.ts",
-  "dependencies": {
-    "ccxt": "file:ccxt-4.3.6.tgz"
-  },
+  "dependencies": {},
   "devDependencies": {
     "typescript": "^5.4.5"
   }

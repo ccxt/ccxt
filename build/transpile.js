@@ -445,6 +445,10 @@ class Transpiler {
             [ /Precise\.stringLe\s/g, 'Precise.string_le' ],
             [ /\.padEnd\s/g, '.ljust'],
             [ /\.padStart\s/g, '.rjust' ],
+            [ /ArrayCache<\w+>/g, 'ArrayCache' ],
+            [ /ArrayCacheByTimestamp<\w+>/g, 'ArrayCacheByTimestamp' ],
+            [ /ArrayCacheBySymbolById<\w+>/g, 'ArrayCacheBySymbolById' ],
+            [ /ArrayCacheBySymbolBySide<\w+>/g, 'ArrayCacheBySymbolBySide' ],
 
         // insert common regexes in the middle (critical)
         ].concat (this.getCommonRegexes ()).concat ([
@@ -676,6 +680,10 @@ class Transpiler {
             [ /Precise\.stringLe\s/g, 'Precise::string_le' ],
             [ /(\w+)\.padEnd\s*\(([^,]+),\s*([^)]+)\)/g, 'str_pad($1, $2, $3, STR_PAD_RIGHT)' ],
             [ /(\w+)\.padStart\s*\(([^,]+),\s*([^)]+)\)/g, 'str_pad($1, $2, $3, STR_PAD_LEFT)' ],
+            [ /ArrayCache<\w+>/g, 'ArrayCache' ],
+            [ /ArrayCacheByTimestamp<\w+>/g, 'ArrayCacheByTimestamp' ],
+            [ /ArrayCacheBySymbolById<\w+>/g, 'ArrayCacheBySymbolById' ],
+            [ /ArrayCacheBySymbolBySide<\w+>/g, 'ArrayCacheBySymbolBySide' ],
 
         // insert common regexes in the middle (critical)
         ].concat (this.getCommonRegexes ()).concat ([
