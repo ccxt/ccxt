@@ -180,7 +180,7 @@ class ArrayCacheBySymbolBySide(ArrayCache):
 
     def append(self, item):
         by_side = self.hashmap.setdefault(item['symbol'], {})
-        if  not self._hedged:
+        if not self._hedged:
             side_to_reset = 'long' if item['side'] == 'short' else 'short'
             del by_side[side_to_reset]
             index = self._index.index(side_to_reset)
