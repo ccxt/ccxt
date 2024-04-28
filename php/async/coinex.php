@@ -1965,7 +1965,7 @@ class coinex extends Exchange {
         //         "user_id" => 3620173
         //     }
         //
-        // Spot and Margin createOrder, createOrders, cancelOrders v2
+        // Spot and Margin createOrder, createOrders, cancelOrders, editOrder v2
         //
         //     {
         //         "amount" => "0.0001",
@@ -1991,13 +1991,13 @@ class coinex extends Exchange {
         //         "updated_at" => 1714114386250
         //     }
         //
-        // Spot, Margin and Swap trigger createOrder, createOrders v2
+        // Spot, Margin and Swap trigger createOrder, createOrders, editOrder v2
         //
         //     {
         //         "stop_id" => 117180138153
         //     }
         //
-        // Swap createOrder, createOrders, cancelOrders v2
+        // Swap createOrder, createOrders, cancelOrders, editOrder v2
         //
         //     {
         //         "amount" => "0.0001",
@@ -2734,7 +2734,7 @@ class coinex extends Exchange {
              * @param {string[]} $ids $order $ids
              * @param {string} $symbol unified $market $symbol
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {boolean} [$params->stop] set to true for canceling $stop orders
+             * @param {boolean} [$params->trigger] set to true for canceling $stop orders
              * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=$order-structure $order structures~
              */
             if ($symbol === null) {
@@ -2907,7 +2907,10 @@ class coinex extends Exchange {
         return Async\async(function () use ($id, $symbol, $type, $side, $amount, $price, $params) {
             /**
              * edit a trade order
-             * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade022_modify_order
+             * @see https://docs.coinex.com/api/v2/spot/order/http/edit-order
+             * @see https://docs.coinex.com/api/v2/spot/order/http/edit-stop-order
+             * @see https://docs.coinex.com/api/v2/futures/order/http/edit-order
+             * @see https://docs.coinex.com/api/v2/futures/order/http/edit-stop-order
              * @param {string} $id order $id
              * @param {string} $symbol unified $symbol of the $market to create an order in
              * @param {string} $type 'market' or 'limit'
@@ -2915,6 +2918,7 @@ class coinex extends Exchange {
              * @param {float} $amount how much of the currency you want to trade in units of the base currency
              * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {float} [$params->triggerPrice] the $price to trigger stop orders
              * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
             if ($symbol === null) {
@@ -2922,12 +2926,8 @@ class coinex extends Exchange {
             }
             Async\await($this->load_markets());
             $market = $this->market($symbol);
-            if (!$market['spot']) {
-                throw new NotSupported($this->id . ' editOrder() does not support ' . $market['type'] . ' orders, only spot orders are accepted');
-            }
             $request = array(
                 'market' => $market['id'],
-                'id' => intval($id),
             );
             if ($amount !== null) {
                 $request['amount'] = $this->amount_to_precision($symbol, $amount);
@@ -2935,38 +2935,113 @@ class coinex extends Exchange {
             if ($price !== null) {
                 $request['price'] = $this->price_to_precision($symbol, $price);
             }
-            $response = Async\await($this->v1PrivatePostOrderModify (array_merge($request, $params)));
-            //
-            //     {
-            //         "code" => 0,
-            //         "data" => array(
-            //             "id" => 35436205,
-            //             "create_time" => 1636080705,
-            //             "finished_time" => null,
-            //             "amount" => "0.30000000",
-            //             "price" => " 56000",
-            //             "deal_amount" => "0.24721428",
-            //             "deal_money" => "13843.9996800000000000",
-            //             "deal_fee" => "0",
-            //             "stock_fee" => "0",
-            //             "money_fee" => "0",
-            //             " asset_fee" => "8.721719798400000000000000",
-            //             "fee_asset" => "CET",
-            //             "fee_discount" => "0.70",
-            //             "avg_price" => "56000",
-            //             "market" => "BTCUSDT",
-            //             "left" => "0.05278572 ",
-            //             "maker_fee_rate" => "0.0018",
-            //             "taker_fee_rate" => "0.0018",
-            //             "order_type" => "limit",
-            //             "type" => "buy",
-            //             "status" => "cancel",
-            //             "client_id " => "abcd222",
-            //             "source_id" => "1234"
-            //     ),
-            //         "message" => "Success"
-            //     }
-            //
+            $response = null;
+            $triggerPrice = $this->safe_string_n($params, array( 'stopPrice', 'triggerPrice', 'trigger_price' ));
+            $params = $this->omit($params, array( 'stopPrice', 'triggerPrice' ));
+            $isTriggerOrder = $triggerPrice !== null;
+            if ($isTriggerOrder) {
+                $request['trigger_price'] = $this->price_to_precision($symbol, $triggerPrice);
+                $request['stop_id'] = $this->parse_to_numeric($id);
+            } else {
+                $request['order_id'] = $this->parse_to_numeric($id);
+            }
+            $marginMode = null;
+            list($marginMode, $params) = $this->handle_margin_mode_and_params('editOrder', $params);
+            if ($market['spot']) {
+                if ($marginMode !== null) {
+                    $request['market_type'] = 'MARGIN';
+                } else {
+                    $request['market_type'] = 'SPOT';
+                }
+                if ($isTriggerOrder) {
+                    $response = Async\await($this->v2PrivatePostSpotModifyStopOrder (array_merge($request, $params)));
+                    //
+                    //     {
+                    //         "code" => 0,
+                    //         "data" => array(
+                    //             "stop_id" => 117337235167
+                    //         ),
+                    //         "message" => "OK"
+                    //     }
+                    //
+                } else {
+                    $response = Async\await($this->v2PrivatePostSpotModifyOrder (array_merge($request, $params)));
+                    //
+                    //     {
+                    //         "code" => 0,
+                    //         "data" => array(
+                    //             "amount" => "0.0001",
+                    //             "base_fee" => "0",
+                    //             "ccy" => "BTC",
+                    //             "client_id" => "x-167673045-87eb2bebf42882d8",
+                    //             "created_at" => 1714290302047,
+                    //             "discount_fee" => "0",
+                    //             "filled_amount" => "0",
+                    //             "filled_value" => "0",
+                    //             "last_fill_amount" => "0",
+                    //             "last_fill_price" => "0",
+                    //             "maker_fee_rate" => "0.002",
+                    //             "market" => "BTCUSDT",
+                    //             "market_type" => "SPOT",
+                    //             "order_id" => 117336922195,
+                    //             "price" => "61000",
+                    //             "quote_fee" => "0",
+                    //             "side" => "buy",
+                    //             "status" => "open",
+                    //             "taker_fee_rate" => "0.002",
+                    //             "type" => "limit",
+                    //             "unfilled_amount" => "0.0001",
+                    //             "updated_at" => 1714290191141
+                    //         ),
+                    //         "message" => "OK"
+                    //     }
+                    //
+                }
+            } else {
+                $request['market_type'] = 'FUTURES';
+                if ($isTriggerOrder) {
+                    $response = Async\await($this->v2PrivatePostFuturesModifyStopOrder (array_merge($request, $params)));
+                    //
+                    //     {
+                    //         "code" => 0,
+                    //         "data" => array(
+                    //             "stop_id" => 137091875605
+                    //         ),
+                    //         "message" => "OK"
+                    //     }
+                    //
+                } else {
+                    $response = Async\await($this->v2PrivatePostFuturesModifyOrder (array_merge($request, $params)));
+                    //
+                    //     {
+                    //         "code" => 0,
+                    //         "data" => array(
+                    //             "amount" => "0.0001",
+                    //             "client_id" => "x-167673045-3f2d09191462b207",
+                    //             "created_at" => 1714290927630,
+                    //             "fee" => "0",
+                    //             "fee_ccy" => "USDT",
+                    //             "filled_amount" => "0",
+                    //             "filled_value" => "0",
+                    //             "last_filled_amount" => "0",
+                    //             "last_filled_price" => "0",
+                    //             "maker_fee_rate" => "0.0003",
+                    //             "market" => "BTCUSDT",
+                    //             "market_type" => "FUTURES",
+                    //             "order_id" => 137091566717,
+                    //             "price" => "61000",
+                    //             "realized_pnl" => "0",
+                    //             "side" => "buy",
+                    //             "taker_fee_rate" => "0.0005",
+                    //             "type" => "limit",
+                    //             "unfilled_amount" => "0.0001",
+                    //             "updated_at" => 1714290927630
+                    //         ),
+                    //         "message" => "OK"
+                    //     }
+                    //
+                }
+            }
             $data = $this->safe_dict($response, 'data', array());
             return $this->parse_order($data, $market);
         }) ();

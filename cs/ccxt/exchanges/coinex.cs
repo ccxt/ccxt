@@ -1884,7 +1884,7 @@ public partial class coinex : Exchange
         //         "user_id": 3620173
         //     }
         //
-        // Spot and Margin createOrder, createOrders, cancelOrders v2
+        // Spot and Margin createOrder, createOrders, cancelOrders, editOrder v2
         //
         //     {
         //         "amount": "0.0001",
@@ -1910,13 +1910,13 @@ public partial class coinex : Exchange
         //         "updated_at": 1714114386250
         //     }
         //
-        // Spot, Margin and Swap trigger createOrder, createOrders v2
+        // Spot, Margin and Swap trigger createOrder, createOrders, editOrder v2
         //
         //     {
         //         "stop_id": 117180138153
         //     }
         //
-        // Swap createOrder, createOrders, cancelOrders v2
+        // Swap createOrder, createOrders, cancelOrders, editOrder v2
         //
         //     {
         //         "amount": "0.0001",
@@ -2461,7 +2461,7 @@ public partial class coinex : Exchange
         * @param {string[]} ids order ids
         * @param {string} symbol unified market symbol
         * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {boolean} [params.stop] set to true for canceling stop orders
+        * @param {boolean} [params.trigger] set to true for canceling stop orders
         * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
@@ -2520,9 +2520,12 @@ public partial class coinex : Exchange
     {
         /**
         * @method
-        * @name okx#editOrder
+        * @name coinex#editOrder
         * @description edit a trade order
-        * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade022_modify_order
+        * @see https://docs.coinex.com/api/v2/spot/order/http/edit-order
+        * @see https://docs.coinex.com/api/v2/spot/order/http/edit-stop-order
+        * @see https://docs.coinex.com/api/v2/futures/order/http/edit-order
+        * @see https://docs.coinex.com/api/v2/futures/order/http/edit-stop-order
         * @param {string} id order id
         * @param {string} symbol unified symbol of the market to create an order in
         * @param {string} type 'market' or 'limit'
@@ -2530,6 +2533,7 @@ public partial class coinex : Exchange
         * @param {float} amount how much of the currency you want to trade in units of the base currency
         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {float} [params.triggerPrice] the price to trigger stop orders
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
@@ -2539,13 +2543,8 @@ public partial class coinex : Exchange
         }
         await this.loadMarkets();
         object market = this.market(symbol);
-        if (!isTrue(getValue(market, "spot")))
-        {
-            throw new NotSupported ((string)add(add(add(this.id, " editOrder() does not support "), getValue(market, "type")), " orders, only spot orders are accepted")) ;
-        }
         object request = new Dictionary<string, object>() {
             { "market", getValue(market, "id") },
-            { "id", parseInt(id) },
         };
         if (isTrue(!isEqual(amount, null)))
         {
@@ -2555,38 +2554,49 @@ public partial class coinex : Exchange
         {
             ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
         }
-        object response = await this.v1PrivatePostOrderModify(this.extend(request, parameters));
-        //
-        //     {
-        //         "code": 0,
-        //         "data": {
-        //             "id": 35436205,
-        //             "create_time": 1636080705,
-        //             "finished_time": null,
-        //             "amount": "0.30000000",
-        //             "price": " 56000",
-        //             "deal_amount": "0.24721428",
-        //             "deal_money": "13843.9996800000000000",
-        //             "deal_fee": "0",
-        //             "stock_fee": "0",
-        //             "money_fee": "0",
-        //             " asset_fee": "8.721719798400000000000000",
-        //             "fee_asset": "CET",
-        //             "fee_discount": "0.70",
-        //             "avg_price": "56000",
-        //             "market": "BTCUSDT",
-        //             "left": "0.05278572 ",
-        //             "maker_fee_rate": "0.0018",
-        //             "taker_fee_rate": "0.0018",
-        //             "order_type": "limit",
-        //             "type": "buy",
-        //             "status": "cancel",
-        //             "client_id ": "abcd222",
-        //             "source_id": "1234"
-        //     },
-        //         "message": "Success"
-        //     }
-        //
+        object response = null;
+        object triggerPrice = this.safeStringN(parameters, new List<object>() {"stopPrice", "triggerPrice", "trigger_price"});
+        parameters = this.omit(parameters, new List<object>() {"stopPrice", "triggerPrice"});
+        object isTriggerOrder = !isEqual(triggerPrice, null);
+        if (isTrue(isTriggerOrder))
+        {
+            ((IDictionary<string,object>)request)["trigger_price"] = this.priceToPrecision(symbol, triggerPrice);
+            ((IDictionary<string,object>)request)["stop_id"] = this.parseToNumeric(id);
+        } else
+        {
+            ((IDictionary<string,object>)request)["order_id"] = this.parseToNumeric(id);
+        }
+        object marginMode = null;
+        var marginModeparametersVariable = this.handleMarginModeAndParams("editOrder", parameters);
+        marginMode = ((IList<object>)marginModeparametersVariable)[0];
+        parameters = ((IList<object>)marginModeparametersVariable)[1];
+        if (isTrue(getValue(market, "spot")))
+        {
+            if (isTrue(!isEqual(marginMode, null)))
+            {
+                ((IDictionary<string,object>)request)["market_type"] = "MARGIN";
+            } else
+            {
+                ((IDictionary<string,object>)request)["market_type"] = "SPOT";
+            }
+            if (isTrue(isTriggerOrder))
+            {
+                response = await this.v2PrivatePostSpotModifyStopOrder(this.extend(request, parameters));
+            } else
+            {
+                response = await this.v2PrivatePostSpotModifyOrder(this.extend(request, parameters));
+            }
+        } else
+        {
+            ((IDictionary<string,object>)request)["market_type"] = "FUTURES";
+            if (isTrue(isTriggerOrder))
+            {
+                response = await this.v2PrivatePostFuturesModifyStopOrder(this.extend(request, parameters));
+            } else
+            {
+                response = await this.v2PrivatePostFuturesModifyOrder(this.extend(request, parameters));
+            }
+        }
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return this.parseOrder(data, market);
     }
