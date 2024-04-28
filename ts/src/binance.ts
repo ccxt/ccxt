@@ -12718,6 +12718,9 @@ export default class binance extends Exchange {
             //     }
             //
         } else {
+            if ((request['endTime'] - request['startTime']) > msInThirtyDays) {
+                throw new BadRequest (this.id + ' fetchConvertTradeHistory () the max interval between startTime and endTime is 30 days.');
+            }
             if (limit !== undefined) {
                 request['limit'] = limit;
             }
