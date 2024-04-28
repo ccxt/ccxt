@@ -167,7 +167,7 @@ public partial class Exchange
 
         var connected = client.connect(0);
 
-        if (client.subscriptions.TryAdd (subscribeHash, subscription ?? true))
+        if ((client.subscriptions as ConcurrentDictionary<string, object>).TryAdd(subscribeHash, subscription ?? true))
         {
             await connected;
             if (message != null)
