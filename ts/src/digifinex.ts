@@ -6,7 +6,7 @@ import { AccountSuspended, BadRequest, BadResponse, NetworkError, DDoSProtection
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { FundingRateHistory, Int, OHLCV, Order, OrderSide, OrderType, OrderRequest, Trade, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Strings, Market, Currency, TransferEntry, Num, MarginModification, TradingFeeInterface, Currencies } from './base/types.js';
+import type { FundingRateHistory, Int, OHLCV, Order, OrderSide, OrderType, OrderRequest, Trade, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Strings, Market, Currency, TransferEntry, Num, MarginModification, TradingFeeInterface, Currencies, CrossBorrowRate, CrossBorrowRates } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -2947,7 +2947,7 @@ export default class digifinex extends Exchange {
         return this.parseTransfer (response, currency);
     }
 
-    async withdraw (code: string, amount: number, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {
         /**
          * @method
          * @name digifinex#withdraw
@@ -3051,7 +3051,7 @@ export default class digifinex extends Exchange {
         };
     }
 
-    async fetchCrossBorrowRate (code: string, params = {}) {
+    async fetchCrossBorrowRate (code: string, params = {}): Promise<CrossBorrowRate> {
         /**
          * @method
          * @name digifinex#fetchCrossBorrowRate
@@ -3093,7 +3093,7 @@ export default class digifinex extends Exchange {
         return this.parseBorrowRate (result, currency);
     }
 
-    async fetchCrossBorrowRates (params = {}) {
+    async fetchCrossBorrowRates (params = {}): Promise<CrossBorrowRates> {
         /**
          * @method
          * @name digifinex#fetchCrossBorrowRates
@@ -4020,7 +4020,7 @@ export default class digifinex extends Exchange {
         return depositWithdrawFees;
     }
 
-    async addMargin (symbol: string, amount, params = {}): Promise<MarginModification> {
+    async addMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
         /**
          * @method
          * @name digifinex#addMargin
@@ -4037,7 +4037,7 @@ export default class digifinex extends Exchange {
         return await this.modifyMarginHelper (symbol, amount, 1, params);
     }
 
-    async reduceMargin (symbol: string, amount, params = {}): Promise<MarginModification> {
+    async reduceMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
         /**
          * @method
          * @name digifinex#reduceMargin

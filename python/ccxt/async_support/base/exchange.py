@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.3.6'
+__version__ = '4.3.11'
 
 # -----------------------------------------------------------------------------
 
@@ -1893,3 +1893,29 @@ class Exchange(BaseExchange):
         sorted = self.sortCursorPaginatedResult(result)
         key = 0 if (method == 'fetchOHLCV') else 'timestamp'
         return self.filter_by_since_limit(sorted, since, limit, key)
+
+    async def fetch_position_history(self, symbol: str, since: Int = None, limit: Int = None, params={}):
+        """
+        fetches the history of margin added or reduced from contract isolated positions
+        :param str [symbol]: unified market symbol
+        :param int [since]: timestamp in ms of the position
+        :param int [limit]: the maximum amount of candles to fetch, default=1000
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns dict[]: a list of `position structures <https://docs.ccxt.com/#/?id=position-structure>`
+        """
+        if self.has['fetchPositionsHistory']:
+            positions = await self.fetch_positions_history([symbol], since, limit, params)
+            return self.safe_dict(positions, 0)
+        else:
+            raise NotSupported(self.id + ' fetchPositionHistory() is not supported yet')
+
+    async def fetch_positions_history(self, symbols: Strings = None, since: Int = None, limit: Int = None, params={}):
+        """
+        fetches the history of margin added or reduced from contract isolated positions
+        :param str [symbol]: unified market symbol
+        :param int [since]: timestamp in ms of the position
+        :param int [limit]: the maximum amount of candles to fetch, default=1000
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns dict[]: a list of `position structures <https://docs.ccxt.com/#/?id=position-structure>`
+        """
+        raise NotSupported(self.id + ' fetchPositionsHistory() is not supported yet')

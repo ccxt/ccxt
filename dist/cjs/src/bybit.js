@@ -102,7 +102,9 @@ class bybit extends bybit$1 {
                 'fetchOrders': false,
                 'fetchOrderTrades': true,
                 'fetchPosition': true,
+                'fetchPositionHistory': 'emulated',
                 'fetchPositions': true,
+                'fetchPositionsHistory': true,
                 'fetchPremiumIndexOHLCV': true,
                 'fetchSettlementHistory': true,
                 'fetchTicker': true,
@@ -4065,44 +4067,8 @@ class bybit extends bybit$1 {
         const result = this.safeDict(response, 'result', {});
         return this.parseOrder(result, market);
     }
-    async editOrder(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
-        /**
-         * @method
-         * @name bybit#editOrder
-         * @description edit a trade order
-         * @see https://bybit-exchange.github.io/docs/v5/order/amend-order
-         * @see https://bybit-exchange.github.io/docs/derivatives/unified/replace-order
-         * @see https://bybit-exchange.github.io/docs/api-explorer/derivatives/trade/contract/replace-order
-         * @param {string} id cancel order id
-         * @param {string} symbol unified symbol of the market to create an order in
-         * @param {string} type 'market' or 'limit'
-         * @param {string} side 'buy' or 'sell'
-         * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} price the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {float} [params.triggerPrice] The price that a trigger order is triggered at
-         * @param {float} [params.stopLossPrice] The price that a stop loss order is triggered at
-         * @param {float} [params.takeProfitPrice] The price that a take profit order is triggered at
-         * @param {object} [params.takeProfit] *takeProfit object in params* containing the triggerPrice that the attached take profit order will be triggered
-         * @param {float} [params.takeProfit.triggerPrice] take profit trigger price
-         * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice that the attached stop loss order will be triggered
-         * @param {float} [params.stopLoss.triggerPrice] stop loss trigger price
-         * @param {string} [params.triggerBy] 'IndexPrice', 'MarkPrice' or 'LastPrice', default is 'LastPrice', required if no initial value for triggerPrice
-         * @param {string} [params.slTriggerBy] 'IndexPrice', 'MarkPrice' or 'LastPrice', default is 'LastPrice', required if no initial value for stopLoss
-         * @param {string} [params.tpTriggerby] 'IndexPrice', 'MarkPrice' or 'LastPrice', default is 'LastPrice', required if no initial value for takeProfit
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
-        if (symbol === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' editOrder() requires a symbol argument');
-        }
-        await this.loadMarkets();
+    editOrderRequest(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         const market = this.market(symbol);
-        const [enableUnifiedMargin, enableUnifiedAccount] = await this.isUnifiedEnabled();
-        const isUnifiedAccount = (enableUnifiedMargin || enableUnifiedAccount);
-        const isUsdcSettled = market['settle'] === 'USDC';
-        if (isUsdcSettled && !isUnifiedAccount) {
-            return await this.editUsdcOrder(id, symbol, type, side, amount, price, params);
-        }
         const request = {
             'symbol': market['id'],
             'orderId': id,
@@ -4176,6 +4142,47 @@ class bybit extends bybit$1 {
             request['orderLinkId'] = clientOrderId;
         }
         params = this.omit(params, ['stopPrice', 'stopLossPrice', 'takeProfitPrice', 'triggerPrice', 'clientOrderId', 'stopLoss', 'takeProfit']);
+        return request;
+    }
+    async editOrder(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
+        /**
+         * @method
+         * @name bybit#editOrder
+         * @description edit a trade order
+         * @see https://bybit-exchange.github.io/docs/v5/order/amend-order
+         * @see https://bybit-exchange.github.io/docs/derivatives/unified/replace-order
+         * @see https://bybit-exchange.github.io/docs/api-explorer/derivatives/trade/contract/replace-order
+         * @param {string} id cancel order id
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float} price the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {float} [params.triggerPrice] The price that a trigger order is triggered at
+         * @param {float} [params.stopLossPrice] The price that a stop loss order is triggered at
+         * @param {float} [params.takeProfitPrice] The price that a take profit order is triggered at
+         * @param {object} [params.takeProfit] *takeProfit object in params* containing the triggerPrice that the attached take profit order will be triggered
+         * @param {float} [params.takeProfit.triggerPrice] take profit trigger price
+         * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice that the attached stop loss order will be triggered
+         * @param {float} [params.stopLoss.triggerPrice] stop loss trigger price
+         * @param {string} [params.triggerBy] 'IndexPrice', 'MarkPrice' or 'LastPrice', default is 'LastPrice', required if no initial value for triggerPrice
+         * @param {string} [params.slTriggerBy] 'IndexPrice', 'MarkPrice' or 'LastPrice', default is 'LastPrice', required if no initial value for stopLoss
+         * @param {string} [params.tpTriggerby] 'IndexPrice', 'MarkPrice' or 'LastPrice', default is 'LastPrice', required if no initial value for takeProfit
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets();
+        if (symbol === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' editOrder() requires a symbol argument');
+        }
+        const market = this.market(symbol);
+        const [enableUnifiedMargin, enableUnifiedAccount] = await this.isUnifiedEnabled();
+        const isUnifiedAccount = (enableUnifiedMargin || enableUnifiedAccount);
+        const isUsdcSettled = market['settle'] === 'USDC';
+        if (isUsdcSettled && !isUnifiedAccount) {
+            return await this.editUsdcOrder(id, symbol, type, side, amount, price, params);
+        }
+        const request = this.editOrderRequest(id, symbol, type, side, amount, price, params);
         const response = await this.privatePostV5OrderAmend(this.extend(request, params));
         //
         //     {
@@ -4235,6 +4242,38 @@ class bybit extends bybit$1 {
         const result = this.safeDict(response, 'result', {});
         return this.parseOrder(result, market);
     }
+    cancelOrderRequest(id, symbol = undefined, params = {}) {
+        const market = this.market(symbol);
+        const request = {
+            'symbol': market['id'],
+            // 'orderLinkId': 'string',
+            // 'orderId': id,
+            // conditional orders
+            // 'orderFilter': '', // Valid for spot only. Order,tpslOrder. If not passed, Order by default
+        };
+        if (market['spot']) {
+            // only works for spot market
+            const isStop = this.safeBool2(params, 'stop', 'trigger', false);
+            params = this.omit(params, ['stop', 'trigger']);
+            request['orderFilter'] = isStop ? 'StopOrder' : 'Order';
+        }
+        if (id !== undefined) { // The user can also use argument params["orderLinkId"]
+            request['orderId'] = id;
+        }
+        if (market['spot']) {
+            request['category'] = 'spot';
+        }
+        else if (market['linear']) {
+            request['category'] = 'linear';
+        }
+        else if (market['inverse']) {
+            request['category'] = 'inverse';
+        }
+        else if (market['option']) {
+            request['category'] = 'option';
+        }
+        return this.extend(request, params);
+    }
     async cancelOrder(id, symbol = undefined, params = {}) {
         /**
          * @method
@@ -4259,35 +4298,8 @@ class bybit extends bybit$1 {
         if (isUsdcSettled && !isUnifiedAccount) {
             return await this.cancelUsdcOrder(id, symbol, params);
         }
-        const request = {
-            'symbol': market['id'],
-            // 'orderLinkId': 'string',
-            // 'orderId': id,
-            // conditional orders
-            // 'orderFilter': '', // Valid for spot only. Order,tpslOrder. If not passed, Order by default
-        };
-        if (market['spot']) {
-            // only works for spot market
-            const isStop = this.safeValue2(params, 'stop', 'trigger', false);
-            params = this.omit(params, ['stop', 'trigger']);
-            request['orderFilter'] = isStop ? 'StopOrder' : 'Order';
-        }
-        if (id !== undefined) { // The user can also use argument params["orderLinkId"]
-            request['orderId'] = id;
-        }
-        if (market['spot']) {
-            request['category'] = 'spot';
-        }
-        else if (market['linear']) {
-            request['category'] = 'linear';
-        }
-        else if (market['inverse']) {
-            request['category'] = 'inverse';
-        }
-        else if (market['option']) {
-            request['category'] = 'option';
-        }
-        const response = await this.privatePostV5OrderCancel(this.extend(request, params));
+        const requestExtended = this.cancelOrderRequest(id, symbol, params);
+        const response = await this.privatePostV5OrderCancel(requestExtended);
         //
         //     {
         //         "retCode": 0,
@@ -6457,37 +6469,64 @@ class bybit extends bybit$1 {
         //         "tradeMode": 0
         //     }
         //
+        // fetchPositionsHistory
+        //
+        //    {
+        //        symbol: 'XRPUSDT',
+        //        orderType: 'Market',
+        //        leverage: '10',
+        //        updatedTime: '1712717265572',
+        //        side: 'Sell',
+        //        orderId: '071749f3-a9fa-427b-b5ca-27b2f52b81de',
+        //        closedPnl: '-0.00049568',
+        //        avgEntryPrice: '0.6045',
+        //        qty: '3',
+        //        cumEntryValue: '1.8135',
+        //        createdTime: '1712717265566',
+        //        orderPrice: '0.5744',
+        //        closedSize: '3',
+        //        avgExitPrice: '0.605',
+        //        execType: 'Trade',
+        //        fillCount: '1',
+        //        cumExitValue: '1.815'
+        //    }
+        //
+        const closedSize = this.safeString(position, 'closedSize');
+        const isHistory = (closedSize !== undefined);
         const contract = this.safeString(position, 'symbol');
         market = this.safeMarket(contract, market, undefined, 'contract');
-        const size = Precise["default"].stringAbs(this.safeString(position, 'size'));
+        const size = Precise["default"].stringAbs(this.safeString2(position, 'size', 'qty'));
         let side = this.safeString(position, 'side');
         if (side !== undefined) {
             if (side === 'Buy') {
-                side = 'long';
+                side = isHistory ? 'short' : 'long';
             }
             else if (side === 'Sell') {
-                side = 'short';
+                side = isHistory ? 'long' : 'short';
             }
             else {
                 side = undefined;
             }
         }
-        const notional = this.safeString(position, 'positionValue');
+        const notional = this.safeString2(position, 'positionValue', 'cumExitValue');
         const unrealisedPnl = this.omitZero(this.safeString(position, 'unrealisedPnl'));
-        let initialMarginString = this.safeString(position, 'positionIM');
+        let initialMarginString = this.safeStringN(position, ['positionIM', 'cumEntryValue']);
         let maintenanceMarginString = this.safeString(position, 'positionMM');
-        let timestamp = this.parse8601(this.safeString(position, 'updated_at'));
-        if (timestamp === undefined) {
-            timestamp = this.safeIntegerN(position, ['updatedTime', 'updatedAt']);
+        const timestamp = this.safeIntegerN(position, ['createdTime', 'createdAt']);
+        let lastUpdateTimestamp = this.parse8601(this.safeString(position, 'updated_at'));
+        if (lastUpdateTimestamp === undefined) {
+            lastUpdateTimestamp = this.safeIntegerN(position, ['updatedTime', 'updatedAt', 'updatedTime']);
         }
         const tradeMode = this.safeInteger(position, 'tradeMode', 0);
         let marginMode = undefined;
         if ((!this.options['enableUnifiedAccount']) || (this.options['enableUnifiedAccount'] && market['inverse'])) {
             // tradeMode would work for classic and UTA(inverse)
-            marginMode = (tradeMode === 1) ? 'isolated' : 'cross';
+            if (!isHistory) { // cannot tell marginMode for fetchPositionsHistory, and closedSize will only be defined for fetchPositionsHistory response
+                marginMode = (tradeMode === 1) ? 'isolated' : 'cross';
+            }
         }
         let collateralString = this.safeString(position, 'positionBalance');
-        const entryPrice = this.omitZero(this.safeString2(position, 'entryPrice', 'avgPrice'));
+        const entryPrice = this.omitZero(this.safeStringN(position, ['entryPrice', 'avgPrice', 'avgEntryPrice']));
         const liquidationPrice = this.omitZero(this.safeString(position, 'liqPrice'));
         const leverage = this.safeString(position, 'leverage');
         if (liquidationPrice !== undefined) {
@@ -6533,7 +6572,7 @@ class bybit extends bybit$1 {
             'symbol': market['symbol'],
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'lastUpdateTimestamp': undefined,
+            'lastUpdateTimestamp': lastUpdateTimestamp,
             'initialMargin': this.parseNumber(initialMarginString),
             'initialMarginPercentage': this.parseNumber(Precise["default"].stringDiv(initialMarginString, notional)),
             'maintenanceMargin': this.parseNumber(maintenanceMarginString),
@@ -6542,12 +6581,13 @@ class bybit extends bybit$1 {
             'notional': this.parseNumber(notional),
             'leverage': this.parseNumber(leverage),
             'unrealizedPnl': this.parseNumber(unrealisedPnl),
+            'realizedPnl': this.safeNumber(position, 'closedPnl'),
             'contracts': this.parseNumber(size),
             'contractSize': this.safeNumber(market, 'contractSize'),
             'marginRatio': this.parseNumber(marginRatio),
             'liquidationPrice': this.parseNumber(liquidationPrice),
             'markPrice': this.safeNumber(position, 'markPrice'),
-            'lastPrice': undefined,
+            'lastPrice': this.safeNumber(position, 'avgExitPrice'),
             'collateral': this.parseNumber(collateralString),
             'marginMode': marginMode,
             'side': side,
@@ -8469,6 +8509,87 @@ class bybit extends bybit$1 {
             'baseVolume': this.safeNumber(chain, 'totalVolume'),
             'quoteVolume': undefined,
         };
+    }
+    async fetchPositionsHistory(symbols = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bybit#fetchPositionsHistory
+         * @description fetches historical positions
+         * @see https://bybit-exchange.github.io/docs/v5/position/close-pnl
+         * @param {string} [symbol] unified market symbols, symbols must have the same subType (must all be linear or all be inverse)
+         * @param {int} [since] timestamp in ms of the earliest position to fetch, params["until"] - since <= 7 days
+         * @param {int} [limit] the maximum amount of records to fetch, default=50, max=100
+         * @param {object} params extra parameters specific to the exchange api endpoint
+         * @param {int} [params.until] timestamp in ms of the latest position to fetch, params["until"] - since <= 7 days
+         * @param {string} [params.subType] 'linear' or 'inverse'
+         * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+         */
+        await this.loadMarkets();
+        let market = undefined;
+        let subType = undefined;
+        let symbolsLength = 0;
+        if (symbols !== undefined) {
+            symbolsLength = symbols.length;
+            if (symbolsLength > 0) {
+                market = this.market(symbols[0]);
+            }
+        }
+        const until = this.safeInteger(params, 'until');
+        [subType, params] = this.handleSubTypeAndParams('fetchPositionsHistory', market, params, 'linear');
+        params = this.omit(params, 'until');
+        const request = {
+            'category': subType,
+        };
+        if ((symbols !== undefined) && (symbolsLength === 1)) {
+            request['symbol'] = market['id'];
+        }
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        if (until !== undefined) {
+            request['endTime'] = until;
+        }
+        const response = await this.privateGetV5PositionClosedPnl(this.extend(request, params));
+        //
+        //    {
+        //        retCode: '0',
+        //        retMsg: 'OK',
+        //        result: {
+        //            nextPageCursor: '071749f3-a9fa-427b-b5ca-27b2f52b81de%3A1712717265566520788%2C071749f3-a9fa-427b-b5ca-27b2f52b81de%3A1712717265566520788',
+        //            category: 'linear',
+        //            list: [
+        //                {
+        //                    symbol: 'XRPUSDT',
+        //                    orderType: 'Market',
+        //                    leverage: '10',
+        //                    updatedTime: '1712717265572',
+        //                    side: 'Sell',
+        //                    orderId: '071749f3-a9fa-427b-b5ca-27b2f52b81de',
+        //                    closedPnl: '-0.00049568',
+        //                    avgEntryPrice: '0.6045',
+        //                    qty: '3',
+        //                    cumEntryValue: '1.8135',
+        //                    createdTime: '1712717265566',
+        //                    orderPrice: '0.5744',
+        //                    closedSize: '3',
+        //                    avgExitPrice: '0.605',
+        //                    execType: 'Trade',
+        //                    fillCount: '1',
+        //                    cumExitValue: '1.815'
+        //                }
+        //            ]
+        //        },
+        //        retExtInfo: {},
+        //        time: '1712717286073'
+        //    }
+        //
+        const result = this.safeDict(response, 'result');
+        const rawPositions = this.safeList(result, 'list');
+        const positions = this.parsePositions(rawPositions, symbols, params);
+        return this.filterBySinceLimit(positions, since, limit);
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.implodeHostname(this.urls['api'][api]) + '/' + path;

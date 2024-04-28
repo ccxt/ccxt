@@ -3160,7 +3160,7 @@ class bitmart extends Exchange {
         return $this->network_id_to_code($networkId);
     }
 
-    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
@@ -3577,7 +3577,7 @@ class bitmart extends Exchange {
         );
     }
 
-    public function fetch_isolated_borrow_rate(string $symbol, $params = array ()) {
+    public function fetch_isolated_borrow_rate(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch the rate of interest to borrow a currency for margin trading
@@ -3631,7 +3631,7 @@ class bitmart extends Exchange {
         }) ();
     }
 
-    public function parse_isolated_borrow_rate($info, ?array $market = null) {
+    public function parse_isolated_borrow_rate($info, ?array $market = null): array {
         //
         //     {
         //         "symbol" => "BTC_USDT",
@@ -3674,7 +3674,7 @@ class bitmart extends Exchange {
         );
     }
 
-    public function fetch_isolated_borrow_rates($params = array ()) {
+    public function fetch_isolated_borrow_rates($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetch the borrow interest rates of all currencies, currently only works for isolated margin
@@ -3718,12 +3718,7 @@ class bitmart extends Exchange {
             //
             $data = $this->safe_value($response, 'data', array());
             $symbols = $this->safe_value($data, 'symbols', array());
-            $result = array();
-            for ($i = 0; $i < count($symbols); $i++) {
-                $symbol = $this->safe_value($symbols, $i);
-                $result[] = $this->parse_isolated_borrow_rate($symbol);
-            }
-            return $result;
+            return $this->parse_isolated_borrow_rates($symbols);
         }) ();
     }
 

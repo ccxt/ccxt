@@ -2892,7 +2892,7 @@ class digifinex extends Exchange {
         return $this->parse_transfer($response, $currency);
     }
 
-    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
         /**
          * make a withdrawal
          * @param {string} $code unified $currency $code
@@ -2994,7 +2994,7 @@ class digifinex extends Exchange {
         );
     }
 
-    public function fetch_cross_borrow_rate(string $code, $params = array ()) {
+    public function fetch_cross_borrow_rate(string $code, $params = array ()): array {
         /**
          * fetch the rate of interest to borrow a $currency for margin trading
          * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#margin-assets
@@ -3034,7 +3034,7 @@ class digifinex extends Exchange {
         return $this->parse_borrow_rate($result, $currency);
     }
 
-    public function fetch_cross_borrow_rates($params = array ()) {
+    public function fetch_cross_borrow_rates($params = array ()): CrossBorrowRates {
         /**
          * fetch the borrow interest rates of all currencies
          * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#margin-assets
@@ -3938,7 +3938,7 @@ class digifinex extends Exchange {
         return $depositWithdrawFees;
     }
 
-    public function add_margin(string $symbol, $amount, $params = array ()): array {
+    public function add_margin(string $symbol, float $amount, $params = array ()): array {
         /**
          * add margin to a position
          * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#positionmargin
@@ -3953,7 +3953,7 @@ class digifinex extends Exchange {
         return $this->modify_margin_helper($symbol, $amount, 1, $params);
     }
 
-    public function reduce_margin(string $symbol, $amount, $params = array ()): array {
+    public function reduce_margin(string $symbol, float $amount, $params = array ()): array {
         /**
          * remove margin from a position
          * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#positionmargin

@@ -3244,8 +3244,9 @@ export default class hitbtc extends Exchange {
                 throw new ArgumentsRequired(this.id + ' modifyMarginHelper() requires a leverage parameter for swap markets');
             }
         }
-        if (amount !== 0) {
-            amount = this.amountToPrecision(symbol, amount);
+        const stringAmount = this.numberToString(amount);
+        if (stringAmount !== '0') {
+            amount = this.amountToPrecision(symbol, stringAmount);
         }
         else {
             amount = '0';
@@ -3347,7 +3348,7 @@ export default class hitbtc extends Exchange {
          * @param {bool} [params.margin] true for reducing spot-margin
          * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=reduce-margin-structure}
          */
-        if (amount !== 0) {
+        if (this.numberToString(amount) !== '0') {
             throw new BadRequest(this.id + ' reduceMargin() on hitbtc requires the amount to be 0 and that will remove the entire margin amount');
         }
         return await this.modifyMarginHelper(symbol, amount, 'reduce', params);

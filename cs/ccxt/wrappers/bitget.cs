@@ -165,7 +165,7 @@ public partial class bitget
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}.</returns>
-    public async Task<Transaction> Withdraw(string code, double amount, object address, object tag = null, Dictionary<string, object> parameters = null)
+    public async Task<Transaction> Withdraw(string code, double amount, string address, object tag = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.withdraw(code, amount, address, tag, parameters);
         return new Transaction(res);
@@ -1725,10 +1725,10 @@ public partial class bitget
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [isolated borrow rate structure]{@link https://docs.ccxt.com/#/?id=isolated-borrow-rate-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchIsolatedBorrowRate(string symbol, Dictionary<string, object> parameters = null)
+    public async Task<IsolatedBorrowRate> FetchIsolatedBorrowRate(string symbol, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchIsolatedBorrowRate(symbol, parameters);
-        return ((Dictionary<string, object>)res);
+        return new IsolatedBorrowRate(res);
     }
     /// <summary>
     /// fetch the rate of interest to borrow a currency for margin trading
@@ -1751,10 +1751,10 @@ public partial class bitget
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [borrow rate structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#borrow-rate-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchCrossBorrowRate(string code, Dictionary<string, object> parameters = null)
+    public async Task<CrossBorrowRate> FetchCrossBorrowRate(string code, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchCrossBorrowRate(code, parameters);
-        return ((Dictionary<string, object>)res);
+        return new CrossBorrowRate(res);
     }
     /// <summary>
     /// fetch the interest owed by the user for borrowing currency for margin trading
@@ -1828,6 +1828,46 @@ public partial class bitget
     {
         var res = await this.fetchMarginMode(symbol, parameters);
         return new MarginMode(res);
+    }
+    /// <summary>
+    /// fetches historical positions
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.bitget.com/api-doc/contract/position/Get-History-Position"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : timestamp in ms of the earliest position to fetch, default=3 months ago, max range for params["until"] - since is 3 months
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum amount of records to fetch, default=20, max=100
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.until</term>
+    /// <description>
+    /// int : timestamp in ms of the latest position to fetch, max range for params["until"] - since is 3 months
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.productType</term>
+    /// <description>
+    /// string : USDT-FUTURES (default), COIN-FUTURES, USDC-FUTURES, SUSDT-FUTURES, SCOIN-FUTURES, or SUSDC-FUTURES
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object[]</term> a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}.</returns>
+    public async Task<List<Position>> FetchPositionsHistory(List<String> symbols = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.fetchPositionsHistory(symbols, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new Position(item)).ToList<Position>();
     }
     /// <summary>
     /// fetch a quote for converting from one currency to another

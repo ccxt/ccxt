@@ -114,8 +114,10 @@ export default class okx extends Exchange {
                 'fetchOrderTrades': true,
                 'fetchPermissions': undefined,
                 'fetchPosition': true,
+                'fetchPositionHistory': 'emulated',
                 'fetchPositions': true,
                 'fetchPositionsForSymbol': true,
+                'fetchPositionsHistory': true,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchSettlementHistory': true,
@@ -2630,6 +2632,8 @@ export default class okx extends Exchange {
         const takeProfitDefined = (takeProfit !== undefined);
         const trailingPercent = this.safeString2(params, 'trailingPercent', 'callbackRatio');
         const isTrailingPercentOrder = trailingPercent !== undefined;
+        const trigger = (triggerPrice !== undefined) || (type === 'trigger');
+        const isReduceOnly = this.safeValue(params, 'reduceOnly', false);
         const defaultMarginMode = this.safeString2(this.options, 'defaultMarginMode', 'marginMode', 'cross');
         let marginMode = this.safeString2(params, 'marginMode', 'tdMode'); // cross or isolated, tdMode not ommited so as to be extended into the request
         let margin = false;
@@ -2656,6 +2660,25 @@ export default class okx extends Exchange {
                 if (positionSide !== undefined) {
                     request['posSide'] = positionSide;
                 }
+                else {
+                    let hedged = undefined;
+                    [hedged, params] = this.handleOptionAndParams(params, 'createOrder', 'hedged');
+                    if (hedged) {
+                        const isBuy = (side === 'buy');
+                        const isProtective = (takeProfitPrice !== undefined) || (stopLossPrice !== undefined) || isReduceOnly;
+                        if (isProtective) {
+                            // in case of protective orders, the posSide should be opposite of position side
+                            // reduceOnly is emulated and not natively supported by the exchange
+                            request['posSide'] = isBuy ? 'short' : 'long';
+                            if (isReduceOnly) {
+                                params = this.omit(params, 'reduceOnly');
+                            }
+                        }
+                        else {
+                            request['posSide'] = isBuy ? 'long' : 'short';
+                        }
+                    }
+                }
             }
             request['tdMode'] = marginMode;
         }
@@ -2665,7 +2688,6 @@ export default class okx extends Exchange {
         params = this.omit(params, ['currency', 'ccy', 'marginMode', 'timeInForce', 'stopPrice', 'triggerPrice', 'clientOrderId', 'stopLossPrice', 'takeProfitPrice', 'slOrdPx', 'tpOrdPx', 'margin', 'stopLoss', 'takeProfit', 'trailingPercent']);
         const ioc = (timeInForce === 'IOC') || (type === 'ioc');
         const fok = (timeInForce === 'FOK') || (type === 'fok');
-        const trigger = (triggerPrice !== undefined) || (type === 'trigger');
         const conditional = (stopLossPrice !== undefined) || (takeProfitPrice !== undefined) || (type === 'conditional');
         const marketIOC = (isMarketOrder && ioc) || (type === 'optimal_limit_ioc');
         const defaultTgtCcy = this.safeString(this.options, 'tgtCcy', 'base_ccy');
@@ -2875,6 +2897,7 @@ export default class okx extends Exchange {
          * @param {string} [params.positionSide] if position mode is one-way: set to 'net', if position mode is hedge-mode: set to 'long' or 'short'
          * @param {string} [params.trailingPercent] the percent to trail away from the current market price
          * @param {string} [params.tpOrdKind] 'condition' or 'limit', the default is 'condition'
+         * @param {string} [params.hedged] true/false, to automatically set exchange-specific params needed when trading in hedge mode
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
@@ -6262,6 +6285,42 @@ export default class okx extends Exchange {
         //
         return response;
     }
+    async fetchPositionMode(symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name okx#fetchPositionMode
+         * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-account-configuration
+         * @description fetchs the position mode, hedged or one way, hedged for binance is set identically for all linear markets or all inverse markets
+         * @param {string} symbol unified symbol of the market to fetch the order book for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [param.accountId] if you have multiple accounts, you must specify the account id to fetch the position mode
+         * @returns {object} an object detailing whether the market is in hedged or one-way mode
+         */
+        const accounts = await this.fetchAccounts();
+        const length = accounts.length;
+        let selectedAccount = undefined;
+        if (length > 1) {
+            const accountId = this.safeString(params, 'accountId');
+            if (accountId === undefined) {
+                const accountIds = this.getListFromObjectValues(accounts, 'id');
+                throw new ExchangeError(this.id + ' fetchPositionMode() can not detect position mode, because you have multiple accounts. Set params["accountId"] to desired id from: ' + accountIds.join(', '));
+            }
+            else {
+                const accountsById = this.indexBy(accounts, 'id');
+                selectedAccount = this.safeDict(accountsById, accountId);
+            }
+        }
+        else {
+            selectedAccount = accounts[0];
+        }
+        const mainAccount = selectedAccount['info'];
+        const posMode = this.safeString(mainAccount, 'posMode'); // long_short_mode, net_mode
+        const isHedged = posMode === 'long_short_mode';
+        return {
+            'info': mainAccount,
+            'hedged': isHedged,
+        };
+    }
     async setPositionMode(hedged, symbol = undefined, params = {}) {
         /**
          * @method
@@ -7926,7 +7985,7 @@ export default class okx extends Exchange {
         //     }
         //
         const rows = this.safeList(response, 'data', []);
-        return this.parseConversions(rows, 'baseCcy', 'quoteCcy', since, limit);
+        return this.parseConversions(rows, code, 'baseCcy', 'quoteCcy', since, limit);
     }
     parseConversion(conversion, fromCurrency = undefined, toCurrency = undefined) {
         //
@@ -8201,5 +8260,86 @@ export default class okx extends Exchange {
         const data = this.safeList(response, 'data');
         const modifications = this.parseMarginModifications(data);
         return this.filterBySymbolSinceLimit(modifications, symbol, since, limit);
+    }
+    async fetchPositionsHistory(symbols = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name okx#fetchPositionsHistory
+         * @description fetches historical positions
+         * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-positions-history
+         * @param {string} [symbols] unified market symbols
+         * @param {int} [since] timestamp in ms of the earliest position to fetch
+         * @param {int} [limit] the maximum amount of records to fetch, default=100, max=100
+         * @param {object} params extra parameters specific to the exchange api endpoint
+         * @param {string} [params.marginMode] "cross" or "isolated"
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+         * @param {string} [params.instType] margin, swap, futures or option
+         * @param {string} [params.type] the type of latest close position 1: close position partially, 2：close all, 3：liquidation, 4：partial liquidation; 5：adl, is it is the latest type if there are several types for the same position
+         * @param {string} [params.posId] position id, there is attribute expiration, the posid will be expired if it is more than 30 days after the last full close position, then position will use new posid
+         * @param {string} [params.before] timestamp in ms of the earliest position to fetch based on the last update time of the position
+         * @param {string} [params.after] timestamp in ms of the latest position to fetch based on the last update time of the position
+         * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+         */
+        await this.loadMarkets();
+        const marginMode = this.safeString(params, 'marginMode');
+        const instType = this.safeStringUpper(params, 'instType');
+        params = this.omit(params, ['until', 'marginMode', 'instType']);
+        if (limit === undefined) {
+            limit = 100;
+        }
+        const request = {
+            'limit': limit,
+        };
+        if (symbols !== undefined) {
+            const symbolsLength = symbols.length;
+            if (symbolsLength === 1) {
+                const market = this.market(symbols[0]);
+                request['instId'] = market['id'];
+            }
+        }
+        if (marginMode !== undefined) {
+            request['mgnMode'] = marginMode;
+        }
+        if (instType !== undefined) {
+            request['instType'] = instType;
+        }
+        const response = await this.privateGetAccountPositionsHistory(this.extend(request, params));
+        //
+        //    {
+        //        code: '0',
+        //        data: [
+        //            {
+        //                cTime: '1708735940395',
+        //                ccy: 'USDT',
+        //                closeAvgPx: '0.6330444444444444',
+        //                closeTotalPos: '27',
+        //                direction: 'long',
+        //                fee: '-1.69566',
+        //                fundingFee: '-11.870404179341788',
+        //                instId: 'XRP-USDT-SWAP',
+        //                instType: 'SWAP',
+        //                lever: '3.0',
+        //                liqPenalty: '0',
+        //                mgnMode: 'cross',
+        //                openAvgPx: '0.623',
+        //                openMaxPos: '15',
+        //                pnl: '27.11999999999988',
+        //                pnlRatio: '0.0241732402722634',
+        //                posId: '681423155054862336',
+        //                realizedPnl: '13.553935820658092',
+        //                triggerPx: '',
+        //                type: '2',
+        //                uTime: '1711088748170',
+        //                uly: 'XRP-USDT'
+        //            },
+        //            ...
+        //        ],
+        //        msg: ''
+        //    }
+        //
+        const data = this.safeList(response, 'data');
+        const positions = this.parsePositions(data, symbols, params);
+        return this.filterBySinceLimit(positions, since, limit);
     }
 }

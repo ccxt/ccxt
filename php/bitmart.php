@@ -3097,7 +3097,7 @@ class bitmart extends Exchange {
         return $this->network_id_to_code($networkId);
     }
 
-    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
         /**
          * make a withdrawal
          * @param {string} $code unified $currency $code
@@ -3498,7 +3498,7 @@ class bitmart extends Exchange {
         );
     }
 
-    public function fetch_isolated_borrow_rate(string $symbol, $params = array ()) {
+    public function fetch_isolated_borrow_rate(string $symbol, $params = array ()): array {
         /**
          * fetch the rate of interest to borrow a currency for margin trading
          * @see https://developer-pro.bitmart.com/en/spot/#get-trading-pair-borrowing-rate-and-amount-keyed
@@ -3550,7 +3550,7 @@ class bitmart extends Exchange {
         return $this->parse_isolated_borrow_rate($borrowRate, $market);
     }
 
-    public function parse_isolated_borrow_rate($info, ?array $market = null) {
+    public function parse_isolated_borrow_rate($info, ?array $market = null): array {
         //
         //     {
         //         "symbol" => "BTC_USDT",
@@ -3593,7 +3593,7 @@ class bitmart extends Exchange {
         );
     }
 
-    public function fetch_isolated_borrow_rates($params = array ()) {
+    public function fetch_isolated_borrow_rates($params = array ()): IsolatedBorrowRates {
         /**
          * fetch the borrow interest rates of all currencies, currently only works for isolated margin
          * @see https://developer-pro.bitmart.com/en/spot/#get-trading-pair-borrowing-rate-and-amount-keyed
@@ -3636,12 +3636,7 @@ class bitmart extends Exchange {
         //
         $data = $this->safe_value($response, 'data', array());
         $symbols = $this->safe_value($data, 'symbols', array());
-        $result = array();
-        for ($i = 0; $i < count($symbols); $i++) {
-            $symbol = $this->safe_value($symbols, $i);
-            $result[] = $this->parse_isolated_borrow_rate($symbol);
-        }
-        return $result;
+        return $this->parse_isolated_borrow_rates($symbols);
     }
 
     public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): array {

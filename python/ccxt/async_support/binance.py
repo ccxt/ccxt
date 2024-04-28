@@ -8,7 +8,7 @@ from ccxt.abstract.binance import ImplicitAPI
 import asyncio
 import hashlib
 import json
-from ccxt.base.types import Balances, Conversion, Currencies, Currency, Greeks, Int, Leverage, Leverages, MarginMode, MarginModes, MarginModification, Market, MarketInterface, Num, Option, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
+from ccxt.base.types import Balances, Conversion, CrossBorrowRate, Currencies, Currency, Greeks, Int, Leverage, Leverages, MarginMode, MarginModes, MarginModification, Market, MarketInterface, Num, Option, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -148,8 +148,10 @@ class binance(Exchange, ImplicitAPI):
                 'fetchOrders': True,
                 'fetchOrderTrades': True,
                 'fetchPosition': True,
+                'fetchPositionHistory': False,
                 'fetchPositionMode': True,
                 'fetchPositions': True,
+                'fetchPositionsHistory': False,
                 'fetchPositionsRisk': True,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchSettlementHistory': True,
@@ -1120,7 +1122,7 @@ class binance(Exchange, ImplicitAPI):
                         'feeSide': 'quote',
                         'tierBased': True,
                         'percentage': True,
-                        'taker': self.parse_number('0.000400'),
+                        'taker': self.parse_number('0.000500'),
                         'maker': self.parse_number('0.000200'),
                         'tiers': {
                             'taker': [
@@ -8019,7 +8021,7 @@ class binance(Exchange, ImplicitAPI):
             }
         return result
 
-    async def withdraw(self, code: str, amount: float, address, tag=None, params={}):
+    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
         """
         make a withdrawal
         :see: https://binance-docs.github.io/apidocs/spot/en/#withdraw-user_data
@@ -10380,7 +10382,7 @@ class binance(Exchange, ImplicitAPI):
             'datetime': self.iso8601(timestamp),
         }
 
-    async def reduce_margin(self, symbol: str, amount, params={}) -> MarginModification:
+    async def reduce_margin(self, symbol: str, amount: float, params={}) -> MarginModification:
         """
         :see: https://binance-docs.github.io/apidocs/delivery/en/#modify-isolated-position-margin-trade
         :see: https://binance-docs.github.io/apidocs/futures/en/#modify-isolated-position-margin-trade
@@ -10392,7 +10394,7 @@ class binance(Exchange, ImplicitAPI):
         """
         return await self.modify_margin_helper(symbol, amount, 2, params)
 
-    async def add_margin(self, symbol: str, amount, params={}) -> MarginModification:
+    async def add_margin(self, symbol: str, amount: float, params={}) -> MarginModification:
         """
         :see: https://binance-docs.github.io/apidocs/delivery/en/#modify-isolated-position-margin-trade
         :see: https://binance-docs.github.io/apidocs/futures/en/#modify-isolated-position-margin-trade
@@ -10404,7 +10406,7 @@ class binance(Exchange, ImplicitAPI):
         """
         return await self.modify_margin_helper(symbol, amount, 1, params)
 
-    async def fetch_cross_borrow_rate(self, code: str, params={}):
+    async def fetch_cross_borrow_rate(self, code: str, params={}) -> CrossBorrowRate:
         """
         fetch the rate of interest to borrow a currency for margin trading
         :see: https://binance-docs.github.io/apidocs/spot/en/#query-margin-interest-rate-history-user_data
@@ -11882,7 +11884,7 @@ class binance(Exchange, ImplicitAPI):
             #     }
             #
         rows = self.safe_list(response, responseQuery, [])
-        return self.parse_conversions(rows, fromCurrencyKey, toCurrencyKey, since, limit)
+        return self.parse_conversions(rows, code, fromCurrencyKey, toCurrencyKey, since, limit)
 
     def parse_conversion(self, conversion, fromCurrency: Currency = None, toCurrency: Currency = None) -> Conversion:
         #

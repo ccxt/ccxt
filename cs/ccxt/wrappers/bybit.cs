@@ -502,6 +502,13 @@ public partial class bybit
         var res = await this.editUsdcOrder(id, symbol, type, side, amount, price, parameters);
         return new Order(res);
     }
+    public Dictionary<string, object> EditOrderRequest(string id, string symbol, string type, string side, double? amount2 = 0, double? price2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var amount = amount2 == 0 ? null : (object)amount2;
+        var price = price2 == 0 ? null : (object)price2;
+        var res = this.editOrderRequest(id, symbol, type, side, amount, price, parameters);
+        return ((Dictionary<string, object>)res);
+    }
     /// <summary>
     /// edit a trade order
     /// </summary>
@@ -578,6 +585,11 @@ public partial class bybit
     {
         var res = await this.cancelUsdcOrder(id, symbol, parameters);
         return new Order(res);
+    }
+    public Dictionary<string, object> CancelOrderRequest(string id, string symbol = null, Dictionary<string, object> parameters = null)
+    {
+        var res = this.cancelOrderRequest(id, symbol, parameters);
+        return ((Dictionary<string, object>)res);
     }
     /// <summary>
     /// cancels an open order
@@ -1512,7 +1524,7 @@ public partial class bybit
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}.</returns>
-    public async Task<Transaction> Withdraw(string code, double amount, object address, object tag = null, Dictionary<string, object> parameters = null)
+    public async Task<Transaction> Withdraw(string code, double amount, string address, object tag = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.withdraw(code, amount, address, tag, parameters);
         return new Transaction(res);
@@ -1779,10 +1791,10 @@ public partial class bybit
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [borrow rate structure]{@link https://docs.ccxt.com/#/?id=borrow-rate-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchCrossBorrowRate(string code, Dictionary<string, object> parameters = null)
+    public async Task<CrossBorrowRate> FetchCrossBorrowRate(string code, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchCrossBorrowRate(code, parameters);
-        return ((Dictionary<string, object>)res);
+        return new CrossBorrowRate(res);
     }
     /// <summary>
     /// fetch the interest owed by the user for borrowing currency for margin trading
@@ -2288,5 +2300,51 @@ public partial class bybit
     {
         var res = await this.fetchOptionChain(code, parameters);
         return new OptionChain(res);
+    }
+    /// <summary>
+    /// fetches historical positions
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://bybit-exchange.github.io/docs/v5/position/close-pnl"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>symbol</term>
+    /// <description>
+    /// string : unified market symbols, symbols must have the same subType (must all be linear or all be inverse)
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : timestamp in ms of the earliest position to fetch, params["until"] - since <= 7 days
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum amount of records to fetch, default=50, max=100
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.until</term>
+    /// <description>
+    /// int : timestamp in ms of the latest position to fetch, params["until"] - since <= 7 days
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.subType</term>
+    /// <description>
+    /// string : 'linear' or 'inverse'
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object[]</term> a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}.</returns>
+    public async Task<List<Position>> FetchPositionsHistory(List<String> symbols = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.fetchPositionsHistory(symbols, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new Position(item)).ToList<Position>();
     }
 }

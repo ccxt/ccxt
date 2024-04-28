@@ -102,7 +102,9 @@ class htx extends htx$1 {
                 'fetchOrders': true,
                 'fetchOrderTrades': true,
                 'fetchPosition': true,
+                'fetchPositionHistory': 'emulated',
                 'fetchPositions': true,
+                'fetchPositionsHistory': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': true,
                 'fetchSettlementHistory': true,
@@ -6752,11 +6754,7 @@ class htx extends htx$1 {
         // }
         //
         const data = this.safeValue(response, 'data', []);
-        const rates = [];
-        for (let i = 0; i < data.length; i++) {
-            rates.push(this.parseIsolatedBorrowRate(data[i]));
-        }
-        return rates;
+        return this.parseIsolatedBorrowRates(data);
     }
     parseIsolatedBorrowRate(info, market = undefined) {
         //

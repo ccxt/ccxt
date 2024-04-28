@@ -114,8 +114,10 @@ public partial class binance : Exchange
                 { "fetchOrders", true },
                 { "fetchOrderTrades", true },
                 { "fetchPosition", true },
+                { "fetchPositionHistory", false },
                 { "fetchPositionMode", true },
                 { "fetchPositions", true },
+                { "fetchPositionsHistory", false },
                 { "fetchPositionsRisk", true },
                 { "fetchPremiumIndexOHLCV", false },
                 { "fetchSettlementHistory", true },
@@ -1144,7 +1146,7 @@ public partial class binance : Exchange
                         { "feeSide", "quote" },
                         { "tierBased", true },
                         { "percentage", true },
-                        { "taker", this.parseNumber("0.000400") },
+                        { "taker", this.parseNumber("0.000500") },
                         { "maker", this.parseNumber("0.000200") },
                         { "tiers", new Dictionary<string, object>() {
                             { "taker", new List<object>() {new List<object> {this.parseNumber("0"), this.parseNumber("0.000400")}, new List<object> {this.parseNumber("250"), this.parseNumber("0.000400")}, new List<object> {this.parseNumber("2500"), this.parseNumber("0.000350")}, new List<object> {this.parseNumber("7500"), this.parseNumber("0.000320")}, new List<object> {this.parseNumber("22500"), this.parseNumber("0.000300")}, new List<object> {this.parseNumber("50000"), this.parseNumber("0.000270")}, new List<object> {this.parseNumber("100000"), this.parseNumber("0.000250")}, new List<object> {this.parseNumber("200000"), this.parseNumber("0.000220")}, new List<object> {this.parseNumber("400000"), this.parseNumber("0.000200")}, new List<object> {this.parseNumber("750000"), this.parseNumber("0.000170")}} },
@@ -13586,7 +13588,7 @@ public partial class binance : Exchange
             response = await this.sapiGetConvertTradeFlow(this.extend(request, parameters));
         }
         object rows = this.safeList(response, responseQuery, new List<object>() {});
-        return this.parseConversions(rows, fromCurrencyKey, toCurrencyKey, since, limit);
+        return this.parseConversions(rows, code, fromCurrencyKey, toCurrencyKey, since, limit);
     }
 
     public override object parseConversion(object conversion, object fromCurrency = null, object toCurrency = null)

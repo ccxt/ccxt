@@ -3,8 +3,8 @@ import { // eslint-disable-line object-curly-newline
 ExchangeError, AuthenticationError, DDoSProtection, RequestTimeout, ExchangeNotAvailable, RateLimitExceeded } from "./errors.js";
 import WsClient from './ws/WsClient.js';
 import { OrderBook as WsOrderBook, IndexedOrderBook, CountedOrderBook } from './ws/OrderBook.js';
-import type { Market, Trade, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRate, DepositWithdrawFeeNetwork, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks, Option, OptionChain, Str, Num, MarketInterface, CurrencyInterface, BalanceAccount, MarginModes, MarketType, Leverage, Leverages, LastPrice, LastPrices, Account, Strings, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CancellationRequest } from './types.js';
-export type { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, BorrowRate, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks, Option, OptionChain, Str, Num, MarketInterface, CurrencyInterface, BalanceAccount, MarginModes, MarketType, Leverage, Leverages, LastPrice, LastPrices, Account, Strings, Conversion } from './types.js';
+import type { Market, Trade, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRate, DepositWithdrawFeeNetwork, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks, Option, OptionChain, Str, Num, MarketInterface, CurrencyInterface, BalanceAccount, MarginModes, MarketType, Leverage, Leverages, LastPrice, LastPrices, Account, Strings, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CancellationRequest, IsolatedBorrowRate, IsolatedBorrowRates, CrossBorrowRates, CrossBorrowRate } from './types.js';
+export type { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, CrossBorrowRate, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks, Option, OptionChain, Str, Num, MarketInterface, CurrencyInterface, BalanceAccount, MarginModes, MarketType, Leverage, Leverages, LastPrice, LastPrices, Account, Strings, Conversion } from './types.js';
 import { ArrayCache, ArrayCacheByTimestamp } from './ws/Cache.js';
 import { OrderBook as Ob } from './ws/OrderBook.js';
 /**
@@ -166,21 +166,21 @@ export default class Exchange {
     newUpdates: boolean;
     streaming: {};
     alias: boolean;
-    deepExtend: (...xs: any[]) => any;
+    deepExtend: (...xs: any) => any;
     isNode: boolean;
     keys: {
         (o: object): string[];
         (o: {}): string[];
     };
-    values: (x: any) => any[];
+    values: (x: any[] | Dictionary<any>) => any[];
     extend: (...args: any[]) => any;
     clone: (x: any) => any;
-    flatten: (x: any, out?: any[]) => any[];
-    unique: (x: any) => any[];
-    indexBy: (x: any, k: any, out?: {}) => {};
-    sortBy: (array: any, key: any, descending?: boolean, defaultValue?: any, direction?: number) => any;
-    sortBy2: (array: any, key1: any, key2: any, descending?: boolean, direction?: number) => any;
-    groupBy: (x: any, k: any, out?: {}) => {};
+    flatten: (x: any[], out?: any[]) => any[];
+    unique: (x: any[]) => any[];
+    indexBy: (x: Dictionary<any>, k: IndexType, out?: Dictionary<any>) => Dictionary<any>;
+    sortBy: (array: any[], key: IndexType, descending?: boolean, defaultValue?: any, direction?: number) => any[];
+    sortBy2: (array: any[], key1: IndexType, key2: IndexType, descending?: boolean, direction?: number) => any[];
+    groupBy: (x: Dictionary<any>, k: string, out?: Dictionary<any>) => Dictionary<any>;
     aggregate: typeof functions.aggregate;
     uuid: (a?: any) => string;
     unCamelCase: (s: string) => string;
@@ -200,7 +200,7 @@ export default class Exchange {
     numberToBE: (n: number, padding: number) => Uint8Array;
     base16ToBinary: (str: string) => Uint8Array;
     iso8601: (timestamp: any) => string;
-    omit: (x: any, ...args: any[]) => any;
+    omit: (x: Dictionary<any>, ...args: any[]) => any;
     isJsonEncodedObject: (object: any) => boolean;
     safeInteger: (o: any, k: IndexType, $default?: number) => number;
     sum: (...xs: any[]) => any;
@@ -209,7 +209,7 @@ export default class Exchange {
     extractParams: (string: any) => any[];
     json: (data: any, params?: any) => string;
     vwap: typeof functions.vwap;
-    merge: (target: any, ...args: any[]) => any;
+    merge: (target: Dictionary<any>, ...args: any) => Dictionary<any>;
     binaryConcat: typeof import("../static_dependencies/noble-curves/abstract/utils.js").concatBytes;
     hash: (request: import("../static_dependencies/noble-hashes/utils.js").Input, hash: {
         (message: import("../static_dependencies/noble-hashes/utils.js").Input): Uint8Array;
@@ -217,7 +217,7 @@ export default class Exchange {
         blockLen: number;
         create(): import("../static_dependencies/noble-hashes/utils.js").Hash<import("../static_dependencies/noble-hashes/utils.js").Hash<any>>;
     }, digest?: "binary" | "hex" | "base64") => any;
-    arrayConcat: (a: any, b: any) => any;
+    arrayConcat: (a: any[], b: any[]) => any[];
     encode: (str: string) => Uint8Array;
     urlencode: (object: object) => string;
     hmac: (request: import("../static_dependencies/noble-hashes/utils.js").Input, secret: import("../static_dependencies/noble-hashes/utils.js").Input, hash: {
@@ -249,19 +249,19 @@ export default class Exchange {
     base64ToBinary: (str: string) => Uint8Array;
     safeTimestamp2: (o: any, k1: IndexType, k2: IndexType, $default?: any) => number;
     rawencode: (object: object) => string;
-    keysort: (x: any, out?: {}) => {};
-    inArray: (needle: any, haystack: any) => any;
+    keysort: (x: Dictionary<any>, out?: Dictionary<any>) => Dictionary<any>;
+    inArray: (needle: any, haystack: any[]) => boolean;
     safeStringLower2: (o: any, k1: IndexType, k2: IndexType, $default?: string) => string;
     safeStringUpper2: (o: any, k1: IndexType, k2: IndexType, $default?: string) => string;
-    isEmpty: (object: any) => boolean;
-    ordered: (x: any) => any;
-    filterBy: (x: any, k: any, value?: any, out?: any[]) => any[];
+    isEmpty: (object: any[] | Dictionary<any>) => boolean;
+    ordered: (x: any[] | Dictionary<any>) => any[] | Dictionary<any>;
+    filterBy: (x: Dictionary<any>, k: string, value?: any, out?: Dictionary<any>[]) => Dictionary<any>[];
     uuid16: (a?: any) => string;
     urlencodeWithArrayRepeat: (object: object) => string;
     microseconds: () => number;
     binaryToBase64: (data: Uint8Array) => string;
     strip: (s: string) => string;
-    toArray: (object: any) => unknown[];
+    toArray: (object: any[] | Dictionary<any>) => any[];
     safeFloatN: (o: any, k: IndexType[], $default?: number) => number;
     safeIntegerN: (o: any, k: IndexType[], $default?: number) => number;
     safeIntegerProductN: (o: any, k: IndexType[], $factor: number, $default?: number) => number;
@@ -432,6 +432,8 @@ export default class Exchange {
             fetchOrderWs: any;
             fetchPermissions: any;
             fetchPosition: any;
+            fetchPositionHistory: any;
+            fetchPositionsHistory: any;
             fetchPositionWs: any;
             fetchPositionMode: any;
             fetchPositions: any;
@@ -703,13 +705,14 @@ export default class Exchange {
     parseAccount(account: any): Account;
     parseLedgerEntry(item: any, currency?: Currency): object;
     parseOrder(order: any, market?: Market): Order;
-    fetchCrossBorrowRates(params?: {}): Promise<{}>;
-    fetchIsolatedBorrowRates(params?: {}): Promise<{}>;
+    fetchCrossBorrowRates(params?: {}): Promise<CrossBorrowRates>;
+    fetchIsolatedBorrowRates(params?: {}): Promise<IsolatedBorrowRates>;
     parseMarketLeverageTiers(info: any, market?: Market): object;
     fetchLeverageTiers(symbols?: string[], params?: {}): Promise<Dictionary<LeverageTier[]>>;
     parsePosition(position: any, market?: Market): Position;
     parseFundingRateHistory(info: any, market?: Market): FundingRateHistory;
     parseBorrowInterest(info: any, market?: Market): BorrowInterest;
+    parseIsolatedBorrowRate(info: any, market?: Market): IsolatedBorrowRate;
     parseWsTrade(trade: any, market?: Market): Trade;
     parseWsOrder(order: any, market?: Market): Order;
     parseWsOrderTrade(trade: any, market?: Market): Trade;
@@ -882,8 +885,8 @@ export default class Exchange {
     fetchDepositWithdrawFees(codes?: string[], params?: {}): Promise<Dictionary<DepositWithdrawFeeNetwork>>;
     fetchDepositWithdrawFee(code: string, params?: {}): Promise<DepositWithdrawFeeNetwork>;
     getSupportedMapping(key: any, mapping?: {}): any;
-    fetchCrossBorrowRate(code: string, params?: {}): Promise<{}>;
-    fetchIsolatedBorrowRate(symbol: string, params?: {}): Promise<{}>;
+    fetchCrossBorrowRate(code: string, params?: {}): Promise<CrossBorrowRate>;
+    fetchIsolatedBorrowRate(symbol: string, params?: {}): Promise<IsolatedBorrowRate>;
     handleOptionAndParams(params: object, methodName: string, optionName: string, defaultValue?: any): any[];
     handleOptionAndParams2(params: object, methodName: string, methodName2: string, optionName: string, defaultValue?: any): any[];
     handleOption(methodName: string, optionName: string, defaultValue?: any): any;
@@ -1015,8 +1018,9 @@ export default class Exchange {
     filterBySymbolsSinceLimit(array: any, symbols?: string[], since?: Int, limit?: Int, tail?: boolean): any;
     parseLastPrices(pricesData: any, symbols?: string[], params?: {}): LastPrices;
     parseTickers(tickers: any, symbols?: string[], params?: {}): Dictionary<Ticker>;
-    parseDepositAddresses(addresses: any, codes?: string[], indexed?: boolean, params?: {}): {};
+    parseDepositAddresses(addresses: any, codes?: string[], indexed?: boolean, params?: {}): Dictionary<any>;
     parseBorrowInterests(response: any, market?: Market): any[];
+    parseIsolatedBorrowRates(info: any): IsolatedBorrowRates;
     parseFundingRateHistories(response: any, market?: any, since?: Int, limit?: Int): FundingRateHistory[];
     safeSymbol(marketId: Str, market?: Market, delimiter?: Str, marketType?: Str): string;
     parseFundingRate(contract: string, market?: Market): object;
@@ -1070,11 +1074,13 @@ export default class Exchange {
     parseMarginMode(marginMode: any, market?: Market): MarginMode;
     parseLeverages(response: object[], symbols?: string[], symbolKey?: Str, marketType?: MarketType): Leverages;
     parseLeverage(leverage: any, market?: Market): Leverage;
-    parseConversions(conversions: any[], fromCurrencyKey?: Str, toCurrencyKey?: Str, since?: Int, limit?: Int, params?: {}): Conversion[];
+    parseConversions(conversions: any[], code?: Str, fromCurrencyKey?: Str, toCurrencyKey?: Str, since?: Int, limit?: Int, params?: {}): Conversion[];
     parseConversion(conversion: any, fromCurrency?: Currency, toCurrency?: Currency): Conversion;
     convertExpireDate(date: string): string;
     convertExpireDateToMarketIdDate(date: string): string;
     convertMarketIdExpireDate(date: string): string;
+    fetchPositionHistory(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Position>;
+    fetchPositionsHistory(symbols?: Strings, since?: Int, limit?: Int, params?: {}): Promise<Position[]>;
     parseMarginModification(data: any, market?: Market): MarginModification;
     parseMarginModifications(response: object[], symbols?: string[], symbolKey?: Str, marketType?: MarketType): MarginModification[];
 }
