@@ -1101,7 +1101,7 @@ export default class binance extends Exchange {
                         'feeSide': 'quote',
                         'tierBased': true,
                         'percentage': true,
-                        'taker': this.parseNumber ('0.000400'),
+                        'taker': this.parseNumber ('0.000500'),
                         'maker': this.parseNumber ('0.000200'),
                         'tiers': {
                             'taker': [
