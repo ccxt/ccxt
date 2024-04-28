@@ -719,6 +719,21 @@ export default class mexc extends mexcRest {
         //        "v": "5"
         //    }
         //
+        //
+        //   d: {
+        //       p: '1.0005',
+        //       v: '5.71',
+        //       a: '5.712855',
+        //       S: 1,
+        //       T: 1714325698237,
+        //       t: 'edafcd9fdc2f426e82443d114691f724',
+        //       c: '',
+        //       i: 'C02__413321238354677760043',
+        //       m: 0,
+        //       st: 0,
+        //       n: '0.005712855',
+        //       N: 'USDT'
+        //   }
         let timestamp = this.safeInteger (trade, 'T');
         let tradeId = this.safeString (trade, 't');
         if (timestamp === undefined) {
@@ -730,6 +745,8 @@ export default class mexc extends mexcRest {
         const rawSide = this.safeString (trade, 'S');
         const side = (rawSide === '1') ? 'buy' : 'sell';
         const isMaker = this.safeInteger (trade, 'm');
+        const feeAmount = this.safeNumber (trade, 'n');
+        const feeCurrencyId = this.safeString (trade, 'N');
         return this.safeTrade ({
             'info': trade,
             'id': tradeId,
@@ -743,7 +760,11 @@ export default class mexc extends mexcRest {
             'price': priceString,
             'amount': amountString,
             'cost': undefined,
-            'fee': undefined,
+            'fee': {
+                'cost': feeAmount,
+                'currency': this.safeCurrencyCode (feeCurrencyId),
+
+            },
         }, market);
     }
 
