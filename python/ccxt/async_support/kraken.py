@@ -67,6 +67,7 @@ class kraken(Exchange, ImplicitAPI):
                 'createStopOrder': True,
                 'createTrailingAmountOrder': True,
                 'editOrder': True,
+                'fetchOrders': True,
                 'fetchBalance': True,
                 'fetchBorrowInterest': False,
                 'fetchBorrowRateHistories': False,
@@ -1777,6 +1778,28 @@ class kraken(Exchange, ImplicitAPI):
         #
         data = self.safe_dict(response, 'result', {})
         return self.parse_order(data, market)
+
+    async def fetch_orders(self, symbol: str = None, since: int = None, limit: int = None, params={}):
+        """
+        Fetches information on multiple orders made by the user
+        :param str symbol: unified market symbol of the market orders were made in
+        :param int [since]: the earliest time in ms to fetch orders for
+        :param int [limit]: the maximum number of order structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        await self.load_markets()
+        request = {}
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+            request['pair'] = market['id']
+        if since is not None:
+            request['start'] = since
+        if limit is not None:
+            request['count'] = limit
+        response = await self.privatePostGetOpenOrders(self.extend(request, params))
+        return self.parse_orders(response['result']['closed'], market, since, limit)
 
     async def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
