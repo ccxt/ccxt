@@ -182,10 +182,11 @@ class ArrayCacheBySymbolBySide(ArrayCache):
         by_side = self.hashmap.setdefault(item['symbol'], {})
         if not self._hedged:
             side_to_reset = 'long' if item['side'] == 'short' else 'short'
-            del by_side[side_to_reset]
-            index = self._index.index(side_to_reset)
-            del self._deque[index]
-            del self._index[index]
+            if side_to_reset in by_side:
+                del by_side[side_to_reset]
+                index = self._index.index(side_to_reset)
+                del self._deque[index]
+                del self._index[index]
         if item['side'] in by_side:
             reference = by_side[item['side']]
             if reference != item:
