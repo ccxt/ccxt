@@ -201,7 +201,7 @@ public partial class Exchange
         {
             foreach (var subscribeHash in subscribeHashes)
             {
-                if (subscribeHash == null) return;
+                if (subscribeHash == null) continue;
 
                 if ((client.subscriptions as ConcurrentDictionary<string, object>).TryAdd (subscribeHash, clientSubscription ?? true))
                 {
