@@ -4222,7 +4222,7 @@ export default class bybit extends Exchange {
         };
         if (market['spot']) {
             // only works for spot market
-            const isStop = this.safeValue2 (params, 'stop', 'trigger', false);
+            const isStop = this.safeBool2 (params, 'stop', 'trigger', false);
             params = this.omit (params, [ 'stop', 'trigger' ]);
             request['orderFilter'] = isStop ? 'StopOrder' : 'Order';
         }
@@ -4238,7 +4238,7 @@ export default class bybit extends Exchange {
         } else if (market['option']) {
             request['category'] = 'option';
         }
-        return request;
+        return this.extend (request, params);
     }
 
     async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
@@ -4265,8 +4265,8 @@ export default class bybit extends Exchange {
         if (isUsdcSettled && !isUnifiedAccount) {
             return await this.cancelUsdcOrder (id, symbol, params);
         }
-        const request = this.cancelOrderRequest (id, symbol, params);
-        const response = await this.privatePostV5OrderCancel (this.extend (request, params));
+        const requestExtended = this.cancelOrderRequest (id, symbol, params);
+        const response = await this.privatePostV5OrderCancel (requestExtended);
         //
         //     {
         //         "retCode": 0,
