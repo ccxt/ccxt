@@ -502,6 +502,13 @@ public partial class bybit
         var res = await this.editUsdcOrder(id, symbol, type, side, amount, price, parameters);
         return new Order(res);
     }
+    public Dictionary<string, object> EditOrderRequest(string id, string symbol, string type, string side, double? amount2 = 0, double? price2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var amount = amount2 == 0 ? null : (object)amount2;
+        var price = price2 == 0 ? null : (object)price2;
+        var res = this.editOrderRequest(id, symbol, type, side, amount, price, parameters);
+        return ((Dictionary<string, object>)res);
+    }
     /// <summary>
     /// edit a trade order
     /// </summary>
@@ -578,6 +585,11 @@ public partial class bybit
     {
         var res = await this.cancelUsdcOrder(id, symbol, parameters);
         return new Order(res);
+    }
+    public Dictionary<string, object> CancelOrderRequest(string id, string symbol = null, Dictionary<string, object> parameters = null)
+    {
+        var res = this.cancelOrderRequest(id, symbol, parameters);
+        return ((Dictionary<string, object>)res);
     }
     /// <summary>
     /// cancels an open order
@@ -1779,10 +1791,10 @@ public partial class bybit
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [borrow rate structure]{@link https://docs.ccxt.com/#/?id=borrow-rate-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchCrossBorrowRate(string code, Dictionary<string, object> parameters = null)
+    public async Task<CrossBorrowRate> FetchCrossBorrowRate(string code, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchCrossBorrowRate(code, parameters);
-        return ((Dictionary<string, object>)res);
+        return new CrossBorrowRate(res);
     }
     /// <summary>
     /// fetch the interest owed by the user for borrowing currency for margin trading

@@ -5591,11 +5591,7 @@ class coinex extends coinex$1 {
         //     }
         //
         const data = this.safeValue(response, 'data', []);
-        const rates = [];
-        for (let i = 0; i < data.length; i++) {
-            rates.push(this.parseIsolatedBorrowRate(data[i]));
-        }
-        return rates;
+        return this.parseIsolatedBorrowRates(data);
     }
     async fetchBorrowInterest(code = undefined, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();

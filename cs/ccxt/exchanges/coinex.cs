@@ -5233,7 +5233,7 @@ public partial class coinex : Exchange
         return this.parseTransactions(data, currency, since, limit);
     }
 
-    public virtual object parseIsolatedBorrowRate(object info, object market = null)
+    public override object parseIsolatedBorrowRate(object info, object market = null)
     {
         //
         //     {
@@ -5346,12 +5346,7 @@ public partial class coinex : Exchange
         //     }
         //
         object data = this.safeValue(response, "data", new List<object>() {});
-        object rates = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
-        {
-            ((IList<object>)rates).Add(this.parseIsolatedBorrowRate(getValue(data, i)));
-        }
-        return rates;
+        return this.parseIsolatedBorrowRates(data);
     }
 
     public async override Task<object> fetchBorrowInterest(object code = null, object symbol = null, object since = null, object limit = null, object parameters = null)

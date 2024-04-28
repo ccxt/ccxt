@@ -8659,7 +8659,7 @@ public partial class bitget : Exchange
         return this.parseIsolatedBorrowRate(first, market);
     }
 
-    public virtual object parseIsolatedBorrowRate(object info, object market = null)
+    public override object parseIsolatedBorrowRate(object info, object market = null)
     {
         //
         //     {
